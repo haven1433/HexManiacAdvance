@@ -149,21 +149,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       private void WriteMovementStream(IDataModel model, ModelDelta token, int start, int source) {
-         TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, "[move.movementtypes]!FE", null, out var tsRun);
-         if (tsRun != null) {
-            model.ClearFormat(token, tsRun.Start, tsRun.Length);
-            model.ObserveRunWritten(token, tsRun);
-         }
+         var format = "[move.movementtypes]!FE";
+         WriteStream(model, token, start, source, format);
       }
 
       private void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
-         TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, $"[move:{HardcodeTablesModel.ItemsTableName}]!0000", null, out var tsRun);
-         if (tsRun != null) model.ObserveRunWritten(token, tsRun);
+         var format = $"[move:{HardcodeTablesModel.ItemsTableName}]!0000";
+         WriteStream(model, token, start, source, format);
       }
 
       private void WriteSpriteTemplateStream(IDataModel model, ModelDelta token, int start, int source) {
          var format = "[tileTag: paletteTag: oam<> anims<> images<> affineAnims<> callback<>]1";
-         TableStreamRun.TryParseTableStream(model, start, new SortedSpan<int>(source), string.Empty, format, null, out var tsRun);
+         WriteStream(model, token, start, source, format);
+      }
+
+      private void WriteStream(IDataModel model, ModelDelta token, int start, int source, string format) {
+         var sources = source >= 0 ? SortedSpan.One(source) : SortedSpan<int>.None;
+         TableStreamRun.TryParseTableStream(model, start, sources, string.Empty, format, null, out var tsRun);
          if (tsRun != null) {
             model.ClearFormat(token, tsRun.Start, tsRun.Length);
             model.ObserveRunWritten(token, tsRun);
@@ -189,7 +191,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var result = new List<byte>();
          int streamLocation = -1, streamPointerLocation = -1;
 
-         var labels = ExtractLocalLabels(model, lines);
+         var labels = ExtractLocalLabels(model, start, lines);
 
          for (var i = 0; i < lines.Length; i++) {
             var line = lines[i].Trim();
@@ -237,19 +239,29 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (command.PointsToMovement) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0xFE);
+                     WriteMovementStream(model, token, newAddress, -1);
                   } else if (command.PointsToText) {
                      newAddress = model.FindFreeSpace(0, 0x10);
+                     if (newAddress == -1) {
+                        var endLength = model.Count;
+                        model.ExpandData(token, endLength + 0x10);
+                        newAddress = endLength + 0x10;
+                     }
                      token.ChangeData(model, newAddress, 0xFF);
+                     model.ObserveRunWritten(token, new PCSRun(model, newAddress, 1));
                   } else if (command.PointsToMart) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0x00);
                      token.ChangeData(model, newAddress + 1, 0x00);
+                     WriteMartStream(model, token, newAddress, -1);
                   } else if (command.PointsToSpriteTemplate) {
                      newAddress = model.FindFreeSpace(0, 0x18);
                      for (int j = 0; j < 0x18; j++) token.ChangeData(model, newAddress + j, 0x00);
+                     WriteSpriteTemplateStream(model, token, newAddress, -1);
                   } else if (command.PointsToNextScript) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, endToken);
+                     // TODO write a new script template... an anchor with a format based on the current script
                   }
                   if (newAddress != -1) {
                      line = line.ReplaceOne("<??????>", $"<{newAddress:X6}>");
@@ -285,13 +297,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return result.ToArray();
       }
 
-      private IReadOnlyDictionary<string, int> ExtractLocalLabels(IDataModel model, string[] lines) {
+      private LabelLibrary ExtractLocalLabels(IDataModel model, int start, string[] lines) {
          var labels = new Dictionary<string, int>();
          var length = 0;
          foreach (var fullLine in lines) {
             var line = fullLine.Trim();
             if (line.EndsWith(":")) {
-               labels[line.Substring(0, line.Length - 1)] = length;
+               labels[line.Substring(0, line.Length - 1)] = start + length;
                continue;
             }
             foreach (var command in engine) {
@@ -300,7 +312,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                break;
             }
          }
-         return labels;
+         return new LabelLibrary(model, labels);
       }
 
       public string GetHelp(string currentLine) {
@@ -362,7 +374,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(IReadOnlyList<byte> data, int index);
-      string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result);
+      string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
       string Decompile(IDataModel data, int start);
    }
 
@@ -450,7 +462,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return true;
       }
 
-      public string Compile(IDataModel model, int start, string scriptLine, IReadOnlyDictionary<string, int> labels, out byte[] result) {
+      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
          result = null;
          var tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
@@ -484,8 +496,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         return "Unmatched <>";
                      }
                      token = token.Substring(1, token.Length - 2);
-                     if (labels.TryGetValue(token, out value)) {
-                        value += start;
+                     if (labels.TryResolveLabel(token, out value)) {
+                        // resolved to an address
                      } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
                         // pointer *is* an address: nothing else to do
                      } else {
@@ -493,8 +505,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      }
                      value -= Pointer.NULL;
                   } else {
-                     if (labels.TryGetValue(token, out value)) {
-                        value += start;
+                     if (labels.TryResolveLabel(token, out value)) {
+                        // resolved to an address
                      } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
                         // pointer *is* an address: nothing else to do
                      } else {

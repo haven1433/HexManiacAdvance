@@ -2157,6 +2157,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
+         // clear pointers from moved scripts
+         if (run is IScriptStartRun) {
+            do {
+               var nextRun = GetNextRun(run.Start + 1) as PointerRun;
+               if (nextRun == null || nextRun.Start >= run.Start + length) break;
+               ClearFormat(changeToken, nextRun.Start, 4);
+            }
+            while (true);
+         }
+
          // move data
          for (int i = 0; i < length; i++) {
             changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
@@ -2175,6 +2185,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          int newIndex = BinarySearch(newStart);
          runs.Insert(~newIndex, newRun);
          changeToken.AddRun(newRun);
+         if (~newIndex < index) index += 1;
 
          // move anchor
          if (anchorForAddress.TryGetValue(run.Start, out var name)) {

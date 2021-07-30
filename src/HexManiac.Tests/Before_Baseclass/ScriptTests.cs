@@ -315,6 +315,34 @@ Script:
          Assert.Equal(new byte[] { 03, 0x11, 0x9F, 0x0A, 0x08, 0x05, 0x00 }, bytes);
       }
 
+      [Fact]
+      public void ScriptWithDataAfter_AddCommandThatRequestsPointerAndCausesRepoint_RepointAndPointerChooseDifferentOffsets() {
+         SetFullModel(0xFF);
+         Model.FreeSpaceBuffer = 0x10;
+         ViewPort.Edit("^script`xse` 02 @04 01 @00 ");
+
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("loadpointer 0 <??????>", "end");
+
+         var scriptAddress = Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "script");
+         var loadAddress = Model.ReadPointer(scriptAddress + 2);
+         Assert.IsType<XSERun>(Model.GetNextRun(scriptAddress));
+         Assert.NotEqual(scriptAddress, loadAddress);
+      }
+
+      [Fact]
+      public void ScriptWithPointer_Repoint_OldPointerFormatGone() {
+         SetFullModel(0xFF);
+         Model.FreeSpaceBuffer = 0x10;
+         ViewPort.Edit("^script`xse` 0F 00 <text> 02 FF ^text\"\" \"text\" @00 ");
+
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("loadpointer 0 <text>", "additem 0 0", "end");
+
+         Assert.NotEqual(2, Model.GetNextRun(2).Start);
+         var text = Model.GetNextAnchor("text");
+         Assert.DoesNotContain(2, text.PointerSources);
+         Assert.Contains(Model.GetNextAnchor("script").Start + 2, text.PointerSources);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

@@ -22,6 +22,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (labels.TryGetValue(label, out int result)) return result + offset;
          return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label) + offset;
       }
+      public bool TryResolveLabel(string label, out int address) {
+         address = ResolveLabel(label);
+         return address >= 0;
+      }
       public bool TryResolveValue(string title, out int value) {
          return model.TryGetUnmappedConstant(title, out value);
       }

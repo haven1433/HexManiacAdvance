@@ -612,6 +612,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          return newRun;
       }
 
+      public static IFormattedRun GetNextAnchor(this IDataModel model, string name) => model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, name));
+
       /// <summary>
       /// Returns all arrays from the model with a length that depends on the parent array.
       /// Also returns any array with a BitArraySegment that depends on the parent array.
