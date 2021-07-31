@@ -33,7 +33,7 @@ graphics.maps.names.popup.background,       ,,,, ,,,, 0D4CA4, `ucs4x10x18|graphi
 graphics.maps.names.popup.outline,          ,,,, ,,,, 0D4C58, `ucs4x6x30|graphics.maps.names.popup.palettes`
 data.maps.banks,                       053324, 053324, 053344, 053344,       ,       ,       ,       ,       , [maps<[map<[layout<[width:: height:: s1<> s2<> tiles<[a. b. c. d. tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> unknown<> blockend<>]1> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]34
 data.maps.banks,                             ,       ,       ,       , 05524C, 05524C, 055260, 055260,       , [maps<[map<[layout<[width:: height:: s1<> s2<> tiles<[a. b. c. d. tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> unknown<> blockend<>]1> s4<> borderwidth. borderheight. unused:]1> events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]1>]43
-data.maps.banks,                             ,       ,       ,       ,       ,       ,       ,       , 084AA4, [maps<[map<[layout<[width:: height:: s1<> s2<> tiles<[a. b. c. d. tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> unknown<> blockend<>]1> s4<> borderwidth. borderheight. unused:]1> events<[objects. warps. scripts. signposts. objectP<[id. graphics. unused: x: y: elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objects> warpP<[x:1000 y:1000 elevation. warpID. map. bank.]/warps> scriptP<[x: y: elevation: trigger: index: unused: script<`xse`>]/scripts> signpostP<[x: y: elevation. kind. unused: arg::|h]/signposts>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]?>]34
+data.maps.banks,                             ,       ,       ,       ,       ,       ,       ,       , 084AA4, [maps<[map<[layout<[width:: height:: s1<> s2<> tiles<[a. b. c. d. tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> unknown<> blockend<>]1> s4<> borderwidth. borderheight. unused:]1> events<[objects. warps. scripts. signposts. objectP<[id. graphics. unused: x:1000 y:1000 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objects> warpP<[x:1000 y:1000 elevation. warpID. map. bank.]/warps> scriptP<[x:1000 y:1000 elevation: trigger: index: unused: script<`xse`>]/scripts> signpostP<[x:1000 y:1000 elevation. kind. unused: arg::|h]/signposts>]1> mapscripts<[type. pointer<>]!00> d<> song: map: label. flash. weather. type. unused: useLabel:]1>]?>]34
 data.maps.dungeons.stats,                    ,       ,       ,       , 0C1904, 0C18D8, 0C18EC, 0C18EC,       , [id:: name<""> description<"">]19
 
 data.maps.heal.map,                          ,       ,       ,       , 0BFD80, 0BFD54, 0BFD94, 0BFD68,       , [bank: map:]20
@@ -339,6 +339,8 @@ graphics.titlescreen.pokemon.tilemap,              ,,,, 078AA8, 078AA8, 078ABC, 
 graphics.titlescreen.publisher.palette,            ,,,, 078AAC, 078AAC, 078AC0, 078AC0, , `ucp4:F`
 graphics.titlescreen.publisher.tileset,            ,,,, 078AB0, 078AB0, 078AC4, 078AC4, , `lzt4|graphics.titlescreen.publisher.palette`
 graphics.titlescreen.publisher.tilemap,            ,,,, 078AB4, 078AB4, 078AC8, 078AC8, , `lzm4x32x20|graphics.titlescreen.publisher.tileset`
+graphics.titlescreen.publisher.palette,                                 ,,,, ,,,, 540100, `ucp4`
+graphics.titlescreen.publisher.sprite,                                  ,,,, ,,,, 5400F0, `lzs4x20x2|graphics.titlescreen.publisher.palette`
 graphics.titlescreen.widescreen.tileset,           ,,,, 078AB8, 078AB8, 078ACC, 078ACC, , `lzt4|graphics.titlescreen.publisher.palette`
 graphics.titlescreen.widescreen.tilemap,           ,,,, 078ABC, 078ABC, 078AD0, 078AD0, , `lzm4x32x20|graphics.titlescreen.widescreen.tileset`
 graphics.titlescreen.logo.sprite,                   ,   ,   ,   ,   ,   ,   ,   , 0AA94C, `lzs8x32x8|graphics.titlescreen.logo.palette`
@@ -392,9 +394,9 @@ graphics.titlescreen.developer.mediumstar,                 ,,,, 40BBD0, 40BA0C, 
 graphics.titlescreen.developer.logo,                       ,,,, 40BBD8, 40BA14, 40BC48, 40BA84, , `lzs4x4x8|graphics.titlescreen.developer.palette3`
 graphics.titlescreen.developer.presents,                   ,,,, 40BBE0, 40BA1C, 40BC50, 40BA8C, , `lzs4x8x1|graphics.titlescreen.developer.palette3`
 graphics.titlescreen.developer.text,                       ,,,, 0ECB6C, 0ECB44, 0ECB80, 0ECB58, , `lzs4x18x2|graphics.titlescreen.developer.palette3`
-graphics.titlescreen.copyright.tileset,                    ,,,, 0EC610, 0EC5E8, 0EC624, 0EC5FC, , `lzt4|graphics.titlescreen.copyright.palette`
-graphics.titlescreen.copyright.tilemap,                    ,,,, 0EC614, 0EC5EC, 0EC628, 0EC600, , `lzm4x32x32|graphics.titlescreen.copyright.tileset`
-graphics.titlescreen.copyright.palette,                    ,,,, 0EC618, 0EC5F0, 0EC62C, 0EC604, , `ucp4`
+graphics.titlescreen.copyright.tileset,                    ,,,, 0EC610, 0EC5E8, 0EC624, 0EC5FC, 16CCAC, `lzt4|graphics.titlescreen.copyright.palette`
+graphics.titlescreen.copyright.tilemap,                    ,,,, 0EC614, 0EC5EC, 0EC628, 0EC600, 16CCB0, `lzm4x32x32|graphics.titlescreen.copyright.tileset`
+graphics.titlescreen.copyright.palette,                    ,,,, 0EC618, 0EC5F0, 0EC62C, 0EC604, 16CCB4, `ucp4`
 
 graphics.newgame.platform.palette,                 ,,,, 462F24, 462944, 462F84, 4629B4, , `ucp4`
 graphics.newgame.platform.sprite,                  ,,,, 462F14, 462934, 462F74, 4629A4, , `lzs4x4x12|graphics.newgame.platform.palette`
