@@ -123,9 +123,9 @@
 5B spriteface npc: direction.
 
 5C trainerbattle 00 trainer: arg: start<> playerwin<>
-5C trainerbattle 01 trainer: arg: start<> playerwin<> winscript<>            # doesn't play encounter music
-5C trainerbattle 02 trainer: arg: start<> playerwin<> winscript<>            # plays encounter music
-5C trainerbattle 03 trainer: arg: start<>                                    # continues caller
+5C trainerbattle 01 trainer: arg: start<> playerwin<> winscript<>            # doesn't play encounter music, continues with winscript
+5C trainerbattle 02 trainer: arg: start<> playerwin<> winscript<>            # does play encounter music, continues with winscript
+5C trainerbattle 03 trainer: arg: playerwin<>                                # no intro text
 5C trainerbattle 04 trainer: arg: start<> playerwin<> needmorepokemonText<>  # double battles
 5C trainerbattle 05 trainer: arg: start<> playerwin<>                        # clone of 0, but with rematch potential
 5C trainerbattle 06 trainer: arg: start<> playerwin<> needmorepokemonText<> unknown<> # double battles
