@@ -343,6 +343,19 @@ Script:
          Assert.Contains(Model.GetNextAnchor("script").Start + 2, text.PointerSources);
       }
 
+      [Fact]
+      public void ScriptWithShop_EditShopItems_DataUpdates() {
+         SetFullModel(0xFF);
+         CreateTextTable("data.items.stats", 0x100, "adam", "bob", "carl", "dave", "eric", "fred");
+         ViewPort.Edit("@00 ^script`xse` ");
+         Assert.Equal(ViewPort.Tools.SelectedTool, ViewPort.Tools.CodeTool);
+
+         ViewPort.Tools.CodeTool.Contents[0].Content = "pokemart <000080>";
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("pokemart <000080>", "{", "carl", "}");
+
+         Assert.Equal(2, Model.ReadMultiByteValue(0x80, 2));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

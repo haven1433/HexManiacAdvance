@@ -96,13 +96,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          string formatString,
          IReadOnlyList<ArrayRunElementSegment> parsedSegments,
          IStreamEndStrategy endStream
+      ) : this(model, start, sources, formatString, parsedSegments, endStream, -1) { }
+
+      public TableStreamRun(
+         IDataModel model,
+         int start,
+         SortedSpan<int> sources,
+         string formatString,
+         IReadOnlyList<ArrayRunElementSegment> parsedSegments,
+         IStreamEndStrategy endStream,
+         int elementCountOverride
       ) : base(start, sources) {
          if (parsedSegments == null) parsedSegments = ArrayRun.ParseSegments(formatString.Substring(1, formatString.Length - 2), model);
          this.model = model;
          ElementContent = parsedSegments;
          this.endStream = endStream;
          ElementLength = parsedSegments.Sum(segment => segment.Length);
-         ElementCount = endStream.GetCount(start, ElementLength, sources);
+         ElementCount = elementCountOverride >= 0 ? elementCountOverride : endStream.GetCount(start, ElementLength, sources);
          Length = ElementLength * ElementCount + endStream.ExtraLength;
          FormatString = formatString;
       }
@@ -522,7 +532,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
          for (int i = 0; i < EndCode.Count; i++) token.ChangeData(model, newRun.Start + naturalLength + length * run.ElementLength + i, EndCode[i]);
-         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
+         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this, run.ElementCount + length);
       }
    }
 
