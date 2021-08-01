@@ -356,6 +356,26 @@ Script:
          Assert.Equal(2, Model.ReadMultiByteValue(0x80, 2));
       }
 
+      [Fact]
+      public void MoveEffectTable_CreateNew_NoCrash() {
+         ViewPort.Edit("^table[content<`bse`>]1 ");
+
+         var streamElement = (StreamElementViewModel)ViewPort.Tools.TableTool.Children.Single(child => child is StreamElementViewModel);
+         streamElement.CreateNew.Execute();
+
+         // no assert -> test pass
+      }
+
+      [Fact]
+      public void AnimationScriptTable_CreateNew_NoCrash() {
+         ViewPort.Edit("^table[content<`ase`>]1 ");
+
+         var streamElement = (StreamElementViewModel)ViewPort.Tools.TableTool.Children.Single(child => child is StreamElementViewModel);
+         streamElement.CreateNew.Execute();
+
+         // no assert -> test pass
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

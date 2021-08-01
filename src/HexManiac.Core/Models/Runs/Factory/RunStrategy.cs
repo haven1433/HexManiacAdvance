@@ -155,7 +155,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new System.NotImplementedException();
+         token.ChangeData(owner, destination, 0x3d); // end
+         return new BSERun(destination, SortedSpan.One(source));
       }
    }
 
@@ -185,7 +186,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new System.NotImplementedException();
+         token.ChangeData(owner, destination, 8); // end
+         return new ASERun(destination, SortedSpan.One(source));
       }
    }
 }
