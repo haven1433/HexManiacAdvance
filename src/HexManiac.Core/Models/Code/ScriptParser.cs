@@ -220,10 +220,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      // alter script content and compiled byte location based on stream move
                      if (streamRun.Start != streamLocation) {
                         script = script.Replace(streamLocation.ToString("X6"), streamRun.Start.ToString("X6"));
-                        result[streamPointerLocation + 0] = (byte)(streamLocation >> 0);
-                        result[streamPointerLocation + 1] = (byte)(streamLocation >> 8);
-                        result[streamPointerLocation + 2] = (byte)(streamLocation >> 16);
-                        result[streamPointerLocation + 3] = (byte)((streamLocation >> 24) + 0x08);
+                        result[streamPointerLocation + 0] = (byte)(streamRun.Start >> 0);
+                        result[streamPointerLocation + 1] = (byte)(streamRun.Start >> 8);
+                        result[streamPointerLocation + 2] = (byte)(streamRun.Start >> 16);
+                        result[streamPointerLocation + 3] = (byte)((streamRun.Start >> 24) + 0x08);
                         ((List<(int, int)>)movedData).Add((streamLocation, streamRun.Start));
                      }
                   }

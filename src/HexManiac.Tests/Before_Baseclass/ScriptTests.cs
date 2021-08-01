@@ -376,6 +376,22 @@ Script:
          // no assert -> test pass
       }
 
+      [Fact]
+      public void EventScriptWithText_ExpandTextSoItMoves_ScriptPointerUpdates() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^script`xse` 0F 00 <100> 02 @100 ^text\"\" \"short\" 07 @00 ");
+
+         var tool = ViewPort.Tools.CodeTool.Contents[0];
+         var lines = tool.Content.SplitLines(); // label, loadpointer, curly, text, curly, end
+         lines[3] = "longer";
+         tool.Content = Script(lines);
+
+         var destination = Model.ReadPointer(2);
+         Assert.Equal(destination, Model.GetNextRun(destination).Start);
+         Assert.Equal("\"longer\"", PCSString.Convert(Model, destination, 10));
+         Assert.Equal("text", Model.GetAnchorFromAddress(-1, destination));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
