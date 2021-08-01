@@ -80,6 +80,9 @@ namespace HavenSoft.HexManiac.WPF.Resources {
       public override object ProvideValue(IServiceProvider serviceProvider) {
          var valueProvider = serviceProvider.GetService(typeof(IProvideValueTarget)) as IProvideValueTarget;
          if (valueProvider == null) return null;
+         if (valueProvider.TargetObject.GetType().FullName == "System.Windows.SharedDp") {
+            return this; // we're in a template: defer execution
+         }
          var element = (FrameworkElement)valueProvider.TargetObject;
          var context = element.DataContext;
          var command = new MethodCommand(context, CommandMethod);

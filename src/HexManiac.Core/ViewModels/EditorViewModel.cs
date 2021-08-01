@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly StubCommand
          newCommand = new StubCommand(),
          open = new StubCommand(),
+         duplicateCurrentTab = new StubCommand(),
          save = new StubCommand(),
          saveAs = new StubCommand(),
          exportBackup = new StubCommand(),
@@ -79,6 +80,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ICommand New => newCommand;
       public ICommand Open => open;                // parameter: file to open (or null)
+      public ICommand DuplicateCurrentTab => duplicateCurrentTab;
       public ICommand Save => save;
       public ICommand SaveAs => saveAs;
       public ICommand SaveAll => saveAll;
@@ -382,6 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   findPrevious.RaiseCanExecuteChanged();
                   findNext.RaiseCanExecuteChanged();
                   runFile.RaiseCanExecuteChanged();
+                  duplicateCurrentTab.RaiseCanExecuteChanged();
                   if (selectedIndex >= 0 && selectedIndex < tabs.Count) tabs[selectedIndex].Refresh();
                   UpdateGotoViewModel();
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
@@ -555,6 +558,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } catch (IOException ex) {
                ErrorMessage = ex.Message;
             }
+         };
+
+         duplicateCurrentTab.CanExecute = arg => SelectedTab?.CanDuplicate ?? false;
+         duplicateCurrentTab.Execute = arg => {
+            SelectedTab?.Duplicate();
+            gotoViewModel.ControlVisible = true;
          };
 
          runFile.CanExecute = arg => SelectedTab is IEditableViewPort viewPort && !viewPort.ChangeHistory.HasDataChange;

@@ -626,6 +626,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region Duplicate
+
+      public bool CanDuplicate => true;
+      public void Duplicate() => OpenInNewTab(scroll.DataIndex);
+
+      #endregion
+
       public int FreeSpaceStart { get => Model.FreeSpaceStart; set {
             if (Model.FreeSpaceStart != value) {
                Model.FreeSpaceStart = value;

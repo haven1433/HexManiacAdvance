@@ -544,6 +544,30 @@ ApplicationVersion = '''0.1.0'''
          Assert.False(editor.RunFile.CanExecute(default));
       }
 
+      [Fact]
+      public void Tab_Duplicate_Duplicated() {
+         var tab = new StubTabContent { CanDuplicate = true };
+         tab.Duplicate = () => tab.RequestTabChange.Invoke(tab, new StubTabContent());
+
+         editor.Add(tab);
+         editor.DuplicateCurrentTab.Execute();
+
+         Assert.Equal(2, editor.Count);
+         Assert.True(editor.GotoViewModel.ControlVisible);
+      }
+
+      [Fact]
+      public void TabWithoutDuplicate_SwitchToTabWithDuplicate_Notify() {
+         editor.Add(new StubTabContent { CanDuplicate = false });
+         editor.Add(new StubTabContent { CanDuplicate = true });
+         editor.SelectedIndex = 0;
+         var view = new StubView(editor);
+
+         editor.SelectedIndex = 1;
+
+         Assert.Contains(nameof(editor.DuplicateCurrentTab), view.CommandCanExecuteChangedNotifications);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

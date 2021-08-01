@@ -118,6 +118,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
       public ICommand DiffRight => null;
+      public bool CanDuplicate => false;
+      public void Duplicate() { }
 
       public event EventHandler PreviewScrollChanged;
       public event EventHandler<string> OnError;

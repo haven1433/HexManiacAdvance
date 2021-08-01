@@ -137,6 +137,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Close => this[0].Close;
 
       ICommand ITabContent.Clear => this[0].Clear;
+      public bool CanDuplicate => false;
+      public void Duplicate() { }
 
       public event EventHandler PreviewScrollChanged { add => ForEach(child => child.PreviewScrollChanged += value); remove => ForEach(child => child.PreviewScrollChanged -= value); }
       public event EventHandler<string> OnError { add => ForEach(child => child.OnError += value); remove => ForEach(child => child.OnError -= value); }

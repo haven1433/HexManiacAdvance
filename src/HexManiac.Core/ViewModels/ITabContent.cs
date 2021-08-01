@@ -37,6 +37,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<Direction> RequestDiff;
       event EventHandler<CanDiffEventArgs> RequestCanDiff;
 
+      bool CanDuplicate { get; }
+      void Duplicate();
+
       void Refresh();
       bool TryImport(LoadedFile file, IFileSystem fileSystem);
    }

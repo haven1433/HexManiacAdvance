@@ -52,6 +52,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Back => null;
       public ICommand Forward => null;
       public ICommand Close => StubCommand(ref close, () => Closed?.Invoke(this, EventArgs.Empty));
+      public bool CanDuplicate => false;
+      public void Duplicate() { }
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
       public event EventHandler ClearMessage;
