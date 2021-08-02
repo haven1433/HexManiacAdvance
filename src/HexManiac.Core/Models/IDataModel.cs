@@ -427,6 +427,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // part 1: find a previous FF, which is possibly the end of another text
          var startPlaces = new List<int>();
          if (left < 0 || left >= model.Count) return startPlaces;
+         startPlaces.Add(left);
          while (left >= 0 && model[left] != 0xFF && PCSString.PCS[model[left]] != null) { left--; length++; }
          left++; length--;
 

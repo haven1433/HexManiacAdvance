@@ -506,6 +506,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x20, results.Single().start);
       }
 
+      [Fact]
+      public void DisplayAsText_PreviousByteRandom_StillFindTextStartingHere() {
+         PCSString.Convert("Some Content").WriteInto(Model.RawData, 0x21);
+         Model.WritePointer(new ModelDelta(), 3, 0x21);
+         ViewPort.Goto.Execute(0x21);
+
+         var menu = ViewPort.GetContextMenuItems(ViewPort.SelectionStart);
+         menu = menu.GetSubmenu("Display As...");
+         var displayText = menu.Single(item => item.Text == "Text");
+         displayText.Command.Execute();
+
+         Assert.IsType<PCSRun>(Model.GetNextRun(0x21));
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());
