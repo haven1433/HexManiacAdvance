@@ -1,4 +1,6 @@
-﻿# conditions:
+﻿# compare with event.inc in the decomp
+
+# conditions:
 # 00 A < B
 # 01 A = B
 # 02 A > B
@@ -182,7 +184,7 @@
                                              # if successful, 8004 is set to the pokemon species
 7D bufferPokemon buffer.3 species:           # species can be a literal or variable. Store the name in the given buffer
 7E bufferfirstPokemon buffer.3               # name of your first pokemon gets stored in the given buffer
-7F bufferpartyPokemon buffer.3 party.        # name of pokemon 'party' from your party gets stored in the buffer
+7F bufferpartyPokemon buffer.3 party:        # name of pokemon 'party' from your party gets stored in the buffer
 80 bufferitem buffer.3 item:                 # stores an item name in a buffer
 81 bufferdecoration buffer.3 decoration:
 82 bufferattack buffer.3 move:               # species, party, item, decoration, and move can all be literals or variables
