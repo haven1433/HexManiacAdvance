@@ -237,6 +237,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private TSERun Construct<TSERun>(int start, SortedSpan<int> sources) where TSERun : IScriptStartRun {
+         if (typeof(TSERun) == typeof(XSERun)) return (TSERun)(IScriptStartRun)new XSERun(start, sources);
+         if (typeof(TSERun) == typeof(ASERun)) return (TSERun)(IScriptStartRun)new ASERun(start, sources);
+         if (typeof(TSERun) == typeof(BSERun)) return (TSERun)(IScriptStartRun)new BSERun(start, sources);
+         throw new NotImplementedException();
+      }
+
       private void CompileScriptChanges<TSERun>(int start, IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
          ShowErrorText = false;
          ErrorText = string.Empty;
@@ -265,7 +272,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      return;
                   }
                } else {
-                  run = (IScriptStartRun)model.RelocateForExpansion(history.CurrentChange, run, code.Length);
+                  if (run is NoInfoRun) run = Construct<TSERun>(run.Start, run.PointerSources);
+                  run = model.RelocateForExpansion(history.CurrentChange, run, code.Length);
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;

@@ -392,6 +392,21 @@ Script:
          Assert.Equal("text", Model.GetAnchorFromAddress(-1, destination));
       }
 
+      [Fact]
+      public void ScriptWithNoInfoAnchor_ExtendScript_NoRepoint() {
+         ViewPort.Edit("<100> @100 ^script 6A 02 @100 ");
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+
+         var tool = ViewPort.Tools.CodeTool.Contents[0];
+         var lines = tool.Content.SplitLines().ToList();
+         lines.Insert(0, "faceplayer");
+         tool.Content = Script(lines.ToArray());
+
+         Assert.Equal(0x100, Model.GetNextAnchor("script").Start);
+         Assert.Equal(0x5A, Model[0x100]);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
