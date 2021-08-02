@@ -1595,11 +1595,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IEnumerable<(int start, int end)> FindUnquotedText(string cleanedSearchString, List<ISearchByte> searchBytes, bool matchExactCase) {
-         var pcsBytes = PCSString.Convert(cleanedSearchString);
+         var pcsBytes = PCSString.Convert(cleanedSearchString, out bool containsBadCharacters);
          pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
 
          // only search for the string if every character in the search string is allowed
-         if (pcsBytes.Count != cleanedSearchString.Length) yield break;
+         if (containsBadCharacters) yield break;
 
          searchBytes.AddRange(pcsBytes.Select(b => PCSSearchByte.Create(b, matchExactCase)));
          var textResults = Model.Search(searchBytes).ToList();

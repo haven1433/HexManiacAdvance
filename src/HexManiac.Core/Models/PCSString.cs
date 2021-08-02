@@ -89,15 +89,26 @@ namespace HavenSoft.HexManiac.Core.Models {
          return result.ToString();
       }
 
-      public static List<byte> Convert(string input) {
+      public static List<byte> Convert(string input) => Convert(input, out var _);
+      public static List<byte> Convert(string input, out bool containsBadCharacters) {
          if (input.StartsWith("\"")) input = input.Substring(1); // trim leading " at start of string
          var result = new List<byte>();
+         containsBadCharacters = false;
 
          int index = 0;
          while (index < input.Length) {
+            bool foundMatch = false;
             for (int i = 0; i < 0x100; i++) {
                if (PCS[i] == null) continue;
-               if (input.Substring(index).Length < PCS[i].Length || input.Substring(index, PCS[i].Length) != PCS[i]) continue;
+               var checkCharacter = PCS[i];
+               if (input.Length < index + checkCharacter.Length) continue;
+               var checkInput = input.Substring(index, checkCharacter.Length);
+               if (checkCharacter.StartsWith("\\")) {
+                  // escape sequences don't care about case
+                  checkCharacter = checkCharacter.ToUpper();
+                  checkInput = checkInput.ToUpper();
+               }
+               if (checkInput != checkCharacter) continue;
                result.Add((byte)i);
                index += PCS[i].Length - 1;
                if (i == Escape && input.Length > index + 2) {
@@ -119,8 +130,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                   index += 2;
                }
+               foundMatch = true;
                break;
             }
+            containsBadCharacters |= !foundMatch;
             index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
          }
 

@@ -496,6 +496,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("\"H.llo World\"", PCSString.Convert(test.Model, 0, 12));
       }
 
+      [Fact]
+      public void TextWithEscape_Search_Find() {
+         var text = "Some\\nText";
+         PCSString.Convert(text).WriteInto(Model.RawData, 0x20);
+
+         var results = ViewPort.Find(text);
+
+         Assert.Equal(0x20, results.Single().start);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());
