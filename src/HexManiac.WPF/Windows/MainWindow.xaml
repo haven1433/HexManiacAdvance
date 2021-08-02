@@ -12,11 +12,6 @@
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    </Window.Resources>
    <Window.InputBindings>
-      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, T}" Command="{Binding DisplayAsText}"/>
-      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, E}" Command="{Binding DisplayAsEventScript}"/>
-      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, S}" Command="{Binding DisplayAsSprite}"/>
-      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, C}" Command="{Binding DisplayAsColorPalette}"/>
-
       <KeyBinding Key="N" Modifiers="Ctrl" Command="{Binding New}" />
       <KeyBinding Key="O" Modifiers="Ctrl" Command="{Binding Open}" />
       <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding DuplicateCurrentTab}" />
@@ -60,6 +55,11 @@
       </KeyBinding>
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
+
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, T}" Command="{Binding DisplayAsText}"/>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, E}" Command="{Binding DisplayAsEventScript}"/>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, S}" Command="{Binding DisplayAsSprite}"/>
+      <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, C}" Command="{Binding DisplayAsColorPalette}"/>
    </Window.InputBindings>
    <Window.CommandBindings>
       <CommandBinding Command="NavigateJournal" Executed="ExecuteAnimation"/>
