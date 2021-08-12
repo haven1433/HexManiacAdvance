@@ -234,6 +234,13 @@ AXVE1.data.pokemon.type.length*8 0A0214,0A0310
 AXPE1.data.pokemon.type.length+5 3C1235
 AXPE1.data.pokemon.type.length*8 0A0214,0A0310
 
+# trainer phone calls
+BPEE0.data.trainers.call.odds.normal 195E8E
+BPEE0.data.trainers.call.odds.lightningrod 195EAC
+BPEE0.data.trainers.gym.leader.battles.needed.rematch1 0B1220 # After this many  wild battles, there is a 31% chance of a gym leader rematch becoming available.
+BPEE0.data.trainers.gym.leader.battles.needed.rematch2 0B123C # After this many trainer battles, there is a 31% chance of a gym leader rematch becoming available.
+BPEE0.data.trainers.gym.leader.battles.needed.rematch3 163A10 # After this many battle-frontier battles, there is a 31% chance of a gym leader rematch becoming available.
+
 # evolution methods limiter
 AXVE0.scripts.evolution.count-1  03F574
 AXPE0.scripts.evolution.count-1  03F574

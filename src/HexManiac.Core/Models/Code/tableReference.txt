@@ -1,6 +1,7 @@
 ﻿//games,                               AXVE0,  AXPE0,  AXVE1,  AXPE1,  BPRE0,  BPGE0,  BPRE1,  BPGE1,  BPEE0,
 //                                     Ruby    Sapp    Ruby11  Sapp11  FRed    LGrn    FRed11  LGrn11  Emrald
 
+// Special thanks to Fred40 for helping with a lot of the FireRed image anchors
 
 data.pokemon.names,                    00FA58, 00FA58, 00FA58, 00FA58, 000144, 000144, 000144, 000144, 000144, [name""11]
 data.pokemon.moves.names,              02E18C, 02E18C, 02E18C, 02E18C, 000148, 000148, 000148, 000148, 000148, ^[name""13]
@@ -280,6 +281,18 @@ graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 13
 graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
 graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10B938, , `ucp4`
 
+// from Scyrous
+graphics.townmap.pokenav.zoom.tileset,    ,,,, ,,,, 1CCAD0, `lzt4|graphics.townmap.pokenav.zoom.palette`
+graphics.townmap.pokenav.zoom.palette,    ,,,, ,,,, 1CCAD8, `ucp4`
+graphics.menu.partymenu.palette,          ,,,, ,,,, 1B0678, `lzp4`
+graphics.menu.partymenu.tileset,          ,,,, ,,,, 1B0634, `lzt4|graphics.menu.partymenu.palette`
+graphics.menu.partymenu.tilemap,          ,,,, ,,,, 1B0650, `lzm4x32x24|graphics.menu.partymenu.tileset`
+graphics.bag.frontier.pyramidbag.palette, ,,,, ,,,, 1C6EE0, `lzp4`
+graphics.bag.frontier.pyramidbag.sprite,  ,,,, ,,,, 61F3CC, `lzs4x8x8|graphics.bag.frontier.pyramidbag.palette`
+graphics.bag.inside1.background.malepalette,         ,,,, ,,,, 1AB170, `lzp4`
+graphics.bag.inside1.background.femalepalette,       ,,,, ,,,, 1AB160, `lzp4`
+graphics.bag.inside1.background.tileset,             ,,,, ,,,, 1AB114, `lzt4|graphics.bag.inside1.background.malepalette`
+graphics.bag.inside1.background.tilemap,             ,,,, ,,,, 1AB134, `lzm4x32x20|graphics.bag.inside1.background.tileset`
 
 graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
@@ -435,6 +448,7 @@ graphics.townmap.tilemap,                      ,       ,       ,       ,       ,
 graphics.townmap.pokedex.palette,              ,,,, ,,,,                                           1C4E80, `ucp4:789`
 graphics.townmap.pokedex.tileset,              ,,,, ,,,,                                           1C4DD4, `lzt8|graphics.townmap.pokedex.palette`
 graphics.townmap.pokedex.tilemap,              ,,,, ,,,,                                           1C4DD8, `lzm8x32x32|graphics.townmap.pokedex.tileset`
+
 graphics.townmap.islands.tilemap1,             ,       ,       ,       , 0C0370, 0C0344, 0C0384, 0C0358, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap2,             ,       ,       ,       , 0C0388, 0C035C, 0C039C, 0C0370, , `lzm4x30x20|graphics.townmap.tileset`
 graphics.townmap.islands.tilemap3,             ,       ,       ,       , 0C03A4, 0C0378, 0C03B8, 0C038C, , `lzm4x30x20|graphics.townmap.tileset`
