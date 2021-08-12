@@ -81,9 +81,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine("Release Version");
 #endif
          text.AppendLine(DateTime.Now.ToString());
-         text.AppendLine(e.Exception.GetType().ToString());
-         text.AppendLine(e.Exception.Message);
-         if (e.Exception is ArgumentOutOfRangeException aoore) text.AppendLine(aoore.ActualValue.ToString());
+         AppendException(text, e.Exception);
          text.AppendLine(e.Exception.StackTrace);
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
@@ -99,6 +97,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             Environment.NewLine +
             "The error has been logged to crash.log", showYesNoCancel: false, processButtonText: "Show crash.log in Explorer", processContent: ".");
          e.Handled = true;
+      }
+
+      private static void AppendException(StringBuilder text, Exception ex, int indent = 0) {
+         var lineStart = new string(' ', indent);
+
+         text.AppendLine(lineStart + ex.GetType().ToString());
+         text.AppendLine(lineStart + ex.Message);
+         if (ex is ArgumentOutOfRangeException aoore) text.AppendLine(lineStart + aoore.ActualValue.ToString());
+         if (ex is AggregateException ae) {
+            foreach (var e in ae.InnerExceptions) AppendException(text, e, indent + 2);
+         }
       }
 
       private void FillQuickEditMenu() {
