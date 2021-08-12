@@ -45,7 +45,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      bool ignoreContentUpdates;
       public string Content {
          get => content;
          set {
@@ -131,6 +130,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// <param name="start"></param>
       /// <param name="currentScriptStart"></param>
       private void UpdateContents(int start, ScriptParser parser, int currentScriptStart = -1) {
+         if (currentScriptStart == -1) {
+            ShowErrorText = false;
+            ErrorText = string.Empty;
+         }
+
          var scripts = parser?.CollectScripts(model, start) ?? new List<int>();
          for (int i = 0; i < scripts.Count; i++) {
             var scriptStart = scripts[i];
@@ -230,10 +234,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
 
          if (length > originalLength) {
-            ignoreContentUpdates = true;
-            selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
-            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(start + length - 1);
-            ignoreContentUpdates = false;
+            using (CreateRecursionGuard()) {
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(start + length - 1);
+            }
          }
       }
 
@@ -244,18 +248,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          throw new NotImplementedException();
       }
 
+      bool ignoreContentUpdates;
+      private IDisposable CreateRecursionGuard() {
+         if (ignoreContentUpdates) return new StubDisposable();
+         ignoreContentUpdates = true;
+         return new StubDisposable { Dispose = () => ignoreContentUpdates = false };
+      }
+
       private void CompileScriptChanges<TSERun>(int start, IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
          ShowErrorText = false;
          ErrorText = string.Empty;
          var sources = run?.PointerSources ?? null;
 
-         ignoreContentUpdates = true;
-         {
+         using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData);
             if (code == null) {
-               ignoreContentUpdates = false;
                return;
             }
 
@@ -330,7 +339,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             foreach (var movedResource in movedData) ModelDataMoved?.Invoke(this, movedResource);
          }
-         ignoreContentUpdates = false;
 
          ModelDataChanged?.Invoke(this, ErrorInfo.NoError);
       }

@@ -407,6 +407,39 @@ Script:
          Assert.Equal(0x5A, Model[0x100]);
       }
 
+      [Fact]
+      public void EditScript_ErrorInScript_ShowError() {
+         SetFullModel(0xFF);
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("lock", "end", "lock");
+
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("lock", "lock", "end");
+
+         Assert.True(ViewPort.Tools.CodeTool.ShowErrorText);
+      }
+
+      [Fact]
+      public void ErrorInScript_ClickOff_ResetScriptEditor() {
+         SetFullModel(0xFF);
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("lock", "end", "lock");
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("lock", "lock", "end");
+
+         ViewPort.SelectionStart = new Point(0, 1);
+         ViewPort.SelectionStart = new Point(0, 0);
+
+         var script = ViewPort.Tools.CodeTool.Contents[0].Content.SplitLines()
+            .Select(line => line.Trim()).Where(line => line.Length > 0).ToArray();
+         Assert.Equal(new[] { "lock", "end" }, script);
+         Assert.False(ViewPort.Tools.CodeTool.ShowErrorText);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
