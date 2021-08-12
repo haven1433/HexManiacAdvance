@@ -159,11 +159,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          get => GetBit(Start + 5, 4);
          set => SetBit(Start + 5, 4, value);
       }
-      public bool IncreaseSpecialDefenseEv {
+      public bool IncreaseSpecialAttackEv {
          get => GetBit(Start + 5, 3);
          set => SetBit(Start + 5, 3, value);
       }
-      public bool IncreaseSpecialAttackEv {
+      public bool IncreaseSpecialDefenseEv {
          get => GetBit(Start + 5, 2);
          set => SetBit(Start + 5, 2, value);
       }
