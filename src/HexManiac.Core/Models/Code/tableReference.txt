@@ -312,7 +312,7 @@ graphics.menu.statusscreen.tilemap1,    ,,,, ,,,, 1BFF54, `lzm4x32x20|graphics.m
 graphics.menu.statusscreen.tilemap2,    ,,,, ,,,, 1BFF88, `lzm4x32x20|graphics.menu.statusscreen.tileset`
 graphics.menu.statusscreen.tilemap3,    ,,,, ,,,, 1BFFA0, `lzm4x32x20|graphics.menu.statusscreen.tileset`
 graphics.menu.statusscreen.tilemap4,    ,,,, ,,,, 1BFFB8, `lzm4x32x20|graphics.menu.statusscreen.tileset`
-graphics.townmap.pokenav.zoom.tilemaps, ,,,, ,,,, 1CCD68, [id: part: tilemap<`lzm4x10x10|graphics.townmap.pokenav.zoom.tileset`>]22
+graphics.townmap.pokenav.zoom.tilemaps, ,,,, ,,,, 1CCD68, [id: part: tilemap<`lzm4x10x10|graphics.townmap.pokenav.zoom.tileset`>]pokenavTowns
 
 graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`

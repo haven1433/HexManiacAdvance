@@ -24,4 +24,30 @@ Offset = 0x000004
 Address = 0x06B82C
 Offset = 0x000004
 
+[[List]]
+Name = '''pokenavTowns'''
+0 = [
+   '''LITTLEROOT TOWN''',
+   '''OLDALE TOWN''',
+   '''DEWFORD TOWN''',
+   '''LAVARIDGE TOWN''',
+   '''FALLARBOR TOWN''',
+   '''VERDANTURF TOWN''',
+   '''PACIFIDLOG TOWN''',
+   '''PETALBURG CITY''',
+   '''SLATEPORT CITY TOP''',
+   '''SLATEPORT CITY BOTTOM''',
+   '''MAUVILLE CITY LEFT''',
+   '''MAUVILLE CITY RIGHT''',
+   '''RUSTBORO CITY TOP''',
+   '''RUSTBORO CITY BOTTOM''',
+   '''FORTREE CITY''',
+   '''LILYCOVE CITY LEFT''',
+   '''LILYCOVE CITY RIGHT''',
+   '''MOSSDEEP CITY LEFT''',
+   '''MOSSDEEP CITY RIGHT''',
+   '''SOOTOPOLIS CITY''',
+   '''EVER GRANDE CITY TOP''',
+   '''EVER GRANDE CITY BOTTOM''',
+]
 
