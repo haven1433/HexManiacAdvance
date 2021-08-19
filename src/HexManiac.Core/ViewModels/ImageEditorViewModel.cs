@@ -804,6 +804,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         var paletteIndex = parent.PaletteIndex(tile[x, y]);
                         if (spriteOnlyExpects16Colors) paletteIndex = tile[x, y];
                         if (xx >= parent.PixelWidth || yy >= parent.PixelHeight) continue;
+                        paletteIndex %= parent.Palette.Elements.Count;
                         parent.PixelData[parent.PixelIndex(xx, yy)] = parent.Palette.Elements[paletteIndex].Color;
                         parent.pixels[xx, yy] = tile[x, y];
                      }
