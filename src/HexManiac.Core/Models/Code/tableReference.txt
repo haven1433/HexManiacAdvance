@@ -146,6 +146,8 @@ data.abilities.pickup.rareitems,             ,       ,       ,       ,       ,  
 data.abilities.soundproof.moves,       018ABC, 018ABC, 018ABC, 018ABC, 01A67C, 01A67C, 01A690, 01A690, 042F70, [move:data.pokemon.moves.names]!FFFF
 data.pokemon.moves.egg,                041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
 data.pokemon.type.chart,               01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.data.pokemon.type.names defend.data.pokemon.type.names strength.]!FFFF00
+data.pokemon.swarm,                          ,       ,       ,       ,       ,       ,       ,       , 0ED800, [pokemon:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names level. location.]5
+
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8, 069F18, 069F18, 069F2C, 069F2C, 099314, [code<>]
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
@@ -283,7 +285,7 @@ graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10
 
 // from Scyrous
 graphics.townmap.pokenav.zoom.tileset,    ,,,, ,,,, 1CCAD0, `lzt4|graphics.townmap.pokenav.zoom.palette`
-graphics.townmap.pokenav.zoom.palette,    ,,,, ,,,, 1CCAD8, `ucp4`
+graphics.townmap.pokenav.zoom.palette,    ,,,, ,,,, 1CCAD8, `ucp4:3`
 graphics.menu.partymenu.palette,          ,,,, ,,,, 1B0678, `lzp4`
 graphics.menu.partymenu.tileset,          ,,,, ,,,, 1B0634, `lzt4|graphics.menu.partymenu.palette`
 graphics.menu.partymenu.tilemap,          ,,,, ,,,, 1B0650, `lzm4x32x24|graphics.menu.partymenu.tileset`
@@ -293,6 +295,24 @@ graphics.bag.inside1.background.malepalette,         ,,,, ,,,, 1AB170, `lzp4`
 graphics.bag.inside1.background.femalepalette,       ,,,, ,,,, 1AB160, `lzp4`
 graphics.bag.inside1.background.tileset,             ,,,, ,,,, 1AB114, `lzt4|graphics.bag.inside1.background.malepalette`
 graphics.bag.inside1.background.tilemap,             ,,,, ,,,, 1AB134, `lzm4x32x20|graphics.bag.inside1.background.tileset`
+graphics.trainercard.frontier.map.selection.palette,     ,,,, ,,,, 5714EC, `ucp4`
+graphics.trainercard.frontier.map.selection.sprite,      ,,,, ,,,, 5714C4, `lzs4x4x4|graphics.trainercard.frontier.map.selection.palette`
+graphics.trainercard.frontier.map.pointer.palette,       ,,,, ,,,, 5714E4, `ucp4`
+graphics.trainercard.frontier.map.pointer.sprite,        ,,,, ,,,, 5714BC, `lzs4x2x4|graphics.trainercard.frontier.map.pointer.palette`
+graphics.trainercard.frontier.map.playerhead.palette,    ,,,, ,,,, 571504, `ucp4`
+graphics.trainercard.frontier.map.playerhead.sprite,     ,,,, ,,,, 5714D4, `lzs4x2x2|graphics.trainercard.frontier.map.playerhead.palette`
+graphics.trainercard.frontier.pass.medals.goldpalette,   ,,,, ,,,, 5714FC, `ucp4`
+graphics.trainercard.frontier.pass.medals.silverpalette, ,,,, ,,,, 5714F4, `ucp4`
+graphics.trainercard.frontier.pass.medals.sprite,        ,,,, ,,,, 5714CC, `lzs4x2x14|graphics.trainercard.frontier.pass.medals.goldpalette`
+graphics.trainercard.frontier.map.largemap.tileset,      ,,,, ,,,, 0C65E4, `lzt4|graphics.trainercard.frontier.palette`
+graphics.trainercard.frontier.map.largemap.tilemap,      ,,,, ,,,, 0C6624, `lzm4x32x20|graphics.trainercard.frontier.map.largemap.tileset`
+graphics.menu.statusscreen.palette,     ,,,, ,,,, 1BFFE0, `lzp4`
+graphics.menu.statusscreen.tileset,     ,,,, ,,,, 1BFF2C, `lzt4|graphics.menu.statusscreen.palette`
+graphics.menu.statusscreen.tilemap1,    ,,,, ,,,, 1BFF54, `lzm4x32x20|graphics.menu.statusscreen.tileset`
+graphics.menu.statusscreen.tilemap2,    ,,,, ,,,, 1BFF88, `lzm4x32x20|graphics.menu.statusscreen.tileset`
+graphics.menu.statusscreen.tilemap3,    ,,,, ,,,, 1BFFA0, `lzm4x32x20|graphics.menu.statusscreen.tileset`
+graphics.menu.statusscreen.tilemap4,    ,,,, ,,,, 1BFFB8, `lzm4x32x20|graphics.menu.statusscreen.tileset`
+graphics.townmap.pokenav.zoom.tilemaps, ,,,, ,,,, 1CCD68, [id: part: tilemap<`lzm4x10x10|graphics.townmap.pokenav.zoom.tileset`>]22
 
 graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
