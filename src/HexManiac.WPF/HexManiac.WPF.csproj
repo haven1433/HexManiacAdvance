@@ -91,6 +91,7 @@
       <DependentUpon>TextBoxLookAlike.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\TileImage.cs" />
+    <Compile Include="Resources\DesignerThemeResource.cs" />
     <Compile Include="Resources\Extensions.cs" />
     <Compile Include="Resources\MultiKeyGesture.cs" />
     <Compile Include="Windows\OptionDialog.xaml.cs">
@@ -143,6 +144,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\TextBoxLookAlike.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\GeneralResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

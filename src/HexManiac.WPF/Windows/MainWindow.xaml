@@ -520,7 +520,7 @@
                   </DataTemplate>
                </TabControl.ContentTemplate>
             </TabControl>
-            <Rectangle Fill="{DynamicResource Background}" Opacity="0" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
+            <Rectangle Fill="{DynamicResource Background}" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
             <!-- Goto Panel -->
             <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">
                <ScrollViewer.InputBindings>
