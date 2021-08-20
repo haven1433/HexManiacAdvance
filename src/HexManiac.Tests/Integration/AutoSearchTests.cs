@@ -39,6 +39,12 @@ namespace HavenSoft.HexManiac.Tests {
          "Altair",          // from Emerald
       }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
 
+      public static IEnumerable<object[]> VanillaPokemonGames { get; } = new[] {
+         "Ruby",
+         "FireRed",
+         "Emerald",
+      }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
+
       private readonly AutoSearchFixture fixture;
       private readonly NoDataChangeDeltaModel noChange = new NoDataChangeDeltaModel();
 
@@ -109,6 +115,35 @@ namespace HavenSoft.HexManiac.Tests {
             var palettes = sprite.FindRelatedPalettes(model);
             if (palettes.Count == 0 && sprite.SpriteFormat.PaletteHint == null) continue;
             Assert.IsAssignableFrom<IPaletteRun>(palettes[0]);
+         }
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(VanillaPokemonGames))]
+      public void Tilemap_UsesPalettePage_PaletteContainsPage(string game) {
+         var model = fixture.LoadModel(game);
+         foreach (var anchor in model.Anchors) {
+            // graphics.titlescreen.publisher.palette is loaded into both slot E and slot F, but we only recognize it being loaded into slot F.
+            // graphics.titlescreen.widescreen.tilemap expects it to load into slot E. We'll ignore this.
+            if (anchor == "graphics.titlescreen.widescreen.tilemap") continue;
+
+            var run = model.GetNextAnchor(anchor) as ITilemapRun;
+            if (run == null || run.SpriteFormat.BitsPerPixel != 4 || run.SpriteFormat.PaletteHint == null || run.BytesPerTile != 2) continue;
+            var palettes = run.FindRelatedPalettes(model);
+            if (palettes.Count == 0) continue;
+            var data = run.GetTilemapData();
+            var palPageStart = palettes[0].PaletteFormat.InitialBlankPages;
+            var palPageCount = palettes[0].PaletteFormat.Pages;
+            for (int i = 1; i < data.Length; i += 2) {
+               var palettePage = data[i] >> 4;
+               var tileIndex = data.ReadMultiByteValue(i - 1, 2) & 0x7F;
+               if (tileIndex == 0) continue;
+               //{
+               //   Assert.True(palPageStart == 0 || tileIndex == 0, $"{anchor} uses palette 0 with tile {tileIndex}.");
+               //} else {
+               Assert.True(palPageStart <= palettePage && palettePage < palPageStart + palPageCount, $"{anchor} uses palette {palettePage}, but the palette at {palettes[0].Start:X6} doesn't have that page.");
+               //}
+            }
          }
       }
 

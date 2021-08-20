@@ -72,9 +72,19 @@ namespace HavenSoft.HexManiac.Tests {
          }
          // every anchor in the upgraded metadata should have the right address and format to match the fresh versions
          foreach (var namedAnchor in upgradedMetadata.NamedAnchors) {
+            bool exemptAddress = false, exemptFormat = false;
+            if (tomlName == "_0.4.0.toml") {
+               exemptAddress |= new[] { // legitimate moves: same name, new location
+                  "graphics.gamecorner.game.palette",
+                  "graphics.bag.inside2.palette",
+               }.Contains(namedAnchor.Name);
+               exemptFormat |= new[] { // legitimate format changes: same name, new format
+                  "graphics.gamecorner.game.palette",
+               }.Contains(namedAnchor.Name);
+            }
             var newNamedAnchor = freshMetadata.NamedAnchors.Single(anchor => anchor.Name == namedAnchor.Name);
-            Assert.Equal(newNamedAnchor.Address, namedAnchor.Address);
-            Assert.Equal(newNamedAnchor.Format, namedAnchor.Format);
+            if (!exemptAddress) Assert.True(newNamedAnchor.Address == namedAnchor.Address, $"Did {namedAnchor.Name} move?");
+            if (!exemptFormat) Assert.True(newNamedAnchor.Format == namedAnchor.Format, $"Did {namedAnchor.Name} get a new format?");
          }
 
          foreach (var offsetPointer in upgradedMetadata.OffsetPointers) {

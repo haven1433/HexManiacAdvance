@@ -91,7 +91,7 @@ graphics.moves.backgrounds.impact.opponent, 37F3AC, 37F33C, 37F3C4, 37F354, 3ADE
 graphics.moves.backgrounds.impact.player,   37F3B8, 37F348, 37F3D0, 37F360, 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC,       , `lzm4x32x20|graphics.moves.backgrounds.all`
 graphics.moves.backgrounds.impact.contest,  37F3C4, 37F354, 37F3DC, 37F36C, 3ADE68, 3ADE48, 3ADED8, 3ADEB8,       , `lzm4x32x20|graphics.moves.backgrounds.all`
 graphics.moves.backgrounds.impact.fissure,  37F478, 37F408, 37F490, 37F420, 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C,       , `lzm4x32x64|graphics.moves.backgrounds.all`
-graphics.moves.surf.palette,                0D39FC, 0D39FC, 0D3A1C, 0D3A1C, 0AB464, 0AB438, 0AB478, 0AB44C,       , `lzp4`
+graphics.moves.surf.palette,                0D39FC, 0D39FC, 0D3A1C, 0D3A1C, 0AB464, 0AB438, 0AB478, 0AB44C,       , `lzp4:8`
 graphics.moves.surf.tileset,                0D39F4, 0D39F4, 0D3A14, 0D3A14, 0AB45C, 0AB430, 0AB470, 0AB444,       , `lzt4|graphics.moves.surf.palette`
 graphics.moves.surf.opponent,               0D39A4, 0D39A4, 0D39C4, 0D39C4, 0AB404, 0AB3D8, 0AB418, 0AB3EC,       , `lzm4x32x64|graphics.moves.surf.tileset`
 graphics.moves.surf.player,                 0D39B4, 0D39B4, 0D39D4, 0D39D4, 0AB414, 0AB3E8, 0AB428, 0AB3FC,       , `lzm4x32x64|graphics.moves.surf.tileset`
@@ -226,14 +226,14 @@ graphics.bag.palette,                  3C1CD8, 3C1D30, 3C1CF4, 3C1D50, 3D41F4, 3
 graphics.bag.berry.sprites,            0A7D7C, 0A7D7C, 0A7D9C, 0A7D9C,       ,       ,       ,       , 0D50C0, [sprite<`lzs4x6x6`> pal<`lzp4`>]
 graphics.bag.berrycase.palette,        ,,,, 4644B0, 463ED0, 464510, 463F40, , `lzp4`
 graphics.bag.berrycase.sprite,         ,,,, 4644A8, 463EC8, 464508, 463F38, , `lzs4x8x8|graphics.bag.berrycase.palette`
-graphics.bag.inside1.palette,          ,,,, 108304, 1082DC, 10837C, 108354, , `lzp4`
+graphics.bag.inside1.palette,          ,,,, 108304, 1082DC, 10837C, 108354, , `lzp4:012`
 graphics.bag.inside1.tileset,          ,,,, 108294, 10826C, 10830C, 1082E4, , `lzt4|graphics.bag.inside1.palette`
 graphics.bag.inside1.tilemap.item,     ,,,, 1082BC, 108294, 108334, 10830C, , `lzm4x32x32|graphics.bag.inside1.tileset`
 graphics.bag.inside1.tilemap.keyitems, ,,,, 1082D0, 1082A8, 108348, 108320, , `lzm4x32x32|graphics.bag.inside1.tileset`
-graphics.bag.inside1.berry.palette,    ,,,, 10D7FC, 10D7D4, 10D874, 10D84C, , `lzp4`
+graphics.bag.inside1.berry.palette,    ,,,, 10D7FC, 10D7D4, 10D874, 10D84C, , `lzp4:012`
 graphics.bag.inside1.berry.tileset,    ,,,, 10D7CC, 10D7A4, 10D844, 10D81C, , `lzt4|graphics.bag.inside1.berry.palette`
 graphics.bag.inside1.berry.tilemap,    ,,,, 10D7E8, 10D7C0, 10D860, 10D838, , `lzm4x32x32|graphics.bag.inside1.berry.tileset`
-graphics.bag.inside2.palette,          ,,,, 13D174, 13D14C, 13D1EC, 13D1C4, , `lzp4`
+graphics.bag.inside2.palette,          ,,,, 13D16C, 13D144, 13D1E4, 13D1BC, , `lzp4:012`
 graphics.bag.inside2.tileset,          ,,,, 13D12C, 13D104, 13D1A4, 13D17C, , `lzt4|graphics.bag.inside2.palette`
 graphics.bag.inside2.tilemap,          ,,,, 13D148, 13D120, 13D1C0, 13D198, , `lzm4x32x32|graphics.bag.inside2.tileset`
 graphics.bag.inside3.palette,          ,,,, 09B108, 09B0DC, 09B11C, 09B0F0, , `lzp4`
@@ -264,7 +264,7 @@ graphics.menu.summaryscreen.unknown.tilemap3,    ,,,, 135C1C, 135BF4, 135C94, 13
 graphics.menu.partyscreen.selection.palette,     ,,,, 13A0C8, 13A0A0, 13A140, 13A118, , `ucp4`
 graphics.menu.partyscreen.selection.sprite1,     ,,,, 13A0C0, 13A098, 13A138, 13A110, , `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
 graphics.menu.partyscreen.selection.sprite2,     ,,,, 13A0C4, 13A09C, 13A13C, 13A114, , `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
-graphics.menu.pokemon.background.palette,        ,,,, 11EFF4, 11EFCC, 11F06C, 11F044, , `lzp4`
+graphics.menu.pokemon.background.palette,        ,,,, 11EFF4, 11EFCC, 11F06C, 11F044, , `lzp4:0123456789A`
 graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11F000, , `lzt4|graphics.menu.pokemon.background.palette`
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
 graphics.menu.pokemon.item.sprite,               3765DC, 37656C, 3765F4, 376584, 45A42C, 459E4C, 45A48C, 459EBC, 615EB0, `ucs4x1x2|graphics.menu.pokemon.item.palette`
@@ -278,7 +278,7 @@ graphics.menu.boxes.hand.sprite,                 ,,,, 3D34A0, 3D32DC, 3D3510, 3D
 graphics.menu.tms.tileset,                       ,,,, 131B70, 131B48, 131BE8, 131BC0, , `lzt4|graphics.menu.tms.palette`
 graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 131BDC, , `lzm4x32x32|graphics.menu.tms.tileset`
 graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
-graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 131C18, , `lzp4`
+graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 131C18, , `lzp4:0123`
 graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
 graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
 graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10B938, , `ucp4`
@@ -286,13 +286,13 @@ graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10
 // from Scyrous
 graphics.townmap.pokenav.zoom.tileset,    ,,,, ,,,, 1CCAD0, `lzt4|graphics.townmap.pokenav.zoom.palette`
 graphics.townmap.pokenav.zoom.palette,    ,,,, ,,,, 1CCAD8, `ucp4:3`
-graphics.menu.partymenu.palette,          ,,,, ,,,, 1B0678, `lzp4`
+graphics.menu.partymenu.palette,          ,,,, ,,,, 1B0678, `lzp4:0123456789A`
 graphics.menu.partymenu.tileset,          ,,,, ,,,, 1B0634, `lzt4|graphics.menu.partymenu.palette`
 graphics.menu.partymenu.tilemap,          ,,,, ,,,, 1B0650, `lzm4x32x24|graphics.menu.partymenu.tileset`
 graphics.bag.frontier.pyramidbag.palette, ,,,, ,,,, 1C6EE0, `lzp4`
 graphics.bag.frontier.pyramidbag.sprite,  ,,,, ,,,, 61F3CC, `lzs4x8x8|graphics.bag.frontier.pyramidbag.palette`
-graphics.bag.inside1.background.malepalette,         ,,,, ,,,, 1AB170, `lzp4`
-graphics.bag.inside1.background.femalepalette,       ,,,, ,,,, 1AB160, `lzp4`
+graphics.bag.inside1.background.malepalette,         ,,,, ,,,, 1AB170, `lzp4:01`
+graphics.bag.inside1.background.femalepalette,       ,,,, ,,,, 1AB160, `lzp4:01`
 graphics.bag.inside1.background.tileset,             ,,,, ,,,, 1AB114, `lzt4|graphics.bag.inside1.background.malepalette`
 graphics.bag.inside1.background.tilemap,             ,,,, ,,,, 1AB134, `lzm4x32x20|graphics.bag.inside1.background.tileset`
 graphics.trainercard.frontier.map.selection.palette,     ,,,, ,,,, 5714EC, `ucp4`
@@ -306,7 +306,7 @@ graphics.trainercard.frontier.pass.medals.silverpalette, ,,,, ,,,, 5714F4, `ucp4
 graphics.trainercard.frontier.pass.medals.sprite,        ,,,, ,,,, 5714CC, `lzs4x2x14|graphics.trainercard.frontier.pass.medals.goldpalette`
 graphics.trainercard.frontier.map.largemap.tileset,      ,,,, ,,,, 0C65E4, `lzt4|graphics.trainercard.frontier.palette`
 graphics.trainercard.frontier.map.largemap.tilemap,      ,,,, ,,,, 0C6624, `lzm4x32x20|graphics.trainercard.frontier.map.largemap.tileset`
-graphics.menu.statusscreen.palette,     ,,,, ,,,, 1BFFE0, `lzp4`
+graphics.menu.statusscreen.palette,     ,,,, ,,,, 1BFFE0, `lzp4:01234567`
 graphics.menu.statusscreen.tileset,     ,,,, ,,,, 1BFF2C, `lzt4|graphics.menu.statusscreen.palette`
 graphics.menu.statusscreen.tilemap1,    ,,,, ,,,, 1BFF54, `lzm4x32x20|graphics.menu.statusscreen.tileset`
 graphics.menu.statusscreen.tilemap2,    ,,,, ,,,, 1BFF88, `lzm4x32x20|graphics.menu.statusscreen.tileset`
@@ -314,7 +314,7 @@ graphics.menu.statusscreen.tilemap3,    ,,,, ,,,, 1BFFA0, `lzm4x32x20|graphics.m
 graphics.menu.statusscreen.tilemap4,    ,,,, ,,,, 1BFFB8, `lzm4x32x20|graphics.menu.statusscreen.tileset`
 graphics.townmap.pokenav.zoom.tilemaps, ,,,, ,,,, 1CCD68, [id: part: tilemap<`lzm4x10x10|graphics.townmap.pokenav.zoom.tileset`>]pokenavTowns
 
-graphics.gamecorner.game.palette,  ,,,, 1413C0, 141398, 141438, 141410, , `ucp4`
+graphics.gamecorner.game.palette,  ,,,, 1413BC, 141394, 141434, 14140C, , `ucp4:01234`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
 graphics.gamecorner.game.tilemap,  ,,,, 1413B8, 141390, 141430, 141408, , `lzm4x32x20|graphics.gamecorner.game.tileset`
 graphics.gamecorner.score.palette, ,,,, 1413C4, 14139C, 14143C, 141414, , `ucp4:789`
@@ -348,13 +348,13 @@ graphics.battle.hud.status,                            ,       ,       ,       ,
 graphics.battle.hud.pokeballbar,                       ,       ,       ,       , 26046C, 26044C, 2604DC, 2604BC, , `lzs4x16x1|graphics.battle.hud.palette`
 graphics.battle.hud.idlelevel.palette,                 ,       ,       ,       , 0264C8, 0264C8, 0264DC, 0264DC, , `ucp4`
 graphics.battle.hud.idlelevel.sprite,                  ,       ,       ,       , 0264CC, 0264CC, 0264E0, 0264E0, , `lzs4x12x3|graphics.battle.hud.idlelevel.palette`
-graphics.battle.textbox.palette,                 00DAF4, 00DAF4, 00DAF4, 00DAF4, 00F45C, 00F45C, 00F470, 00F470, 035AE0, `lzp4`
+graphics.battle.textbox.palette,                 00DAF4, 00DAF4, 00DAF4, 00DAF4, 00F45C, 00F45C, 00F470, 00F470, 035AE0, `lzp4:01`
 graphics.battle.textbox.tileset,                 00DAE8, 00DAE8, 00DAE8, 00DAE8, 00F454, 00F454, 00F468, 00F468, 035AD8, `lzt4|graphics.battle.textbox.palette`
 graphics.battle.textbox.tilemap,                       ,       ,       ,       , 00F458, 00F458, 00F46C, 00F46C, 035ADC, `lzm4x32x64|graphics.battle.textbox.tileset`
 graphics.battle.textbox.tilemap,                 00DAEC, 00DAEC, 00DAEC, 00DAEC,       ,       ,       ,       ,       , `ucm4x32x64|graphics.battle.textbox.tileset`
 
 
-graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:01`
+graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:EF`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
 graphics.titlescreen.pokemon.tilemap,              07C288, 07C28C, 07C2A8, 07C2AC, ,,,, , `lzm4x32x20|graphics.titlescreen.pokemon.tileset`
 graphics.titlescreen.background.animation.sprite,  ,,,, 3BFB9C, 3BF9D8, 3BFC0C, 3BFA48, , `lzs4x2x2|graphics.titlescreen.background.animation.palette`
@@ -383,7 +383,7 @@ graphics.titlescreen.version.palette,               ,   ,   ,   ,   ,   ,   ,   
 graphics.titlescreen.version.sprite,                ,   ,   ,   ,   ,   ,   ,   , 540048, `lzs8x8x8|graphics.titlescreen.version.palette`
 graphics.titlescreen.pokemon.tileset,               ,   ,   ,   ,   ,   ,   ,   , 0AA95C, `lzt4|graphics.titlescreen.logo.palette`
 graphics.titlescreen.pokemon.tilemap,               ,   ,   ,   ,   ,   ,   ,   , 0AA964, `lzm4x32x32|graphics.titlescreen.pokemon.tileset`
-graphics.titlescreen.introscene.gengar.palette,    ,,,, 40BF14, 40BD50, 40BF84, 40BDC0, , `ucp4`
+graphics.titlescreen.introscene.gengar.palette,    ,,,, 40BF14, 40BD50, 40BF84, 40BDC0, , `ucp4:5`
 graphics.titlescreen.introscene.nidorino.palette,  ,,,, 40BF1C, 40BD58, 40BF8C, 40BDC8, , `ucp4`
 graphics.titlescreen.introscene.grass.palette,     ,,,, 40BF24, 40BD60, 40BF94, 40BDD0, , `ucp4`
 graphics.titlescreen.introscene.gengar.sprite,     ,,,, 40BEDC, 40BD18, 40BF4C, 40BD88, , `lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`
@@ -405,12 +405,12 @@ graphics.titlescreen.introscene.forest.tilemap,    ,,,, 0ED598, 0ED570, 0ED5B0, 
 graphics.titlescreen.introscene.forest.palette2,   ,,,, 0ED2FC, 0ED2D4, 0ED314, 0ED2EC, , `ucp4:123`
 graphics.titlescreen.introscene.forest.tileset2,   ,,,, 0ED20C, 0ED1E4, 0ED224, 0ED1FC, , `lzt4|graphics.titlescreen.introscene.forest.palette2`
 graphics.titlescreen.introscene.forest.tilemap2,   ,,,, 0ED210, 0ED1E8, 0ED228, 0ED200, , `lzm4x32x64|graphics.titlescreen.introscene.forest.tileset2`
-graphics.titlescreen.introscene.grass.palette1,    ,,,, 0ECF48, 0ECF20, 0ECF60, 0ECF38, , `ucp4`
+graphics.titlescreen.introscene.grass.palette1,    ,,,, 0ECF48, 0ECF20, 0ECF60, 0ECF38, , `ucp4:1`
 graphics.titlescreen.introscene.grass.tileset,     ,,,, 0ECF9C, 0ECF74, 0ECFB4, 0ECF8C, , `lzt4|graphics.titlescreen.introscene.grass.palette1`
 graphics.titlescreen.introscene.grass.tilemap,     ,,,, 0ECFA0, 0ECF78, 0ECFB8, 0ECF90, , `lzm4x32x64|graphics.titlescreen.introscene.grass.tileset`
 graphics.titlescreen.introscene.grass.tileset2,    ,,,, 0ED30C, 0ED2E4, 0ED324, 0ED2FC, , `lzt4|graphics.titlescreen.introscene.forest.palette2`
 graphics.titlescreen.introscene.grass.tilemap2,    ,,,, 0ED310, 0ED2E8, 0ED328, 0ED300, , `lzm4x32x20|graphics.titlescreen.introscene.grass.tileset2`
-graphics.titlescreen.introscene.grass.background.palette,  ,,,, 0ECF4C, 0ECF24, 0ECF64, 0ECF3C, , `ucp4`
+graphics.titlescreen.introscene.grass.background.palette,  ,,,, 0ECF4C, 0ECF24, 0ECF64, 0ECF3C, , `ucp4:2`
 graphics.titlescreen.introscene.grass.background.tileset,  ,,,, 0ECF58, 0ECF30, 0ECF70, 0ECF48, , `lzt4|graphics.titlescreen.introscene.grass.background.palette`
 graphics.titlescreen.introscene.grass.background.tilemap,  ,,,, 0ECF5C, 0ECF34, 0ECF74, 0ECF4C, , `lzm4x32x64|graphics.titlescreen.introscene.grass.background.tileset`
 graphics.titlescreen.introscene.palette,                   ,,,, ,,,, 16D0FC, `ucp4:0123456789ABCDEF`
@@ -459,7 +459,7 @@ graphics.newgame.pokemon.selection.background.tilemap, ,,,,,,,, 13419C, `lzm4x32
 graphics.newgame.pokemon.selection.tileset,            ,,,,,,,, 134190, `lzt4|graphics.newgame.pokemon.selection.palette`
 graphics.newgame.pokemon.selection.pokeball,           ,,,,,,,, 5B1ED8, `lzs4x4x4|graphics.newgame.pokemon.selection.palette`
 
-graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:0123`
+graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01234`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
 graphics.townmap.tileset,                      ,       ,       ,       , 0C0330, 0C0304, 0C0344, 0C0318, , `lzt4|graphics.townmap.palette`
 graphics.townmap.tileset,                      ,       ,       ,       ,       ,       ,       , , 122E14, `lzt8|graphics.townmap.palette`
