@@ -118,32 +118,42 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
-      [SkippableTheory]
-      [MemberData(nameof(VanillaPokemonGames))]
-      public void Tilemap_UsesPalettePage_PaletteContainsPage(string game) {
-         var model = fixture.LoadModel(game);
-         foreach (var anchor in model.Anchors) {
-            // graphics.titlescreen.publisher.palette is loaded into both slot E and slot F, but we only recognize it being loaded into slot F.
-            // graphics.titlescreen.widescreen.tilemap expects it to load into slot E. We'll ignore this.
-            if (anchor == "graphics.titlescreen.widescreen.tilemap") continue;
+      public static IEnumerable<object[]> VanillaTilemapsWithPalettes {
+         get {
+            var fixture = new AutoSearchFixture();
+            foreach (var game in VanillaPokemonGames.Select(args => (string)args[0])) {
+               var model = fixture.LoadModel(game);
+               foreach (var anchor in model.Anchors) {
+                  // graphics.titlescreen.publisher.palette is loaded into both slot E and slot F, but we only recognize it being loaded into slot F.
+                  // graphics.titlescreen.widescreen.tilemap expects it to load into slot E. We'll ignore this.
+                  if (anchor == "graphics.titlescreen.widescreen.tilemap") continue;
 
-            var run = model.GetNextAnchor(anchor) as ITilemapRun;
-            if (run == null || run.SpriteFormat.BitsPerPixel != 4 || run.SpriteFormat.PaletteHint == null || run.BytesPerTile != 2) continue;
-            var palettes = run.FindRelatedPalettes(model);
-            if (palettes.Count == 0) continue;
-            var data = run.GetTilemapData();
-            var palPageStart = palettes[0].PaletteFormat.InitialBlankPages;
-            var palPageCount = palettes[0].PaletteFormat.Pages;
-            for (int i = 1; i < data.Length; i += 2) {
-               var palettePage = data[i] >> 4;
-               var tileIndex = data.ReadMultiByteValue(i - 1, 2) & 0x7F;
-               if (tileIndex == 0) continue;
-               //{
-               //   Assert.True(palPageStart == 0 || tileIndex == 0, $"{anchor} uses palette 0 with tile {tileIndex}.");
-               //} else {
-               Assert.True(palPageStart <= palettePage && palettePage < palPageStart + palPageCount, $"{anchor} uses palette {palettePage}, but the palette at {palettes[0].Start:X6} doesn't have that page.");
-               //}
+                  var run = model.GetNextAnchor(anchor) as ITilemapRun;
+                  if (run == null || run.SpriteFormat.BitsPerPixel != 4 || run.SpriteFormat.PaletteHint == null || run.BytesPerTile != 2) continue;
+                  var palettes = run.FindRelatedPalettes(model);
+                  if (palettes.Count == 0) continue;
+
+                  yield return new object[] { game, anchor };
+               }
             }
+         }
+      }
+
+      [SkippableTheory]
+      [MemberData(nameof(VanillaTilemapsWithPalettes))]
+      public void Tilemap_UsesPalettePage_PaletteContainsPage(string game, string anchor) {
+         var model = fixture.LoadModel(game);
+         var run = model.GetNextAnchor(anchor) as ITilemapRun;
+         var palettes = run.FindRelatedPalettes(model);
+
+         var data = run.GetTilemapData();
+         var palPageStart = palettes[0].PaletteFormat.InitialBlankPages;
+         var palPageCount = palettes[0].PaletteFormat.Pages;
+         for (int i = 1; i < data.Length; i += 2) {
+            var palettePage = data[i] >> 4;
+            var tileIndex = data.ReadMultiByteValue(i - 1, 2) & 0x7F;
+            if (tileIndex == 0) continue;
+            Assert.True(palPageStart <= palettePage && palettePage < palPageStart + palPageCount, $"{game}: {anchor} uses palette {palettePage}, but the palette at {palettes[0].Start:X6} doesn't have that page.");
          }
       }
 
