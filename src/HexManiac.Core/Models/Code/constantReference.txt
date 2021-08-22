@@ -188,6 +188,27 @@ BPRE1.scripts.battle.trade.exp.boost 021E26
 BPGE1.scripts.battle.trade.exp.boost 021E26
 BPEE0.scripts.battle.trade.exp.boost 04A6FC
 
+# Nature limiters
+# AXVE0.data.pokemon.natures.count   03F46E,03F47E,084E66
+# AXVE0.data.pokemon.natures.count-1 084DFE,084E0C,084E30,084E5A
+# AXVE0.data.pokemon.natures.count-2 084E38
+# AXPE0.data.pokemon.natures.count   03F46E,03F47E,084E66
+# AXPE0.data.pokemon.natures.count-1 084DFE,084E0C,084E30,084E5A
+# AXPE0.data.pokemon.natures.count-2 084E38
+# AXVE1.data.pokemon.natures.count   03F46E,03F47E,084E86
+# AXVE1.data.pokemon.natures.count-1 084E1E,084E2C,084E50,084E7A
+# AXVE1.data.pokemon.natures.count-2 084E58
+# AXPE1.data.pokemon.natures.count   03F46E,03F47E,084E86
+# AXPE1.data.pokemon.natures.count-1 084E1E,084E2C,084E50,084E7A
+# AXPE1.data.pokemon.natures.count-2 084E58
+# BPRE0.data.pokemon.natures.count   042EA6,042EB6,082A1C
+# BPGE0.data.pokemon.natures.count   042EA6,042EB6,0829F0
+# BPRE1.data.pokemon.natures.count   042EBA,042ECA,082A30
+# BPGE1.data.pokemon.natures.count   042EBA,042ECA,082A04
+# BPEE0.data.pokemon.natures.count   06D07A,06D08A,0B4E54
+# BPEE0.data.pokemon.natures.count-1 0B4DB2,0B4DC0,0B4DE4,0B4E0A
+# BPEE0.data.pokemon.natures.count-2 0B4DEC
+
 # type limiter. See LoadMoveInfoUI and DrawMoveInfoUIMarkers
 BPRE0.data.pokemon.type.length   456F10
 BPGE0.data.pokemon.type.length   456930
