@@ -1068,6 +1068,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          // do the clear with a custom token that can't change data.
          // This anchor-clear is a formatting-only change.
+         scroll.ClearTableMode();
          Model.ClearAnchor(history.InsertCustomChange(new NoDataChangeDeltaModel()), startDataIndex, endDataIndex - startDataIndex + 1);
          Refresh();
       }

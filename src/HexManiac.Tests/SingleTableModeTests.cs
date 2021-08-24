@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -32,6 +33,18 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Back.Execute();
 
          Assert.Equal(new Point(0, 2), ViewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void FocusTable_ClearFormat_SelectionDoesNotMoveSeeRawBytes() {
+         ViewPort.Edit("@40 ^table[a:: b:: c:: d::]20 ");
+
+         var menuItem = ViewPort.GetContextMenuItems(new Point(0, 0)).Single(item => item.Text == "Clear Format");
+         menuItem.Command.Execute();
+
+         Assert.Equal(0, ViewPort.MinimumScroll);
+         Assert.Equal(4, ViewPort.ScrollValue);
+         Assert.Equal(0x20 - 1, ViewPort.MaximumScroll);
       }
    }
 }
