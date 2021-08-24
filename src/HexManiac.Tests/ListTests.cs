@@ -155,6 +155,16 @@ Name = '''Input'''
 
          Assert.Equal(0, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
       }
+
+      [Fact]
+      public void ElementWithSpace_CopyBitFlags_ResultHasQuotes() {
+         Model.SetList("list", new[] { "noSpaces", "with spaces" });
+         Model[0] = 2;
+         var segment = new ArrayRunBitArraySegment("name", 1, "list");
+
+         var text = segment.ToText(Model, 0, false);
+
+         Assert.Equal("- \"with spaces\" /", text);
+      }
    }
 }
-

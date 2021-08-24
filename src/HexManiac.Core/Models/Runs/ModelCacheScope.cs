@@ -27,11 +27,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return cachedOptions[table];
       }
 
+      public static string QuoteIfNeeded(string text) {
+         if (!text.Contains(" ")) return text;
+         if (text.Contains("\"")) return text;
+         return $"\"{text}\"";
+      }
+
       public IReadOnlyList<string> GetBitOptions(string enumName) {
          if (cachedBitOptions.ContainsKey(enumName)) return cachedBitOptions[enumName];
 
          // if it's from a list, then it's not from an enum, but instead from just a string list
-         if (model.TryGetList(enumName, out var nameArray)) return nameArray;
+         if (model.TryGetList(enumName, out var nameArray)) return nameArray.Select(QuoteIfNeeded).ToList();
 
          var sourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName);
          if (sourceAddress == Pointer.NULL) return null;
