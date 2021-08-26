@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -1644,7 +1645,7 @@ namespace HavenSoft.HexManiac.Tests {
          var singletons = BaseViewModelTestClass.Singletons;
          var model = new PokemonModel(data, null, singletons);
          ViewPort = new ViewPort("Name", model, singletons.WorkDispatcher, singletons);
-         ViewPort.Edit("@00 ^pal`ucp4` @30 <000> @100 ^tileset`lzt4|pal` @B00 <800> <900> <A00> @B00 ^tilemaps[tilemap<`lzm4x10x10|tileset`>]3 @800 ");
+         ViewPort.Edit("@00 ^pal`ucp4:3` @30 <000> @100 ^tileset`lzt4|pal` @B00 <800> <900> <A00> @B00 ^tilemaps[tilemap<`lzm4x10x10|tileset`>]3 @800 ");
 
          ViewPort.RequestTabChange += (sender, tab) => Editor = (ImageEditorViewModel)tab;
          ViewPort.OpenImageEditorTab(0x800, 0, 0);
@@ -1675,12 +1676,15 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TilemapTableWithSharedTileset_EditOneTilemap_OtherTilemapsUnchanged() {
-         throw new NotImplementedException();
-         // select a color
+         var oldPixels = new[] { Model.ReadSprite(0x900), Model.ReadSprite(0xA00) };
+         Editor.SelectedTool = ImageEditorTools.Draw;
+         Editor.Palette.SelectionStart = 1;
 
-         // draw within one tile
+         Editor.ToolDown(point(4, 4));
+         Editor.ToolUp(point(4, 4));
 
-         // check that the other tilemaps are not edited
+         var newPixels = new[] { Model.ReadSprite(0x900), Model.ReadSprite(0xA00) };
+         Assert.Equal(oldPixels, newPixels);
       }
    }
 }
