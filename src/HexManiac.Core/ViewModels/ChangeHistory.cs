@@ -62,7 +62,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          bool notifyIsSavedChanged = IsSaved;
          currentChange = token;
          currentChange.OnNewChange += OnCurrentTokenDataChanged;
-         if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
          if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
 

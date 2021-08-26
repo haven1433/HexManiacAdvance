@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.ToolUp(motion[motion.Length - 1]);
       }
 
-      protected static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
+      public static short Rgb(int r, int g, int b) => (short)((r << 10) | (g << 5) | b);
       protected short GetPixel(int x, int y) => editor.PixelData[editor.PixelIndex(new Point(x, y))];
       protected static(int r, int g, int b) Rgb(short color) => (color >> 10, (color >> 5) & 31, color & 31);
 
@@ -1646,6 +1646,8 @@ namespace HavenSoft.HexManiac.Tests {
          var model = new PokemonModel(data, null, singletons);
          ViewPort = new ViewPort("Name", model, singletons.WorkDispatcher, singletons);
          ViewPort.Edit("@00 ^pal`ucp4:3` @30 <000> @100 ^tileset`lzt4|pal` @B00 <800> <900> <A00> @B00 ^tilemaps[tilemap<`lzm4x10x10|tileset`>]3 @800 ");
+         ViewPort.Save.Execute(new StubFileSystem { Save = file => true });
+         ViewPort = new ViewPort("Name", model, singletons.WorkDispatcher, singletons); // make a new ViewPort with a new history tracker
 
          ViewPort.RequestTabChange += (sender, tab) => Editor = (ImageEditorViewModel)tab;
          ViewPort.OpenImageEditorTab(0x800, 0, 0);
@@ -1685,6 +1687,16 @@ namespace HavenSoft.HexManiac.Tests {
 
          var newPixels = new[] { Model.ReadSprite(0x900), Model.ReadSprite(0xA00) };
          Assert.Equal(oldPixels, newPixels);
+      }
+
+      [Fact]
+      public void Palette_Edit_CanUndo() {
+         var watcher = new EventWatcher(handler => Editor.Undo.CanExecuteChanged += handler);
+         Assert.False(Editor.Undo.CanExecute(default));
+
+         Editor.Palette.Elements[1].Color = BaseImageEditorTests.Rgb(31, 31, 31);
+
+         Assert.Equal(1, watcher.Count);
       }
    }
 }

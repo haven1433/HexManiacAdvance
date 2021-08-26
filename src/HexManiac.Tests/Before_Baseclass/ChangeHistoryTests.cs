@@ -19,6 +19,11 @@ namespace HavenSoft.HexManiac.Tests {
       public bool HasAnyChange => true;
       public FakeChangeToken() { }
       public FakeChangeToken(IEnumerable<int> data) : base(data) { }
+
+      public new void Add(int num) {
+         base.Add(num);
+         OnNewChange?.Invoke(this, EventArgs.Empty);
+      }
    }
 
    public class ChangeHistoryTests : BaseViewModelTestClass {

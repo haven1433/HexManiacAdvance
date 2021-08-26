@@ -447,6 +447,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Palette.SelectionSet += (sender, e) => BlockPreview.Clear();
          RefreshTilePalettes();
          TilePalettes.CollectionChanged += (sender, e) => PushTilePalettesToModel();
+         history.Undo.CanExecuteChanged += (sender, e) => undoWrapper?.CanExecuteChanged.Invoke(undoWrapper, e);
+         history.Redo.CanExecuteChanged += (sender, e) => redoWrapper?.CanExecuteChanged.Invoke(undoWrapper, e);
       }
 
       public static (IReadOnlyList<short> colors, int pages, int initialBlankPages) ReadPalette(IDataModel model, int palettePointer, int spriteBits) {
