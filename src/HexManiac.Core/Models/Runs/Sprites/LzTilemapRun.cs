@@ -186,7 +186,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.TilesetFormat.BitsPerPixel / 8).Range());
-         foreach (var tile in GetUsedTiles(run)) tilesToKeep.Remove(tile);
+         var newUsedTiles = GetUsedTiles(run).ToHashSet();
+         foreach (var tile in newUsedTiles) tilesToKeep.Remove(tile);
          foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(run)) {
             tilesToKeep.AddRange(GetUsedTiles(tilemap));
          }
@@ -247,6 +248,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public static IReadOnlyList<int[,]> MergeTilesets(IReadOnlyList<int[,]> previous, ISet<int> tilesToKeep, IReadOnlyList<int[,]> newTiles, bool allowFlips) {
+         // if any of the newTiles match existing tiles, keep those existing tiles in the same spot.
+         for (int i = 0; i < newTiles.Count; i++) {
+            var match = FindMatch(newTiles[i], previous, allowFlips);
+            if (match.index != -1) tilesToKeep.Add(match.index);
+         }
+
          var newListIndex = 0;
          var mergedList = new List<int[,]>();
          for (int i = 0; i < previous.Count; i++) {
@@ -348,13 +355,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return TileMatchType.None;
       }
 
+      /// <summary>
+      /// If there is a tile that matches exactly, return that one (TileMatchType.Normal)
+      /// Otherwise, return the first tile that matches, or (-1, None) if no tiles match.
+      /// </summary>
       public static (int index, TileMatchType matchType) FindMatch(int[,] tile, IReadOnlyList<int[,]> collection, bool allowFlips) {
+         var bestMatch = (index: -1, matchType: TileMatchType.None);
          for (int i = 0; i < collection.Count; i++) {
             var match = TilesMatch(tile, collection[i], allowFlips);
             if (match == TileMatchType.None) continue;
-            return (i, match);
+            if (match == TileMatchType.Normal) return (i, match);
+            if (bestMatch.index == -1) bestMatch = (i, match);
          }
-         return (-1, default);
+         return bestMatch;
       }
 
       private int arrayTilesetAddress;

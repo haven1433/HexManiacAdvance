@@ -1618,4 +1618,69 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, editor.PalettePointer);
       }
    }
+
+   public class ImageEditorRealDataTests {
+      private byte[] pal = "00 00 00 00 1F 02 1F 21 70 7A 42 7C 32 4A FF 7F 00 03 16 36 1B 70 F3 7F 9C 73 8E 14 08 26 19 2A".ToByteArray();
+      private byte[] tileset = "10 00 08 00 33 00 00 F0 01 90 01 77 77 F0 01 D0 01 09 37 33 33 73 F0 03 33 73 50 1F 09 F7 FF FF 7F F0 03 FF 7F 50 1F 09 27 22 22 72 F0 03 22 72 50 1F 09 57 55 55 75 F0 03 55 75 50 1F 09 67 66 66 76 F0 03 66 76 10 1B 30 88 88 F0 01 90 01 77 97 79 77 9F 50 03 99 99 30 01 90 13 90 E7 60 1F 90 14 FF 90 2B F0 03 F0 03 F0 01 A0 61 30 03 F0 01 F0 1D E7 F0 01 F0 8F B0 03 99 99 30 03 F0 2F 50 03 FF 10 FB F0 61 70 2B 40 1F F0 CF 40 9F 40 5F F0 7B FF B1 5F F0 7F B0 9F F0 3B B0 9F F0 7F B1 9F C0 1F 09 A7 AA AA 7A F0 03 AA 7A 10 1B 33 BB BB F0 01 90 01 CC CC F0 01 90 01 3E DD DD F0 01 90 01 90 2B 50 9F A0 40 9C 67 C9 F0 03 80 03 EE EE F0 01 90 01 10 C3 09 47 44 44 74 F0 03 44 74 10 1B FF F3 D1 F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 FF F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 FF F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 FE F0 01 F0 01 F0 01 F0 01 F0 01 F0 01 50 01 30 13 33 33 03 F0 03 33 03 30 1D 00 06 01 30 30 03 00 03 03 33 00 12 FC 00 07 00 11 10 06 00 03 70 41 10 1A 30 00 69 30 00 07 10 05 03 20 03 00 33 50 1D 7F 03 30 4A 10 31 10 08 10 50 50 13 30 7F 30 40 ED 40 39 20 0F 00 11 03 70 3F 00 A1 00 00 5F FF 00 03 00 07 30 23 20 44 60 1F 40 03 20 A0 30 0B E1 F0 01 F0 01 50 01 50 55 55 05 F0 03 2D 55 05 80 1F 50 00 05 40 03 05 30 03 3F 55 00 00 07 70 21 30 06 40 03 00 39 00 1E D5 30 13 20 17 50 40 01 05 10 0A 05 10 41 F3 A0 3D 00 30 10 03 20 38 00 05 10 59 30 01 C3 50 20 30 8A 05 05 55 05 40 24 00 1A FF 70 9E 80 26 00 5A 00 25 10 4E 00 C1 40 20 20 90 E0 10 CF D0 A0 20 1D".ToByteArray();
+      private byte[][] tilemaps = new[] {
+         "10 C8 00 00 3A 07 30 F0 01 F0 01 30 01 17 00 01 01 2B 30 02 00 03 05 C0 13 0E 20 03 50 13 58 01 20 01 0A 20 03 B0 13 10 30 09 35 30 13 20 09 10 13 03 20 09 06 20 03 F8 B0 27 30 01 F0 81 F0 01 50 01".ToByteArray(),
+         "10 C8 00 00 3B 07 30 F0 01 F0 01 30 01 01 80 01 50 13 56 06 00 0B 04 00 03 02 80 13 10 1F 0E C0 40 03 50 0F 0C 30 09 30 13 30 54 16 00 03 0D 60 3F 01 20 3D 0A 30 47 05 C0 3B 01 30 10 20 25 F0 81 F0 01 80 50 01".ToByteArray(),
+         "10 C8 00 00 3B 07 30 F0 01 F0 01 70 01 06 40 01 50 0F 00 02 30 01 30 11 30 09 30 14 16 30 12 20 0F 01 40 01 0B 30 5A 03 00 03 0B 20 0B 10 17 05 00 07 06 F6 20 0D 70 3B 10 0D 10 3B 09 40 3B 50 13 0B F8 20 09 30 05 F0 01 F0 01 10 01".ToByteArray(),
+      };
+
+      public ViewPort ViewPort { get; }
+      public IDataModel Model => ViewPort.Model;
+      public ImageEditorViewModel Editor { get; private set; }
+      public ImageEditorRealDataTests() {
+         var data = new byte[0x1000];
+         for (int i = 0; i < data.Length; i++) data[i] = 0xFF;
+
+         pal.WriteInto(data, 0);
+         tileset.WriteInto(data, 0x100);
+         tilemaps[0].WriteInto(data, 0x800);
+         tilemaps[1].WriteInto(data, 0x900);
+         tilemaps[2].WriteInto(data, 0xA00);
+
+         var singletons = BaseViewModelTestClass.Singletons;
+         var model = new PokemonModel(data, null, singletons);
+         ViewPort = new ViewPort("Name", model, singletons.WorkDispatcher, singletons);
+         ViewPort.Edit("@00 ^pal`ucp4` @30 <000> @100 ^tileset`lzt4|pal` @B00 <800> <900> <A00> @B00 ^tilemaps[tilemap<`lzm4x10x10|tileset`>]3 @800 ");
+
+         ViewPort.RequestTabChange += (sender, tab) => Editor = (ImageEditorViewModel)tab;
+         ViewPort.OpenImageEditorTab(0x800, 0, 0);
+      }
+
+      Point point(int x, int y) => Editor.FromSpriteSpace(new Point(x << 3, y << 3));
+
+      [Fact]
+      public void TilemapTableWithSharedTileset_Edit8x8_TilesetUnchanged() {
+         var tilesetData = (LzTilesetRun)Model.GetNextAnchor("tileset");
+         var before = tilesetData.GetData();
+
+         // select an 8x8 region at tile (3,3), draw that tile at (4,3)
+         Editor.SelectedTool = ImageEditorTools.Draw;
+         Editor.CursorSize = 8;
+         Editor.EyeDropperDown(point(3, 3));
+         Editor.EyeDropperUp(point(3, 3));
+         Editor.ToolDown(point(3, 4));
+         Editor.ToolUp(point(3, 4));
+
+         //      check that the tileset is not edited
+         tilesetData = (LzTilesetRun)Model.GetNextAnchor("tileset");
+         var after = tilesetData.GetData();
+         Assert.Equal(before, after);
+         Assert.Equal(tilemaps[1], Model.BytesFrom(Model.GetNextRun(0x900)));
+         Assert.Equal(tilemaps[2], Model.BytesFrom(Model.GetNextRun(0xA00)));
+      }
+
+      [Fact]
+      public void TilemapTableWithSharedTileset_EditOneTilemap_OtherTilemapsUnchanged() {
+         throw new NotImplementedException();
+         // select a color
+
+         // draw within one tile
+
+         // check that the other tilemaps are not edited
+      }
+   }
 }

@@ -614,7 +614,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return new Point(x, y);
       }
 
-      private Point FromSpriteSpace(Point spriteSpace) {
+      public Point FromSpriteSpace(Point spriteSpace) {
          var x = spriteSpace.X;
          var y = spriteSpace.Y;
          x = (x - PixelWidth / 2) * (int)SpriteScale + xOffset;
