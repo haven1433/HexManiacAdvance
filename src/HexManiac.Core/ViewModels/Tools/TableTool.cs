@@ -156,6 +156,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved; // invoke when a new item gets added and the table has to move
 #pragma warning restore 0067
 
+      // properties that exist solely so the UI can remember things when the tab switches
+      public double VerticalOffset { get; set; }
+
       public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray) {
          this.model = model;
          this.selection = selection;

@@ -190,7 +190,7 @@
                      </StackPanel>
                   </StackPanel>
                </Grid>
-               <ScrollViewer VerticalScrollBarVisibility="Visible">
+               <ScrollViewer Name="TableScrollViewer" VerticalScrollBarVisibility="Visible">
                   <StackPanel>
                      <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                         <Grid.ToolTip>

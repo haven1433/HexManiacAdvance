@@ -64,6 +64,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.OldValue is IViewPort viewPortOld1) {
             viewPortOld1.PropertyChanged -= HandleViewPortScrollChanged;
             viewPortOld1.PreviewScrollChanged -= PreviewViewPortScrollChanged;
+            if (viewPortOld1.Tools?.TableTool != null) {
+               viewPortOld1.Tools.TableTool.VerticalOffset = TableScrollViewer.VerticalOffset;
+            }
          }
          if (e.OldValue is ViewPort viewPortOld) {
             viewPortOld.Tools.StringTool.PropertyChanged -= HandleStringToolPropertyChanged;
@@ -71,6 +74,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.NewValue is IViewPort viewPortNew1) {
             viewPortNew1.PropertyChanged += HandleViewPortScrollChanged;
             viewPortNew1.PreviewScrollChanged += PreviewViewPortScrollChanged;
+            if (viewPortNew1.Tools?.TableTool != null) {
+               TableScrollViewer.ScrollToVerticalOffset(viewPortNew1.Tools.TableTool.VerticalOffset);
+            }
          }
          if (e.NewValue is ViewPort viewPortNew) {
             viewPortNew.Tools.StringTool.PropertyChanged += HandleStringToolPropertyChanged;
