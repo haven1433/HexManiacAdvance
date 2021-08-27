@@ -584,7 +584,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         if (spriteRun == null) {
+            // user did something weird like deleting the data or clearing the format in the main tab: the sprite run is no longer valid
+            Close.Execute();
+            return;
+         }
          if (SpritePage >= spriteRun.Pages) SpritePage = spriteRun.Pages - 1;
          SetupTilesetWidthControl();
 
