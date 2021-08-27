@@ -50,16 +50,6 @@ Name = '''bodycolors'''
 ]
 
 [[List]]
-Name = '''pocketid'''
-1 = [
-   '''item''',
-   '''key''',
-   '''ball''',
-   '''tm''',
-   '''berry'''
-]
-
-[[List]]
 Name = '''moveeffectoptions'''
 0 = [
    '''None''',

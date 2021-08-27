@@ -123,3 +123,14 @@ Name = '''movementtypes'''
    '''fly_up''',
    '''fly_down''',
 ]
+
+[[List]]
+Name = '''pocketid'''
+1 = [
+   '''item''',
+   '''ball''',
+   '''tm''',
+   '''berry''',
+   '''key'''
+]
+

@@ -462,6 +462,16 @@ Name = '''songnames'''
    '''mus_teachy_tv_menu''',
 ]
 
+[[List]]
+Name = '''pocketid'''
+1 = [
+   '''item''',
+   '''key''',
+   '''ball''',
+   '''tm''',
+   '''berry'''
+]
+
 [[NamedAnchors]]
 Name = '''data.header.romname'''
 Address = 0x000108
