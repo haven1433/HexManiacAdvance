@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {
       public static FormattedRunComparer Instance { get; } = new FormattedRunComparer();
-      public int Compare(IFormattedRun a, IFormattedRun b) => a?.Start.CompareTo(b.Start) ?? 0;
+      public int Compare(IFormattedRun a, IFormattedRun b) => a.Start.CompareTo(b.Start);
    }
 
    /// <summary>

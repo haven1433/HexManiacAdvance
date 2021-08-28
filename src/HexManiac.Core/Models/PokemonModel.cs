@@ -1951,6 +1951,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var lockObj = new object();
          var results = SortedSpan<int>.None;
+         var runsToAdd = new List<PointerRun>();
 
          var chunkLength = 0x10000;
          var groups = (int)Math.Ceiling((double)RawData.Length / chunkLength);
@@ -1962,12 +1963,20 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (data[i] != 0x08 && data[i] != 0x09) continue;
                var destination = ReadPointer(i - 3);
                if (!addresses.Contains(destination)) continue;
-               if (TryMakePointerAtAddress(changeToken, i - 3)) {
-                  lock (lockObj) results = results.Add1(i - 3);
+               if (TryMakePointerAtAddress(changeToken, i - 3, out var newRun)) {
+                  lock (lockObj) {
+                     results = results.Add1(i - 3);
+                     if (newRun != null) runsToAdd.Add(newRun);
+                  }
                }
             }
          });
 
+         foreach (var newRun in runsToAdd) {
+            var index = ~BinarySearch(newRun.Start);
+            runs.Insert(index, newRun);
+            changeToken.AddRun(newRun);
+         }
          return results;
       }
 
@@ -1979,17 +1988,29 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // remove sources that are already in use in other ways
          for (int i = 0; i < results.Count; i++) {
-            if (!TryMakePointerAtAddress(token, results[i])) {
+            if (!TryMakePointerAtAddress(token, results[i], out var newRun)) {
                results = results.Remove1(results[i]);
                i -= 1;
+            } else if (newRun != null) {
+               var index = ~BinarySearch(newRun.Start);
+               runs.Insert(index, newRun);
+               token.AddRun(newRun);
             }
          }
 
          return results;
       }
 
-      private bool TryMakePointerAtAddress(ModelDelta changeToken, int address) {
+      /// <summary>
+      /// Returns true if the model is able to detect a valid pointer at that address.
+      /// Returns a new pointer run to add if the valid pointer doesn't have a matching run yet.
+      ///
+      /// This method can be called from a parellel context, so it doesn't make any changes to the runs collection.
+      /// Instead, it returns a new pointer run if one needs to be added.
+      /// </summary>
+      private bool TryMakePointerAtAddress(ModelDelta changeToken, int address, out PointerRun runToAdd) {
          // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
+         runToAdd = null;
          lock (runs) {
             var index = BinarySearch(address);
             if (index >= 0) {
@@ -2019,10 +2040,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
                return false;
             }
-            var newRun = new PointerRun(address);
-            runs.Insert(index, newRun);
-            changeToken.AddRun(newRun);
          }
+         runToAdd = new PointerRun(address);
 
          return true;
       }
