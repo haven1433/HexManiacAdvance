@@ -204,6 +204,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var child = children[childIndex];
          var parent = child.Parent;
+         RequestTabChange?.Invoke(this, parent);
+
          if (child.Model.GetNextRun(child.DataOffset) is ArrayRun array) {
             parent.Goto.Execute(child.DataOffset.ToString("X6"));
             parent.ScrollValue += line - y;
@@ -220,8 +222,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (parent is ViewPort viewPort) {
             SelectRange(viewPort, childrenSelection[childIndex]);
          }
-
-         RequestTabChange?.Invoke(this, parent);
       }
 
       public static void SelectRange(ViewPort viewPort, (int start, int end) range) {
