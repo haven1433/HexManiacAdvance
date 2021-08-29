@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(LzGroupHeader lz, byte data) => Visit((None)null, data);
 
-      public void Visit(LzCompressed lz, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, 0xFF);
+      public void Visit(LzCompressed lz, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, 0xFFFF);
 
       public void Visit(LzUncompressed lz, byte data) => Visit((None)null, data);
 

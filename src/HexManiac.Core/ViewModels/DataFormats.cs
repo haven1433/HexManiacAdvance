@@ -483,23 +483,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class LzMagicIdentifier : IDataFormat {
-      public static LzMagicIdentifier Instance { get; } = new LzMagicIdentifier();
-      private LzMagicIdentifier() { }
+   public class LzMagicIdentifier : IDataFormatInstance {
+      public int Source { get; }
+      public int Position => 0;
+      public int Length => 1;
+      public LzMagicIdentifier(int source) => Source = source;
       public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class LzGroupHeader : IDataFormat {
-      public static LzGroupHeader Instance { get; } = new LzGroupHeader();
-      private LzGroupHeader() { }
+   public class LzGroupHeader : IDataFormatInstance {
+      public int Source { get; }
+      public int Position => 0;
+      public int Length => 1;
+      public LzGroupHeader(int source) => Source = source;
       public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
-   public class LzUncompressed : IDataFormat {
-      public static LzUncompressed Instance { get; } = new LzUncompressed();
-      private LzUncompressed() { }
+   public class LzUncompressed : IDataFormatInstance {
+      public int Source { get; }
+      public int Position => 0;
+      public int Length => 1;
+      public LzUncompressed(int source) => Source = source;
       public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }

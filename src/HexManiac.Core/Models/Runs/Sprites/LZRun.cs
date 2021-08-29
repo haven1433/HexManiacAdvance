@@ -270,11 +270,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LZRun(Model, Start, AllowLengthErrors, newPointerSources);
 
       private static int ReadHeader(IReadOnlyList<byte> data, ref int start) {
-         if (data.Count <= start + 4 || start < 0) return -1;
-         if (start < 0 || start + 4 > data.Count) return -1;
-         if (data[start] != 0x10) return -1;
-         int length = data.ReadMultiByteValue(start + 1, 3);
+         var originalStart = start;
          start += 4;
+         if (data.Count <= start || originalStart < 0) return -1;
+         if (originalStart < 0 || start > data.Count) return -1;
+         if (data[originalStart] != 0x10) return -1;
+         int length = data.ReadMultiByteValue(originalStart + 1, 3);
          return length;
       }
 
@@ -319,20 +320,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var cacheIndex = 4;
 
          var decompressedLength = ReadHeader(data, ref start);
-         cache[0] = LzMagicIdentifier.Instance;
+         cache[0] = new LzMagicIdentifier(Start);
          cache[1] = new Integer(Start + 1, 0, decompressedLength, 3);
          cache[2] = new Integer(Start + 1, 1, decompressedLength, 3);
          cache[3] = new Integer(Start + 1, 2, decompressedLength, 3);
 
          while (cacheIndex < cache.Length) {
-            cache[cacheIndex] = LzGroupHeader.Instance;
+            cache[cacheIndex] = new LzGroupHeader(start);
             var bitfield = data[start];
             cacheIndex++;
             start++;
             for (int i = 0; i < 8 && cacheIndex < cache.Length; i++) {
                if (IsNextTokenCompressed(ref bitfield)) {
                   if (cacheIndex + 2 > cache.Length) {
-                     cache[cacheIndex] = LzUncompressed.Instance;
+                     cache[cacheIndex] = new LzUncompressed(start);
                      cacheIndex++;
                   } else {
                      var (runLength, runOffset) = ReadCompressedToken(data, ref start);
@@ -341,7 +342,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      cacheIndex += 2;
                   }
                } else {
-                  cache[cacheIndex] = LzUncompressed.Instance;
+                  cache[cacheIndex] = new LzUncompressed(start);
                   cacheIndex++;
                   start++;
                }

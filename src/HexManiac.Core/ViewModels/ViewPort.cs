@@ -1190,9 +1190,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Edit(ConsoleKey key) {
          using (ModelCacheScope.CreateScope(Model)) {
-            var offset = scroll.ViewPointToDataIndex(GetEditPoint());
-            var run = Model.GetNextRun(offset);
             var point = GetEditPoint();
+            var offset = scroll.ViewPointToDataIndex(point);
+            var run = Model.GetNextRun(offset);
             var element = this[point.X, point.Y];
             var underEdit = element.Format as UnderEdit;
             if (key == ConsoleKey.Enter && underEdit != null) {
@@ -1222,6 +1222,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (key != ConsoleKey.Backspace) return;
+
+            // special case: when an entire run is selected, tread backspace like delete
+            //   (special case doesn't apply to short runs like IScriptStartRun, NoInfoRun, or PointerRun)
+            if (run.Length > 4 && scroll.ViewPointToDataIndex(SelectionStart) == run.Start && scroll.ViewPointToDataIndex(SelectionEnd) == run.Start + run.Length - 1) {
+               Clear.Execute();
+               return;
+            }
+
             AcceptBackspace(underEdit, element.Value, point);
          }
       }
@@ -1410,6 +1418,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var run = Model.GetNextRun(index);
+         var cell = this[point];
+         var format = cell.Format;
+         while (format is IDataFormatDecorator decorator) format = decorator.OriginalFormat;
+         var cellToText = new ConvertCellToText(Model, index);
+         format.Visit(cellToText, cell.Value);
+         if (format is IDataFormatInstance instance) {
+            SelectionStart = scroll.DataIndexToViewPoint(instance.Source);
+            var editText = cellToText.Result.Substring(0, cellToText.Result.Length - 1);
+            currentView[SelectionStart.X, SelectionStart.Y] = new HexElement(cell.Value, cell.Edited, cell.Format.Edit(editText));
+            NotifyCollectionChanged(ResetArgs);
+            return;
+         }
 
          if (run.Start > index) {
             // no run: doing a raw edit.
@@ -1429,11 +1449,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             return;
          }
-
-         var cellToText = new ConvertCellToText(Model, run.Start);
-         var cell = this[point];
-         var format = cell.Format;
-         if (format is Anchor anchor) format = anchor.OriginalFormat;
 
          void TableBackspace(int length) {
             PrepareForMultiSpaceEdit(point, length);

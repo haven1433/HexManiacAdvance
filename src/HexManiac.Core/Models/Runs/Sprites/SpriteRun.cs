@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       // not actually LZ, but it is uncompressed and acts much the same way.
       int lastFormatRequested = int.MaxValue;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var basicFormat = LzUncompressed.Instance;
+         var basicFormat = new LzUncompressed(index);
          if (!CreateForLeftEdge) return basicFormat;
          if (lastFormatRequested < index) {
             lastFormatRequested = index;
