@@ -231,7 +231,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(Tuple tuple, byte data) {
-         if (Input == ' ' || Input == '+') {
+         if (" +,".Contains(Input)) {
             Result = false;
             return;
          }
