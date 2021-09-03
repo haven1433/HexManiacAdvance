@@ -642,6 +642,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       private StubCommand gotoFreeSpaceStart;
       public ICommand GotoFreeSpaceStart => StubCommand(ref gotoFreeSpaceStart, () => Goto.Execute(Model.FreeSpaceStart));
+      public bool CanFindFreeSpace => true;
       public void FindFreeSpace(IFileSystem fileSystem) {
          var sizeText = fileSystem.RequestText("Free Space Finder", "How many bytes of freespace do you want to find?");
          if (sizeText == null) return;

@@ -356,7 +356,7 @@ namespace HavenSoft.HexManiac.Tests {
          var change = new ModelDelta();
          ArrayRun.TryParse(model, "[a:]8", 0x10, null, out var table);
          model.ObserveAnchorWritten(change, "table", table);
-         change.AddMatchedWord(model, 0, "table");
+         change.AddMatchedWord(model, 0, "table", 4);
          model.ObserveRunWritten(change, new WordRun(0, "table", 4, 0, 1));
 
          fileSystem.MetadataFor = name => model.ExportMetadata(BaseViewModelTestClass.Singletons.MetadataInfo).Serialize();

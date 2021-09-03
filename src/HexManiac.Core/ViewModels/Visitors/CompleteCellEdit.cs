@@ -597,7 +597,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var parentName = CurrentText.Substring(2).Trim();
          Model.ExpandData(CurrentChange, memoryLocation + 3);
          Model.ClearFormat(CurrentChange, memoryLocation, 4);
-         CurrentChange.AddMatchedWord(Model, memoryLocation, parentName);
+         CurrentChange.AddMatchedWord(Model, memoryLocation, parentName, 4);
          Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, parentName, 4, 0, 1));
          NewDataIndex = memoryLocation + 4;
       }
@@ -641,7 +641,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                ErrorText = $"Could not create {constantName} with multiplier {offset} because then the virtual value would be above {maxValue}.";
             }
          } else {
-            CurrentChange.AddMatchedWord(Model, memoryLocation, constantName);
+            CurrentChange.AddMatchedWord(Model, memoryLocation, constantName, byteCount);
             Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, constantName, byteCount, offset, multOffset));
             NewDataIndex = memoryLocation;
          }

@@ -35,6 +35,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       double Progress { get; }
       bool UpdateInProgress { get; }
 
+      bool CanFindFreeSpace { get; }
+
       string SelectedAddress { get; }
       string SelectedBytes { get; }
       string AnchorText { get; }
@@ -46,6 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       bool IsTable(Point point);
 
       IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false);
+      void FindFreeSpace(IFileSystem fileSystem);
       IChildViewPort CreateChildView(int startAddress, int endAddress);
       void FollowLink(int x, int y);
       void ExpandSelection(int x, int y);

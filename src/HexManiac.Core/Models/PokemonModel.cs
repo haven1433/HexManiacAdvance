@@ -902,7 +902,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is WordRun word && word.Start + word.Length <= Count) {
                if (!matchedWords.ContainsKey(word.SourceArrayName)) matchedWords[word.SourceArrayName] = new HashSet<int>();
                matchedWords[word.SourceArrayName].Add(word.Start);
-               changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName);
+               changeToken.AddMatchedWord(this, word.Start, word.SourceArrayName, word.Length);
                CompleteCellEdit.UpdateAllWords(this, word, changeToken, this.ReadMultiByteValue(word.Start, word.Length), true);
             } else if (run is OffsetPointerRun offsetPointer) {
                pointerOffsets[offsetPointer.Start] = offsetPointer.Offset;

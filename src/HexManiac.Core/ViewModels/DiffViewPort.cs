@@ -158,6 +158,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => Array.Empty<(int, int)>();
 
+      public bool CanFindFreeSpace => false;
+      public void FindFreeSpace(IFileSystem fs) { }
+
       public void FindAllSources(int x, int y) { }
 
       public void FollowLink(int x, int y) { }

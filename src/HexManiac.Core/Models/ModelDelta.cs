@@ -179,10 +179,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          return reverse;
       }
 
-      public void AddMatchedWord(IDataModel model, int memoryLocation, string parentName) {
+      public void AddMatchedWord(IDataModel model, int memoryLocation, string parentName, int byteCount) {
          var parentAddress = model.GetAddressFromAnchor(this, -1, parentName);
          var parent = model.GetNextRun(parentAddress) as ArrayRun;
-         if (parent != null) model.WriteValue(this, memoryLocation, parent.ElementCount);
+         if (parent != null) model.WriteMultiByteValue(memoryLocation, byteCount, this, parent.ElementCount);
          using (CaptureNonDataChange())
             addedMatchedWords[memoryLocation] = parentName;
       }

@@ -178,6 +178,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // if asked to search the search results... just don't
       public IReadOnlyList<(int, int)> Find(string search, bool matchExactCase = false) => new (int, int)[0];
 
+      public bool CanFindFreeSpace => false;
+      public void FindFreeSpace(IFileSystem fs) { }
+
       public bool UseCustomHeaders {
          get => children.FirstOrDefault()?.UseCustomHeaders ?? false;
          set {
