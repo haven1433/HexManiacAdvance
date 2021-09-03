@@ -1080,6 +1080,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// with parts of the edit split off to happen over time.
       /// </summary>
       public void Edit(string input) {
+         if (UpdateInProgress) return;
          UpdateInProgress = true;
          CurrentProgressScopes.Insert(0, tools.DeferUpdates);
          initialWorkLoad = input.Length;
