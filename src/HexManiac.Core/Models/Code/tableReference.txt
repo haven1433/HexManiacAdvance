@@ -242,11 +242,11 @@ graphics.bag.inside3.tileset,          ,,,, 09B0B0, 09B084, 09B0C4, 09B098, , `l
 graphics.bag.inside3.tilemap1,         ,,,, 09B0B8, 09B08C, 09B0CC, 09B0A0, , `lzm4x32x32|graphics.bag.inside3.tileset`
 graphics.bag.inside3.tilemap2,         ,,,, 09B100, 09B0D4, 09B114, 09B0E8, , `lzm4x32x32|graphics.bag.inside3.tileset`
 
-graphics.menu.pokeball.palette,                  ,,,, 45A47C, 459E9C, 45A4DC, 459F0C, , `lzp4`
-graphics.menu.pokeball.large,                    ,,,, 45A474, 459E94, 45A4D4, 459F04, , `lzs4x4x8|graphics.menu.pokeball.palette`
-graphics.menu.pokeball.small,                    ,,,, 45A4EC, 459F0C, 45A54C, 459F7C, , `lzs4x2x4|graphics.menu.pokeball.palette`
-graphics.menu.status.palette,                    ,,,, 45A57C, 459F9C, 45A5DC, 45A00C, , `lzp4`
-graphics.menu.status.sprite,                     ,,,, 45A574, 459F94, 45A5D4, 45A004, , `lzs4x4x8|graphics.menu.status.palette`
+graphics.menu.pokeball.palette,                  ,,,, 45A47C, 459E9C, 45A4DC, 459F0C, 615F00, `lzp4`
+graphics.menu.pokeball.large,                    ,,,, 45A474, 459E94, 45A4D4, 459F04, 615EF8, `lzs4x4x8|graphics.menu.pokeball.palette`
+graphics.menu.pokeball.small,                    ,,,, 45A4EC, 459F0C, 45A54C, 459F7C, 615F70, `lzs4x2x4|graphics.menu.pokeball.palette`
+graphics.menu.status.palette,                    ,,,, 45A57C, 459F9C, 45A5DC, 45A00C, 616000, `lzp4`
+graphics.menu.status.sprite,                     ,,,, 45A574, 459F94, 45A5D4, 45A004, 615FF8, `lzs4x4x8|graphics.menu.status.palette`
 graphics.menu.bar.palette,                       ,,,, 13A978, 13A950, 13A9F0, 13A9C8, , `ucp4`
 graphics.menu.bar.hp,                            ,,,, 13A4C0, 13A498, 13A538, 13A510, , `lzs4x12x1|graphics.menu.bar.palette`
 graphics.menu.bar.exp,                           ,,,, 13A974, 13A94C, 13A9EC, 13A9C4, , `lzs4x12x1|graphics.menu.bar.palette`
@@ -270,9 +270,9 @@ graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
 graphics.menu.pokemon.item.sprite,               3765DC, 37656C, 3765F4, 376584, 45A42C, 459E4C, 45A48C, 459EBC, 615EB0, `ucs4x1x2|graphics.menu.pokemon.item.palette`
 graphics.menu.pokemon.item.palette,              3765E4, 376574, 3765FC, 37658C, 45A434, 459E54, 45A494, 459EC4, 615EB8, `ucp4`
-graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, , [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4`>]16
-graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, , `ucp4`
-graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, , `lzt4|graphics.menu.boxes.picker.palette`
+graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, 0CC86C, [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4`>]16
+graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, 0CA114, `ucp4`
+graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, 0CA094, `lzt4|graphics.menu.boxes.picker.palette`
 graphics.menu.boxes.hand.palette.normal,         ,,,, 3CEA60, 3CE89C, 3CEAD0, 3CE90C, , `ucp4`
 graphics.menu.boxes.hand.palette.catch,          ,,,, 3D34B8, 3D32F4, 3D3528, 3D3364, , `ucp4`
 graphics.menu.boxes.hand.sprite,                 ,,,, 3D34A0, 3D32DC, 3D3510, 3D334C, , `ucs4x4x16|graphics.menu.boxes.hand.palette.normal`
@@ -314,6 +314,14 @@ graphics.menu.statusscreen.tilemap2,    ,,,, ,,,, 1BFF88, `lzm4x32x20|graphics.m
 graphics.menu.statusscreen.tilemap3,    ,,,, ,,,, 1BFFA0, `lzm4x32x20|graphics.menu.statusscreen.tileset`
 graphics.menu.statusscreen.tilemap4,    ,,,, ,,,, 1BFFB8, `lzm4x32x20|graphics.menu.statusscreen.tileset`
 graphics.townmap.pokenav.zoom.tilemaps, ,,,, ,,,, 1CCD68, [id: part: tilemap<`lzm4x10x10|graphics.townmap.pokenav.zoom.tileset`>]pokenavTowns
+
+// from AGSMG
+graphics.moves.substitute.sprite.front, ,,,, ,,,, 05E834, `lzs4x8x8|graphics.moves.substitute.palette`
+graphics.moves.substitute.palette,      ,,,, ,,,, 05E88C, `lzp4`
+graphics.moves.substitute.sprite.back,  ,,,, ,,,, 05E810, `lzs4x8x8|graphics.moves.substitute.palette`
+graphics.moves.tmcase.sprite,   , , , , 463218, 462C38, 463278, 462CA8, , `lzs4x4x8|graphics.moves.tmcase.palette` // BPRE0
+graphics.moves.tmcase.palette,  , , , , 1338F8, 1338D0, 133970, 133948, , `lzp4` // BPRE0
+graphics.moves.tmcase.palette2, , , , , 1338FC, 1338D4, 133974, 13394C, , `lzp4` // BPRE0
 
 graphics.gamecorner.game.palette,  ,,,, 1413BC, 141394, 141434, 14140C, , `ucp4:01234`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
