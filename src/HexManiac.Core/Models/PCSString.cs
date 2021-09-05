@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<string> PCS;
       public static IReadOnlyList<byte> Newlines;
 
+      public static readonly byte DynamicEscape = 0xF7;
       public static readonly byte FunctionEscape = 0xFC;
       public static readonly byte Escape = 0xFD;
 
@@ -47,10 +48,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          Fill(pcs, ":ÄÖÜäöü", 0xF0);
 
+         pcs[0xF7] = "\\?"; // decomp 'dynamic', another placeholder mechanism. Expects a single-byte argument
          pcs[0xF9] = "\\9";
          pcs[0xFA] = "\\l";
          pcs[0xFB] = "\\pn";
-         pcs[0xFC] = "\\CC";
+         pcs[0xFC] = "\\CC"; // control code: next byte is a control code (function escape), followed by some number of argument bytes
          pcs[0xFD] = "\\\\"; // escape character: next byte is interpreted raw
          pcs[0xFE] = "\\n";
          pcs[0xFF] = "\"";
@@ -74,7 +76,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
             if (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
 
-            if (currentByte == Escape) {
+            if (currentByte == Escape || currentByte == DynamicEscape) {
                result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
@@ -111,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (checkInput != checkCharacter) continue;
                result.Add((byte)i);
                index += PCS[i].Length - 1;
-               if (i == Escape && input.Length > index + 2) {
+               if ((i == Escape || i == DynamicEscape) && input.Length > index + 2) {
                   if (byte.TryParse(input.Substring(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
                      result.Add(parsed);
                   }
@@ -167,6 +169,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                return length + 1;  // end of string. Add one extra space for the end-of-stream byte
             }
             if (data[start + length] == Escape) length++;               // escape character, skip the next byte
+            if (data[start + length] == DynamicEscape) length++;
             else if (data[start + length] == FunctionEscape) {
                length += GetLengthForControlCode(data[start + length + 1]);
             }
@@ -184,7 +187,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static bool IsEscaped(IReadOnlyList<byte> data, int index) {
          if (index == 0) return false;
-         if (data[index - 1].IsAny(Escape, FunctionEscape)) return true;
+         if (data[index - 1].IsAny(Escape, DynamicEscape, FunctionEscape)) return true;
          if (index == 1) return false;
          if (index > 2 && data[index - 3] == FunctionEscape && data[index - 2] == 0x10) return true;
          if (data[index - 2] != FunctionEscape) return false;
