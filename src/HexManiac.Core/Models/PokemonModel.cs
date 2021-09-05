@@ -144,13 +144,17 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
                matchedWords[word.Name].Add(word.Address);
                var index = BinarySearch(word.Address);
+               WordRun newRun;
                if (index > 0) {
-                  runs[index] = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
+                  newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
+                  runs[index] = newRun;
                } else {
-                  runs.Insert(~index, new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note));
+                  ClearFormat(noChange, word.Address, word.Length);
+                  newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note);
+                  ObserveRunWritten(noChange, newRun);
                   index = ~index;
                }
-               CompleteCellEdit.UpdateAllWords(this, runs[index], noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
+               CompleteCellEdit.UpdateAllWords(this, newRun, noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
             }
             RemoveMatchedWordsThatDoNotMatch(noChange);
             foreach (var offsetPointer in metadata.OffsetPointers) {
@@ -851,6 +855,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
+         if (run.Start == 0x040002) ;
          lock (threadlock) {
             if (run is ArrayRun array) {
                // update any words who's name matches this array's name

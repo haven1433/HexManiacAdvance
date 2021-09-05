@@ -105,6 +105,59 @@ BPGE1.graphics.townmap.position.switch.y+5 0C0D68
 
 
 
+- EV caps: how many EVs you can gain from vitamins, or how many EVs you can have in any stat. -----------------------------------
+AXVE0.scripts.ev.cap.vitamins-1 03E8D2
+AXVE0.scripts.ev.cap.vitamins   03E8E2,03E8E6
+AXVE0.scripts.ev.cap.vitamins-1 03EEA0
+AXVE0.scripts.ev.cap.vitamins   03EEB0,03EEB4
+AXVE0.scripts.ev.cap.stat       03FFDC,03FFE2
+AXPE0.scripts.ev.cap.vitamins-1 03E8D2
+AXPE0.scripts.ev.cap.vitamins   03E8E2,03E8E6
+AXPE0.scripts.ev.cap.vitamins-1 03EEA0
+AXPE0.scripts.ev.cap.vitamins   03EEB0,03EEB4
+AXPE0.scripts.ev.cap.stat       03FFDC,03FFE2
+AXVE1.scripts.ev.cap.vitamins-1 03E8D2
+AXVE1.scripts.ev.cap.vitamins   03E8E2,03E8E6
+AXVE1.scripts.ev.cap.vitamins-1 03EEA0
+AXVE1.scripts.ev.cap.vitamins   03EEB0,03EEB4
+AXVE1.scripts.ev.cap.stat       03FFFC,040002
+AXPE1.scripts.ev.cap.vitamins-1 03E8D2
+AXPE1.scripts.ev.cap.vitamins   03E8E2,03E8E6
+AXPE1.scripts.ev.cap.vitamins-1 03EEA0
+AXPE1.scripts.ev.cap.vitamins   03EEB0,03EEB4
+AXPE1.scripts.ev.cap.stat       03FFFC,040002
+BPRE0.scripts.ev.cap.vitamins-1 041B0E
+BPRE0.scripts.ev.cap.vitamins   041B1E,041B22
+BPRE0.scripts.ev.cap.vitamins-1 0420D8
+BPRE0.scripts.ev.cap.vitamins   0420E8,0420EC
+BPRE0.scripts.ev.cap.vitamins-1 042924,042AE0
+BPRE0.scripts.ev.cap.stat       0439FC,043A02
+BPGE0.scripts.ev.cap.vitamins-1 041B0E
+BPGE0.scripts.ev.cap.vitamins   041B1E,041B22
+BPGE0.scripts.ev.cap.vitamins-1 0420D8
+BPGE0.scripts.ev.cap.vitamins   0420E8,0420EC
+BPGE0.scripts.ev.cap.vitamins-1 042924,042AE0
+BPGE0.scripts.ev.cap.stat       0439FC,043A02
+BPRE1.scripts.ev.cap.vitamins-1 041B22
+BPRE1.scripts.ev.cap.vitamins   041B32,041B36
+BPRE1.scripts.ev.cap.vitamins-1 0420EC
+BPRE1.scripts.ev.cap.vitamins   0420FC,042100
+BPRE1.scripts.ev.cap.vitamins-1 042938,042AF4
+BPRE1.scripts.ev.cap.stat       043A10,043A16
+BPGE1.scripts.ev.cap.vitamins-1 041B22
+BPGE1.scripts.ev.cap.vitamins   041B32,041B36
+BPGE1.scripts.ev.cap.vitamins-1 0420EC
+BPGE1.scripts.ev.cap.vitamins   0420FC,042100
+BPGE1.scripts.ev.cap.vitamins-1 042938,042AF4
+BPGE1.scripts.ev.cap.stat       043A10,043A16
+BPEE0.scripts.ev.cap.vitamins-1 06C468
+BPEE0.scripts.ev.cap.vitamins   06C470,06C476
+BPEE0.scripts.ev.cap.vitamins-1 06CA54
+BPEE0.scripts.ev.cap.vitamins   06CA5C,06CA62
+BPEE0.scripts.ev.cap.stat       06DC48,06DC4E
+
+
+
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
 AXVE0.scripts.daycare.exp.multiplier 0421D8 # Picking an even number will prevent new eggs from being created.
