@@ -77,7 +77,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
-         var data = Decompress(model, Start);
+         var data = Decompress(model, Start, allowLengthErrors: true);
          page %= Pages;
 
          var pageLength = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 8 * SpriteFormat.BitsPerPixel;
