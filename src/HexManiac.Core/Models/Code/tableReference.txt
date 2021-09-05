@@ -13,6 +13,8 @@ data.pokemon.type.contest.names,       1338A0, 1338A0, 1338C0, 1338C0,       ,  
 data.abilities.descriptions,           09FE68, 09FE68, 09FE88, 09FE88, 0001C4, 0001C4, 0001C4, 0001C4, 0001C4, [description<"">]data.abilities.names
 data.pokemon.moves.descriptions,       0A0494, 0A0494, 0A04B4, 0A04B4, 0E5440, 0E5418, 0E5454, 0E542C, 1C3EFC, [description<"">]data.pokemon.moves.names-1
 scripts.text.multichoice,              0B50A0, 0B50A0, 0B50C0, 0B50C0, 09CB58, 09CB2C, 09CB6C, 09CB40, 0E1FB8, [options<[text<""> unused::]/count> count::]
+scripts.text.scrolling.multichoice,          ,       ,       ,       ,       ,       ,       ,       , 13A41C, [text0<""> text1<""> text2<""> text3<""> text4<""> text5<""> text6<""> text7<""> text8<""> text9<""> textA<""> textB<""> textC<""> textD<""> textE<""> textF<"">]13 // see https://www.pokecommunity.com/showpost.php?p=9171350&postcount=886
+
 data.pokemon.natures.names,            0443D8, 0443D8, 0443F8, 0443F8, 0488B8, 0488B8, 0488CC, 0488CC, 073188, [name<"">]25
 data.menus.text.options,                     ,       ,       ,       , 088DDC, 088DB0, 088DF0, 088DC4,       , [text<"">]7
 data.menus.text.pc,                          ,       ,       ,       , 08FBC8, 08FB9C, 08FBDC, 08FBB0,       , [text<""> data::]31
