@@ -764,6 +764,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(-2, ((Integer)ViewPort[1, 0].Format).Value);
       }
 
+      [Fact]
+      public void TableMatchedToConstant_IncreaseConstantCausesRepoint_NotifyUserOfRepoint() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@10 .table.count 12 @20 ^table[data::]table.count @50 DEADBEEF ");
+         var count = 0;
+         ViewPort.OnMessage += (sender, e) => count += 1;
+
+         ViewPort.Edit("@10 13 ");
+
+         Assert.Equal(1, count);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

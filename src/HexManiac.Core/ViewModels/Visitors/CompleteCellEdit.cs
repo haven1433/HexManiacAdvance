@@ -438,13 +438,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             TryFixupLzRun(ref lzRun, runIndex + integer.Length); // this is before the first header: it cannot fail.
             run = lzRun;
          }
-         var (newDataIndex, errorText) = UpdateAllWords(Model, run, CurrentChange, result, alsoUpdateArrays: true);
+         var (newDataIndex, messageText, errorText) = UpdateAllWords(Model, run, CurrentChange, result, alsoUpdateArrays: true);
          NewDataIndex = run.Start + runIndex + integer.Length;
+         MessageText = messageText ?? MessageText;
          if (newDataIndex >= 0) (NewDataIndex, ErrorText) = (newDataIndex, errorText);
       }
 
-      public static (int, string) UpdateAllWords(IDataModel model, IFormattedRun run, ModelDelta token, int value, bool alsoUpdateArrays) {
+      public static (int errorIndex, string message, string error) UpdateAllWords(IDataModel model, IFormattedRun run, ModelDelta token, int value, bool alsoUpdateArrays) {
          int newDataIndex = -1;
+         string messageText = null;
          string errorText = null;
 
          if (run is WordRun wordRun) {
@@ -466,6 +468,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                      newArray = newArray.AddSourcesPointingWithinArray(token);
                   }
                   if (newArray != array) {
+                     var name = newArray.Start.ToAddress();
+                     var anchorName = model.GetAnchorFromAddress(-1, newArray.Start);
+                     if (!string.IsNullOrWhiteSpace(anchorName)) name = anchorName;
+                     messageText = $"Table {name} was moved. Pointers have been updated.";
                      if (newArray.Length > array.Length && newArray.Start == array.Start) model.ClearFormat(token, array.Start + array.Length, newArray.Length - array.Length);
                      model.ObserveRunWritten(token, newArray);
                      // if this run supports pointers to elements, the clear may've accidentally cleared some pointers to those inner elements.
@@ -483,7 +489,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                }
             }
 
-            if (token is NoDataChangeDeltaModel) return (newDataIndex, errorText);
+            if (token is NoDataChangeDeltaModel) return (newDataIndex, messageText, errorText);
             foreach (var address in model.GetMatchedWords(wordRun.SourceArrayName)) {
                if (address == run.Start) continue; // don't write the current run
                if (!(model.GetNextRun(address) is WordRun currentRun)) continue;
@@ -497,7 +503,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }
          }
 
-         return (newDataIndex, errorText);
+         return (newDataIndex, messageText, errorText);
       }
 
       private void CompleteIntegerEnumEdit() {
