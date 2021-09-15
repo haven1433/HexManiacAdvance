@@ -4,12 +4,32 @@
 # Update Type Chart to Gen 6
 # Update Type for Clefairy, etc.
 # Add Fairy Type Icon
+# Add Fairy palette for TM Case
 
 # Note: For Emerald, you may want to update the XSE script around 259E9B,
 #       which has a section for each type. The script is part of the battle
 #       factory, so you can ignore it if that isn't in your game.
 
+
+# ---------------- FR/LG: make TM Case palettes expandable ----------------
+# This modifies some code to allow for a constant that represents the number of types
+# Adding a new type should update this constant, allowing the game to load extra palettes for the TM Case
+@!game(BPRE0) @1338A8
+@!game(BPRE1) @133880
+@!game(BPGE0) @133920
+@!game(BPGE1) @1338F8
+
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) ^thumb.LoadTMTypePalettes
+@thumb.LoadTMTypePalettes+06 .thumb
+    mov r5, #17
+    lsl r5, r5, #5
+.end
+
+@thumb.LoadTMTypePalettes+06 .data.pokemon.type.length-1
+
+
 # -------------------------- All Games : Update Type Names, Chart, and Pokemon --------------------------
+@!game(All)
 
 # Extend the type names table
 @data.pokemon.type.names/18
@@ -65,6 +85,14 @@
 @data.pokemon.stats/kirlia/type2           Fairy
 @data.pokemon.stats/gardevoir/type2        Fairy
 @data.pokemon.stats/mawile/type2           Fairy
+
+
+# ---------------- FR/LG: add extra TM Case palette ----------------
+# This will make TMs in the TM case use the new palette
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) @graphics.moves.tmcase.palette2+1
+64 00 00 00 29 31 99 7F 56 7F 00 13 7F F1 7E D5 6A DA 56 08 DF 42 00 00 4:2 FF 7F F7 00 5E DC 7F 99 76 00 00 2C 00 2D 3D 7F DC 7E 7C 7E 3B 01 7E B6 6A BA 62 5E 5E 10:32 00 9E 7F BD 52 
+@graphics.moves.tmcase.palettemap/Fairy 17
+
 
 # -------------------------- Icon Edits --------------------------
 # (You may want to delete this part and do icons manually.)
