@@ -1286,6 +1286,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (bitness == 8 && usablePalPages.Count == palettes.Length) {
             palettes = new[] { palettes.SelectMany(pal => pal).ToList() };
             usablePalPages = new[] { 0 };
+         } else if (bitness < 4) {
+            // no palette: build a default palette
+            palettes = new[] { TileViewModel.CreateDefaultPalette(bitness * 2) };
          }
          var cheapest = (usablePalPages != null && usablePalPages.Contains(0)) ? WeightedPalette.CostToUse(tile, palettes[0]) : double.PositiveInfinity;
          for (int i = 1; i < palettes.Length; i++) {
@@ -1376,7 +1379,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// Note that if the image doesn't fit the indexed pixels, this method will return false.
       /// </summary>
       public static bool TryReorderPalettesFromMatchingSprite(IReadOnlyList<short>[] palettes, short[] image, int[,] pixels) {
-         if (palettes.Length != 1) return false;
+         if (palettes == null || palettes.Length != 1) return false;
          if (palettes[0].Count > 16) return false;
          var newPalette = new short[16];
          for (int i = 0; i < newPalette.Length; i++) newPalette[i] = -1;
