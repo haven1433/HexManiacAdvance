@@ -84,15 +84,37 @@
                         <Setter Property="HorizontalAlignment" Value="Stretch"/>
                      </Style>
                   </StackPanel.Resources>
-                  <TextBlock Visibility="{Binding IsNewVersionAvailable, Converter={StaticResource BoolToVisibility}}" FontSize="20" Margin="5,2">
-                     <Hyperlink
-                           Foreground="{DynamicResource Accent}"
-                           NavigateUri="https://github.com/haven1433/HexManiacAdvance/releases"
-                           RequestNavigate="Navigate">
-                        Update Available!
-                     </Hyperlink>
-                     <LineBreak/>
-                  </TextBlock>
+
+                  <DockPanel Visibility="{Binding IsNewVersionAvailable, Converter={StaticResource BoolToVisibility}}">
+                     <Path Width="50" Height="50" Stretch="Uniform" Data="{hsv:Icon GitHub}" RenderTransformOrigin=".5,.5">
+                        <Path.RenderTransform>
+                           <ScaleTransform ScaleX="1" ScaleY="1"/>
+                        </Path.RenderTransform>
+                        <Path.Fill>
+                           <SolidColorBrush Color="{DynamicResource SecondaryColor}"/>
+                        </Path.Fill>
+                        <Path.Triggers>
+                           <EventTrigger RoutedEvent="Loaded">
+                              <BeginStoryboard>
+                                 <Storyboard Storyboard.TargetProperty="Offset" Duration="0:0:1" AutoReverse="True">
+                                    <ColorAnimation Storyboard.TargetProperty="Fill.Color" To="{DynamicResource AccentColor}"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" From="1" To="1.2"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" From="1" To="1.2"/>
+                                 </Storyboard>
+                              </BeginStoryboard>
+                           </EventTrigger>
+                        </Path.Triggers>
+                     </Path>
+                     <TextBlock FontSize="20" Margin="10" VerticalAlignment="Center">
+                        <Hyperlink
+                              Foreground="{DynamicResource Accent}"
+                              NavigateUri="https://github.com/haven1433/HexManiacAdvance/releases"
+                              RequestNavigate="Navigate">
+                           Update Available!
+                        </Hyperlink>
+                     </TextBlock>
+                  </DockPanel>
+                  
                   <TextBlock Text="Help" FontSize="24"/>
 
                   <DockPanel>
@@ -135,7 +157,7 @@
                               Discord
                            </Hyperlink>
                            <LineBreak/>
-                           Join the community and learn from other users.
+                           Join the community to learn from other users and get access to new releases.
                         </TextBlock>
                      </Border>
                   </DockPanel>
