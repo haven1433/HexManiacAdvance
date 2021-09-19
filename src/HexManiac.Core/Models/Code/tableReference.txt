@@ -52,6 +52,7 @@ graphics.pokemon.sprites.elevation,         032974, 032974, 032974, 032974, 0356
 graphics.pokemon.sprites.footprint,         0917C8, 0917C8, 0917E8, 0917E8, 105E14, 105DEC, 105E8C, 105E64, 0C0DBC, [footprint<`ucs1x2x2`>]data.pokemon.names+1
 graphics.pokemon.sprites.coordinates.front, 00B2BC, 00B2BC, 00B2BC, 00B2BC, 011F4C, 011F4C, 011F60, 011F60, 02DC78, [size. yOffset. unused:]data.pokemon.names+28
 graphics.pokemon.sprites.coordinates.back,  0319A8, 0319A8, 0319A8, 0319A8, 074634, 074634, 074648, 074648, 0A5E8C, [size. yOffset. unused:]data.pokemon.names+28
+graphics.pokemon.sprites.anchor,                  ,       ,       ,       , 12EAE0, 12EAB8, 12EB58, 12EB30,       , [x1. y1. yClose. x2. y2.]data.pokemon.names-1+2 // TODO test with LG and 1.1
 graphics.pokemon.palettes.normal,           040954, 040954, 040974, 040974, 000130, 000130, 000130, 000130, 000130, ^[palette<`lzp4`> index: unused:]data.pokemon.names+28
 graphics.pokemon.palettes.shiny,            04098C, 04098C, 0409AC, 0409AC, 000134, 000134, 000134, 000134, 000134, [palette<`lzp4`> index: unused:]data.pokemon.names+28
 graphics.pokemon.icons.sprites,             099AA0, 099AA0, 099AC0, 099AC0, 000138, 000138, 000138, 000138, 000138, [icon<`ucs4x4x8|graphics.pokemon.icons.index`>]data.pokemon.names+28
