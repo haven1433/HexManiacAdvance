@@ -264,12 +264,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
             // write the new 4-byte format into the rom
             var newMovesLocation = model.RelocateForExpansion(token, pokemonMovesTable, newData.Length + 4);
-            model.ClearFormat(token, newMovesLocation.Start, newMovesLocation.Length);
+            model.ClearFormat(token, newMovesLocation.Start, newMovesLocation.Length * 2);
             for (int j = 0; j < newData.Length; j++) token.ChangeData(model, newMovesLocation.Start + j, newData[j]);
             for (int j = 0; j < 4; j++) token.ChangeData(model, newMovesLocation.Start + newData.Length + j, 0xFF);
 
             // update FreeSpaceStart to just after the current run ends.
-            model.FreeSpaceStart = newMovesLocation.Start + newData.Length + 4;
+            var afterThisRun = newMovesLocation.Start + newData.Length + 4;
+            model.FreeSpaceStart = Math.Max(model.FreeSpaceStart, afterThisRun);
          }
 
          // write metadata
