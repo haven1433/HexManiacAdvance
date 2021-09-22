@@ -73,29 +73,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          var newCode = viewPort.Tools.CodeTool.Parser.Compile(token, model, originalSwitchTableStart,
             "ldr r0, [pc, <pokecount>]", // 0
-            "pop {pc}",
+            "bx  lr",
             "ldr r1, [pc, <pokecount>]", // 4
-            "pop {pc}",
+            "bx  lr",
             "ldr r2, [pc, <pokecount>]", // 8
-            "pop {pc}",
+            "bx  lr",
             "ldr r3, [pc, <pokecount>]", // 12
-            "pop {pc}",
+            "bx  lr",
             "ldr r4, [pc, <pokecount>]", // 16
-            "pop {pc}",
+            "bx  lr",
             "ldr r5, [pc, <pokecount>]", // 20
-            "pop {pc}",
+            "bx  lr",
             "ldr r6, [pc, <pokecount>]", // 24
-            "pop {pc}",
+            "bx  lr",
             "ldr r7, [pc, <pokecount>]", // 28
-            "pop {pc}",
+            "bx  lr",
             "ldr r0, [pc, <pokecountMinusTwo>]", // 32
-            "pop {pc}",
+            "bx  lr",
             "ldr r1, [pc, <pokecountMinusTwoShiftToHighBits>]", // 36
-            "pop {pc}",
-            "ldr r4, [pc, <pokecount>]",                        // 40
+            "bx  lr",
+            "ldr r4, [pc, <pokecount>]",                        // 40: r4=pokecount + r0 - 161 : see Menu2_GetMonSpriteAnchorCoord, species = SPECIES_OLD_UNOWN_B + unownLetter - 1
             "add r4, r4, r0",
             "sub r4, 161",
-            "pop {pc}",
+            "bx  lr",
             "pokecount: .word 0",                               // 48
             "pokecountMinusTwo: .word 0",                       // 52
             "pokecountMinusTwoShiftToHighBits: .word 0"         // 56
@@ -109,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset, "data.pokemon.count", 2, 0, 1));
          model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset + 4, "data.pokemon.count", 2, -2, 1));
-         model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset + 8, "data.pokemon.count", 2, -2, 1));
+         model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset + 10, "data.pokemon.count", 2, -2, 1));
 
          return originalSwitchTableStart;
       }
