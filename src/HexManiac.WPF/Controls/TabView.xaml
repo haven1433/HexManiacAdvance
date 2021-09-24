@@ -10,6 +10,7 @@
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
+      <hsg3hv:EqualityToBooleanConverter x:Key="Equality" />
    </UserControl.Resources>
    <DockPanel>
       <!-- Bottom Bar -->
@@ -790,15 +791,41 @@
                   <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
                   <ComboBox Grid.Column="1" Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
                </Grid>
-               <Grid Name="CodeToolBody">
-                  <TextBox UndoLimit="0" Margin="5" FontFamily="Consolas" Visibility="{Binding CodeTool.UseSingleContent, Converter={StaticResource BoolToVisibility}}"
-                           HorizontalScrollBarVisibility="Auto"
-                           Text="{Binding CodeTool.Content, UpdateSourceTrigger=PropertyChanged}" IsReadOnly="{Binding CodeTool.IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
-                  <DockPanel Visibility="{Binding CodeTool.UseMultiContent, Converter={StaticResource BoolToVisibility}}">
+               <Grid Name="CodeToolBody" DataContext="{Binding CodeTool}">
+                  <DockPanel Visibility="{Binding UseSingleContent, Converter={StaticResource BoolToVisibility}}">
+                     <Decorator DockPanel.Dock="Top" HorizontalAlignment="Right" ToolTipService.ShowDuration="15000">
+                        <Decorator.ToolTip>
+                           <TextBlock>
+                              Repoint the selected commmands to free space, allowing you to expand this part of the routine. <LineBreak/>
+                              <LineBreak/>
+                              To use this, you must: <LineBreak/>
+                              → Select exactly 4 thumb commands (8 bytes). <LineBreak/>
+                              → None of the commands can be branch or ldr-pc commands. <LineBreak/>
+                              → At least one command must be a 'mov #' command.
+                           </TextBlock>
+                        </Decorator.ToolTip>
+                        <Button Content="Insert Thumb Hook" Margin="5" Command="{hsv:MethodCommand RepointThumb}">
+                           <Button.Style>
+                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                 <Setter Property="Visibility" Value="Collapsed"/>
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Mode}" Value="Thumb">
+                                       <Setter Property="Visibility" Value="Visible"/>
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </Button.Style>
+                        </Button>
+                     </Decorator>
+                     <TextBox UndoLimit="0" Margin="5" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto"
+                        Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                        IsReadOnly="{Binding IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                  </DockPanel>
+                  <DockPanel Visibility="{Binding UseMultiContent, Converter={StaticResource BoolToVisibility}}">
                      <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
-                        Text="{Binding CodeTool.ErrorText}"  Visibility="{Binding CodeTool.ShowErrorText, Converter={StaticResource BoolToVisibility}}" />
+                        Text="{Binding ErrorText}"  Visibility="{Binding ShowErrorText, Converter={StaticResource BoolToVisibility}}" />
                      <ScrollViewer PreviewMouseWheel="ScrollCodeContent">
-                        <ItemsControl ItemsSource="{Binding CodeTool.Contents}">
+                        <ItemsControl ItemsSource="{Binding Contents}">
                            <ItemsControl.ItemTemplate>
                               <DataTemplate>
                                  <StackPanel>

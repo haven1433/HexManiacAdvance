@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IDataModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
+      private readonly IRaiseMessageTab messageTab;
 
       public event EventHandler<ErrorInfo> ModelDataChanged;
 
@@ -73,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ScriptParser.FormatScript<XSERun>(history.CurrentChange, model, searchPoint);
       }
 
-      public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history) {
+      public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(singletons.ScriptLines, 0x02);
          battleScript = new ScriptParser(singletons.BattleScriptLines, 0x3D);
@@ -84,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.model = model;
          this.selection = selection;
          this.history = history;
+         this.messageTab = messageTab;
          selection.PropertyChanged += (sender, e) => {
             if (e.PropertyName == nameof(selection.SelectionEnd)) {
                UpdateContent();
@@ -109,6 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else if (length < 2 && mode == CodeMode.Thumb) {
                TryUpdate(ref content, string.Empty, nameof(Content));
                UpdateContents(-1, null);
+               CanRepointThumb = CalculateCanRepointThumb();
             } else if (mode == CodeMode.Script) {
                UpdateContents(start, script);
             } else if (mode == CodeMode.BattleScript) {
@@ -117,11 +120,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                UpdateContents(start, animationScript);
             } else if (mode == CodeMode.Thumb) {
                TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
+               CanRepointThumb = CalculateCanRepointThumb();
             } else {
                throw new NotImplementedException();
             }
          }
       }
+
+      #region RepointThumb
+
+      private bool CalculateCanRepointThumb() {
+         int left = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+         int right = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         if (left > right) (left, right) = (right, left);
+         var length = right - left + 1;
+         return Parser.CanRepoint(model, left, length) != -1;
+      }
+
+      private bool canRepointThumb;
+      public bool CanRepointThumb { get => canRepointThumb; private set => Set(ref canRepointThumb, value); }
+
+      public void RepointThumb() {
+         int left = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+         int right = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         if (left > right) (left, right) = (right, left);
+         int register = Parser.CanRepoint(model, left, right - left + 1);
+         if (register != -1) {
+            var newAddress = Parser.Repoint(history.CurrentChange, model, left, register);
+            messageTab.RaiseMessage($"Thumb code repointed to {newAddress:X6}");
+            selection.Goto.Execute(newAddress);
+            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(newAddress + 0x13);
+         }
+      }
+
+      #endregion
 
       /// <summary>
       /// Update all the content objects.

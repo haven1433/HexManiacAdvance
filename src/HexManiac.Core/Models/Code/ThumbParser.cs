@@ -127,6 +127,55 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return parseResult.ToString();
       }
 
+      /// <returns>
+      /// If a thumb repoint is possible, returns the scratch register that can be safely used for the repoint. -1 if no thumb repoint is possible.
+      /// </returns>
+      public int CanRepoint(IDataModel data, int start, int length) {
+         if (length != 8) return -1;
+         if (start % 4 != 0) return -1;
+         var content = Parse(data, start, length).Trim().SplitLines().Skip(1).ToArray(); // skip the header line
+         if (content.Length != 4) return -1;
+
+         // can't repoint if the included instructions care about other nearby addresses (load-pc and branch)
+         if (content.Any(line => "bl b beq bne bhs blo bcs bcc bmi bpl bvs bvc bhi bls bge blt bgt ble bal bnv".Split(' ').Any(token => line.Contains($" {token} ")))) return -1;
+         if (content.Any(line => line.Contains(" ldr ") && line.Contains(" [pc, "))) return -1;
+
+         // can't repoint if some instructions were not decoded
+         if (content.Any(line => line.Length == 4 && line.All(ViewPort.AllHexCharacters.Contains))) return -1;
+
+         // verify that content contains a `mov` instruction
+         for (int i = 0; i < 4; i++) {
+            if (content[i].Contains("mov ") && content[i].Contains(", #")) {
+               // verify that the register isn't used by an earlier instruction
+               var register = content[i].Trim().Substring(4).Split(",")[0].Trim();
+               if (content.Take(i).Any(line => line.Contains(register))) continue;
+               if (int.TryParse(register.Substring(1), out int r)) return r;
+            }
+         }
+
+         return -1;
+      }
+
+      public int Repoint(ModelDelta token, IDataModel model, int start, int register) {
+         var scratchRegister = "r" + register;
+         var existingCode = new byte[8];
+         Array.Copy(model.RawData, start, existingCode, 0, 8);
+         var newAddress = model.FindFreeSpace(0, 20);
+
+         // TODO add optional push if there's no scratch register
+         Compile(token, model, start, $"ldr {scratchRegister}, =<{newAddress+1:X6}>", $"bx {scratchRegister}");
+
+         // TODO add optional pop version if there's no scratch register
+         Compile(token, model, newAddress, $"ldr {scratchRegister}, [pc, <{newAddress + 0x10:X6}>]", $"mov lr, {scratchRegister}");
+
+         token.ChangeData(model, newAddress + 4, existingCode);
+         Compile(token, model, newAddress + 0xC, $"bx lr", "nop");
+         model.WritePointer(token, newAddress + 0x10, start + 9);
+         model.ObserveRunWritten(token, new PointerRun(newAddress + 0x10));
+
+         return newAddress;
+      }
+
       private static readonly IReadOnlyCollection<byte> nop = new byte[] { 0, 0 };
 
       /// <summary>

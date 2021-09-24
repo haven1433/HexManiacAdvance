@@ -112,6 +112,7 @@
     <Compile Include="Before_Baseclass\ToolTests.cs" />
     <Compile Include="Before_Baseclass\ViewPortAutocompleteEditTests.cs" />
     <Compile Include="Before_Baseclass\ViewPortCursorTests.cs" />
+    <Compile Include="ThumbRepointTests.cs" />
     <Compile Include="TilemapTableTests.cs" />
     <Compile Include="ToolTipTests.cs" />
     <Compile Include="TrainerTeamTests.cs" />
