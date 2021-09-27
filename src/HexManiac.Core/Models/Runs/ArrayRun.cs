@@ -795,6 +795,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   j += segment.Length;
                }
             }
+
+            AdjustTableIndexValues(token, elementCount);
          }
 
          var newInnerElementsSources = PointerSourcesForInnerElements?.ToList();
@@ -834,6 +836,31 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          UpdateList(token, elementCount);
 
          return new ArrayRun(owner, newFormat, LengthFromAnchor, newParentOffset, Start, elementCount, ElementContent, PointerSources, newInnerElementsSources);
+      }
+
+      /// <summary>
+      /// Look for number segments called 'index' or 'id'.
+      /// Find whatever run contains the 'end' of the values and bump their values.
+      /// Then set the new elements based on the new value gap.
+      /// </summary>
+      private void AdjustTableIndexValues(ModelDelta token, int newElementCount) {
+         for (int i = 0; i < ElementContent.Count; i++) {
+            if (ElementContent[i].Type != ElementContentType.Integer) continue;
+            if (ElementContent[i] is ArrayRunRecordSegment || ElementContent[i] is ArrayRunHexSegment || ElementContent[i] is ArrayRunEnumSegment) continue;
+            if (ElementContent[i].Name.ToLower() != "id" && ElementContent[i].Name.ToLower() != "index") continue;
+
+            var values = ElementCount.Range().Select(j => this.ReadValue(owner, j, i)).ToArray();
+            var maxIndex = values.IndexOf(values.Max());
+            var maxRunStart = maxIndex;
+            while (maxRunStart > 0 && values[maxRunStart - 1] == values[maxRunStart] - 1) maxRunStart -= 1;
+            if (maxIndex != ElementCount - 1 && maxRunStart != 0) {
+               for (int j = maxRunStart; j <= maxIndex; j++) this.WriteValue(values[j] + newElementCount, owner, token, j, i);
+               for (int j = 0; j < newElementCount; j++) this.WriteValue(values[maxRunStart] + j, owner, token, ElementCount + j, i);
+            } else {
+               // put the new values at the end
+               for (int j = 0; j < newElementCount; j++) this.WriteValue(values[maxIndex] + j + 1, owner, token, ElementCount + j, i);
+            }
+         }
       }
 
       private void UpdateNamedConstant(ModelDelta token, ref int desiredValue, bool alsoUpdateArrays) {

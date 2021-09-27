@@ -24,16 +24,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var token = viewPort.ChangeHistory.CurrentChange;
 
-         // TODO make sure to change the code locations to the number of pokemon, even if they currently are the wrong value.
+         // in testing, "New Guy" shows bulbasaur pokedex data and shows up as ???????? in the pokedex... why?
+
+         // TODO when expanding pokemon, make sure that the new data.pokemon.count constant actually gets updated...
+         // TODO when expanding pokedex, make sure that the new data.pokedex.count constant actually gets updated...
+         // TODO update pokedex search alpha?
+         // TODO update pokedex search type?
+         // TODO pokemon sprite/palette index doesn't update automatically
 
          // update constants and allow for automatic code updates when the number of pokemon changes
          var pokecount = UpdateConstants(viewPort, token);
-         var loadPokeCountFunctions = AddThumbConstantCode(viewPort, token, pokecount);
-         UpdateThumbConstants(viewPort, token, loadPokeCountFunctions);
+         var loadPokeCountFunctions = AddPokemonThumbConstantCode(viewPort, token, pokecount);
+         UpdatePokemonThumbConstants(viewPort, token, loadPokeCountFunctions);
 
-         // TODO test before looking into pokedex stuff
+         // update constant and allow for automatic code updates when the size of the pokedex changes
+         var dexCount = viewPort.Model.GetTable(HardcodeTablesModel.DexInfoTableName).ElementCount; // TODO this can fail...
+         var loadDexCountFunctions = AddPokedexThumbConstantCode(viewPort, token, dexCount);
+         UpdatePokedexThumbConstants(viewPort, token, dexCount, loadDexCountFunctions);
 
-         // still have 0xB4 free bytes at 157868
+         // still have 0xA4 free bytes at 157878
 
          return ErrorInfo.NoError;
       }
@@ -57,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return pokecount;
       }
 
-      private int AddThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int pokecount) {
+      private int AddPokemonThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int pokecount) {
          var model = viewPort.Model;
 
          // 15782C, for 0xF0 bytes, is a switch-statement table. We can move the switch table to reclaim this space for new values
@@ -114,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return originalSwitchTableStart;
       }
 
-      private void UpdateThumbConstants(IEditableViewPort viewPort, ModelDelta token, int pokecountFunctionAddress) {
+      private void UpdatePokemonThumbConstants(IEditableViewPort viewPort, ModelDelta token, int pokecountFunctionAddress) {
          var model = viewPort.Model;
          byte[] compile(int adr, int reg) => viewPort.Tools.CodeTool.Parser.Compile(token, model, adr, $"bl <{pokecountFunctionAddress + reg * 4:X6}>").ToArray();
          var registerUpdates = new[] {
@@ -154,6 +163,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          token.ChangeData(model, 0x103726, viewPort.Tools.CodeTool.Parser.Compile(token, model, 0x103726, $"bl <{pokecountFunctionAddress + 32:X6}>").ToArray()); // pokedex_screen
          token.ChangeData(model, 0x0BECA2, viewPort.Tools.CodeTool.Parser.Compile(token, model, 0x0BECA2, $"bl <{pokecountFunctionAddress + 36:X6}>").ToArray()); // ReadMail
          token.ChangeData(model, 0x12EAB4, viewPort.Tools.CodeTool.Parser.Compile(token, model, 0x12EAB4, $"bl <{pokecountFunctionAddress + 40:X6}>").ToArray()); // Menu2_GetMonSpriteAnchorCoord, species = SPECIES_OLD_UNOWN_B + unownLetter - 1
+      }
+
+      private int AddPokedexThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int dexCount) {
+         var model = viewPort.Model;
+
+         var insertPoint = 0x157868;
+         var newCode = viewPort.Tools.CodeTool.Parser.Compile(token, model, insertPoint,
+            "ldr r0, [pc, <dexcount>]", // 0
+            "lsl r0, r0, #3",
+            "bx  lr",
+            "nop",
+            "ldr r2, [pc, <dexcount>]", // 8
+            "bx  lr",
+            "dexcount: .word 0"         // 12
+            ).ToArray();
+         token.ChangeData(model, insertPoint, newCode);
+         int wordOffset = 12;
+
+         model.WriteMultiByteValue(insertPoint + wordOffset, 4, token, dexCount);
+         model.ObserveRunWritten(token, new WordRun(insertPoint + wordOffset, "data.pokedex.count", 2, 0, 1));
+
+         return insertPoint;
+      }
+
+      private void UpdatePokedexThumbConstants(IEditableViewPort viewPort, ModelDelta token, int dexCount, int dexcountFunctionAddress) {
+         var countMinusOne = new[] { 0x088EA4, 0x1037D4, 0x103870, 0x103920, 0x104C28 };
+         foreach (var address in countMinusOne) {
+            viewPort.Model.WriteMultiByteValue(address, 2, token, dexCount - 1);
+            viewPort.Model.ObserveRunWritten(token, new WordRun(address, "data.pokedex.count", 2, -1, 1));
+         }
+
+         var model = viewPort.Model;
+         byte[] compile(int adr, int offset) => viewPort.Tools.CodeTool.Parser.Compile(token, model, adr, $"bl <{dexcountFunctionAddress + offset:X6}>").ToArray();
+
+         // update  1025EC to bl <r0=dex_size*8>
+         // update  103534 to bl <r2=dex_size>
+         compile(0x1025EC, 0);
+         compile(0x103534, 8);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

@@ -221,7 +221,7 @@ graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 1
 graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
 graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
 graphics.pokemon.type.icons,           3C11B8, 3C1210, 3C11D4, 3C1230,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
-graphics.pokemon.type.index,           0A1A2C, 0A1A2C, 0A1A4C, 0A1A4C,       ,       ,       ,       , 1C439C, [index.]data.pokemon.type.names+5
+graphics.pokemon.type.index,           0A1A2C, 0A1A2C, 0A1A4C, 0A1A4C,       ,       ,       ,       , 1C439C, [palette.]data.pokemon.type.names+5
 graphics.pokemon.type.palettes,        09E028, 09E028, 09E048, 09E048,       ,       ,       ,       , 1C0080, `lzp4`
 graphics.pokemon.type.map,             3C11C8, 3C1220, 3C11E4, 3C1240,       ,       ,       ,       , 61CFCC, [pointer<[index::|t|:.|i::::::. unknown:|h unused:|h]1>]data.pokemon.type.names+5
 graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
