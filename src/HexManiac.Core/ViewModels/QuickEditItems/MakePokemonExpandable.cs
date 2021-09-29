@@ -42,6 +42,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var loadDexCountFunctions = AddPokedexThumbConstantCode(viewPort, token, dexCount);
          UpdatePokedexThumbConstants(viewPort, token, dexCount, loadDexCountFunctions);
 
+         // TODO fix the really stupid table-index switch of PlayCryInternal at 0720CA (01 1C 11 E0) -> make it always use the first case, the others are totally not needed
+
          // still have 0xA4 free bytes at 157878
 
          return ErrorInfo.NoError;
@@ -52,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var pokecount = model.GetTable(HardcodeTablesModel.PokemonNameTable).ElementCount; // TODO this can fail...
 
          var pokeCount0 = new[] { 0x168E09, 0x16B2BC }; // 2 bytes, equal to number of pokemon
-         var pokeCount1 = new[] { 0x0CB160, 0x0CB16C, 0x14420C }; // 2 bytes, equal to number of pokemon-1
+         var pokeCount1 = new[] { 0x043240, 0x0CB160, 0x0CB16C, 0x14420C }; // 2 bytes, equal to number of pokemon-1
          var pokeCount2 = new[] { 0x12EAB0, }; // 2 bytes, equal to number of pokemon+1
 
          foreach (var address in pokeCount0) model.WriteMultiByteValue(address, 2, token, pokecount);
