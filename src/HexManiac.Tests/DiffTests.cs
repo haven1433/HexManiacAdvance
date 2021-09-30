@@ -223,5 +223,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Single(itemText, "Copy Address");
       }
+
+      [Fact]
+      public void HideKnownPointerChanges_Diff_PointerChangesExcluded() {
+         ViewModel0.Edit("@00 <200> @100 3 ");
+
+         editor.HideDiffPointerChanges = true;
+         ViewModel0.DiffRight.Execute();
+
+         Assert.Equal(1, ((DiffViewPort)ViewModel2).ChildCount);
+      }
    }
 }

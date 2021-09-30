@@ -542,6 +542,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Direction> RequestDiff;
 
       public int MaxDiffSegmentCount { get; set; }
+      public bool HideDiffPointerChanges { get; set; }
 
       private StubCommand diff, diffLeft, diffRight;
       public ICommand Diff => StubCommand<object>(ref diff, ExecuteDiff);
@@ -592,6 +593,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (modelA[j] != modelB[j]) lastDiff = j;
                   if (lastDiff == j - 4) break;
                }
+               if (HideDiffPointerChanges && IsDiffPointerChange(i, lastDiff, modelB)) continue;
                resultsTabA.Add(CreateChildView(i, lastDiff));
                resultsTabB.Add(otherViewPort.CreateChildView(i, lastDiff));
                i = lastDiff + 1;
@@ -608,6 +610,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             throw new NotImplementedException();
          }
+      }
+
+      private bool IsDiffPointerChange(int start, int end, IDataModel other) {
+         while (start % 4 != 0) start--;
+         while (end % 4 != 3) end++;
+         if (end - start != 3) return false;
+         if (Model.GetNextRun(start) is PointerRun pRun1 && pRun1.Start == start) return true;
+         if (other.GetNextRun(start) is PointerRun pRun2 && pRun2.Start == start) return true;
+         return false;
       }
 
       private void ExecuteDiffLeft() => RequestDiff?.Invoke(this, Direction.Left);

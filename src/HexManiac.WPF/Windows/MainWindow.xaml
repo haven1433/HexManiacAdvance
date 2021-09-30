@@ -160,7 +160,13 @@
                   </MenuItem>
                </MenuItem>
                <MenuItem Header="_View">
-                  <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+Shift+D"/>
+                  <MenuItem Header="Diff">
+                     <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+Shift+D"/>
+                     <MenuItem Header="Diff selected tab with left neighbor" Command="{Binding DiffLeft}" />
+                     <MenuItem Header="Diff selected tab with right neighbor" Command="{Binding DiffRight}" />
+                     <Separator />
+                     <MenuItem Header="Exclude Pointer-only changes from diffs" IsCheckable="True" IsChecked="{Binding HideDiffPointerChanges}" />
+                  </MenuItem>
                   <Separator/>
                   <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" InputGestureText="Ctrl+M"/>
                   <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>

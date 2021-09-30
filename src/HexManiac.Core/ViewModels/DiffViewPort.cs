@@ -21,6 +21,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private HexElement[,] cell;
 
+      public int ChildCount => left.Length;
+
       public DiffViewPort(IEnumerable<IChildViewPort> leftChildren, IEnumerable<IChildViewPort> rightChildren) {
          left = leftChildren.ToArray();
          right = rightChildren.ToArray();

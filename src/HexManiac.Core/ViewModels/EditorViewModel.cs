@@ -352,6 +352,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private int maxDiffSegCount = 1000;
       public int MaximumDiffSegments { get => maxDiffSegCount; set => Set(ref maxDiffSegCount, value.LimitToRange(1, 10000)); }
+      public bool HideDiffPointerChanges { get; set; }
 
       public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
@@ -753,24 +754,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void ExecuteDiffLeft(ITabContent tab) {
+         if (tab == null) tab = SelectedTab;
          var index = tabs.IndexOf(tab);
          var leftIndex = index - 1;
          if (leftIndex < 0) return;
          DiffTabs(leftIndex, index);
       }
       private bool CanExecuteDiffLeft(ITabContent tab) {
+         if (tab == null) tab = SelectedTab;
          var index = tabs.IndexOf(tab);
          var leftIndex = index - 1;
          return leftIndex >= 0 && tabs[leftIndex] is ViewPort && tabs[index] is ViewPort;
       }
 
       private void ExecuteDiffRight(ITabContent tab) {
+         if (tab == null) tab = SelectedTab;
          var index = tabs.IndexOf(tab);
          var rightIndex = index + 1;
          if (rightIndex >= tabs.Count) return;
          DiffTabs(index, rightIndex);
       }
       private bool CanExecuteDiffRight(ITabContent tab) {
+         if (tab == null) tab = SelectedTab;
          var index = tabs.IndexOf(tab);
          var rightIndex = index + 1;
          return index >= 0 && rightIndex < tabs.Count && tabs[index] is ViewPort && tabs[rightIndex] is ViewPort;
@@ -788,6 +793,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          SelectedIndex = left;
          leftViewPort.MaxDiffSegmentCount = maxDiffSegCount;
+         leftViewPort.HideDiffPointerChanges = HideDiffPointerChanges;
          leftViewPort.Diff.Execute(rightViewPort);
       }
 
