@@ -849,16 +849,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (ElementContent[i] is ArrayRunRecordSegment || ElementContent[i] is ArrayRunHexSegment || ElementContent[i] is ArrayRunEnumSegment) continue;
             if (ElementContent[i].Name.ToLower() != "id" && ElementContent[i].Name.ToLower() != "index") continue;
 
-            var values = ElementCount.Range().Select(j => this.ReadValue(owner, j, i)).ToArray();
+            var currentCount = ElementCount;
+            if (ParentOffset.EndMargin > 0) currentCount += newElementCount;
+            var values = currentCount.Range().Select(j => this.ReadValue(owner, j, i)).ToArray();
             var maxIndex = values.IndexOf(values.Max());
             var maxRunStart = maxIndex;
             while (maxRunStart > 0 && values[maxRunStart - 1] == values[maxRunStart] - 1) maxRunStart -= 1;
-            if (maxIndex != ElementCount - 1 && maxRunStart != 0) {
+            if (maxIndex != currentCount - 1 && maxRunStart != 0) {
                for (int j = maxRunStart; j <= maxIndex; j++) this.WriteValue(values[j] + newElementCount, owner, token, j, i);
                for (int j = 0; j < newElementCount; j++) this.WriteValue(values[maxRunStart] + j, owner, token, ElementCount + j, i);
             } else {
                // put the new values at the end
-               for (int j = 0; j < newElementCount; j++) this.WriteValue(values[maxIndex] + j + 1, owner, token, ElementCount + j, i);
+               var endMargin = Math.Max(0, ParentOffset.EndMargin);
+               for (int j = 0; j < newElementCount; j++) this.WriteValue(values[maxIndex] + j + 1, owner, token, ElementCount + j - endMargin, i);
             }
          }
       }
