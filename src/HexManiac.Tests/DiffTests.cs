@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       private IEditableViewPort ViewModel0 => (IEditableViewPort)editor[0];
       private IEditableViewPort ViewModel1 => (IEditableViewPort)editor[1];
-      private IViewPort ViewModel2 => (IViewPort)editor[2];
+      private DiffViewPort ViewModel2 => (DiffViewPort)editor[2];
       private IDataModel Model0 => ViewModel0.Model;
       private IDataModel Model1 => ViewModel1.Model;
       private void Edit0(string text) => ((ViewPort)editor[0]).Edit(text);
@@ -231,7 +231,79 @@ namespace HavenSoft.HexManiac.Tests {
          editor.HideDiffPointerChanges = true;
          ViewModel0.DiffRight.Execute();
 
-         Assert.Equal(1, ((DiffViewPort)ViewModel2).ChildCount);
+         Assert.Equal(1, ViewModel2.ChildCount);
       }
+
+      [Fact]
+      public void TwoCloseChanges_Diff_CombineResults() {
+         ViewModel0.Edit("01 02 03 04 @10 01 02 03 04 ");
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.Equal(1, ViewModel2.ChildCount);
+      }
+
+      [Fact]
+      public void LongChange_Diff_SeeWholeChange() {
+         for (int i = 0; i < 0x50; i++) ViewModel0.Edit("11 ");
+         ViewModel0.Edit("@00 ^table[a:: b:: c:: d::]5 ");
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.Equal(5, ViewModel2.LeftHeight(0));
+         Assert.Equal(5, ViewModel2.RightHeight(0));
+      }
+
+      [Fact]
+      public void DiffTab_OpenFile_NoCrash() {
+         ViewModel0.Edit("11 ");
+         ViewModel0.DiffRight.Execute();
+
+         editor.Open.Execute(new LoadedFile("file.gba", new byte[0x800]));
+
+         // no exceptions -> pass
+      }
+
+      [Fact]
+      public void DiffTab_HasHeader() {
+         ViewModel0.Edit("11 ");
+
+         ViewModel0.DiffRight.Execute();
+
+         Assert.Empty(ViewModel2.FileName);
+         Assert.NotEmpty(ViewModel2.FullFileName);
+      }
+
+      [Fact]
+      public void TwoTabs_SwapTabs_DiffOptionsUpdated() {
+         int notifyCount = 0;
+         ViewModel0.DiffLeft.CanExecuteChanged += (sender, e) => notifyCount += 1;
+         ViewModel0.DiffRight.CanExecuteChanged += (sender, e) => notifyCount += 1;
+         ViewModel1.DiffLeft.CanExecuteChanged += (sender, e) => notifyCount += 1;
+         ViewModel1.DiffRight.CanExecuteChanged += (sender, e) => notifyCount += 1;
+
+         editor.SwapTabs(0, 1);
+
+         Assert.False(ViewModel0.DiffLeft.CanExecute(default));
+         Assert.True(ViewModel0.DiffRight.CanExecute(default));
+         Assert.True(ViewModel1.DiffLeft.CanExecute(default));
+         Assert.False(ViewModel1.DiffRight.CanExecute(default));
+         Assert.Equal(4, notifyCount);
+      }
+
+      [Fact]
+      public void OneTab_AddNewTab_DiffOptionsUpdate() {
+         editor[1].Close.Execute();
+         int notifyCount = 0;
+         ViewModel0.DiffRight.CanExecuteChanged += (sender, e) => notifyCount += 1;
+
+         editor.Open.Execute(new LoadedFile("file2.gba", new byte[0x1000]));
+
+         Assert.Equal(1, notifyCount);
+      }
+
+      // TODO Can I use this pointer information to then show diffs between dynamic addresses?
+      //      If a pointer is recognized as moved, show a diff for the two destinations together, instead of just based on linear address
+      //      i.e. instead of diffing 720000 with 720000, diff <720000> with <840000> (because of a pointer difference found)
    }
 }

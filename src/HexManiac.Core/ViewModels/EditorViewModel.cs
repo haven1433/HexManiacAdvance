@@ -729,6 +729,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshTabHeaderContextMenus() {
          diffLeft.RaiseCanExecuteChanged();
          diffRight.RaiseCanExecuteChanged();
+         foreach (var tab in tabs) {
+            if (tab is ViewPort vp) vp.RefreshTabCommands();
+         }
       }
 
       public IEnumerator<ITabContent> GetEnumerator() => tabs.GetEnumerator();

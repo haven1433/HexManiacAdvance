@@ -635,6 +635,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return args.Result;
       }
 
+      public void RefreshTabCommands() {
+         diffLeft?.RaiseCanExecuteChanged();
+         diffRight?.RaiseCanExecuteChanged();
+      }
+
       #endregion
 
       #region Duplicate
@@ -1810,13 +1815,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var lineStart = array.Start + array.ElementLength * offsets.ElementIndex;
             child.Goto.Execute(lineStart.ToString("X2"));
             child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
-            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
+            var endPoint = child.ConvertAddressToViewPoint(endAddress);
+            if (endPoint.Y - child.SelectionStart.Y > 3) child.Height = endPoint.Y - child.SelectionStart.Y + 1;
+            child.SelectionEnd = endPoint;
          } else if (run is ITableRun tableRun) {
             child.Goto.Execute(tableRun.Start);
             child.Width = tableRun.Length;
             child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
-            child.SelectionEnd = child.ConvertAddressToViewPoint(endAddress);
-            child.Height = 1;
+            var endPoint = child.ConvertAddressToViewPoint(endAddress);
+            child.Height = endPoint.Y - child.SelectionStart.Y + 1;
+            child.SelectionEnd = endPoint;
          } else {
             child.Goto.Execute(startAddress.ToString("X2"));
             var endPoint = child.ConvertAddressToViewPoint(endAddress);

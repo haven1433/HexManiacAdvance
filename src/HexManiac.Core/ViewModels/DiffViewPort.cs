@@ -15,26 +15,41 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class DiffViewPort : ViewModelCore, IViewPort {
       public const int MaxInnerTabWIdth = 32;
-      private readonly IChildViewPort[] left, right;
+      private readonly IList<IChildViewPort> left, right;
       private readonly int leftWidth, rightWidth;
       private readonly List<int> startOfNextSegment;
 
       private HexElement[,] cell;
 
-      public int ChildCount => left.Length;
+      public int ChildCount => left.Count;
 
       public DiffViewPort(IEnumerable<IChildViewPort> leftChildren, IEnumerable<IChildViewPort> rightChildren) {
-         left = leftChildren.ToArray();
-         right = rightChildren.ToArray();
-         Debug.Assert(left.Length == right.Length, "Diff views must have the same number of diff elements on each side!");
-         leftWidth = left.Length == 0 ? 16 : Math.Min(MaxInnerTabWIdth, left.Max(child => child.Width));
-         rightWidth = right.Length == 0 ? 16 : Math.Min(MaxInnerTabWIdth, right.Max(child => child.Width));
+         left = leftChildren.ToList();
+         right = rightChildren.ToList();
+         Debug.Assert(left.Count == right.Count, "Diff views must have the same number of diff elements on each side!");
+
+         // combine similar children
+         for (int i = 0; i < left.Count - 1; i++) {
+            if (CompositeChildViewPort.TryCombine(left[i], left[i + 1], out var leftResult) && CompositeChildViewPort.TryCombine(right[i], right[i + 1], out var rightResult)) {
+               left[i] = leftResult;
+               right[i] = rightResult;
+               left.RemoveAt(i + 1);
+               right.RemoveAt(i + 1);
+               i -= 1;
+            }
+         }
+
+         leftWidth = left.Count == 0 ? 16 : Math.Min(MaxInnerTabWIdth, left.Max(child => child.Width));
+         rightWidth = right.Count == 0 ? 16 : Math.Min(MaxInnerTabWIdth, right.Max(child => child.Width));
          startOfNextSegment = new List<int>();
          startOfNextSegment.Add(0);
-         for (int i = 0; i < Math.Min(left.Length, right.Length); i++) {
+         for (int i = 0; i < Math.Min(left.Count, right.Count); i++) {
             startOfNextSegment.Add(startOfNextSegment[i] + 1 + Math.Max(left[i].Height, right[i].Height));
          }
       }
+
+      public int LeftHeight(int index) => left[index].Height;
+      public int RightHeight(int index) => right[index].Height;
 
       #region IViewPort
 
@@ -47,7 +62,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string FileName => string.Empty;
 
-      public string FullFileName => string.Empty;
+      public string FullFileName => Name;
 
       public int Width { get => leftWidth + rightWidth + 1; set { } }
 
@@ -181,7 +196,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool IsSelected(Point point) {
          var (childIndex, childLine) = ConvertLine(point.Y);
-         if (childIndex >= left.Length) return false;
+         if (childIndex >= left.Count) return false;
          if (point.X < leftWidth) return left[childIndex].IsSelected(new Point(point.X, childLine));
          return right[childIndex].IsSelected(new Point(point.X - leftWidth - 1, childLine));
       }
@@ -191,9 +206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void Refresh(int unused) => FillCells();
       public void Refresh() => FillCells();
 
-      public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
-         throw new NotImplementedException();
-      }
+      public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
       public void ValidateMatchedWords() { }
 
@@ -215,7 +228,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var (childIndex, childLine) = ConvertLine(0);
          for (int y = 0; y < Height; y++) {
-            var childIsValid = childIndex < left.Length;
+            var childIsValid = childIndex < left.Count;
             for (int x = 0; x < leftWidth; x++) {
                cell[x, y] = childIsValid ? left[childIndex][x, childLine] : defaultCell;
             }
