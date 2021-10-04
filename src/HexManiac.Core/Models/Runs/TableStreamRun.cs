@@ -358,6 +358,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private IEnumerable<AutocompleteItem> CreateEnumAutocompleteOptions(IReadOnlyList<string> tokens, IEnumerable<string> optionText, string lineEnd) {
          foreach (var option in optionText) {
             string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
+            if (newLine.Length > 0) newLine += ", ";
             newLine += option;
             newLine += lineEnd;
             if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";

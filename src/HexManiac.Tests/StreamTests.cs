@@ -423,5 +423,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(4, childB.ElementCount);
          Assert.Equal(5, childC.ElementCount);
       }
+
+      [Fact]
+      public void TableStreamRun_GetAutoCompleteOptions_OptionsContainSpaces() {
+         Model.SetList("names", new[] { "adam", "bob", "carl", "dave" });
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a: b: c::names]", null, new FixedLengthStreamStrategy(2));
+
+         var options = stream.GetAutoCompleteOptions("1, 2, a", 0, 7);
+
+         Assert.Equal(3, options.Count);
+         Assert.Equal("1, 2, adam", options[0].LineText);
+         Assert.Equal("1, 2, carl", options[1].LineText);
+         Assert.Equal("1, 2, dave", options[2].LineText);
+      }
    }
 }
