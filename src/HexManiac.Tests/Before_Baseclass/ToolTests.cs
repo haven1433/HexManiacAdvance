@@ -384,6 +384,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData(".word <004000>", 0b0000_1000_0000_0000_0100_0000_0000_0000)]
       [InlineData(".word <bob>", 0b0000_1000_0000_0000_0000_0000_1000_0000)] // test that we can use anchors to get pointer locations
       [InlineData("ldr   r0, [pc, <bob>]", 0b01001_000_11011111)]  //  -33*4+4=-128
+      [InlineData("ldr   r0, bob", 0b01001_000_11011111)] // alternate supported syntax
       [InlineData("ldrb  r1, [r1, r2]", 0b0101110_010_001_001)]
       [InlineData("ldrh  r2, [r1, #0]", 0b10001_00000_001_010)]
       [InlineData("lsl   r1, r2", 0b0100000010_010_001)]
@@ -791,6 +792,20 @@ namespace HavenSoft.HexManiac.Tests {
          var content = ViewPort.Tools.CodeTool.Contents[0].Content;
 
          Assert.Single(content.Split(Environment.NewLine));
+      }
+
+      [Fact]
+      public void ExcessLabels_Compile_RightBytes() {
+         var expected = "01 48 00 00 00 00 00 00 11 11 11 11".ToByteArray();
+
+         var results = parser.Compile(Model, 0,
+            "ldr r0, bob",
+            "nop",
+            "nop",
+            "label:",
+            "bob: .word 0x11111111");
+
+         Assert.Equal(expected, results);
       }
    }
 }

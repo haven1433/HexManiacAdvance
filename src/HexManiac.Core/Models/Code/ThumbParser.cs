@@ -231,8 +231,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.StartsWith(".word") && position % 4 != 0) {
                   // alignment is off! words have to be 4-byte aligned.
                   position += 2;
-                  var labelToFix = labels.Keys.FirstOrDefault(key => labels[key] == position - 6);
-                  if (labelToFix != null) labels[labelToFix] = position - 4;
+                  var labelsToFix = labels.Keys.Where(key => labels[key] == position - 6).ToList();
+                  foreach (var label in labelsToFix) labels[label] = position - 4;
                }
                if (line.StartsWith("ldr ") && line.Contains("=")) {
                   // We only care about the count during this step. But doing a full compile will keep us from double-counting duplicate words.
