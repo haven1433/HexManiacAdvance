@@ -20,7 +20,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
          }
          if (labels.TryGetValue(label, out int result)) return result + offset;
-         return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label) + offset;
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label);
+         if (address == Pointer.NULL) return address;
+         return address + offset;
       }
       public bool TryResolveLabel(string label, out int address) {
          address = ResolveLabel(label);

@@ -807,5 +807,12 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(expected, results);
       }
+
+      [Fact]
+      public void LdrInlineAddition_Compile_AdditionPerformed() {
+         var expected = parser.Compile(Model, 0, "ldr r0, =0x11");
+         var actual = parser.Compile(Model, 0, "ldr r0, =0x10+1");
+         Assert.Equal(expected, actual);
+      }
    }
 }
