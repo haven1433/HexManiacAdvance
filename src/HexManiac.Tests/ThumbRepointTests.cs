@@ -60,7 +60,6 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(Tool.CanRepointThumb);
       }
 
-
       [Theory]
       [InlineData(1)]
       [InlineData(2)]
