@@ -855,7 +855,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
-         if (run.Start == 0x040002) ;
+
          lock (threadlock) {
             if (run is ArrayRun array) {
                // update any words who's name matches this array's name
@@ -1564,7 +1564,15 @@ namespace HavenSoft.HexManiac.Core.Models {
                // Clear pointer formats to it. They're not actually pointers.
                foreach (var source in run.PointerSources) {
                   if (source > run.Start && source < run.Start + run.Length) continue;
-                  ClearFormat(changeToken, source, 4);
+                  ClearPointerFormat(changeToken, source);
+               }
+               if (run is ArrayRun table && table.SupportsInnerPointers) {
+                  foreach (var sources in table.PointerSourcesForInnerElements) {
+                     foreach (var source in sources) {
+                        if (source > run.Start && source < run.Start + run.Length) continue;
+                        ClearPointerFormat(changeToken, source);
+                     }
+                  }
                }
             }
             changeToken.RemoveName(run.Start, name);
@@ -1614,6 +1622,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else {
             runs.RemoveAt(runIndex);
          }
+      }
+
+      private void ClearPointerFormat(ModelDelta changeToken, int source) {
+         var run = GetNextRun(source);
+         if (run is PointerRun && run.Start == source) ClearFormat(changeToken, source, 4);
       }
 
       private void ClearPointerFormat(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
@@ -1939,7 +1952,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var unmappedConstants = new List<StoredUnmappedConstant>();
-         foreach(var kvp in this.unmappedConstants) {
+         foreach (var kvp in this.unmappedConstants) {
             var name = kvp.Key;
             var value = kvp.Value;
             unmappedConstants.Add(new StoredUnmappedConstant(name, value));
@@ -1997,6 +2010,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                results = results.Remove1(results[i]);
                i -= 1;
             } else if (newRun != null) {
+               // NOTE don't ObserveRunWritten here! That will automatically add not only the Pointer, but also an anchor. Example: Unbound-bt-d1.3.1, it causes a conflict where an anchor is added into the type names _while_ we're adding the table that contains that inner anchor.
                var index = ~BinarySearch(newRun.Start);
                runs.Insert(index, newRun);
                token.AddRun(newRun);
@@ -2266,20 +2280,32 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
    }
 
-   public class DebugList<T> : List<T>, IList<T> {
+   public class DebugList : List<IFormattedRun>, IList<IFormattedRun> {
+      private static readonly int[] TargetAddresses = new int[] { };
       public int InsertCount { get; private set; }
       public int RemoveCount { get; private set; }
-      void ICollection<T>.Add(T item) {
+      void ICollection<IFormattedRun>.Add(IFormattedRun item) {
+         if (TargetAddresses.Contains(item.Start)) Debugger.Break();
          InsertCount += 1;
          Add(item);
       }
-      void IList<T>.Insert(int index, T item) {
+      void IList<IFormattedRun>.Insert(int index, IFormattedRun item) {
+         if (TargetAddresses.Contains(item.Start)) Debugger.Break();
          InsertCount += 1;
          Insert(index, item);
       }
-      void IList<T>.RemoveAt(int index) {
+      void IList<IFormattedRun>.RemoveAt(int index) {
+         var item = this[index];
+         if (TargetAddresses.Contains(item.Start)) Debugger.Break();
          RemoveCount += 1;
          RemoveAt(index);
+      }
+      IFormattedRun IList<IFormattedRun>.this[int index] {
+         get => this[index];
+         set {
+            if (TargetAddresses.Contains(value.Start)) Debugger.Break();
+            this[index] = value;
+         }
       }
    }
 }
