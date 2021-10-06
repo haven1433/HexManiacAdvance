@@ -140,8 +140,7 @@ Name = '''Input'''
 
          Model.TryGetList("list", out var list);
          var table = Model.GetTable("table");
-         Assert.Equal(3, list.Count);
-         Assert.Equal(3, table.ElementCount);
+         Assert.Equal(list, new[] { "a", "b", "unnamed2" });
       }
 
       [Fact]

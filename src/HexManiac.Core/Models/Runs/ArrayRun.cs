@@ -856,7 +856,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private void UpdateList(ModelDelta token, int desiredValue) {
          if (!owner.TryGetList(LengthFromAnchor, out var originalList)) return;
          var newList = originalList.ToList();
-         while (newList.Count < desiredValue) newList.Add(newList.Count.ToString());
+         while (newList.Count < desiredValue) newList.Add($"unnamed{newList.Count}");
          owner.SetList(token, LengthFromAnchor, newList);
       }
 
