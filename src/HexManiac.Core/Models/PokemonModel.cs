@@ -1384,7 +1384,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var lastConflictingData = -1;
             for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
             if (lastConflictingData != -1) {
-               start = lastConflictingData + FreeSpaceBuffer;
+               start = lastConflictingData + Math.Max(4, FreeSpaceBuffer);
                var modulo = start % 4;
                if (modulo != 0) start += 4 - modulo;
                continue;
