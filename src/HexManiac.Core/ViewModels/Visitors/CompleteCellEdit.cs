@@ -370,7 +370,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          if (Result) {
-            tuple.Model.Write(Model, CurrentChange, memoryLocation, CurrentText);
+            var text = CurrentText;
+            tuple.Model.Write(Model, CurrentChange, memoryLocation, ref text);
             NewDataIndex = memoryLocation + tuple.Length;
          }
       }

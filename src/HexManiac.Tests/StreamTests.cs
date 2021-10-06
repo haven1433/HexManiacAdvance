@@ -436,5 +436,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("1, 2, carl", options[1].LineText);
          Assert.Equal("1, 2, dave", options[2].LineText);
       }
+
+      [Fact]
+      public void TableWithEnumAndNumber_InputTuple_ParsesData() {
+         Model.SetList("list", new[] { "adam", "bob", "carl", "dave" });
+         var table = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[a:list b:]", default, new FixedLengthStreamStrategy(2));
+
+         table.DeserializeRun(Environment.NewLine.Join(new[] { "(bob 3)", "(carl 4)" }), ViewPort.CurrentChange);
+
+         Assert.Equal(1, table.ReadValue(Model, 0, "a"));
+         Assert.Equal(3, table.ReadValue(Model, 0, "b"));
+         Assert.Equal(2, table.ReadValue(Model, 1, "a"));
+         Assert.Equal(4, table.ReadValue(Model, 1, "b"));
+      }
    }
 }

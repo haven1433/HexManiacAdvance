@@ -185,7 +185,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int segmentOffset = 0;
             for (int j = 0; j < ElementContent.Count; j++) {
                var data = j < tokens.Count ? tokens[j] : string.Empty;
-               ElementContent[j].Write(model, token, start + segmentOffset, data);
+               ElementContent[j].Write(model, token, start + segmentOffset, ref data);
+               if (data.Length > 0) tokens.Insert(j + 1, data);
                segmentOffset += ElementContent[j].Length;
             }
             start += ElementLength;
@@ -238,14 +239,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
             if (fieldIndex >= fields.Length) break;
             var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last() : string.Empty;
-            ElementContent[j].Write(model, token, Start + segmentOffset, data);
+            ElementContent[j].Write(model, token, Start + segmentOffset, ref data);
             segmentOffset += ElementContent[j].Length;
             fieldIndex += 1;
          }
          return this;
       }
 
-      private IReadOnlyList<string> Tokenize(string line) {
+      public static List<string> Tokenize(string line) {
          // split at each space
          var tokens = new List<string>(line.Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries));
 
