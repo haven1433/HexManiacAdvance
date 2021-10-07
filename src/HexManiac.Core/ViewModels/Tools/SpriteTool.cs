@@ -516,7 +516,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.history = history;
          Colors = new PaletteCollection(viewPort, viewPort.Model, history);
          Colors.ColorsChanged += (sender, e) => { LoadPalette(); LoadSprite(); };
-         Colors.PaletteRepointed += (sender, newPaletteAddress) => PaletteAddress = newPaletteAddress;
+         Colors.PaletteRepointed += (sender, newPaletteAddress) => HandlePaletteRepoint(newPaletteAddress);
          model = viewPort?.Model;
          spriteAddress = Pointer.NULL;
          paletteAddress = Pointer.NULL;
@@ -548,6 +548,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          nextPalPage.Execute = arg => { palPage += 1; LoadPalette(); };
 
          LoadPalette();
+      }
+
+      private void HandlePaletteRepoint(int address) {
+         PaletteAddress = address;
+         viewPort.RaiseMessage($"Palette moved to {address:X6}. Pointers were updated.");
       }
 
       public void DataForCurrentRunChanged() {

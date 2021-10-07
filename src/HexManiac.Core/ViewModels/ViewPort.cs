@@ -1289,7 +1289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offset = tableRun.ConvertByteOffsetToArrayOffset(pointer);
             if (tableRun.ElementContent[offset.SegmentIndex] is ArrayRunPointerSegment pSegment) {
                var run = destination;
-               var error = FormatRunFactory.GetStrategy(pSegment.InnerFormat).TryParseData(Model, string.Empty, destinationAddress, ref run);
+               var error = FormatRunFactory.GetStrategy(pSegment.InnerFormat, allowStreamCompressionErrors: true).TryParseData(Model, string.Empty, destinationAddress, ref run);
                if (error.HasError) {
                   CreateNewData(pointer);
                   return;
@@ -1303,24 +1303,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         if (destination.PointerSources.Count < 2) {
-            OnError?.Invoke(this, "This is the only pointer, no need to make a new copy.");
-            return;
-         }
-
          if (destination is ArrayRun) {
             OnError?.Invoke(this, "Cannot automatically duplicate a table. This operation is unsafe.");
             return;
          }
 
-         var newDestination = Model.FindFreeSpace(destination.Start, destination.Length);
-         if (newDestination == -1) {
-            newDestination = Model.Count;
-            Model.ExpandData(history.CurrentChange, Model.Count + destination.Length);
-         }
+         int newDestination;
+         if (destination is LZRun lz && lz.HasLengthErrors) {
+            // we can repoint this
+            var uncompressed = LZRun.Decompress(Model, lz.Start, true);
+            var newCompressed = LZRun.Compress(uncompressed);
+            newDestination = Model.FindFreeSpace(destination.Start, newCompressed.Count);
+            if (newDestination == -1) {
+               newDestination = Model.Count;
+               Model.ExpandData(history.CurrentChange, Model.Count + newCompressed.Count);
+            }
 
-         for (int i = 0; i < destination.Length; i++) {
-            history.CurrentChange.ChangeData(Model, newDestination + i, Model[destination.Start + i]);
+            history.CurrentChange.ChangeData(Model, newDestination, newCompressed);
+         } else if (destination.PointerSources.Count < 2) {
+            OnError?.Invoke(this, "This is the only pointer, no need to make a new copy.");
+            return;
+         } else {
+            newDestination = Model.FindFreeSpace(destination.Start, destination.Length);
+            if (newDestination == -1) {
+               newDestination = Model.Count;
+               Model.ExpandData(history.CurrentChange, Model.Count + destination.Length);
+            }
+
+            for (int i = 0; i < destination.Length; i++) {
+               history.CurrentChange.ChangeData(Model, newDestination + i, Model[destination.Start + i]);
+            }
          }
 
          Model.ClearPointer(CurrentChange, pointer, destination.Start);

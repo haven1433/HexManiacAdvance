@@ -22,15 +22,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public bool AllowLengthErrors { get; }
 
+      public bool HasLengthErrors { get; }
+
       public LZRun(IDataModel data, int start, bool allowLengthErrors = false, SortedSpan<int> sources = null) : base(start, sources) {
          this.Model = data;
          this.AllowLengthErrors = allowLengthErrors;
-         length = IsCompressedLzData(data, start, allowLengthErrors);
+         length = IsCompressedLzData(data, start, allowLengthErrors, out bool hasLengthErrors);
+         HasLengthErrors = hasLengthErrors;
          if (data.Count > start + 4) DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
       }
 
       /// <returns>The length of the compressed data</returns>
-      public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors = false) {
+      public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors = false) => IsCompressedLzData(data, start, allowLengthErrors, out var _);
+
+      /// <returns>The length of the compressed data</returns>
+      public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out bool hasLengthErrors) {
+         hasLengthErrors = false;
          var initialStart = start;
          int length = ReadHeader(data, ref start);
          if (length < 1) return -1;
@@ -53,8 +60,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             }
          }
 
+         hasLengthErrors = index != length || start > data.Count;
          if (allowLengthErrors) return start - initialStart;
-         return index == length && start <= data.Count ? start - initialStart : -1;
+         return !hasLengthErrors ? start - initialStart : -1;
       }
 
       public static bool TryDecompress(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out byte[] result) => (result = Decompress(data, start, allowLengthErrors)) != null;

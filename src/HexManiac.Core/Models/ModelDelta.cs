@@ -91,8 +91,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public void ChangeData(IDataModel model, int index, byte[] array) {
-         for (int i = 0; i < array.Length; i++) ChangeData(model, index + i, array[i]);
+      public void ChangeData(IDataModel model, int index, IReadOnlyList<byte> array) {
+         for (int i = 0; i < array.Count; i++) ChangeData(model, index + i, array[i]);
       }
 
       public void ChangeList(string name, IReadOnlyList<string> oldValues, IReadOnlyList<string> newValues) {

@@ -53,6 +53,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExecuteOpenEditor() {
+         if (DataIsNotValid && CanRepoint) Repoint.Execute();
          var destination = ViewPort.Model.ReadPointer(Start);
          ViewPort.OpenImageEditorTab(destination, CurrentPage, CurrentPalette);
       }

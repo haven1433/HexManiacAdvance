@@ -49,7 +49,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    }
 
    public class FormatRunFactory {
-      public static RunStrategy GetStrategy(string format) {
+      public static RunStrategy GetStrategy(string format, bool allowStreamCompressionErrors = false) {
          RunStrategy strategy;
          if (format == PCSRun.SharedFormatString) {
             strategy = new PCSRunContentStrategy();
@@ -72,8 +72,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
             strategy = new TrainerPokemonTeamRunContentStrategy();
          } else if (LzSpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
+            if (allowStreamCompressionErrors) spriteFormat = new SpriteFormat(spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight, spriteFormat.PaletteHint, allowStreamCompressionErrors);
             strategy = new LzSpriteRunContentStrategy(spriteFormat);
          } else if (LzPaletteRun.TryParsePaletteFormat(format, out var paletteFormat)) {
+            if (allowStreamCompressionErrors) paletteFormat = new PaletteFormat(paletteFormat.Bits, paletteFormat.Pages, paletteFormat.InitialBlankPages, allowStreamCompressionErrors);
             strategy = new LzPaletteRunContentStrategy(paletteFormat);
          } else if (TilesetRun.TryParseTilesetFormat(format, out var tilesetFormat)) {
             strategy = new TilesetRunContentStrategy(tilesetFormat);

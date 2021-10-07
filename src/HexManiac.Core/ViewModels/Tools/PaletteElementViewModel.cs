@@ -17,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var table = (ITableRun)viewPort.Model.GetNextRun(itemAddress);
          Colors = new PaletteCollection(viewPort, viewPort.Model, history);
          Colors.RequestPageSet += HandleColorsPageSet;
+         Colors.PaletteRepointed += HandlePaletteRepoint;
          TableName = viewPort.Model.GetAnchorFromAddress(-1, table.Start);
          var destination = Model.ReadPointer(Start);
          var run = viewPort.Model.GetNextRun(destination) as IPaletteRun;
@@ -69,5 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             pvm.CurrentPage = page;
          }
       }
+
+      private void HandlePaletteRepoint(object sender, int address) => ViewPort.RaiseMessage($"Palette moved to {address:X6}. Pointers were updated.");
    }
 }

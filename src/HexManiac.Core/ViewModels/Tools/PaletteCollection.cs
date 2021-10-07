@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -192,9 +193,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
+         var colors = Elements.Select(e => e.Color).ToList();
+         source = RepointIfBadData(source, sourcePalettePointer);
+
          // update model
          var newPalette = source;
-         newPalette = newPalette.SetPalette(model, history.CurrentChange, page, Elements.Select(e => e.Color).ToList());
+         newPalette = newPalette.SetPalette(model, history.CurrentChange, page, colors);
          if (source.Start != newPalette.Start) {
             tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
             PaletteRepointed?.Invoke(this, newPalette.Start);
@@ -326,6 +330,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          tab.Refresh();
          if (hasMultiplePages) RequestPageSet?.Invoke(this, currentPage);
          ColorsChanged?.Invoke(this, EventArgs.Empty);
+      }
+
+      private T RepointIfBadData<T>(T run, int pointerSource) {
+         if (!(run is LZRun lz)) return run;
+         if (!lz.HasLengthErrors) return run;
+
+         var token = history.CurrentChange;
+         var uncompressed = LZRun.Decompress(model, lz.Start, true);
+         var newCompressed = LZRun.Compress(uncompressed);
+         var newDestination = model.FindFreeSpace(lz.Start, newCompressed.Count);
+         if (newDestination == -1) {
+            newDestination = model.Count;
+            model.ExpandData(token, model.Count + newCompressed.Count);
+         }
+
+         history.CurrentChange.ChangeData(model, newDestination, newCompressed);
+
+         var newRun = lz.Duplicate(newDestination, new SortedSpan<int>(pointerSource));
+         model.ClearPointer(token, pointerSource, lz.Start);
+         model.WritePointer(token, pointerSource, newDestination); // point to the new destination
+         model.ObserveRunWritten(token, newRun);
+         PaletteRepointed?.Invoke(this, newDestination);
+         return (T)newRun;
       }
 
       #region Commands

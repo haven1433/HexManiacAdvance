@@ -445,6 +445,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          BlockPreview = new BlockPreview();
          SetupPageOptions();
          Palette.SelectionSet += (sender, e) => BlockPreview.Clear();
+         Palette.PaletteRepointed += (sender, newAddress) => RaiseMessage($"Palette moved to {newAddress:X6}. Pointers were updated.");
          RefreshTilePalettes();
          TilePalettes.CollectionChanged += (sender, e) => PushTilePalettesToModel();
          history.Undo.CanExecuteChanged += (sender, e) => undoWrapper?.CanExecuteChanged.Invoke(undoWrapper, e);
