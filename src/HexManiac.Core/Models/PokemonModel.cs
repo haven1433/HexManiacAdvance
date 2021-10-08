@@ -755,6 +755,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          return Pointer.NULL;
       }
 
+      /// <summary>
+      /// If no anchor is found, return string.Empty.
+      /// Never returns null.
+      /// </summary>
       public override string GetAnchorFromAddress(int requestSource, int address) {
          // option 1: a known name exists for this address
          if (anchorForAddress.TryGetValue(address, out string anchor)) return anchor;
