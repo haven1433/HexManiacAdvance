@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Tests {
       public byte[] Data { get; } = new byte[0x200];
       public List<string> Messages { get; } = new List<string>();
       public List<string> Errors { get; } = new List<string>();
+      public ModelDelta Token { get; } = new ModelDelta();
 
       public BaseViewModelTestClass() {
          Model = new PokemonModel(Data, singletons: Singletons);
@@ -88,6 +89,11 @@ namespace HavenSoft.HexManiac.Tests {
       public void SetGameCode(string code) {
          Array.Copy(Encoding.Default.GetBytes(code.Substring(0, 4)), 0, Model.RawData, Core.Models.IDataModelExtensions.GameCodeStart, 4);
          Model[Core.Models.IDataModelExtensions.GameVersionStart] = (byte)(code[4] - '0');
+      }
+
+      public void AddPointer(int source, int destination) {
+         Model.WritePointer(Token, source, destination);
+         Model.ObserveRunWritten(Token, new PointerRun(source));
       }
    }
 }
