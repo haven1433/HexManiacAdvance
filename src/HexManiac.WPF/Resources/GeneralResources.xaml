@@ -670,7 +670,7 @@
    </ControlTemplate>
 
    <ControlTemplate x:Key="ComboBoxTextBox" TargetType="{x:Type TextBox}">
-      <Border x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" />
+      <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Background="{TemplateBinding Background}" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Hidden"/>
    </ControlTemplate>
 
    <Style TargetType="{x:Type ComboBox}">
