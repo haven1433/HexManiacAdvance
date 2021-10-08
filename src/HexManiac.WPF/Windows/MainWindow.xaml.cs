@@ -81,6 +81,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine("Release Version");
 #endif
          text.AppendLine(DateTime.Now.ToString());
+         text.AppendLine("General Information:");
+         AppendGeneralAppInfo(text);
+         text.AppendLine("Exception Information:");
          AppendException(text, e.Exception);
          text.AppendLine(e.Exception.StackTrace);
          text.AppendLine("-------------------------------------------");
@@ -104,9 +107,31 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          text.AppendLine(lineStart + ex.GetType().ToString());
          text.AppendLine(lineStart + ex.Message);
-         if (ex is ArgumentOutOfRangeException aoore) text.AppendLine(lineStart + aoore.ActualValue.ToString());
+         if (ex is ArgumentOutOfRangeException aoore) text.AppendLine(lineStart + aoore.ActualValue?.ToString() ?? "<null>");
          if (ex is AggregateException ae) {
             foreach (var e in ae.InnerExceptions) AppendException(text, e, indent + 2);
+         }
+      }
+
+      private void AppendGeneralAppInfo(StringBuilder text) {
+         var editor = DataContext as EditorViewModel;
+         if (editor == null) {
+            text.AppendLine("No Editor ViewModel found.");
+            return;
+         }
+         text.AppendLine("Current tab count: " + editor.Count);
+         foreach (var tab in editor) {
+            if (tab is IEditableViewPort viewPort) {
+               text.AppendLine("Tab is ViewPort for " + Path.GetFileName(viewPort.FileName));
+               text.AppendLine("Game Code: " + viewPort.Model.GetGameCode());
+               text.AppendLine("Data Length: 0x" + viewPort.Model.Count.ToAddress());
+               text.AppendLine("Pokemon Count: " + (viewPort.Model.GetTable(HardcodeTablesModel.PokemonNameTable)?.ElementCount ?? 0));
+               text.AppendLine("---");
+            } else {
+               text.AppendLine($"Tab is {tab.GetType()}");
+               text.AppendLine(tab.Name);
+               text.AppendLine("---");
+            }
          }
       }
 

@@ -199,6 +199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
          if (tableLength != 0) NotifyPropertyChanged(nameof(MinimumScroll));
          MaximumScroll = Math.Max(lineCount - 1, 0);
+         if (MinimumScroll > MaximumScroll) throw new InvalidOperationException($"MinimumScroll({MinimumScroll}) is bigger than MaximumScroll({MaximumScroll}): TableStart={tableStart}, TableLength={tableLength}, Width={width}");
          var newCurrentScroll = (int)Math.Ceiling((double)dataIndex / width);
 
          // screen size changes while scrolled above the data can make the data scroll completely out of view
