@@ -240,17 +240,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
+         if (run is PointerRun && string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) {
+            var destination = Model.ReadPointer(run.Start);
+            run = Model.GetNextRun(destination);
+            dataIndex = destination;
+         }
+
          // if the user explicitly closed the tools, don't auto-open them.
          if (tools.SelectedIndex != -1) {
             // if the 'Raw' tool is selected, don't auto-update tool selection.
             if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
                using (ModelCacheScope.CreateScope(Model)) {
                   // update the tool from pointers too
-                  if (run is PointerRun) {
-                     var destination = Model.ReadPointer(run.Start);
-                     run = Model.GetNextRun(destination);
-                     dataIndex = destination;
-                  }
                   if (run is ISpriteRun spriteRun) {
                      var tool = tools.SpriteTool;
                      if (tool.SpriteAddress != run.Start) {
@@ -695,6 +696,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdate(ref anchorText, value)) {
                var index = scroll.ViewPointToDataIndex(SelectionStart);
                var run = Model.GetNextRun(index);
+               if (run is PointerRun && run.Start <= index && string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) {
+                  index = Model.ReadPointer(run.Start);
+                  run = Model.GetNextRun(index);
+               }
                if (run.Start <= index) {
                   var token = new NoDataChangeDeltaModel();
                   var errorInfo = PokemonModel.ApplyAnchor(Model, token, run.Start, AnchorText);

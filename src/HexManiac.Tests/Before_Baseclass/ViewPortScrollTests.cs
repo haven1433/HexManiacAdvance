@@ -7,7 +7,7 @@ using Xunit;
 [assembly: System.Reflection.AssemblyTitle("HexTests")]
 
 namespace HavenSoft.HexManiac.Tests {
-   public class ViewPortTests {
+   public class ViewPortTests : BaseViewModelTestClass {
       [Fact]
       public void ViewPortNotifiesOnSizeChange() {
          var viewPort = new ViewPort();
@@ -273,6 +273,17 @@ namespace HavenSoft.HexManiac.Tests {
 
          select.SelectionEnd = new Point(0, 2);
          Assert.Equal(new Point(15, 1), select.SelectionEnd);
+      }
+
+      [Fact]
+      public void ClosedTools_SelectPointer_AnchorTextUpdates() {
+         ViewPort.Tools.SelectedIndex = -1;
+         ViewPort.Edit("@100 ^anchor @00 <100> ");
+
+         ViewPort.Goto.Execute(0);
+
+         Assert.True(ViewPort.AnchorTextVisible);
+         Assert.Equal("^anchor", ViewPort.AnchorText);
       }
    }
 }

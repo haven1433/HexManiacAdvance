@@ -818,6 +818,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PaletteRun>(Model.GetNextRun(0));
       }
 
+      [Fact]
+      public void PointerToCompressedData_EditAnchorFromPointer_AnchorEdited() {
+         Token.ChangeData(Model, 0x100, LZRun.Compress(new byte[0x20 * 4]));
+         AddPointer(0, 0x100);
+         ViewPort.Goto.Execute(0x100);
+         ViewPort.Shortcuts.DisplayAsSprite.Execute();
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.AnchorText = "^graphics.test`lzs4x2x2`";
+
+         ViewPort.Goto.Execute(0x100);
+         Assert.Equal("^graphics.test`lzs4x2x2`", ViewPort.AnchorText);
+         Assert.Empty(Errors);
+      }
+
       private void WriteCompressedData(int start, int length) {
          var compressedData = LZRun.Compress(new byte[length], 0, length);
          for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];
