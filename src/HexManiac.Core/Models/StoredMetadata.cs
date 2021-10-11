@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredOffsetPointer> OffsetPointers { get; }
       public IReadOnlyList<StoredList> Lists { get; }
       public IReadOnlyList<StoredUnmappedConstant> UnmappedConstants { get; }
+      public IReadOnlyList<StoredGotoShortcut> GotoShortcuts { get; }
       public string Version { get; }
       public int NextExportID { get; }
       public int FreeSpaceSearch { get; } = -1;
@@ -20,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
+      // for backwards compatibility for tests
       public StoredMetadata(
          IReadOnlyList<StoredAnchor> anchors,
          IReadOnlyList<StoredUnmappedPointer> unmappedPointers,
@@ -31,6 +33,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          int freeSpaceSearch,
          int freeSpaceBuffer,
          int nextExportID
+      ) : this(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, null, generalInfo, freeSpaceSearch, freeSpaceBuffer, nextExportID) { }
+
+      public StoredMetadata(
+         IReadOnlyList<StoredAnchor> anchors,
+         IReadOnlyList<StoredUnmappedPointer> unmappedPointers,
+         IReadOnlyList<StoredMatchedWord> matchedWords,
+         IReadOnlyList<StoredOffsetPointer> offsetPointers,
+         IReadOnlyList<StoredList> lists,
+         IReadOnlyList<StoredUnmappedConstant> unmappedConstants,
+         IReadOnlyList<StoredGotoShortcut> gotoShortcuts,
+         IMetadataInfo generalInfo,
+         int freeSpaceSearch,
+         int freeSpaceBuffer,
+         int nextExportID
       ) {
          NamedAnchors = anchors ?? new List<StoredAnchor>();
          UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();
@@ -38,6 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          OffsetPointers = offsetPointers ?? new List<StoredOffsetPointer>();
          Lists = lists ?? new List<StoredList>();
          UnmappedConstants = unmappedConstants ?? new List<StoredUnmappedConstant>();
+         GotoShortcuts = gotoShortcuts ?? new List<StoredGotoShortcut>();
          Version = generalInfo?.VersionNumber;
          FreeSpaceSearch = freeSpaceSearch;
          FreeSpaceBuffer = freeSpaceBuffer;
@@ -51,12 +68,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          var offsetPointers = new List<StoredOffsetPointer>();
          var lists = new List<StoredList>();
          var unmappedConstants = new List<StoredUnmappedConstant>();
+         var gotoShortcuts = new List<StoredGotoShortcut>();
 
          foreach (var line in lines) {
             var cleanLine = line.Split('#').First().Trim();
             if (cleanLine == string.Empty) continue;
             if (cleanLine.StartsWith("[")) {
-               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants);
+               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts);
                currentItem = cleanLine;
                continue;
             }
@@ -111,6 +129,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (cleanLine.StartsWith("Note = '''")) {
                currentItemNote = cleanLine.Split("'''")[1];
+            } else if (cleanLine.StartsWith("Image = '''")) {
+               currentItemImage = cleanLine.Split("'''")[1];
+            } else if (cleanLine.StartsWith("Destination = '''")) {
+               currentItemDestination = cleanLine.Split("'''")[1];
             }
 
             if (cleanLine.StartsWith("ApplicationVersion = '''")) {
@@ -149,7 +171,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants);
+         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts);
 
          NamedAnchors = anchors;
          UnmappedPointers = pointers;
@@ -157,6 +179,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          OffsetPointers = offsetPointers;
          UnmappedConstants = unmappedConstants;
          Lists = lists;
+         GotoShortcuts = gotoShortcuts;
       }
 
       /// <summary>
@@ -250,10 +273,20 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add(string.Empty);
          }
 
+         lines.Add("#################################");
+
+         foreach (var shortcut in GotoShortcuts) {
+            lines.Add("[[GotoShortcut]]");
+            lines.Add($"Name = '''{shortcut.Display}'''");
+            lines.Add($"Image = '''{shortcut.Image}'''");
+            lines.Add($"Destination = '''{shortcut.Anchor}'''");
+            lines.Add(string.Empty);
+         }
+
          return lines.ToArray();
       }
 
-      string currentItem, currentItemName, currentItemFormat;
+      string currentItem, currentItemName, currentItemFormat, currentItemImage, currentItemDestination;
       List<string> currentItemChildren;
       bool continueCurrentItemIndex;
       int currentItemLength = -1;
@@ -263,7 +296,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int currentItemMultOffset = 1;
       string currentItemNote = null;
 
-      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists, IList<StoredUnmappedConstant> unmappedConstants) {
+      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists, IList<StoredUnmappedConstant> unmappedConstants, IList<StoredGotoShortcut> gotoShortcuts) {
          if (currentItem == "[[UnmappedPointers]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an UnmappedPointer that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
@@ -302,6 +335,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             unmappedConstants.Add(new StoredUnmappedConstant(currentItemName, currentItemValue));
          }
 
+         if (currentItem == "[[GotoShortcut]]") {
+            if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify a Name!");
+            if (currentItemImage == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify an Image!");
+            if (currentItemDestination == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify a Destination!");
+            gotoShortcuts.Add(new StoredGotoShortcut(currentItemName, currentItemImage, currentItemDestination));
+         }
+
          currentItem = null;
          currentItemName = null;
          currentItemFormat = null;
@@ -313,6 +353,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          continueCurrentItemIndex = false;
          currentItemChildren = null;
          currentItemNote = null;
+         currentItemImage = null;
+         currentItemDestination = null;
       }
    }
 
@@ -405,5 +447,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerator IEnumerable.GetEnumerator() => Contents.GetEnumerator();
 
       #endregion
+   }
+
+   public class StoredGotoShortcut {
+      public string Display { get; } // Name
+      public string Image { get; }   // Image
+      public string Anchor { get; }  // Destination
+      public StoredGotoShortcut(string name, string image, string destination) => (Display, Image, Anchor) = (name, image, destination);
    }
 }

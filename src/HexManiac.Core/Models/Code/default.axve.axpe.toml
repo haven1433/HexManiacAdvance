@@ -18,3 +18,24 @@ Offset = 0x000004
 [[OffsetPointer]]
 Address = 0x03DC9C
 Offset = 0x000004
+
+[[GotoShortcut]]
+Name = '''Pokemon'''
+Image = '''graphics.pokemon.sprites.front/350/sprite/'''
+Destination = '''data.pokemon.stats/1'''
+
+[[GotoShortcut]]
+Name = '''Trainers'''
+Image = '''graphics.trainers.sprites.front/3/sprite/'''
+Destination = '''data.trainers.stats'''
+
+[[GotoShortcut]]
+Name = '''Moves'''
+Image = '''graphics.moves.particles.sprites/55/ptr/'''
+Destination = '''data.pokemon.moves.stats.battle'''
+
+[[GotoShortcut]]
+Name = '''Items'''
+Image = '''graphics.overworld.sprites/83/data/0/sprites/0/sprite/'''
+Destination = '''data.items.stats'''
+

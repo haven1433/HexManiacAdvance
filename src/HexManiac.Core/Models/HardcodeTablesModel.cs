@@ -163,7 +163,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var match = virtualValues.All(vv => vv == virtualValues[0]);
             if (match) words.AddRange(constant);
          }
-         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, metadata.UnmappedConstants, info, metadata.FreeSpaceSearch, metadata.FreeSpaceBuffer, metadata.NextExportID);
+         return new StoredMetadata(metadata.NamedAnchors, metadata.UnmappedPointers, words, metadata.OffsetPointers, metadata.Lists, metadata.UnmappedConstants, metadata.GotoShortcuts, info, metadata.FreeSpaceSearch, metadata.FreeSpaceBuffer, metadata.NextExportID);
       }
 
       /// <summary>

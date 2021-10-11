@@ -688,6 +688,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   gotoViewModel.RefreshOptions();
                   var collection = CreateGotoShortcuts(gotoViewModel);
                   if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
+                  if (collection.Count == 0) gotoViewModel.ShowAll = true;
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;

@@ -528,6 +528,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+         var shortcuts = (IList<GotoShortcutModel>)model.GotoShortcuts;
+         foreach (var gotoShortcut in metadata.GotoShortcuts) {
+            shortcuts.Add(new GotoShortcutModel(gotoShortcut.Image, gotoShortcut.Anchor, gotoShortcut.Display));
+         }
 
          model.LoadMetadataProperties(metadata);
       }
