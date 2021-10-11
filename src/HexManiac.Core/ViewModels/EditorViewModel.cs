@@ -686,7 +686,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   viewModel.Refresh();
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
-                  gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(CreateGotoShortcuts(gotoViewModel));
+                  var collection = CreateGotoShortcuts(gotoViewModel);
+                  if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
@@ -967,6 +968,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var model = viewPort.Model;
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
+            var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
+            if (destinationAddress == Pointer.NULL) continue; // skip this one
             var spriteAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].ImageAnchor);
             var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
             var sprite = SpriteDecorator.BuildSprite(viewPort.Model, spriteRun, useTransparency: true);

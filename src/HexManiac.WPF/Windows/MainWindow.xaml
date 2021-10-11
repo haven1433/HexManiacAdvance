@@ -546,7 +546,7 @@
                      <RowDefinition Height="*"/>
                   </Grid.RowDefinitions>
                   <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                     <Grid HorizontalAlignment="Stretch">
+                     <Grid HorizontalAlignment="Stretch" Width="400">
                         <Path Data="{hsv:Icon Home}" Opacity=".5" Fill="{DynamicResource Secondary}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Left"/>
                         <TextBlock FontSize="20" Text="Goto:" HorizontalAlignment="Center"/>
                         <Button Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" Command="{Binding GotoViewModel.ShowGoto}" Padding="4"
@@ -558,25 +558,28 @@
                            <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                         </Button>
                      </Grid>
-                     <ItemsControl ItemsSource="{Binding GotoViewModel.Shortcuts}" HorizontalAlignment="Center">
-                        <ItemsControl.ItemsPanel>
-                           <ItemsPanelTemplate>
-                              <WrapPanel/>
-                           </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                           <DataTemplate>
-                              <Button Command="{hsv:MethodCommand Goto}" Padding="10" Margin="10" Width="100" BorderBrush="{DynamicResource Primary}">
-                                 <StackPanel>
-                                    <Viewbox Width="64" Height="64" Stretch="Uniform">
-                                       <hsg3hv:PixelImage DataContext="{Binding Image}" TransparentBrush="{DynamicResource Backlight}"/>
-                                    </Viewbox>
-                                    <TextBlock Text="{Binding DisplayText}" HorizontalAlignment="Center"/>
-                                 </StackPanel>
-                              </Button>
-                           </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                     </ItemsControl>
+                     <Grid>
+                        <TextBlock Text="Loading..." FontSize="20" Foreground="{StaticResource Secondary}" HorizontalAlignment="Center" VerticalAlignment="Center" Visibility="{Binding GotoViewModel.Loading, Converter={StaticResource BoolToVisibility}}"/>
+                        <ItemsControl ItemsSource="{Binding GotoViewModel.Shortcuts}" HorizontalAlignment="Center" MinHeight="120">
+                           <ItemsControl.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                 <WrapPanel/>
+                              </ItemsPanelTemplate>
+                           </ItemsControl.ItemsPanel>
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <Button Command="{hsv:MethodCommand Goto}" Padding="10" Margin="10" Width="100" BorderBrush="{DynamicResource Primary}">
+                                    <StackPanel>
+                                       <Viewbox Width="64" Height="64" Stretch="Uniform">
+                                          <hsg3hv:PixelImage DataContext="{Binding Image}" TransparentBrush="{DynamicResource Backlight}"/>
+                                       </Viewbox>
+                                       <TextBlock Text="{Binding DisplayText}" HorizontalAlignment="Center"/>
+                                    </StackPanel>
+                                 </Button>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                     </Grid>
                   </StackPanel>
                   <Expander Header="Explore More" IsExpanded="{Binding GotoViewModel.ShowAll}" VerticalAlignment="Bottom" Grid.Row="2" HorizontalAlignment="Center"
                             Visibility="{Binding GotoViewModel.AllowToggleShowAll, Converter={StaticResource BoolToVisibility}}" Margin="10"/>

@@ -49,6 +49,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool loading = true;
+      public bool Loading { get => loading; set => Set(ref loading, value); }
+
       private string text = string.Empty;
       public string Text {
          get => text;
@@ -66,6 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void RefreshOptions() {
          var options = viewPort?.Model.GetExtendedAutocompleteOptions(text);
          UpdatePrefixSelectionsAfterTextChange();
+         Loading = false;
       }
 
       private int completionIndex = -1;
