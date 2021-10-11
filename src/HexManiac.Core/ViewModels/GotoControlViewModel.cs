@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
@@ -10,6 +11,29 @@ using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public class GotoShortcutViewModel : ViewModelCore {
+      private readonly GotoControlViewModel viewModel;
+      private readonly IViewPort viewPort;
+      private readonly string anchor;
+
+      public string DisplayText { get; }
+
+      public IPixelViewModel Image { get; }
+
+      public GotoShortcutViewModel(GotoControlViewModel parent, IViewPort viewPort, IPixelViewModel image, string anchor, string display) {
+         viewModel = parent;
+         this.viewPort = viewPort;
+         Image = image;
+         this.anchor = anchor;
+         DisplayText = display;
+      }
+
+      public void Goto() {
+         viewModel.ControlVisible = false;
+         viewPort.Goto.Execute(anchor);
+      }
+   }
+
    public class GotoControlViewModel : ViewModelCore {
       private readonly IViewPort viewPort;
       private bool withinTextChange = false;
@@ -31,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             if (viewPort?.Model == null) return;
             if (TryUpdate(ref text, value)) {
+               ShowAll = true;
                withinTextChange = true;
                using (new StubDisposable { Dispose = () => withinTextChange = false }) {
                   RefreshOptions();
@@ -65,6 +90,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          private set => TryUpdateSequence<IReadOnlyList<AutoCompleteSelectionItem>, AutoCompleteSelectionItem>(ref autoCompleteOptions, value);
       }
 
+      private bool showAll;
+      public bool ShowAll { get => showAll; set => Set(ref showAll, value, oldValue => {
+         if (showAll) MoveFocusToGoto?.Invoke(this, EventArgs.Empty);
+      }); }
+
+      private bool allowToggleShowAll = true;
+      public bool AllowToggleShowAll { get => allowToggleShowAll; set => Set(ref allowToggleShowAll, value); }
+
       #endregion
 
       #region Commands
@@ -77,6 +110,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       public event EventHandler MoveFocusToGoto;
+
+      private ObservableCollection<GotoShortcutViewModel> shortcuts;
+      public ObservableCollection<GotoShortcutViewModel> Shortcuts {
+         get => shortcuts;
+         set {
+            shortcuts = value;
+            NotifyPropertyChanged();
+         }
+      }
 
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
@@ -113,7 +155,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
          ShowGoto = new StubCommand {
             CanExecute = arg => viewPort?.Goto != null && (arg is bool || arg is null),
-            Execute = arg => ControlVisible = (bool)(arg ?? !ControlVisible),
+            Execute = arg => {
+               ShowAll = true;
+               AllowToggleShowAll = false;
+               ControlVisible = (bool)(arg ?? !ControlVisible);
+            },
          };
          PrefixSelections = new ObservableCollection<GotoLabelSection>();
          UpdatePrefixSelectionsAfterTextChange();

@@ -546,79 +546,52 @@
                      <RowDefinition Height="*"/>
                   </Grid.RowDefinitions>
                   <StackPanel Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center">
-                     <DockPanel>
-                        <Canvas Width="0" Height="0" VerticalAlignment="Bottom" DockPanel.Dock="Left">
-                           <TextBlock Text="Edit → " Canvas.Right="0" Canvas.Bottom="0" Foreground="{DynamicResource Secondary}"/>
-                        </Canvas>
+                     <Grid HorizontalAlignment="Stretch">
+                        <Path Data="{hsv:Icon Home}" Opacity=".5" Fill="{DynamicResource Secondary}" Stretch="Uniform" Width="20" Height="20" HorizontalAlignment="Left"/>
+                        <TextBlock FontSize="20" Text="Goto:" HorizontalAlignment="Center"/>
                         <Button Background="{DynamicResource Background}" BorderBrush="{DynamicResource Secondary}" Command="{Binding GotoViewModel.ShowGoto}" Padding="4"
-                              ToolTip="Close (esc)"
-                              DockPanel.Dock="Right" Width="20" Height="20" VerticalAlignment="Top" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch">
+                                 ToolTip="Close (esc)"
+                                 DockPanel.Dock="Right" Width="20" Height="20" VerticalAlignment="Top" HorizontalAlignment="Right" VerticalContentAlignment="Stretch" HorizontalContentAlignment="Stretch">
                            <Button.CommandParameter>
                               <sys:Boolean>false</sys:Boolean>
                            </Button.CommandParameter>
                            <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                         </Button>
-                        <TextBlock FontSize="20">
-                           <Run Text="Goto: "/>
-                           <Run FontStyle="Italic" Foreground="{DynamicResource Secondary}" Text="What would you like to view or edit?"/>
-                        </TextBlock>
-                     </DockPanel>
-                     <Canvas Width="0" Height="0" HorizontalAlignment="Right">
-                        <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Backlight}" Canvas.Left="5">
-                           <Border.Style>
-                              <Style TargetType="Border">
-                                 <Setter Property="Visibility" Value="Collapsed"/>
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ElementName=GotoBox, Path=Text}" Value="">
-                                       <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Border.Style>
-                           <Grid>
-                              <Grid.RowDefinitions>
-                                 <RowDefinition Height="*"/>
-                                 <RowDefinition Height="*"/>
-                                 <RowDefinition Height="*"/>
-                                 <RowDefinition Height="*"/>
-                                 <RowDefinition Height="*"/>
-                                 <RowDefinition Height="*"/>
-                                 <RowDefinition Height="*"/>
-                              </Grid.RowDefinitions>
-                              <Grid.ColumnDefinitions>
-                                 <ColumnDefinition Width="Auto"/>
-                                 <ColumnDefinition Width="10"/>
-                                 <ColumnDefinition Width="Auto"/>
-                              </Grid.ColumnDefinitions>
-                              <TextBlock Grid.Row="0" Margin="0,0,0,6">
-                                 Examples: <Italic>Click and press go to try it</Italic>
-                              </TextBlock>
-
-                              <TextBlock Cursor="Hand" FontWeight="Bold" Grid.Row="1" Text="graphics.bag.male" Margin="0,0,0,6" MouseLeftButtonDown="FillGotoBox"/>
-                              <TextBlock FontStyle="Italic" Grid.Row="1" Grid.Column="2" Text="Jump to named data (anchor)"/>
-
-                              <TextBlock Cursor="Hand" FontWeight="Bold" Grid.Row="2" Text="data.pokemon.names/CHARIZARD" Margin="0,0,0,6" MouseLeftButtonDown="FillGotoBox"/>
-                              <TextBlock FontStyle="Italic" Grid.Row="2" Grid.Column="2" Text="Go to a specific row in a table"/>
-
-                              <TextBlock Cursor="Hand" FontWeight="Bold" Grid.Row="3" Text="Winston" Margin="0,0,0,6" MouseLeftButtonDown="FillGotoBox"/>
-                              <TextBlock FontStyle="Italic" Grid.Row="3" Grid.Column="2" Text="Go to a named element in a table"/>
-
-                              <TextBlock Cursor="Hand" FontWeight="Bold" Grid.Row="4" Text="levelup moves" Margin="0,0,0,6" MouseLeftButtonDown="FillGotoBox"/>
-                              <TextBlock FontStyle="Italic" Grid.Row="4" Grid.Column="2" Text="Describe what you want, then use the buttons to find it"/>
-
-                              <TextBlock Cursor="Hand" FontWeight="Bold" Grid.Row="5" Text="EB1000" Margin="0,0,0,6" MouseLeftButtonDown="FillGotoBox"/>
-                              <TextBlock FontStyle="Italic" Grid.Row="5" Grid.Column="2" Text="Go to an address in the file"/>
-
-                              <TextBlock Cursor="Hand" FontWeight="Bold" Grid.Row="6" Text="scripts.shiny.odds" Margin="0,0,0,6" MouseLeftButtonDown="FillGotoBox"/>
-                              <TextBlock FontStyle="Italic" Grid.Row="6" Grid.Column="2" Text="Show uses of a named constant"/>
-                           </Grid>
-                        </Border>
-                     </Canvas>
-                     <StackPanel Orientation="Horizontal">
+                     </Grid>
+                     <ItemsControl ItemsSource="{Binding GotoViewModel.Shortcuts}" HorizontalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                           <ItemsPanelTemplate>
+                              <WrapPanel/>
+                           </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <Button Command="{hsv:MethodCommand Goto}" Padding="10" Margin="10" Width="100" BorderBrush="{DynamicResource Primary}">
+                                 <StackPanel>
+                                    <Viewbox Width="64" Height="64" Stretch="Uniform">
+                                       <hsg3hv:PixelImage DataContext="{Binding Image}" TransparentBrush="{DynamicResource Backlight}"/>
+                                    </Viewbox>
+                                    <TextBlock Text="{Binding DisplayText}" HorizontalAlignment="Center"/>
+                                 </StackPanel>
+                              </Button>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                  </StackPanel>
+                  <Expander Header="Explore More" IsExpanded="{Binding GotoViewModel.ShowAll}" VerticalAlignment="Bottom" Grid.Row="2" HorizontalAlignment="Center"
+                            Visibility="{Binding GotoViewModel.AllowToggleShowAll, Converter={StaticResource BoolToVisibility}}" Margin="10"/>
+                  <StackPanel Grid.Row="3" VerticalAlignment="Center">
+                     <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding GotoViewModel.ShowAll}" Value="False">
+                                 <Setter Property="Opacity" Value="0"/>
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </StackPanel.Style>
+                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Grid>
-                           <Canvas Width="0" Height="0" HorizontalAlignment="Left" VerticalAlignment="Top">
-                              <Path Data="{hsv:Icon Home}" Opacity=".5" Fill="{DynamicResource Secondary}" Stretch="Uniform" Width="20" Height="20" Canvas.Right="8" Canvas.Top="9"/>
-                           </Canvas>
                            <TextBox Name="GotoBox" FontSize="30" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="400" IsVisibleChanged="EditBoxVisibilityChanged">
                               <TextBox.InputBindings>
                                  <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
@@ -629,7 +602,7 @@
                                  <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
                               </TextBox.InputBindings>
                            </TextBox>
-                           <TextBlock IsHitTestVisible="False" Foreground="{DynamicResource Secondary}" FontStyle="Italic" FontSize="25" VerticalAlignment="Bottom" Margin="3">
+                           <TextBlock IsHitTestVisible="False" Foreground="{DynamicResource Secondary}" FontStyle="Italic" FontSize="25" VerticalAlignment="Bottom" Margin="3" Text="Search or type an Address">
                               <TextBlock.Style>
                                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                                     <Setter Property="Visibility" Value="Collapsed"/>
@@ -640,94 +613,87 @@
                                     </Style.Triggers>
                                  </Style>
                               </TextBlock.Style>
-                              type an address or anchor name
                            </TextBlock>
                         </Grid>
                         <Button Content="Go" VerticalAlignment="Stretch" Padding="12,0" Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}"/>
                      </StackPanel>
-                  </StackPanel>
-                  <TextBlock Grid.Row="2"
-                     VerticalAlignment="Bottom"
-                     HorizontalAlignment="Center"
-                     Foreground="{DynamicResource Secondary}"
-                     FontSize="20"
-                     Text="Explore Available Categories:"/>
-                  <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}" Grid.Row="3">
-                     <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                           <StackPanel>
-                              <Rectangle HorizontalAlignment="Stretch" Height="1" Margin="0,3" Fill="{DynamicResource Secondary}" Width="{Binding ActualWidth, ElementName=GotoBox}"/>
-                              <ItemsControl ItemsSource="{Binding Tokens}" HorizontalAlignment="Center">
-                                 <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                       <UniformGrid Rows="{Binding Height}" Columns="{Binding Width}"/>
-                                    </ItemsPanelTemplate>
-                                 </ItemsControl.ItemsPanel>
-                                 <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                       <Border Margin="5" BorderThickness="1">
-                                          <Border.Style>
-                                             <Style TargetType="Border">
-                                                <Setter Property="BorderBrush" Value="Transparent"/>
-                                                <Style.Triggers>
-                                                   <Trigger Property="IsMouseOver" Value="True">
-                                                      <Setter Property="BorderBrush" Value="{DynamicResource Primary}"/>
-                                                   </Trigger>
-                                                   <MultiDataTrigger>
-                                                      <MultiDataTrigger.Conditions>
-                                                         <Condition Binding="{Binding IsSelected}" Value="True"/>
-                                                         <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
-                                                      </MultiDataTrigger.Conditions>
-                                                      <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                                   </MultiDataTrigger>
-                                                </Style.Triggers>
-                                             </Style>
-                                          </Border.Style>
-                                          <Border BorderThickness="1">
+                     <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}">
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <StackPanel>
+                                 <Rectangle HorizontalAlignment="Stretch" Height="1" Margin="0,3" Fill="{DynamicResource Secondary}" Width="{Binding ActualWidth, ElementName=GotoBox}"/>
+                                 <ItemsControl ItemsSource="{Binding Tokens}" HorizontalAlignment="Center">
+                                    <ItemsControl.ItemsPanel>
+                                       <ItemsPanelTemplate>
+                                          <UniformGrid Rows="{Binding Height}" Columns="{Binding Width}"/>
+                                       </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                       <DataTemplate>
+                                          <Border Margin="5" BorderThickness="1">
                                              <Border.Style>
                                                 <Style TargetType="Border">
-                                                   <Setter Property="BorderBrush" Value="{DynamicResource Primary}"/>
+                                                   <Setter Property="BorderBrush" Value="Transparent"/>
                                                    <Style.Triggers>
-                                                      <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                      <Trigger Property="IsMouseOver" Value="True">
+                                                         <Setter Property="BorderBrush" Value="{DynamicResource Primary}"/>
+                                                      </Trigger>
+                                                      <MultiDataTrigger>
+                                                         <MultiDataTrigger.Conditions>
+                                                            <Condition Binding="{Binding IsSelected}" Value="True"/>
+                                                            <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True"/>
+                                                         </MultiDataTrigger.Conditions>
                                                          <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                                      </DataTrigger>
-                                                      <DataTrigger Binding="{Binding IsSelectable}" Value="False">
-                                                         <Setter Property="ToolTip" Value="Too many options. Please filter further."/>
-                                                      </DataTrigger>
+                                                      </MultiDataTrigger>
                                                    </Style.Triggers>
                                                 </Style>
                                              </Border.Style>
-                                             <ToggleButton
-                                                BorderThickness="0"
-                                                Content="{Binding Content}"
-                                                IsChecked="{Binding IsSelected}"
-                                                Padding="6"
-                                                FontSize="15"
-                                                IsEnabled="{Binding IsSelectable}">
-                                                <ToggleButton.Style>
-                                                   <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                                                      <Setter Property="ToolTip">
-                                                         <Setter.Value>
-                                                            <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
-                                                         </Setter.Value>
-                                                      </Setter>
+                                             <Border BorderThickness="1">
+                                                <Border.Style>
+                                                   <Style TargetType="Border">
+                                                      <Setter Property="BorderBrush" Value="{DynamicResource Primary}"/>
                                                       <Style.Triggers>
-                                                         <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
-                                                            <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                         <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                                                         </DataTrigger>
+                                                         <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                                                            <Setter Property="ToolTip" Value="Too many options. Please filter further."/>
                                                          </DataTrigger>
                                                       </Style.Triggers>
                                                    </Style>
-                                                </ToggleButton.Style>
-                                             </ToggleButton>
+                                                </Border.Style>
+                                                <ToggleButton
+                                                   BorderThickness="0"
+                                                   Content="{Binding Content}"
+                                                   IsChecked="{Binding IsSelected}"
+                                                   Padding="6"
+                                                   FontSize="15"
+                                                   IsEnabled="{Binding IsSelectable}">
+                                                   <ToggleButton.Style>
+                                                      <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                                                         <Setter Property="ToolTip">
+                                                            <Setter.Value>
+                                                               <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
+                                                            </Setter.Value>
+                                                         </Setter>
+                                                         <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
+                                                               <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                            </DataTrigger>
+                                                         </Style.Triggers>
+                                                      </Style>
+                                                   </ToggleButton.Style>
+                                                </ToggleButton>
+                                             </Border>
                                           </Border>
-                                       </Border>
-                                    </DataTemplate>
-                                 </ItemsControl.ItemTemplate>
-                              </ItemsControl>
-                           </StackPanel>
-                        </DataTemplate>
-                     </ItemsControl.ItemTemplate>
-                  </ItemsControl>
+                                       </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                 </ItemsControl>
+                              </StackPanel>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                  </StackPanel>
                </Grid>
             </ScrollViewer>
          </Grid>

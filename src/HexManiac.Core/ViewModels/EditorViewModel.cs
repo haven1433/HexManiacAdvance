@@ -1,5 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -684,6 +686,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   viewModel.Refresh();
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
+                  gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(CreateGotoShortcuts(gotoViewModel));
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
@@ -953,8 +956,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
          GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher);
+         var collection = CreateGotoShortcuts(GotoViewModel);
+         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>();
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
          NotifyPropertyChanged(nameof(Tools));
+      }
+
+      private IReadOnlyList<GotoShortcutViewModel> CreateGotoShortcuts(GotoControlViewModel gotoViewModel) {
+         if (!(SelectedTab is IEditableViewPort viewPort)) return null;
+         var model = viewPort.Model;
+         var results = new List<GotoShortcutViewModel>();
+         for (int i = 0; i < model.GotoShortcuts.Count; i++) {
+            var spriteAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].ImageAnchor);
+            var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+            var sprite = SpriteDecorator.BuildSprite(viewPort.Model, spriteRun, useTransparency: true);
+            var anchor = model.GotoShortcuts[i].GotoAnchor;
+            var text = model.GotoShortcuts[i].DisplayText;
+            results.Add(new GotoShortcutViewModel(gotoViewModel, viewPort, sprite, anchor, text));
+         }
+         return results;
       }
 
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);

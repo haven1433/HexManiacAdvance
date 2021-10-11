@@ -34,6 +34,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       IReadOnlyList<IStreamRun> Streams { get; }
       IReadOnlyList<string> Anchors { get; }
 
+      IReadOnlyList<GotoShortcutModel> GotoShortcuts { get; }
+
       /// <summary>
       /// If dataIndex is in the middle of a run, returns that run.
       /// If dataIndex is between runs, returns the next available run.
@@ -166,6 +168,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual IEnumerable<T> All<T>() where T : IFormattedRun { yield break; }
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
       public virtual IReadOnlyList<string> Anchors { get; } = new List<string>();
+      public IReadOnlyList<GotoShortcutModel> GotoShortcuts { get; } = new List<GotoShortcutModel>();
 
       public virtual byte this[int index] {
          get => RawData[index];

@@ -368,7 +368,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void FocusGotoBox(object sender = default, EventArgs e = default) {
-         FocusTextBox(GotoBox);
+         if (!GotoBox.IsFocused) FocusTextBox(GotoBox);
       }
 
       private void FocusTextBox(TextBox textBox) {
@@ -428,6 +428,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private static readonly Duration fastTime = TimeSpan.FromSeconds(.3);
       private void DispatchAnimation(FrameworkElement element) {
+         if (element == GotoBox && !ViewModel.GotoViewModel.ShowAll) return;
          var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);
 
          FocusAnimationElement.Visibility = Visibility.Visible;

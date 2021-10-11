@@ -108,6 +108,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (GetType() == typeof(PokemonModel)) {
             (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
          }
+
+         FillGotoModels(metadata);
       }
 
       protected void Initialize(StoredMetadata metadata) {
@@ -573,6 +575,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (format.Contains(" level:]!FFFFFFFF>]")) return true;
 
          return false;
+      }
+
+      private void FillGotoModels(StoredMetadata metadata) {
+         var shortcuts = (IList<GotoShortcutModel>)GotoShortcuts;
+         shortcuts.Add(new GotoShortcutModel("graphics.pokemon.sprites.front/9/sprite/", "data.pokemon.stats/1", "Pokemon"));
+         shortcuts.Add(new GotoShortcutModel("graphics.trainers.sprites.front/3/sprite/", "data.trainers.stats", "Trainers"));
+         shortcuts.Add(new GotoShortcutModel("graphics.items.sprites/293/sprite/", "data.pokemon.moves.stats.battle", "Moves")); // TODO what to do for Ruby, which has no item sprites?
+         shortcuts.Add(new GotoShortcutModel("graphics.items.sprites/13/sprite/", "data.items.stats", "Items")); // TODO what to do for Ruby, which has no item sprites?
       }
 
       #endregion
