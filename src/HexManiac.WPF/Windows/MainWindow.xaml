@@ -363,13 +363,26 @@
                <Path Data="{hsv:Icon RightArrow}"/>
             </Button>
             <Rectangle Width="5"/>
-            <Button ToolTip="Save (Ctrl+S)" Command="{Binding Save}">
+            <Button Command="{Binding Save}">
                <Button.Style>
                   <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Setter Property="ToolTip" Value="Save (Ctrl+S)"/>
                      <Style.Triggers>
                         <Trigger Property="IsEnabled" Value="True">
                            <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
                         </Trigger>
+                        <DataTrigger Binding="{Binding IsMetadataOnlyChange}" Value="True">
+                           <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
+                           <Setter Property="ToolTip">
+                              <Setter.Value>
+                                 <TextBlock>
+                                    Save (Ctrl+S)
+                                    <LineBreak/>
+                                    <Italic FontSize="10">(Only metadata changes)</Italic>
+                                 </TextBlock>
+                              </Setter.Value>
+                           </Setter>
+                        </DataTrigger>
                      </Style.Triggers>
                   </Style>
                </Button.Style>

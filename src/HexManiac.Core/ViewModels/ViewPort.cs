@@ -425,9 +425,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             save.RaiseCanExecuteChanged();
             exportBackup.RaiseCanExecuteChanged();
             if (history.IsSaved) { Model.ResetChanges(); RefreshBackingData(); }
+            NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
          }
 
-         if (e.PropertyName == nameof(history.HasDataChange)) NotifyPropertyChanged(nameof(Name));
+         if (e.PropertyName == nameof(history.HasDataChange)) {
+            NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
+            NotifyPropertyChanged(nameof(Name));
+         }
       }
 
       #endregion
@@ -440,6 +444,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          exportBackup = new StubCommand(),
          close = new StubCommand();
 
+      public bool IsMetadataOnlyChange => !history.IsSaved && !ChangeHistory.HasDataChange;
       public ICommand Save => save;
 
       public ICommand SaveAs => saveAs;

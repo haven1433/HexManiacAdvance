@@ -32,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public bool IsMetadataOnlyChange => false;
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs { get; } = new StubCommand();
       public ICommand ExportBackup { get; } = new StubCommand();

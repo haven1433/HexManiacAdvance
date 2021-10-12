@@ -106,6 +106,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string Name => this[0].Name;
 
+      public bool IsMetadataOnlyChange => false;
+
       public ICommand Save => this[0].Save;
 
       public ICommand SaveAs => this[0].SaveAs;

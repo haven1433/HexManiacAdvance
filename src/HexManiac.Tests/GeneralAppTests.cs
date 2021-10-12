@@ -568,6 +568,23 @@ ApplicationVersion = '''0.1.0'''
          Assert.Contains(nameof(editor.DuplicateCurrentTab), view.CommandCanExecuteChangedNotifications);
       }
 
+      [Fact]
+      public void CleanTab_MetadataOnlyEdit_EditorPropertiesMatch() {
+         var tab = new StubTabContent();
+         var save = new StubCommand();
+         tab.Save = save;
+         editor.Add(tab);
+         var view = new StubView(editor);
+
+         tab.IsMetadataOnlyChange = true;
+         save.CanExecute = arg => true;
+         tab.PropertyChanged.Invoke(tab, new System.ComponentModel.PropertyChangedEventArgs(nameof(tab.IsMetadataOnlyChange)));
+         save.CanExecuteChanged.Invoke(save, EventArgs.Empty);
+
+         Assert.True(editor.IsMetadataOnlyChange);
+         Assert.Contains(nameof(editor.IsMetadataOnlyChange), view.PropertyNotifications);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

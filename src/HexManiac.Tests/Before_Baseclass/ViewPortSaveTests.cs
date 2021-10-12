@@ -607,5 +607,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(notifyCanExecuteChange);
          Assert.True(editor.Save.CanExecute(fs));
       }
+
+      [Fact]
+      public void MetadataChange_CheckChange_IsMetadataOnlyChange() {
+         var view = new StubView(ViewPort);
+
+         ViewPort.Edit("^test ");
+
+         Assert.True(ViewPort.IsMetadataOnlyChange);
+         Assert.Contains(nameof(ViewPort.IsMetadataOnlyChange), view.PropertyNotifications);
+      }
    }
 }

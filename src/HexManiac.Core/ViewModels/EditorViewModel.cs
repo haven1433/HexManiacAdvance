@@ -83,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand New => newCommand;
       public ICommand Open => open;                // parameter: file to open (or null)
       public ICommand DuplicateCurrentTab => duplicateCurrentTab;
+      public bool IsMetadataOnlyChange => SelectedTab?.IsMetadataOnlyChange ?? false;
       public ICommand Save => save;
       public ICommand SaveAs => saveAs;
       public ICommand SaveAll => saveAll;
@@ -984,6 +985,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
 
       private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(ITabContent.IsMetadataOnlyChange)) {
+            NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
+         }
+
          if (e.PropertyName == nameof(IViewPort.FileName) && sender is IViewPort viewPort) {
             var args = (ExtendedPropertyChangedEventArgs<string>)e;
             var oldName = args.OldValue;

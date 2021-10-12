@@ -34,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string Name => "Image Editor";
       public string FullFileName { get; }
+      public bool IsMetadataOnlyChange => false;
       public ICommand Save { get; }
       public ICommand SaveAs => null;
       public ICommand ExportBackup => null;

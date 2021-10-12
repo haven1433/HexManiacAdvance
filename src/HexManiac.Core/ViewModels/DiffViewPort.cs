@@ -117,6 +117,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IToolTrayViewModel Tools => null;
 
       public string Name => left[0].Parent.Name.Trim('*') + " -> " + right[0].Parent.Name.Trim('*');
+      public bool IsMetadataOnlyChange => false;
       public ICommand Save { get; } = new StubCommand();
       public ICommand SaveAs => null;
       public ICommand ExportBackup => null;

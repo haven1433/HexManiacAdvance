@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// </summary>
    public interface ITabContent : INotifyPropertyChanged {
       string Name { get; }
+      bool IsMetadataOnlyChange { get; }
       ICommand Save { get; }   // parameter: IFileSystem
       ICommand SaveAs { get; } // parameter: IFileSystem
       ICommand ExportBackup { get; } // parameter: IFileSystem
