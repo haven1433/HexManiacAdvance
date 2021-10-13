@@ -42,6 +42,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       string AnchorText { get; }
       bool AnchorTextVisible { get; }
 
+      byte[] FindBytes { get; set; }
+
       HexElement this[int x, int y] { get; }
       IDataModel Model { get; }
       bool IsSelected(Point point);

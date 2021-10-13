@@ -1559,6 +1559,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #region Find
 
+      private byte[] findBytes;
+      public byte[] FindBytes {
+         get => findBytes;
+         set {
+            findBytes = value;
+            NotifyPropertyChanged();
+            RefreshBackingDataFull();
+         }
+      }
+
       public IReadOnlyList<(int start, int end)> Find(string rawSearch, bool matchExactCase = false) {
          var results = new List<(int start, int end)>();
          var cleanedSearchString = rawSearch;
@@ -2711,6 +2721,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      currentView[x, y] = new HexElement(Model[index], edited, None.Instance);
                   }
                }
+            }
+         }
+         if (FindBytes != null) {
+            var fullLength = Width * Height;
+            for (int i = 0; i < fullLength - FindBytes.Length - 1; i++) {
+               bool possibleMatch = FindBytes.Length > 0;
+               for (int j = 0; j < FindBytes.Length; j++) {
+                  var (x, y) = ((i + j) % Width, (i + j) / Width);
+                  if (currentView[x, y].Value != FindBytes[j]) {
+                     possibleMatch = false;
+                     break;
+                  }
+               }
+               if (!possibleMatch) continue;
+               for (int j = 0; j < FindBytes.Length; j++) {
+                  var (x, y) = ((i + j) % Width, (i + j) / Width);
+                  if (currentView[x, y].Format is None) currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+               }
+               i += FindBytes.Length - 1;
             }
          }
       }

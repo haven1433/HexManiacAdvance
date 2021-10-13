@@ -444,10 +444,40 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.ShowFind.Execute(true);
          editor.FindText = "40";
-         Assert.Equal(0x40, editor.SearchByte);
+         Assert.Equal(0x40, editor.SearchBytes[0]);
 
          editor.ShowFind.Execute(false);
-         Assert.Equal(-1, editor.SearchByte);
+         Assert.Null(editor.SearchBytes);
+      }
+
+      [Fact]
+      public void TryParseBytes_MultipleBytes_Parse() {
+         Assert.True(EditorViewModel.TryParseBytes("12 CD", out var results));
+         Assert.Equal(new byte[] { 0x12, 0xCD }, results);
+      }
+
+      [Fact]
+      public void ViewPort_FindBytes_EditorSendsBytesToViewPort() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         var tab = new StubViewPort();
+
+         editor.Add(tab);
+         editor.ShowFind.Execute(true);
+         editor.FindText = "12 CD";
+
+         Assert.Equal(new byte[] { 0x12, 0xCD }, tab.FindBytes.value);
+      }
+
+      [Fact]
+      public void FindBytes_SwitchTabs_EditorSendsBytesToViewPort() {
+         var editor = new EditorViewModel(new StubFileSystem());
+         var tab = new StubViewPort();
+
+         editor.ShowFind.Execute(true);
+         editor.FindText = "12 CD";
+         editor.Add(tab);
+
+         Assert.Equal(new byte[] { 0x12, 0xCD }, tab.FindBytes.value);
       }
 
       [Fact]

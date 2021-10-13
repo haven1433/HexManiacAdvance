@@ -932,7 +932,7 @@
                         ViewPort="{Binding}"
                         FontSize="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=ZoomLevel}"
                         ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
-                        SearchByte="{Binding DataContext.SearchByte, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
+                        SearchBytes="{Binding DataContext.SearchBytes, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
                         CursorNeedsUpdate="UpdateBlinkyCursor"/>
                      <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                   </Grid>

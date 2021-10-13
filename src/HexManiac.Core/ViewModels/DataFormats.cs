@@ -71,7 +71,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    /// Basically everything is 'None' unless we have special information about it.
    /// </summary>
    public class None : IDataFormat {
-      public static None Instance { get; } = new None();
+      public static None Instance { get; } = new None { IsSearchResult = false };
+      public static None ResultInstance { get; } = new None { IsSearchResult = true };
+
+      public bool IsSearchResult { get; private set; }
+
       private None() { }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

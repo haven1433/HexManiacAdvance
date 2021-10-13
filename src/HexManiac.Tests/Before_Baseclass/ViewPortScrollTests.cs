@@ -285,5 +285,25 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(ViewPort.AnchorTextVisible);
          Assert.Equal("^anchor", ViewPort.AnchorText);
       }
+
+      [Fact]
+      public void FindBytes_2Matches_BothGetHighlighted() {
+         Model.WriteMultiByteValue(0x10, 4, Token, 0x12345678);
+         Model.WriteMultiByteValue(0x24, 4, Token, 0x12345678);
+
+         ViewPort.FindBytes = new byte[] { 0x78, 0x56, 0x34, 0x12 };
+
+         Assert.False(((None)ViewPort[0, 0].Format).IsSearchResult);
+         Assert.False(((None)ViewPort[15, 15].Format).IsSearchResult);
+
+         Assert.True(((None)ViewPort[0, 1].Format).IsSearchResult);
+         Assert.True(((None)ViewPort[3, 1].Format).IsSearchResult);
+         Assert.False(((None)ViewPort[4, 1].Format).IsSearchResult);
+
+         Assert.False(((None)ViewPort[3, 2].Format).IsSearchResult);
+         Assert.True(((None)ViewPort[4, 2].Format).IsSearchResult);
+         Assert.True(((None)ViewPort[7, 2].Format).IsSearchResult);
+         Assert.False(((None)ViewPort[8, 2].Format).IsSearchResult);
+      }
    }
 }

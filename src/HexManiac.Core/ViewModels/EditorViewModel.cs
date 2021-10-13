@@ -222,10 +222,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private int searchByte = -1;
-      public int SearchByte {
-         get => searchByte;
-         set => Set(ref searchByte, value);
+      private byte[] searchBytes = null;
+      public byte[] SearchBytes {
+         get => searchBytes;
+         set {
+            searchBytes = value;
+            NotifyPropertyChanged();
+         }
       }
 
       private string findText = string.Empty;
@@ -234,11 +237,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set => Set(ref findText, value, FindTextChanged);
       }
       private void FindTextChanged(string oldValue = null) {
-         if (FindControlVisible && findText.Length == 2 && int.TryParse(findText, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) {
-            SearchByte = result;
+         if (FindControlVisible && TryParseBytes(findText, out var result)) {
+            SearchBytes = result;
          } else {
-            SearchByte = -1;
+            SearchBytes = null;
          }
+         if (SelectedTab is IViewPort tab) tab.FindBytes = SearchBytes;
       }
 
       private bool matchExactCase;
@@ -394,6 +398,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
+                  if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
                }
             }
          }
@@ -807,6 +812,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       #endregion
+
+      public static bool TryParseBytes(string text, out byte[] results) {
+         results = null;
+         var parsed = new List<byte>();
+         foreach (var token in text.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)) {
+            if (!byte.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) return false;
+            parsed.Add(result);
+         }
+         results = parsed.ToArray();
+         return true;
+      }
 
       private StubCommand CreateWrapperForSelected(Func<ITabContent, ICommand> commandGetter) {
          var command = new StubCommand {

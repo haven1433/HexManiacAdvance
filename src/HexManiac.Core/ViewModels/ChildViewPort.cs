@@ -108,6 +108,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool IsMetadataOnlyChange => false;
 
+      public byte[] FindBytes { get; set; }
+
       public ICommand Save => this[0].Save;
 
       public ICommand SaveAs => this[0].SaveAs;

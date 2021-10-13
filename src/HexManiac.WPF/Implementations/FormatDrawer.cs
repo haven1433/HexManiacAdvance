@@ -20,7 +20,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          consolas2.TryGetGlyphTypeface(out italicTypeface);
       }
 
-      private readonly int fontSize = 16, searchByte = -1;
+      private readonly int fontSize = 16;
+      private readonly byte[] searchBytes;
 
       private readonly Point CellTextOffset;
 
@@ -42,11 +43,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          }
       }
 
-      public FormatDrawer(DrawingContext drawingContext, IViewPort viewModel, int width, int height, double cellWidth, double cellHeight, int fontSize, int searchByte) {
+      public FormatDrawer(DrawingContext drawingContext, IViewPort viewModel, int width, int height, double cellWidth, double cellHeight, int fontSize, byte[] searchBytes) {
          (context, viewPort, modelWidth, modelHeight, cellSize) = (drawingContext, viewModel, width, height, new Size(cellWidth, cellHeight));
          rectangleGeometry = new RectangleGeometry(new Rect(new Point(0, 0), cellSize));
          this.fontSize = fontSize;
-         this.searchByte = searchByte;
+         this.searchBytes = searchBytes;
          var testText = CreateText("00", fontSize, null);
          CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
       }
@@ -115,10 +116,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                collector.Collect<Ascii>(format, x, 1, asc.ThisCharacter.ToString());
             } else if (format is None none) {
                if (!LightWeightUI) {
-                  if (cell.Value == searchByte) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+                  if (none.IsSearchResult) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
                   else if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
                   else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
-                  else if (searchByte == -1) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
+                  else if (searchBytes == null || searchBytes.Length == 0) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
                   else collector.Collect<UnderEdit>(format, x, 1, cell.Value.ToHexString());
                } else if (cell.Value == 0xB5 && x % 2 == 1) {
                   collector.Collect<Undefined>(format, x - 1, 2, "thumb");
