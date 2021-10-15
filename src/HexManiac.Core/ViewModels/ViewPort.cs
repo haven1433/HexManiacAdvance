@@ -1073,6 +1073,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var edit = Encoding.Default.GetString(file.Contents);
             Edit(edit);
             return true;
+         } else if (file.Name.ToLower().EndsWith(".ips")) {
+            history.ChangeCompleted();
+            var destination = DiffViewPort.ApplyIPSPatch(Model, file.Contents, CurrentChange);
+            Goto.Execute(destination);
+            return true;
          }
 
          return false;

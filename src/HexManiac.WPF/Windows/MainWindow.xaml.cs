@@ -230,12 +230,16 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (var fileName in files) {
-               if (!fileName.ToLower().EndsWith(".hma")) continue;
-               var lines = File.ReadLines(fileName)
-                  .Until(string.IsNullOrEmpty)
-                  .Select(line => line.Substring(1));
-               var data = Environment.NewLine.Join(lines);
-               ViewModel.OverlayText = data;
+               if (fileName.ToLower().EndsWith(".ips")) {
+                  ViewModel.OverlayText = "Apply IPS Patch";
+               } else if (fileName.ToLower().EndsWith(".hma")) {
+                  var lines = File.ReadLines(fileName)
+                     .Until(string.IsNullOrEmpty)
+                     .Select(line => line.Substring(1));
+                  ViewModel.OverlayText = Environment.NewLine.Join(lines);
+               } else {
+                  continue;
+               }
                ViewModel.ShowOverlayText = true;
                BlurTabs();
             }
