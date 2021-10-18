@@ -617,5 +617,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(ViewPort.IsMetadataOnlyChange);
          Assert.Contains(nameof(ViewPort.IsMetadataOnlyChange), view.PropertyNotifications);
       }
+
+      [Fact]
+      public void GotoShortcut_WriteSameShortcutTwice_MetadataContainsOneCopy() {
+         var shortcuts = new[] { new StoredGotoShortcut("name", "image", "destination") };
+         var metadata = new StoredMetadata(default, default, default, default, default, default, shortcuts, Singletons.MetadataInfo, default, default, default);
+
+         Model.LoadMetadata(metadata);
+         Model.LoadMetadata(metadata);
+
+         Assert.Single(Model.ExportMetadata(Singletons.MetadataInfo).GotoShortcuts);
+      }
    }
 }
