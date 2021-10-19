@@ -585,6 +585,22 @@ ApplicationVersion = '''0.1.0'''
          Assert.Contains(nameof(editor.IsMetadataOnlyChange), view.PropertyNotifications);
       }
 
+      [Fact]
+      public void Editor_SwapTabs_GotoHasRightShortcuts() {
+         var singletons = BaseViewModelTestClass.Singletons;
+         var viewPort = new ViewPort("file.gba", new PokemonModel(new byte[0x200], null, singletons), InstantDispatch.Instance, singletons);
+         var shortcuts = new[] { new StoredGotoShortcut("name", "image", "destination") };
+         viewPort.Model.LoadMetadata(new StoredMetadata(default, default, default, default, default, default, shortcuts, singletons.MetadataInfo, default, default, default));
+         viewPort.Edit("^destination ");
+
+         editor.Add(viewPort);
+         editor.Add(new StubTabContent());
+         editor.SelectedIndex = 0;
+
+         Assert.False(editor.GotoViewModel.Loading);
+         Assert.Single(editor.GotoViewModel.Shortcuts);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

@@ -976,7 +976,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
          GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher);
          var collection = CreateGotoShortcuts(GotoViewModel);
-         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>();
+         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
          NotifyPropertyChanged(nameof(Tools));
       }
@@ -984,6 +984,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private IReadOnlyList<GotoShortcutViewModel> CreateGotoShortcuts(GotoControlViewModel gotoViewModel) {
          if (!(SelectedTab is IEditableViewPort viewPort)) return null;
          var model = viewPort.Model;
+         if (model == null) return null;
+         model.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false));
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
