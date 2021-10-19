@@ -321,7 +321,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void UpdateRun(IStreamRun run) {
          ignoreExternalUpdates = true;
          using (ModelCacheScope.CreateScope(model)) {
-            var newRun = run.DeserializeRun(content, history.CurrentChange);
+            var newRun = run.DeserializeRun(content, history.CurrentChange, out var _); // streams in the text tool aren't expected to have parents/children that need updates.
             if (newRun.Length != run.Length) {
                model.ObserveRunWritten(history.CurrentChange, newRun);
                newRun = (IStreamRun)model.GetNextRun(newRun.Start);

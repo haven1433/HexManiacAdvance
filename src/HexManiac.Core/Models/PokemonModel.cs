@@ -954,9 +954,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return destination;
       }
 
-      public override void WritePointer(ModelDelta changeToken, int address, int pointerDestination) {
+      public override bool WritePointer(ModelDelta changeToken, int address, int pointerDestination) {
          if (pointerOffsets.TryGetValue(address, out int offset)) pointerDestination += offset;
-         base.WritePointer(changeToken, address, pointerDestination);
+         return base.WritePointer(changeToken, address, pointerDestination);
       }
 
       /// <summary>

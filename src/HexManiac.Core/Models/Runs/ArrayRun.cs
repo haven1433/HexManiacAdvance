@@ -155,7 +155,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var destination = model.ReadPointer(pointerSource);
                var run = model.GetNextRun(destination);
                if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
-                  var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource);
+                  var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource, new HashSet<int>()); // we don't care about the changes that come back from here
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                } else if (run.Start == destination && run is OverworldSpriteListRun oslRun) {
