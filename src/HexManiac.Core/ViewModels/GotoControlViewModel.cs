@@ -20,6 +20,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IPixelViewModel Image { get; }
 
+      private bool smallMode;
+      public bool SmallMode {
+         get => smallMode;
+         set => Set(ref smallMode, value);
+      }
+
       public GotoShortcutViewModel(GotoControlViewModel parent, IViewPort viewPort, IPixelViewModel image, string anchor, string display) {
          viewModel = parent;
          this.viewPort = viewPort;
@@ -30,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Goto() {
          viewModel.ControlVisible = false;
+         viewModel.ShowAll = false;
          viewPort.Goto.Execute(anchor);
       }
    }
@@ -96,7 +103,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool showAll;
       public bool ShowAll { get => showAll; set => Set(ref showAll, value, oldValue => {
          if (showAll) MoveFocusToGoto?.Invoke(this, EventArgs.Empty);
+         UpdateShortcutSize();
       }); }
+
+      private void UpdateShortcutSize() {
+         if (shortcuts != null) {
+            foreach (var shortcut in shortcuts) shortcut.SmallMode = showAll;
+         }
+      }
 
       private bool allowToggleShowAll = true;
       public bool AllowToggleShowAll { get => allowToggleShowAll; set => Set(ref allowToggleShowAll, value); }
@@ -120,6 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set {
             shortcuts = value;
             NotifyPropertyChanged();
+            UpdateShortcutSize();
          }
       }
 
@@ -159,7 +174,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ShowGoto = new StubCommand {
             CanExecute = arg => viewPort?.Goto != null && (arg is bool || arg is null),
             Execute = arg => {
-               ShowAll = true;
                AllowToggleShowAll = false;
                ControlVisible = (bool)(arg ?? !ControlVisible);
             },
@@ -187,6 +201,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections));
          var address = Pointer.NULL;
          var matchedWords = viewPort.Model.GetMatchedWords(currentSelection);
+         ShowAll = true;
          if (matchedWords.Count > 0) {
             viewPort?.Goto?.Execute(currentSelection);
             ControlVisible = false;
@@ -229,6 +244,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void DeselectLastRow() {
+         ShowAll = true;
          foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
       }
 

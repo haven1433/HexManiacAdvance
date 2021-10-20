@@ -322,6 +322,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool focusOnGotoShortcuts = true;
+      public bool FocusOnGotoShortcuts {
+         get => focusOnGotoShortcuts;
+         set => Set(ref focusOnGotoShortcuts, value);
+      }
+
       public bool IsNewVersionAvailable { get; set; }
       public DateTime LastUpdateCheck { get; set; }
 
@@ -488,6 +494,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
          AllowSingleTableMode = !metadata.Contains("AllowSingleTableMode = False");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
+         FocusOnGotoShortcuts = !metadata.Contains("FocusOnGotoShortcuts = False");
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
          StretchData = !metadata.Contains("StretchData = False");
@@ -522,6 +529,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"UseTableEntryHeaders = {UseTableEntryHeaders}",
             $"AllowSingleTableMode = {AllowSingleTableMode}",
             $"ShowMatrixGrid = {ShowMatrix}",
+            $"FocusOnGotoShortcuts = {FocusOnGotoShortcuts}",
             $"ZoomLevel = {ZoomLevel}",
             $"MaximumDiffSegments = {MaximumDiffSegments}",
             $"CopyLimit = {Singletons.CopyLimit}",
@@ -694,7 +702,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   gotoViewModel.RefreshOptions();
                   var collection = CreateGotoShortcuts(gotoViewModel);
                   if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
-                  if (collection == null || collection.Count == 0) gotoViewModel.ShowAll = true;
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
@@ -974,7 +981,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher);
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher) { ShowAll = !FocusOnGotoShortcuts };
          var collection = CreateGotoShortcuts(GotoViewModel);
          if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
@@ -1056,6 +1063,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             FindControlVisible = false;
             HexConverterVisible = false;
          }
+         if (e.PropertyName == nameof(gotoViewModel.ShowAll)) FocusOnGotoShortcuts = !gotoViewModel.ShowAll;
       }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;
