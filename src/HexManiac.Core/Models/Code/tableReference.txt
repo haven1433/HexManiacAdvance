@@ -541,8 +541,8 @@ graphics.credits.pokemon.Mascot.idle,      , , , , 0F42E8, 0F42C0, 0F4360, 0F433
 graphics.credits.pokemon.Mascot.animate,   , , , , 0F42EC, 0F42C4, 0F4364, 0F433C, , `lzs4x12x12|graphics.pokemon.palettes.normal:index=25`
 
 graphics.trainercard.badges.palette,                 ,,,,               08ADB4, 08AD88, 08ADC8, 08AD9C, , `ucp4`
-graphics.trainercard.stickers.palette,               ,,,,               08ADC0, 08AD94, 08ADD4, 08ADA8, , `ucp4`
-graphics.trainercard.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, , `lzs4x16x2|graphics.trainercard.stickers.palette`
+graphics.trainercard.stickers.palette,               ,,,,               08ADC0, 08AD94, 08ADD4, 08ADA8, 0C44C8, `ucp4`
+graphics.trainercard.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, 0C2BEC, `lzs4x16x2|graphics.trainercard.stickers.palette`
 graphics.trainercard.stickers.sprite,                ,,,,               089594, 089568, 0895A8, 08957C, , `lzs4x2x8|graphics.trainercard.stickers.palette`
 graphics.trainercard.palette1,                       ,,,,               3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
 graphics.trainercard.palette2,                       ,,,,               3CD8D0, 3CD70C, 3CD940, 3CD77C, , `ucp4:012`
