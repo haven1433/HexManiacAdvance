@@ -61,7 +61,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var segments = new List<ArrayRunElementSegment> {
             new ArrayRunPointerSegment("sprite", "`ucs4x1x2`"),
-            new ArrayRunElementSegment("length", ElementContentType.Integer, 4),
+            new ArrayRunElementSegment("length", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("unused", ElementContentType.Integer, 2),
          };
          ElementContent = segments;
          ElementCount = 1;
