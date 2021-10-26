@@ -1038,7 +1038,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int ConvertViewPointToAddress(Point p) => scroll.ViewPointToDataIndex(p);
 
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
-         Debug.Assert(IsSelected(selectionPoint));
+         // don't show the context menu if the clicked box isn't actually selected.
+         // Example: selection is outside the range of selectable data (maybe past the end of the data).
+         if (!IsSelected(selectionPoint)) return new IContextItem[0];
          var factory = new ContextItemFactory(this);
          var cell = this[SelectionStart.X, SelectionStart.Y];
          (cell?.Format ?? None.Instance).Visit(factory, cell.Value);
