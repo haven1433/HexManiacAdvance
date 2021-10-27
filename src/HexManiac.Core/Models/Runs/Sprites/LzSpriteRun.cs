@@ -41,11 +41,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var hintSplit = formatContent.Split('|');
          var dimensionsAsText = hintSplit[0].Split('x');
          if (dimensionsAsText.Length != 3) return false;
+         var allowLengthErrors = dimensionsAsText[2].EndsWith("!");
+         if (allowLengthErrors) dimensionsAsText[2] = dimensionsAsText[2].Substring(0, dimensionsAsText[2].Length - 1);
          if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
          if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
          if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
          var hint = hintSplit.Length == 2 ? hintSplit[1] : null;
-         spriteFormat = new SpriteFormat(bitsPerPixel, width, height, hint);
+         spriteFormat = new SpriteFormat(bitsPerPixel, width, height, hint, allowLengthErrors);
          return true;
       }
 

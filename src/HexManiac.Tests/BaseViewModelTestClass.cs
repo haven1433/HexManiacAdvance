@@ -17,17 +17,12 @@ namespace HavenSoft.HexManiac.Tests {
       public static Singletons Singletons { get; } = new Singletons();
       public ViewPort ViewPort { get; }
       public PokemonModel Model { get; }
-      public byte[] Data { get; } = new byte[0x200];
+      public byte[] Data { get; }
       public List<string> Messages { get; } = new List<string>();
       public List<string> Errors { get; } = new List<string>();
       public ModelDelta Token { get; } = new ModelDelta();
 
-      public BaseViewModelTestClass() {
-         Model = new PokemonModel(Data, singletons: Singletons);
-         ViewPort = new ViewPort("file.txt", Model, InstantDispatch.Instance, Singletons) { Width = 0x10, Height = 0x10 };
-         ViewPort.OnError += (sender, e) => { if (!string.IsNullOrEmpty(e)) Errors.Add(e); };
-         ViewPort.OnMessage += (sender, e) => Messages.Add(e);
-      }
+      public BaseViewModelTestClass() : this(0x200) { }
       public BaseViewModelTestClass(int modelLength) {
          Data = new byte[modelLength];
          Model = new PokemonModel(Data, singletons: Singletons);

@@ -37,10 +37,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return TryParseDimensions(pointerFormat, out paletteFormat);
       }
 
+      // example format: `lzp4!:123` -> a 4bpp palette format that allows length errors. The palette has 3 pages, which are loaded into slots 1, 2, and 3
       public static bool TryParseDimensions(string format, out PaletteFormat paletteFormat) {
          paletteFormat = default;
          var formatContent = format.Substring(4, format.Length - 5);
          var pageSplit = formatContent.Split(':');
+         var allowLengthErrors = pageSplit[0].EndsWith("!");
+         if (allowLengthErrors) pageSplit[0] = pageSplit[0].Substring(0, pageSplit[0].Length - 1);
          if (!int.TryParse(pageSplit[0], out var bits)) return false;
          int pages = 1, pageStart = 0;
          if (pageSplit.Length == 2) {
@@ -53,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             pages -= firstPageIndex;
          }
 
-         paletteFormat = new PaletteFormat(bits, pages, pageStart);
+         paletteFormat = new PaletteFormat(bits, pages, pageStart, allowLengthErrors);
          return true;
       }
 
