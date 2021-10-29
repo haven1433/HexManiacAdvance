@@ -72,5 +72,7 @@
          <Ellipse Width="30" Height="30" Fill="{Binding Text2}" Margin="5"/>
          <Ellipse Width="30" Height="30" Fill="{Binding Stream1}" Margin="5"/>
       </StackPanel>
+      <Button Margin="289,374,29,10" Grid.Column="1" Content="Close" Click="CloseWindow"/>
+      <Button Margin="10,374,308,10" Content="Reset" Click="ThemeReset"/>
    </Grid>
 </Window>
