@@ -191,7 +191,7 @@
                      </StackPanel>
                   </StackPanel>
                </Grid>
-               <ScrollViewer Name="TableScrollViewer" VerticalScrollBarVisibility="Visible">
+               <ScrollViewer Name="TableScrollViewer" VerticalScrollBarVisibility="Auto">
                   <StackPanel>
                      <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                         <Grid.ToolTip>
@@ -934,7 +934,7 @@
                         ShowGrid="{Binding DataContext.ShowMatrix, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
                         SearchBytes="{Binding DataContext.SearchBytes, RelativeSource={RelativeSource AncestorType=hsg3hw:MainWindow}}"
                         CursorNeedsUpdate="UpdateBlinkyCursor"/>
-                     <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                     <Rectangle Width="1" Fill="{DynamicResource Secondary}" Visibility="Collapsed" IsHitTestVisible="False" Name="BlinkyCursor" HorizontalAlignment="Left" VerticalAlignment="Top" />
                   </Grid>
                </Grid>
             </Grid>

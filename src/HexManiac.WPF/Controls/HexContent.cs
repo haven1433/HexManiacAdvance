@@ -712,7 +712,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private ModelPoint ControlCoordinatesToModelCoordinates(MouseEventArgs e) {
          var point = e.GetPosition(this);
-         point = new ScreenPoint(Math.Max(0, point.X + HorizontalScrollValue), Math.Max(0, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
+         point = new ScreenPoint(Math.Max(0, point.X + HorizontalScrollValue), Math.Max(+point.Y, point.Y)); // out of bounds to the left/top clamps to 0 (useful for headers)
          return new ModelPoint(Math.Min((int)(point.X / CellWidth), ViewPort.Width - 1), (int)(point.Y / CellHeight)); // out of bounds right clamps to Width - 1 (prevents weird multiline scrolling.)
       }
    }
