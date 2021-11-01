@@ -404,6 +404,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
+                  NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
                   if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
                }
             }

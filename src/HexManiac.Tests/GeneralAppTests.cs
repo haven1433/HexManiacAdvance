@@ -601,6 +601,19 @@ ApplicationVersion = '''0.1.0'''
          Assert.Single(editor.GotoViewModel.Shortcuts);
       }
 
+      [Fact]
+      public void TabWithMetadataChange_SwitchTabs_SaveIconUpdates() {
+         editor.Add(new StubTabContent { IsMetadataOnlyChange = true });
+         editor.Add(new StubTabContent { IsMetadataOnlyChange = false });
+         editor.SelectedIndex = 0;
+         var view = new StubView(editor);
+
+         editor.SelectedIndex = 1;
+
+         Assert.False(editor.IsMetadataOnlyChange);
+         Assert.Contains(nameof(editor.IsMetadataOnlyChange), view.PropertyNotifications);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };
