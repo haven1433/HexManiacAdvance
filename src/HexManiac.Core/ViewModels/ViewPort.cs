@@ -877,25 +877,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          copy.CanExecute = CanAlwaysExecute;
          copy.Execute = arg => {
-            var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
-            var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
-            var left = Math.Min(selectionStart, selectionEnd);
-            var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            if (length > Singletons.CopyLimit) {
-               OnError?.Invoke(this, $"Cannot copy more than {Singletons.CopyLimit} bytes at once!");
-            } else {
-               bool usedHistory = false;
-               if (left + length > Model.Count) {
-                  OnError?.Invoke(this, $"Cannot copy beyond the end of the data.");
-               } else if (left < 0) {
-                  OnError?.Invoke(this, $"Cannot copy before the start of the data.");
-               } else {
-                  ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
-                  RefreshBackingData();
-                  if (usedHistory) UpdateToolsFromSelection(left);
-               }
-            }
-            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+            var filesystem = (IFileSystem)arg;
+            CopyExecute(filesystem, allowModelChanges: false);
          };
 
          copyAddress.CanExecute = CanAlwaysExecute;
@@ -990,6 +973,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          OnMessage?.Invoke(this, $"'{copyText}' copied to clipboard.");
       }
 
+      private void CopyExecute(IFileSystem filesystem, bool allowModelChanges) {
+         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         var left = Math.Min(selectionStart, selectionEnd);
+         var length = Math.Abs(selectionEnd - selectionStart) + 1;
+         if (length > Singletons.CopyLimit) {
+            OnError?.Invoke(this, $"Cannot copy more than {Singletons.CopyLimit} bytes at once!");
+         } else {
+            bool usedHistory = false;
+            if (left + length > Model.Count) {
+               OnError?.Invoke(this, $"Cannot copy beyond the end of the data.");
+            } else if (left < 0) {
+               OnError?.Invoke(this, $"Cannot copy before the start of the data.");
+            } else {
+               if (allowModelChanges) {
+                  filesystem.CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
+               } else {
+                  var noChangeToken = new NoDataChangeDeltaModel();
+                  filesystem.CopyText = Model.Copy(() => {
+                     if (usedHistory == true) return history.CurrentChange;
+                     usedHistory = true;
+                     return history.InsertCustomChange(noChangeToken);
+                  }, left, length);
+               }
+               RefreshBackingData();
+               if (usedHistory) UpdateToolsFromSelection(left);
+            }
+         }
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+      }
+
       private void DeepCopyExecute(IFileSystem fileSystem) {
          var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
@@ -1068,6 +1082,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools.TableTool.DataForCurrentRunChanged();
          Tools.SpriteTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
+      }
+
+      public void Cut(IFileSystem filesystem) {
+         CopyExecute(filesystem, allowModelChanges: true);
+         Clear.Execute();
       }
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {

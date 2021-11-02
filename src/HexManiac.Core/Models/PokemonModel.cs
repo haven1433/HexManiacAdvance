@@ -1738,7 +1738,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (!anchorForAddress.TryGetValue(start, out string anchor)) {
                      if ((run.PointerSources?.Count ?? 0) > 0) {
                         anchor = GenerateDefaultAnchorName(run);
-                        ObserveAnchorWritten(changeToken(), anchor, run);
+                        var token = changeToken();
+                        if (!(token is NoDataChangeDeltaModel)) ObserveAnchorWritten(token, anchor, run);
                         text.Append($"^{anchor}{run.FormatString} ");
                      }
                   } else {

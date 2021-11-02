@@ -629,8 +629,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
          cut.Execute = arg => {
             if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
-               SelectedTab.Copy.Execute(fileSystem);
-               SelectedTab.Clear.Execute();
+               if (SelectedTab is ViewPort viewPort) {
+                  viewPort.Cut(fileSystem);
+               } else {
+                  SelectedTab.Copy.Execute(fileSystem);
+                  SelectedTab.Clear.Execute();
+               }
             }
          };
 
