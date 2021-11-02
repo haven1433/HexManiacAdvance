@@ -68,11 +68,11 @@ namespace HavenSoft.HexManiac.Tests {
          var node = y;
          TreeNode.RotateRight(ref node);
 
-         Assert.Equal(node, x);
-         Assert.Equal(x.Left, a);
-         Assert.Equal(x.Right, y);
-         Assert.Equal(y.Left, b);
-         Assert.Equal(y.Right, c);
+         Assert.Same(node, x);
+         Assert.Same(x.Left, a);
+         Assert.Same(x.Right, y);
+         Assert.Same(y.Left, b);
+         Assert.Same(y.Right, c);
       }
 
       [Fact]
@@ -87,11 +87,11 @@ namespace HavenSoft.HexManiac.Tests {
          var node = x;
          TreeNode.RotateLeft(ref node);
 
-         Assert.Equal(node, y);
-         Assert.Equal(x.Left, a);
-         Assert.Equal(x.Right, b);
-         Assert.Equal(y.Left, x);
-         Assert.Equal(y.Right, c);
+         Assert.Same(node, y);
+         Assert.Same(x.Left, a);
+         Assert.Same(x.Right, b);
+         Assert.Same(y.Left, x);
+         Assert.Same(y.Right, c);
       }
 
       [Fact]
@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Red, parent.Left.Color);
          Assert.Equal(Red, parent.Right.Color);
          Assert.Equal(5, parent.Right.Payload.Start);
-         Assert.Equal(node, parent);
+         Assert.Same(node, parent);
          Assert.Equal(2, parent.Left.Payload.Start);
       }
 
@@ -199,7 +199,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Red, parent.Left.Color);
          Assert.Equal(Red, parent.Right.Color);
          Assert.Equal(1, parent.Left.Payload.Start);
-         Assert.Equal(node, parent);
+         Assert.Same(node, parent);
          Assert.Equal(4, parent.Right.Payload.Start);
       }
 
@@ -218,7 +218,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, parent.Left.Payload.Start);
          Assert.Equal(3, parent.Payload.Start);
          Assert.Equal(4, parent.Right.Payload.Start);
-         Assert.Equal(node, parent.Right);
+         Assert.Same(node, parent.Right);
       }
 
       [Fact]
@@ -236,7 +236,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, parent.Left.Payload.Start);
          Assert.Equal(3, parent.Payload.Start);
          Assert.Equal(4, parent.Right.Payload.Start);
-         Assert.Equal(node, parent.Left);
+         Assert.Same(node, parent.Left);
       }
 
       [Fact]
