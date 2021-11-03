@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var run = Model.GetNextRun(destination);
             if (run.Start == destination) return false;
             run = new NoInfoRun(destination, new SortedSpan<int>(Start));
-            var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
+            var error = Model.FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
             return !error.HasError;
          }
       }
@@ -66,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var run = Model.GetNextRun(destination);
             if (run.Start != destination) return true;
             using (ModelCacheScope.CreateScope(Model)) {
-               var error = FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
+               var error = Model.FormatRunFactory.GetStrategy(RunFormat).TryParseData(Model, string.Empty, destination, ref run);
                return error.HasError;
             }
          }

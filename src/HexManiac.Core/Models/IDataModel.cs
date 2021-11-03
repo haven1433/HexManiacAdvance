@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -26,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Used when exporting to the backup folder
       /// </summary>
       int NextExportID { get; set; }
+
+      IFormatRunFactory FormatRunFactory { get; }
 
       new byte this[int index] { get; set; }
       IReadOnlyList<string> ListNames { get; }
@@ -162,6 +165,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int FreeSpaceBuffer { get; set; } = 0x100;
 
       public int NextExportID { get; set; }
+
+      public IFormatRunFactory FormatRunFactory { get; protected set; } = new FormatRunFactory(false);
 
       public virtual IReadOnlyList<string> ListNames { get; } = new List<string>();
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();

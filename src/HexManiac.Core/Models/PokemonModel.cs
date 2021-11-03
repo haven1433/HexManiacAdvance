@@ -42,6 +42,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Dictionary<string, List<string>> lists = new Dictionary<string, List<string>>();
 
       private readonly Singletons singletons;
+      private readonly bool showRawIVByteForTrainer;
 
       #region Pointer destination-to-source caching, for faster pointer search during initial load
 
@@ -102,6 +103,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null) : base(data) {
          this.singletons = singletons;
+         showRawIVByteForTrainer = metadata?.ShowRawIVByteForTrainer ?? false;
+         this.FormatRunFactory = new FormatRunFactory(showRawIVByteForTrainer);
          BuildDestinationToSourceCache(data);
 
          // if we have a subclass, expect the subclass to do this when it's ready.
@@ -1979,7 +1982,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             gotoShortcuts.Add(new StoredGotoShortcut(shortcut.DisplayText, shortcut.ImageAnchor, shortcut.GotoAnchor));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, metadataInfo, FreeSpaceStart, FreeSpaceBuffer, NextExportID);
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, metadataInfo,
+            new StoredMetadataFields {
+               FreeSpaceSearch = FreeSpaceStart,
+               FreeSpaceBuffer = FreeSpaceBuffer,
+               NextExportID = NextExportID,
+               ShowRawIVByteForTrainer = showRawIVByteForTrainer,
+            });
       }
 
       /// <summary>
@@ -2118,7 +2127,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // special case: empty format, stick with the no-info run
          if (format == string.Empty) return ErrorInfo.NoError;
 
-         return FormatRunFactory.GetStrategy(format)?.TryParseData(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
+         return model.FormatRunFactory.GetStrategy(format)?.TryParseData(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
       }
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {

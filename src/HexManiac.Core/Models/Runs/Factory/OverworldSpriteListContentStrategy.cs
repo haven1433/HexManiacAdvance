@@ -3,34 +3,36 @@
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    public class OverworldSpriteListContentStrategy : RunStrategy {
       // starterbytes:|h paletteid:|h secondid:|h length: width: height: slot.|h overwrite. unused: distribution<> sizedraw<> animation<> sprites<> ramstore<>
-      private readonly IReadOnlyList<ArrayRunElementSegment> parentTemplate = new List<ArrayRunElementSegment> {
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
-         new ArrayRunElementSegment("paletteid", ElementContentType.Integer, 2),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
-         new ArrayRunElementSegment("length", ElementContentType.Integer, 2),
-         new ArrayRunElementSegment("width", ElementContentType.Integer, 2),
-         new ArrayRunElementSegment("height", ElementContentType.Integer, 2),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 4),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-         new ArrayRunPointerSegment("sprites", OverworldSpriteListRun.SharedFormatString),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-      };
-
-      private readonly IReadOnlyList<ArrayRunElementSegment> parentTemplate2 = new List<ArrayRunElementSegment> {
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
-         new ArrayRunElementSegment("paletteid", ElementContentType.Integer, 2),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-         new ArrayRunPointerSegment("sprites", OverworldSpriteListRun.SharedFormatString),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-         new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
-      };
+      private readonly IReadOnlyList<ArrayRunElementSegment> parentTemplate, parentTemplate2;
 
       public string Hint { get; }
 
-      public OverworldSpriteListContentStrategy(string format) {
+      public OverworldSpriteListContentStrategy(IFormatRunFactory factory, string format) {
+         parentTemplate = new List<ArrayRunElementSegment> {
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("paletteid", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("length", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("width", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("height", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 4),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+            new ArrayRunPointerSegment(factory, "sprites", OverworldSpriteListRun.SharedFormatString),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+         };
+
+         parentTemplate2 = new List<ArrayRunElementSegment> {
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Integer, 2),
+            new ArrayRunElementSegment("paletteid", ElementContentType.Integer, 2),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+            new ArrayRunPointerSegment(factory, "sprites", OverworldSpriteListRun.SharedFormatString),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+            new ArrayRunElementSegment(string.Empty, ElementContentType.Pointer, 4),
+         };
+
          if (format.Contains("|")) {
             Hint = format.Split("|")[1].Split("`")[0];
          }

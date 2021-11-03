@@ -592,13 +592,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    /// For example, pointing to a text stream or a plm (pokemon learnable moves) stream
    /// </summary>
    public class ArrayRunPointerSegment : ArrayRunElementSegment {
+      public IFormatRunFactory Factory { get; }
       public string InnerFormat { get; }
 
-      public bool IsInnerFormatValid => FormatRunFactory.GetStrategy(InnerFormat) != null;
+      public bool IsInnerFormatValid => Factory.GetStrategy(InnerFormat) != null;
 
       public override string SerializeFormat => $"{Name}<{InnerFormat}>";
 
-      public ArrayRunPointerSegment(string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
+      public ArrayRunPointerSegment(IFormatRunFactory factory, string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
+         Factory = factory;
          InnerFormat = innerFormat;
       }
 
@@ -609,10 +611,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
             if (destination < 0 || destination >= owner.Count) return false;
-            return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex) ?? false;
+            return Factory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex) ?? false;
          } else {
             // easy case: already have a format, just see if it matches
-            var strategy = FormatRunFactory.GetStrategy(InnerFormat);
+            var strategy = Factory.GetStrategy(InnerFormat);
             if (strategy == null) return false;
             if (strategy.Matches(run)) return true;
 
@@ -623,7 +625,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          owner.WritePointer(token, source, destination);
-         var newRun = FormatRunFactory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
+         var newRun = Factory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
          owner.ObserveRunWritten(token, newRun.MergeAnchor(new SortedSpan<int>(source)));
       }
    }

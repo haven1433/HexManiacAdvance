@@ -1325,7 +1325,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offset = tableRun.ConvertByteOffsetToArrayOffset(pointer);
             if (tableRun.ElementContent[offset.SegmentIndex] is ArrayRunPointerSegment pSegment) {
                var run = destination;
-               var error = FormatRunFactory.GetStrategy(pSegment.InnerFormat, allowStreamCompressionErrors: true).TryParseData(Model, string.Empty, destinationAddress, ref run);
+               var error = Model.FormatRunFactory.GetStrategy(pSegment.InnerFormat, allowStreamCompressionErrors: true).TryParseData(Model, string.Empty, destinationAddress, ref run);
                if (error.HasError) {
                   CreateNewData(pointer);
                   return;
@@ -1396,7 +1396,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return false;
          }
 
-         var length = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
+         var length = Model.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
 
          var insert = Model.FindFreeSpace(0, length);
          if (insert < 0) {
@@ -1427,7 +1427,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RaiseError("Could not parse a data format for that pointer.");
             return;
          }
-         var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
+         var strategy = Model.FormatRunFactory.GetStrategy(segment.InnerFormat);
          if (strategy == null) {
             RaiseError("Could not parse a data format for that pointer.");
             return;

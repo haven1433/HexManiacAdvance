@@ -590,7 +590,7 @@ ApplicationVersion = '''0.1.0'''
          var singletons = BaseViewModelTestClass.Singletons;
          var viewPort = new ViewPort("file.gba", new PokemonModel(new byte[0x200], null, singletons), InstantDispatch.Instance, singletons);
          var shortcuts = new[] { new StoredGotoShortcut("name", "image", "destination") };
-         viewPort.Model.LoadMetadata(new StoredMetadata(default, default, default, default, default, default, shortcuts, singletons.MetadataInfo, default, default, default));
+         viewPort.Model.LoadMetadata(new StoredMetadata(default, default, default, default, default, default, shortcuts, singletons.MetadataInfo, default));
          viewPort.Edit("^destination ");
 
          editor.Add(viewPort);

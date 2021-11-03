@@ -441,7 +441,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                //    the destination data appears to match the expected type,
                //    but there is no run for it.
                // Go ahead and generate a new temporary run for the data.
-               var strategy = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat);
+               var strategy = model.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat);
                strategy.TryParseData(model, string.Empty, destination, ref streamRun);
             }
          }

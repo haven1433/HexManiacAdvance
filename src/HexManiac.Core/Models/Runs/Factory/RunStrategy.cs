@@ -48,8 +48,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
    }
 
-   public class FormatRunFactory {
-      public static RunStrategy GetStrategy(string format, bool allowStreamCompressionErrors = false) {
+   public interface IFormatRunFactory {
+      RunStrategy GetStrategy(string format, bool allowStreamCompressionErrors = false);
+   }
+
+   public class FormatRunFactory : IFormatRunFactory {
+      private readonly bool showFullIVByteRange;
+      public FormatRunFactory(bool showFullIVByteRange) => this.showFullIVByteRange = showFullIVByteRange;
+
+      public RunStrategy GetStrategy(string format, bool allowStreamCompressionErrors = false) {
          RunStrategy strategy;
          if (format == PCSRun.SharedFormatString) {
             strategy = new PCSRunContentStrategy();
@@ -68,9 +75,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          } else if (format == ASERun.SharedFormatString) {
             strategy = new AseRunContentStrategy();
          } else if (format.StartsWith(OverworldSpriteListRun.SharedFormatString.Substring(0, OverworldSpriteListRun.SharedFormatString.Length - 1))) {
-            strategy = new OverworldSpriteListContentStrategy(format);
+            strategy = new OverworldSpriteListContentStrategy(this, format);
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
-            strategy = new TrainerPokemonTeamRunContentStrategy();
+            strategy = new TrainerPokemonTeamRunContentStrategy(showFullIVByteRange);
          } else if (LzSpriteRun.TryParseSpriteFormat(format, out var spriteFormat)) {
             if (allowStreamCompressionErrors) spriteFormat = new SpriteFormat(spriteFormat.BitsPerPixel, spriteFormat.TileWidth, spriteFormat.TileHeight, spriteFormat.PaletteHint, allowStreamCompressionErrors);
             strategy = new LzSpriteRunContentStrategy(spriteFormat);

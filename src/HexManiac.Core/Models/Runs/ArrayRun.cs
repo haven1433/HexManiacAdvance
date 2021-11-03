@@ -81,7 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   // if the run isn't a ITableRun, parse the data to see if it's valid
                   // if it _is_ an ITableRun, skip this step
                   if (currentSegment is ArrayRunPointerSegment pointerSegment && !(run is ITableRun)) {
-                     hasError |= FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
+                     hasError |= data.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
                   }
                }
             } else {
@@ -1186,7 +1186,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
                }
             } else if (format == ElementContentType.Pointer && formatLength > 2) {
-               var pointerSegment = new ArrayRunPointerSegment(name, segments.Substring(1, formatLength - 2));
+               var pointerSegment = new ArrayRunPointerSegment(model.FormatRunFactory, name, segments.Substring(1, formatLength - 2));
                if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
                list.Add(pointerSegment);
                segments = segments.Substring(formatLength).Trim();
