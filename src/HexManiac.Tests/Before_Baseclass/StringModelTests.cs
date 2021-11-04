@@ -545,6 +545,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("misc", pointer.Name);
       }
 
+      [Fact]
+      public void RedoAvailable_Copy_CanRedo() {
+         var fs = new StubFileSystem();
+         ViewPort.Edit("<020> @20 @!put(FF) ^\"\" text @180 DEADBEEF");
+         ViewPort.Undo.Execute();
+
+         ViewPort.Goto.Execute(0x20);
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fs);
+
+         Assert.True(ViewPort.Redo.CanExecute(default));
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

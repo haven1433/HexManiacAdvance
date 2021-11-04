@@ -990,12 +990,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (allowModelChanges) {
                   filesystem.CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
                } else {
-                  var noChangeToken = new NoDataChangeDeltaModel();
-                  filesystem.CopyText = Model.Copy(() => {
-                     if (usedHistory == true) return history.CurrentChange;
-                     usedHistory = true;
-                     return history.InsertCustomChange(noChangeToken);
-                  }, left, length);
+                  filesystem.CopyText = Model.Copy(() => null, left, length);
                }
                RefreshBackingData();
                if (usedHistory) UpdateToolsFromSelection(left);
