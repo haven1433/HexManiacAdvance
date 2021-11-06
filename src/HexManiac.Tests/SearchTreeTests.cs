@@ -1,22 +1,25 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using System;
 using System.Linq;
 using Xunit;
 using static HavenSoft.HexManiac.Core.Models.TreeColor;
+
+using TestTreeNode = HavenSoft.HexManiac.Core.Models.TreeNode<HavenSoft.HexManiac.Tests.TestPayload>;
 
 namespace HavenSoft.HexManiac.Tests {
    public class TestPayload : ISearchTreePayload {
       public int Start { get; }
       public int ID { get; }
       public TestPayload(int start, int id) => (Start, ID) = (start, id);
+      public override string ToString() => $"{Start}.{ID}";
    }
 
    public class SearchTreeTests {
       private static TestPayload New(int value, int id = 0) => new TestPayload(value, id);
-      private static TreeNode<TestPayload> Node(int value, int id = 0) => new TreeNode<TestPayload>(New(value, id));
-      private static TreeNode<TestPayload> BlackNode(int value, int id = 0, TreeNode<TestPayload> left = null, TreeNode<TestPayload> right = null) {
-         var node = Node(value, id);
+      private static TestTreeNode Node(int value, int id = 0, TestTreeNode left = null, TestTreeNode right = null) => new TestTreeNode(New(value, id)) { Left = left, Right = right };
+      private static TestTreeNode BlackNode(int value, int id = 0, TestTreeNode left = null, TestTreeNode right = null) {
+         var node = Node(value, id, left, right);
          node.Recolor();
-         (node.Left, node.Right) = (left, right);
          return node;
       }
 
@@ -305,7 +308,104 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Black, parent.Right.Right.Right.Color);
       }
 
-      // TODO remove node tests
+      [Fact]
+      public void OnlyNode_Remove_NullReturn() {
+         var node = Node(1);
+
+         TreeNode.Remove(ref node, 1);
+
+         Assert.Null(node);
+      }
+
+      [Fact]
+      public void RightChildRed_RemoveRightChild_TreeStaysBalanced() {
+         var node = BlackNode(1, right: Node(2));
+
+         var result = TestTreeNode.Remove(ref node, 2);
+
+         Assert.Equal(RemoveType.Balanced, result);
+         Assert.Equal(1, node.Payload.Start);
+         Assert.Equal(Black, node.Color);
+         Assert.Null(node.Left);
+         Assert.Null(node.Right);
+      }
+
+      [Fact]
+      public void RightChildBlack_RemoveRightChild_ReportBlackDecrease() {
+         var node = BlackNode(2, left: BlackNode(1), right: BlackNode(3));
+
+         var result = TestTreeNode.Remove(ref node, 3);
+
+         Assert.Equal(RemoveType.DecreaseBlackCount, result);
+         Assert.Equal(Red, node.Left.Color);
+         Assert.Equal(Black, node.Color);
+         Assert.Null(node.Right);
+         Assert.Equal(1, node.Left.Payload.Start);
+         Assert.Equal(2, node.Payload.Start);
+      }
+
+      [Fact]
+      public void LeftChildBlack_RemoveLeftChild_ReportBlackDecrease() {
+         var node = BlackNode(2, left: BlackNode(1), right: BlackNode(3));
+
+         var result = TestTreeNode.Remove(ref node, 1);
+
+         Assert.Equal(RemoveType.DecreaseBlackCount, result);
+         Assert.Equal(Red, node.Right.Color);
+         Assert.Equal(Black, node.Color);
+         Assert.Null(node.Left);
+         Assert.Equal(3, node.Right.Payload.Start);
+         Assert.Equal(2, node.Payload.Start);
+      }
+
+      [Fact]
+      public void ChildrenBlackParentRed_RemoveRight_ParentBlack() {
+         var node = Node(2, left: BlackNode(1), right: BlackNode(3));
+
+         var result = TestTreeNode.Remove(ref node, 3);
+
+         Assert.Equal(RemoveType.Balanced, result);
+         Assert.Equal(Red, node.Left.Color);
+         Assert.Equal(Black, node.Color);
+         Assert.Equal(new[] { 1, 2 }, node.Select(n => n.Payload.Start));
+      }
+
+      [Fact]
+      public void LeftNodeRed_RemoveBlackRight_TreeStaysBalanced() {
+         var left = Node(2, left: BlackNode(1), right: BlackNode(3));
+         var root = BlackNode(4, left: left, right: BlackNode(5));
+
+         var result = TestTreeNode.Remove(ref root, 5);
+
+         //    2
+         //  1   4
+         //    (3)
+         Assert.Equal(RemoveType.Balanced, result);
+         Assert.Equal(2, root.Payload.Start);
+         Assert.Equal(Black, root.Color);
+         Assert.Equal(Black, root.Left.Color);
+         Assert.Equal(Black, root.Right.Color);
+         Assert.Equal(Red, root.Right.Left.Color);
+         Assert.Equal(3, root.Right.Left.Payload.Start);
+      }
+
+      [Fact]
+      public void BlackTreeWithRedRightmostChild_RemoveLeft_BalanceTreeAndRedNodeBecomesBlack() {
+         TestTreeNode node1 = BlackNode(1), node2 = BlackNode(2), node3 = BlackNode(3),
+            node4 = Node(4);
+         (node2.Left, node2.Right) = (node1, node3);
+         node3.Right = node4;
+         var root = node2;
+
+         var result = TestTreeNode.Remove(ref root, 1);
+
+         Assert.Same(node3, root);
+         Assert.Same(node2, root.Left);
+         Assert.Same(node4, root.Right);
+         Assert.All(root, node => node.IsBlack());
+      }
+
+      // TODO more delete cases (such as deleting a non-leaf
 
       // TODO tests on the SearchTree itself, not just nodes
    }

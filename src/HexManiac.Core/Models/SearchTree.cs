@@ -8,7 +8,8 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
 
    public enum TreeColor { Red, Black }
-   public enum AddType { Left, Balanced, Right, Insert }
+   public enum AddType { Left, Right, Balanced, Insert }
+   public enum RemoveType { NoRemoval, Balanced, DecreaseBlackCount }
 
    // Red-Black tree rules:
    // (1) The root is black
@@ -26,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public static class TreeNode {
       public static TreeNode<T> From<T>(T element) where T : ISearchTreePayload => new TreeNode<T>(element);
       public static void Add<T>(ref TreeNode<T> node, T element) where T : ISearchTreePayload => TreeNode<T>.Add(ref node, element);
+      public static void Remove<T>(ref TreeNode<T> node, int key) where T : ISearchTreePayload => TreeNode<T>.Remove(ref node, key);
       public static void RotateRight<T>(ref TreeNode<T> node) where T : ISearchTreePayload {
          var newRoot = node.Left;
          node.Left = newRoot.Right;
@@ -38,17 +40,33 @@ namespace HavenSoft.HexManiac.Core.Models {
          newRoot.Left = node;
          node = newRoot;
       }
+      public static void Rotate<T>(ref TreeNode<T> node, int direction)where T : ISearchTreePayload {
+         if (direction == TreeNode<T>.LEFT) RotateLeft(ref node);
+         else RotateRight(ref node);
+      }
       public static bool IsBlack<T>(this TreeNode<T> node) where T : ISearchTreePayload => (node?.Color ?? TreeColor.Black) == TreeColor.Black;
+      public static bool BlackWithBlackChildren<T>(this TreeNode<T> node)where T : ISearchTreePayload {
+         if (node == null || node.Color == TreeColor.Red) return false;
+         return node.Left.IsBlack() && node.Right.IsBlack();
+      }
    }
 
    public class TreeNode<T> : IEnumerable<TreeNode<T>> where T : ISearchTreePayload {
+      public const int LEFT = 0, RIGHT = 1;
+
       public T Payload { get; }
       public TreeColor Color { get; private set; }
       public int BlackCount => ((Left == null) ? 0 : Left.BlackCount) + (Color == TreeColor.Black ? 1 : 0);
-      private TreeNode<T> left, right;
-      public TreeNode<T> Left { get => left; set => left = value; }
-      public TreeNode<T> Right { get => right; set => right = value; }
+      private TreeNode<T>[] children = new TreeNode<T>[2];
+      public TreeNode<T> Left { get => children[0]; set => children[0] = value; }
+      public TreeNode<T> Right { get => children[1]; set => children[1] = value; }
       public TreeNode(T value) => Payload = value;
+
+      public override string ToString() {
+         var result = Payload.ToString();
+         if (Color == TreeColor.Red) return $"({result})";
+         return result;
+      }
 
       /// <summary>
       /// Only do tree-balancing if the current node is red.
@@ -65,40 +83,87 @@ namespace HavenSoft.HexManiac.Core.Models {
             insert.Color = node?.Color ?? TreeColor.Red;
             node = insert;
             return AddType.Insert;
-         } else if (node.Payload.Start > start) {
-            var addMethod = Add(ref node.left, insert);
-            if (addMethod == AddType.Insert) return AddType.Left;
-            if (addMethod != AddType.Balanced) {
-               node.left.RecolorIfSelfAndSiblingAreRed(node.right, node);
-               if (addMethod == AddType.Right && !node.left.IsBlack() && node.right.IsBlack()) TreeNode.RotateLeft(ref node.left);
-               node.left.RotateRightIfSelfRedWithBlackSibling(node.right, ref node);
-            }
+         } else if (start < node.Payload.Start) {
+            return AddChild(ref node, insert, LEFT);
          } else if (node.Payload.Start < start) {
-            var addMethod = Add(ref node.right, insert);
-            if (addMethod == AddType.Insert) return AddType.Right;
-            if (addMethod != AddType.Balanced) {
-               if (node.right.RecolorIfSelfAndSiblingAreRed(node.left, node)) return AddType.Insert;
-               if (addMethod == AddType.Left && !node.right.IsBlack() && node.left.IsBlack()) TreeNode.RotateRight(ref node.right);
-               node.right.RotateLeftIfSelfRedWithBlackSibling(node.left, ref node);
-            }
+            return AddChild(ref node, insert, RIGHT);
          } else {
             throw new NotImplementedException();
          }
+      }
 
+      private static AddType AddChild(ref TreeNode<T> parent, TreeNode<T> insert, int direction) {
+         var other = 1 - direction;
+         var addMethod = Add(ref parent.children[direction], insert);
+         if (addMethod == AddType.Insert) return (AddType)direction;
+         var (node, sibling) = (parent.children[direction], parent.children[other]);
+         if (addMethod != AddType.Balanced) {
+            if (node.RecolorIfSelfAndSiblingAreRed(sibling, parent)) return AddType.Insert;
+            if (addMethod == (AddType)other && !node.IsBlack() && sibling.IsBlack()) {
+               TreeNode.Rotate(ref parent.children[direction], direction);
+               node = parent.children[direction];
+            }
+            node.RotateIfSelfRedWithBlackSibling(sibling, ref parent, other);
+         }
          return AddType.Balanced;
+      }
+
+      public static RemoveType Remove(ref TreeNode<T> node, int key) {
+         if (node == null) return RemoveType.NoRemoval;
+
+         if (key == node.Payload.Start) {
+            var color = node.Color;
+            node = null;
+            return color == TreeColor.Red ? RemoveType.Balanced : RemoveType.DecreaseBlackCount; ;
+         }
+
+         if (node.Payload.Start < key) {
+            return RemoveChild(ref node, key, RIGHT);
+         } else {
+            return RemoveChild(ref node, key, LEFT);
+         }
+      }
+
+      private static RemoveType RemoveChild(ref TreeNode<T> node, int key, int direction) {
+         int other = 1 - direction;
+         var result = Remove(ref node.children[direction], key);
+         if (result == RemoveType.NoRemoval) return result;
+         if (node.Color == TreeColor.Black && !node.children[other].IsBlack() && result == RemoveType.DecreaseBlackCount) {
+            TreeNode.Rotate(ref node, direction);
+            node.Recolor();
+            node.children[direction].Recolor();
+            IncreaseBlackCount(ref node.children[direction], direction);
+            return RemoveType.Balanced;
+         }
+         if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithBlackChildren()) {
+            node.children[other].Recolor();
+            return RemoveType.DecreaseBlackCount;
+         } else if (node.Color == TreeColor.Red && result == RemoveType.DecreaseBlackCount && node.children[other].IsBlack() && node.children[direction].IsBlack()) {
+            IncreaseBlackCount(ref node, direction);
+            return RemoveType.Balanced;
+         } else {
+            return RemoveType.Balanced;
+         }
+      }
+
+      private static void IncreaseBlackCount(ref TreeNode<T> node, int direction) {
+         if (node.Color == TreeColor.Red && node.Left.IsBlack() && node.Right.IsBlack()) {
+            node.Recolor();
+            node.children[1 - direction].Recolor();
+         }
       }
 
       public void Recolor() => Color = Color == TreeColor.Red ? TreeColor.Black : TreeColor.Red;
 
       public IEnumerator<TreeNode<T>> GetEnumerator() {
-         if (left != null) {
-            foreach (var node in left) {
+         if (Left != null) {
+            foreach (var node in Left) {
                yield return node;
             }
          }
          yield return this;
-         if (right != null) {
-            foreach (var node in right) {
+         if (Right != null) {
+            foreach (var node in Right) {
                yield return node;
             }
          }
@@ -117,21 +182,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          return false;
       }
 
-      private void RotateLeftIfSelfRedWithBlackSibling(TreeNode<T> sibling, ref TreeNode<T> parent) {
+      private void RotateIfSelfRedWithBlackSibling(TreeNode<T> sibling, ref TreeNode<T> parent, int rotateDirection) {
          if (parent == null) return; // root is always black
          if (!sibling.IsBlack()) return;
          if (this.IsBlack()) return;
-         TreeNode.RotateLeft(ref parent);
-         parent.left.Recolor();
-         parent.Recolor();
-      }
-
-      private void RotateRightIfSelfRedWithBlackSibling(TreeNode<T> sibling, ref TreeNode<T> parent) {
-         if (parent == null) return; // root is always black
-         if (!sibling.IsBlack()) return;
-         if (this.IsBlack()) return;
-         TreeNode.RotateRight(ref parent);
-         parent.right.Recolor();
+         TreeNode.Rotate(ref parent, rotateDirection);
+         parent.children[rotateDirection].Recolor();
          parent.Recolor();
       }
    }
