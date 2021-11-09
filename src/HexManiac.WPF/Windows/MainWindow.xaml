@@ -87,6 +87,19 @@
                         <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </MenuItem.Icon>
                   </MenuItem>
+                  <MenuItem Header="Open Recent">
+                     <ItemsControl ItemsSource="{Binding RecentFileViewModels}">
+                        <ItemsControl.ItemTemplate>
+                           <DataTemplate>
+                              <TextBlock Margin="0,2" ToolTip="{Binding LongName}" FontSize="12">
+                                 <Hyperlink Command="{Binding Open}" Foreground="{DynamicResource Accent}">
+                                    <Run Text="{Binding FileNameRecent, Mode=OneWay}"/>
+                                 </Hyperlink>
+                              </TextBlock>
+                           </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                     </ItemsControl>
+                  </MenuItem>
                   <MenuItem Header="Duplicate Current Tab" Command="{Binding DuplicateCurrentTab}" InputGestureText="Ctrl+T"/>
                   <Separator />
                   <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">

@@ -1714,7 +1714,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (run.Start > start) {
                   var len = Math.Min(length, run.Start - start);
                   var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToHexString());
-                  text.Append(string.Join(" ", bytes) + " ");
+                  text.Append(string.Join(" ",bytes) + " ");
                   length -= len;
                   start += len;
                   continue;
@@ -1762,7 +1762,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start += 1;
                   length -= 1;
                } else if (run is IAppendToBuilderRun atbRun) {
-                  atbRun.AppendTo(this, text, start, length, deep);
+                  atbRun.AppendTo(this, text, start, length, deep); ;
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;

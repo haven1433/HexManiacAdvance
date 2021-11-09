@@ -1206,6 +1206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class RecentFileViewModel : ViewModelCore {
       public string ShortName { get; }
       public string LongName { get; }
+      public string FileNameRecent { get; }
       public ICommand Open { get; }
       public bool IncludeIcon { get; }
 
@@ -1221,6 +1222,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ShortName = Path.GetFileNameWithoutExtension(filename);
          Open = open;
          IncludeIcon = false;
+         FileNameRecent = Path.GetFileNameWithoutExtension(filename);
       }
    }
 }
