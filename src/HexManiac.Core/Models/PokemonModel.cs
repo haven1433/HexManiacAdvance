@@ -1762,7 +1762,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start += 1;
                   length -= 1;
                } else if (run is IAppendToBuilderRun atbRun) {
-                  atbRun.AppendTo(this, text, start, length, deep); ;
+                  atbRun.AppendTo(this, text, start, length, deep);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;
