@@ -1005,7 +1005,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                      results.Add(ldrb.address);
                   }
                   // mov rA, #offset
-                  foreach (var mov in FindAllCommands(owner, parser, add.address + 2, null, (line, reg) => line.StartsWith("mov ") && line.Contains($", #{offset}"), recurse: false)) {
+                  foreach (var mov in FindAllCommands(owner, parser, add.address + 2, $"!{add.register}", (line, reg) => line.StartsWith("mov ") && line.EndsWith($", #{offset}"), recurse: false)) {
                      // ldrsb rZ, [rY, rA]
                      if (FindAllCommands(owner, parser, mov.address + 2, add.register, (line, reg) => line.StartsWith("ldrsb ") && line.Contains($"[{reg}, ") && line.Contains($", {mov.register}]")).Any()) {
                         results.Add(mov.address);
@@ -1045,12 +1045,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// The second argument to the predicate is the register that we're currently watching.
       /// This is usually registerSource, but may've changed because of mov operations.
       /// We're guaranteed that the line in question contains the source register that we're watching.
+      /// If registerSource starts with !, we can be given a line that does _not_ contain that register, but we'll still stop searching when the value of the register gets changed.
       /// The predicate allows the line to be checked for other conditions, such as making sure that it's an 'add' instruction.
       /// </param>
       /// <returns>
       /// Returns the address of the command that used the source and the register of the result.
       /// </returns>
       public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser, int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null, bool recurse = true) {
+         string watchRegister = registerSource;
+         if (watchRegister != null && watchRegister.StartsWith("!")) watchRegister = watchRegister.Substring(1);
+         if (registerSource != null && registerSource.StartsWith("!")) registerSource = null;
          callTrail = callTrail ?? new List<int>();
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
@@ -1088,7 +1092,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             // look for the actual instruction we care about
             if ((registerSource == null || commandLine.Contains(registerSource)) && predicate(commandLine, registerSource)) yield return (i, register);
-            if (register == registerSource) break;
+            if (register == registerSource || register == watchRegister) break;
             prevCommandIsCmp = commandLine.StartsWith("cmp ");
             prevCommandIsBl = commandLine.StartsWith("bl ");
          }
