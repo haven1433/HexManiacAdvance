@@ -387,6 +387,9 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void LeftNodeRed_RemoveBlackRight_TreeStaysBalanced() {
+         //      4
+         //   (2)  5
+         //   1 3
          var left = Node(2, left: BlackNode(1), right: BlackNode(3));
          var root = BlackNode(4, left: left, right: BlackNode(5));
 
@@ -417,6 +420,9 @@ namespace HavenSoft.HexManiac.Tests {
 
          var result = TestTreeNode.Remove(ref root, 1);
 
+         //   3
+         // 2   4
+         Assert.Equal(RemoveType.Balanced, result);
          Assert.Same(node3, root);
          Assert.Same(node2, root.Left);
          Assert.Same(node4, root.Right);
@@ -428,8 +434,8 @@ namespace HavenSoft.HexManiac.Tests {
          //    2
          //  1  (4)
          //     3 5
-         TestTreeNode node1 = BlackNode(1), node2 = BlackNode(2), node4 = Node(3),
-            node3 = BlackNode(4), node5 = BlackNode(5);
+         TestTreeNode node1 = BlackNode(1), node2 = BlackNode(2), node4 = Node(4),
+            node3 = BlackNode(3), node5 = BlackNode(5);
          (node2.Left, node2.Right) = (node1, node4);
          (node4.Left, node4.Right) = (node3, node5);
          var root = node2;
@@ -439,11 +445,58 @@ namespace HavenSoft.HexManiac.Tests {
          //    4
          //  2   5
          //  (3)
+         Assert.Equal(RemoveType.Balanced, result);
          Assert.Same(node4, root);
          Assert.Same(node2, root.Left);
          Assert.Same(node5, root.Right);
          Assert.Same(node3, root.Left.Right);
          Assert.Equal(new[] { Black, Red, Black, Black }, root.Select(n => n.Color));
+      }
+
+      [Fact]
+      public void BlackTreeWithRedInnerLeaf_RemoveLeft_BalanceTree() {
+         //   2
+         // 1   4
+         //   (3)
+         TestTreeNode node1 = BlackNode(1), node2 = BlackNode(2), node4 = BlackNode(4),
+            node3 = Node(3);
+         node4.Left = node3;
+         (node2.Left, node2.Right) = (node1, node4);
+         var root = node2;
+
+         var result = TestTreeNode.Remove(ref root, 1);
+
+         //   3
+         // 2   4
+         Assert.Equal(RemoveType.Balanced, result);
+         Assert.Same(root.Left, node2);
+         Assert.Same(root, node3);
+         Assert.Same(root.Right, node4);
+         Assert.All(root, node => node.IsBlack());
+      }
+
+      [Fact]
+      public void BlackTreeWithTwoRedLeafs_RemoveLeft_BalanceTree() {
+         //    2
+         // 1     4
+         //    (3) (5)
+         TestTreeNode node1 = BlackNode(1), node2 = BlackNode(2), node4 = BlackNode(4),
+            node3 = Node(3), node5 = Node(5);
+         (node4.Left, node4.Right) = (node3, node5);
+         (node2.Left, node2.Right) = (node1, node4);
+         var root = node2;
+
+         var result = TestTreeNode.Remove(ref root, 1);
+
+         //   4
+         // 2   5
+         // (3)
+         Assert.Equal(RemoveType.Balanced, result);
+         Assert.Same(root.Left.Right, node3);
+         Assert.Same(root.Left, node2);
+         Assert.Same(root, node4);
+         Assert.Same(root.Right, node5);
+         Assert.Equal(new[] { Black, Red, Black, Black }, root.Select(node => node.Color));
       }
 
       // TODO more delete cases (such as deleting a non-leaf)

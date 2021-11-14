@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface ISearchTreePayload {
@@ -66,6 +67,23 @@ namespace HavenSoft.HexManiac.Core.Models {
          var result = Payload.ToString();
          if (Color == TreeColor.Red) return $"({result})";
          return result;
+      }
+
+      /// <summary>
+      /// Checks to make sure that this red-black subtree obeys the no-double-red rule and the black-height-match rule.
+      /// </summary>
+      [Conditional("DEBUG")]
+      public void Verify() => VerifyHelper();
+
+      private int VerifyHelper() {
+         // verify that from this node, the black length is the same in both directions
+         // verify that if this node is red, it has no red children.
+         var leftCount = children[LEFT] == null ? 0 : Left.VerifyHelper();
+         var rightCount = Right == null ? 0 : Right.VerifyHelper();
+         Debug.Assert(leftCount == rightCount, $"RedBlack Node must have matching black count on left and right branches: {leftCount} and {rightCount}");
+         if (Color == TreeColor.Black) return leftCount + 1;
+         Debug.Assert(Left.IsBlack() && Right.IsBlack(), "Red nodes must not have red children!");
+         return leftCount;
       }
 
       public bool BlackWithRedChild(int direction) => this.IsBlack() && !children[direction].IsBlack();
@@ -143,13 +161,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (node.Color == TreeColor.Red && result == RemoveType.DecreaseBlackCount && node.children[other].IsBlack() && node.children[direction].IsBlack()) {
             IncreaseBlackCount(ref node, direction);
             return RemoveType.Balanced;
-         } else if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithRedChild(other)) {
+         }
+
+         if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithRedChild(other)) {
             TreeNode.Rotate(ref node, direction);
-            node.Right.Recolor();
-            return RemoveType.Balanced;
-         } else {
+            node.children[other].Recolor();
             return RemoveType.Balanced;
          }
+         if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithRedChild(direction)) {
+            // this case just rotates to become the previous case
+            TreeNode.Rotate(ref node.children[other], other);
+            node.children[other].children[other].Recolor();
+            node.children[other].Recolor();
+
+            TreeNode.Rotate(ref node, direction);
+            node.children[other].Recolor();
+            return RemoveType.Balanced;
+         }
+
+         return RemoveType.Balanced;
       }
 
       private static void IncreaseBlackCount(ref TreeNode<T> node, int direction) {
