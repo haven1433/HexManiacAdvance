@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          newRoot.Left = node;
          node = newRoot;
       }
-      public static void Rotate<T>(ref TreeNode<T> node, int direction)where T : ISearchTreePayload {
+      public static void Rotate<T>(ref TreeNode<T> node, int direction) where T : ISearchTreePayload {
          if (direction == TreeNode<T>.LEFT) RotateLeft(ref node);
          else RotateRight(ref node);
       }
@@ -67,6 +67,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (Color == TreeColor.Red) return $"({result})";
          return result;
       }
+
+      public bool BlackWithRedChild(int direction) => this.IsBlack() && !children[direction].IsBlack();
 
       /// <summary>
       /// Only do tree-balancing if the current node is red.
@@ -141,6 +143,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (node.Color == TreeColor.Red && result == RemoveType.DecreaseBlackCount && node.children[other].IsBlack() && node.children[direction].IsBlack()) {
             IncreaseBlackCount(ref node, direction);
             return RemoveType.Balanced;
+         } else if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithRedChild(other)) {
+            TreeNode.Rotate(ref node, direction);
+            node.Right.Recolor();
+            return RemoveType.Balanced;
          } else {
             return RemoveType.Balanced;
          }
@@ -175,7 +181,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!this.IsBlack() && !sibling.IsBlack()) {
             // parent is guaranteed to be black by rule (2)
             parent.Recolor();
-            this.Recolor();
+            Recolor();
             sibling.Recolor();
             return true;
          }
