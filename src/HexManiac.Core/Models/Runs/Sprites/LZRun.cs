@@ -187,7 +187,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return builder.ToString();
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
          var uncompressed = new List<byte>();
          foreach (var textByte in content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)) {
             if (byte.TryParse(textByte, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte value)) uncompressed.Add(value);
@@ -199,6 +199,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
          for (int i = 0; i < compressed.Count; i++) token.ChangeData(Model, run.Start + i, compressed[i]);
          for (int i = compressed.Count; i < Length; i++) token.ChangeData(Model, run.Start + i, 0xFF);
+         changedOffsets = new List<int>(); // don't track changes for compression streams
          return (LZRun)Duplicate(run.Start, PointerSources);
       }
 

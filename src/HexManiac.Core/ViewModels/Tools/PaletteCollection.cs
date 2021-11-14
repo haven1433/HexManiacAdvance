@@ -306,6 +306,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var newPalette = palette;
             var colors = newPalette.GetPalette(model, page);
             var newColors = Elements.Count.Range().Select(i => colors[Elements[i].Index]).ToList();
+            if (newPalette.PointerSources != null && newPalette.PointerSources.Count > 0) {
+               // handle possible bad format repoints
+               newPalette = RepointIfBadData(newPalette, newPalette.PointerSources[0]);
+            }
             newPalette = newPalette.SetPalette(model, history.CurrentChange, page, newColors);
             if (palette.Start != newPalette.Start) tab.RaiseMessage($"Palette was moved to {newPalette.Start:X6}. Pointers were updated.");
          }
@@ -351,7 +355,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          model.ClearPointer(token, pointerSource, lz.Start);
          model.WritePointer(token, pointerSource, newDestination); // point to the new destination
          model.ObserveRunWritten(token, newRun);
-         PaletteRepointed?.Invoke(this, newDestination);
          return (T)newRun;
       }
 

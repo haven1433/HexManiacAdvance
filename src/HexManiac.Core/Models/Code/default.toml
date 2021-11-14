@@ -35,6 +35,17 @@ Name = '''egggroups'''
 ]
 
 [[List]]
+Name = '''growthrates'''
+0 = [
+   '''Medium Fast''',
+   '''Erratic''',
+   '''Fluctuating''',
+   '''Medium Slow''',
+   '''Fast''',
+   '''Slow''',
+]
+
+[[List]]
 Name = '''bodycolors'''
 0 = [
    '''Red''',

@@ -413,6 +413,27 @@ namespace HavenSoft.HexManiac.Tests {
       //   Assert.Equal(14, test.ViewPort.SelectionEnd.X);
       //}
 
+      [Fact]
+      public void SelectDataInBottomRow_MoveSelectionEndDown_DataScrolls() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.SelectionStart = new Point(0, 15);
+         test.ViewPort.SelectionEnd = new Point(0, 16);
+
+         Assert.Equal(0x10, test.ViewPort.DataOffset);
+      }
+
+      [Fact]
+      public void SelectDataInTopRow_MoveSelectionEndUp_DataScrolls() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Goto.Execute(0x10);
+
+         test.ViewPort.SelectionStart = new Point(0, 0);
+         test.ViewPort.SelectionEnd = new Point(0, -1);
+
+         Assert.Equal(0, test.ViewPort.DataOffset);
+      }
+
       private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {
          data = new byte[0x200];
          model = new PokemonModel(data);

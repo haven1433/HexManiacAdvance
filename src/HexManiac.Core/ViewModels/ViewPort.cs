@@ -877,25 +877,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          copy.CanExecute = CanAlwaysExecute;
          copy.Execute = arg => {
-            var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
-            var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
-            var left = Math.Min(selectionStart, selectionEnd);
-            var length = Math.Abs(selectionEnd - selectionStart) + 1;
-            if (length > Singletons.CopyLimit) {
-               OnError?.Invoke(this, $"Cannot copy more than {Singletons.CopyLimit} bytes at once!");
-            } else {
-               bool usedHistory = false;
-               if (left + length > Model.Count) {
-                  OnError?.Invoke(this, $"Cannot copy beyond the end of the data.");
-               } else if (left < 0) {
-                  OnError?.Invoke(this, $"Cannot copy before the start of the data.");
-               } else {
-                  ((IFileSystem)arg).CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
-                  RefreshBackingData();
-                  if (usedHistory) UpdateToolsFromSelection(left);
-               }
-            }
-            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+            var filesystem = (IFileSystem)arg;
+            CopyExecute(filesystem, allowModelChanges: false);
          };
 
          copyAddress.CanExecute = CanAlwaysExecute;
@@ -990,6 +973,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          OnMessage?.Invoke(this, $"'{copyText}' copied to clipboard.");
       }
 
+      private void CopyExecute(IFileSystem filesystem, bool allowModelChanges) {
+         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+         var left = Math.Min(selectionStart, selectionEnd);
+         var length = Math.Abs(selectionEnd - selectionStart) + 1;
+         if (length > Singletons.CopyLimit) {
+            OnError?.Invoke(this, $"Cannot copy more than {Singletons.CopyLimit} bytes at once!");
+         } else {
+            bool usedHistory = false;
+            if (left + length > Model.Count) {
+               OnError?.Invoke(this, $"Cannot copy beyond the end of the data.");
+            } else if (left < 0) {
+               OnError?.Invoke(this, $"Cannot copy before the start of the data.");
+            } else {
+               if (allowModelChanges) {
+                  filesystem.CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
+               } else {
+                  filesystem.CopyText = Model.Copy(() => null, left, length);
+               }
+               RefreshBackingData();
+               if (usedHistory) UpdateToolsFromSelection(left);
+            }
+         }
+         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+      }
+
       private void DeepCopyExecute(IFileSystem fileSystem) {
          var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
          var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
@@ -1038,7 +1047,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int ConvertViewPointToAddress(Point p) => scroll.ViewPointToDataIndex(p);
 
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
-         Debug.Assert(IsSelected(selectionPoint));
+         // don't show the context menu if the clicked box isn't actually selected.
+         // Example: selection is outside the range of selectable data (maybe past the end of the data).
+         if (!IsSelected(selectionPoint)) return new IContextItem[0];
          var factory = new ContextItemFactory(this);
          var cell = this[SelectionStart.X, SelectionStart.Y];
          (cell?.Format ?? None.Instance).Visit(factory, cell.Value);
@@ -1068,10 +1079,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
       }
 
+      public void Cut(IFileSystem filesystem) {
+         CopyExecute(filesystem, allowModelChanges: true);
+         Clear.Execute();
+      }
+
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
          if (file.Name.ToLower().EndsWith(".hma")) {
             var edit = Encoding.Default.GetString(file.Contents);
             Edit(edit);
+            return true;
+         } else if (file.Name.ToLower().EndsWith(".ips")) {
+            history.ChangeCompleted();
+            var destination = DiffViewPort.ApplyIPSPatch(Model, file.Contents, CurrentChange);
+            Goto.Execute(destination);
             return true;
          }
 
@@ -1299,7 +1320,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var offset = tableRun.ConvertByteOffsetToArrayOffset(pointer);
             if (tableRun.ElementContent[offset.SegmentIndex] is ArrayRunPointerSegment pSegment) {
                var run = destination;
-               var error = FormatRunFactory.GetStrategy(pSegment.InnerFormat, allowStreamCompressionErrors: true).TryParseData(Model, string.Empty, destinationAddress, ref run);
+               var error = Model.FormatRunFactory.GetStrategy(pSegment.InnerFormat, allowStreamCompressionErrors: true).TryParseData(Model, string.Empty, destinationAddress, ref run);
                if (error.HasError) {
                   CreateNewData(pointer);
                   return;
@@ -1370,7 +1391,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return false;
          }
 
-         var length = FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
+         var length = Model.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(Model, pointer);
 
          var insert = Model.FindFreeSpace(0, length);
          if (insert < 0) {
@@ -1401,7 +1422,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RaiseError("Could not parse a data format for that pointer.");
             return;
          }
-         var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
+         var strategy = Model.FormatRunFactory.GetStrategy(segment.InnerFormat);
          if (strategy == null) {
             RaiseError("Could not parse a data format for that pointer.");
             return;

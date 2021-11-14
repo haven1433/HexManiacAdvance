@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (a.Width != b.Width) return false;
          if (b.DataOffset < a.DataOffset) return false;
          if ((b.DataOffset - a.DataOffset) % b.Width != 0) return false;
-         var bSelectionLine = (GetLastVisibleSelectedAddress(b) - a.DataOffset) / b.Width;
+         var bSelectionLine = (GetFirstVisibleSelectedAddress(b) - a.DataOffset) / b.Width;
          var aSelectionLine = (GetLastVisibleSelectedAddress(a) - a.DataOffset) / b.Width;
          var lineDif = bSelectionLine - aSelectionLine;
          if (lineDif > 3) return false;
@@ -44,6 +44,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          result.Add(b);
          return true;
       }
+
+      public static int GetFirstVisibleSelectedAddress(IViewPort viewPort) {
+         for (int y = 0; y < viewPort.Height; y++) {
+            for (int x = 0; x < viewPort.Width; x++) {
+               if (!viewPort.IsSelected(new Point(x, y))) continue;
+               return viewPort.DataOffset + y * viewPort.Width + x;
+            }
+         }
+
+         return -1;
+      }
+
       public static int GetLastVisibleSelectedAddress(IViewPort viewPort) {
          for (int y = viewPort.Height - 1; y >= 0; y--) {
             for (int x = viewPort.Width - 1; x >= 0; x--) {

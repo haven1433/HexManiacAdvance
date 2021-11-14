@@ -57,8 +57,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return newContent;
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
          var bytes = PCSString.Convert(content);
+         var changedAddresses = new List<int>();
          var newRun = model.RelocateForExpansion(token, this, bytes.Count);
 
          // clear out excess bytes that are no longer in use
@@ -66,7 +67,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int i = bytes.Count; i < Length; i++) token.ChangeData(model, Start + i, 0xFF);
          }
 
-         for (int i = 0; i < bytes.Count; i++) token.ChangeData(model, newRun.Start + i, bytes[i]);
+         if (token.ChangeData(model, newRun.Start, bytes)) changedAddresses.Add(newRun.Start);
+         changedOffsets = changedAddresses;
          return new PCSRun(model, newRun.Start, bytes.Count, newRun.PointerSources);
       }
 

@@ -215,6 +215,47 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      /// <returns>The first offset that was edited</returns>
+      public static int ApplyIPSPatch(IDataModel model, byte[] patch, ModelDelta token) {
+         // 5 byte header (PATCH) and 3 byte footer (EOF)
+         // hunk type 1: offset (3 bytes), length (2 bytes), payload (length bytes). Write the payload at offset.
+         // RLE hunk:    offset (3 bytes), 00 00, length (2 bytes), target (1 byte). Write the target, length times, at offset
+
+         var start = 5;
+         var firstOffset = -1;
+
+         while (patch.Length - start >= 6) {
+            var offset = (patch[start] << 16) + (patch[start + 1] << 8) + patch[start + 2];
+            if (firstOffset < 0) firstOffset = offset;
+            start += 3;
+            var length = (patch[start] << 8) + patch[start + 1];
+            start += 2;
+            if (length > 0) {
+               // normal
+               model.ExpandData(token, offset + length - 1);
+               while (length > 0) {
+                  token.ChangeData(model, offset, patch[start]);
+                  offset += 1;
+                  start += 1;
+                  length -= 1;
+               }
+            } else {
+               length = (patch[start] << 8) + patch[start + 1];
+               start += 2;
+               model.ExpandData(token, offset + length - 1);
+               // rle
+               while (length > 0) {
+                  token.ChangeData(model, offset, patch[start]);
+                  offset += 1;
+                  length -= 1;
+               }
+               start += 1;
+            }
+         }
+
+         return firstOffset;
+      }
+
       private (int childIndex, int childLine) ConvertLine(int parentLine) {
          var scrollLine = parentLine + scrollValue;
          if (scrollLine < 0) return (0, scrollLine);

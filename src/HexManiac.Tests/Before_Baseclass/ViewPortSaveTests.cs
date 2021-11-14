@@ -617,5 +617,41 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(ViewPort.IsMetadataOnlyChange);
          Assert.Contains(nameof(ViewPort.IsMetadataOnlyChange), view.PropertyNotifications);
       }
+
+      [Fact]
+      public void GotoShortcut_WriteSameShortcutTwice_MetadataContainsOneCopy() {
+         var shortcuts = new[] { new StoredGotoShortcut("name", "image", "destination") };
+         var metadata = new StoredMetadata(default, default, default, default, default, default, shortcuts, Singletons.MetadataInfo, default);
+
+         Model.LoadMetadata(metadata);
+         Model.LoadMetadata(metadata);
+
+         Assert.Single(Model.ExportMetadata(Singletons.MetadataInfo).GotoShortcuts);
+      }
+
+      [Fact]
+      public void MetadataWithShowRawIVByteForTrainer_CreateTrainerRun_ShowRawIVByteForTrainer() {
+         var metadata = new StoredMetadata(default, default, default, default, default, default, default, Singletons.MetadataInfo, new StoredMetadataFields {
+            ShowRawIVByteForTrainer = true
+         });
+         var model = new PokemonModel(new byte[0x200], metadata);
+
+         var newRun = (IStreamRun)model.FormatRunFactory.GetStrategy("`tpt`").WriteNewRun(model, Token, Pointer.NULL, 0, "test", null);
+         model[0] = 100;
+
+         Assert.Contains("IVs=100", newRun.SerializeRun());
+      }
+
+      [Fact]
+      public void DefaultMetadata_DoNotShowIVByteForTrainer() {
+         var metadata = new StoredMetadata(new string[0]);
+         Assert.False(metadata.ShowRawIVByteForTrainer);
+      }
+
+      [Fact]
+      public void DoNotShowIVByteForTrainerContentInText_Parse_MetadataContainsFlag() {
+         var metadata = new StoredMetadata(new[] { "ShowRawIVByteForTrainer = True" });
+         Assert.True(metadata.ShowRawIVByteForTrainer);
+      }
    }
 }

@@ -322,6 +322,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool focusOnGotoShortcuts = true;
+      public bool FocusOnGotoShortcuts {
+         get => focusOnGotoShortcuts;
+         set => Set(ref focusOnGotoShortcuts, value);
+      }
+
       public bool IsNewVersionAvailable { get; set; }
       public DateTime LastUpdateCheck { get; set; }
 
@@ -398,6 +404,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
+                  NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
                   if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
                }
             }
@@ -488,6 +495,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
          AllowSingleTableMode = !metadata.Contains("AllowSingleTableMode = False");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
+         FocusOnGotoShortcuts = !metadata.Contains("FocusOnGotoShortcuts = False");
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
          StretchData = !metadata.Contains("StretchData = False");
@@ -522,6 +530,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"UseTableEntryHeaders = {UseTableEntryHeaders}",
             $"AllowSingleTableMode = {AllowSingleTableMode}",
             $"ShowMatrixGrid = {ShowMatrix}",
+            $"FocusOnGotoShortcuts = {FocusOnGotoShortcuts}",
             $"ZoomLevel = {ZoomLevel}",
             $"MaximumDiffSegments = {MaximumDiffSegments}",
             $"CopyLimit = {Singletons.CopyLimit}",
@@ -620,8 +629,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          cut.CanExecute = arg => SelectedTab?.Copy?.CanExecute(arg) ?? false;
          cut.Execute = arg => {
             if (SelectedTab != null && SelectedTab.Copy != null && SelectedTab.Clear != null) {
-               SelectedTab.Copy.Execute(fileSystem);
-               SelectedTab.Clear.Execute();
+               if (SelectedTab is ViewPort viewPort) {
+                  viewPort.Cut(fileSystem);
+               } else {
+                  SelectedTab.Copy.Execute(fileSystem);
+                  SelectedTab.Clear.Execute();
+               }
             }
          };
 
@@ -694,7 +707,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   gotoViewModel.RefreshOptions();
                   var collection = CreateGotoShortcuts(gotoViewModel);
                   if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
-                  if (collection == null || collection.Count == 0) gotoViewModel.ShowAll = true;
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
@@ -974,9 +986,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher);
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher) { ShowAll = !FocusOnGotoShortcuts };
          var collection = CreateGotoShortcuts(GotoViewModel);
-         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>();
+         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
          NotifyPropertyChanged(nameof(Tools));
       }
@@ -984,6 +996,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private IReadOnlyList<GotoShortcutViewModel> CreateGotoShortcuts(GotoControlViewModel gotoViewModel) {
          if (!(SelectedTab is IEditableViewPort viewPort)) return null;
          var model = viewPort.Model;
+         if (model == null) return null;
+         model.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false));
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
@@ -1054,6 +1068,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             FindControlVisible = false;
             HexConverterVisible = false;
          }
+         if (e.PropertyName == nameof(gotoViewModel.ShowAll)) FocusOnGotoShortcuts = !gotoViewModel.ShowAll;
       }
 
       private void AcceptError(object sender, string message) => ErrorMessage = message;

@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          // don't bother checking the TryParse result: we very much expect that the data originally in the run won't fit the parse.
          TableStreamRun.TryParseTableStream(owner, destination, new SortedSpan<int>(source), name, Format, sourceSegments, out var tableStream);
          if (TableStreamRun.TryWriteNewEndToken(token, ref tableStream)) return tableStream;
-         return tableStream.DeserializeRun("", token);
+         return tableStream.DeserializeRun("", token, out var _);
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          if (!TableStreamRun.TryParseTableStream(model, run.Start, run.PointerSources, name, Format, sourceSegments, out var runAttempt)) return;

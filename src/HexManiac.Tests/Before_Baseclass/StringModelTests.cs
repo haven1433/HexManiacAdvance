@@ -520,6 +520,44 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PCSRun>(Model.GetNextRun(0x21));
       }
 
+      [Fact]
+      public void NamelessAnchor_Copy_StillHasNoName() {
+         var fs = new StubFileSystem();
+         ViewPort.Edit("<100> @100 @!put(FF) ^\"\" text");
+
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fs);
+
+         Assert.Contains("misc", fs.CopyText.value);
+         Assert.Equal("^\"\"", ViewPort.AnchorText);
+      }
+
+      [Fact]
+      public void NamelessAnchor_Cut_PointerGetsName() {
+         var fs = new StubFileSystem();
+         ViewPort.Edit("<100> @100 @!put(FF) ^\"\" text");
+
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Cut(fs);
+
+         var pointer = Model.ExportMetadata(Singletons.MetadataInfo).UnmappedPointers.Single();
+         Assert.Equal(0, pointer.Address);
+         Assert.Contains("misc", pointer.Name);
+      }
+
+      [Fact]
+      public void RedoAvailable_Copy_CanRedo() {
+         var fs = new StubFileSystem();
+         ViewPort.Edit("<020> @20 @!put(FF) ^\"\" text @180 DEADBEEF");
+         ViewPort.Undo.Execute();
+
+         ViewPort.Goto.Execute(0x20);
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(fs);
+
+         Assert.True(ViewPort.Redo.CanExecute(default));
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

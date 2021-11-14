@@ -20,5 +20,9 @@ namespace HavenSoft.HexManiac.Tests {
          var sprite = (ISpriteRun)model.GetNextRun(address);
          return sprite.GetPixels(model, 0);
       }
+
+      public static IStreamRun DeserializeRun(this IStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
+      public static TrainerPokemonTeamRun DeserializeRun(this TrainerPokemonTeamRun streamRun, string content, ModelDelta token, bool setDefaultMoves, bool setDefaultItems) => streamRun.DeserializeRun(content, token, setDefaultMoves, setDefaultItems, out var _);
+      public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
    }
 }

@@ -74,7 +74,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// If data gets parsed and submitted fully,
       ///   data is returned as an empty string.
       /// </summary>
-      public virtual void Write(IDataModel model, ModelDelta token, int start, ref string data) {
+      /// <returns>
+      /// true if the data was changed.
+      /// </returns>
+      public virtual bool Write(IDataModel model, ModelDelta token, int start, ref string data) {
          if (data.StartsWith("(") && data.EndsWith(")")) data = data.Substring(1, data.Length - 2);
          var remainder = string.Empty;
          if (Type != ElementContentType.PCS) {
@@ -89,8 +92,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                while (bytes.Count > Length) bytes.RemoveAt(bytes.Count - 1);
                if (!bytes.Contains(0xFF)) bytes[bytes.Count - 1] = 0xFF;
                while (bytes.Count < Length) bytes.Add(0);
-               for (int i = 0; i < Length; i++) token.ChangeData(model, start + i, bytes[i]);
-               break;
+               data = remainder;
+               return token.ChangeData(model, start, bytes);
             case ElementContentType.Integer:
                int intValue;
                if (data.StartsWith("0x")) {
@@ -98,10 +101,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                } else {
                   if (!int.TryParse(data, out intValue)) intValue = 0;
                }
-               if (model.ReadMultiByteValue(start, Length) != intValue) {
-                  model.WriteMultiByteValue(start, Length, token, intValue);
-               }
-               break;
+               data = remainder;
+               return model.WriteMultiByteValue(start, Length, token, intValue);
             case ElementContentType.Pointer:
                data = data.Trim();
                if (data.StartsWith("<")) data = data.Substring(1);
@@ -109,15 +110,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var address)) {
                   address = model.GetAddressFromAnchor(token, -1, data);
                }
-               if (model.ReadPointer(start) != address) {
-                  model.WritePointer(token, start, address);
-               }
-               break;
+               data = remainder;
+               return model.WritePointer(token, start, address);
             default:
                throw new NotImplementedException();
          }
-
-         data = remainder;
       }
 
       public static int ToInteger(IReadOnlyList<byte> data, int offset, int length) {
@@ -217,20 +214,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return imageOptions;
       }
 
-      public override void Write(IDataModel model, ModelDelta token, int start, ref string data) {
+      public override bool Write(IDataModel model, ModelDelta token, int start, ref string data) {
          if (data.StartsWith("(") && data.EndsWith(")")) data = data.Substring(1, data.Length - 2);
          var tokens = TableStreamRun.Tokenize(data);
          var remainder = ", ".Join(tokens.Skip(1));
          data = tokens[0];
+         bool result;
 
          if (!TryParse(model, data, out int value)) {
-            base.Write(model, token, start, ref data);
+            result = base.Write(model, token, start, ref data);
          } else {
             data = value.ToString();
-            base.Write(model, token, start, ref data);
+            result = base.Write(model, token, start, ref data);
          }
 
          data = remainder;
+         return result;
       }
 
       public bool TryParse(IDataModel model, string text, out int value) {
@@ -356,7 +355,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return hex;
       }
 
-      public override void Write(IDataModel model, ModelDelta token, int start, ref string data) {
+      public override bool Write(IDataModel model, ModelDelta token, int start, ref string data) {
          if (data.StartsWith("(") && data.EndsWith(")")) data = data.Substring(1, data.Length - 2);
          var remainder = string.Empty;
          if (Type != ElementContentType.PCS) {
@@ -368,9 +367,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          data = data.Trim();
          if (data.StartsWith("0x")) data = data.Substring(2);
          if (!int.TryParse(data, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var intValue)) intValue = 0;
-         model.WriteMultiByteValue(start, Length, token, intValue);
-
          data = remainder;
+         return model.WriteMultiByteValue(start, Length, token, intValue);
       }
    }
 
@@ -412,27 +410,28 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result.Trim() + ")";
       }
 
-      public override void Write(IDataModel model, ModelDelta token, int start, ref string data) {
+      public override bool Write(IDataModel model, ModelDelta token, int start, ref string data) {
          var parts = data.Split(new[] { "(", ")", " " }, StringSplitOptions.RemoveEmptyEntries).ToList();
          TableStreamRun.Recombine(parts, "\"", "\"");
          data = string.Empty;
-         if (parts.Count != VisibleElementCount) return;
+         if (parts.Count != VisibleElementCount) return false;
          int bitOffset = 0;
          int partIndex = 0;
+         bool anyChanges = false;
          for (int i = 0; i < Elements.Count; i++) {
             if (string.IsNullOrEmpty(Elements[i].Name)) {
                // Unnamed segments. I should increment, and  bitOffset should increase, but the value should change to zero.
-               Elements[i].Write(model, token, start, bitOffset, 0);
+               anyChanges |= Elements[i].Write(model, token, start, bitOffset, 0);
                partIndex -= 1;
             } else if (!string.IsNullOrEmpty(Elements[i].SourceName)) {
                if (ArrayRunEnumSegment.TryParse(Elements[i].SourceName, model, parts[partIndex], out int value))
-                  Elements[i].Write(model, token, start, bitOffset, value);
+                  anyChanges |= Elements[i].Write(model, token, start, bitOffset, value);
             } else if (Elements[i].BitWidth == 1) {
                if (bool.TryParse(parts[partIndex], out bool value))
-                  Elements[i].Write(model, token, start, bitOffset, value ? 1 : 0);
+                  anyChanges |= Elements[i].Write(model, token, start, bitOffset, value ? 1 : 0);
             } else {
                if (int.TryParse(parts[partIndex], out int value))
-                  Elements[i].Write(model, token, start, bitOffset, value);
+                  anyChanges |= Elements[i].Write(model, token, start, bitOffset, value);
             }
 
             partIndex += 1;
@@ -441,8 +440,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var remainingBits = Length * 8 - bitOffset;
          if (remainingBits > 0) {
-            new TupleSegment(string.Empty, remainingBits).Write(model, token, start, bitOffset, 0);
+            anyChanges |= new TupleSegment(string.Empty, remainingBits).Write(model, token, start, bitOffset, 0);
          }
+
+         return anyChanges;
       }
 
       public IReadOnlyList<AutocompleteItem> GetAutocomplete(IDataModel model, string text) {
@@ -505,15 +506,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          bitArray &= (1 << BitWidth) - 1;
          return bitArray;
       }
-      public void Write(IDataModel model, ModelDelta token, int start, int bitOffset, int value) {
+      public bool Write(IDataModel model, ModelDelta token, int start, int bitOffset, int value) {
          var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
-         if (requiredByteLength > 4) return;
+         if (requiredByteLength > 4) return false;
          var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
          var mask = (1 << BitWidth) - 1;
          value &= mask;
          bitArray &= ~(mask << bitOffset);
          bitArray |= value << bitOffset;
-         model.WriteMultiByteValue(start, requiredByteLength, token, bitArray);
+         return model.WriteMultiByteValue(start, requiredByteLength, token, bitArray);
       }
    }
 
@@ -569,13 +570,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result.ToString();
       }
 
-      public override void Write(IDataModel model, ModelDelta token, int start, ref string data) {
+      public override bool Write(IDataModel model, ModelDelta token, int start, ref string data) {
+         var anyChanges = false;
          for (int i = 0; i < Length && i * 2 + 1 < data.Length; i++) {
             if (!byte.TryParse(data.Substring(i * 2, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var value)) value = 0;
-            token.ChangeData(model, start + i, value);
+            anyChanges |= token.ChangeData(model, start + i, value);
          }
 
          data = string.Empty;
+         return anyChanges;
       }
 
       public IEnumerable<string> GetOptions(IDataModel model) {
@@ -589,13 +592,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    /// For example, pointing to a text stream or a plm (pokemon learnable moves) stream
    /// </summary>
    public class ArrayRunPointerSegment : ArrayRunElementSegment {
+      public IFormatRunFactory Factory { get; }
       public string InnerFormat { get; }
 
-      public bool IsInnerFormatValid => FormatRunFactory.GetStrategy(InnerFormat) != null;
+      public bool IsInnerFormatValid => Factory.GetStrategy(InnerFormat) != null;
 
       public override string SerializeFormat => $"{Name}<{InnerFormat}>";
 
-      public ArrayRunPointerSegment(string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
+      public ArrayRunPointerSegment(IFormatRunFactory factory, string name, string innerFormat) : base(name, ElementContentType.Pointer, 4) {
+         Factory = factory;
          InnerFormat = innerFormat;
       }
 
@@ -606,10 +611,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
             if (destination < 0 || destination >= owner.Count) return false;
-            return FormatRunFactory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex) ?? false;
+            return Factory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex) ?? false;
          } else {
             // easy case: already have a format, just see if it matches
-            var strategy = FormatRunFactory.GetStrategy(InnerFormat);
+            var strategy = Factory.GetStrategy(InnerFormat);
             if (strategy == null) return false;
             if (strategy.Matches(run)) return true;
 
@@ -620,7 +625,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public void WriteNewFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          owner.WritePointer(token, source, destination);
-         var newRun = FormatRunFactory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
+         var newRun = Factory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
          owner.ObserveRunWritten(token, newRun.MergeAnchor(new SortedSpan<int>(source)));
       }
    }

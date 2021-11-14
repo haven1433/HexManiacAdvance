@@ -41,12 +41,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public T CurrentChange {
          get {
             VerifyRevertNotInProgress();
-
-            if (redoStack.Count > 0) {
-               redoStack.Clear();
-               if (undoStack.Count < undoStackSizeAtSaveTag) undoStackSizeAtSaveTag = -1;
-               redo.RaiseCanExecuteChanged();
-            }
+            ClearRedoStack();
 
             if (customChangeInProgress) ChangeCompleted();
 
@@ -58,10 +53,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private void ClearRedoStack() {
+         if (redoStack.Count > 0) {
+            redoStack.Clear();
+            if (undoStack.Count < undoStackSizeAtSaveTag) undoStackSizeAtSaveTag = -1;
+            redo.RaiseCanExecuteChanged();
+         }
+      }
+
       private void PrepareNewToken(T token) {
          bool notifyIsSavedChanged = IsSaved;
          currentChange = token;
          currentChange.OnNewChange += OnCurrentTokenDataChanged;
+         ClearRedoStack();
          if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
 

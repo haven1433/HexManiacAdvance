@@ -12,23 +12,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                using (ModelCacheScope.CreateScope(Model)) {
                   var destination = Model.ReadPointer(Start);
                   var run = (IStreamRun)Model.GetNextRun(destination);
-                  var newRun = run.DeserializeRun(content, ViewPort.CurrentChange);
-                  HandleNewDataStream(run, newRun);
+                  var newRun = run.DeserializeRun(content, ViewPort.CurrentChange, out var changedOffsets);
+                  HandleNewDataStream(run, newRun, changedOffsets);
                }
             }
          }
       }
 
-      protected void HandleNewDataStream(IStreamRun oldRun, IStreamRun newRun) {
+      protected void HandleNewDataStream(IStreamRun oldRun, IStreamRun newRun, IReadOnlyList<int> changedOffsets) {
          Model.ObserveRunWritten(ViewPort.CurrentChange, newRun);
          if (oldRun.Start != newRun.Start) {
             RaiseDataMoved(oldRun.Start, newRun.Start);
          }
 
          if (Model.GetNextRun(newRun.Start) is ITableRun table) {
-            var offsets = table.ConvertByteOffsetToArrayOffset(newRun.Start);
-            var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
-            ViewPort.HandleErrorInfo(info);
+            foreach(var change in changedOffsets) {
+               var offsets = table.ConvertByteOffsetToArrayOffset(change);
+               var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+               ViewPort.HandleErrorInfo(info);
+            }
          }
 
          using (PreventSelfCopy()) {
