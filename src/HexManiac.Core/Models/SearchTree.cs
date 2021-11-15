@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface ISearchTreePayload {
@@ -97,24 +98,24 @@ namespace HavenSoft.HexManiac.Core.Models {
          return Add(ref node, insert);
       }
 
-      public static AddType Add(ref TreeNode<T> node, TreeNode<T> insert) {
+      public static AddType Add(ref TreeNode<T> node, TreeNode<T> insert, bool balance = true) {
          var start = insert.Payload.Start;
          if (node == null || node.Payload.Start == start) {
-            insert.Color = node?.Color ?? TreeColor.Red;
+            if (balance) insert.Color = node?.Color ?? TreeColor.Red;
             node = insert;
-            return AddType.Insert;
+            return balance ? AddType.Insert : AddType.Balanced;
          } else if (start < node.Payload.Start) {
-            return AddChild(ref node, insert, LEFT);
+            return AddChild(ref node, insert, LEFT, balance);
          } else if (node.Payload.Start < start) {
-            return AddChild(ref node, insert, RIGHT);
+            return AddChild(ref node, insert, RIGHT, balance);
          } else {
             throw new NotImplementedException();
          }
       }
 
-      private static AddType AddChild(ref TreeNode<T> parent, TreeNode<T> insert, int direction) {
+      private static AddType AddChild(ref TreeNode<T> parent, TreeNode<T> insert, int direction, bool balance) {
          var other = 1 - direction;
-         var addMethod = Add(ref parent.children[direction], insert);
+         var addMethod = Add(ref parent.children[direction], insert, balance);
          if (addMethod == AddType.Insert) return (AddType)direction;
          var (node, sibling) = (parent.children[direction], parent.children[other]);
          if (addMethod != AddType.Balanced) {
@@ -183,9 +184,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static void IncreaseBlackCount(ref TreeNode<T> node, int direction) {
+         if (node.Color == TreeColor.Red && node.children[1 - direction].BlackWithRedChild(direction)) {
+            TreeNode.Rotate(ref node.children[1 - direction], 1 - direction);
+            node.children[1 - direction].Recolor();
+            node.children[1 - direction].children[1 - direction].Recolor();
+         }
          if (node.Color == TreeColor.Red && node.Left.IsBlack() && node.Right.IsBlack()) {
             node.Recolor();
             node.children[1 - direction].Recolor();
+         }
+         if (node.children[1 - direction].children.Any(child => !child.IsBlack())) {
+            TreeNode.Rotate(ref node, direction);
+            node.children[direction].Recolor();
+            node.Recolor();
          }
       }
 
