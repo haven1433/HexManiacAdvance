@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class TreeNode<T> : IEnumerable<TreeNode<T>> where T : ISearchTreePayload {
       public const int LEFT = 0, RIGHT = 1;
 
-      public T Payload { get; }
+      public T Payload { get; private set; }
       public TreeColor Color { get; private set; }
       public int BlackCount => ((Left == null) ? 0 : Left.BlackCount) + (Color == TreeColor.Black ? 1 : 0);
       private TreeNode<T>[] children = new TreeNode<T>[2];
@@ -133,9 +133,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (node == null) return RemoveType.NoRemoval;
 
          if (key == node.Payload.Start) {
-            var color = node.Color;
-            node = null;
-            return color == TreeColor.Red ? RemoveType.Balanced : RemoveType.DecreaseBlackCount; ;
+            if (node.Right != null) {
+               var nextNode = node.Right.First();
+               (node.Payload, nextNode.Payload) = (nextNode.Payload, node.Payload);
+               return RemoveChild(ref node, key, RIGHT);
+            } else if (node.Left != null) {
+               var prevNode = node.Left; // if I have only one child, by the red-black rules it must be a Red leaf
+               (node.Payload, prevNode.Payload) = (prevNode.Payload, node.Payload);
+               return RemoveChild(ref node, key, LEFT);
+            } else {
+               var color = node.Color;
+               node = null;
+               return color == TreeColor.Red ? RemoveType.Balanced : RemoveType.DecreaseBlackCount; ;
+            }
          }
 
          if (node.Payload.Start < key) {

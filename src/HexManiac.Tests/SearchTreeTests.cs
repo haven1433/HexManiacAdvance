@@ -536,7 +536,31 @@ namespace HavenSoft.HexManiac.Tests {
          AssertNodeEquals(tree, root);
       }
 
-      // TODO more delete cases (such as deleting a non-leaf)
+      [Fact]
+      public void NodeWithChildren_RemoveRoot_ReplaceRootPayloadWithNextInOrderPosition() {
+         var root = Build(@"  3
+                            2   5
+                              (4)  ");
+
+         var result = TestTreeNode.Remove(ref root, 3);
+
+         var expected = Build(@"  4
+                                2   5  ");
+         Assert.Equal(RemoveType.Balanced, result);
+         AssertNodeEquals(expected, root);
+      }
+
+      [Fact]
+      public void NodeWithOnlyLeftChildren_RemoveRoot_ReplaceRootPayloadWithPreviousInOrderPosition() {
+         var root = Build(@"  3
+                            (2)  ");
+
+         var result = TestTreeNode.Remove(ref root, 3);
+
+         var expected = BlackNode(2);
+         Assert.Equal(RemoveType.Balanced, result);
+         AssertNodeEquals(expected, root);
+      }
 
       // TODO tests on the SearchTree itself, not just nodes
    }
