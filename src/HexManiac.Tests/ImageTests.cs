@@ -846,7 +846,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void TwoImages_Copy_Works() {
+      public void TwoImages_Copy_ClipBoardContainsCorrectData() {
          var filesystem = new StubFileSystem(); 
          ViewPort.Edit("@00 ^sprite1`ucs4x1x1` @20 ^sprite2`ucs4x1x1`");
          var emptyBlock = " ".Join(32.Range().Select(i => "00")); 

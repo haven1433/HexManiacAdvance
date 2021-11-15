@@ -202,11 +202,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
          while (length > 0) {
-            if (this.Start <= start && start < this.Start + this.Length) {
+            if (start == this.Start + this.Length - 1) {
+               builder.Append(model[start].ToHexString());
+            } else if (this.Start <= start && start < this.Start + this.Length) {
                builder.Append(model[start].ToHexString() + " ");
-            }
-            else {
-               // dont know what to add here.
+            } else {
+               break;
             }
             // Moving to the next byte
             start += 1;
