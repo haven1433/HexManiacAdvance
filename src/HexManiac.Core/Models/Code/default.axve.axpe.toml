@@ -36,6 +36,6 @@ Destination = '''data.pokemon.moves.stats.battle'''
 
 [[GotoShortcut]]
 Name = '''Items'''
-Image = '''graphics.overworld.sprites/83/data/0/sprites/0/sprite/'''
+Image = '''graphics.overworld.sprites/59/data/0/sprites/0/sprite/'''
 Destination = '''data.items.stats'''
 
