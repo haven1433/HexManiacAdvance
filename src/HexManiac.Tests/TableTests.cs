@@ -776,6 +776,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, count);
       }
 
+      [Fact]
+      public void TableWithLengthOffset_FindElementReferences_NewTabNameCorrect() {
+         IViewPort newTab = null;
+         ViewPort.RequestTabChange += (sender, tab) => newTab = (IViewPort)tab;
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave", "erik", "fred", "greg", "hal");
+         ViewPort.Edit("@00 ^table1[data:]names-1 @20 ^table2[value:names]4 dave carl erik dave ");
+
+         ViewPort.Goto.Execute("table1/dave"); // goto 'dave' in table1
+         var buttons = ViewPort.Tools.TableTool.Children.Where(child => child is ButtonArrayElementViewModel).Cast<ButtonArrayElementViewModel>().ToList();
+         buttons.Single(button => button.Text.Contains("table2")).Command.Execute();
+
+         Assert.Contains("dave", newTab.Name);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

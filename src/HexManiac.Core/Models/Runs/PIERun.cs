@@ -326,7 +326,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+      private HashSet<int> changedAddresses;
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+         changedAddresses = new HashSet<int>();
          var pairs = content.Split(Environment.NewLine).Where(line => line.Count('=') == 1).Select(line => line.Split('=')).Select(pair => new KeyValuePair<string, string>(pair[0].Trim().ToLower(), pair[1].Trim().ToLower()));
          bool parseBool; sbyte parseInt;
          using (CreateEditScope(token)) {
@@ -395,6 +397,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (pair.Key == "highhappinesschange" && editScope.Result.HasHighHappinessByte && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.HighHappinessChange = parseInt;
             }
 
+            changedOffsets = new List<int>(changedAddresses);
+            changedAddresses = null;
             return editScope.Result;
          }
       }
@@ -475,18 +479,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return editScope = new EditScope(token, this);
       }
 
-      public PIERun Edit(ModelDelta token, Action editAction) {
-         using (CreateEditScope(token)) {
-            editAction();
-            return editScope.Result;
-         }
-      }
+      //public PIERun Edit(ModelDelta token, Action editAction) {
+      //   using (CreateEditScope(token)) {
+      //      editAction();
+      //      return editScope.Result;
+      //   }
+      //}
 
       private bool GetBit(int address, int bit) => (model[address] & (1 << bit)) != 0;
       private void SetBit(int address, int bit, bool value) {
          var otherBits = model[address] & ~(1 << bit);
          var thisBit = value ? (1 << bit) : 0;
-         editScope.ChangeToken.ChangeData(model, address, (byte)(otherBits | thisBit));
+         if (editScope.ChangeToken.ChangeData(model, address, (byte)(otherBits | thisBit))) changedAddresses.Add(address);
          var newRun = new PIERun(model, Start, PointerSources);
          if (
             newRun.hasLowHappinessByte != hasLowHappinessByte ||

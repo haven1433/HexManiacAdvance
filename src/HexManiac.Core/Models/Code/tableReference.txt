@@ -77,6 +77,14 @@ graphics.trainers.coordinates.back,               ,       ,       ,       , 0324
 graphics.trainers.palettes.back,            030E14, 030E14, 030E14, 030E14, 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter
 graphics.trainers.emotes.sprites,                 ,       ,       ,       , 3C7394, 3C71D0, 3C7404, 3C7240,       , [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> lengeth::]15
 
+graphics.trainers.elite4.mugshots.sidney.palette,  , , , , , , , , 5C8EFC, `ucp4`
+graphics.trainers.elite4.mugshots.phoebe.palette,  , , , , , , , , 5C8F1C, `ucp4`
+graphics.trainers.elite4.mugshots.glacia.palette,  , , , , , , , , 5C8F3C, `ucp4`
+graphics.trainers.elite4.mugshots.drake.palette,   , , , , , , , , 5C8F5C, `ucp4`
+graphics.trainers.elite4.mugshots.wallace.palette, , , , , , , , , 5C8F7C, `ucp4`
+graphics.trainers.elite4.mugshots.boy.palette,     , , , , , , , , 5C8F9C, `ucp4`
+graphics.trainers.elite4.mugshots.girl.palette,    , , , , , , , , 5C8FBC, `ucp4`
+
 graphics.pokemon.animations.options,              ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]
 graphics.pokemon.animations.front,                ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options]data.pokemon.names-1
 graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.]data.pokemon.names
@@ -111,7 +119,7 @@ graphics.items.fossils.sprite1,           ,       ,       ,       , 3E17D0, 3E16
 graphics.items.fossils.sprite2,           ,       ,       ,       , 3E17C0, 3E15FC, 3E1830, 3E166C,       , `ucs4x8x8|graphics.items.fossils.palette2`
 
 
-data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs:|t|hp:|atk:|def:|spd:|spatk:|spdef: item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate. egg1.egggroups egg2.egggroups ability1.data.abilities.names ability2.data.abilities.names runrate. dex.|t|color:::.bodycolors|noFlip. padding:]data.pokemon.names
+data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs:|t|hp:|atk:|def:|spd:|spatk:|spdef: item1:data.items.stats item2:data.items.stats genderratio. steps2hatch. basehappiness. growthrate.growthrates egg1.egggroups egg2.egggroups ability1.data.abilities.names ability2.data.abilities.names runrate. dex.|t|color:::.bodycolors|noFlip. padding:]data.pokemon.names
 data.pokemon.deoxys.stats,                   ,       ,       ,       , 044704, 044704, 044718, 044718, 068AA0, [hp: atk: def: spd: spatk: spdef:]1
 data.pokemon.evolutions,               03F534, 03F534, 03F534, 03F534, 042F6C, 042F6C, 042F80, 042F80, 06D140, [method1:evolutionmethods arg1:|s=method1(6=data.items.stats|7=data.items.stats) species1:data.pokemon.names unused1: method2:evolutionmethods arg2:|s=method2(6=data.items.stats|7=data.items.stats) species2:data.pokemon.names unused2: method3:evolutionmethods arg3:|s=method3(6=data.items.stats|7=data.items.stats) species3:data.pokemon.names unused3: method4:evolutionmethods arg4:|s=method4(6=data.items.stats|7=data.items.stats) species4:data.pokemon.names unused4: method5:evolutionmethods arg5:|s=method5(6=data.items.stats|7=data.items.stats) species5:data.pokemon.names unused5:]data.pokemon.names
 data.items.effects,                    037178, 037178, 037178, 037178,       ,       ,       ,       ,       , [data<`pie`>]data.items.stats-13-173
@@ -541,8 +549,8 @@ graphics.credits.pokemon.Mascot.idle,      , , , , 0F42E8, 0F42C0, 0F4360, 0F433
 graphics.credits.pokemon.Mascot.animate,   , , , , 0F42EC, 0F42C4, 0F4364, 0F433C, , `lzs4x12x12|graphics.pokemon.palettes.normal:index=25`
 
 graphics.trainercard.badges.palette,                 ,,,,               08ADB4, 08AD88, 08ADC8, 08AD9C, , `ucp4`
-graphics.trainercard.stickers.palette,               ,,,,               08ADC0, 08AD94, 08ADD4, 08ADA8, , `ucp4`
-graphics.trainercard.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, , `lzs4x16x2|graphics.trainercard.stickers.palette`
+graphics.trainercard.stickers.palette,               ,,,,               08ADC0, 08AD94, 08ADD4, 08ADA8, 0C44C8, `ucp4`
+graphics.trainercard.badges.sprite,                  ,,,,               089530, 089504, 089544, 089518, 0C2BEC, `lzs4x16x2|graphics.trainercard.stickers.palette`
 graphics.trainercard.stickers.sprite,                ,,,,               089594, 089568, 0895A8, 08957C, , `lzs4x2x8|graphics.trainercard.stickers.palette`
 graphics.trainercard.palette1,                       ,,,,               3CD8CC, 3CD708, 3CD93C, 3CD778, , `ucp4:012`
 graphics.trainercard.palette2,                       ,,,,               3CD8D0, 3CD70C, 3CD940, 3CD77C, , `ucp4:012`

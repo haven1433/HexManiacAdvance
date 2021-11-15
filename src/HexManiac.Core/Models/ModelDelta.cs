@@ -75,8 +75,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public virtual void ChangeData(IDataModel model, int index, byte data) {
-         if (model.Count > index && model[index] == data) return;
+      public virtual bool ChangeData(IDataModel model, int index, byte data) {
+         if (model.Count > index && model[index] == data) return false;
          if (!oldData.ContainsKey(index)) {
             if (model.Count <= index) {
                model.ExpandData(this, index);
@@ -84,15 +84,20 @@ namespace HavenSoft.HexManiac.Core.Models {
             oldData[index] = model[index];
          }
 
+         var valueChanged = model[index] != data;
          model[index] = data;
          if (!HasDataChange) {
             HasDataChange = true;
             OnNewChange?.Invoke(this, EventArgs.Empty);
          }
+
+         return valueChanged;
       }
 
-      public void ChangeData(IDataModel model, int index, IReadOnlyList<byte> array) {
-         for (int i = 0; i < array.Count; i++) ChangeData(model, index + i, array[i]);
+      public bool ChangeData(IDataModel model, int index, IReadOnlyList<byte> array) {
+         bool anyChanges = false;
+         for (int i = 0; i < array.Count; i++) anyChanges |= ChangeData(model, index + i, array[i]);
+         return anyChanges;
       }
 
       public void ChangeList(string name, IReadOnlyList<string> oldValues, IReadOnlyList<string> newValues) {
@@ -226,7 +231,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
 
    public class NoDataChangeDeltaModel : ModelDelta {
-      public override void ChangeData(IDataModel model, int index, byte data) {
+      public override bool ChangeData(IDataModel model, int index, byte data) {
          throw new InvalidOperationException("This operation is not allowed to change model data!");
       }
    }

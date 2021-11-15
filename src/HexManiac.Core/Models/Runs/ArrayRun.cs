@@ -81,7 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   // if the run isn't a ITableRun, parse the data to see if it's valid
                   // if it _is_ an ITableRun, skip this step
                   if (currentSegment is ArrayRunPointerSegment pointerSegment && !(run is ITableRun)) {
-                     hasError |= FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
+                     hasError |= data.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
                   }
                }
             } else {
@@ -155,7 +155,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var destination = model.ReadPointer(pointerSource);
                var run = model.GetNextRun(destination);
                if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
-                  var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource);
+                  var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource, new HashSet<int>()); // we don't care about the changes that come back from here
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                } else if (run.Start == destination && run is OverworldSpriteListRun oslRun) {
@@ -1005,7 +1005,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                      results.Add(ldrb.address);
                   }
                   // mov rA, #offset
-                  foreach (var mov in FindAllCommands(owner, parser, add.address + 2, null, (line, reg) => line.StartsWith("mov ") && line.Contains($", #{offset}"), recurse: false)) {
+                  foreach (var mov in FindAllCommands(owner, parser, add.address + 2, $"!{add.register}", (line, reg) => line.StartsWith("mov ") && line.EndsWith($", #{offset}"), recurse: false)) {
                      // ldrsb rZ, [rY, rA]
                      if (FindAllCommands(owner, parser, mov.address + 2, add.register, (line, reg) => line.StartsWith("ldrsb ") && line.Contains($"[{reg}, ") && line.Contains($", {mov.register}]")).Any()) {
                         results.Add(mov.address);
@@ -1045,12 +1045,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// The second argument to the predicate is the register that we're currently watching.
       /// This is usually registerSource, but may've changed because of mov operations.
       /// We're guaranteed that the line in question contains the source register that we're watching.
+      /// If registerSource starts with !, we can be given a line that does _not_ contain that register, but we'll still stop searching when the value of the register gets changed.
       /// The predicate allows the line to be checked for other conditions, such as making sure that it's an 'add' instruction.
       /// </param>
       /// <returns>
       /// Returns the address of the command that used the source and the register of the result.
       /// </returns>
       public static IEnumerable<(int address, string register)> FindAllCommands(IDataModel owner, ThumbParser parser, int startAddress, string registerSource, Func<string, string, bool> predicate, IReadOnlyList<int> callTrail = null, bool recurse = true) {
+         string watchRegister = registerSource;
+         if (watchRegister != null && watchRegister.StartsWith("!")) watchRegister = watchRegister.Substring(1);
+         if (registerSource != null && registerSource.StartsWith("!")) registerSource = null;
          callTrail = callTrail ?? new List<int>();
          if (callTrail.Contains(startAddress)) yield break;
          if (callTrail.Count > 4) yield break; // only allow so many mov / branch operations before we lose interest. This keeps the routine fast.
@@ -1088,7 +1092,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             // look for the actual instruction we care about
             if ((registerSource == null || commandLine.Contains(registerSource)) && predicate(commandLine, registerSource)) yield return (i, register);
-            if (register == registerSource) break;
+            if (register == registerSource || register == watchRegister) break;
             prevCommandIsCmp = commandLine.StartsWith("cmp ");
             prevCommandIsBl = commandLine.StartsWith("bl ");
          }
@@ -1186,7 +1190,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
                }
             } else if (format == ElementContentType.Pointer && formatLength > 2) {
-               var pointerSegment = new ArrayRunPointerSegment(name, segments.Substring(1, formatLength - 2));
+               var pointerSegment = new ArrayRunPointerSegment(model.FormatRunFactory, name, segments.Substring(1, formatLength - 2));
                if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
                list.Add(pointerSegment);
                segments = segments.Substring(formatLength).Trim();

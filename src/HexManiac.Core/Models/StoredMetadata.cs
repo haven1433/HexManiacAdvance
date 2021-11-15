@@ -6,6 +6,13 @@ using System.Globalization;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
+   public class StoredMetadataFields {
+      public int FreeSpaceSearch { get; set; } = -1;
+      public int FreeSpaceBuffer { get; set; } = -1;
+      public int NextExportID { get; set; } = 0;
+      public bool ShowRawIVByteForTrainer { get; set; } = false;
+   }
+
    public class StoredMetadata {
       public IReadOnlyList<StoredAnchor> NamedAnchors { get; }
       public IReadOnlyList<StoredUnmappedPointer> UnmappedPointers { get; }
@@ -18,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int NextExportID { get; }
       public int FreeSpaceSearch { get; } = -1;
       public int FreeSpaceBuffer { get; } = -1;
+      public bool ShowRawIVByteForTrainer { get; } = false;
 
       public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
 
@@ -33,7 +41,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          int freeSpaceSearch,
          int freeSpaceBuffer,
          int nextExportID
-      ) : this(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, null, generalInfo, freeSpaceSearch, freeSpaceBuffer, nextExportID) { }
+      ) : this(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, null, generalInfo, new StoredMetadataFields {
+         FreeSpaceSearch = freeSpaceSearch,
+         FreeSpaceBuffer = freeSpaceBuffer,
+         NextExportID = nextExportID
+      }) { }
 
       public StoredMetadata(
          IReadOnlyList<StoredAnchor> anchors,
@@ -44,9 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyList<StoredUnmappedConstant> unmappedConstants,
          IReadOnlyList<StoredGotoShortcut> gotoShortcuts,
          IMetadataInfo generalInfo,
-         int freeSpaceSearch,
-         int freeSpaceBuffer,
-         int nextExportID
+         StoredMetadataFields fields
       ) {
          NamedAnchors = anchors ?? new List<StoredAnchor>();
          UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();
@@ -56,9 +66,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          UnmappedConstants = unmappedConstants ?? new List<StoredUnmappedConstant>();
          GotoShortcuts = gotoShortcuts ?? new List<StoredGotoShortcut>();
          Version = generalInfo?.VersionNumber;
-         FreeSpaceSearch = freeSpaceSearch;
-         FreeSpaceBuffer = freeSpaceBuffer;
-         NextExportID = nextExportID;
+         if (fields == null) fields = new StoredMetadataFields();
+         FreeSpaceSearch = fields.FreeSpaceSearch;
+         FreeSpaceBuffer = fields.FreeSpaceBuffer;
+         NextExportID = fields.NextExportID;
+         ShowRawIVByteForTrainer = fields.ShowRawIVByteForTrainer;
       }
 
       public StoredMetadata(string[] lines) {
@@ -151,6 +163,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (int.TryParse(cleanLine.Split("'''")[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var fsb)) FreeSpaceBuffer = fsb;
             }
 
+            if (cleanLine.StartsWith("ShowRawIVByteForTrainer =")) {
+               if (bool.TryParse(cleanLine.Split("=")[1].Trim(), out var showRawIV)) ShowRawIVByteForTrainer = showRawIV;
+            }
+
             if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out int currentItemIndex)) {
                if (currentItemChildren == null) currentItemChildren = new List<string>();
                while (currentItemChildren.Count < currentItemIndex) currentItemChildren.Add(null);
@@ -216,6 +232,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          lines.Add($"FreeSpaceSearch = '''{FreeSpaceSearch:X6}'''");
          lines.Add($"FreeSpaceBuffer = '''{FreeSpaceBuffer:X3}'''");
          lines.Add($"NextExportID = '''{NextExportID}'''");
+         lines.Add($"ShowRawIVByteForTrainer = {ShowRawIVByteForTrainer}");
          lines.Add(string.Empty);
          lines.Add("#################################");
 

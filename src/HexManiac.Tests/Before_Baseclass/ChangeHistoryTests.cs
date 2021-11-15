@@ -380,5 +380,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("Test", ViewPort.Tools.StringTool.Content);
       }
+
+      [Fact]
+      public void Undo_CustomChange_CannotRedo() {
+         history.CurrentChange.Add(1);
+         history.Undo.Execute();
+
+         history.InsertCustomChange(new FakeChangeToken());
+
+         Assert.False(history.Redo.CanExecute(default));
+      }
    }
 }

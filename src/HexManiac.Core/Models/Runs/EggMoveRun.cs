@@ -148,7 +148,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return builder.ToString();
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+         var changedAddresses = new List<int>();
          var cache = ModelCacheScope.GetCache(model);
          var cachedPokenames = cache.GetOptions(PokemonNameTable);
          var cachedMovenames = cache.GetOptions(MoveNamesTable);
@@ -178,11 +179,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var run = model.RelocateForExpansion(token, this, data.Count * 2 + 2);
          for (int i = 0; i < data.Count; i++) {
             var p = run.Start + i * 2;
-            if (model.ReadMultiByteValue(p, 2) != data[i]) model.WriteMultiByteValue(p, 2, token, data[i]);
+            if (model.WriteMultiByteValue(p, 2, token, data[i])) changedAddresses.Add(p);
          }
          var end = run.Start + data.Count * 2;
-         if (model.ReadMultiByteValue(end, 2) != EndStream) model.WriteMultiByteValue(end, 2, token, EndStream); // write the new end token
-         for (int i = data.Count + 1; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF
+         if (model.ReadMultiByteValue(end, 2) != EndStream) model.WriteMultiByteValue(end, 2, token, EndStream); // write the new end token (untracked)
+         for (int i = data.Count + 1; i < Length / 2; i++) model.WriteMultiByteValue(run.Start + i * 2, 2, token, EndStream); // fill any remaining old space with FF (untracked)
+         changedOffsets = changedAddresses;
          return new EggMoveRun(model, run.Start);
       }
 

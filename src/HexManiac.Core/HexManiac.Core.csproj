@@ -85,6 +85,7 @@
     <Compile Include="Models\Runs\TrainerPokemonTeamRun.cs" />
     <Compile Include="Models\Runs\WordRun.cs" />
     <Compile Include="Models\Runs\XSERun.cs" />
+    <Compile Include="Models\SearchTree.cs" />
     <Compile Include="Models\Singletons.cs" />
     <Compile Include="Models\Runs\Factory\AsciiRunContentStrategy.cs" />
     <Compile Include="Models\Runs\Factory\EggRunContentStrategy.cs" />

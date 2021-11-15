@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Tests {
          CreateTextTable(HardcodeTablesModel.ItemsTableName, 0x100, "potion", "hyper potion", "rare candy", "masterball", "go-goggles", "king's rock");
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x150, "bulbasaur", "farfetch'd", "nidoran \\sm", "mr. mime", "ho-oh");
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1A0, "tackle", "scratch", "hyper beam", "rest", "name-with-dash");
-         run = new TrainerPokemonTeamRun(Model, 0, SortedSpan<int>.None);
+         run = new TrainerPokemonTeamRun(Model, 0, false, SortedSpan<int>.None);
       }
 
       [Fact]
@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.Tests {
          var parent = SetupTrainerTable(0x100, 1);
          parent.WriteValue(4, Model, ViewPort.CurrentChange, 0, "pokemonCount");
          parent.WritePointer(0x80, Model, ViewPort.CurrentChange, 0, "pokemon");
-         var teamRun = new TrainerPokemonTeamRun(Model, 0x80, new SortedSpan<int>(0x100 + 36));
+         var teamRun = new TrainerPokemonTeamRun(Model, 0x80, false, new SortedSpan<int>(0x100 + 36));
          Model.ObserveRunWritten(ViewPort.CurrentChange, teamRun);
 
          var text = teamRun.SerializeRun();
@@ -77,7 +77,7 @@ namespace HavenSoft.HexManiac.Tests {
          var parent = SetupTrainerTable(0x100, 1);
          parent.WriteValue(4, Model, ViewPort.CurrentChange, 0, "pokemonCount");
          parent.WritePointer(0x80, Model, ViewPort.CurrentChange, 0, "pokemon");
-         var teamRun = new TrainerPokemonTeamRun(Model, 0x80, new SortedSpan<int>(0x100 + 36));
+         var teamRun = new TrainerPokemonTeamRun(Model, 0x80, false, new SortedSpan<int>(0x100 + 36));
          Model.ObserveRunWritten(ViewPort.CurrentChange, teamRun);
 
          var newRun = teamRun.DeserializeRun("1 bulbasaur (IVs=12) ", ViewPort.CurrentChange, false, false);
@@ -144,6 +144,15 @@ namespace HavenSoft.HexManiac.Tests {
          var options = run.GetAutoCompleteOptions("12 bulbsaur @" + specialCharacter, 14, 14).ToList();
          Assert.NotEmpty(options);
          Assert.All(options, option => Assert.Contains(specialCharacter, option.Text));
+      }
+
+      [Fact]
+      public void TeamWithIVScalingOff_255IVs_Show255() {
+         var run = new TrainerPokemonTeamRun(Model, 0, true, SortedSpan<int>.None);
+         Model.WriteMultiByteValue(0, 2, Token, 255);
+
+         Assert.IsNotType<ArrayRunTupleSegment>(run.ElementContent[0]);
+         Assert.Contains("IVs=255", run.SerializeRun());
       }
 
       /// <summary>

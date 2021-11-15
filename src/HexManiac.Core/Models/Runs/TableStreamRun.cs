@@ -169,10 +169,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }).ToArray());
       }
 
-      IStreamRun IStreamRun.DeserializeRun(string content, ModelDelta token) => DeserializeRun(content, token);
+      IStreamRun IStreamRun.DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) => DeserializeRun(content, token, out changedOffsets);
 
-      public TableStreamRun DeserializeRun(string content, ModelDelta token) {
-         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token);
+      public TableStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token, out changedOffsets);
+         var changedAddresses = new List<int>();
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          if (lines.Length == 0) lines = content.Split(Environment.NewLine);
          var newRun = this;
@@ -185,12 +186,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int segmentOffset = 0;
             for (int j = 0; j < ElementContent.Count; j++) {
                var data = j < tokens.Count ? tokens[j] : string.Empty;
-               ElementContent[j].Write(model, token, start + segmentOffset, ref data);
+               if (ElementContent[j].Write(model, token, start + segmentOffset, ref data)) changedAddresses.Add(start + segmentOffset);
                if (data.Length > 0) tokens.Insert(j + 1, data);
                segmentOffset += ElementContent[j].Length;
             }
             start += ElementLength;
          }
+         changedOffsets = changedAddresses;
          return newRun;
       }
 
@@ -230,19 +232,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result.ToString();
       }
 
-      private TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token) {
+      private TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
          Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
          var fields = content.SplitLines();
          int segmentOffset = 0;
          int fieldIndex = 0;
+         var changeAddresses = new List<int>();
          for (int j = 0; j < ElementContent.Count; j++) {
             while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
             if (fieldIndex >= fields.Length) break;
             var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last() : string.Empty;
-            ElementContent[j].Write(model, token, Start + segmentOffset, ref data);
+            if (ElementContent[j].Write(model, token, Start + segmentOffset, ref data)) {
+               changeAddresses.Add(Start + segmentOffset);
+            }
             segmentOffset += ElementContent[j].Length;
             fieldIndex += 1;
          }
+         changedOffsets = changeAddresses;
          return this;
       }
 

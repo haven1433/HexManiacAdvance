@@ -45,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Returns the run where the data was placed.
       /// The run usually starts at the same spot as before, but in the case of repointing it can be different.
       /// </summary>
-      IStreamRun DeserializeRun(string content, ModelDelta token);
+      IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets);
 
       bool DependsOn(string anchorName);
 

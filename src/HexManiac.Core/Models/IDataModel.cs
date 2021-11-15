@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -26,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Used when exporting to the backup folder
       /// </summary>
       int NextExportID { get; set; }
+
+      IFormatRunFactory FormatRunFactory { get; }
 
       new byte this[int index] { get; set; }
       IReadOnlyList<string> ListNames { get; }
@@ -80,8 +83,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ExpandData(ModelDelta changeToken, int minimumLength);
 
       SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
-      void WritePointer(ModelDelta changeToken, int address, int pointerDestination);
-      void WriteValue(ModelDelta changeToken, int address, int value);
+      bool WritePointer(ModelDelta changeToken, int address, int pointerDestination);
+      bool WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
       int ReadValue(int address);
 
@@ -162,6 +165,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int FreeSpaceBuffer { get; set; } = 0x100;
 
       public int NextExportID { get; set; }
+
+      public IFormatRunFactory FormatRunFactory { get; protected set; } = new FormatRunFactory(false);
 
       public virtual IReadOnlyList<string> ListNames { get; } = new List<string>();
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();
@@ -287,16 +292,18 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public int ReadValue(int index) => BitConverter.ToInt32(RawData, index);
 
-      public void WriteValue(ModelDelta changeToken, int index, int word) {
-         changeToken.ChangeData(this, index + 0, (byte)(word >> 0));
-         changeToken.ChangeData(this, index + 1, (byte)(word >> 8));
-         changeToken.ChangeData(this, index + 2, (byte)(word >> 16));
-         changeToken.ChangeData(this, index + 3, (byte)(word >> 24));
+      public bool WriteValue(ModelDelta changeToken, int index, int word) {
+         var anyChange = false;
+         anyChange |= changeToken.ChangeData(this, index + 0, (byte)(word >> 0));
+         anyChange |= changeToken.ChangeData(this, index + 1, (byte)(word >> 8));
+         anyChange |= changeToken.ChangeData(this, index + 2, (byte)(word >> 16));
+         anyChange |= changeToken.ChangeData(this, index + 3, (byte)(word >> 24));
+         return anyChange;
       }
 
       public virtual int ReadPointer(int index) => ReadValue(index) - PointerOffset;
 
-      public virtual void WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + PointerOffset);
+      public virtual bool WritePointer(ModelDelta changeToken, int address, int pointerDestination) => WriteValue(changeToken, address, pointerDestination + PointerOffset);
 
       /// <summary>
       /// Returns the number of new runs found.
@@ -334,12 +341,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          return word;
       }
 
-      public static void WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
+      public static bool WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
          Debug.Assert(length > 0, "Trying to write a value with no length!");
+         var anyChange = false;
          for (int i = 0; i < length; i++) {
-            changeToken.ChangeData(model, index + i, (byte)value);
+            anyChange |= changeToken.ChangeData(model, index + i, (byte)value);
             value >>= 8;
          }
+         return anyChange;
       }
 
       /// <summary>
@@ -530,6 +539,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          var shortcuts = (IList<GotoShortcutModel>)model.GotoShortcuts;
          foreach (var gotoShortcut in metadata.GotoShortcuts) {
+            if (shortcuts.Any(shortcut => shortcut.DisplayText == gotoShortcut.Display)) continue;
             shortcuts.Add(new GotoShortcutModel(gotoShortcut.Image, gotoShortcut.Anchor, gotoShortcut.Display));
          }
 

@@ -23,14 +23,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExecuteSetDefaultMoves() {
-         var result = Run.DeserializeRun(Content, ViewPort.CurrentChange, true, false);
-         HandleNewDataStream(Run, result);
+         var result = Run.DeserializeRun(Content, ViewPort.CurrentChange, true, false, out var changedOffsets);
+         HandleNewDataStream(Run, result, changedOffsets);
          ViewPort.Tools.TableTool.DataForCurrentRunChanged();
       }
 
       private void ExecuteSetDefaultItems() {
-         var result = Run.DeserializeRun(Content, ViewPort.CurrentChange, false, true);
-         HandleNewDataStream(Run, result);
+         var result = Run.DeserializeRun(Content, ViewPort.CurrentChange, false, true, out var changedOffsets);
+         HandleNewDataStream(Run, result, changedOffsets);
          ViewPort.Tools.TableTool.DataForCurrentRunChanged();
       }
    }
