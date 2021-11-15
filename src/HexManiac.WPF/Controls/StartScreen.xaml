@@ -39,7 +39,7 @@
 
          <StackPanel Margin="40,0,0,0">
             <TextBlock Foreground="{DynamicResource Primary}" HorizontalAlignment="Center">
-               Open Recent
+                  Open Recent
             </TextBlock>
             <ItemsControl ItemsSource="{Binding RecentFileViewModels}">
                <ItemsControl.ItemTemplate>
@@ -53,6 +53,7 @@
                   </DataTemplate>
                </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <Button Content="Open File..." Command="{Binding Open}" Margin="0,10,0,0" Width="100" HorizontalAlignment="Left" />
          </StackPanel>
 
          <Border Grid.Row="2" BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource Secondary}" Padding="5" Margin="40,0,0,0">
