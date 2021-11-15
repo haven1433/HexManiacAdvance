@@ -278,12 +278,11 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanCopyCompressedSprite() {
-         ViewPort.Edit("^run`ucs4x1x1`");
+         ViewPort.Edit("10 20 @00 ^run`lzs4x1x1`");
          var fileSystem = new StubFileSystem();
          ViewPort.ExpandSelection(0, 0);
          ViewPort.Copy.Execute(fileSystem);
-         var emptyBlock = " ".Join(32.Range().Select(i => "00"));
-         Assert.StartsWith($"^run`ucs4x1x1` {emptyBlock}", fileSystem.CopyText);
+         Assert.Contains("^run`lzs4x1x1` lz 32 00 ", fileSystem.CopyText);
       }
 
       [Fact]
@@ -301,7 +300,8 @@ namespace HavenSoft.HexManiac.Tests {
          var fileSystem = new StubFileSystem();
          ViewPort.ExpandSelection(0, 0);
          ViewPort.Copy.Execute(fileSystem);
-         Assert.StartsWith("^run`ucs4x1x1` 00 ", fileSystem.CopyText);
+         var emptyBlock = " ".Join(32.Range().Select(i => "00"));
+         Assert.StartsWith($"^run`ucs4x1x1` {emptyBlock}", fileSystem.CopyText);
       }
 
       [Fact]
@@ -590,7 +590,7 @@ namespace HavenSoft.HexManiac.Tests {
          sevm.AddPage.Execute();
 
          // Assert: each has 2 pages now
-         foreach(var child in ViewPort.Tools.TableTool.Children) {
+         foreach (var child in ViewPort.Tools.TableTool.Children) {
             if (child is IPagedViewModel pvm) {
                Assert.Equal(2, pvm.Pages);
                Assert.Equal(1, pvm.CurrentPage);
@@ -847,17 +847,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TwoImages_Copy_ClipBoardContainsCorrectData() {
-         var filesystem = new StubFileSystem(); 
+         var filesystem = new StubFileSystem();
          ViewPort.Edit("@00 ^sprite1`ucs4x1x1` @20 ^sprite2`ucs4x1x1`");
-         var emptyBlock = " ".Join(32.Range().Select(i => "00")); 
+         var emptyBlock = " ".Join(32.Range().Select(i => "00"));
 
          ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(0x00);
          ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(0x3F);
          ViewPort.Copy.Execute(filesystem);
-         
+
          var copiedData = filesystem.CopyText.value;
          var expectedData = $"^sprite1`ucs4x1x1` {emptyBlock} ^sprite2`ucs4x1x1` {emptyBlock}";
-         Assert.Equal(expectedData, copiedData); 
+         Assert.Equal(expectedData, copiedData);
       }
    }
 }
