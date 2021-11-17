@@ -45,7 +45,7 @@
                <ItemsControl.ItemTemplate>
                   <DataTemplate>
                      <TextBlock Margin="0,4" ToolTip="{Binding LongName}" FontSize="18">
-                        <Path Data="{hsv:Icon Open}" Stretch="Uniform" Width="20" Height="20" Fill="{DynamicResource Secondary}" Visibility="{Binding IncludeIcon, Converter={StaticResource BoolToVisibility}}"/>
+                        <Path Data="{hsv:Icon Open}" Stretch="Uniform" Width="20" Height="20" Fill="{DynamicResource Secondary}"/>
                         <Hyperlink Command="{Binding Open}" Foreground="{DynamicResource Accent}">
                            <Run Text="{Binding ShortName, Mode=OneWay}"/>
                         </Hyperlink>
@@ -53,6 +53,11 @@
                   </DataTemplate>
                </ItemsControl.ItemTemplate>
             </ItemsControl>
+            <TextBlock>
+               <Hyperlink Command="{Binding Open}" Foreground="{DynamicResource Accent}">
+                  <Run Text="Open File..." FontSize="19" />
+               </Hyperlink>
+            </TextBlock>
          </StackPanel>
 
          <Border Grid.Row="2" BorderThickness="1" CornerRadius="4" BorderBrush="{DynamicResource Secondary}" Padding="5" Margin="40,0,0,0">
