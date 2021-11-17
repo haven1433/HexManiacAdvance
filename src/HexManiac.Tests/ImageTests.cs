@@ -833,20 +833,8 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("^graphics.test`lzs4x2x2`", ViewPort.AnchorText);
          Assert.Empty(Errors);
       }
-
-      private void WriteCompressedData(int start, int length) {
-         var compressedData = LZRun.Compress(new byte[length], 0, length);
-         for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];
-      }
-
-      private void CreateLzRun(int start, params byte[] data) {
-         for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
-         var run = new LZRun(Model, start);
-         Model.ObserveRunWritten(ViewPort.CurrentChange, run);
-      }
-
       [Fact]
-      public void TwoImages_Copy_ClipBoardContainsCorrectData() {
+      public void TwoImages_Copy_ClipBoardContainsSpriteData() {
          var filesystem = new StubFileSystem();
          ViewPort.Edit("@00 ^sprite1`ucs4x1x1` @20 ^sprite2`ucs4x1x1`");
          var emptyBlock = " ".Join(32.Range().Select(i => "00"));
@@ -858,6 +846,17 @@ namespace HavenSoft.HexManiac.Tests {
          var copiedData = filesystem.CopyText.value;
          var expectedData = $"^sprite1`ucs4x1x1` {emptyBlock} ^sprite2`ucs4x1x1` {emptyBlock}";
          Assert.Equal(expectedData, copiedData);
+      }
+
+      private void WriteCompressedData(int start, int length) {
+         var compressedData = LZRun.Compress(new byte[length], 0, length);
+         for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];
+      }
+
+      private void CreateLzRun(int start, params byte[] data) {
+         for (int i = 0; i < data.Length; i++) Model[start + i] = data[i];
+         var run = new LZRun(Model, start);
+         Model.ObserveRunWritten(ViewPort.CurrentChange, run);
       }
    }
 }

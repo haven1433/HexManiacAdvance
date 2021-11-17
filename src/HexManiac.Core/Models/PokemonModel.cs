@@ -1717,7 +1717,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (run.Start > start) {
                   var len = Math.Min(length, run.Start - start);
                   var bytes = Enumerable.Range(start, len).Select(i => RawData[i].ToHexString());
-                  text.Append(string.Join(" ",bytes) + " ");
+                  text.Append(string.Join(" ", bytes) + " ");
                   length -= len;
                   start += len;
                   continue;
