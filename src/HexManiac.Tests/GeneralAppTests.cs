@@ -614,6 +614,17 @@ ApplicationVersion = '''0.1.0'''
          Assert.Contains(nameof(editor.IsMetadataOnlyChange), view.PropertyNotifications);
       }
 
+      [Fact]
+      public void namewillbegiven() {
+         var filesystem = new StubFileSystem();
+         var editor = new EditorViewModel(filesystem);
+         var view = new StubView(editor);
+
+         editor.Open.Execute(new LoadedFile("TestRom.gba", new byte[0x200]));
+
+         Assert.Contains(nameof(editor.RecentFileMenuEnabled), view.PropertyNotifications);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };

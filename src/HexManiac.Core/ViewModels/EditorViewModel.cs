@@ -1118,6 +1118,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   Open.Execute(loadedFile);
                }
             }));
+            NotifyPropertyChanged(nameof(RecentFileMenuEnabled));
          }
       }
 
@@ -1219,7 +1220,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string ShortName { get; }
       public string LongName { get; }
       public ICommand Open { get; }
-      public bool ShowIcon { get; }
 
       public RecentFileViewModel(string filename, ICommand open) {
          LongName = filename;
