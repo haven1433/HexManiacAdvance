@@ -92,11 +92,14 @@ namespace HavenSoft.HexManiac.Tests {
          var gameReferenceTables = new GameReferenceTables(new ReferenceTable[0]);
          var singletons = new Singletons(
             new StubMetadataInfo { VersionNumber = "0.4.0.0" },
-            new Dictionary<string, GameReferenceTables> { { "BPRE0", gameReferenceTables }
-         });
+            new Dictionary<string, GameReferenceTables> { { "BPRE0", gameReferenceTables } },
+            Singletons.GameReferenceConstants
+         );
 
          var data = new byte[0x1000000];
          for (int i = 0; i < 4; i++) data[0xAC + i] = (byte)"BPRE"[i];
+         // constant only gets added if all the values match... but for scripts.shiny.odds, all but one instance all have a -1 modifier.
+         data[0x104A24] = 1;
          var model = new PokemonModel(data, metadata, singletons);
 
          var matches = model.GetMatchedWords("scripts.shiny.odds");

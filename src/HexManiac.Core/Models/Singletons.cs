@@ -52,6 +52,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          CopyLimit = copyLimit;
       }
 
+      public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables, IReadOnlyDictionary<string, GameReferenceConstants> gameRefereneceConstants, int copyLimit = 40000) {
+         MetadataInfo = metadataInfo;
+         GameReferenceTables = gameReferenceTables;
+         GameReferenceConstants = gameRefereneceConstants;
+         WorkDispatcher = InstantDispatch.Instance;
+         CopyLimit = copyLimit;
+      }
+
       private IReadOnlyList<ScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {
          if (!File.Exists(file)) return new List<ScriptLine>();
          Func<string, ScriptLine> factory = line => new XSEScriptLine(line);
