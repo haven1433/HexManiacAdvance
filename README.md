@@ -14,13 +14,13 @@ Go visit the [releases](https://github.com/haven1433/HexManiacAdvance/releases) 
 
 Visit the [Wiki](https://github.com/haven1433/HexManiacAdvance/wiki) to see a user guide, tutorials, and other resources.
 
-Running HexManiacAdvance requires Windows and .Net 4.7.2.
+Running HexManiacAdvance requires Windows and .Net 6.0.
 
 ## As a Developer
 
-Clone or download the project, then open the solution with Visual Studio. The project has been tested 2017 and 2019, but may work with other versions.
+Clone or download the project, then open the solution with Visual Studio 2022.
 
-Once you have the solution open in Visual Studio, you can find the XUnit automated tests in the test explorer window. Note that some tests expect you to have roms in a folder called "sampleFiles" within `..\HexManiac\artifacts\HexManiac.Tests\bin\Debug`.
+Once you have the solution open in Visual Studio, you can find the XUnit automated tests in the test explorer window. Note that some tests expect you to have roms in a folder called "sampleFiles" within `..\HexManiac\artifacts\HexManiac.Tests\bin\Debug\net6.0`.
 
 For information on the achitecture of the application, see the [Developer Guide](https://github.com/haven1433/HexManiacAdvance/wiki/Developer-Guide).
 

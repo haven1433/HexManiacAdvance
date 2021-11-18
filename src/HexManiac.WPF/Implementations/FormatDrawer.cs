@@ -52,7 +52,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
       }
 
-      const bool LightWeightUI = false;
+      static readonly bool LightWeightUI = false;
 
       /// <summary>
       /// Rendering individual cells is too slow!

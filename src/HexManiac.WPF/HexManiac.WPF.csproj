@@ -1,262 +1,64 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{386DC8E2-BABC-475C-94B6-37B3986F5F4C}</ProjectGuid>
     <OutputType>WinExe</OutputType>
-    <RootNamespace>HavenSoft.HexManiac.WPF</RootNamespace>
     <AssemblyName>HexManiacAdvance</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <WarningLevel>4</WarningLevel>
-    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <OutputPath>..\..\artifacts\$(AssemblyName)\bin\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>..\..\artifacts\$(AssemblyName)\obj\$(Configuration)\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
-    <LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>false</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>annotations</Nullable>
+  <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Data" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Delegation, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HavenSoft.AutoImplement.1.1.1\lib\System.Delegation.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Xaml">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="WindowsBase" />
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
+    <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ApplicationDefinition Include="Windows\App.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </ApplicationDefinition>
-    <Compile Include="Controls\AutocompleteOverlay.xaml.cs">
-      <DependentUpon>AutocompleteOverlay.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\ColumnStackPanel.cs" />
-    <Compile Include="Controls\CommonTableStreamControl.xaml.cs">
-      <DependentUpon>CommonTableStreamControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\DexReorderView.xaml.cs">
-      <DependentUpon>DexReorderView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\EditableComboBox.xaml.cs">
-      <DependentUpon>EditableComboBox.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\HexContentToolTip.xaml.cs">
-      <DependentUpon>HexContentToolTip.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\ImageEditorView.xaml.cs">
-      <DependentUpon>ImageEditorView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\PaletteControl.xaml.cs">
-      <DependentUpon>PaletteControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\SelectionRender.cs" />
-    <Compile Include="Controls\Swatch.xaml.cs">
-      <DependentUpon>Swatch.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\TabView.xaml.cs">
-      <DependentUpon>TabView.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\TextBoxLookAlike.xaml.cs">
-      <DependentUpon>TextBoxLookAlike.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\TileImage.cs" />
-    <Compile Include="Resources\DesignerThemeResource.cs" />
-    <Compile Include="Resources\Extensions.cs" />
-    <Compile Include="Resources\MultiKeyGesture.cs" />
-    <Compile Include="Windows\OptionDialog.xaml.cs">
-      <DependentUpon>OptionDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\RequestTextDialog.xaml.cs">
-      <DependentUpon>RequestTextDialog.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\ThemeSelector.xaml.cs">
-      <DependentUpon>ThemeSelector.xaml</DependentUpon>
-    </Compile>
-    <Page Include="Controls\AutocompleteOverlay.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\CommonTableStreamControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\DexReorderView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\EditableComboBox.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\HexContentToolTip.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\ImageEditorView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\PaletteControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\StartScreen.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\Swatch.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\TabView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Controls\TextBoxLookAlike.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Resources\GeneralResources.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\AboutWindow.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\MainWindow.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="Resources\Icons.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Compile Include="Controls\HorizontalSlantedTextControl.cs" />
-    <Compile Include="Controls\IntegerToBooleanViaMatchConverter.cs" />
-    <Compile Include="Controls\IntegerToHexConverter.cs" />
-    <Compile Include="Controls\MultiplyConverter.cs" />
-    <Compile Include="Controls\StartScreen.xaml.cs">
-      <DependentUpon>StartScreen.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Windows\AboutWindow.xaml.cs">
-      <DependentUpon>AboutWindow.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Implementations\WindowsFileSystem.cs" />
-    <Compile Include="Windows\App.xaml.cs">
-      <DependentUpon>App.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Resources\Icons.xaml.cs">
-      <DependentUpon>Icons.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Implementations\FormatDrawer.cs" />
-    <Compile Include="Controls\HexContent.cs" />
-    <Compile Include="Resources\MarkupExtensions.cs" />
-    <Compile Include="Windows\MainWindow.xaml.cs">
-      <DependentUpon>MainWindow.xaml</DependentUpon>
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="..\SharedAssemblyInfo.cs" />
-    <Page Include="Windows\OptionDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\RequestTextDialog.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Windows\ThemeSelector.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
-    <None Include="Resources\MoveRelearnerTesting.hma" />
+    <None Include="Resources\MoveRelearnerTesting.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Scripts\AddFairyType.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Scripts\FastNewGame.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Windows\App.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\HexManiac.Core\HexManiac.Core.csproj">
-      <Project>{b7b9d932-4271-493d-aadd-6cf147c91373}</Project>
-      <Name>HexManiac.Core</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\AppIcon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Resources\AppImage.png" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Scripts\FairyIcon_Emerald.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Scripts\FairyIcon_FR_LG.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Scripts\How_To_Use_HMA_Files.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)src\HexManiac.Core\HexManiac.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\AppIcon.ico" />
+    <Resource Include="Resources\AppImage.png" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
-mkdir "$(TargetDir)resources"
-mkdir "$(TargetDir)resources/Scripts"
-copy "$(TargetDir)*.dll" "$(TargetDir)resources"
-del "$(TargetDir)*.dll"
-copy "$(TargetDir)*.xml" "$(TargetDir)resources"
-del "$(TargetDir)*.xml"
-copy "$(TargetDir)*.pdb" "$(TargetDir)resources"
-del "$(TargetDir)*.pdb"
-copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
-del "$(TargetDir)Models\Code\*.txt"
-copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
-del "$(TargetDir)Models\Code\*.hma"
-copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
-del "$(TargetDir)Models\Code\*.toml"
-copy "$(TargetDir)Scripts\*.*" "$(TargetDir)resources/Scripts"</PostBuildEvent>
+      if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
+      if not exist "$(TargetDir)resources\Scripts" mkdir "$(TargetDir)resources\Scripts"
+      copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.txt"
+      copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.hma"
+      copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.toml"
+      copy "$(TargetDir)Scripts\*.*" "$(TargetDir)resources/Scripts"
+      del "$(TargetDir)Scripts\*.hma"
+      del "$(TargetDir)Scripts\*.png"
+      del "$(TargetDir)Scripts\*.txt"
+      
+      <!-- Delete AutoImplement.Tool, it's not needed in this output directory -->
+      del "$(TargetDir)AutoImplement.Tool.exe"
+      del "$(TargetDir)AutoImplement.Tool.*.json"
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

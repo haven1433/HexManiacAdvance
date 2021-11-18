@@ -1,174 +1,18 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B7B9D932-4271-493D-AADD-6CF147C91373}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>HavenSoft.HexManiac.Core</RootNamespace>
-    <AssemblyName>HexManiac.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <OutputPath>..\..\artifacts\$(AssemblyName)\bin\$(Configuration)\</OutputPath>
-    <IntermediateOutputPath>..\..\artifacts\$(AssemblyName)\obj\$(Configuration)\</IntermediateOutputPath>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <LangVersion>7.3</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <DefineConstants>TRACE</DefineConstants>
-    <LangVersion>7.3</LangVersion>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ImplicitUsings>false</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>annotations</Nullable>
+    <CodeGenDir>$(SolutionDir)artifacts\$(AssemblyName)\codegen\</CodeGenDir>
+    <AutoImplement>$(SolutionDir)artifacts\AutoImplement.Tool\bin\$(Configuration)\$(TargetFramework)\AutoImplement.Tool</AutoImplement>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Delegation, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\HavenSoft.AutoImplement.1.1.1\lib\System.Delegation.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="AssemblyInfo.cs" />
-    <Compile Include="..\SharedAssemblyInfo.cs" />
-    <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubCommand.cs" />
-    <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubComparer`1.cs" />
-    <Compile Include="..\..\artifacts\$(AssemblyName)\codegen\StubDisposable.cs" />
-    <Compile Include="ICommandExtensions.cs" />
-    <Compile Include="MethodCommand.cs" />
-    <Compile Include="Models\Code\ScriptParser.cs" />
-    <Compile Include="Models\Code\ThumbParser.cs" />
-    <Compile Include="Models\GotoShortcutModel.cs" />
-    <Compile Include="Models\HardcodeTablesModel.cs" />
-    <Compile Include="Models\LazyList.cs" />
-    <Compile Include="Models\ModelTable.cs" />
-    <Compile Include="Models\Runs\ArrayRun.cs" />
-    <Compile Include="Models\ErrorInfo.cs" />
-    <Compile Include="Models\IDataModel.cs" />
-    <Compile Include="Models\Runs\ArrayRunElementSegment.cs" />
-    <Compile Include="Models\Runs\AsciiRun.cs" />
-    <Compile Include="Models\Runs\EggMoveRun.cs" />
-    <Compile Include="Models\Runs\Factory\LzTilemapRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\LzTilesetRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\OverworldSpriteListContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\TilemapRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\TilesetRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\HeaderRow.cs" />
-    <Compile Include="Models\Runs\MapListRun.cs" />
-    <Compile Include="Models\Runs\ModelCacheScope.cs" />
-    <Compile Include="Models\Runs\OverworldSpriteListRun.cs" />
-    <Compile Include="Models\Runs\PIERun.cs" />
-    <Compile Include="Models\Runs\PLMRun.cs" />
-    <Compile Include="Models\Runs\Sprites\LZRun.cs" />
-    <Compile Include="Models\Runs\Sprites\LzPaletteRun.cs" />
-    <Compile Include="Models\Runs\Sprites\LzSpriteRun.cs" />
-    <Compile Include="Models\Runs\Sprites\LzTilemapRun.cs" />
-    <Compile Include="Models\Runs\Sprites\LzTilesetRun.cs" />
-    <Compile Include="Models\Runs\Sprites\PaletteRun.cs" />
-    <Compile Include="Models\Runs\Sprites\SpriteRun.cs" />
-    <Compile Include="Models\Runs\Sprites\Sprites.cs" />
-    <Compile Include="Models\Runs\Sprites\TilemapRun.cs" />
-    <Compile Include="Models\Runs\Sprites\TilesetRun.cs" />
-    <Compile Include="Models\Runs\TableStreamRun.cs" />
-    <Compile Include="Models\Runs\TilemapTableRun.cs" />
-    <Compile Include="Models\Runs\TrainerPokemonTeamRun.cs" />
-    <Compile Include="Models\Runs\WordRun.cs" />
-    <Compile Include="Models\Runs\XSERun.cs" />
-    <Compile Include="Models\SearchTree.cs" />
-    <Compile Include="Models\Singletons.cs" />
-    <Compile Include="Models\Runs\Factory\AsciiRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\EggRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\LzPaletteRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\LzSpriteRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\PaletteRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\PCSRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\PLMRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\RunStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\SpriteRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\TableStreamRunContentStrategy.cs" />
-    <Compile Include="Models\Runs\Factory\TrainerPokemonTeamRunContentStrategy.cs" />
-    <Compile Include="ViewModels\AutoCompleteSelectionItem.cs" />
-    <Compile Include="ViewModels\DexReorderTab.cs" />
-    <Compile Include="ViewModels\DiffViewPort.cs" />
-    <Compile Include="ViewModels\ImageEditorViewModel.cs" />
-    <Compile Include="ViewModels\QuickEditItems\IQuickEditItem.cs" />
-    <Compile Include="ViewModels\QuickEditItems\MakeItemsExpandable.cs" />
-    <Compile Include="ViewModels\QuickEditItems\MakeMovesExpandable.cs" />
-    <Compile Include="ViewModels\QuickEditItems\MakeTmsExpandable.cs" />
-    <Compile Include="ViewModels\QuickEditItems\MakeTutorsExpandable.cs" />
-    <Compile Include="ViewModels\QuickEditItems\LevelUpMoveSorter.cs" />
-    <Compile Include="ViewModels\QuickEditItems\QuickEditItemDecorator.cs" />
-    <Compile Include="ViewModels\QuickEditItems\UpdateDexConversionTable.cs" />
-    <Compile Include="ViewModels\QuickEditItems\ReorderDex.cs" />
-    <Compile Include="ViewModels\Shortcuts.cs" />
-    <Compile Include="ViewModels\Tools\BitListArrayElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\ButtonArrayElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\CodeTool.cs" />
-    <Compile Include="ViewModels\Tools\ComboBoxArrayElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\CalculatedElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\IndexComboBoxViewModel.cs" />
-    <Compile Include="ViewModels\Tools\Interfaces.cs" />
-    <Compile Include="ViewModels\Tools\PagedElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\PaletteCollection.cs" />
-    <Compile Include="ViewModels\Tools\PaletteElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\SelectionViewModel.cs" />
-    <Compile Include="ViewModels\Tools\SpriteElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\SpriteTool.cs" />
-    <Compile Include="ViewModels\Tools\StreamElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\TextStreamElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\TrainerPokemonTeamElementViewModel.cs" />
-    <Compile Include="ViewModels\Tools\TupleArrayElementViewModel.cs" />
-    <Compile Include="ViewModels\Visitors\AutocompleteCell.cs" />
-    <Compile Include="ViewModels\Visitors\CompleteCellEdit.cs" />
-    <Compile Include="ViewModels\Visitors\ContextItemFactory.cs" />
-    <Compile Include="ViewModels\Visitors\ContinueCellEdit.cs" />
-    <Compile Include="ViewModels\ConvertCellToText.cs" />
-    <Compile Include="ViewModels\Visitors\DataClear.cs" />
-    <Compile Include="ViewModels\Visitors\StartCellEdit.cs" />
-    <Compile Include="ViewModels\Theme.cs" />
-    <Compile Include="ViewModels\Tools\IArrayElementViewModel.cs" />
-    <Compile Include="Models\Runs\IFormattedRun.cs" />
-    <Compile Include="Models\ModelDelta.cs" />
-    <Compile Include="Models\Runs\PCSRun.cs" />
-    <Compile Include="Models\PCSString.cs" />
-    <Compile Include="Models\Runs\PointerRun.cs" />
-    <Compile Include="Models\PokemonModel.cs" />
-    <Compile Include="Models\SearchByte.cs" />
-    <Compile Include="Models\StoredMetadata.cs" />
-    <Compile Include="SystemExtensions.cs" />
-    <Compile Include="Models\Enums.cs" />
-    <Compile Include="Models\IFileSystem.cs" />
-    <Compile Include="Models\LoadedFile.cs" />
-    <Compile Include="Models\Point.cs" />
-    <Compile Include="ViewModels\ChangeHistory.cs" />
-    <Compile Include="ViewModels\ChildViewPort.cs" />
-    <Compile Include="ViewModels\DataFormats.cs" />
-    <Compile Include="ViewModels\EditorViewModel.cs" />
-    <Compile Include="ViewModels\GotoControlViewModel.cs" />
-    <Compile Include="ViewModels\HexElement.cs" />
-    <Compile Include="ViewModels\IChildViewPort.cs" />
-    <Compile Include="ViewModels\ITabContent.cs" />
-    <Compile Include="ViewModels\Tools\ToolTray.cs" />
-    <Compile Include="ViewModels\IViewPort.cs" />
-    <Compile Include="ViewModels\Tools\PCSTool.cs" />
-    <Compile Include="ViewModels\ScrollRegion.cs" />
-    <Compile Include="ViewModels\SearchResultsViewPort.cs" />
-    <Compile Include="ViewModels\Selection.cs" />
-    <Compile Include="ViewModels\Tools\TableTool.cs" />
-    <Compile Include="ViewModels\ViewModelCore.cs" />
-    <Compile Include="ViewModels\ViewPort.cs" />
-    <Compile Include="ViewModels\Visitors\ToolTipContentVisitor.cs" />
+    <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
+    <Compile Include="$(CodeGenDir)StubCommand.cs" />
+    <Compile Include="$(CodeGenDir)StubComparer`1.cs" />
+    <Compile Include="$(CodeGenDir)StubDisposable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\Code\default.axve.axpe.bpee.toml">
@@ -193,54 +37,52 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Models\Code\expand_levelup_moves_code.hma">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Models\Code\default.bprf0.toml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Models\Code\armReference.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="Models\Code\animationScriptReference.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Models\Code\battleScriptReference.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Models\Code\constantReference.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Models\Code\scriptReference.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="Models\Code\tableReference.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)\src\AutoImplement.Delegation\AutoImplement.Delegation.csproj" />
+    <ProjectReference Include="$(SolutionDir)src\AutoImplement.Tool\AutoImplement.Tool.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
   <PropertyGroup>
     <PreBuildEvent>
-if not exist $(SolutionDir)artifacts\$(AssemblyName)\codegen mkdir $(SolutionDir)artifacts\$(AssemblyName)\codegen
+      if not exist $(CodeGenDir) mkdir $(CodeGenDir)
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" ICommand
-move /Y StubCommand.cs  $(SolutionDir)artifacts\$(AssemblyName)\codegen
+      $(AutoImplement) "System.ObjectModel, Version=5.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" ICommand
+      move /Y StubCommand.cs  $(CodeGenDir)
 
-$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" IDisposable IComparer`1
-move /Y StubDisposable.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
-move /Y StubComparer`1.cs $(SolutionDir)artifacts\$(AssemblyName)\codegen
+      $(AutoImplement) "System.Private.CoreLib, Version=5.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" IDisposable IComparer`1
+      move /Y StubDisposable.cs $(CodeGenDir)
+      move /Y StubComparer`1.cs $(CodeGenDir)
 
-del *.cs</PreBuildEvent>
+      del *.cs
+    </PreBuildEvent>
+    <PostBuildEvent>
+      $(AutoImplement) "HexManiac.Core.dll" IQuickEditItem
+      move /Y QuickEditItemDecorator.cs  $(CodeGenDir)
+      del *.cs
+    </PostBuildEvent>
   </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent>$(SolutionDir)packages\HavenSoft.AutoImplement.1.1.1\AutoImplement "HexManiac.Core.dll" IQuickEditItem
-move /Y QuickEditItemDecorator.cs  $(SolutionDir)artifacts\$(AssemblyName)\codegen
 
-del *.cs
-</PostBuildEvent>
-  </PropertyGroup>
 </Project>

@@ -199,7 +199,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                 compatibleBitmapHandle, IntPtr.Zero, Int32Rect.Empty,
                 BitmapSizeOptions.FromEmptyOptions());
 
-         } catch (Exception ex) {
+         } catch (Exception) {
 
          } finally {
             DeleteObject(compatibleBitmapHandle);
