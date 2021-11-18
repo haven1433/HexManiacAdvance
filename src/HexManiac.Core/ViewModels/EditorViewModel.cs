@@ -80,6 +80,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool showDevMenu;
       public bool ShowDeveloperMenu { get => showDevMenu; set => Set(ref showDevMenu, value); }
 
+      public bool RecentFileMenuEnabled => RecentFileViewModels.Any();
+
       public ICommand New => newCommand;
       public ICommand Open => open;                // parameter: file to open (or null)
       public ICommand DuplicateCurrentTab => duplicateCurrentTab;
@@ -1116,12 +1118,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   Open.Execute(loadedFile);
                }
             }));
+            NotifyPropertyChanged(nameof(RecentFileMenuEnabled));
          }
-
-         RecentFileViewModels.Add(new RecentFileViewModel(new StubCommand {
-            CanExecute = arg => true,
-            Execute = arg => Open.Execute()
-         }));
       }
 
       private void TabChangeRequested(object sender, ITabContent newTab) {
@@ -1222,20 +1220,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string ShortName { get; }
       public string LongName { get; }
       public ICommand Open { get; }
-      public bool IncludeIcon { get; }
-
-      public RecentFileViewModel(ICommand open) {
-         LongName = null;
-         ShortName = "Open file...";
-         Open = open;
-         IncludeIcon = true;
-      }
 
       public RecentFileViewModel(string filename, ICommand open) {
          LongName = filename;
          ShortName = Path.GetFileNameWithoutExtension(filename);
          Open = open;
-         IncludeIcon = false;
       }
    }
 }

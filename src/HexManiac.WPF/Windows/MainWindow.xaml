@@ -87,6 +87,14 @@
                         <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </MenuItem.Icon>
                   </MenuItem>
+                  <MenuItem Header="Open Recent" ItemsSource="{Binding RecentFileViewModels}" IsEnabled="{Binding RecentFileMenuEnabled}">
+                     <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                           <Setter Property="Header" Value="{Binding ShortName}"/>
+                           <Setter Property="Command" Value="{Binding Open}"/>
+                        </Style>
+                     </MenuItem.ItemContainerStyle>
+                  </MenuItem>
                   <MenuItem Header="Duplicate Current Tab" Command="{Binding DuplicateCurrentTab}" InputGestureText="Ctrl+T"/>
                   <Separator />
                   <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
