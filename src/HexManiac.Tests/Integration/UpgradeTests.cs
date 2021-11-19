@@ -32,7 +32,7 @@ namespace HavenSoft.HexManiac.Tests {
          Skip.IfNot(File.Exists(romName), "Test cannot run without a real rom");
 
          var singletons = BaseViewModelTestClass.Singletons;
-         var tomlPath = "../../../../src/HexManiac.Tests/toml_versions/";
+         var tomlPath = "../../../../../src/HexManiac.Tests/toml_versions/";
          var fileData = File.ReadAllBytes(romName);
          var code = fileData.GetGameCode();
          tomlPath += code + tomlName;

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface ISearchTreePayload {
@@ -40,7 +42,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          newRoot.Left = node;
          node = newRoot;
       }
-      public static void Rotate<T>(ref TreeNode<T> node, int direction)where T : ISearchTreePayload {
+      public static void Rotate<T>(ref TreeNode<T> node, int direction) where T : ISearchTreePayload {
          if (direction == TreeNode<T>.LEFT) RotateLeft(ref node);
          else RotateRight(ref node);
       }
@@ -54,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class TreeNode<T> : IEnumerable<TreeNode<T>> where T : ISearchTreePayload {
       public const int LEFT = 0, RIGHT = 1;
 
-      public T Payload { get; }
+      public T Payload { get; private set; }
       public TreeColor Color { get; private set; }
       public int BlackCount => ((Left == null) ? 0 : Left.BlackCount) + (Color == TreeColor.Black ? 1 : 0);
       private TreeNode<T>[] children = new TreeNode<T>[2];
@@ -69,6 +71,25 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       /// <summary>
+      /// Checks to make sure that this red-black subtree obeys the no-double-red rule and the black-height-match rule.
+      /// </summary>
+      [Conditional("DEBUG")]
+      public void Verify() => VerifyHelper();
+
+      private int VerifyHelper() {
+         // verify that from this node, the black length is the same in both directions
+         // verify that if this node is red, it has no red children.
+         var leftCount = children[LEFT] == null ? 0 : Left.VerifyHelper();
+         var rightCount = Right == null ? 0 : Right.VerifyHelper();
+         Debug.Assert(leftCount == rightCount, $"RedBlack Node must have matching black count on left and right branches: {leftCount} and {rightCount}");
+         if (Color == TreeColor.Black) return leftCount + 1;
+         Debug.Assert(Left.IsBlack() && Right.IsBlack(), "Red nodes must not have red children!");
+         return leftCount;
+      }
+
+      public bool BlackWithRedChild(int direction) => this.IsBlack() && !children[direction].IsBlack();
+
+      /// <summary>
       /// Only do tree-balancing if the current node is red.
       /// Returns true if the higher level should perform balancing.
       /// </summary>
@@ -77,24 +98,24 @@ namespace HavenSoft.HexManiac.Core.Models {
          return Add(ref node, insert);
       }
 
-      public static AddType Add(ref TreeNode<T> node, TreeNode<T> insert) {
+      public static AddType Add(ref TreeNode<T> node, TreeNode<T> insert, bool balance = true) {
          var start = insert.Payload.Start;
          if (node == null || node.Payload.Start == start) {
-            insert.Color = node?.Color ?? TreeColor.Red;
+            if (balance) insert.Color = node?.Color ?? TreeColor.Red;
             node = insert;
-            return AddType.Insert;
+            return balance ? AddType.Insert : AddType.Balanced;
          } else if (start < node.Payload.Start) {
-            return AddChild(ref node, insert, LEFT);
+            return AddChild(ref node, insert, LEFT, balance);
          } else if (node.Payload.Start < start) {
-            return AddChild(ref node, insert, RIGHT);
+            return AddChild(ref node, insert, RIGHT, balance);
          } else {
             throw new NotImplementedException();
          }
       }
 
-      private static AddType AddChild(ref TreeNode<T> parent, TreeNode<T> insert, int direction) {
+      private static AddType AddChild(ref TreeNode<T> parent, TreeNode<T> insert, int direction, bool balance) {
          var other = 1 - direction;
-         var addMethod = Add(ref parent.children[direction], insert);
+         var addMethod = Add(ref parent.children[direction], insert, balance);
          if (addMethod == AddType.Insert) return (AddType)direction;
          var (node, sibling) = (parent.children[direction], parent.children[other]);
          if (addMethod != AddType.Balanced) {
@@ -112,9 +133,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (node == null) return RemoveType.NoRemoval;
 
          if (key == node.Payload.Start) {
-            var color = node.Color;
-            node = null;
-            return color == TreeColor.Red ? RemoveType.Balanced : RemoveType.DecreaseBlackCount; ;
+            if (node.Right != null) {
+               var nextNode = node.Right.First();
+               (node.Payload, nextNode.Payload) = (nextNode.Payload, node.Payload);
+               return RemoveChild(ref node, key, RIGHT);
+            } else if (node.Left != null) {
+               var prevNode = node.Left; // if I have only one child, by the red-black rules it must be a Red leaf
+               (node.Payload, prevNode.Payload) = (prevNode.Payload, node.Payload);
+               return RemoveChild(ref node, key, LEFT);
+            } else {
+               var color = node.Color;
+               node = null;
+               return color == TreeColor.Red ? RemoveType.Balanced : RemoveType.DecreaseBlackCount; ;
+            }
          }
 
          if (node.Payload.Start < key) {
@@ -141,15 +172,41 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (node.Color == TreeColor.Red && result == RemoveType.DecreaseBlackCount && node.children[other].IsBlack() && node.children[direction].IsBlack()) {
             IncreaseBlackCount(ref node, direction);
             return RemoveType.Balanced;
-         } else {
+         }
+
+         if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithRedChild(other)) {
+            TreeNode.Rotate(ref node, direction);
+            node.children[other].Recolor();
             return RemoveType.Balanced;
          }
+         if (node.Color == TreeColor.Black && result == RemoveType.DecreaseBlackCount && node.children[other].BlackWithRedChild(direction)) {
+            // this case just rotates to become the previous case
+            TreeNode.Rotate(ref node.children[other], other);
+            node.children[other].children[other].Recolor();
+            node.children[other].Recolor();
+
+            TreeNode.Rotate(ref node, direction);
+            node.children[other].Recolor();
+            return RemoveType.Balanced;
+         }
+
+         return RemoveType.Balanced;
       }
 
       private static void IncreaseBlackCount(ref TreeNode<T> node, int direction) {
+         if (node.Color == TreeColor.Red && node.children[1 - direction].BlackWithRedChild(direction)) {
+            TreeNode.Rotate(ref node.children[1 - direction], 1 - direction);
+            node.children[1 - direction].Recolor();
+            node.children[1 - direction].children[1 - direction].Recolor();
+         }
          if (node.Color == TreeColor.Red && node.Left.IsBlack() && node.Right.IsBlack()) {
             node.Recolor();
             node.children[1 - direction].Recolor();
+         }
+         if (node.children[1 - direction].children.Any(child => !child.IsBlack())) {
+            TreeNode.Rotate(ref node, direction);
+            node.children[direction].Recolor();
+            node.Recolor();
          }
       }
 
@@ -175,7 +232,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!this.IsBlack() && !sibling.IsBlack()) {
             // parent is guaranteed to be black by rule (2)
             parent.Recolor();
-            this.Recolor();
+            Recolor();
             sibling.Recolor();
             return true;
          }

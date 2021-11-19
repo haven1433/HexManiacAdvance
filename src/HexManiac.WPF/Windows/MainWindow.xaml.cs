@@ -67,8 +67,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void SetupDebugListener(object sender, RoutedEventArgs e) {
-         Debug.Listeners.Clear();
-         Debug.Listeners.Add(new CustomTraceListener(FileSystem));
+         Trace.Listeners.Clear();
+         Trace.Listeners.Add(new CustomTraceListener(FileSystem));
          Loaded -= SetupDebugListener;
       }
 

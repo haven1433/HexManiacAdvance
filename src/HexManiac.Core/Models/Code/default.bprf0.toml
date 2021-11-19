@@ -3217,7 +3217,7 @@ Format = '''`lzm4x32x64|graphics.moves.backgrounds.all`'''
 
 [[NamedAnchors]]
 Name = '''scripts.evolution.routines'''
-Address = 0x042E98
+Address = 0x042E9C
 Format = '''[thumb<>]scripts.evolution.count'''
 
 [[NamedAnchors]]
