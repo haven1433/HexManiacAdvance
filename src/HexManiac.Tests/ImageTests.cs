@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -833,6 +834,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("^graphics.test`lzs4x2x2`", ViewPort.AnchorText);
          Assert.Empty(Errors);
       }
+
       [Fact]
       public void TwoImages_Copy_ClipBoardContainsSpriteData() {
          var filesystem = new StubFileSystem();
@@ -846,6 +848,18 @@ namespace HavenSoft.HexManiac.Tests {
          var copiedData = filesystem.CopyText.value;
          var expectedData = $"^sprite1`ucs4x1x1` {emptyBlock} ^sprite2`ucs4x1x1` {emptyBlock}";
          Assert.Equal(expectedData, copiedData);
+      }
+
+      [Fact]
+      public void TilemapFormat_CreateNewTilemap_DataIsLargeEnoughForManyTiles() {
+         var (tileWidth, tileHeight, bytesPerTile) = (32, 24, 2);
+         var format = new TilemapFormat(4, tileWidth, tileHeight, string.Empty);
+         var strategy = new LzTilemapRunContentStrategy(format);
+
+         var newRun = (LzTilemapRun)strategy.WriteNewRun(Model, Token, default, 0, default, default);
+
+         Assert.Equal(bytesPerTile, newRun.BytesPerTile);
+         Assert.Equal(tileWidth * tileHeight * bytesPerTile, newRun.DecompressedLength);
       }
 
       private void WriteCompressedData(int start, int length) {

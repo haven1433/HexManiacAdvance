@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         var defaultData = new byte[TilemapFormat.BitsPerPixel * 8];
+         var defaultData = new byte[TilemapFormat.ExpectedUncompressedLength];
          var data = LZRun.Compress(defaultData, 0, defaultData.Length);
          for (int i = 0; i < data.Count; i++) token.ChangeData(owner, destination + i, data[i]);
          return new LzTilemapRun(TilemapFormat, owner, destination);
