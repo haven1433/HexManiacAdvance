@@ -11,8 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public string Description => "Make it possible to expand the number of pokemon in the game." + Environment.NewLine +
          "Change the game's code to make the Egg/Unown pokemon IDs update as new pokemon are added." + Environment.NewLine +
          "TODO Update Hall-of-Fame data to allow 16 bits per pokemon." + Environment.NewLine +
-         "TODO Add additional bits for pokedex seen/caught flags for the new pokemon." + Environment.NewLine +
-         "TODO enlarge pokedex? Make pokedex expandable? Something here...";
+         "Add additional bits for pokedex seen/caught flags for the new pokemon." + Environment.NewLine;
 
       public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Pokemon-Expansion-Explained";
 
@@ -24,13 +23,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var token = viewPort.ChangeHistory.CurrentChange;
 
-         // in testing, "New Guy" shows bulbasaur pokedex data and shows up as ???????? in the pokedex... why?
-
          // TODO when expanding pokemon, make sure that the new data.pokemon.count constant actually gets updated...
          // TODO when expanding pokedex, make sure that the new data.pokedex.count constant actually gets updated...
          // TODO update pokedex search alpha?
          // TODO update pokedex search type?
          // TODO pokemon sprite/palette index doesn't update automatically
+         // TODO update length of cry tables automatically when expanding pokemon?
 
          // update constants and allow for automatic code updates when the number of pokemon changes
          var pokecount = UpdateConstants(viewPort, token);
@@ -42,10 +40,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var loadDexCountFunctions = AddPokedexThumbConstantCode(viewPort, token, dexCount);
          UpdatePokedexThumbConstants(viewPort, token, dexCount, loadDexCountFunctions);
 
-         // TODO fix the really stupid table-index switch of PlayCryInternal at 0720CA (01 1C 11 E0) -> make it always use the first case, the others are totally not needed
+         // fix the really stupid table-index switch of PlayCryInternal
+         UpdatePlayCryInternal(viewPort, token);
 
          // still have 0xA4 free bytes at 157878
+         // still have 0x98 free at 072108
 
+         // cleanup: can we use the reclaimed space from the PlayCryInternal function to fit all the new code we need?
+         // instead of having to move the 0xF0 length switch table from 0x15782C?
          return ErrorInfo.NoError;
       }
 
@@ -203,6 +205,55 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // update  103534 to bl <r2=dex_size>
          compile(0x1025EC, 0);
          compile(0x103534, 8);
+      }
+
+      /// <summary>
+      /// PlayCryInternal has a switch-statement at the end that limits the number of pokemon to 512 (128*4).
+      /// We can rewrite that function to remove the limit and simplify the code.
+      /// </summary>
+      private void UpdatePlayCryInternal(IEditableViewPort viewPort, ModelDelta token) {
+         var scriptStart = 0x0720C2;
+         var scriptLength = 35 * 2;
+         var gMPlay_PokemonCry = 0x02037ECC;
+         var SpeciesToCryId = 0x043304;
+         var SetPokemonCryTone = 0x1DE638;
+         var script = @$"
+            sound_PlayCryInternal_After_SetPokemonCryPriority:
+               mov   r0, r7
+               bl    <{SpeciesToCryId:X6}>
+               mov   r1, #12
+               mul   r0, r1
+               mov   r1, r9   @ if (v0 == 0) use sound.pokemon.cry.normal. Else use sound.pokemon.cry.growl
+               cmp   r1, #0
+               beq   <use_normal_cry>
+               ldr   r1, [pc, <growl_cry>]
+               b     <next>
+            use_normal_cry:
+               ldr   r1, [pc, <normal_cry>]
+               b     <next>
+               nop
+            growl_cry:  .word <sound.pokemon.cry.growl>
+            normal_cry: .word <sound.pokemon.cry.normal>
+            0720E4:     .word 0x3A98   @ 15000, needed to be right here for earlier in the function.
+            next:
+               add   r0, r0, r1 @ r0 = index into chosen table
+               bl    <{SetPokemonCryTone:X6}>
+               ldr   r1, [pc, <gMPlay_PokemonCry>]
+               str   r0, [r1, #0]
+               add   sp, #4
+               pop   {{r3-r5}}
+               mov   r8, r3
+               mov   r9, r4
+               mov   r10, r5
+               pop   {{r4-r7}}
+               pop   {{r0}}
+               bx    r0
+               nop
+            gMPlay_PokemonCry: .word 0x{gMPlay_PokemonCry:X8}";
+         viewPort.Tools.CodeTool.Parser.Compile(token, viewPort.Model, 0x0720C2, script.SplitLines());
+
+         // clear 152 bytes after that are no longer needed
+         viewPort.Model.ClearFormatAndData(token, scriptStart + scriptLength, 152);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
