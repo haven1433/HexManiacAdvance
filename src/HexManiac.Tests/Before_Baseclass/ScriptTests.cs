@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = battle.Parse(Model, 0, code.Length).SplitLines();
 
          Assert.Equal<string>(new string[] {
-            "  jumpiftype 00 00 <000007>",
+            "  jumpiftype 0 0 <000007>",
             "000007:",
             "  end",
             "",
@@ -105,8 +105,8 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Theory]
-      [InlineData("trainerbattle 02 009B 0000 <2967AD> <2967D8> <1EE5D8>", "5C 02 9B 00 00 00 AD 67 29 08 D8 67 29 08 D8 E5 1E 08")]
-      [InlineData("trainerbattle 00 009B 0000 <2967AD> <2967D8>", "5C 00 9B 00 00 00 AD 67 29 08 D8 67 29 08")]
+      [InlineData("trainerbattle 02 0x009B 0000 <2967AD> <2967D8> <1EE5D8>", "5C 02 9B 00 00 00 AD 67 29 08 D8 67 29 08 D8 E5 1E 08")]
+      [InlineData("trainerbattle 00 0x009B 0000 <2967AD> <2967D8>", "5C 00 9B 00 00 00 AD 67 29 08 D8 67 29 08")]
       public void XSECompileScriptToBytes(string script, string bytes) {
          SetFullModel(0xFF);
 
@@ -208,7 +208,7 @@ end
 
          var script = @"
 Script:
-   delay 10
+   delay 0x10
    end";
          tool.Contents[0].Content = script;
 
@@ -229,7 +229,7 @@ Script:
 
          var script = @"
 Script:
-   createvisualtask <0BA7F9> 0A 0001 0000 0006 0000 0000
+   createvisualtask <0BA7F9> 0x0A 0001 0000 0006 0000 0000
    end
 ";
          tool.Contents[0].Content = script;

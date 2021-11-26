@@ -689,17 +689,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string Convert(IDataModel model, int value) {
-         var byteText = value.ToString($"X{length * 2}");
-         if (string.IsNullOrEmpty(EnumTableName)) return byteText;
+         if (string.IsNullOrEmpty(EnumTableName)) return value.ToString();
+         if (EnumTableName == "|h") return "0x" + value.ToString($"X{length * 2}");
          var table = model.GetOptions(EnumTableName);
-         if ((table?.Count ?? 0) <= value) return byteText;
+         if ((table?.Count ?? 0) <= value) return value.ToString();
          return table[value];
       }
 
       public int Convert(IDataModel model, string value) {
          int result;
          if (string.IsNullOrEmpty(EnumTableName)) {
-            if (int.TryParse(value, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return result;
+            if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
+            if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return result;
+            if (int.TryParse(value, out result)) return result;
             return 0;
          }
          if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result;
