@@ -535,6 +535,26 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { 0x100, 0x180 }, results);
       }
 
+      [Fact]
+      public void MultipleTabs_Find_ResultCountIsAccurate() {
+         var editor = new EditorViewModel(new StubFileSystem(), InstantDispatch.Instance);
+         editor.Add(Create("file1.gba", 2, 20));
+         editor.Add(Create("file2.gba", 4, 40));
+
+         editor.Find.Execute("00 01 00");
+
+         Assert.True(editor.ShowMessage);
+         Assert.Contains("4", editor.InformationMessage);
+      }
+
+      private static ViewPort Create(string name, params int[] changeAddresses) {
+         var metadata = new StoredMetadata(new string[0]);
+         var singletons = BaseViewModelTestClass.Singletons;
+         var vp = new ViewPort(name, new PokemonModel(new byte[0x200], metadata, singletons), InstantDispatch.Instance, singletons);
+         foreach (var i in changeAddresses) vp.Model[i] = 1;
+         return vp;
+      }
+
       private static StubDataModel SelfEqualStub() {
          var model = new StubDataModel();
          model.Equals = input => input == model;

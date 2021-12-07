@@ -939,6 +939,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          Add(newTab);
+         InformationMessage = $"Found {results.Count} matches for '{search}'.";
       }
 
       private void RemoveTab(object sender, EventArgs e) {
