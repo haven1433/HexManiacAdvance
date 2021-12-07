@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         var lzRun = new LZRun(model, dataIndex);
+         var lzRun = new LzTilesetRun(TilesetFormat, model, dataIndex);
          if (lzRun.Length < 0) return new ErrorInfo("Format was specified as a compressed tileset, but no compressed data was recognized.");
          if (lzRun.DecompressedLength % 0x20 != 0) return new ErrorInfo("Format was specified as a compressed tileset, but the compressed data was not the proper length to be a tileset.");
          var newRun = new LzTilesetRun(TilesetFormat, model, dataIndex);

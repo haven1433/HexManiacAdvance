@@ -34,8 +34,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int Tiles { get; }
       public int MaxTiles { get; }
       public string PaletteHint { get; }
-      public TilesetFormat(int bitsPerPixel, string paletteHint) => (BitsPerPixel, Tiles, MaxTiles, PaletteHint) = (bitsPerPixel, -1, -1, paletteHint);
-      public TilesetFormat(int bitsPerPixel, int tiles, int maxTiles, string paletteHint) : this(bitsPerPixel, paletteHint) => (Tiles, MaxTiles) = (tiles, maxTiles);
+      public bool AllowLengthErrors { get; }
+      public TilesetFormat(int bitsPerPixel, string paletteHint, bool allowLengthErrors = false) => (BitsPerPixel, Tiles, MaxTiles, PaletteHint, AllowLengthErrors) = (bitsPerPixel, -1, -1, paletteHint, allowLengthErrors);
+      public TilesetFormat(int bitsPerPixel, int tiles, int maxTiles, string paletteHint, bool allowLengthErrors = false) : this(bitsPerPixel, paletteHint, allowLengthErrors) => (Tiles, MaxTiles) = (tiles, maxTiles);
    }
 
    public struct TilemapFormat {
