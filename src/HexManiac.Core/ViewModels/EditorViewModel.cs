@@ -734,6 +734,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshTabHeaderContextMenus();
       }
 
+      private void CloseOtherViewports(object? sender, IDataModel e) {
+         if (sender is not IViewPort viewPort) return;
+         var anyTabsClosed = false;
+         for (int i = 0; i < Count; i++) {
+            if (tabs[i] is not IViewPort target) continue;
+            if (target == viewPort) continue;
+            if (target.Model != viewPort.Model) continue;
+            RemoveTab(target, default);
+            i -= 1;
+            anyTabsClosed = true;
+         }
+         if (anyTabsClosed) InformationMessage = "Other tabs for that in-memory file were automatically closed.";
+      }
+
       public void SwapTabs(int a, int b) {
          var temp = tabs[a];
          tabs[a] = tabs[b];
@@ -964,8 +978,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.PropertyChanged += TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
 
-         if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
-            fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
+         if (content is IViewPort viewPort) {
+            viewPort.RequestCloseOtherViewports += CloseOtherViewports;
+            if (!string.IsNullOrEmpty(viewPort.FileName)) {
+               fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload);
+            }
          }
       }
 
@@ -981,8 +998,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.PropertyChanged -= TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
 
-         if (content is IViewPort viewPort && !string.IsNullOrEmpty(viewPort.FileName)) {
-            fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
+         if (content is IViewPort viewPort) {
+            viewPort.RequestCloseOtherViewports -= CloseOtherViewports;
+            if (!string.IsNullOrEmpty(viewPort.FileName)) {
+               fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
+            }
          }
       }
 
@@ -1113,7 +1133,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          foreach (var file in RecentFiles) {
             var closureFile = file;
             RecentFileViewModels.Add(new RecentFileViewModel(file, new StubCommand {
-               CanExecute = arg => true, Execute = arg => {
+               CanExecute = arg => true,
+               Execute = arg => {
                   var loadedFile = fileSystem.LoadFile(closureFile);
                   Open.Execute(loadedFile);
                }
