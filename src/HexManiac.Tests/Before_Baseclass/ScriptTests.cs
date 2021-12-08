@@ -440,6 +440,30 @@ Script:
          Assert.False(ViewPort.Tools.CodeTool.ShowErrorText);
       }
 
+      [Fact]
+      public void StartScriptOnOddHalfWord_LoadRegister_ConstantIsByteAligned() {
+         SetFullModel(0xFF);
+
+         ViewPort.Tools.CodeTool.Parser.Compile(Token, Model, 2,
+            "ldr   r0,  =0x12345678",
+            "add   r0, #1",
+            "bx    r0"
+            );
+
+         Assert.Equal(0x12345678, Model.ReadMultiByteValue(8, 4));
+      }
+
+      [Fact]
+      public void Anchor_WriteThumb_KeepAnchor() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@04 ^anchor ");
+
+         ViewPort.Tools.CodeTool.Content = "nop";
+
+         Assert.Equal(0, Model.ReadMultiByteValue(4, 2));
+         Assert.Equal("anchor", Model.GetAnchorFromAddress(-1, 4));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
