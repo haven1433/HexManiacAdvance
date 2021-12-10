@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Fill(pcs, "îïòóôœùúûñºª", 0x20);
          pcs[0x2C] = "\\e";
          Fill(pcs, "& \\+", 0x2D);
-         Fill(pcs, "=;", 0x35);
+         Fill(pcs, "\\Lv = ;", 0x34);
 
 
          pcs[0x48] = "\\r"; // right?
