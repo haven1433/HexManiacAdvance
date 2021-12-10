@@ -35,6 +35,7 @@ nv=1111  @    never
 @ opcodes and args
 0000000000000000    |     nop                 @ does nothing
 00000 # rm rd       |     lsl   rd, rm, #     @ rd = rm << #
+00000 # rd rd       |     lsl   rd, #         @ rd <<= #
 00001 # rm rd       |     lsr   rd, rm, #     @ rd = rm >> #
 00010 # rm rd       |     asr   rd, rm, #     @ rd = rm >>> #
 0001100 rm rn rd    |     add   rd, rn, rm    @ rd = rn + rm
