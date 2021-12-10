@@ -591,6 +591,26 @@ graphics.text.font.red.characters,   ,,,, 006A8C, 006A8C, 006AA0, 006AA0, , `ucs
 graphics.text.font.red.width,        ,,,, 006A94, 006A94, 006AA8, 006AA8, , [width.]512
 graphics.text.font.characters,       095984, 095984, 0959A4, 0959A4, ,,,,, `ucs4x1x1236`
 graphics.text.font.width,            004930, 004930, 004930, 004930, ,,,,, [width.]256
+graphics.text.font.short.characters,          ,,,, 0064C4, 0064C4, 0064D8, 0064D8, , `ucs2x1x1024`
+graphics.text.font.short.width,               ,,,, 0064CC, 0064CC, 0064E0, 0064E0, , [width.]512
+graphics.text.font.short.japanese.characters, ,,,, 006488, 006488, 00649C, 00649C, , `ucs2x16x64`
+graphics.text.font.japan1.characters,         ,,,, 006534, 006534, 006548, 006548, , `ucs2x16x64`
+graphics.text.font.japan2.characters,         ,,,, 006650, 006650, 006664, 006664, , `ucs2x16x128`
+graphics.text.font.japan2.width,              ,,,, 006658, 006658, 00666C, 00666C, , [width.]280
+graphics.text.font.japan3.characters,         ,,,, 006884, 006884, 006898, 006898, , `ucs2x16x128`
+graphics.text.font.japan3.width,              ,,,, 00688C, 00688C, 0068A0, 0068A0, , [width.]280
+graphics.text.font.japan4.characters,         ,,,, 0069F0, 0069F0, 006A04, 006A04, , `ucs2x16x128`
+graphics.text.font.japan4.width,              ,,,, 0069F8, 0069F8, 006A0C, 006A0C, , [width.]280
+graphics.text.font.japan5.characters,         ,,,, 006B08, 006B08, 006B1C, 006B1C, , `ucs2x32x16`
+graphics.text.font.short.characters,          ,,,, ,,,, 0066C4, `ucs2x2x512`
+graphics.text.font.short.characters2,         ,,,, ,,,, 0064F4, `ucs2x2x1024`
+graphics.text.font.short.width,               ,,,, ,,,, 0064FC, [width.]512
+graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x512`
+graphics.text.font.bag.width,                 ,,,, ,,,, 0065E4, [width.]512
+graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
+graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
+graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
+graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
