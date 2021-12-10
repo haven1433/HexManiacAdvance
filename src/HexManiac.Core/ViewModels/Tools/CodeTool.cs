@@ -258,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          if (code.Count > length) return;
 
-         model.ClearFormat(history.CurrentChange, start, length);
+         model.ClearFormat(history.CurrentChange, start + 1, length - 1);
          for (int i = 0; i < code.Count; i++) history.CurrentChange.ChangeData(model, start + i, code[i]);
          for (int i = code.Count; i < length; i++) history.CurrentChange.ChangeData(model, start + i, 0xFF);
          foreach (var run in newRuns) model.ObserveRunWritten(history.CurrentChange, run);

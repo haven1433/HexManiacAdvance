@@ -123,6 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler Closed;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<IDataModel> RequestCloseOtherViewports;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;

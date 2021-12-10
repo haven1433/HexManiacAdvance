@@ -10,6 +10,10 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public class LZRun : BaseRun, IStreamRun, IAppendToBuilderRun {
+      public static readonly int
+         GeneralDecompressionError = -1,
+         DecompressedTooLong = -2;
+
       public IDataModel Model { get; }
 
       private int length;
@@ -35,26 +39,30 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       /// <returns>The length of the compressed data</returns>
       public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors = false) => IsCompressedLzData(data, start, allowLengthErrors, out var _);
 
-      /// <returns>The length of the compressed data</returns>
+      /// <returns>
+      /// The length of the compressed data.
+      /// If the decompressed data is longer than expected and allowLengthErrors is false, returns -2.
+      /// Any other decompression error returns -1.
+      /// </returns>
       public static int IsCompressedLzData(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out bool hasLengthErrors) {
          hasLengthErrors = false;
          var initialStart = start;
          int length = ReadHeader(data, ref start);
-         if (length < 1) return -1;
+         if (length < 1) return GeneralDecompressionError;
          int index = 0; // the index into the uncompressed data
          while (index < length && start < data.Count) {
             var bitField = data[start];
             start++;
             for (int i = 0; i < 8; i++) {
                if (index > length) break;
-               if (index == length) return bitField == 0 ? start - initialStart : -1;
+               if (index == length) return bitField == 0 ? start - initialStart : GeneralDecompressionError;
                var compressed = IsNextTokenCompressed(ref bitField);
                if (!compressed) {
                   index += 1;
                   start += 1;
                } else {
                   var (runLength, runOffset) = ReadCompressedToken(data, ref start);
-                  if (index - runOffset < 0 || runLength < 0) return -1;
+                  if (index - runOffset < 0 || runLength < 0) return GeneralDecompressionError;
                   index += runLength;
                }
             }
@@ -62,7 +70,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          hasLengthErrors = index != length || start > data.Count;
          if (allowLengthErrors) return start - initialStart;
-         return !hasLengthErrors ? start - initialStart : -1;
+         if (!hasLengthErrors) return start - initialStart;
+         if (index > length) return DecompressedTooLong;
+         return GeneralDecompressionError;
       }
 
       public static bool TryDecompress(IReadOnlyList<byte> data, int start, bool allowLengthErrors, out byte[] result) => (result = Decompress(data, start, allowLengthErrors)) != null;

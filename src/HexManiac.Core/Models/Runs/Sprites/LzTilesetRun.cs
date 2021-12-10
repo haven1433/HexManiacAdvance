@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public LzTilesetRun(TilesetFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors: false, sources) {
+      public LzTilesetRun(TilesetFormat format, IDataModel data, int start, SortedSpan<int> sources = null) : base(data, start, allowLengthErrors: format.AllowLengthErrors, sources) {
          TilesetFormat = format;
          var tileSize = format.BitsPerPixel * 8;
          var uncompressedSize = data.ReadMultiByteValue(start + 1, 3);
@@ -43,6 +43,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tilesetFormat = default;
          if (!(format.StartsWith("`lzt") && format.EndsWith("`"))) return false;
          format = format.Substring(4, format.Length - 5);
+         bool allowLengthErrors = false;
+         if (format.EndsWith("!")) {
+            format = format.Substring(0, format.Length - 1);
+            allowLengthErrors = true;
+         }
 
          // parse the paletteHint
          string hint = null;
@@ -61,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          if (!int.TryParse(format, out int bits)) return false;
-         tilesetFormat = new TilesetFormat(bits, -1, maxTiles, hint);
+         tilesetFormat = new TilesetFormat(bits, -1, maxTiles, hint, allowLengthErrors);
          return true;
       }
 

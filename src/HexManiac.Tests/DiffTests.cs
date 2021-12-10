@@ -9,9 +9,10 @@ using Xunit;
 namespace HavenSoft.HexManiac.Tests {
    public class DiffTests {
       private readonly EditorViewModel editor;
+      private readonly StubFileSystem fs = new StubFileSystem();
 
       public DiffTests() {
-         editor = new EditorViewModel(new StubFileSystem(), InstantDispatch.Instance);
+         editor = new EditorViewModel(fs, InstantDispatch.Instance);
          editor.Open.Execute(new LoadedFile("Left.gba", new byte[0x200]));
          editor.Open.Execute(new LoadedFile("Right.gba", new byte[0x200]));
          ViewModel0.Width = 16;
@@ -300,6 +301,23 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Open.Execute(new LoadedFile("file2.gba", new byte[0x1000]));
 
          Assert.Equal(1, notifyCount);
+      }
+
+      [Theory]
+      [InlineData(0)]
+      [InlineData(1)]
+      public void TwoTabsSameModel_SaveAsTab_OtherTabClosed(int tabToEdit) {
+         fs.RequestNewName = (_, _, _) => "new.gba";
+         fs.Save = _ => true;
+         ViewModel1.Close.Execute();
+         ViewModel0.Duplicate();
+         var viewport = (IEditableViewPort)editor[tabToEdit];
+
+         viewport.Edit("@00 01 ");
+         viewport.SaveAs.Execute(fs);
+
+         Assert.Single(editor);
+         Assert.True(editor.ShowMessage);
       }
 
       // TODO Can I use this pointer information to then show diffs between dynamic addresses?

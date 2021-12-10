@@ -481,6 +481,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
             Model.ResetChanges();
+            RequestCloseOtherViewports?.Invoke(this, Model);
          }
       }
 
@@ -782,6 +783,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<string> OnMessage;
       public event EventHandler ClearMessage;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
+      public event EventHandler<IDataModel> RequestCloseOtherViewports;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;

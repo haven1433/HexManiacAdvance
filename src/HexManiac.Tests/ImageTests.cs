@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -833,6 +834,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("^graphics.test`lzs4x2x2`", ViewPort.AnchorText);
          Assert.Empty(Errors);
       }
+
       [Fact]
       public void TwoImages_Copy_ClipBoardContainsSpriteData() {
          var filesystem = new StubFileSystem();
@@ -846,6 +848,40 @@ namespace HavenSoft.HexManiac.Tests {
          var copiedData = filesystem.CopyText.value;
          var expectedData = $"^sprite1`ucs4x1x1` {emptyBlock} ^sprite2`ucs4x1x1` {emptyBlock}";
          Assert.Equal(expectedData, copiedData);
+      }
+
+      [Fact]
+      public void TilemapFormat_CreateNewTilemap_DataIsLargeEnoughForManyTiles() {
+         var (tileWidth, tileHeight, bytesPerTile) = (32, 24, 2);
+         var format = new TilemapFormat(4, tileWidth, tileHeight, string.Empty);
+         var strategy = new LzTilemapRunContentStrategy(format);
+
+         var newRun = (LzTilemapRun)strategy.WriteNewRun(Model, Token, default, 0, default, default);
+
+         Assert.Equal(bytesPerTile, newRun.BytesPerTile);
+         Assert.Equal(tileWidth * tileHeight * bytesPerTile, newRun.DecompressedLength);
+      }
+
+      const string Ruby_240C3C = "10 C0 07 00 33 00 00 F0 01 90 01 FF FF F0 01 90 01 00 88 88 88 88 28 27 22 22 80 10 03 78 77 77 77 C8 AA AA 48 9A 00 03 AA D8 10 03 DD DD DD 98 10 1F 22 22 30 01 00 1E 77 99 99 28 99 7C 10 03 9A 00 03 DD CC CC 7F 7C D0 1F 10 01 10 13 20 08 00 53 F0 1F 70 1F 00 22 22 72 77 66 66 66 66 7F E6 00 67 F0 03 30 03 10 1F 00 06 F0 01 40 01 E2 F0 1F F0 1F 00 A7 6C DD CD 00 03 DD AF 10 03 CD 00 03 DD 60 03 F0 9F 90 9F 50 BF 21 72 82 10 03 77 77 87 87 10 03 C0 00 12 20 07 32 33 83 87 11 B1 00 BB BB 11 AB AA AA B1 4A 10 44 44 B1 01 33 AB 44 44 44 C2 50 03 10 0F BB BB BB 2B 00 06 BA BF 00 0E B4 50 07 50 03 10 0F F1 B1 F0 01 F0 01 C2 70 01 11 B3 E8 BB BB 9B 00 03 AB 8B 20 03 EE EE DE 00 03 2E 20 07 00 0F 81 F1 B3 CC 7C 2E DE D2 72 01 0B 41 7C 01 EA 7C E8 E2 E2 E2 11 E7 D4 21 EF 80 03 28 00 B8 28 00 FF E2 D2 ED 70 2B 00 16 10 03 7D 10 03 00 1E 7B 00 1E 79 72 10 5F D2 33 90 53 F0 7F CC 7C 90 53 A1 91 EB 76 00 2B E6 EE EE EE 10 07 7D D6 00 07 10 0B 91 CB 10 4B 00 12 EE 40 07 77 7E 10 03 F0 1F 30 1F E7 00 07 10 03 91 EB AB 00 16 67 00 12 6E 40 07 6D 40 0B 21 EF FA 51 FF D0 0B 51 EF 11 EB B0 0B 77 10 0B 88 FF D1 EF D0 0F D1 EF F1 FF F0 01 F0 01 F0 01 50 01 E6 61 F7 00 03 F3 BF DD DD 91 B3 F1 8B CC 7F 7C 11 E3 10 03 10 3B 51 F3 90 13 11 E3 51 E7 FF 51 F3 90 13 F2 33 B0 3F F2 33 B0 3F 51 E7 50 03 97 51 FB 76 EE 21 5E 88 01 E2 01 E7 10 03 F7 31 EF 51 E3 20 1C 00 01 E7 01 E4 20 03 41 EF F0 D0 1F 51 E7 50 03 51 FB 88 78 EE 67 8E 00 1E 78 11 11 70 01 11 F7 D0 0F 33 1A 33 33 83 50 03 00 0E 82 00 16 81 FF 50 03 10 0F F1 FF F1 FF F1 FF F1 FF F0 01 F0 01 FF F0 01 01 FF F3 BF F3 BF F3 BF 61 8B 00 D7 60 01 FE F0 FF F0 0F D0 0F F0 FF 00 07 05 0B 15 13 22 1F B2 BB BB F0 FF 70 0B 15 1B F0 7F E1 7F F0 F0 1F F0 1F F0 1F 70 1F 12 33 33 23 73 11 00 06 F0 BF F0 0F 22 38 00 2C 90 03 FC D1 EF F1 FF F0 FF F1 FF F0 FF F1 FF";
+
+      [Fact]
+      public void TilesetWithLengthError_AddTilesetFormatAllowingLengthErrors_CanCreateMetadata() {
+         ViewPort.Edit(Ruby_240C3C);
+
+         ViewPort.Edit("@00 ^tileset`lzt4!` ");
+
+         Assert.Empty(Errors);
+         Assert.IsType<LzTilesetRun>(Model.GetNextRun(0));
+      }
+
+      [Fact]
+      public void TilesetWithLengethError_ErrorMessage_MakesSense() {
+         ViewPort.Edit(Ruby_240C3C);
+
+         ViewPort.Edit("@00 ^tileset`lzt4` "); // this should produce an error
+
+         Assert.Single(Errors);
+         Assert.Equal("Decompressed more bytes than expected. Add a ! to override this.", Errors[0]);
       }
 
       private void WriteCompressedData(int start, int length) {

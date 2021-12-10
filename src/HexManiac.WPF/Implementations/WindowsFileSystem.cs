@@ -74,7 +74,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void LaunchProcess(string file) {
          try {
             file = Path.GetFullPath(file);
-            Process.Start(file);
+            var info = new ProcessStartInfo { FileName = file, UseShellExecute = true };
+            Process.Start(info);
          } catch (System.ComponentModel.Win32Exception) {
             var nl = Environment.NewLine;
             var path = Path.GetFileName(file);

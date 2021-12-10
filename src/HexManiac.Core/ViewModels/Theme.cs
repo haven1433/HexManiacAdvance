@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -199,6 +200,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var (red, green, blue) = rgb;
          return $"#{red:X2}{green:X2}{blue:X2}";
       }
+
+      public static bool TryParseHex(this string hex, out int result) => int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result);
 
       public static (byte, byte, byte) ToRgb(this (double hue, double sat, double bright) hsb) => Theme.FromHSB(hsb.hue, hsb.sat, hsb.bright);
    }

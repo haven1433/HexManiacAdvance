@@ -282,7 +282,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   result.AddRange(nop);
                }
             } else if (DeferredLoadRegisterToken.IsEndOfSection(line) && inlineWords.Count > 0) {
-               if (result.Count % 4 != 0) result.AddRange(nop);
+               if ((result.Count + start) % 4 != 0) result.AddRange(nop);
                while (inlineWords.Count > 0) {
                   var token = inlineWords.Dequeue();
                   result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
@@ -323,6 +323,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          } else if (line.StartsWith("push ") && line.Contains(",lr}")) {
             line = line.Replace("push ", "push lr, ");
             line = line.Replace(",lr}", "}");
+         }
+
+         // patch `add r0, r1` to `add r0, r0, r1` (+= instruction is only allowed if one of the registers is high)
+         var tokens = line.Replace(',', ' ').Split(' ', StringSplitOptions.RemoveEmptyEntries);
+         if (tokens[0] == "add" && tokens.Length == 3 && tokens.Skip(1).All(token => token.StartsWith("r"))) {
+            var r = tokens.Skip(1).Select(token => int.TryParse(token.Substring(1), out var index) ? index : -1).ToArray();
+            if (r.All(i => i >= 0 && i < 8)) {
+               // we need to patch this one
+               line = $"add r{r[0]}, r{r[0]}, r{r[1]}";
+            }
          }
 
          return line;

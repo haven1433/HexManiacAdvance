@@ -1,0 +1,106 @@
+# Add item effect for changing pokemon secondary types.
+# FireRed Only
+# After running this script:
+#   Set item effect -> 0x43=67
+#   Set effect parameter -> index of the type you want
+
+# Adds this code, approximately, to the switch-in item check:
+#        case HOLD_EFFECT_CHANGE_TYPE:
+#            gBattleMons[battlerId].type2 = battlerHoldEffectParam
+#            break;
+
+# Adds this code, appriximately, to the summary screen:
+#        if (data.items.stats[heldItem].effect == HOLD_EFFECT_CHANGE_TYPE)
+#            sMonSumaryScreen->unk3220[1] = data.items.stats[heldItem].param;
+
+
+# The main routine: check items on switch in for the new effect (0x43)
+
+@thumb.battle_util.item_effets.switch_in.cases(44) .thumb
+    cmp   r5, #23
+    beq   <restore_stats>
+    cmp   r5, #32
+    beq   <double_money>
+    cmp   r5, 0x43   @ the new value for type-changing items
+    beq   <type_change>
+    ldr   r0, =<01CFA7>
+    bx    r0
+restore_stats:
+    ldr   r0, =<01BD95>
+    bx    r0
+double_money:
+    ldr   r0, =<01BD81>
+    bx    r0
+type_change:
+    ldr   r1, [pc, <gBattleMons>]
+    mov   r8, r1
+    mov   r0, #88      @ sizeof(BattlePokemon)
+    mov   r1, r7
+    mul   r1, r0
+    mov   r0, r8       @ gBattleMons
+    add   r1, r1, r0   @ [battlerId]
+    add   r1, #0x22    @ .type2
+    mov   r0, r9       @ = battlerHoldEffectParam;
+    strb  r0, [r1, #0] @ gBattleMons[battlerId].type2 = battlerHoldEffectParam;
+    ldr   r0, =<01CFA7>
+    bx    r0
+gBattleMons:
+    .word 0x02023BE4
+.end
+
+@01BD74 .thumb
+    ldr r0, =<thumb.battle_util.item_effets.switch_in.cases>
+    add r0, #1
+    bx  r0
+.end
+
+
+# summary screen routine: shows the right type based on hold item
+
+@thumb.pokemon_summary_screen.sub_81360D4.set_types(50) .thumb
+    push  {lr, r4-r6}        @ r4 = dexNum
+    ldr   r6, [r6, #0]       @ r6 = sMonSummaryScreen
+    ldr   r5, =0x3290        @ currentMon
+    add   r0, r6, r5         @ sMonSummaryScreen->currentMon
+    mov   r1, #12            @ Held_Item
+    ldr   r2, =0x0803FBE8
+    bl    <long_branch_link> @ r0 = GetMonData( , )
+    ldr   r1, =0x3220
+    ldr   r3, =<data.pokemon.stats>
+    mov   r2, #28
+    mul   r2, r4
+    add   r3, r3, r2         @ r3 = gBaseStats[dexNum]
+    ldrb  r2, [r3, #6]
+    strb  r2, [r6, r1]       @ sMonSummaryScreen->unk3220[0] = gBaseStats[dexNum].type1
+    ldrb  r2, [r3, #7]
+    add   r1, #1
+    strb  r2, [r6, r1]       @ sMonSummaryScreen->unk3220[1] = gBaseStats[dexNum].type2
+    mov   r2, #44
+    mul   r2, r0
+    ldr   r0, =<data.items.stats>
+    add   r0, r0, r2         @ r0 = data.items.stats[heldItem]
+    ldrb  r2, [r0, #18]      @ r2 = data.items.stats[heldItem].holdeffect
+    cmp   r2, #0x43          @ the new value for type-changing items
+    bne   end
+secondary_type_from_item_param:
+    ldrb  r2, [r0, #19]      @ r2 = data.items.stats[heldItem].param
+    strb  r2, [r6, r1]       @ sMonSumaryScreen->unk3220[1] = data.items.stats[heldItem].param
+end:
+    pop {pc, r4-r6}
+long_branch_link:
+    add r2, #1
+    bx  r2
+.end
+
+@13617C .thumb
+    mov   r1, r4
+    bl    <040FD0>
+    bl    <long_branch_link>
+    b     <1361A0>
+long_branch_link:
+    ldr   r0,  =<thumb.pokemon_summary_screen.sub_81360D4.set_types>
+    add   r0, #1
+    bx    r0
+.end
+
+@136194 FFFFFFFF FFFFFFFF FFFFFFFF
