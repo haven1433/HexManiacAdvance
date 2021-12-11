@@ -27,12 +27,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // TODO when expanding pokedex, make sure that the new data.pokedex.count constant actually gets updated...
          // TODO update pokedex search alpha?
          // TODO update pokedex search type?
-         // TODO pokemon sprite/palette index doesn't update automatically
+         // TODO pokemon sprite/palette index should update automatically
          // TODO update length of cry tables automatically when expanding pokemon?
+
+         // increase number of caught/seen flags for pokedex
+         var freespace = UpdatePokedexFlagsCode(viewPort, token);
 
          // update constants and allow for automatic code updates when the number of pokemon changes
          var pokecount = UpdateConstants(viewPort, token);
-         var loadPokeCountFunctions = AddPokemonThumbConstantCode(viewPort, token, pokecount);
+         var loadPokeCountFunctions = AddPokemonThumbConstantCode(viewPort, token, pokecount, freespace);
          UpdatePokemonThumbConstants(viewPort, token, loadPokeCountFunctions);
 
          // update constant and allow for automatic code updates when the size of the pokedex changes
@@ -43,11 +46,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // fix the really stupid table-index switch of PlayCryInternal
          UpdatePlayCryInternal(viewPort, token);
 
-         // still have 0xA4 free bytes at 157878
-         // still have 0x98 free at 072108
+         // still have 0x98 free at 072108 (UpdatePlayCryInternal)
+         // still have 0x20 free at 0549B4 (UpdatePokedexFlagsCode)
+         // still have 0x18 free at 104BA4 (UpdatePokedexFlagsCode, AddPokemonThumbConstantCode)
 
-         // cleanup: can we use the reclaimed space from the PlayCryInternal function to fit all the new code we need?
-         // instead of having to move the 0xF0 length switch table from 0x15782C?
+         // TODO still need to update hall-of-fame data
+
          return ErrorInfo.NoError;
       }
 
@@ -70,21 +74,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return pokecount;
       }
 
-      private int AddPokemonThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int pokecount) {
+      private int AddPokemonThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int pokecount, int freespace) {
          var model = viewPort.Model;
 
-         // 15782C, for 0xF0 bytes, is a switch-statement table. We can move the switch table to reclaim this space for new values
-         var originalSwitchTableStart = 0x15782C;
-         var switchTable = new byte[0xF0];
-         model.ClearFormat(token, originalSwitchTableStart - 4, switchTable.Length + 4);
-         Array.Copy(model.RawData, originalSwitchTableStart, switchTable, 0, switchTable.Length);
-         var newSwitchTableStart = model.FindFreeSpace(model.FreeSpaceStart, 0xF0);
-         token.ChangeData(model, newSwitchTableStart, switchTable);
-         for (int i = 0; i < switchTable.Length; i++) switchTable[i] = 0xFF;
-         token.ChangeData(model, originalSwitchTableStart, switchTable);
-         model.WritePointer(token, originalSwitchTableStart - 4, newSwitchTableStart);
-
-         var newCode = viewPort.Tools.CodeTool.Parser.Compile(token, model, originalSwitchTableStart,
+         var newCode = viewPort.Tools.CodeTool.Parser.Compile(token, model, freespace,
             "ldr r0, [pc, <pokecount>]", // 0
             "bx  lr",
             "ldr r1, [pc, <pokecount>]", // 4
@@ -113,18 +106,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             "pokecountMinusTwo: .word 0",                       // 52
             "pokecountMinusTwoShiftToHighBits: .word 0"         // 56
             ).ToArray();
-         token.ChangeData(model, originalSwitchTableStart, newCode);
+         token.ChangeData(model, freespace, newCode);
          int wordOffset = 48;
 
-         model.WriteMultiByteValue(originalSwitchTableStart + wordOffset, 4, token, pokecount);
-         model.WriteMultiByteValue(originalSwitchTableStart + wordOffset + 4, 4, token, pokecount - 2);
-         model.WriteMultiByteValue(originalSwitchTableStart + wordOffset + 8, 4, token, (pokecount - 2) << 16);
+         model.WriteMultiByteValue(freespace + wordOffset, 4, token, pokecount);
+         model.WriteMultiByteValue(freespace + wordOffset + 4, 4, token, pokecount - 2);
+         model.WriteMultiByteValue(freespace + wordOffset + 8, 4, token, (pokecount - 2) << 16);
 
-         model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset, "data.pokemon.count", 2, 0, 1));
-         model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset + 4, "data.pokemon.count", 2, -2, 1));
-         model.ObserveRunWritten(token, new WordRun(originalSwitchTableStart + wordOffset + 10, "data.pokemon.count", 2, -2, 1));
+         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset, "data.pokemon.count", 2, 0, 1));
+         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset + 4, "data.pokemon.count", 2, -2, 1));
+         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset + 10, "data.pokemon.count", 2, -2, 1));
 
-         return originalSwitchTableStart;
+         return freespace;
       }
 
       private void UpdatePokemonThumbConstants(IEditableViewPort viewPort, ModelDelta token, int pokecountFunctionAddress) {
@@ -254,6 +247,126 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // clear 152 bytes after that are no longer needed
          viewPort.Model.ClearFormatAndData(token, scriptStart + scriptLength, 152);
+      }
+
+      /// <summary>
+      /// The save file needs to save 1 bit per pokemon to know if it's been caught, and another bit to know if it's been seen.
+      /// These are stored in two arrays in SaveBlock2.
+      /// We want to extend the space allocated for each of those arrays to allow for more pokemon.
+      ///
+      /// This function updates ClearPokedexFlags and sub_8104AB0 to use the new expanded arrays.
+      /// These 0x200 bytes for caught and 0x200 for seen, meaning you can have up to 4096 pokemon without running out of flags.
+      /// </summary>
+      private int UpdatePokedexFlagsCode(IEditableViewPort viewPort, ModelDelta token) {
+         var code_ClearPokedexFlags = @"
+0549AC:
+    push {lr}
+    bl   <104B2C>
+    pop  {pc}
+@ 0x20 bytes free at 0549B4
+";
+
+         var code_sub_8104AB0 = @"
+@ New sub_8104AB0
+@ old location is 0x028 and 0x05C, 0x034 bytes each for owned and seen
+@ new location is 0xB20 and 0xD20, 0x200 bytes each for owned and seen
+104AB0: @ (u16 nationalDexNo, u8 caseId, bool8 indexIsSpecies)
+    push  {r4-r6, lr}
+    mov   r5, r1      @ r5 = caseId
+    cmp   r2, #0
+    beq   <104ABC>
+    bl    <043298>  @ SpeciesToNationalPokedexNum
+104ABC:
+    sub   r0, r0, #1
+    lsr   r4, r0, #3 @ r4 = dexNum/8 (byte offset)
+    mov   r1, #7
+    and   r0, r1     @ r3 = dexNum%8 (bit offset)
+    mov   r6, #1
+    lsl   r6, r0     @ r6 = bit to get/set
+    mov   r0, #0     @ default return value -> 0
+    ldr   r2, [pc, <gSaveBlock2Ptr>]
+    ldr   r2, [r2]
+    add   r2, r4          @ r2 = byte to get/set within the save block. Still needs the start of the array added (0xB20 or 0xD20)
+    cmp   r5, #0
+    beq   <case0> @ get seen
+    cmp   r5, #1
+    beq   <case1> @ get caught
+    cmp   r5, #2
+    beq   <case2> @ set seen
+    cmp   r5, #3
+    beq   <case3> @ set caught
+    b     <after_switch>
+case0: @ FLAG_GET_SEEN
+    mov   r1, #0xD2  @ seen
+    lsl   r1, #4
+    ldrb  r1, [r2, r1]
+    and   r1, r6
+    cmp   r1, #0
+    beq   <after_switch>
+    mov   r0, #1
+    b     <after_switch>
+case1: @ FLAG_GET_CAUGHT
+    mov   r1, #0xB2  @ caught
+    lsl   r1, #4
+    ldrb  r1, [r2, r1]
+    and   r1, r6
+    cmp   r1, #0
+    beq   <after_switch>
+    mov   r0, #1
+    b     <after_switch>
+case2: @ FLAG_SET_SEEN
+    mov   r1, #0xD2  @ seen
+    lsl   r1, #4
+    ldrb  r0, [r2, r1]
+    orr   r0, r6
+    strb  r0, [r2, r1]
+    mov   r0, #0
+    b     <after_switch>
+case3: @ FLAG_SET_CAUGHT
+    mov   r1, #0xD2  @ seen
+    lsl   r1, #4
+    ldrb  r0, [r2, r1]
+    orr   r0, r6
+    strb  r0, [r2, r1]
+    mov   r1, #0xB2  @ caught
+    lsl   r1, #4
+    ldrb  r0, [r2, r1]
+    orr   r0, r6
+    strb  r0, [r2, r1]
+    mov   r0, #0
+after_switch:
+    pop   {r4-r6, pc}
+gSaveBlock2Ptr: 0x0300500C
+new_ClearPokedexFlags: @ 104B2C
+    push  {r4, r5, lr}
+    mov   r4, #80
+    ldr   r5, =0x0300500C @ gSaveBlock2Ptr
+    ldr   r5, [r5]
+    mov   r0, #0xB2
+    lsl   r0, #4
+    add   r0, r5
+    mov   r1, #0
+    lsl   r2, r4, #2
+    bl    <1E5ED8>   @ memset(gSaveBlock2Ptr->0xB20, 0, 0x200) (caught flags)
+    mov   r0, #0xD2
+    lsl   r0, #4
+    add   r0, r5
+    mov   r1, #0
+    lsl   r2, r4, #2
+    bl    <1E5ED8>   @ memset(gSaveBlock2Ptr->0xD20, 0, 0x200) (seen flags)
+    pop   {r4, r5, pc}
+@ 100 spare bytes left
+";
+
+         var model = viewPort.Model;
+         model.ClearFormatAndData(token, 0x0549AC, 0x028);
+         model.ClearFormatAndData(token, 0x104AB0, 0x10C);
+         viewPort.Tools.CodeTool.Parser.Compile(token, model, 0x0549AC, code_ClearPokedexFlags.SplitLines());
+         viewPort.Tools.CodeTool.Parser.Compile(token, model, 0x104AB0, code_sub_8104AB0.SplitLines());
+
+         // 0x20 bytes free at 0x0549B4
+         // 0x64 bytes free at 0x104B58
+         return 0x104B58;
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
