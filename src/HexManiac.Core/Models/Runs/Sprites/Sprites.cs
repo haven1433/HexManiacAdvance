@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          } else if (spriteTable != null) {
             // option 5: this sprite is in an array, so get all palettes in all related arrays
             if (spriteTable is ArrayRun arrayRun) {
-               foreach (var relatedTable in model.GetRelatedArrays(arrayRun)) {
+               foreach (var relatedTable in GetLengthSortedRelatedArrays(model, arrayRun)) {
                   if (relatedTable == spriteTable) continue; // skip self, I'll handle my own relation later
                   results.AddRange(model.GetPointedChildren<IPaletteRun>(relatedTable, offset.ElementIndex));
                }
@@ -201,7 +201,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
                // find all sprites within tables of the same length that reference this table or reference nothing at all
                if (tableRun is ArrayRun arrayRun) {
-                  foreach (var table in model.GetRelatedArrays(arrayRun)) {
+                  foreach (var table in GetLengthSortedRelatedArrays(model, arrayRun)) {
                      var elementOffset = table.ElementLength * offset.ElementIndex;
                      foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
                         if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
@@ -314,6 +314,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          return results;
+      }
+
+      /// <summary>
+      /// Returns all related arrays, sorted with the longer anchor names first.
+      /// This unusual strategy allows 'front' before 'back' and 'normal' before 'shiny'.
+      /// </summary>
+      public static List<ArrayRun> GetLengthSortedRelatedArrays(IDataModel model, ArrayRun arrayRun) {
+         var relatedArrays = model.GetRelatedArrays(arrayRun).ToList();
+
+         // sort by name length
+         relatedArrays.Sort((a, b) => model.GetAnchorFromAddress(-1, b.Start).Length - model.GetAnchorFromAddress(-1, a.Start).Length);
+
+         return relatedArrays;
       }
    }
 }
