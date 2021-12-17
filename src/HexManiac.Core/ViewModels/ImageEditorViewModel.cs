@@ -431,8 +431,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteRun = inputRun as ISpriteRun;
          var palRun = inputRun as IPaletteRun;
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
-         if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
-         if (palRun == null) palRun = model.GetNextRun(toolPaletteAddress) as IPaletteRun;
+         if (palRun == null && spriteRun.SpriteFormat.BitsPerPixel > 2) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
+         if (palRun == null && spriteRun.SpriteFormat.BitsPerPixel > 2) palRun = model.GetNextRun(toolPaletteAddress) as IPaletteRun;
          SpritePointer = spriteRun.PointerSources[0];
          PalettePointer = palRun?.PointerSources[0] ?? Pointer.NULL;
          Palette = new PaletteCollection(this, model, history) {
