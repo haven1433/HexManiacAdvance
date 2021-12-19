@@ -35,6 +35,21 @@ Name = '''egggroups'''
 ]
 
 [[List]]
+Name = '''terrains'''
+0 = [
+    '''grass''',
+    '''long grass''',
+    '''sand''',
+    '''underwater''',
+    '''water''',
+    '''pond water''',
+    '''rock''',
+    '''cave''',
+    '''building''',
+    '''plain''',
+]
+
+[[List]]
 Name = '''growthrates'''
 0 = [
    '''Medium Fast''',
