@@ -6,29 +6,30 @@ using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class MakePokemonExpandable : IQuickEditItem {
+      private const string PokemonCountConstant = "data.pokemon.count";
+      private const string PokedexCountConstant = "data.pokedex.count";
       public string Name => "Make Pokemon Expandable";
 
       public string Description => "Make it possible to expand the number of pokemon in the game." + Environment.NewLine +
          "Change the game's code to make the Egg/Unown pokemon IDs update as new pokemon are added." + Environment.NewLine +
-         "TODO Update Hall-of-Fame data to allow 16 bits per pokemon." + Environment.NewLine +
-         "Add additional bits for pokedex seen/caught flags for the new pokemon." + Environment.NewLine;
+         "Add additional bits for pokedex seen/caught flags for the new pokemon." + Environment.NewLine +
+         "TODO Update Hall-of-Fame data to allow 16 bits per pokemon." + Environment.NewLine;
 
       public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Pokemon-Expansion-Explained";
 
       public event EventHandler CanRunChanged;
 
-      public bool CanRun(IViewPort viewPort) => true;
+      public bool CanRun(IViewPort viewPort) {
+         if (viewPort.Model.GetGameCode() != "BPRE0") return false;
+         var table = viewPort.Model.GetTable(HardcodeTablesModel.PokemonNameTable);
+         if (table == null || table.ElementCount != 412) return false;
+         if ((viewPort.Model.GetMatchedWords(PokemonCountConstant)?.Count ?? 0) > 0) return false;
+         return true;
+      }
 
       public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var token = viewPort.ChangeHistory.CurrentChange;
-
-         // TODO when expanding pokemon, make sure that the new data.pokemon.count constant actually gets updated...
-         // TODO when expanding pokedex, make sure that the new data.pokedex.count constant actually gets updated...
-         // TODO update pokedex search alpha?
-         // TODO update pokedex search type?
-         // TODO pokemon sprite/palette index should update automatically
-         // TODO update length of cry tables automatically when expanding pokemon?
 
          // increase number of caught/seen flags for pokedex
          var freespace = UpdatePokedexFlagsCode(viewPort, token);
@@ -45,6 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // fix the really stupid table-index switch of PlayCryInternal
          UpdatePlayCryInternal(viewPort, token);
+
+         UpdateOriginalTablesToMatchLengthToConstants(viewPort, token);
 
          // still have 0x98 free at 072108 (UpdatePlayCryInternal)
          // still have 0x20 free at 0549B4 (UpdatePokedexFlagsCode)
@@ -67,9 +70,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          foreach (var address in pokeCount1) model.WriteMultiByteValue(address, 2, token, pokecount - 1);
          foreach (var address in pokeCount2) model.WriteMultiByteValue(address, 2, token, pokecount + 1);
 
-         foreach (var address in pokeCount0) model.ObserveRunWritten(token, new WordRun(address, "data.pokemon.count", 2, 0, 1));
-         foreach (var address in pokeCount1) model.ObserveRunWritten(token, new WordRun(address, "data.pokemon.count", 2, -1, 1));
-         foreach (var address in pokeCount2) model.ObserveRunWritten(token, new WordRun(address, "data.pokemon.count", 2, 1, 1));
+         foreach (var address in pokeCount0) model.ObserveRunWritten(token, new WordRun(address, PokemonCountConstant, 2, 0, 1));
+         foreach (var address in pokeCount1) model.ObserveRunWritten(token, new WordRun(address, PokemonCountConstant, 2, -1, 1));
+         foreach (var address in pokeCount2) model.ObserveRunWritten(token, new WordRun(address, PokemonCountConstant, 2, 1, 1));
 
          return pokecount;
       }
@@ -113,9 +116,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          model.WriteMultiByteValue(freespace + wordOffset + 4, 4, token, pokecount - 2);
          model.WriteMultiByteValue(freespace + wordOffset + 8, 4, token, (pokecount - 2) << 16);
 
-         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset, "data.pokemon.count", 2, 0, 1));
-         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset + 4, "data.pokemon.count", 2, -2, 1));
-         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset + 10, "data.pokemon.count", 2, -2, 1));
+         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset, PokemonCountConstant, 2, 0, 1));
+         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset + 4, PokemonCountConstant, 2, -2, 1));
+         model.ObserveRunWritten(token, new WordRun(freespace + wordOffset + 10, PokemonCountConstant, 2, -2, 1));
 
          return freespace;
       }
@@ -179,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          int wordOffset = 12;
 
          model.WriteMultiByteValue(insertPoint + wordOffset, 4, token, dexCount);
-         model.ObserveRunWritten(token, new WordRun(insertPoint + wordOffset, "data.pokedex.count", 2, 0, 1));
+         model.ObserveRunWritten(token, new WordRun(insertPoint + wordOffset, PokedexCountConstant, 2, 0, 1));
 
          return insertPoint;
       }
@@ -188,7 +191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var countMinusOne = new[] { 0x088EA4, 0x1037D4, 0x103870, 0x103920, 0x104C28 };
          foreach (var address in countMinusOne) {
             viewPort.Model.WriteMultiByteValue(address, 2, token, dexCount - 1);
-            viewPort.Model.ObserveRunWritten(token, new WordRun(address, "data.pokedex.count", 2, -1, 1));
+            viewPort.Model.ObserveRunWritten(token, new WordRun(address, PokedexCountConstant, 2, -1, 1));
          }
 
          var model = viewPort.Model;
@@ -367,6 +370,22 @@ new_ClearPokedexFlags: @ 104B2C
          // 0x20 bytes free at 0x0549B4
          // 0x64 bytes free at 0x104B58
          return 0x104B58;
+      }
+
+      private void UpdateOriginalTablesToMatchLengthToConstants(IEditableViewPort viewPort, ModelDelta token) {
+         UpdateLength(HardcodeTablesModel.PokemonNameTable, PokemonCountConstant, viewPort.Model, token);
+         UpdateLength(HardcodeTablesModel.DexInfoTableName, PokedexCountConstant, viewPort.Model, token);
+      }
+
+      private void UpdateLength(string tableName, string lengthConstant, IDataModel model, ModelDelta token) {
+         var table = model.GetTable(tableName);
+         if (table == null) return;
+         var originalFromat = table.FormatString;
+         var newFormat = originalFromat.Substring(0, originalFromat.LastIndexOf("]") + 1);
+         newFormat += lengthConstant;
+         if (!ArrayRun.TryParse(model, newFormat, table.Start, table.PointerSources, out var newPokedex).HasError) {
+            model.ObserveRunWritten(token, newPokedex);
+         }
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
