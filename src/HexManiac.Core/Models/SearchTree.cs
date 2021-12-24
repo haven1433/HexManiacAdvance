@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// Unlike a SortedDictionary<>, you can get a value using a key that's not in the dictionary.
    /// In such a case, you get the value with the _next_ start position.
    /// </summary>
-   public class SearchTree<T> where T : class, ISearchTreePayload {
+   public class SearchTree<T> : IEnumerable<T> where T : class, ISearchTreePayload {
       public const int LEFT = 0, RIGHT = 1;
       private TreeNode<T> root;
 
@@ -35,6 +35,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public void Remove(int start) {
          if (TreeNode.Remove(ref root, start)) Count--;
+      }
+
+      public void Clear() {
+         root = null;
+         Count = 0;
       }
 
       public SearchPath this[int index] {
@@ -57,6 +62,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public T this[SearchPath path] => path.Element;
+
       private IList<TreeNode<T>> GetNodesOnPath(IEnumerable<int> path) {
          var results = new List<TreeNode<T>>();
          var node = root;
@@ -69,6 +76,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          return results;
       }
+
+      public IEnumerator<T> GetEnumerator() {
+         foreach (var node in root) yield return node.Payload;
+      }
+
+      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
       public class SearchPath {
          private readonly SearchTree<T> tree;
@@ -84,6 +97,25 @@ namespace HavenSoft.HexManiac.Core.Models {
             Element = element;
             this.directions = directions;
          }
+
+         #region operators
+
+         public static bool operator >=(SearchPath path, int index) {
+            if (index == 0) return path.HasElement;
+            throw new NotImplementedException();
+         }
+         public static bool operator <=(SearchPath path, int inedx) {
+            throw new NotImplementedException();
+         }
+         public static bool operator <(SearchPath path, int index) {
+            if (index == 0) return !path.HasElement;
+            throw new NotImplementedException();
+         }
+         public static bool operator >(SearchPath path, int index) {
+            throw new NotImplementedException();
+         }
+
+         #endregion
 
          private TreeNode<T> GetPrevious() {
             var path = tree.GetNodesOnPath(directions);
