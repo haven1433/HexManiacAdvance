@@ -335,6 +335,25 @@
 
             <StackPanel Orientation="Horizontal"
                   Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}"
+                  Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.TilePalette}}">
+               <StackPanel.Resources>
+                  <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                     <Setter Property="Width" Value="30"/>
+                     <Setter Property="Height" Value="30"/>
+                     <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                     <Setter Property="VerticalContentAlignment" Value="Center"/>
+                  </Style>
+               </StackPanel.Resources>
+               <RadioButton IsChecked="{Binding TilePalettePaint, Converter={StaticResource EqualityCheck}, ConverterParameter={StaticResource False}}">
+                  <Path Data="{hshmwpfr:Icon Pencil}"/>
+               </RadioButton>
+               <RadioButton IsChecked="{Binding TilePalettePaint}">
+                  <Path Data="{hshmwpfr:Icon FillBucket}"/>
+               </RadioButton>
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal"
+                  Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}"
                   Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.Select}}">
                <StackPanel.Resources>
                   <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

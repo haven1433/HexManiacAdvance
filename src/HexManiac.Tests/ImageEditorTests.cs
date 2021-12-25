@@ -1456,6 +1456,34 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(13, 13)]);
       }
+
+      [Fact]
+      public void Tilemap_PaintSameTileWithTilePaletteTool_NoTilesChanged() {
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+         editor.TilePalettePaint = true;
+         editor.PalettePage = 0;
+
+         editor.ToolDown(-4, -4);
+         editor.ToolUp(-4, -4);
+
+         var mapData = LZRun.Decompress(model, TilemapStart);
+         var tilePalette = 4.Range().Select(i => LzTilemapRun.ReadTileData(mapData, i, 2).paletteIndex).ToList();
+         Assert.Equal(new[] { 2, 2, 3, 3 }, tilePalette);
+      }
+
+      [Fact]
+      public void Tilemap_PaintDifferentTileWithTilePaletteTool_TilesChanged() {
+         editor.SelectedTool = ImageEditorTools.TilePalette;
+         editor.TilePalettePaint = true;
+         editor.PalettePage = 1;
+
+         editor.ToolDown(-4, -4);
+         editor.ToolUp(-4, -4);
+
+         var mapData = LZRun.Decompress(model, TilemapStart);
+         var tilePalette = 4.Range().Select(i => LzTilemapRun.ReadTileData(mapData, i, 2).paletteIndex).ToList();
+         Assert.Equal(new[] { 3, 3, 3, 3 }, tilePalette);
+      }
    }
 
    public class ImageEditor8BitTilemapTests : BaseViewModelTestClass {
