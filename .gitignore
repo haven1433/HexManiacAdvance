@@ -2,6 +2,7 @@
 # User-specific files
 *.suo
 *.user
+launchSettings.json
 
 # example binary files
 sampleFiles/

@@ -1122,6 +1122,38 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(tableB.PointerSources);
       }
 
+      [Fact]
+      public void IdTableWithOrderedValues_Append_OrderedValues() {
+         ViewPort.Edit("^table[id:]4 5 6 7 8 ");
+
+         ViewPort.Edit("@table/4 +");
+
+         Assert.Equal(9, Model.GetTable("table").ReadValue(Model, 4));
+      }
+
+      [Fact]
+      public void MatchedIdTableWithExtraEndElements_Append_OrderedValues() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^table1[content:]4 @10 ^table2[id:]table1+2 3 4 5 6 7 8 ");
+
+         ViewPort.Edit("@table1/4 +");
+
+         var table = Model.GetTable("table2");
+         var values = table.ElementCount.Range().Select(i => table.ReadValue(Model, i)).ToArray();
+         Assert.Equal(new[] { 3, 4, 5, 6, 9, 7, 8 }, values);
+      }
+
+      [Fact]
+      public void TableWithOutOfOrderIds_Append_InsertIDs() {
+         ViewPort.Edit("^table[id:]4 5 8 6 7 ");
+
+         ViewPort.Edit("@table/4 +");
+
+         var table = Model.GetTable("table");
+         var values = table.ElementCount.Range().Select(i => table.ReadValue(Model, i)).ToArray();
+         Assert.Equal(new[] { 5, 9, 6, 7, 8 }, values);
+      }
+
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

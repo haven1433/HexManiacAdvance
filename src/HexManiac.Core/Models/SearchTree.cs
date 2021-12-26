@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
 
    public enum TreeColor { Red, Black }
-   public enum AddType { Left, Right, Balanced, Insert }
+   public enum AddType { Left, Right, Balanced, Insert, ReplaceExisting }
    public enum RemoveType { NoRemoval, Balanced, DecreaseBlackCount }
 
    // Red-Black tree rules:
@@ -23,13 +23,142 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// Unlike a SortedDictionary<>, you can get a value using a key that's not in the dictionary.
    /// In such a case, you get the value with the _next_ start position.
    /// </summary>
-   public class SearchTree {
+   public class SearchTree<T> : IEnumerable<T> where T : class, ISearchTreePayload {
+      public const int LEFT = 0, RIGHT = 1;
+      private TreeNode<T> root;
+
+      public int Count { get; private set; }
+
+      public void Add(T element) {
+         if (TreeNode.Add(ref root, element)) Count++;
+      }
+
+      public void Remove(int start) {
+         if (TreeNode.Remove(ref root, start)) Count--;
+      }
+
+      public void Clear() {
+         root = null;
+         Count = 0;
+      }
+
+      public SearchPath this[int index] {
+         get {
+            var directions = new List<int>();
+            for (var node = root; node != null;) {
+               if (index < node.Payload.Start) {
+                  directions.Add(LEFT);
+                  node = node.Left;
+               } else if (node.Payload.Start < index) {
+                  directions.Add(RIGHT);
+                  node = node.Right;
+               } else {
+                  return new SearchPath(this, directions, node.Payload);
+               }
+            }
+
+            // not found
+            return new SearchPath(this, directions);
+         }
+      }
+
+      public T this[SearchPath path] => path.Element;
+
+      private IList<TreeNode<T>> GetNodesOnPath(IEnumerable<int> path) {
+         var results = new List<TreeNode<T>>();
+         var node = root;
+         results.Add(node);
+         foreach (int direction in path) {
+            if (direction == LEFT) node = node.Left;
+            else node = node.Right;
+            if (node == null) break;
+            results.Add(node);
+         }
+         return results;
+      }
+
+      public IEnumerator<T> GetEnumerator() {
+         foreach (var node in root) yield return node.Payload;
+      }
+
+      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+      public class SearchPath {
+         private readonly SearchTree<T> tree;
+         private readonly IList<int> directions;
+
+         public T PreviousElement => GetPrevious().Payload;
+         public T Element { get; }
+         public T NextElement => GetNext().Payload;
+         public bool HasElement => Element != null;
+
+         public SearchPath(SearchTree<T> tree, IList<int> directions, T element = null) {
+            this.tree = tree;
+            Element = element;
+            this.directions = directions;
+         }
+
+         #region operators
+
+         public static bool operator >=(SearchPath path, int index) {
+            if (index == 0) return path.HasElement;
+            throw new NotImplementedException();
+         }
+         public static bool operator <=(SearchPath path, int inedx) {
+            throw new NotImplementedException();
+         }
+         public static bool operator <(SearchPath path, int index) {
+            if (index == 0) return !path.HasElement;
+            throw new NotImplementedException();
+         }
+         public static bool operator >(SearchPath path, int index) {
+            throw new NotImplementedException();
+         }
+
+         #endregion
+
+         private TreeNode<T> GetPrevious() {
+            var path = tree.GetNodesOnPath(directions);
+            if (!HasElement && directions.Last() == RIGHT) return path.Last();
+
+            int checkNodeIndex = path.Count - 1;
+
+            var previous = path[checkNodeIndex].Left;
+            if (previous == null) {
+               while (checkNodeIndex > 0 && path[checkNodeIndex - 1].Left == path[checkNodeIndex]) checkNodeIndex--;
+               if (checkNodeIndex == 0) return null;
+               previous = path[checkNodeIndex - 1].Left;
+            }
+
+            while (previous.Right != null) previous = previous.Right;
+            return previous;
+         }
+
+         private TreeNode<T> GetNext() {
+            var path = tree.GetNodesOnPath(directions);
+            if (!HasElement && directions.Last() == LEFT) return path.Last();
+
+            int checkNodeIndex = path.Count - 1;
+
+            var next = path[checkNodeIndex].Right;
+            if (next == null) {
+               while (checkNodeIndex > 0 && path[checkNodeIndex - 1].Right == path[checkNodeIndex]) checkNodeIndex--;
+               if (checkNodeIndex == 0) return null;
+               next = path[checkNodeIndex - 1].Right;
+            }
+
+            while (next.Left != null) next = next.Left;
+            return next;
+         }
+      }
    }
 
    public static class TreeNode {
       public static TreeNode<T> From<T>(T element) where T : ISearchTreePayload => new TreeNode<T>(element);
-      public static void Add<T>(ref TreeNode<T> node, T element) where T : ISearchTreePayload => TreeNode<T>.Add(ref node, element);
-      public static void Remove<T>(ref TreeNode<T> node, int key) where T : ISearchTreePayload => TreeNode<T>.Remove(ref node, key);
+      /// <returns>True if the size of the collection grew.</returns>
+      public static bool Add<T>(ref TreeNode<T> node, T element) where T : ISearchTreePayload => TreeNode<T>.Add(ref node, element) != AddType.ReplaceExisting;
+      /// <returns>True if a node was actually removed.</returns>
+      public static bool Remove<T>(ref TreeNode<T> node, int key) where T : ISearchTreePayload => TreeNode<T>.Remove(ref node, key) != RemoveType.NoRemoval;
       public static void RotateRight<T>(ref TreeNode<T> node) where T : ISearchTreePayload {
          var newRoot = node.Left;
          node.Left = newRoot.Right;
@@ -102,8 +231,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          var start = insert.Payload.Start;
          if (node == null || node.Payload.Start == start) {
             if (balance) insert.Color = node?.Color ?? TreeColor.Red;
+            var addType = balance ? AddType.Insert : AddType.Balanced;
+            if (node != null) addType = AddType.ReplaceExisting;
+            insert.Left = node?.Left;
+            insert.Right = node?.Right;
             node = insert;
-            return balance ? AddType.Insert : AddType.Balanced;
+            return addType;
          } else if (start < node.Payload.Start) {
             return AddChild(ref node, insert, LEFT, balance);
          } else if (node.Payload.Start < start) {
@@ -116,6 +249,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static AddType AddChild(ref TreeNode<T> parent, TreeNode<T> insert, int direction, bool balance) {
          var other = 1 - direction;
          var addMethod = Add(ref parent.children[direction], insert, balance);
+         if (addMethod == AddType.ReplaceExisting) return addMethod;
          if (addMethod == AddType.Insert) return (AddType)direction;
          var (node, sibling) = (parent.children[direction], parent.children[other]);
          if (addMethod != AddType.Balanced) {

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public interface IFormattedRun {
+   public interface IFormattedRun : ISearchTreePayload {
       int Start { get; }
       int Length { get; }
       SortedSpan<int> PointerSources { get; }
