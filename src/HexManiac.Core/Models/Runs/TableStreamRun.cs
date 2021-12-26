@@ -186,6 +186,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int segmentOffset = 0;
             for (int j = 0; j < ElementContent.Count; j++) {
                var data = j < tokens.Count ? tokens[j] : string.Empty;
+               if (j == ElementContent.Count - 1 && tokens.Count > ElementContent.Count) data += " " + " ".Join(tokens.Skip(j + 1));
                if (ElementContent[j].Write(model, token, start + segmentOffset, ref data)) changedAddresses.Add(start + segmentOffset);
                if (data.Length > 0) tokens.Insert(j + 1, data);
                segmentOffset += ElementContent[j].Length;

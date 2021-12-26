@@ -713,11 +713,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.StartsWith("pc")) line = "r15" + line.Substring(2);
                if (line[0] != 'r') return false;
                var name = "r" + template[1];
-               var instruction = instructionParts.Single(i => i.Name == name);
-               var index = instructionParts.IndexOf(instruction);
                if (int.TryParse(line.Split(',', ']')[0].Substring(1), out int value)) {
-                  registerValues[index] = value;
                   if (value > 7 && !instructionParts.Any(part => part.Type == InstructionArgType.HighRegister)) return false;
+                  for (int index = 0; index < instructionParts.Count; index++) {
+                     var instruction = instructionParts[index];
+                     if (instruction.Name != name) continue;
+                     registerValues[index] = value;
+                  }
                }
                template = template.Substring(2);
                var register = "r" + value;

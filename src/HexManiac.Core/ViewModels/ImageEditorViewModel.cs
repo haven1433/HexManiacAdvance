@@ -290,6 +290,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ObservableCollection<int> TilePalettes { get; } = new ObservableCollection<int>();
 
+      public bool TilePalettePaint { get; set; }
+
       private void RefreshTilePalettes() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          if (!(model.GetNextRun(spriteAddress) is ITilemapRun tilemapRun)) return;
@@ -431,8 +433,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var spriteRun = inputRun as ISpriteRun;
          var palRun = inputRun as IPaletteRun;
          if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
-         if (palRun == null) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
-         if (palRun == null) palRun = model.GetNextRun(toolPaletteAddress) as IPaletteRun;
+         if (palRun == null && spriteRun.SpriteFormat.BitsPerPixel > 2) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
+         if (palRun == null && spriteRun.SpriteFormat.BitsPerPixel > 2) palRun = model.GetNextRun(toolPaletteAddress) as IPaletteRun;
          SpritePointer = spriteRun.PointerSources[0];
          PalettePointer = palRun?.PointerSources[0] ?? Pointer.NULL;
          Palette = new PaletteCollection(this, model, history) {
@@ -1337,7 +1339,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public TilePaletteTool(ImageEditorViewModel parent) => this.parent = parent;
 
-         public void ToolDown(Point screenPosition, bool altBehavior) => ToolDrag(screenPosition);
+         public void ToolDown(Point screenPosition, bool altBehavior) {
+            if (parent.TilePalettePaint) Paint(screenPosition);
+            else ToolDrag(screenPosition);
+         }
 
          public void ToolDrag(Point screenPosition) {
             var point = parent.ToSpriteSpace(screenPosition);
@@ -1375,6 +1380,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void ToolUp(Point screenPosition) { }
+
+         private void Paint(Point screenPosition) {
+            var point = parent.ToSpriteSpace(screenPosition);
+            var rowNumber = point.Y / 8;
+            var colNumber = point.X / 8;
+            if (!parent.WithinImage(point)) return;
+            var lineTileWidth = parent.PixelWidth / 8;
+            var lineTileHeight = parent.PixelHeight / 8;
+            var originalTileIndex = rowNumber * lineTileWidth + colNumber;
+            var paletteAddress = parent.model.ReadPointer(parent.PalettePointer);
+            var currentSelectedPage = parent.PalettePage;
+            if (parent.model.GetNextRun(paletteAddress) is IPaletteRun paletteRun) currentSelectedPage += paletteRun.PaletteFormat.InitialBlankPages;
+
+            var originalPalette = parent.TilePalettes[originalTileIndex];
+            if (originalPalette == currentSelectedPage) return; // painting a tile with its existing palette is a no-op
+            var queue = new Queue<Point>(new[] { new Point(colNumber, rowNumber) });
+            while (queue.Count > 0) {
+               var p = queue.Dequeue();
+               if (p.X < 0 || p.X >= lineTileWidth || p.Y < 0 || p.Y >= lineTileHeight) continue;
+               var index = p.Y * lineTileWidth + p.X;
+               if (parent.TilePalettes[index] != originalPalette) continue;
+
+               new List<Point> {
+                  p + new Point(1, 0),
+                  p + new Point(-1, 0),
+                  p + new Point(0, -1),
+                  p + new Point(0, 1),
+               }.ForEach(queue.Enqueue);
+
+               parent.TilePalettes[index] = currentSelectedPage;
+            }
+         }
 
          private void RaiseRefreshSelection(int rowNumber, int colNumber) {
             var drawPoint = new Point(colNumber * 8, rowNumber * 8);

@@ -39,6 +39,12 @@ namespace HavenSoft.HexManiac.Tests {
          return root;
       }
 
+      private SearchTree<TestPayload> CreateTestTree(params int[] start) {
+         var tree = new SearchTree<TestPayload>();
+         for (int i = 0; i < start.Length; i++) tree.Add(new TestPayload(start[i], i + 1));
+         return tree;
+      }
+
       private static void AssertNodeEquals(TestTreeNode expected, TestTreeNode actual) {
          if (expected == null) {
             if (actual == null) return;
@@ -560,6 +566,64 @@ namespace HavenSoft.HexManiac.Tests {
          var expected = BlackNode(2);
          Assert.Equal(RemoveType.Balanced, result);
          AssertNodeEquals(expected, root);
+      }
+
+      [Fact]
+      public void NodeWithChildren_ReplaceRoot_StillHaveChilren() {
+         var root = Build("3 (2) (4) 3");
+
+         var expected = Build("3 (2) (4)");
+
+         AssertNodeEquals(expected, root);
+      }
+
+      [Fact]
+      public void SearchTree_GetNodePathToNode_HasNode() {
+         var tree = CreateTestTree(50);
+
+         var path = tree[50];
+
+         Assert.True(path.HasElement);
+         Assert.Equal(1, path.Element.ID);
+      }
+
+      [Fact]
+      public void SearchTree_GetNoneRootNode_HasNode() {
+         var tree = CreateTestTree(50, 51);
+
+         var path = tree[51];
+
+         Assert.True(path.HasElement);
+         Assert.Equal(2, path.Element.ID);
+      }
+
+      [Fact]
+      public void SearchTree_GetStartPastEnd_CanGetPrevious() {
+         var tree = CreateTestTree(50, 51);
+
+         var path = tree[52];
+
+         Assert.False(path.HasElement);
+         Assert.Equal(2, path.PreviousElement.ID);
+      }
+
+      [Fact]
+      public void SearchTree_GetStartBeforeBeginning_CanGetNext() {
+         var tree = CreateTestTree(50, 51);
+
+         var path = tree[0];
+
+         Assert.False(path.HasElement);
+         Assert.Equal(1, path.NextElement.ID);
+      }
+
+      [Fact]
+      public void SearchTree_Remove_Removed() {
+         var tree = CreateTestTree(50, 51);
+
+         tree.Remove(50);
+
+         Assert.Equal(1, tree.Count);
       }
 
       // TODO tests on the SearchTree itself, not just nodes

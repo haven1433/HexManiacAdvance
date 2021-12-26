@@ -5,6 +5,7 @@
 @      r4-r7: easy access variable registers. These can be used with all instructions, and generally store local variables.
 @      r8-r12: hard access variables. High registers cannot be pushed/popped, and cannot be used with most instructions.
 @              these are usually used for 'long term storage' within a function.
+@             r12 is additionally treated as volatile, same as r0-r3 and lr: it's assumed to not be preserved after function calls
 @ sp = r13    The stack pointer. Pushing decreases the value. You can manually subtract more to create extra space for more variables.
 @ lr = r14    bl commands set lr to the current value of pc as part of the branch. This sets you branch 'back' using lr.
 @             If you want to branch within the new function without losing this value, you'll need to store the value to the stack.
@@ -35,6 +36,7 @@ nv=1111  @    never
 @ opcodes and args
 0000000000000000    |     nop                 @ does nothing
 00000 # rm rd       |     lsl   rd, rm, #     @ rd = rm << #
+00000 # rd rd       |     lsl   rd, #         @ rd <<= #
 00001 # rm rd       |     lsr   rd, rm, #     @ rd = rm >> #
 00010 # rm rd       |     asr   rd, rm, #     @ rd = rm >>> #
 0001100 rm rn rd    |     add   rd, rn, rm    @ rd = rn + rm

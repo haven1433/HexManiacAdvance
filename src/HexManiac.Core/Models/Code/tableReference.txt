@@ -52,6 +52,7 @@ graphics.pokemon.sprites.elevation,         032974, 032974, 032974, 032974, 0356
 graphics.pokemon.sprites.footprint,         0917C8, 0917C8, 0917E8, 0917E8, 105E14, 105DEC, 105E8C, 105E64, 0C0DBC, [footprint<`ucs1x2x2`>]data.pokemon.names+1
 graphics.pokemon.sprites.coordinates.front, 00B2BC, 00B2BC, 00B2BC, 00B2BC, 011F4C, 011F4C, 011F60, 011F60, 02DC78, [size. yOffset. unused:]data.pokemon.names+28
 graphics.pokemon.sprites.coordinates.back,  0319A8, 0319A8, 0319A8, 0319A8, 074634, 074634, 074648, 074648, 0A5E8C, [size. yOffset. unused:]data.pokemon.names+28
+graphics.pokemon.sprites.anchor,                  ,       ,       ,       , 12EAE0, 12EAB8, 12EB58, 12EB30,       , [x1. y1. yClose. x2. y2.]data.pokemon.names-1+2 // TODO test with LG and 1.1
 graphics.pokemon.palettes.normal,           040954, 040954, 040974, 040974, 000130, 000130, 000130, 000130, 000130, ^[palette<`lzp4`> index: unused:]data.pokemon.names+28
 graphics.pokemon.palettes.shiny,            04098C, 04098C, 0409AC, 0409AC, 000134, 000134, 000134, 000134, 000134, [palette<`lzp4`> index: unused:]data.pokemon.names+28
 graphics.pokemon.icons.sprites,             099AA0, 099AA0, 099AC0, 099AC0, 000138, 000138, 000138, 000138, 000138, [icon<`ucs4x4x8|graphics.pokemon.icons.index`>]data.pokemon.names+28
@@ -192,8 +193,8 @@ data.pokedex.hoennToNational,          03F888, 03F888, 03F888, 03F888, 043288, 0
 data.pokedex.stats,                    08F508, 08F508, 08F528, 08F528, 088E34, 088E30, 088E48, 088E1C,       , [species""12 height: weight: description1<""> description2<""> unused: pokemonScale: pokemonOffset:|z trainerScale: trainerOffset:|z unused:]
 data.pokedex.stats,                          ,       ,       ,       ,       ,       ,       ,       , 0BFA20, [species""12 height: weight: description<""> unused: pokemonScale: pokemonOffset: trainerScale: trainerOffset: unused:]
 data.pokedex.search.alpha,             08D930, 08D930, 08D950, 08D950, 103694, 10366C, 10370C, 1036E4, 0BCB74, [species:data.pokedex.national]data.pokedex.national
-data.pokedex.search.weight,            08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:data.pokedex.national]386
-data.pokedex.search.size,              08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:data.pokedex.national]386
+data.pokedex.search.weight,            08D9BC, 08D9BC, 08D9DC, 08D9DC, 1037CC, 1037A4, 103844, 10381C, 0BCC00, [species:data.pokedex.national]data.pokedex.national-25
+data.pokedex.search.size,              08DAE4, 08DAE4, 08DB04, 08DB04, 103868, 103840, 1038E0, 1038B8, 0BCD28, [species:data.pokedex.national]data.pokedex.national-25
 data.pokedex.search.type,                    ,       ,       ,       , 103734, 10370C, 1037AC, 103784,       , [species:data.pokemon.names]data.pokedex.national
 data.pokedex.filter.type.options,      092C7C, 092C7C, 092C9C, 092C9C,       ,       ,       ,       , 0C21C8, [empty<""> type<>]data.pokemon.type.names+1
 data.pokedex.filter.type.ids,          092EAC, 092EAC, 092ECC, 092ECC,       ,       ,       ,       , 0C23B4, [type.data.pokemon.type.names]data.pokemon.type.names
@@ -220,7 +221,7 @@ graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 1
 graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
 graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
 graphics.pokemon.type.icons,           3C11B8, 3C1210, 3C11D4, 3C1230,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
-graphics.pokemon.type.index,           0A1A2C, 0A1A2C, 0A1A4C, 0A1A4C,       ,       ,       ,       , 1C439C, [index.]data.pokemon.type.names+5
+graphics.pokemon.type.index,           0A1A2C, 0A1A2C, 0A1A4C, 0A1A4C,       ,       ,       ,       , 1C439C, [palette.]data.pokemon.type.names+5
 graphics.pokemon.type.palettes,        09E028, 09E028, 09E048, 09E048,       ,       ,       ,       , 1C0080, `lzp4`
 graphics.pokemon.type.map,             3C11C8, 3C1220, 3C11E4, 3C1240,       ,       ,       ,       , 61CFCC, [pointer<[index::|t|:.|i::::::. unknown:|h unused:|h]1>]data.pokemon.type.names+5
 graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
@@ -282,9 +283,13 @@ graphics.menu.pokemon.background.tileset,        ,,,, 11EFB0, 11EF88, 11F028, 11
 graphics.menu.pokemon.background.tilemap,        ,,,, 11EFCC, 11EFA4, 11F044, 11F01C, , `lzm4x32x32|graphics.menu.pokemon.background.tileset`
 graphics.menu.pokemon.item.sprite,               3765DC, 37656C, 3765F4, 376584, 45A42C, 459E4C, 45A48C, 459EBC, 615EB0, `ucs4x1x2|graphics.menu.pokemon.item.palette`
 graphics.menu.pokemon.item.palette,              3765E4, 376574, 3765FC, 37658C, 45A434, 459E54, 45A494, 459EC4, 615EB8, `ucp4`
-graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, 0CC86C, [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4`>]16
+graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 091904, 0CC86C, [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4:01`>]16
+graphics.menu.boxes.picker.party.palette,        ,,,, 08F70C, 08F6E0, 08F720, 08F6F4,       , `ucp4`
+graphics.menu.boxes.picker.cursor.palette,       ,,,, 08F0B0, 08F084, 08F0C4, 08F098,       , `ucp4`
 graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, 0CA114, `ucp4`
 graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, 0CA094, `lzt4|graphics.menu.boxes.picker.palette`
+//graphics.menu.boxes.picker.tilemap,              ,,,, 08F038, 08F00C, 08F04C, 08F020, 0CA098, `lzm4x32x20|graphics.menu.boxes.picker.tileset` // BPRE0, needs testing for LG/1.1
+//  this tilemap assumes the tileset is loaded at index 0x100 instead of index 0x00. The tilemap won't show right unless we support that.
 graphics.menu.boxes.hand.palette.normal,         ,,,, 3CEA60, 3CE89C, 3CEAD0, 3CE90C, , `ucp4`
 graphics.menu.boxes.hand.palette.catch,          ,,,, 3D34B8, 3D32F4, 3D3528, 3D3364, , `ucp4`
 graphics.menu.boxes.hand.sprite,                 ,,,, 3D34A0, 3D32DC, 3D3510, 3D334C, , `ucs4x4x16|graphics.menu.boxes.hand.palette.normal`
@@ -335,6 +340,10 @@ graphics.moves.tmcase.sprite,           ,,,, 463218, 462C38, 463278, 462CA8, , `
 graphics.moves.tmcase.palette,          ,,,, 1338F8, 1338D0, 133970, 133948, , `lzp4`
 graphics.moves.tmcase.palette2,         ,,,, 1338FC, 1338D4, 133974, 13394C, , `lzp4`
 graphics.moves.tmcase.palettemap,       ,,,, 133788, 133760, 133800, 1337D8, , [offset:|t|::|page::::]data.pokemon.type.names
+data.pokemon.type.camouflage,           ,,,, 02D268, 02D268, 02D27C, 02D27C, , [type.data.pokemon.type.names]terrains
+data.pokemon.type.camouflage,           ,,,, ,,,, 056134, [type.data.pokemon.type.names]terrains
+data.pokemon.moves.naturepower.list,    ,,,, 02BE74, 02BE74, 02BE88, 02BE88, , [move:data.pokemon.moves.names]terrains
+data.pokemon.moves.naturepower.list,    ,,,, ,,,, 054C48, [move:data.pokemon.moves.names]terrains
 
 graphics.gamecorner.game.palette,  ,,,, 1413BC, 141394, 141434, 14140C, , `ucp4:01234`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
@@ -591,11 +600,31 @@ graphics.text.font.red.characters,   ,,,, 006A8C, 006A8C, 006AA0, 006AA0, , `ucs
 graphics.text.font.red.width,        ,,,, 006A94, 006A94, 006AA8, 006AA8, , [width.]512
 graphics.text.font.characters,       095984, 095984, 0959A4, 0959A4, ,,,,, `ucs4x1x1236`
 graphics.text.font.width,            004930, 004930, 004930, 004930, ,,,,, [width.]256
+graphics.text.font.short.characters,          ,,,, 0064C4, 0064C4, 0064D8, 0064D8, , `ucs2x1x1024`
+graphics.text.font.short.width,               ,,,, 0064CC, 0064CC, 0064E0, 0064E0, , [width.]512
+graphics.text.font.short.japanese.characters, ,,,, 006488, 006488, 00649C, 00649C, , `ucs2x16x64`
+graphics.text.font.japan1.characters,         ,,,, 006534, 006534, 006548, 006548, , `ucs2x16x64`
+graphics.text.font.japan2.characters,         ,,,, 006650, 006650, 006664, 006664, , `ucs2x16x128`
+graphics.text.font.japan2.width,              ,,,, 006658, 006658, 00666C, 00666C, , [width.]280
+graphics.text.font.japan3.characters,         ,,,, 006884, 006884, 006898, 006898, , `ucs2x16x128`
+graphics.text.font.japan3.width,              ,,,, 00688C, 00688C, 0068A0, 0068A0, , [width.]280
+graphics.text.font.japan4.characters,         ,,,, 0069F0, 0069F0, 006A04, 006A04, , `ucs2x16x128`
+graphics.text.font.japan4.width,              ,,,, 0069F8, 0069F8, 006A0C, 006A0C, , [width.]280
+graphics.text.font.japan5.characters,         ,,,, 006B08, 006B08, 006B1C, 006B1C, , `ucs2x32x16`
+graphics.text.font.short.characters,          ,,,, ,,,, 0066C4, `ucs2x2x512`
+graphics.text.font.short.characters2,         ,,,, ,,,, 0064F4, `ucs2x2x1024`
+graphics.text.font.short.width,               ,,,, ,,,, 0064FC, [width.]512
+graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x512`
+graphics.text.font.bag.width,                 ,,,, ,,,, 0065E4, [width.]512
+graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
+graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
+graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
+graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
 
 sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168,       , [pointer<> musicplayer: unknown:]songnames
-sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
-sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]388
+sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
+sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.hoennconversion,     03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277

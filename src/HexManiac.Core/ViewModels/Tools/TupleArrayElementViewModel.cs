@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
       public event EventHandler DataChanged;
+      private void RaiseDataChanged() => DataChanged?.Invoke(this, EventArgs.Empty);
 
       public string Name { get; }
       public ObservableCollection<ITupleElementViewModel> Children { get; }
@@ -29,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else if (tupleItem.Elements[i].BitWidth == 1) {
                Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
-               Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
+               Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged));
             } else {
                Children.Add(new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
             }
@@ -134,6 +135,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int BitLength => seg.BitWidth;
       public int Start { get; private set; }
       public string EnumName => seg.SourceName;
+      private Action RaiseDataChanged { get; }
 
       public IReadOnlyList<string> Options {
          get {
@@ -147,6 +149,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => seg.Read(viewPort.Model, Start, BitOffset);
          set {
             seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, value);
+            RaiseDataChanged();
             NotifyPropertyChanged();
          }
       }
@@ -181,8 +184,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
-      public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
+      public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged) {
          (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
+         RaiseDataChanged = raiseDataChanged;
       }
 
       public bool TryCopy(ITupleElementViewModel other) {

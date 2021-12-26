@@ -116,6 +116,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+         if (parameter is bool b && b == false) return !(bool)value;
          throw new NotImplementedException();
       }
    }

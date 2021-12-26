@@ -15,10 +15,53 @@ using static HavenSoft.HexManiac.Core.Models.Runs.AsciiRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.BaseRun;
 using static HavenSoft.HexManiac.Core.Models.Runs.PCSRun;
 
+//*
+using RunPath = System.Int32;
+/*/
+using RunPath = HavenSoft.HexManiac.Core.Models.SearchTree<HavenSoft.HexManiac.Core.Models.Runs.IFormattedRun>.SearchPath;
+//*/
+
 namespace HavenSoft.HexManiac.Core.Models {
    public class PokemonModel : BaseModel {
+
+      #region Toggles for while we're working on the SearchTree
+      //*
+
       // list of runs, in sorted address order. Includes no names
       private readonly IList<IFormattedRun> runs = new List<IFormattedRun>();
+
+      private void SetIndex(RunPath index, IFormattedRun run) => runs[index] = run;
+
+      private void InsertIndex(RunPath index, IFormattedRun existingRun) => runs.Insert(index, existingRun);
+
+      private void RemoveIndex(RunPath index) => runs.RemoveAt(index);
+
+      // if an existing run starts exactly at start, return that index
+      // otherwise, return a number such that ~index would be inserted into the list at the correct index
+      // so ~index - 1 is the previous run, and ~index is the next run
+      private RunPath BinarySearch(int start) {
+         var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+         return index;
+      }
+
+      /*/
+
+      // list of runs, in sorted address order. Includes no names
+      private readonly SearchTree<IFormattedRun> runs = new SearchTree<IFormattedRun>();
+
+      private void SetIndex(RunPath index, IFormattedRun run) => runs.Add(run);
+
+      private void InsertIndex(RunPath index, IFormattedRun existingRun) => runs.Add(existingRun);
+
+      private void RemoveIndex(RunPath index) => runs.Remove(index.Element.Start);
+
+      // if an existing run starts exactly at start, return that index
+      // otherwise, return a number such that ~index would be inserted into the list at the correct index
+      // so ~index - 1 is the previous run, and ~index is the next run
+      private RunPath BinarySearch(int start) => runs[start];
+
+      //*/
+      #endregion
 
       // for a name, where is it?
       // for a location, what is its name?
@@ -150,12 +193,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                WordRun newRun;
                if (index > 0) {
                   newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
-                  runs[index] = newRun;
+                  SetIndex(index, newRun);
                } else {
                   ClearFormat(noChange, word.Address, word.Length);
                   newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note);
                   ObserveRunWritten(noChange, newRun);
-                  index = ~index;
                }
                CompleteCellEdit.UpdateAllWords(this, newRun, noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
             }
@@ -918,7 +960,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
                   index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
                }
-               runs[index] = run;
+               SetIndex(index, run);
                changeToken.AddRun(run);
             }
 
@@ -939,7 +981,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is NoInfoRun && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
                // this run has no useful information. Remove it.
                changeToken.RemoveRun(runs[index]);
-               runs.RemoveAt(index);
+               RemoveIndex(index);
             }
 
             if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers && arrayRun2.Length > run.Length) {
@@ -1025,7 +1067,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                changeToken.AddRun(destinationRun);
                var runIndex = BinarySearch(destinationRun.Start);
-               runs[runIndex] = destinationRun;
+               SetIndex(runIndex, destinationRun);
             }
             originalOffset += original.ElementContent[i].Length;
             segmentOffset += moved.ElementContent[i].Length;
@@ -1122,7 +1164,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
-         int index = BinarySearch(destination);
+         var index = BinarySearch(destination);
          if (index < 0 && ~index > 0 && runs[~index - 1] is ArrayRun array &&
             array.SupportsInnerPointers &&
             array.Start + array.Length > destination &&
@@ -1130,7 +1172,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // the pointer points into an array that supports inner anchors
             index = ~index - 1;
             changeToken.RemoveRun(array);
-            runs[index] = array.AddSourcePointingWithinRun(start);
+            SetIndex(index, array.AddSourcePointingWithinRun(start));
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
             // the pointer points to a location between existing runs
@@ -1145,7 +1187,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             changeToken.RemoveRun(existingRun);
             existingRun = existingRun.MergeAnchor(SortedSpan.One(start));
-            runs[index] = existingRun;
+            SetIndex(index, existingRun);
             changeToken.AddRun(existingRun);
          } else {
             // the pointer points to a known normal anchor
@@ -1159,9 +1201,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                   // it's just a naked pointer, so we have no knowledge about the thing it points to.
                   index = BinarySearch(destination); // runs could've been removed during UpdateNewRunFromPointerFormat: search for the index again.
                   if (index < 0) {
-                     runs.Insert(~index, existingRun);
+                     InsertIndex(~index, existingRun);
                   } else {
-                     runs[index] = existingRun;
+                     SetIndex(index, existingRun);
                   }
                   changeToken.AddRun(existingRun);
                } else {
@@ -1212,7 +1254,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Debug.Assert(run.Length > 0); // writing an anchor of length zero is stupid.
          lock (threadlock) {
             int location = run.Start;
-            int index = BinarySearch(location);
+            var index = BinarySearch(location);
 
             var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
 
@@ -1346,12 +1388,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in runsToAdd) {
             var index = BinarySearch(kvp.Key);
             if (index >= 0) {
-               runs[index] = kvp.Value;
+               SetIndex(index, kvp.Value);
             } else {
                index = ~index;
                Debug.Assert(kvp.Value != null);
                if (index < runs.Count) {
-                  runs.Insert(index, kvp.Value);
+                  InsertIndex(index, kvp.Value);
                } else {
                   runs.Add(kvp.Value);
                }
@@ -1510,14 +1552,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          var newRun = runs[index].RemoveSource(source);
          if (newRun is NoInfoRun && newRun.PointerSources.Count == 0) {
             // run carries no info, just remove it
-            runs.RemoveAt(index);
+            RemoveIndex(index);
          } else if (newRun is PointerRun && newRun.PointerSources.Count == 0) {
             // run carries no pointer info: remove the anchor
-            runs[index] = new PointerRun(newRun.Start);
-            if (newRun is OffsetPointerRun opr) runs[index] = new OffsetPointerRun(newRun.Start, opr.Offset);
+            SetIndex(index, new PointerRun(newRun.Start));
+            if (newRun is OffsetPointerRun opr) SetIndex(index, new OffsetPointerRun(newRun.Start, opr.Offset));
             currentChange.AddRun(runs[index]);
          } else {
-            runs[index] = newRun;
+            SetIndex(index, newRun);
             currentChange.AddRun(newRun);
          }
       }
@@ -1656,7 +1698,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (index >= 0) {
                ClearPointerFromAnchor(changeToken, start, index);
             } else if (index != -1 && runs[~index - 1] is ArrayRun array) { // if index is -1, we are before the first run, so we're not within an array run
-               ClearPointerWithinArray(changeToken, start, ~index - 1, array);
+               ClearPointerWithinArray(changeToken, start, array, ~index - 1);
             } else {
                // pointers in tables are allowed to point at junk
             }
@@ -1671,7 +1713,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      private void ClearPointerFromAnchor(ModelDelta changeToken, int start, int index) {
+      private void ClearPointerFromAnchor(ModelDelta changeToken, int start, RunPath index) {
          var anchorRun = runs[index];
          var newAnchorRun = anchorRun.RemoveSource(start);
          changeToken.RemoveRun(anchorRun);
@@ -1687,17 +1729,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          } else if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && newAnchorRun is PointerRun) {
             // if it IS a pointer run, we still need to remove the anchor by setting the pointerSources to null.
-            runs[index] = new PointerRun(newAnchorRun.Start);
+            SetIndex(index, new PointerRun(newAnchorRun.Start));
          } else {
-            runs[index] = newAnchorRun;
+            SetIndex(index, newAnchorRun);
             changeToken.AddRun(newAnchorRun);
          }
       }
 
-      private void ClearPointerWithinArray(ModelDelta changeToken, int start, int index, ArrayRun array) {
+      private void ClearPointerWithinArray(ModelDelta changeToken, int start, ArrayRun array, RunPath index) {
          changeToken.RemoveRun(array);
          var newArray = array.RemoveSource(start);
-         runs[index] = newArray;
+         SetIndex(index, newArray);
          changeToken.AddRun(newArray);
       }
 
@@ -2042,7 +2084,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else if (newRun != null) {
                // NOTE don't ObserveRunWritten here! That will automatically add not only the Pointer, but also an anchor. Example: Unbound-bt-d1.3.1, it causes a conflict where an anchor is added into the type names _while_ we're adding the table that contains that inner anchor.
                var index = ~BinarySearch(newRun.Start);
-               runs.Insert(index, newRun);
+               InsertIndex(index, newRun);
                token.AddRun(newRun);
             }
          }
@@ -2247,11 +2289,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             UpdateAnchorsFromArrayMove(changeToken, (ITableRun)run, array);
          }
 
-         int index = BinarySearch(run.Start);
+         var index = BinarySearch(run.Start);
          changeToken.RemoveRun(runs[index]);
-         runs.RemoveAt(index);
-         int newIndex = BinarySearch(newStart);
-         runs.Insert(~newIndex, newRun);
+         RemoveIndex(index);
+         var newIndex = BinarySearch(newStart);
+         InsertIndex(~newIndex, newRun);
          changeToken.AddRun(newRun);
          if (~newIndex < index) index += 1;
 
@@ -2283,14 +2325,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
 
          return true;
-      }
-
-      // if an existing run starts exactly at start, return that index
-      // otherwise, return a number such that ~index would be inserted into the list at the correct index
-      // so ~index - 1 is the previous run, and ~index is the next run
-      private int BinarySearch(int start) {
-         var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
-         return index;
       }
    }
 
