@@ -560,3 +560,10 @@ Name = '''mapnamepopuptheme'''
     '''underwater''',
     '''stone2''',
 ]
+
+[[List]]
+Name = '''trainergender'''
+0 = [
+    '''male''',
+    '''female''',
+]
