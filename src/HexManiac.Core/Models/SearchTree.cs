@@ -77,6 +77,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
+      public IEnumerable<T> StartingFrom(int index) {
+         return root.EnumerateFrom(index);
+      }
+
       public IEnumerator<T> GetEnumerator() {
          foreach (var node in root) yield return node.Payload;
       }
@@ -217,6 +221,16 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public bool BlackWithRedChild(int direction) => this.IsBlack() && !children[direction].IsBlack();
+
+      public IEnumerable<T> EnumerateFrom(int start) {
+         if (start > Payload.Start && Left != null) {
+            foreach (var node in Left.EnumerateFrom(start)) yield return node;
+         }
+         if (start == Payload.Start) yield return Payload;
+         if (Right != null) {
+            foreach (var node in Right.EnumerateFrom(start)) yield return node;
+         }
+      }
 
       /// <summary>
       /// Only do tree-balancing if the current node is red.
