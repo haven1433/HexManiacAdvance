@@ -192,6 +192,16 @@ namespace HavenSoft.HexManiac.Core {
       }
    }
 
+   public static class NativeProcess {
+      /// <summary>
+      /// Process.Start works differently in .Net Core compared to .Net Framework.
+      /// This wrapper method allows old Process.Start calls to work as expected.
+      /// </summary>
+      public static void Start(string url) {
+         Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+      }
+   }
+
    /// <summary>
    /// Represents a simple editable value with change notification.
    /// </summary>

@@ -74,8 +74,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public void LaunchProcess(string file) {
          try {
             file = Path.GetFullPath(file);
-            var info = new ProcessStartInfo { FileName = file, UseShellExecute = true };
-            Process.Start(info);
+            NativeProcess.Start(file);
          } catch (System.ComponentModel.Win32Exception) {
             var nl = Environment.NewLine;
             var path = Path.GetFileName(file);
@@ -275,7 +274,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                         }.Fluent(hyperlink => hyperlink.Click += (sender, e) => {
                            try {
                               if (!processContent.StartsWith("!")) {
-                                 Process.Start(processContent);
+                                 NativeProcess.Start(processContent);
                               } else {
                                  ShowFileProperties(processContent.Substring(1));
                               }
