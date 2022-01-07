@@ -242,7 +242,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
 
       public void Visit(EndStream endStream, byte data) {
-         // the only valid edit for an EndStream is to extend the stream.
+         // the only valid edit for an EndStream is to extend the stream, or to write the end token to move past it.
+
+         if (CurrentText == "[]") {
+            var tableRun = (TableStreamRun)Model.GetNextRun(memoryLocation);
+            var endTokenLength = tableRun.Length - tableRun.ElementLength * tableRun.ElementCount;
+            NewDataIndex = memoryLocation + endTokenLength;
+            Result = true;
+         }
+         if (CurrentText != "+") return;
+
          Result = true;
          var run = (TableStreamRun)Model.GetNextRun(memoryLocation);
          var newRun = run.Append(CurrentChange, 1);
