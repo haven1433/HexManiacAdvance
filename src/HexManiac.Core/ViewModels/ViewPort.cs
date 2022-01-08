@@ -2760,7 +2760,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (!possibleMatch) continue;
                for (int j = 0; j < FindBytes.Length; j++) {
                   var (x, y) = ((i + j) % Width, (i + j) / Width);
-                  if (currentView[x, y].Format is None) currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                  if (currentView[x, y].Format is None) {
+                     currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                  } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
+                     var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
+                     currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                  }
                }
                i += FindBytes.Length - 1;
             }
