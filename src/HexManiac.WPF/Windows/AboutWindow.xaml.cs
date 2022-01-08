@@ -1,5 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
-using System.Diagnostics;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using System.Windows.Navigation;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {
-         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+         NativeProcess.Start(e.Uri.AbsoluteUri);
          e.Handled = true;
       }
    }

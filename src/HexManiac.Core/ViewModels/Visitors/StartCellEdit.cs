@@ -215,7 +215,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(MatchedWord word, byte data) => BasicVisit(word, data);
 
-      public void Visit(EndStream endStream, byte data) => Result = Input == ExtendArray;
+      public void Visit(EndStream endStream, byte data) => Result = Input == ExtendArray || Input == '[';
 
       public void Visit(LzMagicIdentifier lz, byte data) => Result = char.ToLower(Input) == 'l';
 

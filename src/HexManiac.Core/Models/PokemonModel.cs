@@ -44,6 +44,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          return index;
       }
 
+      private RunPath BinarySearchNext(int start) {
+         var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+         if (index < 0) index = ~index;
+         return index;
+      }
+
+      private IEnumerable<IFormattedRun> RunsStartingFrom(int dataIndex) {
+         var index = BinarySearchNext(dataIndex);
+         for (; index < runs.Count; index++) {
+            yield return runs[index];
+         }
+      }
+
       /*/
 
       // list of runs, in sorted address order. Includes no names
@@ -59,6 +72,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       // otherwise, return a number such that ~index would be inserted into the list at the correct index
       // so ~index - 1 is the previous run, and ~index is the next run
       private RunPath BinarySearch(int start) => runs[start];
+
+      private RunPath BinarySearchNext(int start) => runs[start];
+
+      private IEnumerable<IFormattedRun> RunsStartingFrom(int dataIndex) => runs.StartingFrom(dataIndex);
 
       //*/
       #endregion
@@ -624,11 +641,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void FillGotoModels(StoredMetadata metadata) {
          var shortcuts = (IList<GotoShortcutModel>)GotoShortcuts;
-         foreach (var shortcut in metadata.GotoShortcuts) shortcuts.Add(new GotoShortcutModel(shortcut.Image, shortcut.Anchor, shortcut.Display));
-         //shortcuts.Add(new GotoShortcutModel("graphics.pokemon.sprites.front/9/sprite/", "data.pokemon.stats/1", "Pokemon"));
-         //shortcuts.Add(new GotoShortcutModel("graphics.trainers.sprites.front/3/sprite/", "data.trainers.stats", "Trainers"));
-         //shortcuts.Add(new GotoShortcutModel("graphics.items.sprites/293/sprite/", "data.pokemon.moves.stats.battle", "Moves")); // TODO what to do for Ruby, which has no item sprites?
-         //shortcuts.Add(new GotoShortcutModel("graphics.items.sprites/13/sprite/", "data.items.stats", "Items")); // TODO what to do for Ruby, which has no item sprites?
+         foreach (var shortcut in metadata.GotoShortcuts) {
+            if (shortcuts.Any(s => s.DisplayText == shortcut.Display)) continue; // don't double-add the same shortcut
+            shortcuts.Add(new GotoShortcutModel(shortcut.Image, shortcut.Anchor, shortcut.Display));
+         }
       }
 
       #endregion
@@ -855,12 +871,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IFormattedRun GetNextAnchor(int dataIndex) {
-         var index = BinarySearch(dataIndex);
-         if (index < 0) index = ~index;
-         for (; index < runs.Count; index++) {
-            if (runs[index].Start < dataIndex) continue;
-            if (runs[index].PointerSources == null) continue;
-            return runs[index];
+         foreach (var run in RunsStartingFrom(dataIndex)) {
+            if (run.Start < dataIndex) continue;
+            if (run.PointerSources == null) continue;
+            return run;
          }
          return NoInfoRun.NullRun;
       }

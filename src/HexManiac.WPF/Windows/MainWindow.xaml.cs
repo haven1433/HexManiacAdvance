@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {
-         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+         NativeProcess.Start(e.Uri.AbsoluteUri);
          e.Handled = true;
       }
 
@@ -346,11 +346,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (ViewModel.Count == 0) Close();
       }
 
-      private void UpdateClick(object sender, EventArgs e) => Process.Start(App.ReleaseUrl);
-      private void WikiClick(object sender, EventArgs e) => Process.Start("https://github.com/haven1433/HexManiacAdvance/wiki");
-      private void TutorialsClick(object sender, RoutedEventArgs e) => Process.Start("https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials");
-      private void ReportIssueClick(object sender, EventArgs e) => Process.Start("https://github.com/haven1433/HexManiacAdvance/issues");
-      private void DiscordClick(object sender, EventArgs e) => Process.Start("https://discord.gg/x9eQuBg");
+      private void UpdateClick(object sender, EventArgs e) => NativeProcess.Start(App.ReleaseUrl);
+      private void WikiClick(object sender, EventArgs e) => NativeProcess.Start("https://github.com/haven1433/HexManiacAdvance/wiki");
+      private void TutorialsClick(object sender, RoutedEventArgs e) => NativeProcess.Start("https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials");
+      private void ReportIssueClick(object sender, EventArgs e) => NativeProcess.Start("https://github.com/haven1433/HexManiacAdvance/issues");
+      private void DiscordClick(object sender, EventArgs e) => NativeProcess.Start("https://discord.gg/x9eQuBg");
       private void AboutClick(object sender, EventArgs e) => new AboutWindow(ViewModel.Singletons.MetadataInfo).ShowDialog();
 
       private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {

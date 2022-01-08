@@ -1,6 +1,6 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Windows;
-using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Navigation;
@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void Navigate(object sender, RequestNavigateEventArgs e) {
-         Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri));
+         NativeProcess.Start(e.Uri.AbsoluteUri);
          e.Handled = true;
       }
    }
