@@ -692,9 +692,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var preferHex = EnumTableName?.EndsWith("|h") ?? false;
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
-         if ((table?.Count ?? 0) <= value) {
-            if (preferHex || value >= 0x4000) {
-               return "0x" + value.ToString($"X{length * 2}");
+         if (table == null || table.Count <= value) {
+            if (preferHex || Math.Abs(value) >= 0x4000) {
+               return "0x" + ((uint)value).ToString($"X{length * 2}");
             } else {
                return value.ToString();
             }

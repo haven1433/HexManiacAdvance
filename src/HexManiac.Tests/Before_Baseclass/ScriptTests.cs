@@ -464,6 +464,19 @@ Script:
          Assert.Equal("anchor", Model.GetAnchorFromAddress(-1, 4));
       }
 
+      [Fact]
+      public void FireRedScriptWithChange_Parse_NoThrow() {
+         var data = "5A 16 01 40 85 00 79 85 00 19 3D 01 FF FF FF FF FF FF FF FF FF 21 0D 80 00 00 02"
+            .Split(' ').Select(t => byte.Parse(t, System.Globalization.NumberStyles.HexNumber)).ToArray();
+         Array.Copy(data, Model.RawData, data.Length);
+         var parser = ViewPort.Tools.CodeTool.ScriptParser;
+
+         var length = parser.FindLength(Model, 0);
+         var text = parser.Parse(Model, 0, length);
+
+         // no throw -> pass
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
