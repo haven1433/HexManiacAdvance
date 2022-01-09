@@ -1460,7 +1460,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void Tilemap_PaintSameTileWithTilePaletteTool_NoTilesChanged() {
          editor.SelectedTool = ImageEditorTools.TilePalette;
-         editor.TilePalettePaint = true;
+         editor.TilePaletteMode = TilePaletteMode.Fill;
          editor.PalettePage = 0;
 
          editor.ToolDown(-4, -4);
@@ -1474,7 +1474,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void Tilemap_PaintDifferentTileWithTilePaletteTool_TilesChanged() {
          editor.SelectedTool = ImageEditorTools.TilePalette;
-         editor.TilePalettePaint = true;
+         editor.TilePaletteMode = TilePaletteMode.Fill;
          editor.PalettePage = 1;
 
          editor.ToolDown(-4, -4);

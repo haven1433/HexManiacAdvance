@@ -338,17 +338,21 @@
                   Tag="{Binding SelectedTool, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:ImageEditorTools.TilePalette}}">
                <StackPanel.Resources>
                   <Style TargetType="RadioButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                     <Setter Property="Command" Value="{Binding SelectTilePaletteMode}"/>
                      <Setter Property="Width" Value="30"/>
                      <Setter Property="Height" Value="30"/>
                      <Setter Property="HorizontalContentAlignment" Value="Center"/>
                      <Setter Property="VerticalContentAlignment" Value="Center"/>
                   </Style>
                </StackPanel.Resources>
-               <RadioButton IsChecked="{Binding TilePalettePaint, Converter={StaticResource EqualityCheck}, ConverterParameter={StaticResource False}}">
+               <RadioButton CommandParameter="{x:Static hshmcvm:TilePaletteMode.Draw}" IsChecked="{Binding TilePaletteMode, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:TilePaletteMode.Draw}}">
                   <Path Data="{hshmwpfr:Icon Pencil}"/>
                </RadioButton>
-               <RadioButton IsChecked="{Binding TilePalettePaint}">
+               <RadioButton CommandParameter="{x:Static hshmcvm:TilePaletteMode.Fill}" IsChecked="{Binding TilePaletteMode, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:TilePaletteMode.Fill}}">
                   <Path Data="{hshmwpfr:Icon FillBucket}"/>
+               </RadioButton>
+               <RadioButton CommandParameter="{x:Static hshmcvm:TilePaletteMode.EyeDropper}" IsChecked="{Binding TilePaletteMode, Mode=OneWay, Converter={StaticResource EqualityCheck}, ConverterParameter={x:Static hshmcvm:TilePaletteMode.EyeDropper}}">
+                  <Path Data="{hshmwpfr:Icon EyeDropper}"/>
                </RadioButton>
             </StackPanel>
             
