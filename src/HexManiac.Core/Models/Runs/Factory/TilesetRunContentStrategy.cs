@@ -30,6 +30,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var error = SpriteRunContentStrategy.IsValid(TilesetFormat.BitsPerPixel);
+         if (error.HasError) return error;
          var newRun = new TilesetRun(TilesetFormat, model, run.Start, run.PointerSources);
          if (model.GetNextRun(run.Start + 1).Start < run.Start + newRun.Length) return new ErrorInfo($"Format was specified as a tileset with {TilesetFormat.Tiles} tiles, but there wasn't enough space.");
          run = newRun;
