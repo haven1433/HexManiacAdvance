@@ -14,7 +14,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class DiffViewPort : ViewModelCore, IViewPort {
-      public const int MaxInnerTabWIdth = 32;
+      public const int MaxInnerTabWidth = 32;
       private readonly IList<IChildViewPort> left, right;
       private readonly int leftWidth, rightWidth;
       private readonly List<int> startOfNextSegment;
@@ -39,8 +39,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
 
-         leftWidth = left.Count == 0 ? 16 : Math.Min(MaxInnerTabWIdth, left.Max(child => child.Width));
-         rightWidth = right.Count == 0 ? 16 : Math.Min(MaxInnerTabWIdth, right.Max(child => child.Width));
+         leftWidth = left.Count == 0 ? 16 : Math.Min(MaxInnerTabWidth, left.Max(child => child.Width));
+         rightWidth = right.Count == 0 ? 16 : Math.Min(MaxInnerTabWidth, right.Max(child => child.Width));
          startOfNextSegment = new List<int>();
          startOfNextSegment.Add(0);
          for (int i = 0; i < Math.Min(left.Count, right.Count); i++) {
@@ -268,6 +268,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void FillCells() {
          Headers.Clear();
+         if (Width < 0 || Height < 0) return;
          cell = new HexElement[Width, Height];
          var defaultCell = new HexElement(default, default, Undefined.Instance);
 
