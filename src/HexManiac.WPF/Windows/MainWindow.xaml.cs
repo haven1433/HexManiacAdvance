@@ -601,7 +601,29 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          // user hit "Ignore Additional Assertions"
          ignoreAssertions = result == 0;
-         if (result == 1) core.Fail(message, detailMessage);
+         while (result == 1) {
+            if (Debugger.IsAttached) {
+               Debugger.Break();
+            } else {
+               result = fileSystem.ShowOptions(
+                  "Attach a Debugger",
+                  "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
+                  message + Environment.NewLine +
+                  detailMessage + Environment.NewLine +
+                  "Stack Trace:" + Environment.NewLine +
+                  Environment.StackTrace,
+                  null,
+                     new[] {
+                        new VisualOption {
+                           Index = 1,
+                           Option = "Debug",
+                           ShortDescription = "Show in Debugger",
+                           Description = "Break in a connected debugger"
+                        },
+                     }
+                  );
+            }
+         }
       }
 
       public override void Write(string message) => core.Write(message);
