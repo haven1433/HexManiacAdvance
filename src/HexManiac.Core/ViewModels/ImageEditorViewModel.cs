@@ -114,8 +114,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Hover(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
          ToolUp(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
 
-         var paletteRun = model.GetNextRun(model.ReadPointer(PalettePointer)) as IPaletteRun;
-         var fullPalette = paletteRun.AllColors(model);
+         IReadOnlyList<short> fullPalette;
+         if (PalettePointer == Pointer.NULL) {
+            fullPalette = TileViewModel.CreateDefaultPalette(Palette.Elements.Count);
+         } else {
+            var paletteRun = model.GetNextRun(model.ReadPointer(PalettePointer)) as IPaletteRun;
+            fullPalette = paletteRun.AllColors(model);
+         }
 
          // make insertion more robust
          var newUnderPixels = new int[sprite.width, height];
