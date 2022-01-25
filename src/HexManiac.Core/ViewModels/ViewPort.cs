@@ -247,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // if the user explicitly closed the tools, don't auto-open them.
-         if (tools.SelectedIndex != -1) {
+         if (tools != null && tools.SelectedIndex != -1) {
             // if the 'Raw' tool is selected, don't auto-update tool selection.
             if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
                using (ModelCacheScope.CreateScope(Model)) {
@@ -684,7 +684,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private readonly ToolTray tools;
-      public bool HasTools => true;
+      public bool HasTools => tools != null;
       public IToolTrayViewModel Tools => tools;
 
       private bool anchorTextVisible;
@@ -813,18 +813,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
-         tools = new ToolTray(Singletons, Model, selection, history, this);
-         Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
-         Tools.OnMessage += (sender, e) => RaiseMessage(e);
-         tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
-         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
-         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
-         Tools.TableTool.ModelDataChanged += ModelChangedByTool;
-         Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
-         Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
-         Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
+         if (this is not ChildViewPort) { // child viewports don't need tools
+            tools = new ToolTray(Singletons, Model, selection, history, this);
+            Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
+            Tools.OnMessage += (sender, e) => RaiseMessage(e);
+            tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
+            Tools.StringTool.ModelDataChanged += ModelChangedByTool;
+            Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
+            Tools.TableTool.ModelDataChanged += ModelChangedByTool;
+            Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
+            Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
+            Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
+            scroll.Scheduler = tools;
+         }
 
-         scroll.Scheduler = tools;
          ImplementCommands();
          if (changeHistory == null) CascadeScripts(); // if we're sharing history with another viewmodel, our model has already been updated like this.
          RefreshBackingData();
