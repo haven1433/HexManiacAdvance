@@ -1078,8 +1078,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          scroll.DataLength = Model.Count;
          RefreshBackingData();
-         Tools.TableTool.DataForCurrentRunChanged();
-         Tools.SpriteTool.DataForCurrentRunChanged();
+         Tools?.TableTool.DataForCurrentRunChanged();
+         Tools?.SpriteTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
       }
 
