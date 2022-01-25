@@ -55,6 +55,11 @@
       </KeyBinding>
 
       <KeyBinding Key="Esc" Command="{Binding ClearError}"/>
+      <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
+         <KeyBinding.CommandParameter>
+            <sys:Boolean>false</sys:Boolean>
+         </KeyBinding.CommandParameter>
+      </KeyBinding>
 
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, T}" Command="{Binding DisplayAsText}"/>
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, E}" Command="{Binding DisplayAsEventScript}"/>
