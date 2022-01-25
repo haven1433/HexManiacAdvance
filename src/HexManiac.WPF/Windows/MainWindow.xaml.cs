@@ -120,6 +120,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             return;
          }
          text.AppendLine("Current tab count: " + editor.Count);
+         text.AppendLine("Current selected tab: " + editor.SelectedIndex);
          foreach (var tab in editor) {
             if (tab is IEditableViewPort viewPort) {
                text.AppendLine("Tab is ViewPort for " + Path.GetFileName(viewPort.FileName));
