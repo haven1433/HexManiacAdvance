@@ -212,6 +212,7 @@
                   <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
                   <MenuItem Header="Assert" Click="DeveloperRaiseAssert"/>
                   <MenuItem Header="Throw ArgumentOutOfRangeException" Click="DeveloperThrowArgumentOutOfRangeException"/>
+                  <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
                   <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                   <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
                   <MenuItem Header="Render Rom Overview" Click="DeveloperRenderRomOverview"/>

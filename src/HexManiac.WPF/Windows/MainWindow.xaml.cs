@@ -85,21 +85,29 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          AppendGeneralAppInfo(text);
          text.AppendLine("Exception Information:");
          AppendException(text, e.Exception);
-         text.AppendLine(e.Exception.StackTrace);
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
          File.AppendAllText("crash.log", text.ToString());
-         var exceptionTypeShortName = e.Exception.GetType().ToString().Split('.').Last().Split("Exception").First();
+         var exceptionInfo = ExtractExceptionInfo(e.Exception);
          FileSystem.ShowCustomMessageBox(
             "An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
             Title + " might be in a bad state. You should close as soon as possible." + Environment.NewLine +
             "Here's a summary of the issue:" + Environment.NewLine +
             Environment.NewLine +
-            exceptionTypeShortName + ":" + Environment.NewLine +
-            $"{e.Exception.Message}" + Environment.NewLine +
-            Environment.NewLine +
+            exceptionInfo + Environment.NewLine +
             "The error has been logged to crash.log", showYesNoCancel: false, processButtonText: "Show crash.log in Explorer", processContent: ".");
          e.Handled = true;
+      }
+
+      private static string ExtractExceptionInfo(Exception ex) {
+         var exceptionTypeShortName = ex.GetType().ToString().Split('.').Last().Split("Exception").First();
+         var info = exceptionTypeShortName + ":" + Environment.NewLine + $"{ex.Message}" + Environment.NewLine;
+         if (ex is AggregateException ag) {
+            foreach (var e in ag.InnerExceptions) {
+               info += ExtractExceptionInfo(e);
+            }
+         }
+         return info;
       }
 
       private static void AppendException(StringBuilder text, Exception ex, int indent = 0) {
@@ -111,6 +119,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (ex is AggregateException ae) {
             foreach (var e in ae.InnerExceptions) AppendException(text, e, indent + 2);
          }
+
+         text.AppendLine(ex.StackTrace + Environment.NewLine);
       }
 
       private void AppendGeneralAppInfo(StringBuilder text) {
@@ -473,6 +483,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperThrowArgumentOutOfRangeException(object sender, RoutedEventArgs e) {
          var list = new List<int>();
          var number = list[13];
+      }
+
+      private void DeveloperThrowAggregateException(object sender, RoutedEventArgs e) {
+         var task = Task.Factory.StartNew(() => throw new NotImplementedException());
+         task.Wait();
       }
 
       private void DeveloperWriteDebug(object sender, RoutedEventArgs e) => Debug.WriteLine("Debug");
