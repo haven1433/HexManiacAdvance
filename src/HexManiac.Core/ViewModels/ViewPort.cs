@@ -876,6 +876,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
             }
+            tools?.StringTool.DataForCurrentRunChanged();
             RefreshBackingData();
          };
 
