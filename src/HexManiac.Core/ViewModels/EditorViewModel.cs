@@ -407,6 +407,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
                   NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
+                  diffLeft.RaiseCanExecuteChanged();
+                  diffRight.RaiseCanExecuteChanged();
                   if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
                }
             }
