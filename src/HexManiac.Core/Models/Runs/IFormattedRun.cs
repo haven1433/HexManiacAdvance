@@ -18,6 +18,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IFormattedRun Duplicate(int start, SortedSpan<int> pointerSources);
    }
 
+   public static class IFormattedRunExtensions {
+      public static bool ContainsOnlyPointerToSelf(this IFormattedRun run) {
+         if (run.PointerSources == null) return false;
+         if (run.PointerSources.Count != 1) return false;
+         var source = run.PointerSources[0];
+         return source >= run.Start && source < run.Start + run.Length;
+      }
+   }
+
    public interface IAppendToBuilderRun : IFormattedRun {
       void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep);
       void Clear(IDataModel model, ModelDelta changeToken, int start, int length);
