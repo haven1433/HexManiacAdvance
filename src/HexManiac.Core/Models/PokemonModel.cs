@@ -1688,7 +1688,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             runIndex = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
-            runs.RemoveAt(runIndex);
+            if (runIndex >= 0) runs.RemoveAt(runIndex); // if the run was a pointer, it may've already been removed in the previous step
             return;
          }
 
