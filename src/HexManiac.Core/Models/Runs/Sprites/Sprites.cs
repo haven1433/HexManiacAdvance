@@ -203,11 +203,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                if (tableRun is ArrayRun arrayRun) {
                   foreach (var table in GetLengthSortedRelatedArrays(model, arrayRun)) {
                      var elementOffset = table.ElementLength * offset.ElementIndex;
-                     foreach (var spriteRun in model.GetPointedChildren<ISpriteRun>(table, offset.ElementIndex)) {
+                     for (int segmentIndex = 0; segmentIndex < table.ElementContent.Count; segmentIndex++) {
+                        if (table.ElementContent[segmentIndex] is not ArrayRunPointerSegment pointerSegment) continue;
+                        if (model.GetNextRun(table.ReadPointer(model, offset.ElementIndex, segmentIndex)) is not ISpriteRun spriteRun) continue;
                         if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
                         if (spriteRun.SpriteFormat.BitsPerPixel != run.PaletteFormat.Bits) continue; // only worry about sprites that could use this palette
                         var paletteHint = spriteRun.SpriteFormat.PaletteHint;
-                        if (!string.IsNullOrEmpty(paletteHint) && paletteHint != primaryName) continue;
+                        if (!string.IsNullOrEmpty(paletteHint) && paletteHint != primaryName && !pointerSegment.InnerFormat.EndsWith($"|{primaryName}`")) continue;
                         results.Add(spriteRun);
                      }
                   }
