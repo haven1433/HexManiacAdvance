@@ -449,5 +449,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, table.ReadValue(Model, 1, "a"));
          Assert.Equal(4, table.ReadValue(Model, 1, "b"));
       }
+
+      [Fact]
+      public void Stream_Copy_IncludeEndToken() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^table[data:]!FFFF +13 +25 ");
+
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.MoveSelectionEnd.Execute(Direction.End);
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Contains("[]", FileSystem.CopyText.value);
+      }
    }
 }

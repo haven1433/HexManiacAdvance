@@ -664,7 +664,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite);
          if (!errorInfo.HasError) {
             errorInfo = UniquifyName(model, changeToken, dataIndex, ref name);
-            model.ObserveAnchorWritten(changeToken, name, runToWrite);
+            if (runToWrite.ContainsOnlyPointerToSelf()) {
+               errorInfo = new ErrorInfo($"{name} could not be added at {dataIndex:X6} because no pointers were found.", true);
+            } else {
+               model.ObserveAnchorWritten(changeToken, name, runToWrite);
+            }
          }
 
          return errorInfo;
@@ -929,7 +933,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
          Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
-
          lock (threadlock) {
             if (run is ArrayRun array) {
                // update any words who's name matches this array's name
@@ -1303,7 +1306,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var seekPointers = existingRun?.PointerSources == null || existingRun?.Start != location;
             var noKnownPointers = run.PointerSources == null || run.PointerSources.Count == 0;
             seekPointers = seekPointers && noKnownPointers;
-            var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, run, seekPointers);
+            var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, run, seekPointers).Add(run.PointerSources);
             // remove any sources that were added _within_ the existing run
             for (int i = 0; i < sources.Count; i++) {
                if (sources[i] <= run.Start || sources[i] >= run.Start + run.Length) continue;
@@ -1313,12 +1316,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             // if we're adding an array, a few extra updates
+            IFormattedRun newRun;
             if (run is ArrayRun array) {
                // update inner pointers and dependent arrays
                if (array.SupportsInnerPointers) run = array.AddSourcesPointingWithinArray(changeToken);
+               newRun = run.MergeAnchor(sources);
+            } else {
+               newRun = run.Duplicate(run.Start, sources);
             }
 
-            var newRun = run.MergeAnchor(sources);
             ObserveRunWritten(changeToken, newRun);
 
             ClearCacheScope();
@@ -1682,7 +1688,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             runIndex = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
-            runs.RemoveAt(runIndex);
+            if (runIndex >= 0) runs.RemoveAt(runIndex); // if the run was a pointer, it may've already been removed in the previous step
             return;
          }
 

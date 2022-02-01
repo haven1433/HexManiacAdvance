@@ -33,7 +33,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var error = IsValid(paletteFormat.Bits);
+         if (error.HasError) return error;
          run = new PaletteRun(dataIndex, paletteFormat, run.PointerSources);
+         return ErrorInfo.NoError;
+      }
+
+      public static ErrorInfo IsValid(int bitness) {
+         if (bitness != 4 && bitness != 8) {
+            return new ErrorInfo("Palette bpp must be 4 or 8.");
+         }
          return ErrorInfo.NoError;
       }
    }

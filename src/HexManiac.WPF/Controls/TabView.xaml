@@ -109,6 +109,9 @@
                         <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="-1">
                            <Setter Property="MaxWidth" Value="0"/>
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding Tools}" Value="{x:Null}">
+                           <Setter Property="MaxWidth" Value="0"/>
+                        </DataTrigger>
                      </Style.Triggers>
                   </Style>
                </ColumnDefinition.Style>
@@ -122,6 +125,9 @@
                <Style TargetType="Grid">
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding SelectedIndex}" Value="-1">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                     </DataTrigger>
+                     <DataTrigger Binding="{Binding}" Value="{x:Null}">
                         <Setter Property="Visibility" Value="Collapsed"/>
                      </DataTrigger>
                   </Style.Triggers>

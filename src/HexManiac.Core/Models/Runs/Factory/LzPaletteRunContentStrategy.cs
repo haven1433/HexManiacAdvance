@@ -42,6 +42,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var error = PaletteRunContentStrategy.IsValid(paletteFormat.Bits);
+         if (error.HasError) return error;
          run = new LzPaletteRun(paletteFormat, model, dataIndex, run.PointerSources);
          if (run.Length == LZRun.DecompressedTooLong) return new ErrorInfo("Decompressed more bytes than expected. Add a ! to override this.");
          if (run.Length < 6) return new ErrorInfo($"Compressed data needs to be at least {(int)Math.Pow(2, paletteFormat.Bits + 1)} bytes when decompressed, but was too short.");

@@ -23,6 +23,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var error = SpriteRunContentStrategy.IsValid(TilesetFormat.BitsPerPixel);
+         if (error.HasError) return error;
          var lzRun = new LzTilesetRun(TilesetFormat, model, dataIndex);
          if (lzRun.Length == LZRun.DecompressedTooLong) return new ErrorInfo("Decompressed more bytes than expected. Add a ! to override this.");
          if (lzRun.Length < 0) return new ErrorInfo("Format was specified as a compressed tileset, but no compressed data was recognized.");

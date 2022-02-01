@@ -22,6 +22,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var error = SpriteRunContentStrategy.IsValid(TilemapFormat.BitsPerPixel);
+         if (error.HasError) return error;
          var lzRun = new LZRun(model, dataIndex);
          var rowRemainder = lzRun.DecompressedLength % TilemapFormat.TileWidth;
          if (rowRemainder != 0) {

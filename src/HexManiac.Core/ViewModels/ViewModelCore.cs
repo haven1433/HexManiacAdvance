@@ -92,8 +92,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      protected void SetEnum<T>(ref T field, T value, Action<T> changeHandler, [CallerMemberName]string propertyName = null) where T : Enum {
+         var oldValue = field;
+         if (PropertyChanged.TryUpdateEnum(this, ref field, value, propertyName)) {
+            changeHandler?.Invoke(oldValue);
+         }
+      }
+
       protected void Set<T>(ref T field, T value, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
          Set(ref field, value, null, propertyName);
+      }
+
+      protected void SetEnum<T>(ref T field, T value, [CallerMemberName]string propertyName = null)where T : Enum {
+         SetEnum(ref field, value, null, propertyName);
       }
 
       protected bool TryUpdateEnum<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : Enum {

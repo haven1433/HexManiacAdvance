@@ -7,6 +7,7 @@ using HavenSoft.HexManiac.WPF.Implementations;
 using HavenSoft.HexManiac.WPF.Windows;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -147,21 +148,29 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void UpdateBlinkyCursor(object sender, EventArgs e) {
          if (!(HexContent.ViewPort is ViewPort viewPort) || viewPort.UpdateInProgress) return;
-         var screenPosition = HexContent.CursorLocation;
-         if (screenPosition.X >= 0 && screenPosition.X < HexContent.ActualWidth && screenPosition.Y >= 0 && screenPosition.Y < HexContent.ActualHeight) {
-            var dataPosition = viewPort.SelectionStart;
-            var format = viewPort[dataPosition.X, dataPosition.Y].Format;
-            double offset;
-            if (format is UnderEdit edit) {
-               offset = FormatDrawer.CalculateTextOffset(edit.CurrentText, HexContent.FontSize, HexContent.CellWidth, edit);
+         try {
+            var screenPosition = HexContent.CursorLocation;
+            if (screenPosition.X >= 0 && screenPosition.X < HexContent.ActualWidth && screenPosition.Y >= 0 && screenPosition.Y < HexContent.ActualHeight) {
+               var dataPosition = viewPort.SelectionStart;
+               var format = viewPort[dataPosition.X, dataPosition.Y].Format;
+               double offset;
+               if (format is UnderEdit edit) {
+                  offset = FormatDrawer.CalculateTextOffset(edit.CurrentText, HexContent.FontSize, HexContent.CellWidth, edit);
+               } else {
+                  offset = FormatDrawer.CalculateTextOffset(string.Empty, HexContent.FontSize, HexContent.CellWidth, null);
+               }
+               BlinkyCursor.Margin = new Thickness(screenPosition.X + offset, screenPosition.Y, 0, 0);
+               BlinkyCursor.Height = HexContent.CellHeight;
+               BlinkyCursor.Visibility = Visibility.Visible;
             } else {
-               offset = FormatDrawer.CalculateTextOffset(string.Empty, HexContent.FontSize, HexContent.CellWidth, null);
+               BlinkyCursor.Visibility = Visibility.Collapsed;
             }
-            BlinkyCursor.Margin = new Thickness(screenPosition.X + offset, screenPosition.Y, 0, 0);
-            BlinkyCursor.Height = HexContent.CellHeight;
-            BlinkyCursor.Visibility = Visibility.Visible;
-         } else {
-            BlinkyCursor.Visibility = Visibility.Collapsed;
+         } catch (Exception ex) {
+            // The cursor-blinking operation is not super important, but can happen at basically any time.
+            // It might happen because of a change to the file from another program,
+            // Or because of mouse movements during initial load.
+            // Everything is still fine if it fails, but let's pause the debugger to see what's going on, and maybe we can fix it.
+            Debugger.Break();
          }
       }
 

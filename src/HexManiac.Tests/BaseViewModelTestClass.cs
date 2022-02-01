@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Tests {
       public List<string> Messages { get; } = new List<string>();
       public List<string> Errors { get; } = new List<string>();
       public ModelDelta Token { get; } = new ModelDelta();
+      public StubFileSystem FileSystem { get; } = new StubFileSystem();
 
       public BaseViewModelTestClass() : this(0x200) { }
       public BaseViewModelTestClass(int modelLength) {

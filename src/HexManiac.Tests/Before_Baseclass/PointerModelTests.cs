@@ -9,7 +9,7 @@ using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class PointerModelTests : BaseViewModelTestClass{
+   public class PointerModelTests : BaseViewModelTestClass {
       [Fact]
       public void PointerModelFindsNoPointersInRandomData() {
          var rnd = new Random(0xCafe);
@@ -807,6 +807,30 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(Pointer.NULL, Model.ReadPointer(4));
          Assert.Equal(Pointer.NULL, Model.ReadPointer(8));
          Assert.Equal(Model.GetAddressFromAnchor(ViewPort.CurrentChange, -1, "text4"), Model.ReadPointer(12));
+      }
+
+      [Fact]
+      public void SelfReferentialPointer_Delete_NoError() {
+         ViewPort.Edit("@010 <010> @010 ");
+
+         ViewPort.Clear.Execute();
+
+         Assert.Equal(-1, Model.ReadMultiByteValue(0x10, 4));
+         Assert.IsType<None>(ViewPort[0, 0].Format);
+      }
+
+      [Fact]
+      public void PointerToTextWithinTable_DeepCopy_OnlyCopyOneElement() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 ^names^[content\"\"7]4 adam\" bob\" carl\" dave\"");
+         ViewPort.Edit("@000 @!00(16) ^table[pointer<>]4 <names/0> <names/1> <names/2> <names/3>");
+
+         ViewPort.Goto.Execute(8);
+         ViewPort.DeepCopy.Execute(FileSystem);
+
+         Assert.Contains("carl", FileSystem.CopyText.value);
+         Assert.DoesNotContain("bob", FileSystem.CopyText.value);
+         Assert.DoesNotContain("dave", FileSystem.CopyText.value);
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {

@@ -686,15 +686,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var images = SplitHorizontally(image, width, relatedImageCount);
             var desiredImportType = ImportType.Greedy;
             for (int i = 0; i < relatedSprites.Count; i++) {
+               var allowSpriteEdits = true;
                for (int j = 0; j < relatedPalettes.Count; j++) {
                   var imageIndex = relatedPalettes.Count * i + j;
-                  ImportSinglePageSpriteAndPalette(fileSystem, images[imageIndex], relatedSprites[i], relatedPalettes[j], desiredImportType);
+                  var failurePoint = ImportSinglePageSpriteAndPalette(fileSystem, images[imageIndex], relatedSprites[i], relatedPalettes[j], desiredImportType, allowSpriteEdits);
+
+                  // import may have failed if it's was trying to do a Greedy import with no sprite edits allowed
+                  if (failurePoint.X < PixelWidth || failurePoint.Y < PixelHeight) {
+                     viewPort.RaiseError($"Failed multi-image import: Image {i}, Palette {j} didn't match at pixel {failurePoint}.");
+                  }
+                  // still try to do the rest of the import
 
                   // import may have repointed sprites/palettes: refresh the related sprites/palettes cached locations.
                   spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
                   paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
                   relatedSprites = paletteRun.FindDependentSprites(model);
                   relatedPalettes = spriteRun.FindRelatedPalettes(model);
+                  foreach (var s in relatedSprites) Debug.Assert(model.GetNextRun(s.Start) is ISpriteRun, $"Expected a Sprite at {s.Start:X6}.");
+                  foreach (var p in relatedPalettes) Debug.Assert(model.GetNextRun(p.Start) is IPaletteRun, $"Expected a Palette at {p.Start:X6}.");
+                  allowSpriteEdits = false;
                }
                desiredImportType = ImportType.Cautious;
             }
@@ -776,7 +786,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return (ImportType)chosenOption;
       }
 
-      private void ImportSinglePageSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType = ImportType.Unknown) {
+      private Point ImportSinglePageSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType = ImportType.Unknown, bool allowSpriteEdits = true) {
+         var result = new Point(spriteRun.SpriteFormat.TileWidth * 8, spriteRun.SpriteFormat.TileHeight * 8);
+
          var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
          if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
             (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start && (spriteRun.Pages == 1 || spriteRun.Pages == paletteRun.Pages)) || // 'I am the only sprite' case
@@ -787,7 +799,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             WriteSpriteAndPalette(spriteRun, paletteRun, image, paletteRun?.Pages.Range().ToList());
             LoadSprite();
             LoadPalette();
-            return;
+            return result;
          }
 
          // there are multiple sprites
@@ -801,13 +813,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();
             WriteSpriteAndBalancePalette(spriteRun, paletteRun, otherSprites, image, usablePalPages);
          } else if (choice == ImportType.Greedy) {
-            WriteSpriteAndPalette(spriteRun, paletteRun, image, usablePalPages);
+            result = WriteSpriteAndPalette(spriteRun, paletteRun, image, usablePalPages, !allowSpriteEdits);
          } else if (choice == ImportType.Cautious) {
             WriteSpriteWithoutPalette(spriteRun, paletteRun, image, usablePalPages);
          }
 
          LoadSprite();
          LoadPalette();
+         return result;
       }
 
       private void ImportWideSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun) {
@@ -1095,7 +1108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ExplainMoves(spriteRun, newSprite, paletteRun, paletteRun);
       }
 
-      private void WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image, IReadOnlyList<int> usablePalPages) {
+      private Point WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image, IReadOnlyList<int> usablePalPages, bool noSpriteEdits = false) {
          var tiles = Tilize(image, PixelWidth);
          var expectedPalettePages = paletteRun?.Pages ?? 1;
          bool palettePerSprite = false;
@@ -1106,7 +1119,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          if (expectedPalettePages == 0 && paletteRun != null) {
             viewPort.RaiseError("You must select at least one palette.");
-            return;
+            return new Point(PixelWidth, PixelHeight);
          }
 
          // figure out the new palettes, using only the usable palettes. Leave the other palettes alone.
@@ -1124,10 +1137,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          var needWriteSpriteData = true;
-         if (TryReorderPalettesFromMatchingSprite(palettes, image, spriteRun.GetPixels(model, spritePage))) {
+         var problemPixel = TryReorderPalettesFromMatchingSprite(palettes, image, spriteRun.GetPixels(model, spritePage));
+         if (problemPixel.X == PixelWidth && problemPixel.Y == PixelHeight) {
             // palette is reordered, everything matches up with the original data. No need to write sprite data.
             needWriteSpriteData = false;
+         } else if (noSpriteEdits) {
+            // we were requested to not make sprite edits, return the pixel that prevents us from safely importing this way
+            return problemPixel;
          }
+
          var indexedTiles = new int[tiles.Length][,];
          for (int i = 0; i < indexedTiles.Length; i++) indexedTiles[i] = Index(tiles[i], palettes, usablePalPages, spriteRun.SpriteFormat.BitsPerPixel, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, palettePerSprite);
          var sprite = Detilize(indexedTiles, spriteRun.SpriteFormat.TileWidth);
@@ -1147,6 +1165,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ExplainMoves(spriteRun, newSprite, paletteRun, newPalette);
+         return new Point(PixelWidth, PixelHeight);
       }
 
       private void WriteSpriteWithoutPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image, IReadOnlyList<int> usablePalPages) {
@@ -1415,11 +1434,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// Given a set of indexed pixels and a new image,
       /// Edit a palette to be equal to the colors needed to map
       /// the indexed pixels into the new image.
-      /// Note that if the image doesn't fit the indexed pixels, this method will return false.
+      /// Note that if the image doesn't fit the indexed pixels, this method will return the pixels that caused the failure.
+      /// This method will return (-1, -1) if some other issue is encountered, and return (width, height) if everything worked.
       /// </summary>
-      public static bool TryReorderPalettesFromMatchingSprite(IReadOnlyList<short>[] palettes, short[] image, int[,] pixels) {
-         if (palettes == null || palettes.Length != 1) return false;
-         if (palettes[0].Count > 16) return false;
+      public static Point TryReorderPalettesFromMatchingSprite(IReadOnlyList<short>[] palettes, short[] image, int[,] pixels) {
+         if (palettes == null || palettes.Length != 1) return new Point(-1, -1);
+         if (palettes[0].Count > 16) return new Point(-1, -1);
          var newPalette = new short[16];
          for (int i = 0; i < newPalette.Length; i++) newPalette[i] = -1;
 
@@ -1430,7 +1450,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var currentColor = image[y * width + x];
                var currentIndex = pixels[x, y] % newPalette.Length;
                if (newPalette[currentIndex] == -1) newPalette[currentIndex] = currentColor;
-               if (newPalette[currentIndex] != currentColor) return false;
+               if (newPalette[currentIndex] != currentColor) return new Point(x, y);
             }
          }
 
@@ -1440,7 +1460,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          palettes[0] = newPalette;
-         return true;
+         return new Point(width, height);
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {

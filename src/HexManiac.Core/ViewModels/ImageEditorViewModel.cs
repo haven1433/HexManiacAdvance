@@ -114,8 +114,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Hover(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
          ToolUp(FromSpriteSpace(new Point(x + sprite.width - 1, y + height - 1)));
 
-         var paletteRun = model.GetNextRun(model.ReadPointer(PalettePointer)) as IPaletteRun;
-         var fullPalette = paletteRun.AllColors(model);
+         IReadOnlyList<short> fullPalette;
+         if (PalettePointer == Pointer.NULL) {
+            fullPalette = TileViewModel.CreateDefaultPalette(Palette.Elements.Count);
+         } else {
+            var paletteRun = model.GetNextRun(model.ReadPointer(PalettePointer)) as IPaletteRun;
+            fullPalette = paletteRun.AllColors(model);
+         }
 
          // make insertion more robust
          var newUnderPixels = new int[sprite.width, height];
@@ -290,7 +295,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ObservableCollection<int> TilePalettes { get; } = new ObservableCollection<int>();
 
-      public bool TilePalettePaint { get; set; }
+      private TilePaletteMode tilePaletteMode;
+      public TilePaletteMode TilePaletteMode { get => tilePaletteMode; set => SetEnum(ref tilePaletteMode, value); }
 
       private void RefreshTilePalettes() {
          var spriteAddress = model.ReadPointer(SpritePointer);
@@ -338,7 +344,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
-      private StubCommand selectTool, selectColor, zoomInCommand, zoomOutCommand, deleteCommand;
+      private StubCommand selectTool, selectColor, zoomInCommand, zoomOutCommand, deleteCommand, selectTilePaletteMode;
       public ICommand SelectTool => StubCommand<ImageEditorTools>(ref selectTool, arg => {
          if (arg == ImageEditorTools.TilePalette) {
             var spriteAddress = model.ReadPointer(SpritePointer);
@@ -347,6 +353,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectedTool = arg;
       });
       public ICommand SelectColor => StubCommand<string>(ref selectColor, arg => Palette.SelectionStart = int.Parse(arg));
+      public ICommand SelectTilePaletteMode => StubCommand<TilePaletteMode>(ref selectTilePaletteMode, arg => TilePaletteMode = arg);
       public ICommand ZoomInCommand => StubCommand(ref zoomInCommand, () => ZoomIn(0, 0));
       public ICommand ZoomOutCommand => StubCommand(ref zoomOutCommand, () => ZoomOut(0, 0));
       public ICommand DeleteCommand => StubCommand(ref deleteCommand, () => DeleteSelection(), () => toolStrategy is SelectionTool selector && selector.HasSelection);
@@ -1340,11 +1347,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public TilePaletteTool(ImageEditorViewModel parent) => this.parent = parent;
 
          public void ToolDown(Point screenPosition, bool altBehavior) {
-            if (parent.TilePalettePaint) Paint(screenPosition);
+            if (parent.TilePaletteMode == TilePaletteMode.Fill) Paint(screenPosition);
+            else if (parent.TilePaletteMode == TilePaletteMode.EyeDropper) parent.eyeDropperStrategy.ToolDown(screenPosition, altBehavior);
             else ToolDrag(screenPosition);
          }
 
          public void ToolDrag(Point screenPosition) {
+            if (parent.TilePaletteMode == TilePaletteMode.EyeDropper) {
+               parent.eyeDropperStrategy.ToolDrag(screenPosition);
+               return;
+            }
+
             var point = parent.ToSpriteSpace(screenPosition);
             var rowNumber = point.Y / 8;
             var colNumber = point.X / 8;
@@ -1379,7 +1392,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RaiseRefreshSelection(rowNumber, colNumber);
          }
 
-         public void ToolUp(Point screenPosition) { }
+         public void ToolUp(Point screenPosition) {
+            if (parent.TilePaletteMode == TilePaletteMode.EyeDropper) parent.eyeDropperStrategy.ToolUp(screenPosition);
+         }
 
          private void Paint(Point screenPosition) {
             var point = parent.ToSpriteSpace(screenPosition);
@@ -1438,6 +1453,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       Fill,        // fill area
       EyeDropper,  // grab color
       TilePalette, // draw/eye dropper palettes on tiles
+   }
+
+   public enum TilePaletteMode {
+      Draw,
+      Fill,
+      EyeDropper,
    }
 
    public class BlockPreview : ViewModelCore, IPixelViewModel {

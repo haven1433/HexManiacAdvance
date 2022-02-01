@@ -85,21 +85,29 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          AppendGeneralAppInfo(text);
          text.AppendLine("Exception Information:");
          AppendException(text, e.Exception);
-         text.AppendLine(e.Exception.StackTrace);
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
          File.AppendAllText("crash.log", text.ToString());
-         var exceptionTypeShortName = e.Exception.GetType().ToString().Split('.').Last().Split("Exception").First();
+         var exceptionInfo = ExtractExceptionInfo(e.Exception);
          FileSystem.ShowCustomMessageBox(
             "An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
             Title + " might be in a bad state. You should close as soon as possible." + Environment.NewLine +
             "Here's a summary of the issue:" + Environment.NewLine +
             Environment.NewLine +
-            exceptionTypeShortName + ":" + Environment.NewLine +
-            $"{e.Exception.Message}" + Environment.NewLine +
-            Environment.NewLine +
+            exceptionInfo + Environment.NewLine +
             "The error has been logged to crash.log", showYesNoCancel: false, processButtonText: "Show crash.log in Explorer", processContent: ".");
          e.Handled = true;
+      }
+
+      private static string ExtractExceptionInfo(Exception ex) {
+         var exceptionTypeShortName = ex.GetType().ToString().Split('.').Last().Split("Exception").First();
+         var info = exceptionTypeShortName + ":" + Environment.NewLine + $"{ex.Message}" + Environment.NewLine;
+         if (ex is AggregateException ag) {
+            foreach (var e in ag.InnerExceptions) {
+               info += ExtractExceptionInfo(e);
+            }
+         }
+         return info;
       }
 
       private static void AppendException(StringBuilder text, Exception ex, int indent = 0) {
@@ -111,6 +119,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (ex is AggregateException ae) {
             foreach (var e in ae.InnerExceptions) AppendException(text, e, indent + 2);
          }
+
+         text.AppendLine(ex.StackTrace + Environment.NewLine);
       }
 
       private void AppendGeneralAppInfo(StringBuilder text) {
@@ -120,6 +130,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             return;
          }
          text.AppendLine("Current tab count: " + editor.Count);
+         text.AppendLine("Current selected tab: " + editor.SelectedIndex);
          foreach (var tab in editor) {
             if (tab is IEditableViewPort viewPort) {
                text.AppendLine("Tab is ViewPort for " + Path.GetFileName(viewPort.FileName));
@@ -252,8 +263,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (var fileName in files) {
-               var data = File.ReadAllBytes(fileName);
-               ViewModel.Open.Execute(new LoadedFile(fileName, data));
+               var loadedFile = FileSystem.LoadFile(fileName);
+               ViewModel.Open.Execute(loadedFile);
             }
          }
 
@@ -474,6 +485,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var number = list[13];
       }
 
+      private void DeveloperThrowAggregateException(object sender, RoutedEventArgs e) {
+         var task = Task.Factory.StartNew(() => throw new NotImplementedException());
+         task.Wait();
+      }
+
       private void DeveloperWriteDebug(object sender, RoutedEventArgs e) => Debug.WriteLine("Debug");
 
       private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
@@ -601,7 +617,29 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          // user hit "Ignore Additional Assertions"
          ignoreAssertions = result == 0;
-         if (result == 1) core.Fail(message, detailMessage);
+         while (result == 1) {
+            if (Debugger.IsAttached) {
+               Debugger.Break();
+            } else {
+               result = fileSystem.ShowOptions(
+                  "Attach a Debugger",
+                  "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
+                  message + Environment.NewLine +
+                  detailMessage + Environment.NewLine +
+                  "Stack Trace:" + Environment.NewLine +
+                  Environment.StackTrace,
+                  null,
+                     new[] {
+                        new VisualOption {
+                           Index = 1,
+                           Option = "Debug",
+                           ShortDescription = "Show in Debugger",
+                           Description = "Break in a connected debugger"
+                        },
+                     }
+                  );
+            }
+         }
       }
 
       public override void Write(string message) => core.Write(message);

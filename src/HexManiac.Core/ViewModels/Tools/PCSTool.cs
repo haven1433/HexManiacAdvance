@@ -180,7 +180,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void DataForCurrentRunChanged() {
          var run = model.GetNextRun(address);
-         if (run is ArrayRun array) {
+         if (run.Start <= address && run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(address);
             var segment = array.ElementContent[offsets.SegmentIndex];
             if (segment.Type == ElementContentType.PCS) {
@@ -205,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   }
                }
             }
-         } else if (run is IStreamRun stream) {
+         } else if (run.Start <= address && run is IStreamRun stream) {
             using (ModelCacheScope.CreateScope(model)) {
                var newContent = stream.SerializeRun();
                ignoreSelectionUpdates = true;

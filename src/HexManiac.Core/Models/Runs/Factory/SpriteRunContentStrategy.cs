@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// <summary>
@@ -35,7 +36,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         var error = IsValid(spriteFormat.BitsPerPixel);
+         if (error.HasError) return error;
          run = new SpriteRun(model, dataIndex, spriteFormat, run.PointerSources);
+         return ErrorInfo.NoError;
+      }
+
+      public static ErrorInfo IsValid(int bitsPerPixel) {
+         if (!new[] { 1, 2, 4, 8 }.Contains(bitsPerPixel)) {
+            return new ErrorInfo("Sprite bpp must be 1, 2, 4, or 8.");
+         }
          return ErrorInfo.NoError;
       }
    }

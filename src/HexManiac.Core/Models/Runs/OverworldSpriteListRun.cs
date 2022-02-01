@@ -122,7 +122,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementCount = 0;
          Length = 0;
          while (Start + Length < nextAnchorStart) {
-            if (model[start + Length + 3] != 0x08) break;
+            var destination = model.ReadPointer(start + Length);
+            if (destination < 0 || destination >= model.Count) break;
             if (model.ReadMultiByteValue(start + Length + 4, 4) != byteLength) break;
             var nextRun = model.GetNextRun(start + Length);
             if (Length > 0 && (start + Length).IsAny(nextStart)) break; // metric: if there's a pointer in the parent table that points here, then it's the next list, not this list.

@@ -247,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // if the user explicitly closed the tools, don't auto-open them.
-         if (tools.SelectedIndex != -1) {
+         if (tools != null && tools.SelectedIndex != -1) {
             // if the 'Raw' tool is selected, don't auto-update tool selection.
             if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
                using (ModelCacheScope.CreateScope(Model)) {
@@ -684,7 +684,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private readonly ToolTray tools;
-      public bool HasTools => true;
+      public bool HasTools => tools != null;
       public IToolTrayViewModel Tools => tools;
 
       private bool anchorTextVisible;
@@ -813,18 +813,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
 
-         tools = new ToolTray(Singletons, Model, selection, history, this);
-         Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
-         Tools.OnMessage += (sender, e) => RaiseMessage(e);
-         tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
-         Tools.StringTool.ModelDataChanged += ModelChangedByTool;
-         Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
-         Tools.TableTool.ModelDataChanged += ModelChangedByTool;
-         Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
-         Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
-         Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
+         if (this is not ChildViewPort) { // child viewports don't need tools
+            tools = new ToolTray(Singletons, Model, selection, history, this);
+            Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
+            Tools.OnMessage += (sender, e) => RaiseMessage(e);
+            tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
+            Tools.StringTool.ModelDataChanged += ModelChangedByTool;
+            Tools.StringTool.ModelDataMoved += ModelDataMovedByTool;
+            Tools.TableTool.ModelDataChanged += ModelChangedByTool;
+            Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
+            Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
+            Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
+            scroll.Scheduler = tools;
+         }
 
-         scroll.Scheduler = tools;
          ImplementCommands();
          if (changeHistory == null) CascadeScripts(); // if we're sharing history with another viewmodel, our model has already been updated like this.
          RefreshBackingData();
@@ -874,6 +876,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
             }
+            tools?.StringTool.DataForCurrentRunChanged();
             RefreshBackingData();
          };
 
@@ -1076,8 +1079,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void Refresh() {
          scroll.DataLength = Model.Count;
          RefreshBackingData();
-         Tools.TableTool.DataForCurrentRunChanged();
-         Tools.SpriteTool.DataForCurrentRunChanged();
+         Tools?.TableTool.DataForCurrentRunChanged();
+         Tools?.SpriteTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
       }
 
@@ -2760,7 +2763,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (!possibleMatch) continue;
                for (int j = 0; j < FindBytes.Length; j++) {
                   var (x, y) = ((i + j) % Width, (i + j) / Width);
-                  if (currentView[x, y].Format is None) currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                  if (currentView[x, y].Format is None) {
+                     currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                  } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
+                     var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
+                     currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                  }
                }
                i += FindBytes.Length - 1;
             }
