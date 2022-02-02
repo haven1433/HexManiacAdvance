@@ -404,6 +404,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
+
       #endregion
 
       #region TableRun
