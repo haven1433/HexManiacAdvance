@@ -145,6 +145,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
          return field;
       }
+
+      protected static IDisposable Scope<T>(ref T field, T value, Action<T> lambda) {
+         var originalValue = field;
+         var disposable = new StubDisposable { Dispose = () => lambda(originalValue) };
+         field = value;
+         return disposable;
+      }
    }
 
    public class ExtendedPropertyChangedEventArgs<T> : PropertyChangedEventArgs {
