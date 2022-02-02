@@ -272,7 +272,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var options = new List<string>(model?.GetAutoCompleteAnchorNameOptions(sanitizedText, int.MaxValue) ?? new string[0]);
          options.AddRange(model?.GetAutoCompleteByteNameOptions(sanitizedText) ?? new string[0]);
          if (!text.Contains("/") && text.Length >= 3) {
-            options.AddRange((model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]).Where(option => option.ToLower().Replace(" ", string.Empty).Contains(sanitizedText.ToLower())));
+            options.AddRange((model?.GetAutoCompleteAnchorNameOptions("/" + text) ?? new string[0]).Where(option => option.ToLower().Replace(" ", string.Empty).MatchesPartial(sanitizedText.ToLower())));
          }
          text = text.ToLower();
          var bestMatches = options.Where(option => option.ToLower().Contains(text));
