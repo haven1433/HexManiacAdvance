@@ -260,7 +260,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void GotoAddress(int address) {
-         if (address > model.Count || address < 0) {
+         if (address >= model.Count || address < 0) {
             OnError?.Invoke(this, $"Address {address:X2} is not within the size of the data.");
             return;
          }
