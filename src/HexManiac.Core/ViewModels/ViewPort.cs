@@ -183,6 +183,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand gotoCommand;
       private void ExecuteGoto(object arg) {
          if (arg is string str) {
+            var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
+            if (possibleMatches.Count == 1) str = possibleMatches[0];
+            else if (possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
             var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length < 3).ToList();
             if (words.Count == 1) {
                selection.Goto.Execute(words[0]);
