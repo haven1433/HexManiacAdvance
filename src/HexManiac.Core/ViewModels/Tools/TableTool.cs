@@ -220,6 +220,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(array.Start + array.Length - array.ElementLength);
                         selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
                      }
+                  } else {
+                     append.RaiseCanExecuteChanged();
+                     viewPort.Refresh();
                   }
                   RequestMenuClose?.Invoke(this, EventArgs.Empty);
                   if (model is PokemonModel pModel) pModel.ResolveConflicts();
