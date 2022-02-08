@@ -582,3 +582,10 @@ Name = '''trainergender'''
     '''male''',
     '''female''',
 ]
+
+[[List]]
+Name = '''songLoopOptions'''
+0 = [
+    '''playOnce''',
+    '''loop''',
+]
