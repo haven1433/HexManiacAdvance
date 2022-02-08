@@ -303,13 +303,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x00, viewPort[3, 1].Value);
          Assert.Equal(0x00, viewPort[4, 1].Value);
          Assert.Equal(0x08, viewPort[5, 1].Value);
-         Assert.Equal(0xFF, viewPort[6, 1].Value);
-         Assert.Equal(0xFF, viewPort[7, 1].Value);
+         Assert.Equal(0x00, viewPort[6, 1].Value); // leftover data from the pointer <000030> when we 'fixed' its format
+         Assert.Equal(0x08, viewPort[7, 1].Value);
 
          Assert.IsNotType<Pointer>(viewPort[1, 1].Format);
          Assert.IsType<Pointer>(viewPort[2, 1].Format);
          Assert.IsType<Pointer>(viewPort[5, 1].Format);
          Assert.IsNotType<Pointer>(viewPort[6, 1].Format);
+
+         // verify that there is no anchor at 20 and 30, but there is an anchor at 40
+         Assert.Equal(0x40, Model.GetNextAnchor(0x20).Start);
       }
 
       [Fact]
@@ -831,6 +834,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("carl", FileSystem.CopyText.value);
          Assert.DoesNotContain("bob", FileSystem.CopyText.value);
          Assert.DoesNotContain("dave", FileSystem.CopyText.value);
+      }
+
+      [Fact]
+      public void Bytes_WriteSameBytesAsPointer_ModelDoesNotThinkBytesWereChanged() {
+         Model.RawData[3] = 0x08;
+
+         ViewPort.Edit("<000>");
+
+         Assert.All(4.Range(), i => Assert.False(Model.HasChanged(i)));
       }
 
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {

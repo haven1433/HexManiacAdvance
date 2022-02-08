@@ -551,17 +551,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (currentRun.Start > memoryLocation) currentRun = null;
          bool inArray = currentRun is ITableRun && currentRun.Start <= memoryLocation;
          var sources = currentRun?.PointerSources;
+         var previousDestination = Model.ReadPointer(memoryLocation);
 
          if (!inArray) {
-            if (destination != string.Empty) {
-               Model.ClearFormatAndData(CurrentChange, memoryLocation, 4);
-               sources = null;
-            } else if (!(currentRun is NoInfoRun)) {
-               Model.ClearFormat(CurrentChange, memoryLocation, 4);
-               sources = null;
-            }
+            Model.ClearFormat(CurrentChange, memoryLocation, 4);
+            sources = null;
          }
 
+         var (destinationValue, offset) = ParseDestination(destination);
+         if (destinationValue != previousDestination) Model.ClearData(CurrentChange, memoryLocation, 4);
+
+         var fullValue = destinationValue + offset;
+         if (destinationValue == Pointer.NULL || (0 <= destinationValue && destinationValue < Model.Count)) {
+            if (inArray) {
+               UpdateArrayPointer((ITableRun)currentRun, destinationValue);
+            } else {
+               if (Model.ReadPointer(memoryLocation) != fullValue) {
+                  Model.WritePointer(CurrentChange, memoryLocation, fullValue);
+               }
+               var newRun = new PointerRun(memoryLocation, sources);
+               if (offset != 0) newRun = new OffsetPointerRun(memoryLocation, offset, sources);
+               Model.ObserveRunWritten(CurrentChange, newRun);
+            }
+
+            NewDataIndex = memoryLocation + 4;
+         } else {
+            ErrorText = $"Address {destinationValue:X2} is not within the data.";
+         }
+      }
+
+      /// <summary>
+      /// Reads the user's text and current context to decide the destination for a new pointer.
+      /// Can set ErrorText if there is an error in this process.
+      /// </summary>
+      private (int, int) ParseDestination(string destination) {
          int destinationValue;
          int offset = 0;
          if (destination == string.Empty) {
@@ -590,23 +613,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destination);
          }
 
-         var fullValue = destinationValue + offset;
-         if (destinationValue == Pointer.NULL || (0 <= destinationValue && destinationValue < Model.Count)) {
-            if (inArray) {
-               UpdateArrayPointer((ITableRun)currentRun, destinationValue);
-            } else {
-               if (Model.ReadPointer(memoryLocation) != fullValue) {
-                  Model.WritePointer(CurrentChange, memoryLocation, fullValue);
-               }
-               var newRun = new PointerRun(memoryLocation, sources);
-               if (offset != 0) newRun = new OffsetPointerRun(memoryLocation, offset, sources);
-               Model.ObserveRunWritten(CurrentChange, newRun);
-            }
-
-            NewDataIndex = memoryLocation + 4;
-         } else {
-            ErrorText = $"Address {destinationValue:X2} is not within the data.";
-         }
+         return (destinationValue, offset);
       }
 
       private void CompleteWordEdit() {
