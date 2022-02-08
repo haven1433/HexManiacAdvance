@@ -618,6 +618,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       private void CompleteWordEdit() {
          var parentName = CurrentText.Substring(2).Trim();
+         if (parentName == string.Empty) {
+            ErrorText = "Cannot write constant with no name.";
+            return;
+         }
+
          Model.ExpandData(CurrentChange, memoryLocation + 3);
          Model.ClearFormat(CurrentChange, memoryLocation, 4);
          CurrentChange.AddMatchedWord(Model, memoryLocation, parentName, 4);
@@ -647,6 +652,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                ErrorText = $"Could not create {constantName} with multiplier {multOffset}: the multiplier must be positive.";
                return;
             }
+         }
+         if (constantName == string.Empty) {
+            ErrorText = "Cannot write constant with no name.";
+            return;
          }
 
          var coreValue = (Model[memoryLocation] / multOffset) - offset;

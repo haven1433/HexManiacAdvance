@@ -145,5 +145,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(13, Model[0]);
          Assert.Equal(13, table.ElementCount);
       }
+
+      [Theory]
+      [InlineData(":: ")]
+      [InlineData(": ")]
+      [InlineData(". ")]
+      public void ByteToken_NoName_Error(string edit) {
+         ViewPort.Edit(edit);
+
+         Assert.Single(Errors);
+      }
    }
 }

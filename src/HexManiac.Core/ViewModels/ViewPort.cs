@@ -2628,10 +2628,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var index = scroll.ViewPointToDataIndex(point);
             if (value == 2) SelectionStart = scroll.DataIndexToViewPoint(index + point.X % 2);
             if (value == 4 && point.X % 4 != 0) SelectionStart = scroll.DataIndexToViewPoint(index + 4 - (point.X % 4));
+         } else if (currentText.StartsWith(".text")) {
+            ClearEdits(point);
+         } else if (currentText.StartsWith(".thumb")) {
+            ClearEdits(point);
+         } else {
+            RaiseError($"'{currentText.Substring(1).Trim()}' is not a valid directive.");
          }
-
-         if (currentText.StartsWith(".text")) ClearEdits(point);
-         if (currentText.StartsWith(".thumb")) ClearEdits(point);
 
          return false;
       }
