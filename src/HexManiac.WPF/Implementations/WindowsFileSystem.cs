@@ -80,7 +80,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             var path = Path.GetFileName(file);
             ShowCustomMessageBox(
                $"{EditorViewModel.ApplicationName} tried to run{nl}{path}{nl}but there is no application associated with its file type.",
-               showYesNoCancel: false, processButtonText: "Change 'Opens with:'", "!" + file);
+               showYesNoCancel: false, new ProcessModel("Change 'Opens with:'", "!" + file));
          }
       }
 
@@ -214,7 +214,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return Save(new LoadedFile(displayName.Trim(), file.Contents));
       }
 
-      public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true, string processButtonText = null, string processContent = null) {
+      public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true, params ProcessModel[] links) {
          var choices = showYesNoCancel ? new StackPanel {
             HorizontalAlignment = HorizontalAlignment.Right,
             Orientation = Orientation.Horizontal,
@@ -264,22 +264,22 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   choices,
                }
             }.Fluent(sp => {
-               if (!string.IsNullOrEmpty(processButtonText)) {
+               foreach (var link in links) {
                   sp.Children.Insert(1, new TextBlock {
                      Margin = new Thickness(5),
                      Inlines = {
                         new Hyperlink {
                            Foreground = Brush(nameof(Theme.Accent)),
-                           Inlines = { new Run(processButtonText) },
+                           Inlines = { new Run(link.DisplayText) },
                         }.Fluent(hyperlink => hyperlink.Click += (sender, e) => {
                            try {
-                              if (!processContent.StartsWith("!")) {
-                                 NativeProcess.Start(processContent);
+                              if (!link.Content.StartsWith("!")) {
+                                 NativeProcess.Start(link.Content);
                               } else {
-                                 ShowFileProperties(processContent.Substring(1));
+                                 ShowFileProperties(link.Content.Substring(1));
                               }
                            } catch {
-                              ShowCustomMessageBox($"Could not start '{processContent}'.", showYesNoCancel: false);
+                              ShowCustomMessageBox($"Could not start '{link.Content}'.", showYesNoCancel: false);
                            }
                         }),
                      }
@@ -548,4 +548,6 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
       #endregion
    }
+
+   public record ProcessModel(string DisplayText, string Content);
 }

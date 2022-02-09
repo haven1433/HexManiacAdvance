@@ -95,7 +95,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             "Here's a summary of the issue:" + Environment.NewLine +
             Environment.NewLine +
             exceptionInfo + Environment.NewLine +
-            "The error has been logged to crash.log", showYesNoCancel: false, processButtonText: "Show crash.log in Explorer", processContent: ".");
+            "The error has been logged to crash.log", showYesNoCancel: false,
+            new ProcessModel("Show crash.log in Explorer", "."));
          e.Handled = true;
       }
 
