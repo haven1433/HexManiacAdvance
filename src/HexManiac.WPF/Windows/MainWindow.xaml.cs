@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -95,8 +96,21 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             "Here's a summary of the issue:" + Environment.NewLine +
             Environment.NewLine +
             exceptionInfo + Environment.NewLine +
-            "The error has been logged to crash.log", showYesNoCancel: false,
-            new ProcessModel("Show crash.log in Explorer", "."));
+            "The error has been logged to crash.log" + Environment.NewLine +
+            "You may want to:",
+            showYesNoCancel: false,
+            new ProcessModel("Show crash.log in Explorer", "."),
+            new ProcessModel("Report this via Discord", "https://discord.gg/Re6E6ePpFc"),
+            new ProcessModel(
+               "Report this via GitHub",
+               "https://github.com/haven1433/HexManiacAdvance/issues/new?body=" + HttpUtility.UrlEncode(
+                  "*(Please replace this section with notes about what you were doing or how to reproduce)*" + Environment.NewLine +
+                  Environment.NewLine + Environment.NewLine + Environment.NewLine + Environment.NewLine +
+                  "Notes from crash.log: " + Environment.NewLine + Environment.NewLine +
+                  "    " + text.ToString().Replace(Environment.NewLine, Environment.NewLine + "    ")
+               )
+            )
+         );
          e.Handled = true;
       }
 

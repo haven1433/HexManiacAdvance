@@ -260,13 +260,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             Content = new StackPanel {
                Orientation = Orientation.Vertical,
                Children = {
-                  new TextBlock { Text = message, Margin = new Thickness(15, 20, 15, 20), TextWrapping = TextWrapping.Wrap },
+                  new TextBlock { Text = message, Margin = new Thickness(15, 20, 15, 5), TextWrapping = TextWrapping.Wrap },
                   choices,
                }
             }.Fluent(sp => {
                foreach (var link in links) {
                   sp.Children.Insert(1, new TextBlock {
-                     Margin = new Thickness(5),
+                     Margin = new Thickness(20, 2, 20, 2),
                      Inlines = {
                         new Hyperlink {
                            Foreground = Brush(nameof(Theme.Accent)),
