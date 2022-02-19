@@ -50,6 +50,6 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <TextBox Name="Prompt" BorderThickness="0" Background="Transparent" HorizontalAlignment="Center" Margin="5" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
+      <TextBox Name="Prompt" BorderThickness="0" Background="Transparent" IsReadOnly="True" HorizontalAlignment="Center" Margin="5" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"/>
    </DockPanel>
 </Window>
