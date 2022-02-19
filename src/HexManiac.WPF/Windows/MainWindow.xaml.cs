@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -563,6 +564,13 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             SizeToContent = SizeToContent.WidthAndHeight,
          };
          window.Show();
+      }
+
+      private void DeveloperGetSHA1(object sender, EventArgs e) {
+         var tab = (ViewPort)ViewModel.SelectedTab;
+         var sha = SHA1.Create();
+         var result = string.Concat(sha.ComputeHash(tab.Model.RawData).Select(b => b.ToString("X2")));
+         FileSystem.ShowCustomMessageBox(result, showYesNoCancel: false);
       }
 
       private static int Color(string name) {

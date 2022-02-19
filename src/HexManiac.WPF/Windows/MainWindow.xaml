@@ -216,6 +216,7 @@
                   <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                   <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
                   <MenuItem Header="Render Rom Overview" Click="DeveloperRenderRomOverview"/>
+                  <MenuItem Header="Calculate SHA1" Click="DeveloperGetSHA1"/>
                </MenuItem>
                <MenuItem Header="Utilities">
                   <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
