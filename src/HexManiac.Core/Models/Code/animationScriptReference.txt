@@ -14,7 +14,7 @@
 0B clearmonbg battler.
 0C setalpha ev:
 0D blendoff
-0E call param::
+0E call pointer<>
 0F return
 10 setarg param0. param1:
 11 choosetwoturnanim option1<> option2<>
