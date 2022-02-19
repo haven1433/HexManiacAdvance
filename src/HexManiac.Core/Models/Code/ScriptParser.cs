@@ -736,7 +736,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          for (int i = 0; i < count; i++) {
             var value = model.ReadMultiByteValue(start, TokenLength);
             start += TokenLength;
-            var tokenText = value.ToString($"X{TokenLength * 2}");
+            var tokenText = "0x" + value.ToString($"X{TokenLength * 2}");
             if (!string.IsNullOrEmpty(EnumTableName)) {
                var table = model.GetOptions(EnumTableName);
                if ((table?.Count ?? 0) > value) {
