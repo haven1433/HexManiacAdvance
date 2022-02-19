@@ -634,7 +634,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public ASEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x08, 0x0F, 0x11, 0x13);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x11, 0x13);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0E, 0x11, 0x12, 0x13);
       public override bool PointsToSpriteTemplate => LineCode.Count == 1 && LineCode[0] == 0x02;
    }
 
