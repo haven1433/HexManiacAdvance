@@ -31,7 +31,7 @@
 1C loopsewithpan se: pan. wait. times.
 1D waitplaysewithpan se: pan. wait.
 1E setbldcnt param0:
-1F createsoundtask address<> task. argv:
+1F createsoundtask address<> [argv:]
 20 waitsound
 21 jumpargeq param0. param1: ptr<>
 22 monbg_22 battler.
