@@ -62,6 +62,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Crc32.NET" Version="1.2.0" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="$(SolutionDir)\src\AutoImplement.Delegation\AutoImplement.Delegation.csproj" />
     <ProjectReference Include="$(SolutionDir)src\AutoImplement.Tool\AutoImplement.Tool.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>

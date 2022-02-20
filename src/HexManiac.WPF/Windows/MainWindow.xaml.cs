@@ -573,6 +573,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FileSystem.ShowCustomMessageBox(result, showYesNoCancel: false);
       }
 
+      private void DeveloperGetCRC32(object sender, EventArgs e) {
+         var tab = (ViewPort)ViewModel.SelectedTab;
+         var crc = Force.Crc32.Crc32Algorithm.Compute(tab.Model.RawData);
+         FileSystem.ShowCustomMessageBox(crc.ToString("X8"), showYesNoCancel: false);
+      }
+
       private static int Color(string name) {
          var color = ((SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name]).Color;
          return (color.A << 24) + (color.R << 16) + (color.G << 8) + color.B;
