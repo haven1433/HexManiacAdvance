@@ -477,6 +477,25 @@ Script:
          // no throw -> pass
       }
 
+      [Fact]
+      public void AnimationScript_ContainsArgList_WriteDataCorrectly() {
+         // 03 createvisualtask address<> priority. [argv:]
+         SetFullModel(0xFF);
+         var script = Script("createvisualtask <123456> 5 0x0 0x0", "end");
+
+         var result = ViewPort.Tools.CodeTool.AnimationScriptParser.Compile(Token, Model, 0, ref script, out var _);
+
+         byte[] expected = new byte[][] {
+            new byte[] { 3 },                      // createvisualtask
+            new byte[] { 0x56, 0x34, 0x12, 0x08 }, // address
+            new byte[] { 5 },                      // priority
+            new byte[] { 2 },                      // (number of variable args)
+            new byte[] { 0, 0, 0,0 },              // variable args (each arg is 2 bytes)
+            new byte[] { 8 },                      // end
+         }.SelectMany(b => b).ToArray();
+         Assert.Equal(expected, result);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

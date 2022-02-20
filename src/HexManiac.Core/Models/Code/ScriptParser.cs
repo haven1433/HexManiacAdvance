@@ -706,6 +706,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          int result;
          if (string.IsNullOrEmpty(EnumTableName)) {
             if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
+            if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return result;
             if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return result;
             if (int.TryParse(value, out result)) return result;
             return 0;
@@ -752,9 +753,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public IEnumerable<int> ConvertMany(IDataModel model, IEnumerable<string> info) {
          foreach (var token in info) {
             if (string.IsNullOrEmpty(EnumTableName)) {
-               if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var value)) {
-                  yield return value;
-               }
+               if (token.StartsWith("0x") && token.Substring(2).TryParseHex(out var result)) yield return result;
+               else if (token.StartsWith("0X") && token.Substring(2).TryParseHex(out result)) yield return result;
+               else if (token.StartsWith("$") && token.Substring(1).TryParseHex(out result)) yield return result;
+               else if (int.TryParse(token, out result)) yield return result;
+               else yield return 0;
             } else if (ArrayRunEnumSegment.TryParse(EnumTableName, model, token, out var enumValue)) {
                yield return enumValue;
             } else {
