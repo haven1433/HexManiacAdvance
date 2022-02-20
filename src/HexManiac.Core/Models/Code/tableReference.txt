@@ -263,7 +263,7 @@ graphics.menu.status.sprite,                     ,,,, 45A574, 459F94, 45A5D4, 45
 graphics.menu.bar.palette,                       ,,,, 13A978, 13A950, 13A9F0, 13A9C8, , `ucp4`
 graphics.menu.bar.hp,                            ,,,, 13A4C0, 13A498, 13A538, 13A510, , `lzs4x12x1|graphics.menu.bar.palette`
 graphics.menu.bar.exp,                           ,,,, 13A974, 13A94C, 13A9EC, 13A9C4, , `lzs4x12x1|graphics.menu.bar.palette`
-graphics.menu.summaryscreen.palette,             ,,,, 135FA8, 135F80, 136020, 135FF8, , `ucp4:012345`
+graphics.menu.summaryscreen.palette,             ,,,, 135FA8, 135F80, 136020, 135FF8, , `ucp4:0123456`
 graphics.menu.summaryscreen.tileset,             ,,,, 135FFC, 135FD4, 136074, 13604C, , `lzt4|graphics.menu.summaryscreen.palette`
 graphics.menu.summaryscreen.tilemap.info,        ,,,, 135B34, 135B0C, 135BAC, 135B84, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
 graphics.menu.summaryscreen.tilemap.skills,      ,,,, 135B6C, 135B44, 135BE4, 135BBC, , `lzm4x32x20|graphics.menu.summaryscreen.tileset`
