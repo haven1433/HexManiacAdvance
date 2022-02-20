@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
@@ -49,29 +48,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return true;
       }
 
-      //public static IReadOnlyDictionary<string, int> GetNumberOfRelearnableMoves = new Dictionary<string, int> {
-      //   { "AXVE0", 0x040574 },
-      //   { "AXPE0", 0x040574 },
-      //   { "AXVE1", 0x040594 },
-      //   { "AXPE1", 0x040594 },
-      //   { "BPRE0", 0x043E2C },
-      //   { "BPGE0", 0x043E2C },
-      //   { "BPRE1", 0x043E40 },
-      //   { "BPGE1", 0x043E40 },
-      //   { "BPEE0", 0x06e25c },
-      //};
-      //public static IReadOnlyDictionary<string, int[]> MaxLevelUpMoveCountLocations = new Dictionary<string, int[]> { // each of these stores the max number of level-up moves, minus 1
-      //   { "AXVE0", new[] { 0x0404E8, 0x040556, 0x0406A4 } },
-      //   { "AXPE0", new[] { 0x0404E8, 0x040556, 0x0406A4 } },
-      //   { "AXVE1", new[] { 0x040508, 0x040576, 0x0406C4 } },
-      //   { "AXPE1", new[] { 0x040508, 0x040576, 0x0406C4 } },
-      //   { "BPRE0", new[] { 0x043DA0, 0x043E0E, 0x043F5C } },
-      //   { "BPGE0", new[] { 0x043DA0, 0x043E0E, 0x043F5C } },
-      //   { "BPRE1", new[] { 0x043DB4, 0x043E22, 0x043F70 } },
-      //   { "BPGE1", new[] { 0x043DB4, 0x043E22, 0x043F70 } },
-      //   { "BPEE0", new[] { 0x06E1D0, 0x06E23E, 0x06E38C } },
-      //};
-
       public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var model = viewPort.Model;
@@ -99,6 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          await ExpandLevelUpMoveCode(viewPort, token, .7, 1);
 
          viewPort.Refresh();
+         CanRunChanged?.Invoke(this, EventArgs.Empty);
          return ErrorInfo.NoError;
       }
 
