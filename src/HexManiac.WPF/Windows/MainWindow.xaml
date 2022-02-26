@@ -210,14 +210,19 @@
                </MenuItem>
                <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
                   <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
+                  <Separator />
                   <MenuItem Header="Assert" Click="DeveloperRaiseAssert"/>
                   <MenuItem Header="Throw ArgumentOutOfRangeException" Click="DeveloperThrowArgumentOutOfRangeException"/>
                   <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
                   <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                   <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
+                  <Separator />
                   <MenuItem Header="Render Rom Overview" Click="DeveloperRenderRomOverview"/>
+                  <Separator />
                   <MenuItem Header="Calculate SHA1" Click="DeveloperGetSHA1"/>
                   <MenuItem Header="Calculate CRC32" Click="DeveloperGetCRC32"/>
+                  <Separator />
+                  <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
                </MenuItem>
                <MenuItem Header="Utilities">
                   <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
