@@ -112,22 +112,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    public class DesktopColorPicker {
       public static Color GrabMousePixelColorFromScreen() {
          System.Drawing.Point point = System.Windows.Forms.Control.MousePosition;
-         var screenimage = CaptureDesktop();
+         var screenimage = CaptureDesktopPixel(point.X, point.Y);
          int stride = (screenimage.PixelWidth * screenimage.Format.BitsPerPixel + 7) / 8;
-         var pixels = new byte[4];
-         point.X = point.X.LimitToRange(0, screenimage.PixelWidth - 1);
-         point.Y = point.Y.LimitToRange(0, screenimage.PixelHeight - 1);
-         screenimage.CopyPixels(new Int32Rect(point.X, point.Y, 1, 1), pixels, stride, 0);
-         return Color.FromRgb(pixels[2], pixels[1], pixels[0]);
+         var bgra = new byte[4];
+         screenimage.CopyPixels(new Int32Rect(0, 0, 1, 1), bgra, stride, 0);
+         var color = Color.FromRgb(bgra[2], bgra[1], bgra[0]);
+         return color;
       }
 
-      public static BitmapSource CaptureDesktop() {
-         return CaptureRegion(
-            GetDesktopWindow(),
-            (int)SystemParameters.VirtualScreenLeft,
-            (int)SystemParameters.VirtualScreenTop,
-            (int)SystemParameters.PrimaryScreenWidth,
-            (int)SystemParameters.PrimaryScreenHeight);
+      public static BitmapSource CaptureDesktopPixel(int x, int y) {
+         return CaptureRegion(GetDesktopWindow(), x, y, 1, 1);
       }
 
       public const int SRCCOPY = 0xCC0020;
