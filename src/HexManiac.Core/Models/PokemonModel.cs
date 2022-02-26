@@ -2368,6 +2368,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static readonly int[] TargetAddresses = new int[] { };
       public int InsertCount { get; private set; }
       public int RemoveCount { get; private set; }
+      public int ReplaceCount { get; private set; }
       void ICollection<IFormattedRun>.Add(IFormattedRun item) {
          if (TargetAddresses.Contains(item.Start)) Debugger.Break();
          InsertCount += 1;
@@ -2388,6 +2389,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          get => this[index];
          set {
             if (TargetAddresses.Contains(value.Start)) Debugger.Break();
+            ReplaceCount += 1;
             this[index] = value;
          }
       }
