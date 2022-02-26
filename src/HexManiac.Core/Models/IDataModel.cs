@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
+      void ContractData(ModelDelta changeToken, int maximumLength);
 
       SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
       bool WritePointer(ModelDelta changeToken, int address, int pointerDestination);
@@ -231,6 +232,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          var newData = new byte[minimumIndex + 1];
          Array.Copy(RawData, newData, RawData.Length);
          for (int i = RawData.Length; i < newData.Length; i++) newData[i] = 0xFF;
+         RawData = newData;
+      }
+
+      public void ContractData(ModelDelta changeToken, int maximumIndex) {
+         if (Count < maximumIndex) return;
+
+         var newData = new byte[maximumIndex + 1];
+         Array.Copy(RawData, newData, newData.Length);
          RawData = newData;
       }
 
