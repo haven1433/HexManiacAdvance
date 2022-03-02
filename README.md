@@ -8,7 +8,7 @@ Other than standard hex editor features like load/save, view/edit, and copy/past
 
 Here's a quote about the tool from Asith, Pokemon GBA Rom Hacker. Maker of [Spectrobes GBA](https://www.pokecommunity.com/showthread.php?t=459017), judge from [MAGM4](https://discord.gg/aDZuSndX4c), winner [MAGM5](https://discord.gg/mjhBXsG9jq).
 
-> HexManiacAdvance is a new tool tool that could be described as all-purpose. It does a lot of things that old tools did, but better and safer. Anthroyd's tutorials are still very relevant, but one of the biggest differences is the existence of hma as a tool. I would recommend checking it out, it can do the jobs of nearly all old tools except advancemap and xse.
+> HexManiacAdvance is a new tool that could be described as all-purpose. It does a lot of things that old tools did, but better and safer. Anthroyd's tutorials are still very relevant, but one of the biggest differences is the existence of hma as a tool. I would recommend checking it out, it can do the jobs of nearly all old tools except advancemap and xse.
 
 
 # Getting Started
