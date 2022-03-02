@@ -29,7 +29,7 @@ using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
    partial class MainWindow {
-      private readonly List<Action> deferredActions = new List<Action>();
+      private readonly List<Func<Task>> deferredActions = new();
       private ThemeSelector themeWindow;
 
       public EditorViewModel ViewModel { get; }
@@ -581,9 +581,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FileSystem.ShowCustomMessageBox(crc.ToString("X8"), showYesNoCancel: false);
       }
 
-      private void DeveloperReloadMetadata(object sender, EventArgs e) {
+      private async void DeveloperReloadMetadata(object sender, EventArgs e) {
          var tab = (ViewPort)ViewModel.SelectedTab;
-         tab.ConsiderReload(FileSystem);
+         await tab.ConsiderReload(FileSystem);
       }
 
       private static int Color(string name) {

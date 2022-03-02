@@ -10,6 +10,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -148,14 +149,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler Closed;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<IDataModel> RequestCloseOtherViewports;
-      public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler<Func<Task>> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
       public event PropertyChangedEventHandler PropertyChanged;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
 
-      public void ConsiderReload(IFileSystem fileSystem) { }
+      public Task ConsiderReload(IFileSystem fileSystem) => Task.CompletedTask;
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
          throw new NotImplementedException();

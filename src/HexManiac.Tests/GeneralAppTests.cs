@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Xunit;
 
@@ -379,8 +380,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void EditorForwardsTabDelayedWork() {
-         void SomeAction() { }
-         Action work = null;
+         Task SomeAction() => Task.CompletedTask;
+         Func<Task> work = null;
          var editor = new EditorViewModel(new StubFileSystem());
          var tab = new StubTabContent();
          editor.Add(tab);

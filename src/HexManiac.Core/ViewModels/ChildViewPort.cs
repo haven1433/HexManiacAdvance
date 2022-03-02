@@ -9,6 +9,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -163,14 +164,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler Closed { add => ForEach(child => child.Closed += value); remove => ForEach(child => child.Closed -= value); }
       public event EventHandler<ITabContent> RequestTabChange { add => ForEach(child => child.RequestTabChange += value); remove => ForEach(child => child.RequestTabChange -= value); }
       public event EventHandler<IDataModel> RequestCloseOtherViewports { add => ForEach(child => child.RequestCloseOtherViewports += value); remove => ForEach(child => child.RequestCloseOtherViewports -= value); }
-      public event EventHandler<Action> RequestDelayedWork { add => ForEach(child => child.RequestDelayedWork += value); remove => ForEach(child => child.RequestDelayedWork -= value); }
+      public event EventHandler<Func<Task>> RequestDelayedWork { add => ForEach(child => child.RequestDelayedWork += value); remove => ForEach(child => child.RequestDelayedWork -= value); }
       public event EventHandler RequestMenuClose { add => ForEach(child => child.RequestMenuClose += value); remove => ForEach(child => child.RequestMenuClose -= value); }
       public event EventHandler<Direction> RequestDiff { add => ForEach(child => child.RequestDiff += value); remove => ForEach(child => child.RequestDiff -= value); }
       public event EventHandler<CanDiffEventArgs> RequestCanDiff { add => ForEach(child => child.RequestCanDiff += value); remove => ForEach(child => child.RequestCanDiff -= value); }
       public event PropertyChangedEventHandler PropertyChanged { add => ForEach(child => child.PropertyChanged += value); remove => ForEach(child => child.PropertyChanged -= value); }
       public event NotifyCollectionChangedEventHandler CollectionChanged { add => ForEach(child => child.CollectionChanged += value); remove => ForEach(child => child.CollectionChanged -= value); }
 
-      public void ConsiderReload(IFileSystem fileSystem) => ForEach(child => child.ConsiderReload(fileSystem));
+      public async Task ConsiderReload(IFileSystem fileSystem) {
+         foreach (var child in this) {
+            await child.ConsiderReload(fileSystem);
+         }
+      }
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
          throw new NotImplementedException();

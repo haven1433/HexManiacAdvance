@@ -377,7 +377,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public Singletons Singletons { get; }
 
-      public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler<Func<Task>> RequestDelayedWork;
 
       public event EventHandler MoveFocusToFind;
       public event EventHandler MoveFocusToHexConverter;
@@ -1038,7 +1038,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return results;
       }
 
-      private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
+      private void ForwardDelayedWork(object sender, Func<Task> e) => RequestDelayedWork?.Invoke(this, e);
 
       private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(ITabContent.IsMetadataOnlyChange)) {

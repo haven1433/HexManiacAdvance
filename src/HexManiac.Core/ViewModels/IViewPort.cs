@@ -55,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       IChildViewPort CreateChildView(int startAddress, int endAddress);
       void FollowLink(int x, int y);
       void ExpandSelection(int x, int y);
-      void ConsiderReload(IFileSystem fileSystem);
+      Task ConsiderReload(IFileSystem fileSystem);
       void FindAllSources(int x, int y);
       void ValidateMatchedWords(); // should raise OnMessage if a MatchedWord's value does not match expected.
 

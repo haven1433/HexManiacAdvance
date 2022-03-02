@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IFileSystem {
@@ -57,9 +58,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <summary>
       /// When a file changes, the filesystem will call all listeners for that file.
       /// </summary>
-      void AddListenerToFile(string fileName, Action<IFileSystem> listener);
+      void AddListenerToFile(string fileName, Func<IFileSystem, Task> listener);
 
-      void RemoveListenerForFile(string fileName, Action<IFileSystem> listener);
+      void RemoveListenerForFile(string fileName, Func<IFileSystem, Task> listener);
 
       /// <summary>
       /// Saves the file without prompting the user for permission.

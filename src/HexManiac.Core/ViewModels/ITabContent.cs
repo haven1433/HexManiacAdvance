@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using System;
 using System.ComponentModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -33,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler ClearMessage;
       event EventHandler Closed;
       event EventHandler<ITabContent> RequestTabChange;
-      event EventHandler<Action> RequestDelayedWork;
+      event EventHandler<Func<Task>> RequestDelayedWork;
       event EventHandler RequestMenuClose;
       event EventHandler<Direction> RequestDiff;
       event EventHandler<CanDiffEventArgs> RequestCanDiff;

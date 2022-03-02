@@ -788,7 +788,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<IDataModel> RequestCloseOtherViewports;
       public event EventHandler<ITabContent> RequestTabChange;
-      public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler<Func<Task>> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
@@ -2018,7 +2018,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void ConsiderReload(IFileSystem fileSystem) {
+      public async Task ConsiderReload(IFileSystem fileSystem) {
          if (!history.IsSaved) return; // don't overwrite local changes
 
          try {
