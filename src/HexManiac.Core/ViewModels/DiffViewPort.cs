@@ -257,6 +257,108 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return firstOffset;
       }
 
+      public enum PatchDirection { Fail, SourceToDestination, DestinationToSource }
+
+      // return -1 if the header is wrong (UPS1)
+      // return -2 if the source file CRC doesn't match
+      // return -3 if the patch file CRC doesn't match
+      // return -4 if the source file size doesn't match
+      // return -5 if the result file CRC doesn't match
+      // return -6 if the UPS content didn't finish the last chunk with exactly 12 bytes left
+      // return -7 if trying to write past the end of the destination file
+      // returns a positive integer, the address of the first change, if everything worked correctly
+      public static int ApplyUPSPatch(IDataModel model, byte[] patch, ModelDelta token, bool ignoreChecksums, out PatchDirection direction) {
+         // 4 byte header: "UPS1"
+         // 12 byte footer: 3 CRC32 checksums. Source file, destination file, patch file (CRC of everything except the last 4 bytes)
+         direction = PatchDirection.Fail;
+
+         // check header
+         var headerMatches = patch.Take(4).Select(b => (char)b).SequenceEqual("UPS1");
+         if (!headerMatches) return -1;
+
+         // check source CRC
+         var currentCRC = CalcCRC32(model.RawData);
+         var patchSourceFileCRC = patch.ReadMultiByteValue(patch.Length - 12, 4);
+         var patchDestinationFileCRC = patch.ReadMultiByteValue(patch.Length - 8, 4);
+         if (currentCRC == patchSourceFileCRC) direction = PatchDirection.SourceToDestination;
+         if (currentCRC == patchDestinationFileCRC) direction = PatchDirection.DestinationToSource;
+         if (direction == PatchDirection.Fail && !ignoreChecksums) return -2;
+         if (direction == PatchDirection.Fail) direction = PatchDirection.SourceToDestination;
+
+         // check patch CRC
+         var patchWithoutCRC = new byte[patch.Length - 4];
+         Array.Copy(patch, patchWithoutCRC, patchWithoutCRC.Length);
+         var patchCRC = CalcCRC32(patchWithoutCRC);
+         if (patchCRC != patch.ReadMultiByteValue(patch.Length - 4, 4)) return -3;
+
+         // resize (bigger)
+         int readIndex = 4, writeIndex = 0, firstEdit = int.MaxValue;
+         int sourceSize = ReadVariableWidthInteger(patch, ref readIndex);
+         int destinationSize = ReadVariableWidthInteger(patch, ref readIndex);
+         int writeLength = destinationSize;
+         if (direction == PatchDirection.DestinationToSource) (sourceSize, destinationSize) = (destinationSize, sourceSize);
+         if (sourceSize != model.Count && !ignoreChecksums) return -4;
+         model.ExpandData(token, destinationSize - 1);
+         token.ChangeData(model, sourceSize, new byte[Math.Max(0, destinationSize - sourceSize)]);
+         token.ChangeData(model, destinationSize, new byte[Math.Max(0, sourceSize - destinationSize)]);
+
+         // run algorithm
+         firstEdit = RunUPSPatchAlgorithm(model, patch, token, writeLength, destinationSize, ref readIndex);
+         if (firstEdit < 0) return firstEdit;
+
+         // resize (smaller)
+         model.ContractData(token, destinationSize - 1);
+
+         // check result CRC
+         if (!ignoreChecksums) {
+            var finalCRC = CalcCRC32(model.RawData);
+            if (direction == PatchDirection.SourceToDestination && finalCRC != patchDestinationFileCRC) return -5;
+            if (direction == PatchDirection.DestinationToSource && finalCRC != patchSourceFileCRC) return -5;
+         }
+
+         // check that the chunk ended cleanly
+         if (direction == PatchDirection.SourceToDestination && readIndex != patch.Length - 12) return -6;
+
+         return firstEdit;
+      }
+
+      private static int RunUPSPatchAlgorithm(IDataModel model, byte[] patch, ModelDelta token, int writeLength, int destinationSize, ref int readIndex) {
+         int writeIndex = 0;
+         int firstEdit = int.MaxValue;
+         while (readIndex < patch.Length - 12 && writeIndex < destinationSize) {
+            var skipSize = ReadVariableWidthInteger(patch, ref readIndex);
+            writeIndex += skipSize;
+            if (writeIndex > writeLength) return -7;
+            if (firstEdit == int.MaxValue) firstEdit = skipSize;
+
+            while (patch[readIndex] != 0 && writeIndex < destinationSize) {
+               token.ChangeData(model, writeIndex, (byte)(patch[readIndex] ^ model[writeIndex]));
+               readIndex += 1;
+               writeIndex += 1;
+               if (writeIndex > writeLength) return -7;
+            }
+            readIndex += 1;
+            writeIndex += 1;
+         }
+
+         return firstEdit;
+      }
+
+      public static int CalcCRC32(byte[] array) => (int)Force.Crc32.Crc32Algorithm.Compute(array);
+
+      public static int ReadVariableWidthInteger(byte[] data, ref int index) {
+         int result = 0, shift = 0;
+         while (true) {
+            result |= (data[index] & 0x7F) << shift;
+            if (shift != 0) result += 1 << shift;
+            shift += 7;
+            index += 1;
+            if ((data[index - 1] & 0x80) != 0) {
+               return result;
+            }
+         }
+      }
+
       private (int childIndex, int childLine) ConvertLine(int parentLine) {
          var scrollLine = parentLine + scrollValue;
          if (scrollLine < 0) return (0, scrollLine);

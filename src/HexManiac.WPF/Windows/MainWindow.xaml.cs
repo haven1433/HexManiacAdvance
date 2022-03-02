@@ -259,6 +259,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             foreach (var fileName in files) {
                if (fileName.ToLower().EndsWith(".ips")) {
                   ViewModel.OverlayText = "Apply IPS Patch";
+               } else if (fileName.ToLower().EndsWith(".ups")) {
+                  ViewModel.OverlayText = "Apply UPS Patch";
                } else if (fileName.ToLower().EndsWith(".hma")) {
                   var lines = File.ReadLines(fileName)
                      .Until(string.IsNullOrEmpty)

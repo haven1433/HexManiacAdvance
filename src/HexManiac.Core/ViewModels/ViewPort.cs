@@ -1102,6 +1102,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var destination = DiffViewPort.ApplyIPSPatch(Model, file.Contents, CurrentChange);
             Goto.Execute(destination);
             return true;
+         } else if (file.Name.ToLower().EndsWith(".ups")) {
+            history.ChangeCompleted();
+            var destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, CurrentChange, ignoreChecksums: false, out var direction);
+            switch (destination) {
+               case -1: RaiseError("UPS Header didn't match!"); break;
+               case -2:
+                  var choice = fileSystem.ShowOptions("UPS Patch Error", "The UPS source-file check failed: it isn't meant to be run on this file.", null,
+                     new VisualOption { Option = "Apply It Anyway", Index = 0, ShortDescription = "This is UNsafe", Description = $"Applying a UPS when the checksum doesn't match can break your file.{Environment.NewLine}But if you're sure that the patch doesn't interfere with any changes to your rom, you may choose to run it anyway." },
+                     new VisualOption { Option = "Cancel", Index = 1, ShortDescription = "This is SAFE", Description = "The UPS will instead be opened as a hex file in a separate tab." }
+                     );
+                  if (choice == 0) {
+                     destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, CurrentChange, ignoreChecksums: true, out direction);
+                  } else {
+                     return false;
+                  }
+                  if (destination == -3) RaiseError("Patch file is corrupt! (CRC doesn't match!)");
+                  break;
+               case -3: RaiseError("Patch file is corrupt! (CRC doesn't match!)"); break;
+               case -4: RaiseError("Source file size doesn't match!"); break;
+               case -5: RaiseError("Result file CRC doesn't match! Patch was still applied."); break;
+               case -6: RaiseError("UPS chunks are corrupted! Patch was still applied."); break;
+               case -7: RaiseError("Tried to write past the end of the result file! Patch was still applied."); break;
+            }
+
+            if (destination >= 0) {
+               ConsiderReload(fileSystem);
+               Goto.Execute(destination);
+               if (direction == DiffViewPort.PatchDirection.SourceToDestination) {
+                  RaiseMessage("Applied UPS: source->destination patch.");
+               } else if (direction == DiffViewPort.PatchDirection.SourceToDestination) {
+                  RaiseMessage("Reverted UPS: destination->source patch.");
+               }
+            }
+
+            return true;
          }
 
          return false;
@@ -2000,6 +2035,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             SelectionStart = SelectionStart;
          } catch (IOException) {
             // something happened when we tried to load the file
+            // try again soon.
+            RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
+         } catch (InvalidOperationException) {
+            // failed to compare runs
             // try again soon.
             RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
          }
