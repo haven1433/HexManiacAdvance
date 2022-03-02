@@ -6,6 +6,10 @@ Other than standard hex editor features like load/save, view/edit, and copy/past
 
 ![Screenshot](https://i.imgur.com/IxUGebf.png)
 
+> HexManiacAdvance is a new tool tool that could be described as all-purpose. It does a lot of things that old tools did, but better and safer. Anthroyd's tutorials are still very relevant, but one of the biggest differences is the existence of hma as a tool. I would recommend checking it out, it can do the jobs of nearly all old tools except advancemap and xse.
+
+- _Pokemon GBA Rom Hacker Asith, maker of 'Spectrobes GBA' judge of Anthroyd's MAGM4 Competition, winner of Anthroyd's MAGM5 Competition_
+
 # Getting Started
 
 ## As a User
@@ -13,6 +17,8 @@ Other than standard hex editor features like load/save, view/edit, and copy/past
 Go visit the [releases](https://github.com/haven1433/HexManiacAdvance/releases) page to grab the latest public build.
 
 Visit the [Wiki](https://github.com/haven1433/HexManiacAdvance/wiki) to see a user guide, tutorials, and other resources.
+
+Visit the [Discord](https://discord.gg/x9eQuBg) to connect with other users.
 
 Running HexManiacAdvance requires Windows and .Net 6.0.
 
