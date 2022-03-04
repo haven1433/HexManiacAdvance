@@ -26,8 +26,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
    public class WindowsFileSystem : IFileSystem, IWorkDispatcher {
       private const string QueryPalette = "/Text/HexManiacAdvance_Palette";
 
-      private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();
-      private readonly Dictionary<string, List<Func<IFileSystem, Task>>> listeners = new Dictionary<string, List<Func<IFileSystem, Task>>>();
+      private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new();
+      private readonly Dictionary<string, List<Action<IFileSystem>>> listeners = new();
 
       private readonly Dispatcher dispatcher;
 
@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return new LoadedFile(fileName, data);
       }
 
-      public void AddListenerToFile(string fileName, Func<IFileSystem, Task> listener) {
+      public void AddListenerToFile(string fileName, Action<IFileSystem> listener) {
          var watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName)) {
             NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName,
          };
@@ -113,22 +113,23 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                scheduled = true;
                dispatcher.BeginInvoke(
                   () => {
-                     listener(this).ContinueWith(task => scheduled = false);
+                     listener(this);
+                     scheduled = false;
                   }, DispatcherPriority.ApplicationIdle);
             }
          };
          watcher.EnableRaisingEvents = true;
 
          if (!watchers.ContainsKey(fileName)) {
-            watchers[fileName] = new List<FileSystemWatcher>();
-            listeners[fileName] = new List<Func<IFileSystem, Task>>();
+            watchers[fileName] = new();
+            listeners[fileName] = new();
          }
 
          watchers[fileName].Add(watcher);
          listeners[fileName].Add(listener);
       }
 
-      public void RemoveListenerForFile(string fileName, Func<IFileSystem, Task> listener) {
+      public void RemoveListenerForFile(string fileName, Action<IFileSystem> listener) {
          if (!watchers.ContainsKey(fileName)) return;
 
          var index = listeners[fileName].IndexOf(listener);

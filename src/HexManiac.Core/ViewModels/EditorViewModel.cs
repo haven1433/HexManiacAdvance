@@ -377,7 +377,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public Singletons Singletons { get; }
 
-      public event EventHandler<Func<Task>> RequestDelayedWork;
+      public event EventHandler<Action> RequestDelayedWork;
 
       public event EventHandler MoveFocusToFind;
       public event EventHandler MoveFocusToHexConverter;
@@ -707,11 +707,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (content is IViewPort viewModel) {
             if (viewModel.Model != null) {
                viewModel.Model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => {
-                  viewModel.Refresh();
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
                   var collection = CreateGotoShortcuts(gotoViewModel);
                   if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
+                  Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords);
                }));
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
@@ -719,7 +719,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;
-            viewModel.Model?.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords));
             if (content is ViewPort viewPort) {
                bool anyTabsHaveMatchingViewModel = false;
                foreach (var tab in tabs) {
@@ -1038,7 +1037,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return results;
       }
 
-      private void ForwardDelayedWork(object sender, Func<Task> e) => RequestDelayedWork?.Invoke(this, e);
+      private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
 
       private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(ITabContent.IsMetadataOnlyChange)) {

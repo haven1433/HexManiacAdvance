@@ -10,7 +10,6 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -125,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<ITabContent> RequestTabChange;
       public event EventHandler<IDataModel> RequestCloseOtherViewports;
-      public event EventHandler<Func<Task>> RequestDelayedWork;
+      public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
@@ -238,7 +237,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ExpandSelection(int x, int y) => FollowLink(x, y);
 
-      public Task ConsiderReload(IFileSystem fileSystem) => Task.CompletedTask;
+      public void ConsiderReload(IFileSystem fileSystem) { }
 
       public void FindAllSources(int x, int y) {
          if (y < 0 || y > height || x < 0 || x > width) return;

@@ -34,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler ClearMessage;
       event EventHandler Closed;
       event EventHandler<ITabContent> RequestTabChange;
-      event EventHandler<Func<Task>> RequestDelayedWork;
+      event EventHandler<Action> RequestDelayedWork;
       event EventHandler RequestMenuClose;
       event EventHandler<Direction> RequestDiff;
       event EventHandler<CanDiffEventArgs> RequestCanDiff;

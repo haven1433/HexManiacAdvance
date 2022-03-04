@@ -788,7 +788,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<IDataModel> RequestCloseOtherViewports;
       public event EventHandler<ITabContent> RequestTabChange;
-      public event EventHandler<Func<Task>> RequestDelayedWork;
+      public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
 
@@ -831,9 +831,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          ImplementCommands();
-         if (changeHistory == null) CascadeScripts(); // if we're sharing history with another viewmodel, our model has already been updated like this.
          RefreshBackingData();
          Shortcuts = new Shortcuts(this);
+
+         Model.InitializationWorkload.ContinueWith(task => {
+            // if we're sharing history with another viewmodel, our model has already been updated like this.
+            if (changeHistory == null) CascadeScripts();
+            dispatcher.DispatchWork(RefreshBackingData);
+         });
       }
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }
@@ -2018,7 +2023,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public async Task ConsiderReload(IFileSystem fileSystem) {
+      public void ConsiderReload(IFileSystem fileSystem) {
          if (!history.IsSaved) return; // don't overwrite local changes
 
          try {
@@ -2027,8 +2032,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var metadata = fileSystem.MetadataFor(FileName);
             Model.Load(file.Contents, metadata != null ? new StoredMetadata(metadata) : null);
             scroll.DataLength = Model.Count;
-            CascadeScripts();
             RefreshBackingData();
+            Model.InitializationWorkload.ContinueWith(task => {
+               CascadeScripts();
+               dispatcher.DispatchWork(RefreshBackingData);
+            });
 
             // if the new file is shorter, selection might need to be updated
             // this forces it to be re-evaluated.
@@ -2042,6 +2050,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // try again soon.
             RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
          }
+
+         return;
       }
 
       public virtual void FindAllSources(int x, int y) {

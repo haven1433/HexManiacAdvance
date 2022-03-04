@@ -9,7 +9,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -61,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler ClearMessage;
       public event EventHandler Closed;
       public event EventHandler<ITabContent> RequestTabChange;
-      public event EventHandler<Func<Task>> RequestDelayedWork;
+      public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;

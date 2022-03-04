@@ -380,8 +380,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void EditorForwardsTabDelayedWork() {
-         Task SomeAction() => Task.CompletedTask;
-         Func<Task> work = null;
+         void SomeAction() { }
+         Action work = null;
          var editor = new EditorViewModel(new StubFileSystem());
          var tab = new StubTabContent();
          editor.Add(tab);
