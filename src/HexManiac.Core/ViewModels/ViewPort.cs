@@ -837,7 +837,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.InitializationWorkload.ContinueWith(task => {
             // if we're sharing history with another viewmodel, our model has already been updated like this.
             if (changeHistory == null) CascadeScripts();
-            dispatcher.DispatchWork(RefreshBackingData);
+            dispatcher.DispatchWork(() => {
+               RefreshBackingData();
+               ValidateMatchedWords();
+            });
          });
       }
 
@@ -2094,7 +2097,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange(this, newTab);
       }
 
-      public void ValidateMatchedWords() {
+      private void ValidateMatchedWords() {
          // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
          for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + Math.Max(1, run.Length))) {
             if (!(run is WordRun wordRun)) continue;

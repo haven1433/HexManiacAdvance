@@ -212,8 +212,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
-      public void ValidateMatchedWords() { }
-
       #endregion
 
       /// <returns>The first offset that was edited</returns>
