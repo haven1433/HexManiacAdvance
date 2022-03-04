@@ -8,9 +8,15 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public interface IDataModel : IReadOnlyList<byte>, IEquatable<IDataModel> {
+      /// <summary>
+      /// Represents any background work being done by the model during startup or after calling Load()
+      /// </summary>
+      Task InitializationWorkload { get; }
+
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
       bool HasChanged(int index);
@@ -98,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
-      void AfterInitialized(Action action);
+
       IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
    }
@@ -108,45 +114,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private readonly ISet<int> changes = new HashSet<int>();
 
-      #region Initialization Shim
-
-      private List<Action> initComplete = new List<Action>();
-      private bool isInitialized;
-      private readonly object initLock = new object();
-
-      private int initializeScopeCount = 0;
-      protected IDisposable CreateInitializeScope() {
-         lock (initComplete) {
-            initializeScopeCount += 1;
-            return new StubDisposable { Dispose = () => {
-               lock (initLock) {
-                  initializeScopeCount -= 1;
-                  if (initializeScopeCount == 0) RaiseInitializeComplete();
-               }
-            } };
-         }
-      }
-
-      private void RaiseInitializeComplete() {
-         lock (initLock) {
-            if (isInitialized) return;
-            foreach (var work in initComplete) work();
-            initComplete.Clear();
-            isInitialized = true;
-         }
-      }
-
-      public void AfterInitialized(Action action) {
-         lock (initLock) {
-            if (isInitialized) {
-               action();
-            } else {
-               initComplete.Add(action);
-            }
-         }
-      }
-
-      #endregion
+      public Task InitializationWorkload { get; protected set; }
 
       public byte[] RawData { get; private set; }
 
@@ -159,7 +127,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public BaseModel(byte[] data) => RawData = data;
+      public BaseModel(byte[] data) {
+         RawData = data;
+         InitializationWorkload = Task.CompletedTask;
+      }
 
       public int FreeSpaceStart { get; set; }
 
@@ -267,7 +238,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun);
 
-      public virtual void Load(byte[] newData, StoredMetadata metadata) => RawData = newData;
+      public virtual void Load(byte[] newData, StoredMetadata metadata) {
+         InitializationWorkload.Wait();
+         RawData = newData;
+      }
 
       public abstract void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run);
 
@@ -768,9 +742,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class BasicModel : BaseModel {
 
-      public BasicModel(byte[] data) : base(data) {
-         using (CreateInitializeScope()) { }
-      }
+      public BasicModel(byte[] data) : base(data) { }
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) => Pointer.NULL;
       public override string GetAnchorFromAddress(int requestSource, int destination) => string.Empty;

@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private const string QueryPalette = "/Text/HexManiacAdvance_Palette";
 
       private readonly Dictionary<string, List<FileSystemWatcher>> watchers = new Dictionary<string, List<FileSystemWatcher>>();
-      private readonly Dictionary<string, List<Action<IFileSystem>>> listeners = new Dictionary<string, List<Action<IFileSystem>>>();
+      private readonly Dictionary<string, List<Func<IFileSystem, Task>>> listeners = new Dictionary<string, List<Func<IFileSystem, Task>>>();
 
       private readonly Dispatcher dispatcher;
 
@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return new LoadedFile(fileName, data);
       }
 
-      public void AddListenerToFile(string fileName, Action<IFileSystem> listener) {
+      public void AddListenerToFile(string fileName, Func<IFileSystem, Task> listener) {
          var watcher = new FileSystemWatcher(Path.GetDirectoryName(fileName)) {
             NotifyFilter = NotifyFilters.LastAccess | NotifyFilters.LastWrite | NotifyFilters.FileName,
          };
@@ -111,21 +111,24 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             if (e.FullPath.EndsWith(fileName)) {
                if (scheduled) return;  // if multiple changes come in fairly quickly, ignore
                scheduled = true;
-               dispatcher.BeginInvoke((Action)(() => { listener(this); scheduled = false; }), DispatcherPriority.ApplicationIdle);
+               dispatcher.BeginInvoke(
+                  () => {
+                     listener(this).ContinueWith(task => scheduled = false);
+                  }, DispatcherPriority.ApplicationIdle);
             }
          };
          watcher.EnableRaisingEvents = true;
 
          if (!watchers.ContainsKey(fileName)) {
             watchers[fileName] = new List<FileSystemWatcher>();
-            listeners[fileName] = new List<Action<IFileSystem>>();
+            listeners[fileName] = new List<Func<IFileSystem, Task>>();
          }
 
          watchers[fileName].Add(watcher);
          listeners[fileName].Add(listener);
       }
 
-      public void RemoveListenerForFile(string fileName, Action<IFileSystem> listener) {
+      public void RemoveListenerForFile(string fileName, Func<IFileSystem, Task> listener) {
          if (!watchers.ContainsKey(fileName)) return;
 
          var index = listeners[fileName].IndexOf(listener);
@@ -139,9 +142,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          watchers[fileName].RemoveAt(index);
       }
 
-      public void DispatchWork(Action action) => dispatcher.BeginInvoke(action, DispatcherPriority.Input);
+      public Task DispatchWork(Action action) {
+         return Task.Run(() => dispatcher.Invoke(action, DispatcherPriority.Input));
+      }
 
-      public void RunBackgroundWork(Action action) => Task.Run(action);
+      public Task RunBackgroundWork(Action action) => Task.Run(action);
 
       public string RequestNewName(string currentName, string extensionDescription = null, params string[] extensionOptions) {
          var dialog = new SaveFileDialog { FileName = currentName, Filter = CreateFilterFromOptions(extensionDescription, extensionOptions) };

@@ -377,7 +377,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public Singletons Singletons { get; }
 
-      public event EventHandler<Action> RequestDelayedWork;
+      public event EventHandler<Func<Task>> RequestDelayedWork;
 
       public event EventHandler MoveFocusToFind;
       public event EventHandler MoveFocusToHexConverter;
@@ -572,7 +572,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
                var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons);
                if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
-                  viewPort.Model.AfterInitialized(() => {
+                  viewPort.Model.InitializationWorkload.ContinueWith(task => {
                      fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
                      Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
                   });
@@ -706,7 +706,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, content));
          if (content is IViewPort viewModel) {
             if (viewModel.Model != null) {
-               viewModel.Model.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(() => {
+               viewModel.Model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => {
                   viewModel.Refresh();
                   foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
@@ -719,7 +719,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;
-            viewModel.Model?.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords));
+            viewModel.Model?.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(viewModel.ValidateMatchedWords));
             if (content is ViewPort viewPort) {
                bool anyTabsHaveMatchingViewModel = false;
                foreach (var tab in tabs) {
@@ -1023,7 +1023,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!(SelectedTab is IEditableViewPort viewPort)) return null;
          var model = viewPort.Model;
          if (model == null) return null;
-         model.AfterInitialized(() => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false));
+         model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false));
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
@@ -1038,7 +1038,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return results;
       }
 
-      private void ForwardDelayedWork(object sender, Action e) => RequestDelayedWork?.Invoke(this, e);
+      private void ForwardDelayedWork(object sender, Func<Task> e) => RequestDelayedWork?.Invoke(this, e);
 
       private void TabPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (e.PropertyName == nameof(ITabContent.IsMetadataOnlyChange)) {

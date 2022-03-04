@@ -169,12 +169,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // if we have a subclass, expect the subclass to do this when it's ready.
          if (GetType() == typeof(PokemonModel)) {
-            (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+            InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
          }
       }
 
       protected void Initialize(StoredMetadata metadata) {
-         using (CreateInitializeScope()) {
+         {
             var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
             var destinationForSource = new SortedList<int, int>();
             SearchForPointers(pointersForDestination, destinationForSource);
@@ -1891,7 +1891,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          pointerOffsets.Clear();
          unmappedConstants.Clear();
          matchedWords.Clear();
-         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
+         InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
             BuildDestinationToSourceCache(newData);
             Initialize(metadata);
          });

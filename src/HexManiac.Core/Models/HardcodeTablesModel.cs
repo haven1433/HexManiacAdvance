@@ -104,8 +104,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
-            using (CreateInitializeScope()) {
+         InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
+            {
                if (singletons.GameReferenceConstants.TryGetValue(gameCode, out var referenceConstants)) {
                   metadata = DecodeConstantsFromReference(this, singletons.MetadataInfo, metadata, referenceConstants);
                }
