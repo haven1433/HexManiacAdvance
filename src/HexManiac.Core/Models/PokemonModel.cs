@@ -1484,8 +1484,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ClearFormat(ModelDelta changeToken, int originalStart, int length) {
-         var run = GetNextRun(originalStart);
-         ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: run.Start == originalStart, alsoClearData: false);
+         lock (threadlock) {
+            var run = GetNextRun(originalStart);
+            ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: run.Start == originalStart, alsoClearData: false);
+         }
       }
 
       private void ClearFormatAndAnchors(ModelDelta changeToken, int originalStart, int length) {
