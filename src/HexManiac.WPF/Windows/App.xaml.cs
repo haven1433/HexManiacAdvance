@@ -206,7 +206,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          var tab = editor[editor.SelectedIndex] as ViewPort;
          if (tab != null && address >= 0) {
             DebugLog(editor, $"Loading at Script {address:X6}.");
-            tab.Model.AfterInitialized(() => fileSystem.DispatchWork(() => tab.CascadeScript(address)));
+            tab.Model.InitializationWorkload.ContinueWith(task => fileSystem.DispatchWork(() => tab.CascadeScript(address)));
             editor.GotoViewModel.ControlVisible = false;
          }
       }

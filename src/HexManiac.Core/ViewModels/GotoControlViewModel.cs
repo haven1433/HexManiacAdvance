@@ -153,7 +153,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Goto = new StubCommand {
             CanExecute = arg => viewPort?.Goto != null,
             Execute = arg => {
-               viewPort.Model.AfterInitialized(() => dispatcher.DispatchWork(() => {
+               viewPort.Model.InitializationWorkload.ContinueWith(task => dispatcher.DispatchWork(() => {
                   var text = Text;
                   var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
                   if (index != -1) text = AutoCompleteOptions[index].CompletionText;

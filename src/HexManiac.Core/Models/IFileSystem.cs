@@ -114,19 +114,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// If there's a long-running task, you can use this to break it up into chunks.
       /// This work will be run at a low priority next time the main thread is available.
       /// </summary>
-      void DispatchWork(Action action);
+      Task DispatchWork(Action action);
 
       /// <summary>
       /// This work will be run an a background thread. Don't do UI stuff in here!
       /// </summary>
       /// <param name="action"></param>
-      void RunBackgroundWork(Action action);
+      Task RunBackgroundWork(Action action);
    }
 
    public class InstantDispatch : IWorkDispatcher {
       public static IWorkDispatcher Instance { get; } = new InstantDispatch();
-      public void DispatchWork(Action action) => action?.Invoke();
-      public void RunBackgroundWork(Action action) => action();
+      public Task DispatchWork(Action action) { action?.Invoke(); return Task.CompletedTask; }
+      public Task RunBackgroundWork(Action action) => DispatchWork(action);
    }
 
    /// <summary>
