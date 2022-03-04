@@ -1141,7 +1141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                Goto.Execute(destination);
                if (direction == DiffViewPort.PatchDirection.SourceToDestination) {
                   RaiseMessage("Applied UPS: source->destination patch.");
-               } else if (direction == DiffViewPort.PatchDirection.SourceToDestination) {
+               } else if (direction == DiffViewPort.PatchDirection.DestinationToSource) {
                   RaiseMessage("Reverted UPS: destination->source patch.");
                }
             }
