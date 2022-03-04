@@ -1113,6 +1113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (file.Name.ToLower().EndsWith(".ups")) {
             history.ChangeCompleted();
             var destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, CurrentChange, ignoreChecksums: false, out var direction);
+            scroll.DataLength = Model.Count;
             switch (destination) {
                case -1: RaiseError("UPS Header didn't match!"); break;
                case -2:
@@ -1122,6 +1123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      );
                   if (choice == 0) {
                      destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, CurrentChange, ignoreChecksums: true, out direction);
+                     scroll.DataLength = Model.Count;
                   } else {
                      return false;
                   }
