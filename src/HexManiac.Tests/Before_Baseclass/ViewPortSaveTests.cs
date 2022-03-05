@@ -354,6 +354,7 @@ namespace HavenSoft.HexManiac.Tests {
          var data = new byte[0x200];
          var model = new PokemonModel(data);
          var change = new ModelDelta();
+         var dispatcher = new ControlledDispatch();
          ArrayRun.TryParse(model, "[a:]8", 0x10, null, out var table);
          model.ObserveAnchorWritten(change, "table", table);
          change.AddMatchedWord(model, 0, "table", 4);
@@ -361,13 +362,14 @@ namespace HavenSoft.HexManiac.Tests {
 
          fileSystem.MetadataFor = name => model.ExportMetadata(BaseViewModelTestClass.Singletons.MetadataInfo).Serialize();
          fileSystem.OpenFile = (name, extensions) => new LoadedFile(name, data);
-         var editor = new EditorViewModel(fileSystem);
+         var editor = new EditorViewModel(fileSystem, dispatcher);
 
          // change the data so that the viewPort will notice something weird
          change.ChangeData(model, 0, 4);
 
          // Act
          editor.Open.Execute("text.gba");
+         dispatcher.RunAllWorkloads();
 
          // Assert
          Assert.True(editor.ShowMessage);

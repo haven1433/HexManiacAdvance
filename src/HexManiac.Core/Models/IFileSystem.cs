@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.Models {
@@ -127,6 +128,31 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IWorkDispatcher Instance { get; } = new InstantDispatch();
       public Task DispatchWork(Action action) { action?.Invoke(); return Task.CompletedTask; }
       public Task RunBackgroundWork(Action action) => DispatchWork(action);
+   }
+
+   public class ControlledDispatch : IWorkDispatcher {
+      private record Dispatch(Action Action, CancellationTokenSource CancellationSource);
+      private readonly List<Dispatch> workloads = new();
+
+      public Task DispatchWork(Action action) {
+         var source = new CancellationTokenSource();
+         workloads.Add(new(action, source));
+         return Task.Delay(-1, source.Token);
+      }
+
+      public Task RunBackgroundWork(Action action) => DispatchWork(action);
+
+      public int WorkloadCount => workloads.Count;
+      public void RunWorkloadAndContinuations(int index) {
+         var workload = workloads[index];
+         workloads.RemoveAt(index);
+         workload.Action?.Invoke();
+         workload.CancellationSource.Cancel(); // ends the delay task, causing any children to run
+      }
+
+      public void RunAllWorkloads() {
+         while (workloads.Count > 0) RunWorkloadAndContinuations(0);
+      }
    }
 
    /// <summary>
