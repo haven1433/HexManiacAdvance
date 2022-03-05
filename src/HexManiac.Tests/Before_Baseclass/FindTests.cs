@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using Xunit;
 
@@ -556,7 +557,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       private static StubDataModel SelfEqualStub() {
-         var model = new StubDataModel();
+         var model = new StubDataModel { InitializationWorkload = Task.CompletedTask };
          model.Equals = input => input == model;
          return model;
       }

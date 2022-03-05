@@ -575,7 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   viewPort.Model.InitializationWorkload.ContinueWith(task => {
                      fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
                      Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
-                  });
+                  }, TaskContinuationOptions.ExecuteSynchronously);
                }
                Add(viewPort);
             } catch (IOException ex) {
@@ -711,7 +711,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   gotoViewModel.RefreshOptions();
                   var collection = CreateGotoShortcuts(gotoViewModel);
                   if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
-               }));
+               }), TaskContinuationOptions.ExecuteSynchronously);
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
             if (viewModel is IEditableViewPort evp) evp.AllowSingleTableMode = AllowSingleTableMode;
@@ -1021,7 +1021,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!(SelectedTab is IEditableViewPort viewPort)) return null;
          var model = viewPort.Model;
          if (model == null) return null;
-         model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false));
+         model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false), TaskContinuationOptions.ExecuteSynchronously);
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);

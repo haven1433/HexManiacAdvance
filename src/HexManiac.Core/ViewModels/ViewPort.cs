@@ -46,6 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          deepCopy = new StubCommand(),
          isText = new StubCommand();
 
+      private readonly object threadlock = new();
+
       public Singletons Singletons { get; }
 
       private HexElement[,] currentView;
@@ -841,7 +843,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RefreshBackingData();
                ValidateMatchedWords();
             });
-         });
+         }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }
@@ -1181,11 +1183,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// </summary>
       public void Edit(string input) {
          if (UpdateInProgress) return;
-         UpdateInProgress = true;
-         CurrentProgressScopes.Insert(0, tools.DeferUpdates);
-         initialWorkLoad = input.Length;
-         postEditWork = 0;
-         EditCore(input);
+         lock (threadlock) {
+            UpdateInProgress = true;
+            CurrentProgressScopes.Insert(0, tools.DeferUpdates);
+            initialWorkLoad = input.Length;
+            postEditWork = 0;
+            EditCore(input);
+         }
       }
 
       /// <summary>
@@ -1236,16 +1240,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          exitEditEarly = false;
-         int i = EditHelper(input, maxSize);
+         int i;
+         lock (threadlock) {
+            i = EditHelper(input, maxSize);
+         }
 
          if (exitEditEarly) {
-            ClearEditWork();
-            Refresh();
+            lock (threadlock) {
+               ClearEditWork();
+               Refresh();
+            }
          } else if (input.Length > i) {
             await UpdateProgress((double)(initialWorkLoad - input.Length) / (initialWorkLoad + postEditWork));
             await EditCoreAsync(input.Substring(i));
          } else {
-            ClearEditWork();
+            lock (threadlock) {
+               ClearEditWork();
+            }
          }
       }
 
@@ -1291,48 +1302,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Edit(ConsoleKey key) {
-         using (ModelCacheScope.CreateScope(Model)) {
-            var point = GetEditPoint();
-            var offset = scroll.ViewPointToDataIndex(point);
-            var run = Model.GetNextRun(offset);
-            var element = this[point.X, point.Y];
-            var underEdit = element.Format as UnderEdit;
-            if (key == ConsoleKey.Enter && underEdit != null) {
-               if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
-                  var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
-                  underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
-                  currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
-                  RequestMenuClose?.Invoke(this, EventArgs.Empty);
-                  TryCompleteEdit(point);
-               } else {
-                  Edit(Environment.NewLine);
+         lock (threadlock) {
+            using (ModelCacheScope.CreateScope(Model)) {
+               var point = GetEditPoint();
+               var offset = scroll.ViewPointToDataIndex(point);
+               var run = Model.GetNextRun(offset);
+               var element = this[point.X, point.Y];
+               var underEdit = element.Format as UnderEdit;
+               if (key == ConsoleKey.Enter && underEdit != null) {
+                  if (underEdit.AutocompleteOptions != null && underEdit.AutocompleteOptions.Any(option => option.IsSelected)) {
+                     var selectedIndex = AutoCompleteSelectionItem.SelectedIndex(underEdit.AutocompleteOptions);
+                     underEdit = new UnderEdit(underEdit.OriginalFormat, underEdit.AutocompleteOptions[selectedIndex].CompletionText, underEdit.EditWidth);
+                     currentView[point.X, point.Y] = new HexElement(element.Value, element.Edited, underEdit);
+                     RequestMenuClose?.Invoke(this, EventArgs.Empty);
+                     TryCompleteEdit(point);
+                  } else {
+                     Edit(Environment.NewLine);
+                  }
+                  return;
                }
-               return;
-            }
-            if (key == ConsoleKey.Enter && run is ITableRun arrayRun1) {
-               var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(offset);
-               SilentScroll(offsets.SegmentStart + arrayRun1.ElementLength);
-            }
-            if (key == ConsoleKey.Tab && run is ITableRun arrayRun2) {
-               var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
-               SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
-            }
-            if (key == ConsoleKey.Escape) {
-               ClearEdits(SelectionStart);
-               ClearMessage?.Invoke(this, EventArgs.Empty);
-               RequestMenuClose?.Invoke(this, EventArgs.Empty);
-            }
+               if (key == ConsoleKey.Enter && run is ITableRun arrayRun1) {
+                  var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(offset);
+                  SilentScroll(offsets.SegmentStart + arrayRun1.ElementLength);
+               }
+               if (key == ConsoleKey.Tab && run is ITableRun arrayRun2) {
+                  var offsets = arrayRun2.ConvertByteOffsetToArrayOffset(offset);
+                  SilentScroll(offsets.SegmentStart + arrayRun2.ElementContent[offsets.SegmentIndex].Length);
+               }
+               if (key == ConsoleKey.Escape) {
+                  ClearEdits(SelectionStart);
+                  ClearMessage?.Invoke(this, EventArgs.Empty);
+                  RequestMenuClose?.Invoke(this, EventArgs.Empty);
+               }
 
-            if (key != ConsoleKey.Backspace) return;
+               if (key != ConsoleKey.Backspace) return;
 
-            // special case: when an entire run is selected, tread backspace like delete
-            //   (special case doesn't apply to short runs like IScriptStartRun, NoInfoRun, or PointerRun)
-            if (run.Length > 4 && scroll.ViewPointToDataIndex(SelectionStart) == run.Start && scroll.ViewPointToDataIndex(SelectionEnd) == run.Start + run.Length - 1) {
-               Clear.Execute();
-               return;
+               // special case: when an entire run is selected, tread backspace like delete
+               //   (special case doesn't apply to short runs like IScriptStartRun, NoInfoRun, or PointerRun)
+               if (run.Length > 4 && scroll.ViewPointToDataIndex(SelectionStart) == run.Start && scroll.ViewPointToDataIndex(SelectionEnd) == run.Start + run.Length - 1) {
+                  Clear.Execute();
+                  return;
+               }
+
+               AcceptBackspace(underEdit, element.Value, point);
             }
-
-            AcceptBackspace(underEdit, element.Value, point);
          }
       }
 
@@ -2041,7 +2054,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Model.InitializationWorkload.ContinueWith(task => {
                CascadeScripts();
                dispatcher.DispatchWork(RefreshBackingData);
-            });
+            }, TaskContinuationOptions.ExecuteSynchronously);
 
             // if the new file is shorter, selection might need to be updated
             // this forces it to be re-evaluated.
@@ -2764,73 +2777,79 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void RefreshBackingData(Point p) {
-         var index = scroll.ViewPointToDataIndex(p);
-         var edited = Model.HasChanged(index);
-         if (index < 0 | index >= Model.Count) { currentView[p.X, p.Y] = HexElement.Undefined; return; }
-         var run = Model.GetNextRun(index);
-         if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], edited, None.Instance); return; }
-         var format = run.CreateDataFormat(Model, index);
-         format = Model.WrapFormat(run, format, index);
-         currentView[p.X, p.Y] = new HexElement(Model[index], edited, format);
+         lock (threadlock) {
+            var index = scroll.ViewPointToDataIndex(p);
+            var edited = Model.HasChanged(index);
+            if (index < 0 | index >= Model.Count) { currentView[p.X, p.Y] = HexElement.Undefined; return; }
+            var run = Model.GetNextRun(index);
+            if (index < run.Start) { currentView[p.X, p.Y] = new HexElement(Model[index], edited, None.Instance); return; }
+            var format = run.CreateDataFormat(Model, index);
+            format = Model.WrapFormat(run, format, index);
+            currentView[p.X, p.Y] = new HexElement(Model[index], edited, format);
+         }
       }
 
       private void RefreshBackingData() {
-         currentView = new HexElement[Width, Height];
-         if (scroll.DataStart != 0) {
-            var table = Model.GetNextRun(scroll.DataStart);
-            scroll.SetTableMode(table.Start, table.Length);
-         }
+         lock (threadlock) {
+            currentView = new HexElement[Width, Height];
+            if (scroll.DataStart != 0) {
+               var table = Model.GetNextRun(scroll.DataStart);
+               scroll.SetTableMode(table.Start, table.Length);
+            }
 
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
-         NotifyCollectionChanged(ResetArgs);
-         NotifyPropertyChanged(nameof(FreeSpaceStart));
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+            NotifyCollectionChanged(ResetArgs);
+            NotifyPropertyChanged(nameof(FreeSpaceStart));
+         }
       }
 
       private void RefreshBackingDataFull() {
-         currentView = new HexElement[Width, Height];
-         IFormattedRun run = null;
-         using (ModelCacheScope.CreateScope(Model)) {
-            for (int y = 0; y < Height; y++) {
-               for (int x = 0; x < Width; x++) {
-                  var index = scroll.ViewPointToDataIndex(new Point(x, y));
-                  var edited = Model.HasChanged(index);
-                  if (run == null || index >= run.Start + run.Length) {
-                     run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
-                  }
-                  if (index < scroll.DataStart || index >= scroll.DataLength) {
-                     currentView[x, y] = HexElement.Undefined;
-                  } else if (index >= run.Start) {
-                     var format = run is BaseRun baseRun ? baseRun.CreateDataFormat(Model, index, x == 0, Width) : run.CreateDataFormat(Model, index);
-                     format = Model.WrapFormat(run, format, index);
-                     currentView[x, y] = new HexElement(Model[index], edited, format);
-                  } else {
-                     currentView[x, y] = new HexElement(Model[index], edited, None.Instance);
+         lock (threadlock) {
+            currentView = new HexElement[Width, Height];
+            IFormattedRun run = null;
+            using (ModelCacheScope.CreateScope(Model)) {
+               for (int y = 0; y < Height; y++) {
+                  for (int x = 0; x < Width; x++) {
+                     var index = scroll.ViewPointToDataIndex(new Point(x, y));
+                     var edited = Model.HasChanged(index);
+                     if (run == null || index >= run.Start + run.Length) {
+                        run = Model.GetNextRun(index) ?? new NoInfoRun(Model.Count);
+                     }
+                     if (index < scroll.DataStart || index >= scroll.DataLength) {
+                        currentView[x, y] = HexElement.Undefined;
+                     } else if (index >= run.Start) {
+                        var format = run is BaseRun baseRun ? baseRun.CreateDataFormat(Model, index, x == 0, Width) : run.CreateDataFormat(Model, index);
+                        format = Model.WrapFormat(run, format, index);
+                        currentView[x, y] = new HexElement(Model[index], edited, format);
+                     } else {
+                        currentView[x, y] = new HexElement(Model[index], edited, None.Instance);
+                     }
                   }
                }
             }
-         }
-         if (FindBytes != null) {
-            var fullLength = Width * Height;
-            for (int i = 0; i < fullLength - FindBytes.Length - 1; i++) {
-               bool possibleMatch = FindBytes.Length > 0;
-               for (int j = 0; j < FindBytes.Length; j++) {
-                  var (x, y) = ((i + j) % Width, (i + j) / Width);
-                  if (currentView[x, y].Value != FindBytes[j]) {
-                     possibleMatch = false;
-                     break;
+            if (FindBytes != null) {
+               var fullLength = Width * Height;
+               for (int i = 0; i < fullLength - FindBytes.Length - 1; i++) {
+                  bool possibleMatch = FindBytes.Length > 0;
+                  for (int j = 0; j < FindBytes.Length; j++) {
+                     var (x, y) = ((i + j) % Width, (i + j) / Width);
+                     if (currentView[x, y].Value != FindBytes[j]) {
+                        possibleMatch = false;
+                        break;
+                     }
                   }
-               }
-               if (!possibleMatch) continue;
-               for (int j = 0; j < FindBytes.Length; j++) {
-                  var (x, y) = ((i + j) % Width, (i + j) / Width);
-                  if (currentView[x, y].Format is None) {
-                     currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
-                  } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
-                     var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
-                     currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                  if (!possibleMatch) continue;
+                  for (int j = 0; j < FindBytes.Length; j++) {
+                     var (x, y) = ((i + j) % Width, (i + j) / Width);
+                     if (currentView[x, y].Format is None) {
+                        currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                     } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
+                        var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
+                        currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                     }
                   }
+                  i += FindBytes.Length - 1;
                }
-               i += FindBytes.Length - 1;
             }
          }
       }
