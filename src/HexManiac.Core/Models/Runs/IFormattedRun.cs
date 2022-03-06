@@ -121,7 +121,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public virtual IFormattedRun RemoveSource(int source) {
-         return Clone(PointerSources.Remove1(source));
+         return Clone(PointerSources?.Remove1(source) ?? SortedSpan<int>.None);
       }
 
       public IFormattedRun Duplicate(int start, SortedSpan<int> pointerSources) {
