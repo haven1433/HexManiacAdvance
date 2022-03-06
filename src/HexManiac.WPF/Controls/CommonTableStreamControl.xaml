@@ -63,18 +63,18 @@
             </Menu>
          </Grid>
          
-         <Grid>
-            <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
+         <StackPanel VerticalAlignment="Center">
+            <TextBlock Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
                Visibility="{Binding HasMultipleUses, Converter={StaticResource BoolToVisibility}}">
                <Run Text="This is used by"/>
                <Run Foreground="{DynamicResource Accent}" Text="{Binding UsageCount, Mode=OneWay}"/>
                <Run Text="pointers."/>
             </TextBlock>
-            <TextBlock VerticalAlignment="Center" Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
+            <TextBlock Foreground="{DynamicResource Secondary}" FontStyle="Italic" TextWrapping="Wrap"
                Visibility="{Binding DataIsValidButNoRun, Converter={StaticResource BoolToVisibility}}">
                Data conflict detected.
             </TextBlock>
-         </Grid>
+         </StackPanel>
       </DockPanel>
       <Button Content="Create new data" Command="{Binding CreateNew}" DockPanel.Dock="Right" Visibility="{Binding CanCreateNew, Converter={StaticResource BoolToVisibility}}">
          <Button.ToolTip>
