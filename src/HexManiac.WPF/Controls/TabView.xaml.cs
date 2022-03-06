@@ -65,9 +65,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.OldValue is IViewPort viewPortOld1) {
             viewPortOld1.PropertyChanged -= HandleViewPortScrollChanged;
             viewPortOld1.PreviewScrollChanged -= PreviewViewPortScrollChanged;
-            if (viewPortOld1.Tools?.TableTool != null) {
-               viewPortOld1.Tools.TableTool.VerticalOffset = TableScrollViewer.VerticalOffset;
-            }
+            SetViewModelScrollLocations(viewPortOld1);
          }
          if (e.OldValue is ViewPort viewPortOld) {
             viewPortOld.Tools.StringTool.PropertyChanged -= HandleStringToolPropertyChanged;
@@ -75,12 +73,40 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.NewValue is IViewPort viewPortNew1) {
             viewPortNew1.PropertyChanged += HandleViewPortScrollChanged;
             viewPortNew1.PreviewScrollChanged += PreviewViewPortScrollChanged;
-            if (viewPortNew1.Tools?.TableTool != null) {
-               TableScrollViewer.ScrollToVerticalOffset(viewPortNew1.Tools.TableTool.VerticalOffset);
-            }
+            GetViewModelScrollLocations(viewPortNew1);
          }
          if (e.NewValue is ViewPort viewPortNew) {
             viewPortNew.Tools.StringTool.PropertyChanged += HandleStringToolPropertyChanged;
+         }
+      }
+
+      private void GetViewModelScrollLocations(IViewPort viewPort) {
+         if (viewPort.Tools?.TableTool != null) {
+            TableScrollViewer.ScrollToVerticalOffset(viewPort.Tools.TableTool.VerticalOffset);
+         }
+
+         if (viewPort.Tools?.StringTool != null) {
+            StringToolTextBox.ScrollToVerticalOffset(viewPort.Tools.StringTool.VerticalOffset);
+         }
+
+         if (viewPort.Tools?.CodeTool != null) {
+            CodeToolSingleTextBox.ScrollToVerticalOffset(viewPort.Tools.CodeTool.SingleBoxVerticalOffset);
+            CodeToolMultiTextBox.ScrollToVerticalOffset(viewPort.Tools.CodeTool.MultiBoxVerticalOffset);
+         }
+      }
+
+      private void SetViewModelScrollLocations(IViewPort viewPort) {
+         if (viewPort.Tools?.TableTool != null) {
+            viewPort.Tools.TableTool.VerticalOffset = TableScrollViewer.VerticalOffset;
+         }
+
+         if (viewPort.Tools?.StringTool != null) {
+            viewPort.Tools.StringTool.VerticalOffset = StringToolTextBox.VerticalOffset;
+         }
+
+         if (viewPort.Tools?.CodeTool != null) {
+            viewPort.Tools.CodeTool.SingleBoxVerticalOffset = CodeToolSingleTextBox.VerticalOffset;
+            viewPort.Tools.CodeTool.MultiBoxVerticalOffset = CodeToolMultiTextBox.VerticalOffset;
          }
       }
 

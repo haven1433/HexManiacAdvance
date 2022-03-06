@@ -823,14 +823,14 @@
                            </Button.Style>
                         </Button>
                      </Decorator>
-                     <TextBox UndoLimit="0" Margin="5" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto"
+                     <TextBox Name="CodeToolSingleTextBox" UndoLimit="0" Margin="5" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto"
                         Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
                         IsReadOnly="{Binding IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
                   </DockPanel>
                   <DockPanel Visibility="{Binding UseMultiContent, Converter={StaticResource BoolToVisibility}}">
                      <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
                         Text="{Binding ErrorText}"  Visibility="{Binding ShowErrorText, Converter={StaticResource BoolToVisibility}}" />
-                     <ScrollViewer PreviewMouseWheel="ScrollCodeContent">
+                     <ScrollViewer Name="CodeToolMultiTextBox" PreviewMouseWheel="ScrollCodeContent">
                         <ItemsControl ItemsSource="{Binding Contents}">
                            <ItemsControl.ItemTemplate>
                               <DataTemplate>
