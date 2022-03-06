@@ -74,6 +74,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ScriptParser.FormatScript<XSERun>(history.CurrentChange, model, searchPoint);
       }
 
+      // properties that exist solely so the UI can remember things when the tab switches
+      public double SingleBoxVerticalOffset { get; set; }
+      public double MultiBoxVerticalOffset { get; set; }
+
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(singletons.ScriptLines, 0x02);

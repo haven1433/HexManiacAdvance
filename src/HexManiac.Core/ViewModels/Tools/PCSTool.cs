@@ -105,6 +105,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
+      // properties that exist solely so the UI can remember things when the tab switches
+      public double VerticalOffset { get; set; }
+
       public PCSTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IToolTrayViewModel runner) {
          this.model = model;
          this.selection = selection;
