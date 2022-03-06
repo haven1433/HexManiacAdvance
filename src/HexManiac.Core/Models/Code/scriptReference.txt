@@ -178,7 +178,7 @@
                                              # 800D=2 if there was no room
                                              # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
 7A giveEgg species:
-7B setpkmnpp pokemonSlot. attackSlot. ppAmount: # set a given pokemon in your party to have a 'ppAmount' pp for a move
+7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokemon in your party to have a specific move. Slots range 0-4 and 0-3.
 7C checkattack move:                         # 800D=n, where n is the index of the pokemon that knows the move.
                                              # 800D=6, if no pokemon in your party knows the move
                                              # if successful, 8004 is set to the pokemon species
