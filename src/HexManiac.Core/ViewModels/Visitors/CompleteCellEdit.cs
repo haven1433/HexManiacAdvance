@@ -422,7 +422,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          Model.WriteMultiByteValue(integerHex.Source, integerHex.Length, CurrentChange, result);
          if (result >= Math.Pow(2L, integerHex.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
-         NewDataIndex = integerHex.Source + integerHex.Length;
+         if (Model.GetNextRun(memoryLocation) is PIERun run) {
+            var newRun = run.Refresh(CurrentChange);
+            if (newRun.Start != run.Start) {
+               MessageText = $"Item effect was automatically moved to {newRun.Start:X6}. Pointers were updated.";
+               NewDataIndex = memoryLocation + newRun.Start - run.Start + integerHex.Length;
+               DataMoved = true;
+            }
+            Model.ObserveRunWritten(CurrentChange, newRun);
+         } else {
+            NewDataIndex = integerHex.Source + integerHex.Length;
+         }
       }
 
       private void CompleteIntegerEdit(Integer integer) {

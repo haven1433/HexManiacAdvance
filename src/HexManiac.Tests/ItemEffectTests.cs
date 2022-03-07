@@ -6,6 +6,8 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly PIERun run;
       public ItemEffectTests() {
          run = new PIERun(Model, 0, SortedSpan<int>.None);
+         Model.ObserveRunWritten(Token, run);
+         Model.WriteValue(Token, run.Length, -1);
       }
 
       [Fact]
@@ -75,6 +77,37 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, options.Count);
          Assert.All(new[] { "Low", "Mid", "High" },
             option => Assert.Contains(option, options.Select(o => o.Text)));
+      }
+
+      [Fact]
+      public void AddBitRequiringArg_RunExtended() {
+         ViewPort.Goto.Execute(4);
+
+         ViewPort.Edit("4 ");
+
+         Assert.Equal(7, Model.GetNextRun(0).Length);
+      }
+
+      [Fact]
+      public void RemoveBitRequiringArg_Contract() {
+         using (run.CreateEditScope(Token)) run.HealHealth = true;
+         PIERun newRun = new PIERun(Model, 0, SortedSpan<int>.None);
+         Model.ObserveRunWritten(Token, newRun);
+
+         ViewPort.Goto.Execute(4);
+         ViewPort.Edit("0 ");
+
+         Assert.Equal(6, Model.GetNextRun(0).Length);
+      }
+
+      [Fact]
+      public void Copy_CopiesBytes() {
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.SelectionEnd = new(5, 0);
+
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Contains("00 00 00 00 00 00 ", FileSystem.CopyText.value);
       }
    }
 }

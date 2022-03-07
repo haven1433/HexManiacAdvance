@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    /// Represents a pokemon item effect.
    /// See https://www.pokecommunity.com/showthread.php?p=6745155#post6745155
    /// </summary>
-   public class PIERun : BaseRun, IStreamRun {
+   public class PIERun : BaseRun, IStreamRun, IAppendToBuilderRun {
       public const string SharedFormatString = "`pie`";
       private readonly IDataModel model;
 
@@ -462,6 +462,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
       public bool DependsOn(string anchorName) => false;
 
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+         for (int i = 0; i < length; i++) {
+            var index = i + start;
+            if (index < Start) continue;
+            if (index >= Start + Length) break;
+            builder.Append(model[index].ToString("X2") + " ");
+         }
+      }
+
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i++) {
+            var index = i + start;
+            if (index < Start) continue;
+            if (index >= Start + Length) break;
+            changeToken.ChangeData(model, index, 0xFF);
+         }
+      }
+
       #endregion
 
       #region Edit Stuff
@@ -479,18 +497,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return editScope = new EditScope(token, this);
       }
 
-      //public PIERun Edit(ModelDelta token, Action editAction) {
-      //   using (CreateEditScope(token)) {
-      //      editAction();
-      //      return editScope.Result;
-      //   }
-      //}
+      public PIERun Refresh(ModelDelta token) {
+         using var scope = CreateEditScope(token);
+         AcceptChange();
+         return editScope.Result;
+      }
 
       private bool GetBit(int address, int bit) => (model[address] & (1 << bit)) != 0;
       private void SetBit(int address, int bit, bool value) {
          var otherBits = model[address] & ~(1 << bit);
          var thisBit = value ? (1 << bit) : 0;
-         if (editScope.ChangeToken.ChangeData(model, address, (byte)(otherBits | thisBit))) changedAddresses.Add(address);
+         if (editScope.ChangeToken.ChangeData(model, address, (byte)(otherBits | thisBit))) changedAddresses?.Add(address);
+         AcceptChange();
+      }
+
+      private void AcceptChange() {
          var newRun = new PIERun(model, Start, PointerSources);
          if (
             newRun.hasLowHappinessByte != hasLowHappinessByte ||
