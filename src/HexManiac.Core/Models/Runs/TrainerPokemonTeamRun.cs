@@ -54,8 +54,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementLength = ElementContent.Sum(segment => segment.Length);
       }
 
-      private TrainerPokemonTeamRun(IDataModel model, int start, SortedSpan<int> sources, int primarySource) : base(start, sources) {
+      private TrainerPokemonTeamRun(IDataModel model, int start, bool showFullIVByteRange, SortedSpan<int> sources, int primarySource) : base(start, sources) {
          this.model = model;
+         this.showFullIVByteRange = showFullIVByteRange;
          StructType = model[primarySource - TrainerFormat_PointerOffset];
          ElementCount = model[primarySource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
          var segments = Initialize();
@@ -531,7 +532,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             UpdateParents(token, newStructType, newElementCount, newRun.PointerSources);
          }
 
-         return new TrainerPokemonTeamRun(model, newRun.Start, PointerSources, pointerSource);
+         return new TrainerPokemonTeamRun(model, newRun.Start, showFullIVByteRange, PointerSources, pointerSource);
       }
 
       /// <summary>
