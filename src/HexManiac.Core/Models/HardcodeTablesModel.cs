@@ -143,8 +143,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (isCFRU && table.Name == EggMovesTableName) continue;
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
-               if (isCFRU && table.Name == LevelMovesTableName) format = $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
-               if (isCFRU && table.Name == AbilityNamesTable) format = $"[name\"\"17]";
                AddTable(table.Address, table.Offset, table.Name, format);
             }
          }
@@ -177,7 +175,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// The pointer at the source may not point directly to the table: it make point to an offset from the start of the table.
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
-         format = AdjustFormatForCFRU(format);
+         format = AdjustFormatForCFRU(name, format);
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source) - offset;
          if (destination < 0 || destination > RawData.Length) return;
@@ -222,15 +220,31 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private bool isCFRU;
-      private const int CFRU_Check_Address = 0x03436C, CFRU_Check_Value = 0x47004800;
+      private const int CFRU_Check_Address = 0x00051A, CFRU_Check_Value = 0x46C0, CFRU_ValueRepeateCount = 5;
       private bool GetIsCFRU() {
          if (gameCode != FireRed) return false;
          if (RawData.Length < CFRU_Check_Address + 3) return false;
-         return ReadValue(CFRU_Check_Address) == CFRU_Check_Value;
+         for (int i = 0; i < CFRU_ValueRepeateCount; i++) {
+            if (this.ReadMultiByteValue(CFRU_Check_Address + i * 2, 2) != CFRU_Check_Value) return false;
+         }
+         return true;
       }
-      private string AdjustFormatForCFRU(string format) {
-         if (!isCFRU || !format.EndsWith("+28")) return format;
-         return format.Substring(0, format.Length - 3);
+      private string AdjustFormatForCFRU(string name, string format) {
+         if (!isCFRU) return format;
+
+         // remove the extra +28 from pokemon-related tables
+         if (format.EndsWith(PokemonNameTable + "+28")) return format.Substring(0, format.Length - 3);
+
+         // remove the extra +1 from pokemon-related tables
+         if (format.EndsWith(PokemonNameTable + "+1")) return format.Substring(0, format.Length - 2);
+
+         // ability names are 17 characters, not 13
+         if (name == AbilityNamesTable) return format.Replace("\"\"13", "\"\"17");
+
+         // level-up moves uses Jambo format
+         if (name == LevelMovesTableName) return $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
+
+         return format;
       }
    }
 }
