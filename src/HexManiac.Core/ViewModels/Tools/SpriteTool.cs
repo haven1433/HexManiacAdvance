@@ -673,7 +673,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (image == null) return;
          if (!TryValidate(image, out var spriteRun, out var paletteRun)) return;
          int height = image.Length / width;
-         var relatedSprites = paletteRun.FindDependentSprites(model);
+         var relatedSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
          var relatedPalettes = spriteRun.FindRelatedPalettes(model);
          int relatedImageCount = relatedSprites.Count * relatedPalettes.Count;
          if (width == PixelWidth && height == PixelHeight) {
