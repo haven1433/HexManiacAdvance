@@ -430,6 +430,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                DataMoved = true;
             }
             Model.ObserveRunWritten(CurrentChange, newRun);
+            NewDataIndex = memoryLocation + newRun.Start - run.Start + integerHex.Length;
          } else {
             NewDataIndex = integerHex.Source + integerHex.Length;
          }

@@ -109,5 +109,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Contains("00 00 00 00 00 00 ", FileSystem.CopyText.value);
       }
+
+      [Fact]
+      public void ItemEffectContent_Paste_DataChanges() {
+         SetFullModel(0xFF);
+
+         ViewPort.Edit("@010 ^misc._252705`pie` 00 00 00 20 00 00 ");
+
+         var data = Model.RawData.Skip(0x10).Take(7).ToArray();
+         Assert.Equal(new byte[] { 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0xFF }, data);
+      }
    }
 }
