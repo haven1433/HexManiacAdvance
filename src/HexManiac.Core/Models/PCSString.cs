@@ -78,6 +78,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
             if (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
 
+            if (length == 1) break;
+
             if ((currentByte == Escape || currentByte == DynamicEscape || currentByte == ButtonEscape) && i < length - 1) {
                result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
@@ -183,7 +185,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static int GetLengthForControlCode(byte code) {
          if (code == 0x09) return 1; // pause : no variables
-         if (code == 0x10) return 3; // music switch : 2 variables
+         if (code == 0x0A) return 1; // wait for sound effect
+         if (code == 0x0B) return 3; // play background music : 1 variable, but it takes 2 bytes
+         if (code == 0x10) return 3; // play sound effects : 2 variables
          if (code > 0x14) return 1;  // single-byte functions : no variables
          return 2;                   // most functions have a 1 byte code and a 1 byte variable
       }
@@ -192,10 +196,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (index == 0) return false;
          if (data[index - 1].IsAny(Escape, DynamicEscape, ButtonEscape, FunctionEscape)) return true;
          if (index == 1) return false;
-         if (index > 2 && data[index - 3] == FunctionEscape && data[index - 2] == 0x10) return true;
-         if (data[index - 2] != FunctionEscape) return false;
-         if (data[index - 1] == 0x09) return false; // 09 is a pause, no variables
-         return data[index - 1] < 0x15; // all the other functions below 15 have a variable
+         if (index > 1 && data[index - 2] == FunctionEscape && GetLengthForControlCode(data[index - 1]) >= 2) return true;
+         if (index > 2 && data[index - 3] == FunctionEscape && GetLengthForControlCode(data[index - 2]) >= 3) return true;
+         return false;
       }
 
       private static void Fill(string[] array, string characters, int startIndex) {
