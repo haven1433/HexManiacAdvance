@@ -64,8 +64,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
-            valueAddress = model.ReadPointer(valueAddress);
-            if (!(model.GetNextRun(valueAddress) is ISpriteRun spriteRun)) return null;
+            var destination = model.ReadPointer(valueAddress);
+            if (model.GetNextRun(destination) is not ISpriteRun spriteRun) {
+               IFormattedRun tempRun = new NoInfoRun(destination, new SortedSpan<int>(valueAddress));
+               model.FormatRunFactory.GetStrategy(pointerSeg.InnerFormat).TryParseData(model, string.Empty, destination, ref tempRun);
+               spriteRun = tempRun as ISpriteRun;
+               if (spriteRun == null) return null;
+            }
             return spriteRun.GetPixels(model, 0);
          } else {
             throw new NotImplementedException();
@@ -77,9 +82,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
-            valueAddress = model.ReadPointer(valueAddress);
-            var palRun = model.GetNextRun(valueAddress) as IPaletteRun;
-            if (palRun == null) return null;
+            var destination = model.ReadPointer(valueAddress);
+            if (model.GetNextRun(destination) is not IPaletteRun palRun) {
+               IFormattedRun tempRun = new NoInfoRun(destination, new SortedSpan<int>(valueAddress));
+               model.FormatRunFactory.GetStrategy(pointerSeg.InnerFormat).TryParseData(model, string.Empty, destination, ref tempRun);
+               palRun = tempRun as IPaletteRun;
+               if (palRun == null) return null;
+            }
             return palRun.GetPalette(model, 0);
          } else {
             throw new NotImplementedException();
