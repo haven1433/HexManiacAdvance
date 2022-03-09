@@ -545,7 +545,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < newFlags.Length - Length; i++) {
             editScope.ChangeToken.ChangeData(model, newRun.Start + Length + i, 0x00);
          }
-         editScope.Result = newRun;
+         editScope.Result = new PIERun(model, newRun.Start, newRun.PointerSources);
       }
 
       #endregion

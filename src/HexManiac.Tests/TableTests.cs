@@ -799,6 +799,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new Point(2, 0), ViewPort.SelectionStart);
       }
 
+      [Fact]
+      public void Anchor_UpdateTablePointerToAnchor_AnchorExists() {
+         ViewPort.Edit("@00 ^inner ");
+         ViewPort.Edit("@10 ^outer[ptr<[a.]1>]1 ");
+
+         ViewPort.Edit("<inner>");
+
+         Assert.Equal(0, Model.ReadPointer(0x10));
+         Assert.Equal("inner", Model.GetAnchorFromAddress(-1, 0));
+      }
+
+      // TODO once this passes, recheck the initial condition: expand multichoice, repoint last element, name last element, then expand again.
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

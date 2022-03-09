@@ -117,6 +117,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (PointerSources == null) return Clone(sources);
 
+         if (PointerSources.ContainsAll(sources)) return this;
+
          return Clone(PointerSources.Add(sources));
       }
 
@@ -235,5 +237,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IEnumerator<T> GetEnumerator() => elements.Take(Count).GetEnumerator();
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+      public bool ContainsAll(SortedSpan<T> sources) {
+         if (sources.Count == 0) return true;
+         if (Count == 0) return false;
+
+         // take advantage of the sorted order: make sure all 'sources' are in this collection
+         int i = 0, j = 0;
+         while (i < Count && j < sources.Count) {
+            var compare = elements[i].CompareTo(sources[j]);
+            if (compare > 0) return false;
+            if (compare < 0) i++;
+            if (compare == 0) { i++; j++; }
+         }
+         return j == sources.Count;
+      }
    }
 }
