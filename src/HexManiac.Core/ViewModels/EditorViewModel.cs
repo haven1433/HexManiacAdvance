@@ -558,30 +558,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          newCommand.Execute = arg => Add(new ViewPort());
 
          open.CanExecute = CanAlwaysExecute;
-         open.Execute = arg => {
-            try {
-               var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
-               if (file == null) return;
-               if (SelectedTab != null && SelectedTab.TryImport(file, fileSystem)) return;
-               UpdateRecentFiles(file.Name);
-               string[] metadataText = new string[0];
-               if (allowLoadingMetadata) {
-                  metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
-               }
-               var metadata = new StoredMetadata(metadataText);
-               var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
-               var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons);
-               if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
-                  viewPort.Model.InitializationWorkload.ContinueWith(task => {
-                     fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
-                     Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
-                  }, TaskContinuationOptions.ExecuteSynchronously);
-               }
-               Add(viewPort);
-            } catch (IOException ex) {
-               ErrorMessage = ex.Message;
-            }
-         };
+         open.Execute = ExecuteOpen;
 
          duplicateCurrentTab.CanExecute = arg => SelectedTab?.CanDuplicate ?? false;
          duplicateCurrentTab.Execute = arg => {
@@ -654,6 +631,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             (SelectedTab as ViewPort)?.Edit(copyText);
          };
+      }
+
+      private async void ExecuteOpen(object arg) {
+         try {
+            var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
+            if (file == null) return;
+
+            if (SelectedTab is IEditableViewPort editableViewPort) {
+               await editableViewPort.Model.InitializationWorkload;
+               var importSuccessful = SelectedTab.TryImport(file, fileSystem);
+               if (importSuccessful) return;
+            }
+            UpdateRecentFiles(file.Name);
+            string[] metadataText = new string[0];
+            if (allowLoadingMetadata) {
+               metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
+            }
+            var metadata = new StoredMetadata(metadataText);
+            var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
+            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons);
+            if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
+               _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
+                  fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
+                  Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
+               }, TaskContinuationOptions.ExecuteSynchronously);
+            }
+            Add(viewPort);
+         } catch (IOException ex) {
+            ErrorMessage = ex.Message;
+         }
       }
 
       private void ImplementFindCommands() {
