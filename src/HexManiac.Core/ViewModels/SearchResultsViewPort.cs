@@ -13,11 +13,23 @@ using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public class SelectionRange { public virtual int Start { get; init; } public virtual int End { get; init; } }
+   public class SelectionRangeGroup : SelectionRange, IEnumerable<SelectionRange> {
+      private readonly List<SelectionRange> children = new();
+      public override int Start { get => throw new NotImplementedException(); init => base.Start = value; }
+      public override int End { get => throw new NotImplementedException(); init => base.End = value; }
+      public void Add(SelectionRange range) => children.Add(range);
+      public SelectionRange this[int i] => children[i];
+
+      public IEnumerator<SelectionRange> GetEnumerator() => children.GetEnumerator();
+      IEnumerator IEnumerable.GetEnumerator() => children.GetEnumerator();
+   }
+
    public class SearchResultsViewPort : ViewModelCore, IViewPort {
       private readonly StubCommand scroll, close;
       private readonly List<IChildViewPort> children = new List<IChildViewPort>();
       private readonly Dictionary<IViewPort, int> firstChildToUseParent = new Dictionary<IViewPort, int>();
-      private readonly List<(int start, int end)> childrenSelection = new List<(int, int)>();
+      private readonly List<SelectionRange> childrenSelection = new List<SelectionRange>();
       private int width, height, scrollValue, maxScrollValue;
 
       public int ChildViewCount => children.Count;
@@ -155,10 +167,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Add(IChildViewPort child, int start, int end) {
+         var range = new SelectionRange { Start = start, End = end };
          if (children.Count > 0) {
             var previousHeight = children.Last().Height;
             if (CompositeChildViewPort.TryCombine(children.Last(), child, out var combo)) {
                children[children.Count - 1] = combo;
+               if (childrenSelection[children.Count - 1] is SelectionRangeGroup group) {
+                  group.Add(range);
+               } else {
+                  childrenSelection[children.Count - 1] = new SelectionRangeGroup {
+                     childrenSelection[children.Count - 1],
+                     range
+                  };
+               }
                maxScrollValue += combo.Height - previousHeight;
                NotifyCollectionChanged();
                return;
@@ -166,7 +187,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          children.Add(child);
-         childrenSelection.Add((start, end));
+         childrenSelection.Add(range);
          maxScrollValue += child.Height;
          width = Math.Max(width, child.Width);
          if (children.Count > 1) maxScrollValue++;
@@ -211,10 +232,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var child = children[childIndex];
          var parent = child.Parent;
          RequestTabChange?.Invoke(this, parent);
+         var (compositeChildIndex, compositeLine) = GetChildLineFromComposite(child, line);
+         if (compositeChildIndex >= 0) child = ((CompositeChildViewPort)child)[compositeChildIndex];
+         if (compositeLine >= 0) line = compositeLine;
 
-         if (child.Model.GetNextRun(child.DataOffset) is ArrayRun array) {
-            parent.Goto.Execute(child.DataOffset.ToString("X6"));
-            parent.ScrollValue += line - y;
+         if (child.Model.GetNextRun(child.DataOffset) is ITableRun) {
+            if (child is ChildViewPort cvp) {
+               parent.Goto.Execute(cvp.ConvertViewPointToAddress(cvp.SelectionStart));
+               parent.ScrollValue -= y;
+            } else {
+               parent.Goto.Execute(child.DataOffset);
+               parent.ScrollValue += line - y;
+            }
+
             // heuristic: if the parent height matches the search results height, then the parent
             // probably doesn't have labels yet but is about to get them. We don't know how big the
             // labels will be, but they will probably push all the data down quite a bit.
@@ -226,13 +256,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (parent is ViewPort viewPort) {
-            SelectRange(viewPort, childrenSelection[childIndex]);
+            var range = childrenSelection[childIndex];
+            if (range is SelectionRangeGroup group) {
+               range = group[compositeChildIndex];
+            }
+            SelectRange(viewPort, range);
          }
       }
 
-      public static void SelectRange(ViewPort viewPort, (int start, int end) range) {
-         viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(range.start);
-         viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(range.end);
+      public static void SelectRange(ViewPort viewPort, SelectionRange range) {
+         viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(range.Start);
+         viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(range.End);
       }
 
       public void ExpandSelection(int x, int y) => FollowLink(x, y);
@@ -288,6 +322,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             line -= children[childIndex].Height + 1; childIndex++;
          }
          return (childIndex, line);
+      }
+
+      private (int childIndex, int childLineNumber) GetChildLineFromComposite(IChildViewPort viewPort, int line) {
+         if (viewPort is not CompositeChildViewPort composite) return (-1, -1);
+
+         // each child has the same data offset and same height
+         // but they have different selections
+         // return the last element that has something selected on the chosen line.
+         for (int i = composite.Count - 1; i >= 0; i--) {
+            var child = (ChildViewPort)composite[i];
+            if (child.SelectionStart.Y <= line) return (i, child.SelectionStart.Y);
+         }
+
+         return (-1, -1);
       }
    }
 

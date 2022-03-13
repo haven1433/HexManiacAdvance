@@ -925,7 +925,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (tab, start, end) = results[0];
             SelectedIndex = tabs.IndexOf(tab);
             tab.Goto.Execute(start.ToString("X2"));
-            if (tab is ViewPort viewPort) SearchResultsViewPort.SelectRange(viewPort, (start, end));
+            if (tab is ViewPort viewPort) SearchResultsViewPort.SelectRange(viewPort, new SelectionRange { Start = start, End = end });
             return;
          }
 
