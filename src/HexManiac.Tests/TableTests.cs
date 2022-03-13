@@ -810,7 +810,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("inner", Model.GetAnchorFromAddress(-1, 0));
       }
 
-      // TODO once this passes, recheck the initial condition: expand multichoice, repoint last element, name last element, then expand again.
+      [Fact]
+      public void TablePointingToNamedAnchor_Extend_AnchorIsStillNamed() {
+         ViewPort.Edit("@00 ^inner ");
+         ViewPort.Edit("@10 ^outer[ptr<[a.]1>]1 <inner> ");
+
+         ViewPort.Edit("+");
+
+         Assert.Equal(0, Model.ReadPointer(0x10));
+         Assert.Equal(0, Model.ReadPointer(0x14));
+         Assert.Equal("inner", Model.GetAnchorFromAddress(-1, 0));
+      }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());

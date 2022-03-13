@@ -31,7 +31,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          if (!TableStreamRun.TryParseTableStream(model, run.Start, run.PointerSources, name, Format, sourceSegments, out var runAttempt)) return;
-         model.ClearFormat(token, run.Start, runAttempt.Length);
+         if (run is ITableRun table && runAttempt.FormatString == table.FormatString && runAttempt.Length == table.Length) {
+            // we don't need to do a clear: the new format matches the existing format
+         } else {
+            model.ClearFormat(token, run.Start, runAttempt.Length);
+         }
          run = runAttempt;
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
