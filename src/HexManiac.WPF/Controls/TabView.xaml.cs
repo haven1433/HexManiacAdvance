@@ -130,6 +130,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var lastLineIndex = StringToolTextBox.Text.Split(Environment.NewLine).Length - 1;
          var highestScroll = Math.Max(StringToolTextBox.ExtentHeight - StringToolTextBox.ViewportHeight, 0);
          var verticalOffset = linesBeforeSelection * highestScroll / lastLineIndex;
+         if (lastLineIndex == 0 || verticalOffset < 0) verticalOffset = 0;
          if (StringToolTextBox.VerticalOffset != verticalOffset) {
             StringToolTextBox.ScrollToVerticalOffset(verticalOffset);
          } else {
