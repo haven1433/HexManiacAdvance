@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const int PokemonFormat_FixedIVStart = 0;
       public const int PokemonFormat_LevelStart = 2;
       public const int PokemonFormat_PokemonStart = 4;
+      public const int PokemonFormat_ItemStart = 6;
       public const int PokemonFormat_MoveStart = 6;
 
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "tpt" + AsciiRun.StreamDelimeter;
@@ -94,6 +95,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (parentArrayName == HardcodeTablesModel.MoveNamesTable && (StructType & INCLUDE_MOVES) != 0) {
                for (int j = 0; j < 4; j++) {
                   var index = start + PokemonFormat_MoveStart + j * 2;
+                  if ((StructType & INCLUDE_ITEM) != 0) index += 2;
                   var moveID = model.ReadMultiByteValue(index, 2);
                   if (moveID == id) yield return index;
                }
@@ -102,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var pokemonID = model.ReadMultiByteValue(index, 2);
                if (pokemonID == id) yield return index;
             } else if (parentArrayName == HardcodeTablesModel.ItemsTableName && (StructType & INCLUDE_ITEM) != 0) {
-               var index = start + ElementLength - 2;
+               var index = start + PokemonFormat_ItemStart;
                var itemID = model.ReadMultiByteValue(index, 2);
                if (itemID == id) yield return index;
             }
@@ -359,7 +361,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.ItemsTableName || anchorName == HardcodeTablesModel.MoveNamesTable || anchorName == HardcodeTablesModel.PokemonNameTable;
+      public bool DependsOn(string anchorName) =>
+         anchorName == HardcodeTablesModel.ItemsTableName ||
+         anchorName == HardcodeTablesModel.MoveNamesTable ||
+         anchorName == HardcodeTablesModel.PokemonNameTable;
 
       private class TeamData {
          private readonly List<int> levels = new List<int>();
