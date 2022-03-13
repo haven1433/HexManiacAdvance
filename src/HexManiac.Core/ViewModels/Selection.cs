@@ -416,7 +416,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private int CoerceWidth(int width) {
-         var desiredWidth = preferredWidth.LimitToRange(4, 0x100);
+         var desiredWidth = preferredWidth.LimitToRange(1, 0x100);
          if (preferredWidth == -1 || preferredWidth == width) return width;
          if (!allowMultipleElementsPerLine) return desiredWidth;
 
