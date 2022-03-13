@@ -256,6 +256,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          base.OnDragEnter(e);
          if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            if (ViewModel.SelectedTab is not IEditableViewPort) return;
             foreach (var fileName in files) {
                if (fileName.ToLower().EndsWith(".ips")) {
                   ViewModel.OverlayText = "Apply IPS Patch";
