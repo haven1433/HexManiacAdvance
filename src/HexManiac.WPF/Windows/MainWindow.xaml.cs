@@ -656,24 +656,27 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          while (result == 1) {
             if (Debugger.IsAttached) {
                Debugger.Break();
+               break;
             } else {
-               result = fileSystem.ShowOptions(
-                  "Attach a Debugger",
-                  "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
-                  message + Environment.NewLine +
-                  detailMessage + Environment.NewLine +
-                  "Stack Trace:" + Environment.NewLine +
-                  Environment.StackTrace,
-                  null,
-                     new[] {
-                        new VisualOption {
-                           Index = 1,
-                           Option = "Debug",
-                           ShortDescription = "Show in Debugger",
-                           Description = "Break in a connected debugger"
-                        },
-                     }
-                  );
+               Application.Current.Dispatcher.Invoke(() => {
+                  result = fileSystem.ShowOptions(
+                     "Attach a Debugger",
+                     "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
+                     message + Environment.NewLine +
+                     detailMessage + Environment.NewLine +
+                     "Stack Trace:" + Environment.NewLine +
+                     Environment.StackTrace,
+                     null,
+                        new[] {
+                           new VisualOption {
+                              Index = 1,
+                              Option = "Debug",
+                              ShortDescription = "Show in Debugger",
+                              Description = "Break in a connected debugger"
+                           },
+                        }
+                     );
+               });
             }
          }
       }
