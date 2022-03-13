@@ -184,6 +184,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static int GetLengthForControlCode(byte code) {
+         if (code == 0x04) return 4; // (text, shadow, highlight) -> 3 params
          if (code == 0x09) return 1; // pause : no variables
          if (code == 0x0A) return 1; // wait for sound effect
          if (code == 0x0B) return 3; // play background music : 1 variable, but it takes 2 bytes
@@ -196,8 +197,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (index == 0) return false;
          if (data[index - 1].IsAny(Escape, DynamicEscape, ButtonEscape, FunctionEscape)) return true;
          if (index == 1) return false;
-         if (index > 1 && data[index - 2] == FunctionEscape && GetLengthForControlCode(data[index - 1]) >= 2) return true;
-         if (index > 2 && data[index - 3] == FunctionEscape && GetLengthForControlCode(data[index - 2]) >= 3) return true;
+         for (int codeDist = 2; codeDist <= 4; codeDist++) {
+            if (index >= codeDist && data[index - codeDist] == FunctionEscape && GetLengthForControlCode(data[index - codeDist + 1]) >= 2) return true;
+         }
          return false;
       }
 
