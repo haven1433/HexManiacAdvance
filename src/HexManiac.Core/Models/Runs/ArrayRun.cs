@@ -480,12 +480,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (string.IsNullOrEmpty(anchorName)) continue;
                if ((nextRun.Start - Start) % ElementLength != 0) break;
             }
+            var thisRun = owner.GetNextAnchor(Start) as ArrayRun;
+            var maxLength = int.MaxValue;
+            if (thisRun != null && thisRun.Start == Start) maxLength = ElementLength * thisRun.ElementCount;
             var byteLength = 0;
             var elementCount = 0;
             while (Start + byteLength + ElementLength <= nextRun.Start && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, elementCount, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
                if (elementCount == JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText;
+               if (byteLength >= maxLength) break;
             }
             LengthFromAnchor = string.Empty;
             ParentOffset = ParentOffset.Default;
