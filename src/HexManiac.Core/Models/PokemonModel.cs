@@ -1100,19 +1100,34 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!anchorForAddress.TryGetValue(arrayRun.Start, out string anchor)) return;
          foreach (var table in this.GetDependantArrays(anchor)) {
             var newTable = table;
+
+            // runs may have changed since getting the dependent arrays
+            // try to update newTable to be the most recent version from the model
+            newTable = GetNextRun(newTable.Start) as ArrayRun;
+            if (newTable == null || newTable.Start != table.Start) newTable = table; // update failed
+
             // option 1: this table's length is based on the given table
             if (anchor.Equals(table.LengthFromAnchor)) {
                int targetCount = arrayRun.ElementCount + table.ParentOffset.BeginningMargin + table.ParentOffset.EndMargin;
-               if (table.ElementCount == targetCount) continue;
+               if (newTable.ElementCount == targetCount) continue;
                // only relocate if we're not in a loading situation
                if (!(changeToken is NoDataChangeDeltaModel)) {
                   newTable = RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
                }
                int originalLength = newTable.Length;
+
+               // clear any possible metadata in the way of appending (only matters if we didn't relocate
+               // note that we need to do this _before_ Append is called
+               var lengthChange = (targetCount - table.ElementCount) * newTable.ElementLength;
+               if (lengthChange > 0) ClearFormat(changeToken, newTable.Start + originalLength, lengthChange);
+
                newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
                var tableAnchor = GetAnchorFromAddress(-1, newTable.Start);
 
+               // clear any possible remaining metadata after contracting
+               // note that we need to do this _after_ Append is called
                if (newTable.Length < originalLength) ClearFormat(changeToken, newTable.Start, originalLength);
+
                if (string.IsNullOrEmpty(tableAnchor)) {
                   ObserveRunWritten(changeToken, newTable);
                } else {
