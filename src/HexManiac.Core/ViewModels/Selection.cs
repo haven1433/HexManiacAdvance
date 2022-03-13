@@ -416,17 +416,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private int CoerceWidth(int width) {
+         var desiredWidth = preferredWidth.LimitToRange(4, 0x100);
          if (preferredWidth == -1 || preferredWidth == width) return width;
-         if (!allowMultipleElementsPerLine) return preferredWidth;
+         if (!allowMultipleElementsPerLine) return desiredWidth;
 
-         if (preferredWidth < width) {
+         if (desiredWidth < width) {
             int multiple = 2;
-            while (preferredWidth * multiple <= width) multiple++;
-            return preferredWidth * (multiple - 1);
+            while (desiredWidth * multiple <= width) multiple++;
+            return desiredWidth * (multiple - 1);
          }
-         var divisors = GetDivisors(preferredWidth).Reverse();
+         var divisors = GetDivisors(desiredWidth).Reverse();
          var newWidth = divisors.FirstOrDefault();
-         if (newWidth < 4) return preferredWidth;
+         if (newWidth < 4) return desiredWidth;
          return newWidth;
       }
 
