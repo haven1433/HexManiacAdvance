@@ -100,7 +100,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null) : base(data, metadata, singletons) {
          gameCode = this.GetGameCode();
          if (metadata != null && !metadata.IsEmpty) {
-            (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
+            InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => Initialize(metadata));
             return;
          }
 
