@@ -273,10 +273,18 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public interface IMetadataInfo {
       string VersionNumber { get; }
+      bool IsPublicRelease { get; }
    }
 
    internal class MetadataInfo : IMetadataInfo {
       public string VersionNumber { get; }
+      public bool IsPublicRelease {
+         get {
+            var assembly = Assembly.GetExecutingAssembly();
+            var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+            return fvi.FilePrivatePart == 0;
+         }
+      }
       public MetadataInfo() {
          var assembly = Assembly.GetExecutingAssembly();
          var fvi = FileVersionInfo.GetVersionInfo(assembly.Location);

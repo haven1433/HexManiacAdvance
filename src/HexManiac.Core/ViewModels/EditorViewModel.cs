@@ -439,13 +439,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
             new LevelUpMoveSorter(),
          }.Select(edit => new EditItemWrapper(edit)).ToList();
-         QuickEditsExpansion = new List<IQuickEditItem> {
+         var expansionUtils = new List<IQuickEditItem> {
             new MakeTutorsExpandable(),
             new MakeMovesExpandable(),
-            new MakePokemonExpandable(),
             // new MakeTmsExpandable(),   // expanding TMs requires further research.
             // new MakeItemsExpandable(),
-         }.Select(edit => new EditItemWrapper(edit)).ToList();
+         };
+         if (!Singletons.MetadataInfo.IsPublicRelease) {
+            // beta features
+            expansionUtils.Add(new MakePokemonExpandable());
+         }
+         QuickEditsExpansion = expansionUtils.Select(edit => new EditItemWrapper(edit)).ToList();
 
          tabs = new List<ITabContent>();
          selectedIndex = -1;

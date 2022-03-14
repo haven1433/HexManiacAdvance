@@ -7,12 +7,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       public AboutWindow(IMetadataInfo metadata) {
          InitializeComponent();
          Version.Text = $"Version {metadata.VersionNumber}";
-         Usage.Text = GetUsageText(metadata.VersionNumber);
+         Usage.Text = GetUsageText(metadata);
       }
 
-      public static string GetUsageText(string versionNumber) {
-         if (versionNumber.Split('.').Length < 4) {
-            return "This is a preview release. Please report any bugs via GitHub or Discord.";
+      public static string GetUsageText(IMetadataInfo metadata) {
+         if (metadata != null && metadata.IsPublicRelease) {
+            return "This is a preview release. Please report bugs via GitHub / Discord.";
          } else {
             return "This is an unstable version: use at your own risk!";
          }

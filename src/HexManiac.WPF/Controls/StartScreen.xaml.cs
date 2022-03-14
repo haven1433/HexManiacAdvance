@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public StartScreen() {
          InitializeComponent();
          Loaded += (sender, e) => {
-            var version = ((EditorViewModel)DataContext)?.Singletons.MetadataInfo.VersionNumber ?? "?.?.?";
+            var version = ((EditorViewModel)DataContext)?.Singletons.MetadataInfo;
             Usage.Text = AboutWindow.GetUsageText(version);
          };
       }
