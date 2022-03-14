@@ -144,7 +144,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public Task DispatchWork(Action action) {
-         return Task.Run(() => dispatcher.Invoke(action, DispatcherPriority.Input));
+         return Task.Run(() => {
+            try {
+               dispatcher.Invoke(action, DispatcherPriority.Input);
+            } catch (TaskCanceledException) {
+               // that's ok
+            }
+         });
       }
 
       public Task RunBackgroundWork(Action action) => Task.Run(action);
