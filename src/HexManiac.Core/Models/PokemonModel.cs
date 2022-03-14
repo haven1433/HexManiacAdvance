@@ -540,7 +540,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var destination = ReadPointer(source);
                      Debug.Assert(destination == runs[i].Start, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but that source points to {destination:X6}.");
                   } else {
-                     Debug.Fail($"Pointer must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");
+                     Debug.Fail($"Pointer at {source:X6} must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)} (pointing to {runs[i].Start:X6})");
                   }
                }
             }
@@ -1121,8 +1121,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                var lengthChange = (targetCount - table.ElementCount) * newTable.ElementLength;
                if (lengthChange > 0) ClearFormat(changeToken, newTable.Start + originalLength, lengthChange);
 
-               newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
                var tableAnchor = GetAnchorFromAddress(-1, newTable.Start);
+               newTable = newTable.Append(changeToken, targetCount - table.ElementCount);
 
                // clear any possible remaining metadata after contracting
                // note that we need to do this _after_ Append is called
@@ -1678,6 +1678,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             runIndex = BinarySearch(run.Start);
             changeToken.RemoveRun(run);
             runs.RemoveAt(runIndex);
+            if (keepPointers && run is ArrayRun table1 && table1.SupportsInnerPointers) AddAnchorsForRemovedArray(table1, changeToken);
             return;
          }
 
@@ -1718,6 +1719,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.AddRun(runs[runIndex]);
          } else {
             runs.RemoveAt(runIndex);
+         }
+      }
+
+      private void AddAnchorsForRemovedArray(ArrayRun table, ModelDelta token) {
+         for (int i = 1; i < table.ElementCount; i++) {
+            var sources = table.PointerSourcesForInnerElements[i];
+            if (sources == null || sources.Count == 0) continue;
+            var destination = table.Start + table.ElementLength * i;
+            ObserveRunWritten(token, new NoInfoRun(destination, sources));
          }
       }
 
