@@ -114,6 +114,8 @@ graphics.moves.surf.contest,                0D39F0, 0D39F0, 0D3A10, 0D3A10, 0AB4
 
 graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
 graphics.items.ball.palettes,               0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
+graphics.items.ball.trade.sprite,                 ,       ,       ,       , 26CDD4, 26CDB4, 26CE44, 26CE24,       , `ucs4x2x24|graphics.items.ball.trade.palette`
+graphics.items.ball.trade.palette,                ,       ,       ,       , 26CDDC, 26CDBC, 26CE4C, 26CE2C,       , `ucp4`
 graphics.items.sprites,                           ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
 graphics.items.mail,                              ,       ,       ,       , 0BEEB0, 0BEE84, 0BEEC4, 0BEE98,       , [pal<`ucp4`> tileset<`lzt4`> tilemap<`lzm4x32x20|graphics.items.mail`> size:: textcolor:|c shadow:|c]12
 graphics.items.fossils.palette1,          ,       ,       ,       , 09D604, 09D5D8, 09D618, 09D5EC,       , `ucp4`
