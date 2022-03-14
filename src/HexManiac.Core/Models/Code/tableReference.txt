@@ -229,6 +229,7 @@ graphics.trainercard.frontier.palette,     ,,,, ,,,, 0C567C, `ucp4:01234567`
 //data.ec.words+8,                       ,,,, ,,,, 11EAA0, [list<[text<""> a:: b::]/count> count: other:]21 // before1-lose6 use the high 7 bits to select a group, and the low 9 bits to select a phrase.
 
 graphics.pokemon.type.icons,                 ,       ,       ,       , 107DB0, 107D88, 107E28, 107E00,       , `ucs4x16x16|graphics.pokemon.type.palettes`
+graphics.pokemon.type.pokeball.palettes,     ,       ,       ,       , 107D50, 107D28, 107DC8, 107DA0,       , `ucp4`
 graphics.pokemon.type.palettes,              ,       ,       ,       , 107D64, 107D3C, 107DDC, 107DB4,       , `ucp4`
 graphics.pokemon.type.map,                   ,       ,       ,       , 107DAC, 107D84, 107E24, 107DFC,       , [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
 graphics.pokemon.type.icons,           3C11B8, 3C1210, 3C11D4, 3C1230,       ,       ,       ,       , 61CFBC, `lzs4x4x46|graphics.pokemon.type.palettes`
