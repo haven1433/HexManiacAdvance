@@ -29,12 +29,12 @@
          <Grid.ColumnDefinitions>
             <ColumnDefinition Width="9*"/>
             <ColumnDefinition Width="10"/>
-            <ColumnDefinition Width="10*"/>
+            <ColumnDefinition Width="9*"/>
          </Grid.ColumnDefinitions>
          <Grid.RowDefinitions>
-            <RowDefinition Height="3*"/>
+            <RowDefinition Height="7*"/>
             <RowDefinition Height="10"/>
-            <RowDefinition Height="1*"/>
+            <RowDefinition Height="3*"/>
          </Grid.RowDefinitions>
 
          <StackPanel Margin="40,0,0,0">
