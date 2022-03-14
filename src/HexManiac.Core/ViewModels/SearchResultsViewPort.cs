@@ -236,9 +236,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (compositeChildIndex >= 0) child = ((CompositeChildViewPort)child)[compositeChildIndex];
          if (compositeLine >= 0) line = compositeLine;
 
+         var range = childrenSelection[childIndex];
+         if (range is SelectionRangeGroup group) range = group[compositeChildIndex];
+
          if (child.Model.GetNextRun(child.DataOffset) is ITableRun) {
             if (child is ChildViewPort cvp) {
-               parent.Goto.Execute(cvp.ConvertViewPointToAddress(cvp.SelectionStart));
+               parent.Goto.Execute(range.Start);
                parent.ScrollValue -= y;
             } else {
                parent.Goto.Execute(child.DataOffset);
@@ -256,10 +259,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (parent is ViewPort viewPort) {
-            var range = childrenSelection[childIndex];
-            if (range is SelectionRangeGroup group) {
-               range = group[compositeChildIndex];
-            }
             SelectRange(viewPort, range);
          }
       }

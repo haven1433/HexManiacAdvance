@@ -369,9 +369,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          if (trainerResults.Count > 0) {
             var selections = trainerResults.Select(result => (result, result + 1)).ToList();
+            var trainerAddresses = model.GetTable(HardcodeTablesModel.TrainerTableName) is ITableRun trainerTable ? selections.Select(s => {
+               var parentPointer = model.GetNextRun(s.Item1).PointerSources?.FirstOrDefault();
+               if (parentPointer is int source) {
+                  var index = trainerTable.ConvertByteOffsetToArrayOffset(source).ElementIndex;
+                  return (trainerTable.Start + trainerTable.ElementLength * index, trainerTable.Start + trainerTable.ElementLength * (index + 1) - 1);
+               }
+               return s;
+            }).ToList() : null;
             AddChild(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
                using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.TrainerTableName}", selections);
+                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.TrainerTableName}", selections, trainerAddresses);
                }
             }));
          }

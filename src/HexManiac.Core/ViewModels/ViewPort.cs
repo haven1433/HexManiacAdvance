@@ -2085,9 +2085,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
-      public void OpenSearchResultsTab(string title, IReadOnlyList<(int start, int end)> matches) {
-         if (matches.Count == 1) {
-            var (start, end) = matches[0];
+      public void OpenSearchResultsTab(string title, IReadOnlyList<(int start, int end)> showSelection, IReadOnlyList<(int start, int end)> gotoSelection = null) {
+         gotoSelection ??= showSelection;
+         if (showSelection.Count == 1) {
+            var (start, end) = showSelection[0];
             selection.GotoAddress(start);
             SelectionStart = scroll.DataIndexToViewPoint(start);
             SelectionEnd = scroll.DataIndexToViewPoint(end);
@@ -2095,7 +2096,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var newTab = new SearchResultsViewPort(title);
-         foreach (var (start, end) in matches) newTab.Add(CreateChildView(start, end), start, end);
+         for (int i = 0; i < showSelection.Count; i++) {
+            var (showStart, showEnd) = showSelection[i];
+            var (gotoStart, gotoEnd) = gotoSelection[i];
+            newTab.Add(CreateChildView(showStart, showEnd), gotoStart, gotoEnd);
+         }
          RequestTabChange(this, newTab);
       }
 
