@@ -239,6 +239,7 @@ graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,  
 graphics.pokemon.bag.type.palette,           ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
 graphics.text.importer,                      ,       ,       ,       , 1456EC, 1456C8, 145764, 145740,       , [a:: tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8
+graphics.text.box.about,                     ,       ,       ,       , 112FC8, 112FA0, 113040, 113018,       , `ucs4x5x4|graphics.text.box.palette`
 graphics.text.box.palette,                   ,       ,       ,       , 150450, 15042C, 1504C8, 1504A4,       , `ucp4:01234`
 graphics.text.box.message,                   ,       ,       ,       , 14FD68, 14FD44, 14FDE0, 14FDBC,       , `uct4x18|graphics.text.box.palette`
 graphics.text.box.signpost,                  ,       ,       ,       , 14FD9C, 14FD78, 14FE14, 14FDF0,       , `uct4x19|graphics.text.box.palette`
