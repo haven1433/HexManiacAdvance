@@ -48,6 +48,8 @@ data.maps.fly.connections,                   ,       ,       ,       , 0C52A8, 0
 //                                          +28 pokemon are for egg and unown sprites (B-Z, !, ?), 
 graphics.pokemon.sprites.front,             00D324, 00D324, 00D324, 00D324, 000128, 000128, 000128, 000128, 000128, ^[sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
 graphics.pokemon.sprites.back,              00D3D8, 00D3D8, 00D3D8, 00D3D8, 00012C, 00012C, 00012C, 00012C, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
+graphics.pokemon.sprites.ghost,             ,,,, 0346B8, 0346B8, 0346CC, 0346CC, , `lzs4x8x8|graphics.pokemon.palettes.ghost`
+graphics.pokemon.palettes.ghost,            ,,,, 0346C0, 0346C0, 0346D4, 0346D4, , `lzp4`
 graphics.pokemon.sprites.elevation,         032974, 032974, 032974, 032974, 0356F8, 0356F8, 03570C, 03570C, 05EE44, [elevation.]data.pokemon.names
 graphics.pokemon.sprites.footprint,         0917C8, 0917C8, 0917E8, 0917E8, 105E14, 105DEC, 105E8C, 105E64, 0C0DBC, [footprint<`ucs1x2x2`>]data.pokemon.names+1
 graphics.pokemon.sprites.coordinates.front, 00B2BC, 00B2BC, 00B2BC, 00B2BC, 011F4C, 011F4C, 011F60, 011F60, 02DC78, [size. yOffset. unused:]data.pokemon.names+28
