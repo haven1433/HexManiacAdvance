@@ -845,6 +845,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(4.Range(), i => Assert.False(Model.HasChanged(i)));
       }
 
+      [Fact]
+      public void UnmappedPointerInMetadata_Load_NullPointer() {
+         var pointers = new [] { new StoredUnmappedPointer(0x20, "name") };
+         var metadata = new StoredMetadata(unmappedPointers: pointers);
+
+         var model = new PokemonModel(new byte[0x200], metadata, Singletons);
+
+         var run = model.GetNextRun(0x20);
+         Assert.IsType<PointerRun>(run);
+         Assert.Equal(0x20, run.Start);
+      }
+
+      [Fact]
+      public void UnmappedPointerInMetadata_WriteAnchor_ModelUpdates() {
+         var pointers = new[] { new StoredUnmappedPointer(0x20, "name") };
+         var metadata = new StoredMetadata(unmappedPointers: pointers);
+
+         var model = new PokemonModel(new byte[0x200], metadata, Singletons);
+         model.ObserveAnchorWritten(Token, "name", new NoInfoRun(0x80));
+
+         Assert.Equal(0x80, model.ReadPointer(0x20));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

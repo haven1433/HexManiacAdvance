@@ -48,15 +48,15 @@ namespace HavenSoft.HexManiac.Core.Models {
       }) { }
 
       public StoredMetadata(
-         IReadOnlyList<StoredAnchor> anchors,
-         IReadOnlyList<StoredUnmappedPointer> unmappedPointers,
-         IReadOnlyList<StoredMatchedWord> matchedWords,
-         IReadOnlyList<StoredOffsetPointer> offsetPointers,
-         IReadOnlyList<StoredList> lists,
-         IReadOnlyList<StoredUnmappedConstant> unmappedConstants,
-         IReadOnlyList<StoredGotoShortcut> gotoShortcuts,
-         IMetadataInfo generalInfo,
-         StoredMetadataFields fields
+         IReadOnlyList<StoredAnchor> anchors = null,
+         IReadOnlyList<StoredUnmappedPointer> unmappedPointers = null,
+         IReadOnlyList<StoredMatchedWord> matchedWords = null,
+         IReadOnlyList<StoredOffsetPointer> offsetPointers = null,
+         IReadOnlyList<StoredList> lists = null,
+         IReadOnlyList<StoredUnmappedConstant> unmappedConstants = null,
+         IReadOnlyList<StoredGotoShortcut> gotoShortcuts = null,
+         IMetadataInfo generalInfo = null,
+         StoredMetadataFields fields = null
       ) {
          NamedAnchors = anchors ?? new List<StoredAnchor>();
          UnmappedPointers = unmappedPointers ?? new List<StoredUnmappedPointer>();

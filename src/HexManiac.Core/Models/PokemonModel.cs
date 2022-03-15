@@ -202,6 +202,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
                if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = SortedSpan<int>.None;
                unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
+               if (GetNextRun(unmappedPointer.Address).Start >= unmappedPointer.Address + 4 && ReadPointer(unmappedPointer.Address) == Pointer.NULL) {
+                  ObserveRunWritten(noChange, new PointerRun(unmappedPointer.Address));
+               }
             }
             foreach (var word in metadata.MatchedWords) {
                if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
@@ -2285,7 +2288,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var offsets = array2.ConvertByteOffsetToArrayOffset(source);
                Debug.Assert(array2.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer);
             } else {
-               Debug.Assert(index >= 0 && runs[index] is PointerRun);
+               Debug.Assert(index >= 0 && runs[index] is PointerRun, $"Expected a pointer at address {runs[index].Start:X6} but found {runs[index].GetType()} instead.");
             }
             changeToken.RemoveUnmappedPointer(source, anchorName);
             sourceToUnmappedName.Remove(source);
@@ -2294,7 +2297,17 @@ namespace HavenSoft.HexManiac.Core.Models {
                offset = (ReadValue(source) * array.ElementLength).LimitToRange(0, array.Length);
                if (offset != 0) sourcesDirectlyToThis = sourcesDirectlyToThis.Remove1(source);
             }
-            WritePointer(changeToken, source, location + offset);
+
+            if (changeToken is NoDataChangeDeltaModel) {
+               // if we're doing an initial load of the model, we may load a pointer and want to update unmapped pointers to point to that location.
+               // this _is_ a data edit, and we're ok with that in this case.
+               // example: if the original pointer for the game name was cleared and we re-add it, we want to re-add any pointers to it.
+               // note that this change isn't undo-able and isn't tracked for save purposes.
+               // this is an edge case, so it's probably ok.
+               WritePointer(new ModelDelta(), source, location + offset);
+            } else {
+               WritePointer(changeToken, source, location + offset);
+            }
          }
          unmappedNameToSources.Remove(anchorName);
 
