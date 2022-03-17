@@ -155,9 +155,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (address.EndsWith(PointerRun.PointerEnd.ToString())) address = address.Substring(0, address.Length - 1);
                if (address.StartsWith("0x")) address = address.Substring(2);
                var offset = 0;
-               if (address.Split("+") is string[] parts && parts.Length == 2) {
-                  address = parts[0];
-                  int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+               if (address.Split("+") is string[] addParts && addParts.Length == 2) {
+                  address = addParts[0];
+                  int.TryParse(addParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+               } else if (address.Split("-") is string[] subtractParts && subtractParts.Length == 2) {
+                  address = subtractParts[0];
+                  int.TryParse(subtractParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+                  offset = -offset;
                }
                using (ModelCacheScope.CreateScope(this.model)) {
                   var minSize = -1;
