@@ -119,7 +119,7 @@ Name = '''moveeffectoptions'''
    '''OHKO''',
    '''2turnHighCrit''',
    '''HalfDamage''',
-   '''20Damage''',
+   '''40Damage''',
    '''2to5turnTrap''',
    '''HighCrit''',
    '''2hits''',
