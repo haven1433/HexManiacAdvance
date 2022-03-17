@@ -1264,10 +1264,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          int i = 0;
          try {
             for (i = 0; i < input.Length && i < maxSize && !exitEditEarly; i++) {
+               var precededByWhitespace = i == 0 || input[i - 1] == ' ' || input[i - 1] == '\n';
                if (input[i] == '@' && input.Substring(i).StartsWith("@!game")) skipToNextGameCode = false;
                if (skipToNextGameCode) {
                   // skip this input
-               } else if (input[i] == '.' && input.Length > i + 6 && input.Substring(i + 1, 5).ToLower() == "thumb") {
+               } else if (input[i] == '.' && input.Length > i + 6 && input.Substring(i + 1, 5).ToLower() == "thumb" && precededByWhitespace) {
                   var lines = input.Substring(i).Split('\n', '\r');
                   var endLine = lines.Length.Range().FirstOrDefault(j => (lines[j] + " ").ToLower().StartsWith(".end "));
                   if (endLine == 0) endLine = lines.Length - 1;
