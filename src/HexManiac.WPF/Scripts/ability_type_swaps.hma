@@ -1,11 +1,24 @@
 # Introduce a new ability type-swap table.
+# FireRed Only
 # Abilities in this table will change moves of one type to another
 # Example: Pixilate
 
-# create table data.abilities.typeswaps
+# Adds this code, approximately, to the damage calculation step:
+#        foreach entry in data.abilities.typeswaps:
+#            if (gBattleMons[gBattlerAttacker].ability != entry.ability) continue;
+#            if (gBattleMoves[gCurrentMove].type != entry.original) continue;
+#            gBattleStruct->dynamicMoveType = entry.change | 0x40;
+#            gBattleMons[battlerId].type2 = battlerHoldEffectParam
+#            gDynamicBasePower *= entry.scale / 100;
+
+
+
+# create new table -> data.abilities.typeswaps
 @data.abilities.typeswaps(10)
 42 00 0A 64 FF FF 00 00
 @data.abilities.typeswaps ^data.abilities.typeswaps[ability.data.abilities.names original.data.pokemon.type.names change.data.pokemon.type.names scale.]!FFFF0000
+
+
 
 # main routine
 @thumb.abilities.typeswaps(B0) .thumb
@@ -101,12 +114,15 @@
         bx    r2
 .end
 
+
+
 # hook atk05_damagecalc
 @01E59C .thumb
     ldr   r0, =0
     bx    r0
 .end
 @01E59C+4 <thumb.abilities.typeswaps+1>
+
 
 
 # goto the table so the user can edit it
