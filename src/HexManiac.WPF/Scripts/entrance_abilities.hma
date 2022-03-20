@@ -17,10 +17,10 @@
 
 # create new table -> data.abilities.entrance
 @data.abilities.entrance(30)
-# Sand Stream #  2D 00 00 00 <1D92BF>
-# Drizzle     #  02 00 00 00 <1D927F>
-# Drought     #  46 00 00 00 <1D9379>
-# Intimidate  #  16 00 00 00 <1D9307>
+# Sand Stream #  2D 00 C9 00 <1D92BF>
+# Drizzle     #  02 00 F0 00 <1D927F>
+# Drought     #  46 00 F1 00 <1D9379>
+# Intimidate  #  16 00 2D 00 <1D9307>
 # End Table   #  00 00 00 00 FF FF FF FF
 @data.abilities.entrance ^data.abilities.entrance[ability:data.abilities.names animation:data.pokemon.moves.names script<`bse`>]!0000
 
@@ -88,7 +88,7 @@
     mov   r1, r8
     ldrb  r0, [r1, #0]
 cloudnine:
-    cmp   r0, #13
+    cmp   r0, #13 @ cloudnine
     bne   <trace>
     bl    <01A3A8>
 trace:
