@@ -41,9 +41,9 @@
 28 goto ptr<>
 29 jumpifbyte ifflag. param1:: param2. ptr<>
 2a jumpifhalfword ifflag. address:: value: ptr<>
-2b jumpifword ifflag. param1:: param2:: param3::
-2c jumpifarrayequal param0:: param1:: param2. param3::
-2d jumpifarraynotequal param0:: param1:: param2. param3::
+2b jumpifword ifflag. param1:: param2:: ptr<>
+2c jumpifarrayequal param0:: param1:: param2. ptr<>
+2d jumpifarraynotequal param0:: param1:: param2. ptr<>
 2e setbyte ptr<> param1.
 2f addbyte ptr<> param1.
 30 subbyte ptr<> param1.

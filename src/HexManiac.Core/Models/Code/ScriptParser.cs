@@ -627,7 +627,25 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x01, 0x1C, 0x1D, 0x20, 0x21, 0x28, 0x2A, 0x7A, 0x97);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(
+         0x01,
+         0x1C,
+         0x1D,
+         0x1E,
+         0x1F,
+         0x20,
+         0x21,
+         0x22,
+         0x28,
+         0x29,
+         0x2A,
+         0x2B,
+         0x2C,
+         0x2D,
+         0x41,
+         0x7A,
+         0x97
+         );
    }
 
    public class ASEScriptLine : ScriptLine {
