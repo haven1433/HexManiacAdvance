@@ -52,7 +52,7 @@
     ldrh  r2, [r2, #0]
     mov   r3, #12        @ sizeof(BattleMove)
     mul   r2, r3
-    add   r2, #2         @ BattleMove.type (will be 3 if we've done move expansion)
+    add   r2, #2         @ BattleMove.type (change to 3 if you've done move expansion)
     ldrb  r1, [r1, r2]   @ r1 = gBattleMoves[gCurrentMove].type
 
     @ r2 = pixilate ability table + index*4 (4 is the size of the table elements)
@@ -88,7 +88,7 @@
         ldrh  r0, [r0, #0]
         mov   r1, #12        @ sizeof(BattleMove)
         mul   r0, r1
-        add   r0, #1         @ BattleMove.power (will be 2 if we've done move expansion)
+        add   r0, #1         @ BattleMove.power (change to 2 if you've done move expansion)
         ldr   r1, =<data.pokemon.moves.stats.battle>
         ldrb  r0, [r1, r0]   @ r0 = gBattleMoves[gCurrentMove].power
         strh  r0, [r5, #0]   @ gDynamicBasePower = gBattleMoves[gCurrentMove].power
