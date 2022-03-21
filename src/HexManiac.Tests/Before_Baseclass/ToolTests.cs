@@ -817,5 +817,14 @@ namespace HavenSoft.HexManiac.Tests {
          var actual = parser.Compile(Model, 0, "ldr r0, =0x10+1");
          Assert.Equal(expected, actual);
       }
+
+      [Fact]
+      public void NotAligned_WriteLdrWithDynamicWord_CompilesToCorrectAddress() {
+         parser.Compile(Token, Model, 2, "ldr r0, =0", "bx r0");
+
+         var lines = parser.Parse(Model, 2, 10).SplitLines(); // ldr, bx, nop, .word
+         Assert.Contains("ldr", lines[1]);
+         Assert.Contains("8>", lines[1]);
+      }
    }
 }

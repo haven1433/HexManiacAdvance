@@ -268,7 +268,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (instruction.RequiresAlignment && (result.Count + start) % 4 != 0) result.AddRange(nop);
                result.AddRange(code);
                foundMatch = true;
-               if(instruction is WordInstruction) {
+               if (instruction is WordInstruction) {
                   if (code[3] == 0x08 || code[3] == 0x09) {
                      addedRuns.Add(new PointerRun(start + result.Count - 4));
                   }
@@ -286,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                while (inlineWords.Count > 0) {
                   var token = inlineWords.Dequeue();
                   result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
-                  token.Write(result, result.Count - 4);
+                  token.Write(start, result, result.Count - 4);
                   var highByte = token.WordToLoad >> 24;
                   if (highByte == 0x08 || highByte == 0x09) addedRuns.Add(new PointerRun(start + result.Count - 4));
                }
@@ -298,7 +298,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             while (inlineWords.Count > 0) {
                var token = inlineWords.Dequeue();
                result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
-               token.Write(result, result.Count - 4);
+               token.Write(start, result, result.Count - 4);
             }
          }
 
@@ -986,11 +986,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          WordToLoad = wordValue + more;
       }
 
-      public void Write(IList<byte> data, int wordAddress) {
+      public void Write(int dataStart, IList<byte> data, int wordAddress) {
          //build instruction
          foreach (var instructionAddress in InstructionAddresses) {
             var instructionWord = instructionAddress;
-            if (instructionWord % 4 != 0) instructionWord -= 2;
+            if ((dataStart + instructionWord) % 4 != 0) instructionWord -= 2;
             var offset = (wordAddress - instructionWord - 4) / 4;
             var instruction = 0b01001;
             instruction <<= 3;
