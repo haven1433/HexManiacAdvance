@@ -822,6 +822,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("inner", Model.GetAnchorFromAddress(-1, 0));
       }
 
+      [Fact]
+      public void TwoTablePointersToSameAddress_ReplaceOneWithNull_DestinationUpdates() {
+         ViewPort.Edit("^table[ptr<>]2 <010> <010> ");
+
+         ViewPort.Edit("@table <null> ");
+
+         var run = Model.GetNextRun(0x10);
+         Assert.Single(run.PointerSources);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

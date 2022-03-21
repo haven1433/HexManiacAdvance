@@ -570,7 +570,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          var (destinationValue, offset) = ParseDestination(destination);
-         if (destinationValue != previousDestination) Model.ClearData(CurrentChange, memoryLocation, 4);
+         if (destinationValue != previousDestination) {
+            Model.ClearPointer(CurrentChange, memoryLocation, previousDestination);
+            Model.ClearData(CurrentChange, memoryLocation, 4);
+         }
 
          var fullValue = destinationValue + offset;
          if (destinationValue == Pointer.NULL || (0 <= destinationValue && destinationValue < Model.Count)) {
