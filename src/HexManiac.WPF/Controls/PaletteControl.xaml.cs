@@ -99,8 +99,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public void ClosePopup() {
          swatchPopup.IsOpen = false;
          swatch.ResultChanged -= SwatchResultChanged;
-         Application.Current.MainWindow.Deactivated -= AppClosePopup;
-         Application.Current.MainWindow.LocationChanged -= AppClosePopup;
+         if (Application.Current.MainWindow is Window window) {
+            window.Deactivated -= AppClosePopup;
+            window.LocationChanged -= AppClosePopup;
+         }
       }
       public void SingleSelect() => ViewModel?.SingleSelect();
 
