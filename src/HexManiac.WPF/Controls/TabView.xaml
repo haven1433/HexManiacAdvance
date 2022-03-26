@@ -253,7 +253,7 @@
                                     <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                                  </Button>
                                  <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0" Tag="{Binding Tag, ElementName=ContainerPanel}"/>
-                                 <Viewbox StretchDirection="DownOnly" Margin="5">
+                                 <Viewbox StretchDirection="DownOnly" Margin="5" Height="20">
                                     <TextBlock Text="{Binding SectionName}" FontSize="20">
                                        <TextBlock.InputBindings>
                                           <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleVisibility}"/>
@@ -264,7 +264,7 @@
                               </DockPanel>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
-                              <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                              <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" Height="18">
                                  <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                     <ColumnDefinition Width="*"/>
@@ -300,7 +300,7 @@
                               </Grid>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:ColorFieldArrayElementViewModel}">
-                              <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                              <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" Height="18">
                                  <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                     <ColumnDefinition Width="Auto"/>

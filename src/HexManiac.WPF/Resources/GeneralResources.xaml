@@ -570,26 +570,26 @@
       </Style.Triggers>
    </Style>
 
+   <LinearGradientBrush EndPoint="0,1" x:Key="TopToBottomBrush">
+      <GradientStop Offset="0" Color="{DynamicResource BackgroundColor}"/>
+      <GradientStop Offset=".5" Color="{DynamicResource BackgroundColor}"/>
+      <GradientStop Offset=".5" Color="{DynamicResource SecondaryColor}"/>
+      <GradientStop Offset="1" Color="{DynamicResource SecondaryColor}"/>
+   </LinearGradientBrush>
+
    <!-- TextBox Style -->
    <Style TargetType="TextBox">
       <Setter Property="Background" Value="{DynamicResource Backlight}"/>
       <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
       <Setter Property="SelectionBrush" Value="{DynamicResource Accent}"/>
-      <Setter Property="BorderBrush">
-         <Setter.Value>
-            <LinearGradientBrush EndPoint="0,1">
-               <GradientStop Offset="0" Color="Transparent"/>
-               <GradientStop Offset=".5" Color="Transparent"/>
-               <GradientStop Offset=".5" Color="{DynamicResource SecondaryColor}"/>
-               <GradientStop Offset="1" Color="{DynamicResource SecondaryColor}"/>
-            </LinearGradientBrush>
-         </Setter.Value>
-      </Setter>
+      <Setter Property="BorderBrush" Value="{DynamicResource TopToBottomBrush}"/>
       <Setter Property="BorderThickness" Value="1,1,1,1"/>
+      <Setter Property="MinHeight" Value="18"/>
+      <Setter Property="SnapsToDevicePixels" Value="True"/>
       <Setter Property="Template">
          <Setter.Value>
             <ControlTemplate TargetType="TextBox">
-               <Border Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}">
+               <Border Name="Border" BorderThickness="{TemplateBinding BorderThickness}" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
                   <ScrollViewer Foreground="{TemplateBinding Foreground}" x:Name="PART_ContentHost" />
                </Border>
                <ControlTemplate.Triggers>
