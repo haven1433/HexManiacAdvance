@@ -17,7 +17,7 @@
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="hsg3hv:AngleTextBox">
-                  <DockPanel Margin="5,0" Grid.Column="1" Name="Container">
+                  <DockPanel Name="Container">
                      <Path Name="LeftEdge" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" DockPanel.Dock="Left"
                            Width="6" Height="18" StrokeThickness="1" Margin="0,0,-1,0" Stretch="Fill" SnapsToDevicePixels="True">
                         <Path.Data>
@@ -98,6 +98,4 @@
          </Setter>
       </Style>
    </UserControl.Style>
-   <UserControl.Triggers>
-   </UserControl.Triggers>
 </UserControl>
