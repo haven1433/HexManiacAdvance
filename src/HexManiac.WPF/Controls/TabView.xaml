@@ -271,12 +271,7 @@
                                     <ColumnDefinition Width="Auto"/>
                                  </Grid.ColumnDefinitions>
                                  <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                 <UserControl Margin="5,0" Grid.Column="1" IsTabStop="True" Focusable="True"
-                                    GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
-                                    MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
-                                    GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
-                                    <hsg3hv:TextBoxLookAlike />
-                                 </UserControl>
+                                 <hsg3hv:AngleTextBox Margin="5,0" Grid.Column="1" />
                                  <Button Grid.Column="2" Command="{Binding Accept}" Width="20" Height="20" IsTabStop="False">
                                     <Button.Style>
                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
@@ -311,12 +306,7 @@
                                     Stroke="{DynamicResource Primary}" StrokeThickness="1"
                                     Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}"
                                     MouseLeftButtonUp="ShowColorFieldSwatch"/>
-                                 <UserControl Margin="5,0" Grid.Column="2"
-                                    GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
-                                    MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
-                                    GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
-                                    <hsg3hv:TextBoxLookAlike />
-                                 </UserControl>
+                                 <hsg3hv:AngleTextBox Margin="5,0" Grid.Column="2" />
                               </Grid>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
@@ -563,12 +553,7 @@
                                                 <ColumnDefinition Width="2*"/>
                                              </Grid.ColumnDefinitions>
                                              <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                             <UserControl Margin="5,0" Grid.Column="1" IsTabStop="True" Focusable="True"
-                                                GotKeyboardFocus="UpdateFieldTextBox" LostKeyboardFocus="UpdateFieldTextBox"
-                                                MouseEnter="UpdateFieldTextBox" MouseLeave="UpdateFieldTextBox"
-                                                GotFocus="UpdateFieldTextBox" LostFocus="UpdateFieldTextBox">
-                                                <hsg3hv:TextBoxLookAlike />
-                                             </UserControl>
+                                             <hsg3hv:AngleTextBox Margin="5,0" Grid.Column="1" />
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:CheckBoxTupleElementViewModel}">

@@ -503,35 +503,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.Key == Key.Enter) viewModel.ConfirmSelection();
       }
 
-      /// <summary>
-      /// TextBlock is a lot faster than TextBox.
-      /// And we only ever really need to have the focus in a single textbox at a time.
-      /// Therefore, for performance reasons, we'd rather have all the non-active textboxes just
-      /// *look* like TextBoxes, and really be TextBlocks instead.
-      /// </summary>
-      private void UpdateFieldTextBox(object sender, RoutedEventArgs e) {
-         var control = (UserControl)sender;
-         var isAcitve = control.IsMouseOver || control.IsFocused || control.IsKeyboardFocusWithin;
-         if (isAcitve && control.Content is TextBoxLookAlike) {
-            var keyBinding = new KeyBinding { Key = Key.Enter };
-            BindingOperations.SetBinding(keyBinding, InputBinding.CommandProperty, new Binding(nameof(FieldArrayElementViewModel.Accept)));
-            var textBox = new TextBox { UndoLimit = 0, InputBindings = { keyBinding } };
-            textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
-            control.Content = textBox;
-            if (control.IsKeyboardFocused) {
-               textBox.Loaded += (sender1, e1) => {
-                  Keyboard.Focus(textBox);
-                  control.Focusable = false;
-               };
-            } else {
-               control.Focusable = false;
-            }
-         } else if (!isAcitve && !(control.Content is TextBoxLookAlike)) {
-            control.Content = new TextBoxLookAlike();
-            control.Focusable = true;
-         }
-      }
-
       private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {
          LeftToolsPane.Width = new GridLength(275);
       }
