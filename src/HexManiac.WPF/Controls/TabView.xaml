@@ -270,8 +270,10 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                  </Grid.ColumnDefinitions>
-                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                 <hsg3hv:AngleTextBox Margin="5,0" Grid.Column="1" />
+                                 <hsg3hv:AngleBorder Grid.Column="0" Direction="None" Margin="5,0">
+                                    <TextBlock Text="{Binding Name}" />
+                                 </hsg3hv:AngleBorder>
+                                 <hsg3hv:AngleTextBox Grid.Column="1" Direction="None" Margin="5,0"/>
                                  <Button Grid.Column="2" Command="{Binding Accept}" Width="20" Height="20" IsTabStop="False">
                                     <Button.Style>
                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
