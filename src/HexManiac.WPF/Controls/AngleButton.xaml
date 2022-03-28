@@ -76,15 +76,8 @@
                         <Setter Property="RightTop" Value="5,0"/>
                         <Setter Property="RightBottom" Value="5,10"/>
                      </Trigger>
-                     <Trigger Property="IsKeyboardFocusWithin" Value="True">
-                        <Setter TargetName="LeftEdge" Property="Stroke" Value="{DynamicResource Accent}"/>
-                        <Setter TargetName="RightEdge" Property="Stroke" Value="{DynamicResource Accent}"/>
-                        <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                     </Trigger>
                      <Trigger Property="IsMouseOver" Value="True">
-                        <Setter TargetName="LeftEdge" Property="Stroke" Value="{DynamicResource Accent}"/>
-                        <Setter TargetName="RightEdge" Property="Stroke" Value="{DynamicResource Accent}"/>
-                        <Setter TargetName="ButtonBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                      </Trigger>
                      <Trigger Property="IsEnabled" Value="False">
                         <Setter Property="Background" Value="{DynamicResource Background}"/>

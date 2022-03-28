@@ -1,0 +1,101 @@
+﻿<MenuItem x:Class="HavenSoft.HexManiac.WPF.Controls.AngleMenuItem"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+   <MenuItem.Style>
+      <Style TargetType="{x:Type hsg3hv:AngleMenuItem}">
+         <Style.Triggers>
+            <Trigger Property="Role" Value="TopLevelHeader">
+               <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+               <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
+               <Setter Property="HorizontalContentAlignment" Value="Center"/>
+               <Setter Property="VerticalContentAlignment" Value="Center"/>
+               <Setter Property="Template">
+                  <Setter.Value>
+                     <ControlTemplate TargetType="{x:Type hsg3hv:AngleMenuItem}">
+                        <DockPanel>
+                           <Path Name="LeftEdge" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" DockPanel.Dock="Left"
+                                 Width="6" StrokeThickness="1" Margin="0,0,-1,0" Stretch="Fill" SnapsToDevicePixels="True">
+                              <Path.Data>
+                                 <PathGeometry>
+                                    <PathGeometry.Figures>
+                                       <PathFigureCollection>
+                                          <PathFigure StartPoint="1,0">
+                                             <LineSegment Point="{Binding LeftTop, RelativeSource={RelativeSource TemplatedParent}}" />
+                                             <LineSegment Point="{Binding LeftMiddle, RelativeSource={RelativeSource TemplatedParent}}" />
+                                             <LineSegment Point="{Binding LeftBottom, RelativeSource={RelativeSource TemplatedParent}}" />
+                                             <LineSegment Point="1,10"/>
+                                          </PathFigure>
+                                       </PathFigureCollection>
+                                    </PathGeometry.Figures>
+                                 </PathGeometry>
+                              </Path.Data>
+                           </Path>
+                           <Path Name="RightEdge" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" DockPanel.Dock="Right"
+                                 Width="6" StrokeThickness="1" Margin="-1,0,0,0" Stretch="Fill" SnapsToDevicePixels="True">
+                              <Path.Data>
+                                 <PathGeometry>
+                                    <PathGeometry.Figures>
+                                       <PathFigureCollection>
+                                          <PathFigure StartPoint="-1,0">
+                                             <LineSegment Point="{Binding RightTop, RelativeSource={RelativeSource TemplatedParent}}" />
+                                             <LineSegment Point="{Binding RightMiddle, RelativeSource={RelativeSource TemplatedParent}}" />
+                                             <LineSegment Point="{Binding RightBottom, RelativeSource={RelativeSource TemplatedParent}}" />
+                                             <LineSegment Point="-1,10"/>
+                                          </PathFigure>
+                                       </PathFigureCollection>
+                                    </PathGeometry.Figures>
+                                 </PathGeometry>
+                              </Path.Data>
+                           </Path>
+                           <Border Name="TopBottomBorder" BorderThickness="0,1" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="True">
+                              <Grid Name="ItemBorder" Background="{TemplateBinding Background}">
+                                 <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                                 <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}" SnapsToDevicePixels="True">
+                                    <Border x:Name="SubmenuBorder" BorderThickness="1" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Accent}">
+                                       <StackPanel Name="ItemsPresenter" IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                    </Border>
+                                 </Popup>
+                              </Grid>
+                           </Border>
+                        </DockPanel>
+                        <ControlTemplate.Triggers>
+                           <Trigger Property="Direction" Value="None">
+                              <Setter TargetName="LeftEdge" Property="Width" Value="2"/>
+                              <Setter TargetName="RightEdge" Property="Width" Value="2"/>
+                           </Trigger>
+                           <Trigger Property="Direction" Value="Left">
+                              <Setter Property="LeftMiddle" Value="-5,5"/>
+                              <Setter Property="RightTop" Value="5,0"/>
+                              <Setter Property="RightBottom" Value="5,10"/>
+                           </Trigger>
+                           <Trigger Property="Direction" Value="Right">
+                              <Setter Property="LeftTop" Value="-5,0"/>
+                              <Setter Property="LeftBottom" Value="-5,10"/>
+                              <Setter Property="RightMiddle" Value="5,5"/>
+                           </Trigger>
+                           <Trigger Property="Direction" Value="Out">
+                              <Setter Property="LeftMiddle" Value="-5,5"/>
+                              <Setter Property="RightMiddle" Value="5,5"/>
+                           </Trigger>
+                           <Trigger Property="Direction" Value="In">
+                              <Setter Property="LeftTop" Value="-5,0"/>
+                              <Setter Property="LeftBottom" Value="-5,10"/>
+                              <Setter Property="RightTop" Value="5,0"/>
+                              <Setter Property="RightBottom" Value="5,10"/>
+                           </Trigger>
+                           <Trigger Property="IsMouseOver" Value="True">
+                              <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource Backlight}" />
+                              <Setter TargetName="LeftEdge" Property="Stroke" Value="{DynamicResource Accent}"/>
+                              <Setter TargetName="RightEdge" Property="Stroke" Value="{DynamicResource Accent}"/>
+                              <Setter TargetName="TopBottomBorder" Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                           </Trigger>
+                        </ControlTemplate.Triggers>
+                     </ControlTemplate>
+                  </Setter.Value>
+               </Setter>
+            </Trigger>
+         </Style.Triggers>
+      </Style>
+   </MenuItem.Style>
+</MenuItem>
