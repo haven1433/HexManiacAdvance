@@ -5,11 +5,13 @@
       xmlns:hsg3hvmtr="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
       xmlns:hsg3hw="clr-namespace:HavenSoft.HexManiac.WPF.Windows"
       xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+      xmlns:hsi="clr-namespace:HavenSoft.HexManiac.WPF.Implementations"
       PreviewMouseDown="ClearPopup"
       DataContextChanged="HandleDataContextChanged">
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
-      <hsg3hv:IntegerToHexConverter x:Key="Hex"/>
+      <hsi:BooleanConverter x:Key="InverseBoolToVisibility" True="Collapsed" False="Visible" />
+      <hsg3hv:IntegerToHexConverter x:Key="Hex" />
       <hsg3hv:EqualityToBooleanConverter x:Key="Equality" />
    </UserControl.Resources>
    <DockPanel>
@@ -270,30 +272,21 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                  </Grid.ColumnDefinitions>
-                                 <hsg3hv:AngleBorder Grid.Column="0" Direction="None" Margin="5,0">
+                                 <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
                                     <TextBlock Text="{Binding Name}" />
                                  </hsg3hv:AngleBorder>
-                                 <hsg3hv:AngleTextBox Grid.Column="1" Direction="None" Margin="5,0"/>
-                                 <Button Grid.Column="2" Command="{Binding Accept}" Width="20" Height="20" IsTabStop="False">
-                                    <Button.Style>
-                                       <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                          <Setter Property="Visibility" Value="Collapsed"/>
-                                          <Style.Triggers>
-                                             <DataTrigger Binding="{Binding Type}" Value="Address">
-                                                <Setter Property="Visibility" Value="Visible"/>
-                                             </DataTrigger>
-                                          </Style.Triggers>
-                                       </Style>
-                                    </Button.Style>
-                                    <Button.ToolTip>
+                                 <hsg3hv:AngleTextBox Grid.Column="1" Direction="None" />
+                                 <hsg3hv:AngleButton Grid.Column="2" Command="{Binding Accept}" Direction="None"
+                                       Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}"
+                                       Tag="{Binding Type, Converter={StaticResource Equality}, ConverterParameter=Address}"
+                                       Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}">
+                                    <hsg3hv:AngleButton.ToolTip>
                                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                          <TextBlock TextAlignment="Left">
-                                             Jump to the pointer's destination<LineBreak/>
-                                          </TextBlock>
+                                          <TextBlock TextAlignment="Left" Text="Jump to the pointer's destination" />
                                        </ToolTip>
-                                    </Button.ToolTip>
-                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                 </Button>
+                                    </hsg3hv:AngleButton.ToolTip>
+                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                                 </hsg3hv:AngleButton>
                               </Grid>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:ColorFieldArrayElementViewModel}">
@@ -318,7 +311,9 @@
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
                                  </Grid.ColumnDefinitions>
-                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
+                                 <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                    <TextBlock Text="{Binding Name}" />
+                                 </hsg3hv:AngleBorder>
                                  <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1"
                                            IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
                                     <ComboBox.ItemTemplate>
@@ -340,17 +335,17 @@
                                        </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                  </ComboBox>
-                                 <Button Grid.Column="2" Command="{Binding GotoSource}" Width="20" Height="20" IsTabStop="False">
-                                    <Button.ToolTip>
+                                 <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Width="22" Height="18" IsTabStop="False" Direction="None">
+                                    <hsg3hv:AngleButton.ToolTip>
                                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                           <TextBlock TextAlignment="Left">
                                              Jump to the table used as<LineBreak/>
                                              a source for the options.
                                           </TextBlock>
                                        </ToolTip>
-                                    </Button.ToolTip>
-                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                 </Button>
+                                    </hsg3hv:AngleButton.ToolTip>
+                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill"/>
+                                 </hsg3hv:AngleButton>
                               </Grid>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
@@ -435,52 +430,35 @@
                                        </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                  </ItemsControl>
-                                 <DockPanel>
-                                    <StackPanel VerticalAlignment="Center">
-                                       <Button Content="Import" Command="{Binding ImportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
-                                       <Grid Margin="5">
-                                          <Button Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}">
-                                             <Button.Style>
-                                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                                   <Style.Triggers>
-                                                      <DataTrigger Binding="{Binding CanExportMany}" Value="True">
-                                                         <Setter Property="Visibility" Value="Collapsed"/>
-                                                      </DataTrigger>
-                                                   </Style.Triggers>
-                                                </Style>
-                                             </Button.Style>
-                                          </Button>
-                                          <Menu Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
-                                             <Menu.Style>
-                                                <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
-                                                   <Setter Property="BorderThickness" Value="1"/>
-                                                   <Style.Triggers>
-                                                      <Trigger Property="IsMouseOver" Value="True">
-                                                         <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
-                                                      </Trigger>
-                                                   </Style.Triggers>
-                                                </Style>
-                                             </Menu.Style>
-                                             <MenuItem Header="Export" Margin="0,1,0,0" Background="{DynamicResource Backlight}">
-                                                <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
-                                                <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
-                                             </MenuItem>
-                                          </Menu>
-                                       </Grid>
+                                 <DockPanel HorizontalAlignment="Center">
+                                    <StackPanel VerticalAlignment="Bottom" DockPanel.Dock="Right">
+                                       <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
+                                       <Button Content="-" Command="{Binding DeletePage}" ToolTip="Delete the current page of this sprite and palette"/>
                                     </StackPanel>
                                     <hsg3hv:PixelImage SnapsToDevicePixels="True" />
                                  </DockPanel>
-                                 <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
-                                    <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
-                                    <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
-                                    <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
-                                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                       <Button Content="-" Command="{Binding DeletePage}" ToolTip="Delete the current page of this sprite and palette"/>
-                                       <Button Command="{Binding OpenEditor}" ToolTip="Open image in editor" Padding="0">
-                                          <Path Data="{hsv:Icon Pencil}" Fill="{DynamicResource Primary}" Stretch="Uniform"/>
-                                       </Button>
-                                    </StackPanel>
-                                 </DockPanel>
+                                 <Grid HorizontalAlignment="Stretch" Margin="0,5" Height="22" TextBlock.FontSize="10">
+                                    <Grid.ColumnDefinitions>
+                                       <ColumnDefinition Width="*"/>
+                                       <ColumnDefinition Width="*"/>
+                                       <ColumnDefinition Width="*"/>
+                                       <ColumnDefinition Width="*"/>
+                                       <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding PreviousPage}" />
+                                    <hsg3hv:AngleButton Content="Import" Grid.Column="1" Command="{Binding ImportPair}" CommandParameter="{DynamicResource FileSystem}" />
+                                    <hsg3hv:AngleButton Content="Edit" Grid.Column="2" Command="{Binding OpenEditor}" x:Name="EditButton" ToolTip="Open image in editor" />
+                                    <Grid Grid.Column="3">
+                                       <hsg3hv:AngleButton Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportMany, Converter={StaticResource InverseBoolToVisibility}}" />
+                                       <Menu Background="Transparent" Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}">
+                                          <hsg3hv:AngleMenuItem Header="Export" Background="{DynamicResource Backlight}" Direction="Right" Width="{Binding ActualWidth, ElementName=EditButton}" FontSize="10">
+                                             <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
+                                             <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
+                                          </hsg3hv:AngleMenuItem>
+                                       </Menu>
+                                    </Grid>
+                                    <hsg3hv:AngleButton Content="Next" Grid.Column="4" Command="{Binding NextPage}" />
+                                 </Grid>
                               </StackPanel>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
