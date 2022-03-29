@@ -44,8 +44,8 @@
                            </PathGeometry>
                         </Path.Data>
                      </Path>
-                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,1">
-                        <ContentPresenter Height="18"/>
+                     <Border Height="18" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0,1">
+                        <ContentPresenter />
                      </Border>
                   </DockPanel>
                   <ControlTemplate.Triggers>

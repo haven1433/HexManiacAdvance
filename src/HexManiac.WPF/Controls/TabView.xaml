@@ -314,13 +314,13 @@
                                  <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
                                     <TextBlock Text="{Binding Name}" />
                                  </hsg3hv:AngleBorder>
-                                 <ComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Margin="0,0,2,0" Grid.Column="1"
+                                 <hsg3hv:AngleComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1" Direction="None"
                                            IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
-                                    <ComboBox.ItemTemplate>
+                                    <hsg3hv:AngleComboBox.ItemTemplate>
                                        <DataTemplate>
                                           <StackPanel>
                                              <TextBlock Text="{Binding Text}" Visibility="{Binding DisplayAsText, Converter={StaticResource BoolToVisibility}}"/>
-                                             <hsg3hv:PixelImage x:Name="OptionImage">
+                                             <hsg3hv:PixelImage>
                                                 <hsg3hv:PixelImage.Style>
                                                    <Style TargetType="hsg3hv:PixelImage">
                                                       <Style.Triggers>
@@ -333,9 +333,10 @@
                                              </hsg3hv:PixelImage>
                                           </StackPanel>
                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                 </ComboBox>
-                                 <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Width="22" Height="18" IsTabStop="False" Direction="None">
+                                    </hsg3hv:AngleComboBox.ItemTemplate>
+                                 </hsg3hv:AngleComboBox>
+                                 <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Direction="None"
+                                       Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                     <hsg3hv:AngleButton.ToolTip>
                                        <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                           <TextBlock TextAlignment="Left">
