@@ -53,7 +53,7 @@
          </Rectangle>
       </Grid>
       <!-- Tool Headers -->
-      <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}">
+      <StackPanel DockPanel.Dock="Left" Visibility="{Binding HasTools, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
          <StackPanel.Resources>
             <RotateTransform x:Key="Sideways" Angle="-90"/>
          </StackPanel.Resources>
@@ -227,7 +227,10 @@
                         </ItemsControl.ItemContainerStyle>
                         <ItemsControl.Resources>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                              <DockPanel Name="ContainerPanel" Background="Transparent" hsg3hv:ColumnStackPanel.IsHeader="True" Visibility="{Binding ShowSection, Converter={StaticResource BoolToVisibility}}">
+                              <DockPanel Name="ContainerPanel" Margin="-5,0,-5,0" Height="20"
+                                         hsg3hv:ColumnStackPanel.IsHeader="True"
+                                         Background="{DynamicResource Backlight}"
+                                         Visibility="{Binding ShowSection, Converter={StaticResource BoolToVisibility}}">
                                  <DockPanel.Style>
                                     <Style TargetType="DockPanel">
                                        <Style.Triggers>
@@ -243,26 +246,29 @@
                                        <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
                                     </ContextMenu>
                                  </DockPanel.ContextMenu>
-                                 <Button DockPanel.Dock="Right" Command="{Binding FollowLink}" Width="20" Height="20" IsTabStop="False">
-                                    <Button.ToolTip>
-                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                          <TextBlock TextAlignment="Left">
-                                             Jump to the table<LineBreak/>
-                                             containing this data.
-                                          </TextBlock>
-                                       </ToolTip>
-                                    </Button.ToolTip>
-                                    <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                 </Button>
-                                 <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0" Tag="{Binding Tag, ElementName=ContainerPanel}"/>
-                                 <Viewbox StretchDirection="DownOnly" Margin="5" Height="20">
-                                    <TextBlock Text="{Binding SectionName}" FontSize="20">
-                                       <TextBlock.InputBindings>
-                                          <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleVisibility}"/>
-                                          <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ToggleVisibility}"/>
-                                       </TextBlock.InputBindings>
-                                    </TextBlock>
-                                 </Viewbox>
+                                 <Grid DockPanel.Dock="Right">
+                                    <Rectangle Width="10" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
+                                    <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="None"
+                                          Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                       <hsg3hv:AngleButton.ToolTip>
+                                          <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                             <TextBlock TextAlignment="Left">
+                                                Jump to the table<LineBreak/>
+                                                containing this data.
+                                             </TextBlock>
+                                          </ToolTip>
+                                       </hsg3hv:AngleButton.ToolTip>
+                                       <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                                    </hsg3hv:AngleButton>
+                                 </Grid>
+                                 <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0" Tag="{Binding Tag, ElementName=ContainerPanel}" />
+                                 <hsg3hv:AngleBorder BorderBrush="{DynamicResource Background}" Margin="0,0,-2,0" Direction="None">
+                                    <hsg3hv:AngleBorder.InputBindings>
+                                       <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleVisibility}" />
+                                       <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ToggleVisibility}" />
+                                    </hsg3hv:AngleBorder.InputBindings>
+                                    <TextBlock Text="{Binding SectionName}" HorizontalAlignment="Center" Foreground="{DynamicResource Secondary}" />
+                                 </hsg3hv:AngleBorder>
                               </DockPanel>
                            </DataTemplate>
                            <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
@@ -522,8 +528,10 @@
                                                 <ColumnDefinition/>
                                                 <ColumnDefinition Width="2*"/>
                                              </Grid.ColumnDefinitions>
-                                             <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                             <ComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1"
+                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                                <TextBlock Text="{Binding Name}" />
+                                             </hsg3hv:AngleBorder>
+                                             <hsg3hv:AngleComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1" Direction="None"
                                                        IsEditable="True" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxTupleElementTextInput"/>
                                           </Grid>
                                        </DataTemplate>
@@ -533,8 +541,10 @@
                                                 <ColumnDefinition/>
                                                 <ColumnDefinition Width="2*"/>
                                              </Grid.ColumnDefinitions>
-                                             <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                             <hsg3hv:AngleTextBox Margin="5,0" Grid.Column="1" />
+                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                                <TextBlock Text="{Binding Name}" />
+                                             </hsg3hv:AngleBorder>
+                                             <hsg3hv:AngleTextBox Grid.Column="1" Direction="None"/>
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:CheckBoxTupleElementViewModel}">
