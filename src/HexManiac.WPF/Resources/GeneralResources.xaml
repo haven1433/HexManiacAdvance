@@ -911,26 +911,24 @@
    <Style TargetType="{x:Type RadioButton}">
       <Setter Property="SnapsToDevicePixels" Value="true"/>
       <Setter Property="OverridesDefaultStyle" Value="true"/>
+      <Setter Property="Foreground" Value="{DynamicResource Accent}"/>
       <Setter Property="Template">
          <Setter.Value>
             <ControlTemplate TargetType="{x:Type RadioButton}">
                <BulletDecorator Background="Transparent" Width="{TemplateBinding Width}" Height="15">
                   <BulletDecorator.Bullet>
-                     <Border x:Name="Border" 
-                           Width="13" 
-                           Height="13" 
-                           Margin="1"
-                           CornerRadius="7" 
-                           Background="{DynamicResource Background}"
-                           BorderThickness="1"
-                           VerticalAlignment="Center"
-                           BorderBrush="{DynamicResource Secondary}">
-                        <Ellipse 
-                              Width="6" Height="6" 
-                              x:Name="CheckMark"
-                              SnapsToDevicePixels="False" 
-                              Fill="{DynamicResource Accent}" />
-                     </Border>
+                     <Grid Width="13" Height="13" Margin="1" VerticalAlignment="Center" SnapsToDevicePixels="True">
+                        <Path x:Name="Border" Fill="{DynamicResource Background}" Stroke="{DynamicResource Secondary}" StrokeThickness="1">
+                           <Path.Data>
+                              M3,1.5 l 6,0 3,5 -3,5 -6,0 -3,-5 Z
+                           </Path.Data>
+                        </Path>
+                        <Path x:Name="CheckMark" Fill="{TemplateBinding Foreground}">
+                           <Path.Data>
+                              M4,3.5 l 4,0 2,3 -2,3 -4,0 -2,-3 Z
+                           </Path.Data>
+                        </Path>
+                     </Grid>
                   </BulletDecorator.Bullet>
                   <Viewbox Margin="3,0,0,0" HorizontalAlignment="Left">
                      <ContentPresenter RecognizesAccessKey="True"/>
@@ -941,11 +939,11 @@
                      <Setter TargetName="CheckMark" Property="Visibility" Value="Collapsed"/>
                   </Trigger>
                   <Trigger Property="IsMouseOver" Value="true">
-                     <Setter TargetName="Border" Property="Background" Value="{DynamicResource Backlight}" />
+                     <Setter TargetName="Border" Property="Fill" Value="{DynamicResource Backlight}" />
                   </Trigger>
                   <Trigger Property="IsPressed" Value="true">
-                     <Setter TargetName="Border" Property="Background" Value="{DynamicResource Backlight}" />
-                     <Setter TargetName="Border" Property="BorderBrush" Value="{DynamicResource Primary}" />
+                     <Setter TargetName="Border" Property="Fill" Value="{DynamicResource Backlight}" />
+                     <Setter TargetName="Border" Property="Stroke" Value="{DynamicResource Primary}" />
                   </Trigger>
                   <Trigger Property="IsEnabled" Value="false">
                      <Setter TargetName="Border" Property="Opacity" Value=".8" />
