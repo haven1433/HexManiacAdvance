@@ -5,5 +5,5 @@
    BorderThickness="1,1,1,1"
    SnapsToDevicePixels="True"
    BorderBrush="{StaticResource TopToBottomBrush}">
-   <TextBlock Margin="2,0,0,0" Text="{Binding Content}"/>
+   <TextBlock Name="TextBlock" Margin="2,0,0,0" Text="{Binding Content}"/>
 </Border>

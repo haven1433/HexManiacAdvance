@@ -17,6 +17,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private static readonly Thickness TextContentThickness = new(0, 1, 0, 1);
 
+      private Binding textBinding;
+      public Binding TextBinding {
+         get => textBinding;
+         set {
+            textBinding = value;
+            RefreshProxy();
+         }
+      }
+
       #region AngleDirection
 
       public static readonly DependencyProperty DirectionProperty = DependencyProperty.Register(nameof(Direction), typeof(AngleDirection), typeof(AngleTextBox), new PropertyMetadata(AngleDirection.None));
@@ -131,7 +140,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                BorderThickness = TextContentThickness,
                VerticalAlignment = VerticalAlignment.Stretch,
             };
-            textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+            if (textBinding != null) {
+               textBox.SetBinding(TextBox.TextProperty, textBinding);
+            } else {
+               textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
+            }
             Content = textBox;
             if (IsKeyboardFocused) {
                textBox.Loaded += HandleTextboxLoaded;
@@ -139,9 +152,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                Focusable = false;
             }
          } else if (!isActive && Content is TextBox) {
-            Content = new TextBoxLookAlike { BorderThickness = TextContentThickness, VerticalAlignment = VerticalAlignment.Stretch };
-            Focusable = true;
+            RefreshProxy();
          }
+      }
+
+      private void RefreshProxy() {
+         var proxy = new TextBoxLookAlike { BorderThickness = TextContentThickness, VerticalAlignment = VerticalAlignment.Stretch };
+         if (textBinding != null) proxy.TextBlock.SetBinding(TextBlock.TextProperty, textBinding);
+         Content = proxy;
+         Focusable = true;
       }
 
       private void HandleTextboxLoaded(object sender, RoutedEventArgs e) {

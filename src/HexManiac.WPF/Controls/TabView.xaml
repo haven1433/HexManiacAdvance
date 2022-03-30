@@ -157,18 +157,29 @@
                      </Style.Triggers>
                   </Style>
                </DockPanel.Style>
-               <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center">
-                  <ComboBox Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" Margin="0,0,5,0" />
-                  <ComboBox Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" />
-               </StackPanel>
-               <Viewbox HorizontalAlignment="Center" Margin="0,2" DockPanel.Dock="Top" StretchDirection="DownOnly">
-                  <TextBlock Text="{Binding TableTool.CurrentElementName}" TextAlignment="Center" />
-               </Viewbox>
-               <hsg3hv:EditableComboBox DockPanel.Dock="Top" HorizontalAlignment="Center"
-                  DataContext="{Binding TableTool.CurrentElementSelector}" />
-               <Grid DockPanel.Dock="Top">
-                  <Button Margin="5" Content="Previous" Command="{Binding TableTool.Previous}" HorizontalAlignment="Left"/>
-                  <Button Margin="5" Content="Next" Command="{Binding TableTool.Next}" HorizontalAlignment="Right"/>
+               <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Backlight}">
+                  <!-- Table Selector -->
+                  <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                     <ComboBox Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" Margin="0,0,5,0" />
+                     <ComboBox Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" />
+                  </StackPanel>
+                  <!-- Prev / Element / Next -->
+                  <Grid HorizontalAlignment="Stretch" Grid.IsSharedSizeScope="True">
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="NextPrev"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="NextPrev"/>
+                     </Grid.ColumnDefinitions>
+                     <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch"
+                        IsEditable="True" IsTextSearchEnabled="False" Direction="None"
+                        DataContext="{Binding TableTool.CurrentElementSelector}"
+                        ItemsSource="{Binding Options}"
+                        SelectedIndex="{Binding SelectedIndex}"
+                        Text="{Binding Text}" />
+                     <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding TableTool.Previous}" Padding="0" Direction="None"/>
+                     <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="None"/>
+                  </Grid>
+                  <!-- Add X New -->
                   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
                      <Border ToolTipService.InitialShowDelay="0">
                         <Border.ToolTip>
@@ -198,9 +209,12 @@
                         </RepeatButton>
                      </StackPanel>
                   </StackPanel>
-               </Grid>
+
+                  <!-- TODO put 'show uses' section here -->
+               </StackPanel>
                <ScrollViewer Name="TableScrollViewer" VerticalScrollBarVisibility="Visible">
                   <StackPanel>
+                     <!-- Filter -->
                      <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                         <Grid.ToolTip>
                            <ToolTip>
@@ -211,8 +225,10 @@
                            <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Filter:" Margin="5,0" Grid.Column="0"/>
-                        <TextBox Margin="5,0" Grid.Column="1" Text="{Binding TableTool.FieldFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                        <hsg3hv:AngleBorder Grid.Column="0">
+                           <TextBlock Text="Filter" />
+                        </hsg3hv:AngleBorder>
+                        <hsg3hv:AngleTextBox Grid.Column="1" TextBinding="{Binding TableTool.FieldFilter, UpdateSourceTrigger=PropertyChanged}"/>
                      </Grid>
                      <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemsPanel>
@@ -247,7 +263,7 @@
                                     </ContextMenu>
                                  </DockPanel.ContextMenu>
                                  <Grid DockPanel.Dock="Right">
-                                    <Rectangle Width="10" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
+                                    <Rectangle Width="5" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
                                     <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="None"
                                           Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                        <hsg3hv:AngleButton.ToolTip>

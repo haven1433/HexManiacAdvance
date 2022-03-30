@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System.Windows;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class AngleComboBox {
@@ -98,5 +100,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       #endregion
 
       public AngleComboBox() => InitializeComponent();
+
+      private void KeyDownToViewModel(object sender, KeyEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.DataContext is not IndexComboBoxViewModel viewModel) return;
+         if (e.Key == Key.Enter) viewModel.CompleteFilterInteraction();
+      }
    }
 }
