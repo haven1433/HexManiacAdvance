@@ -32,7 +32,7 @@
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="{x:Type hsg3hv:AngleComboBox}">
-                  <Grid Height="18">
+                  <Grid>
                      <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
@@ -82,8 +82,8 @@
                             IsChecked="{Binding Path=IsDropDownOpen,Mode=TwoWay,RelativeSource={RelativeSource TemplatedParent}}"
                             ClickMode="Press">
                      </ToggleButton>
-                     <ContentPresenter Name="ContentSite" IsHitTestVisible="False"  Content="{TemplateBinding SelectionBoxItem}"
-                           Grid.Column="1"
+                     <ContentPresenter Name="ContentSite" IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}"
+                            Grid.Column="1"
                             ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
                             ContentTemplateSelector="{TemplateBinding ItemTemplateSelector}"
                             Margin="0,0,10,0"
