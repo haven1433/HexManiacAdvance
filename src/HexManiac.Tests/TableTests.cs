@@ -784,7 +784,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@00 ^table1[data:]names-1 @20 ^table2[value:names]4 dave carl erik dave ");
 
          ViewPort.Goto.Execute("table1/dave"); // goto 'dave' in table1
-         var buttons = ViewPort.Tools.TableTool.Children.Where(child => child is ButtonArrayElementViewModel).Cast<ButtonArrayElementViewModel>().ToList();
+         var buttons = ViewPort.Tools.TableTool.UsageChildren.Where(child => child is ButtonArrayElementViewModel).Cast<ButtonArrayElementViewModel>().ToList();
          buttons.Single(button => button.Text.Contains("table2")).Command.Execute();
 
          Assert.Contains("dave", newTab.Name);
