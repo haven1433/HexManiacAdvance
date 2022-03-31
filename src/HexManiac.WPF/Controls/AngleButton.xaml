@@ -1,8 +1,8 @@
-﻿<Button x:Class="HavenSoft.HexManiac.WPF.Controls.AngleButton"
+﻿<ToggleButton x:Class="HavenSoft.HexManiac.WPF.Controls.AngleButton"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
-   <Button.Style>
+   <ToggleButton.Style>
       <Style TargetType="hsg3hv:AngleButton">
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
          <Setter Property="BorderBrush" Value="{DynamicResource Secondary}"/>
@@ -91,5 +91,5 @@
             </Setter.Value>
          </Setter>
       </Style>
-   </Button.Style>
-</Button>
+   </ToggleButton.Style>
+</ToggleButton>

@@ -114,6 +114,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public ObservableCollection<IArrayElementViewModel> UsageChildren { get; }
       public ObservableCollection<IArrayElementViewModel> Children { get; }
 
       // the address is the address not of the entire array, but of the current index of the array
@@ -167,7 +168,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.toolTray = toolTray;
          CurrentElementSelector = new IndexComboBoxViewModel(viewPort.Model);
          CurrentElementSelector.UpdateSelection += UpdateViewPortSelectionFromTableComboBoxIndex;
-         Children = new ObservableCollection<IArrayElementViewModel>();
+         Children = new();
+         UsageChildren = new();
 
          previous = new StubCommand {
             CanExecute = parameter => {
@@ -244,15 +246,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          childInsertionIndex++;
       }
 
+      private int usageChildInsertionIndex = 0;
+      private void AddUsageChild(IArrayElementViewModel child) {
+         if (usageChildInsertionIndex == UsageChildren.Count) {
+            UsageChildren.Add(child);
+         } else if (!UsageChildren[usageChildInsertionIndex].TryCopy(child)) {
+            UsageChildren[usageChildInsertionIndex] = child;
+         }
+         usageChildInsertionIndex++;
+      }
+
       private bool dataForCurrentRunChangeUpdate;
       public void DataForCurrentRunChanged() {
          foreach (var child in Children) child.DataChanged -= ForwardModelChanged;
+         foreach (var child in UsageChildren) child.DataChanged -= ForwardModelChanged;
          childInsertionIndex = 0;
+         usageChildInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
          if (array == null || array.Start > Address) {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
             Children.Clear();
+            UsageChildren.Clear();
             NotifyPropertyChanged(nameof(TableSections));
             return;
          }
@@ -310,7 +325,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
+         while (UsageChildren.Count > usageChildInsertionIndex) UsageChildren.RemoveAt(UsageChildren.Count - 1);
          foreach (var child in Children) child.DataChanged += ForwardModelChanged;
+         foreach (var child in UsageChildren) child.DataChanged += ForwardModelChanged;
 
          var paletteIndex = Children.Where(child => child is SpriteElementViewModel).Select(c => {
             var spriteElement = (SpriteElementViewModel)c;
@@ -353,20 +370,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          var parentOffset = array is ArrayRun arrayRun ? arrayRun.ParentOffset.BeginningMargin : 0;
          var elementName = array.ElementNames.Count > index + parentOffset && index + parentOffset >= 0 ? array.ElementNames[index + parentOffset] : "Element " + index;
-         if (eggResults.Count > 0) {
-            AddChild(new ButtonArrayElementViewModel("Show uses in egg moves.", () => {
-               using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
-               }
-            }));
-         }
-         if (plmResults.Count > 0) {
-            AddChild(new ButtonArrayElementViewModel("Show uses in level-up moves.", () => {
-               using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
-               }
-            }));
-         }
+
          if (trainerResults.Count > 0) {
             var selections = trainerResults.Select(result => (result, result + 1)).ToList();
             var trainerAddresses = model.GetTable(HardcodeTablesModel.TrainerTableName) is ITableRun trainerTable ? selections.Select(s => {
@@ -377,15 +381,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
                return s;
             }).ToList() : null;
-            AddChild(new ButtonArrayElementViewModel("Show uses in trainer teams.", () => {
-               using (ModelCacheScope.CreateScope(model)) {
-                  viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.TrainerTableName}", selections, trainerAddresses);
-               }
+            AddUsageChild(new ButtonArrayElementViewModel("trainer teams", () => {
+               viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.TrainerTableName}", selections, trainerAddresses);
             }));
          }
-         if (streamResults.Count > 0) {
-            AddChild(new ButtonArrayElementViewModel("Show uses in other streams.", () => {
-               viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
+
+         if (plmResults.Count > 0) {
+            AddUsageChild(new ButtonArrayElementViewModel("level-up moves", () => {
+               viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
+            }));
+         }
+
+         if (eggResults.Count > 0) {
+            AddUsageChild(new ButtonArrayElementViewModel("egg moves", () => {
+               viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
             }));
          }
 
@@ -394,8 +403,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var results = new List<(int, int)>(table.Search(model, basename, index));
             if (results.Count == 0) continue;
             var name = model.GetAnchorFromAddress(-1, table.Start);
-            AddChild(new ButtonArrayElementViewModel($"Show uses in {name}.", () => {
+            var shortName = name;
+            if (shortName.StartsWith("data.")) shortName = shortName.Replace("data.", "...");
+            if (shortName.StartsWith("...poke")) shortName = shortName.Replace("...poke", "...");
+            AddUsageChild(new ButtonArrayElementViewModel(shortName, name, () => {
                viewPort.OpenSearchResultsTab($"{elementName} within {name}", results);
+            }));
+         }
+
+         if (streamResults.Count > 0) {
+            AddUsageChild(new ButtonArrayElementViewModel("other streams", () => {
+               viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
             }));
          }
       }

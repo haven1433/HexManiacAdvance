@@ -10,6 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
 
       public string Text { get; private set; }
+      public string ToolTipText { get; private set; }
       public ICommand Command { get; private set; }
 
       private bool visible = true;
@@ -17,6 +18,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ButtonArrayElementViewModel(string text, Action action) {
          Text = text;
+         ToolTipText = text;
+         Command = new StubCommand {
+            CanExecute = arg => true,
+            Execute = arg => action(),
+         };
+      }
+
+      public ButtonArrayElementViewModel(string text, string toolTip, Action action) {
+         Text = text;
+         ToolTipText = toolTip;
          Command = new StubCommand {
             CanExecute = arg => true,
             Execute = arg => action(),
@@ -26,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is ButtonArrayElementViewModel button)) return false;
          if (Text != button.Text) return false;
+         if (ToolTipText != button.ToolTipText) return false;
          Command = button.Command;
          Visible = other.Visible;
          NotifyPropertyChanged(nameof(Command));
