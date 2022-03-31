@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@04 <040> <080> @04 ");
          ViewPort.Edit("^table1[ptr<`lzp4`>]1 @08 ^table2[ptr<`lzp4`>]table1 @40 ");
 
-         var paletteViewModel = (PaletteElementViewModel)ViewPort.Tools.TableTool.Children.First(child => child is PaletteElementViewModel);
+         var paletteViewModel = (PaletteElementViewModel)ViewPort.Tools.TableTool.Children.Last(child => child is PaletteElementViewModel);
          var collection = paletteViewModel.Colors;
          collection.SelectionStart = 2;
          collection.HandleMove(2, 3);
