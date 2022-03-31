@@ -302,20 +302,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             UpdateCurrentElementSelector(array, index);
 
             var elementOffset = array.Start + array.ElementLength * index;
-            AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
-            AddChildrenFromTable(array, index);
-
-            if (array is ArrayRun arrayRun) {
+            if (array is not ArrayRun arrayRun) {
+               AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
+               AddChildrenFromTable(array, index);
+            } else {
                index -= arrayRun.ParentOffset.BeginningMargin;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
+               var sortedTables = new SortedList<string, ArrayRun>();
                foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
-                  if (currentArray == arrayRun) continue;
                   var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
+                  sortedTables.Add(currentArrayName, currentArray);
+               }
+
+               foreach (var name in sortedTables.Keys) {
+                  var currentArray = sortedTables[name];
                   var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
                   if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                      elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
-                     AddChild(new SplitterArrayElementViewModel(viewPort, currentArrayName, elementOffset));
+                     AddChild(new SplitterArrayElementViewModel(viewPort, name, elementOffset));
                      AddChildrenFromTable(currentArray, currentIndex);
                   }
                }
