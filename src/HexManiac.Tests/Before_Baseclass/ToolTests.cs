@@ -766,11 +766,13 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableTool_FilterTupleFieldName_TupleVisible() {
          var tool = ViewPort.Tools.TableTool;
-         tool.Children.Clear();
+         tool.Groups.Clear();
+         tool.Groups.Add(new());
          var section = new SplitterArrayElementViewModel(ViewPort, "section", 0);
          var tuple = new TupleArrayElementViewModel(ViewPort, new ArrayRunTupleSegment("tuples", "|abc:|def:|ijk:|xyz:", 4), 0);
-         tool.Children.Add(section);
-         tool.Children.Add(tuple);
+
+         tool.Groups[0].Members.Add(section);
+         tool.Groups[0].Members.Add(tuple);
 
          section.UpdateCollapsed("ijk");
 

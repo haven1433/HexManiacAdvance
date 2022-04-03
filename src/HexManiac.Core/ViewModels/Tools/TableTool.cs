@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Linq;
-using System.Windows.Input;
-using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class TableTool : ViewModelCore, IToolViewModel {
@@ -115,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public ObservableCollection<IArrayElementViewModel> UsageChildren { get; }
-      public ObservableCollection<IArrayElementViewModel> Children { get; }
+      public ObservableCollection<TableGroupViewModel> Groups { get; }
 
       // the address is the address not of the entire array, but of the current index of the array
       private int address = Pointer.NULL;
@@ -168,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.toolTray = toolTray;
          CurrentElementSelector = new IndexComboBoxViewModel(viewPort.Model);
          CurrentElementSelector.UpdateSelection += UpdateViewPortSelectionFromTableComboBoxIndex;
-         Children = new();
+         Groups = new();
          UsageChildren = new();
 
          previous = new StubCommand {
@@ -236,14 +234,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          CurrentElementName = "The Table tool only works if your cursor is on table data.";
       }
 
-      private int childInsertionIndex = 0;
+      public IList<IArrayElementViewModel> Children => Groups.SelectMany(group => group.Members).ToList();
+      private record InsertionIndex(int Group = 0, int Member = 0);
+
+      private InsertionIndex childIndex = new();
       private void AddChild(IArrayElementViewModel child) {
-         if (childInsertionIndex == Children.Count) {
-            Children.Add(child);
-         } else if (!Children[childInsertionIndex].TryCopy(child)) {
-            Children[childInsertionIndex] = child;
+         while (Groups.Count <= childIndex.Group) Groups.Add(new TableGroupViewModel());
+         if (childIndex.Member == Groups[childIndex.Group].Members.Count) {
+            Groups[childIndex.Group].Members.Add(child);
+         } else if (!Groups[childIndex.Group].Members[childIndex.Member].TryCopy(child)) {
+            Groups[childIndex.Group].Members[childIndex.Member] = child;
          }
-         childInsertionIndex++;
+         childIndex = childIndex with { Member = childIndex.Member + 1 };
+      }
+      private void MoveToNextGroup() {
+         var group = Groups[childIndex.Group];
+         while (group.Members.Count > childIndex.Member) group.Members.RemoveAt(group.Members.Count - 1);
+         childIndex = new(childIndex.Group + 1, 0);
       }
 
       private int usageChildInsertionIndex = 0;
@@ -258,15 +265,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private bool dataForCurrentRunChangeUpdate;
       public void DataForCurrentRunChanged() {
-         foreach (var child in Children) child.DataChanged -= ForwardModelChanged;
+         foreach (var group in Groups) {
+            foreach (var member in group.Members) member.DataChanged -= ForwardModelChanged;
+         }
          foreach (var child in UsageChildren) child.DataChanged -= ForwardModelChanged;
-         childInsertionIndex = 0;
+         childIndex = new();
          usageChildInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
          if (array == null || array.Start > Address) {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
-            Children.Clear();
+            Groups.Clear();
             UsageChildren.Clear();
             NotifyPropertyChanged(nameof(TableSections));
             return;
@@ -305,33 +314,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (array is not ArrayRun arrayRun) {
                AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
                AddChildrenFromTable(array, index);
+               MoveToNextGroup();
+               Groups[0].GroupName = basename;
             } else {
                index -= arrayRun.ParentOffset.BeginningMargin;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
-               var sortedTables = new SortedList<string, ArrayRun>();
-               foreach (var currentArray in model.GetRelatedArrays(arrayRun)) {
-                  var currentArrayName = model.GetAnchorFromAddress(-1, currentArray.Start);
-                  sortedTables.Add(currentArrayName, currentArray);
-               }
-
-               foreach (var name in sortedTables.Keys) {
-                  var currentArray = sortedTables[name];
-                  var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
-                  if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
-                     elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
-                     AddChild(new SplitterArrayElementViewModel(viewPort, name, elementOffset));
-                     AddChildrenFromTable(currentArray, currentIndex);
+               var groups = model.GetTableGroups(basename);
+               foreach (var group in groups) {
+                  foreach (var tableName in group.Tables) {
+                     var currentArrayStart = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
+                     if (model.GetNextRun(currentArrayStart) is not ArrayRun currentArray) continue;
+                     var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
+                     if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
+                        elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
+                        AddChild(new SplitterArrayElementViewModel(viewPort, tableName, elementOffset));
+                        AddChildrenFromTable(currentArray, currentIndex);
+                     }
                   }
+                  Groups[childIndex.Group].GroupName = group.GroupName;
+                  MoveToNextGroup();
                }
             }
 
             AddChildrenFromStreams(array, basename, index);
          }
 
-         while (Children.Count > childInsertionIndex) Children.RemoveAt(Children.Count - 1);
+         while (Groups.Count > childIndex.Group) Groups.RemoveAt(Groups.Count - 1);
          while (UsageChildren.Count > usageChildInsertionIndex) UsageChildren.RemoveAt(UsageChildren.Count - 1);
-         foreach (var child in Children) child.DataChanged += ForwardModelChanged;
+         foreach (var group in Groups) {
+            foreach (var member in group.Members) member.DataChanged += ForwardModelChanged;
+         }
          foreach (var child in UsageChildren) child.DataChanged += ForwardModelChanged;
 
          var paletteIndex = Children.Where(child => child is SpriteElementViewModel).Select(c => {
@@ -348,6 +361,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             // update 'visible' for children based on their parents.
             if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed(fieldFilter);
          }
+
+         NotifyPropertyChanged(nameof(Children));
       }
 
       private void UpdateCurrentElementSelector(ITableRun array, int index) {
@@ -457,7 +472,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                throw new NotImplementedException();
             }
             AddChild(viewModel);
-            AddChildrenFromPointerSegment(itemAddress, item, childInsertionIndex - 1, recursionLevel: 0);
+            AddChildrenFromPointerSegment(itemAddress, item, childIndex.Member - 1, recursionLevel: 0);
             itemAddress += item.Length;
          }
       }
@@ -488,8 +503,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (streamElement == null) return;
 
          var streamAddress = itemAddress;
-         var myIndex = childInsertionIndex;
-         Children[parentIndex].DataChanged += (sender, e) => {
+         var myIndex = childIndex.Member;
+         Groups[Groups.Count - 1].Members[parentIndex].DataChanged += (sender, e) => {
             var closure_destination = model.ReadPointer(streamAddress);
             var run = model.GetNextRun(closure_destination) as IStreamRun;
             IStreamArrayElementViewModel newStream = null;
@@ -500,12 +515,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             newStream.DataChanged += ForwardModelChanged;
             newStream.DataMoved += ForwardModelDataMoved;
-            if (!Children[myIndex].TryCopy(newStream)) Children[myIndex] = newStream;
+            if (!Groups[Groups.Count - 1].Members[myIndex].TryCopy(newStream)) Groups[Groups.Count - 1].Members[myIndex] = newStream;
          };
          streamElement.DataMoved += ForwardModelDataMoved;
          AddChild(streamElement);
 
-         parentIndex = childInsertionIndex - 1;
+         parentIndex = childIndex.Member - 1;
          if (streamRun is ITableRun tableRun && recursionLevel < 1) {
             int segmentOffset = 0;
             for (int i = 0; i < tableRun.ElementContent.Count; i++) {

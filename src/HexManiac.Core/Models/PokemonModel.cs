@@ -2386,7 +2386,40 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          return true;
       }
+
+      private readonly List<TableGroup> TableGroups = new();
+      public void RemoveTableGroup(ModelDelta token, string groupName) {
+         // TODO
+      }
+      public void AppendTableGroup(ModelDelta token, string groupName, string[] tableNames) {
+         RemoveTableGroup(token, groupName);
+         TableGroups.Add(new(groupName, tableNames));
+      }
+      public override IReadOnlyList<TableGroup> GetTableGroups(string tableName) {
+         if (!addressForAnchor.TryGetValue(tableName, out var address)) return null;
+         if (GetNextRun(address) is not ArrayRun run || run.Start != address) return null;
+         var related = this.GetRelatedArrays(run).Distinct().ToList();
+         var others = new List<string>();
+         var groups = new List<TableGroup>();
+         foreach (var arrayRun in related) {
+            if (!anchorForAddress.TryGetValue(arrayRun.Start, out var arrayName)) continue;
+            var matchingGroup = TableGroups.FirstOrDefault(group => group.Tables.Contains(arrayName));
+            if (groups.Contains(matchingGroup)) continue;
+            if (matchingGroup == null) {
+               others.Add(arrayName);
+            } else {
+               groups.Add(matchingGroup);
+            }
+         }
+         if (others.Count > 0) {
+            others.Sort();
+            groups.Add(new("Other", others));
+         }
+         return groups;
+      }
    }
+
+   public record TableGroup(string GroupName, IReadOnlyList<string> Tables);
 
    public static class StringDictionaryExtensions {
       public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {

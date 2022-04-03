@@ -107,6 +107,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
+      IReadOnlyList<TableGroup> GetTableGroups(string tableName);
    }
 
    public abstract class BaseModel : IDataModel {
@@ -298,6 +299,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual IEnumerable<string> GetAutoCompleteByteNameOptions(string text) => new string[0];
 
       public virtual StoredMetadata ExportMetadata(IMetadataInfo metadataInfo) => null;
+
+      public virtual IReadOnlyList<TableGroup> GetTableGroups(string tableName) => null;
 
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
