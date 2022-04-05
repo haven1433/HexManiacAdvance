@@ -568,7 +568,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void UnmappedConstantInMetadata_Deserialize_UnmappedConstantInModel() {
-         Model.Load(new byte[0x200], new StoredMetadata(default, default, default, default, default, new List<StoredUnmappedConstant> { new StoredUnmappedConstant("somevar", 0x12345678) }, default, default, default, default));
+         Model.Load(new byte[0x200], new StoredMetadata(unmappedConstants: new List<StoredUnmappedConstant> { new StoredUnmappedConstant("somevar", 0x12345678) }));
 
          Model.TryGetUnmappedConstant("somevar", out var value);
 

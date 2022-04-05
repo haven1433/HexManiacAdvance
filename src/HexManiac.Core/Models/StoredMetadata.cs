@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<StoredList> Lists { get; }
       public IReadOnlyList<StoredUnmappedConstant> UnmappedConstants { get; }
       public IReadOnlyList<StoredGotoShortcut> GotoShortcuts { get; }
+      public IReadOnlyList<TableGroup> TableGroups { get; }
       public string Version { get; }
       public int NextExportID { get; }
       public int FreeSpaceSearch { get; } = -1;
@@ -41,11 +42,23 @@ namespace HavenSoft.HexManiac.Core.Models {
          int freeSpaceSearch,
          int freeSpaceBuffer,
          int nextExportID
-      ) : this(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, null, generalInfo, new StoredMetadataFields {
+      ) : this(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, null, null, generalInfo, new StoredMetadataFields {
          FreeSpaceSearch = freeSpaceSearch,
          FreeSpaceBuffer = freeSpaceBuffer,
          NextExportID = nextExportID
       }) { }
+
+      public StoredMetadata(
+         IReadOnlyList<StoredAnchor> anchors,
+         IReadOnlyList<StoredUnmappedPointer> unmappedPointers,
+         IReadOnlyList<StoredMatchedWord> matchedWords,
+         IReadOnlyList<StoredOffsetPointer> offsetPointers,
+         IReadOnlyList<StoredList> lists,
+         IReadOnlyList<StoredUnmappedConstant> unmappedConstants,
+         IReadOnlyList<StoredGotoShortcut> gotoShortcuts,
+         IMetadataInfo generalInfo,
+         StoredMetadataFields fields
+      ) : this(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, null, generalInfo, fields) { }
 
       public StoredMetadata(
          IReadOnlyList<StoredAnchor> anchors = null,
@@ -55,6 +68,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyList<StoredList> lists = null,
          IReadOnlyList<StoredUnmappedConstant> unmappedConstants = null,
          IReadOnlyList<StoredGotoShortcut> gotoShortcuts = null,
+         IReadOnlyList<TableGroup> tableGroups = null,
          IMetadataInfo generalInfo = null,
          StoredMetadataFields fields = null
       ) {
@@ -65,6 +79,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Lists = lists ?? new List<StoredList>();
          UnmappedConstants = unmappedConstants ?? new List<StoredUnmappedConstant>();
          GotoShortcuts = gotoShortcuts ?? new List<StoredGotoShortcut>();
+         TableGroups = tableGroups ?? new List<TableGroup>();
          Version = generalInfo?.VersionNumber;
          if (fields == null) fields = new StoredMetadataFields();
          FreeSpaceSearch = fields.FreeSpaceSearch;
@@ -81,6 +96,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var lists = new List<StoredList>();
          var unmappedConstants = new List<StoredUnmappedConstant>();
          var gotoShortcuts = new List<StoredGotoShortcut>();
+         var tableGroups = new List<TableGroup>();
 
          foreach (var line in lines) {
             var cleanLine = line.Split('#').First().Trim();
@@ -196,6 +212,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          UnmappedConstants = unmappedConstants;
          Lists = lists;
          GotoShortcuts = gotoShortcuts;
+         TableGroups = tableGroups;
       }
 
       /// <summary>

@@ -318,9 +318,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Groups[0].GroupName = basename;
             } else {
                index -= arrayRun.ParentOffset.BeginningMargin;
+               var originalTableName = basename;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
-               var groups = model.GetTableGroups(basename);
+               var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup("Other", new[] { originalTableName }) };
                foreach (var group in groups) {
                   foreach (var tableName in group.Tables) {
                      var currentArrayStart = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
@@ -332,6 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         AddChildrenFromTable(currentArray, currentIndex);
                      }
                   }
+                  while (Groups.Count <= childIndex.Group) Groups.Add(new TableGroupViewModel());
                   Groups[childIndex.Group].GroupName = group.GroupName;
                   MoveToNextGroup();
                }

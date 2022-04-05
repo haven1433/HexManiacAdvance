@@ -236,6 +236,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             FillGotoModels(metadata);
 
+            TableGroups.AddRange(metadata.TableGroups);
+
             if (!metadata.IsEmpty && StoredMetadata.NeedVersionUpdate(metadata.Version, singletons?.MetadataInfo.VersionNumber ?? "0")) {
                var gameCode = this.GetGameCode();
                if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
@@ -1920,6 +1922,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          lists.Clear();
          pointerOffsets.Clear();
          unmappedConstants.Clear();
+         TableGroups.Clear();
          matchedWords.Clear();
          InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
             BuildDestinationToSourceCache(newData);
