@@ -7,7 +7,7 @@
         xmlns:sys="clr-namespace:System;assembly=mscorlib"
         Icon="..\Resources\AppIcon.ico"
         PreviewMouseDown="RunDeferredActions"
-        Title="Hex Maniac Advance" Height="480" MinHeight="300" Width="880" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
+        Title="Hex Maniac Advance" Height="480" MinHeight="300" Width="1105" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    </Window.Resources>

@@ -504,7 +504,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {
-         LeftToolsPane.Width = new GridLength(275);
+         LeftToolsPane.Width = new GridLength(500);
       }
 
       private void CheckboxKeyUp(object sender, KeyEventArgs e) {
