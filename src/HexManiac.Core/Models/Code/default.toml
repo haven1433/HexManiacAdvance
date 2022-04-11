@@ -58,6 +58,11 @@ Name = '''Moves'''
    '''data.pokemon.moves.tmcompatibility''',
 ]
 
+# TODO trainers
+
+# TODO items
+# TODO moves
+
 [[List]]
 Name = '''egggroups'''
 0 = [

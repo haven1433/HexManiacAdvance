@@ -255,6 +255,9 @@
                         <ItemsControl.ItemTemplate>
                            <DataTemplate>
                               <StackPanel>
+                                 <Grid Background="{DynamicResource Backlight}" Visibility="{Binding DisplayHeader, Converter={StaticResource BoolToVisibility}}">
+                                    <TextBlock HorizontalAlignment="Center" Text="{Binding GroupName}" FontSize="20"/>
+                                 </Grid>
                                  <ItemsControl ItemsSource="{Binding Members}">
                                     <ItemsControl.ItemContainerStyle>
                                        <Style>
@@ -285,12 +288,12 @@
                                              <Grid DockPanel.Dock="Right">
                                                 <Rectangle Width="4" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
                                                 <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="None"
-                                                Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                                      Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                                    <hsg3hv:AngleButton.ToolTip>
                                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                                          <TextBlock TextAlignment="Left">
-                                                      Jump to the table<LineBreak/>
-                                                      containing this data.
+                                                            Jump to the table<LineBreak/>
+                                                            containing this data.
                                                          </TextBlock>
                                                       </ToolTip>
                                                    </hsg3hv:AngleButton.ToolTip>
