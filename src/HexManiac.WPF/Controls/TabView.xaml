@@ -263,7 +263,7 @@
                                     </ItemsControl.ItemContainerStyle>
                                     <ItemsControl.Resources>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                                          <DockPanel Name="ContainerPanel" Margin="-5,0,-5,0" Height="20"
+                                          <DockPanel Name="ContainerPanel" Height="20"
                                                hsg3hv:ColumnStackPanel.IsHeader="True"
                                                Background="{DynamicResource Backlight}"
                                                Visibility="{Binding ShowSection, Converter={StaticResource BoolToVisibility}}">
@@ -283,7 +283,7 @@
                                                 </ContextMenu>
                                              </DockPanel.ContextMenu>
                                              <Grid DockPanel.Dock="Right">
-                                                <Rectangle Width="5" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
+                                                <Rectangle Width="4" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
                                                 <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="None"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                                    <hsg3hv:AngleButton.ToolTip>

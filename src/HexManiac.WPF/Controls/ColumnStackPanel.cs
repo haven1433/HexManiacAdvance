@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -100,7 +101,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          var (widthPerColumn, desiredColumnCount) = CalculateColumnWidth(availableSize, expectedHeaderCount);
          widthPerColumn = Math.Max(widthPerColumn, MinimumColumnWidth);
-         desiredColumnCount = Math.Max(desiredColumnCount, 1);
          var offerSize = new Size(widthPerColumn, availableSize.Height);
 
          // calculate the desired height of each column
@@ -158,10 +158,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (double.IsNaN(availableWidth) || double.IsPositiveInfinity(availableWidth)) availableWidth = columnWidth * 2;
          var desiredColumnCount = (int)((availableWidth + ColumnMargin) / (columnWidth + ColumnMargin));
          if (maxColumns < 1) maxColumns = 1;
-         desiredColumnCount = Math.Min(Math.Max(1, desiredColumnCount), maxColumns);
-         if (desiredColumnCount < 1) desiredColumnCount = 1;
-         var widthPerColumn = availableWidth / desiredColumnCount;
-         widthPerColumn -= ColumnMargin;
+         desiredColumnCount = desiredColumnCount.LimitToRange(1, maxColumns);
+         var widthPerColumn = (availableWidth + ColumnMargin) / desiredColumnCount - ColumnMargin;
          return (widthPerColumn, desiredColumnCount);
       }
    }
