@@ -108,6 +108,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
       IReadOnlyList<TableGroup> GetTableGroups(string tableName);
+      void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames);
    }
 
    public abstract class BaseModel : IDataModel {
@@ -305,6 +306,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
       public bool Equals(IDataModel other) => other == this;
+
+      public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames) { }
    }
 
    public static class IDataModelExtensions {
@@ -529,6 +532,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             shortcuts.Add(new GotoShortcutModel(gotoShortcut.Image, gotoShortcut.Anchor, gotoShortcut.Display));
          }
 
+         foreach (var group in metadata.TableGroups) {
+            model.AppendTableGroup(default, group.GroupName, group.Tables);
+         }
          model.LoadMetadataProperties(metadata);
       }
 

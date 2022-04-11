@@ -13,6 +13,51 @@ Name = '''data.header.makercode'''
 Address = 0x0000B0
 Format = '''`asc`2'''
 
+[[TableGroup]]
+Name = '''Pokemon'''
+0 = [
+   '''data.pokemon.names''',
+   '''data.pokemon.stats''',
+   '''data.pokemon.evolutions''',
+   '''data.pokedex.regional''',
+   '''data.pokedex.national''',
+   '''data.pokedex.hoennToNational''',
+   '''data.pokedex.search.alpha''',
+   '''data.pokedex.search.weight''',
+   '''data.pokedex.search.size''',
+   '''data.pokedex.search.type''',
+   '''sound.pokemon.cry.growl''',
+   '''sound.pokemon.cry.normal''',
+   '''sound.pokemon.cry.hoennconversion''',
+]
+
+[[TableGroup]]
+Name = '''Sprites'''
+0 = [
+   '''graphics.pokemon.sprites.front''',
+   '''graphics.pokemon.sprites.coordinates.front''',
+   '''graphics.pokemon.animations.front''',
+   '''graphics.pokemon.sprites.back''',
+   '''graphics.pokemon.sprites.coordinates.back''',
+   '''graphics.pokemon.animations.back''',
+   '''graphics.pokemon.palettes.normal''',
+   '''graphics.pokemon.palettes.shiny''',
+   '''graphics.pokemon.icons.sprites''',
+   '''graphics.pokemon.icons.index''',
+   '''graphics.pokemon.sprites.elevation''',
+   '''graphics.pokemon.sprites.anchor''',
+   '''graphics.pokemon.animations.frames''',
+   '''graphics.pokemon.sprites.footprint''',
+]
+
+[[TableGroup]]
+Name = '''Moves'''
+0 = [
+   '''data.pokemon.moves.levelup''',
+   '''data.pokemon.moves.tutorcompatibility''',
+   '''data.pokemon.moves.tmcompatibility''',
+]
+
 [[List]]
 Name = '''egggroups'''
 0 = [

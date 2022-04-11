@@ -1,11 +1,16 @@
-﻿using HavenSoft.HexManiac.Core;
-using System;
+﻿using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
+   /// <summary>
+   /// A cross between a WrapPanel and a StackPanel.
+   /// Like a WrapPanel, new elements are added left-to-right, and further elements appear below the first row.
+   /// However, each column calculates its height separately:
+   ///   in a 3-column layout, the 4th element will appear in the leftmost column,
+   ///   directly after the end of the 1st element, ignoring the size of the 2nd and 3rd elemenst.
+   /// </summary>
    public class ColumnStackPanel : Panel {
       /// <summary>
       /// During Measure, this grows based on the number of Headers found.
@@ -134,15 +139,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private bool GetContentIsHeader(UIElement child) {
-         while (
-            child is ContentPresenter contentPresenter &&
-            !GetIsHeader(child) &&
-            VisualTreeHelper.GetChildrenCount(child) > 0
-         ) {
-            child = VisualTreeHelper.GetChild(child, 0) as UIElement;
-         }
+         return true;
+         //while (
+         //   child is ContentPresenter contentPresenter &&
+         //   !GetIsHeader(child) &&
+         //   VisualTreeHelper.GetChildrenCount(child) > 0
+         //) {
+         //   child = VisualTreeHelper.GetChild(child, 0) as UIElement;
+         //}
 
-         return GetIsHeader(child);
+         //return GetIsHeader(child);
       }
 
       private (double columnWidth, int columnCount) CalculateColumnWidth(Size offer, int maxColumns = int.MaxValue) {

@@ -506,7 +506,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var streamAddress = itemAddress;
          var myIndex = childIndex.Member;
-         Groups[Groups.Count - 1].Members[parentIndex].DataChanged += (sender, e) => {
+         Groups[childIndex.Group].Members[parentIndex].DataChanged += (sender, e) => {
             var closure_destination = model.ReadPointer(streamAddress);
             var run = model.GetNextRun(closure_destination) as IStreamRun;
             IStreamArrayElementViewModel newStream = null;
@@ -517,7 +517,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             newStream.DataChanged += ForwardModelChanged;
             newStream.DataMoved += ForwardModelDataMoved;
-            if (!Groups[Groups.Count - 1].Members[myIndex].TryCopy(newStream)) Groups[Groups.Count - 1].Members[myIndex] = newStream;
+            if (!Groups[childIndex.Group].Members[myIndex].TryCopy(newStream)) Groups[childIndex.Group].Members[myIndex] = newStream;
          };
          streamElement.DataMoved += ForwardModelDataMoved;
          AddChild(streamElement);

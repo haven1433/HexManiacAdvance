@@ -1,9 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -24,7 +20,6 @@ namespace HavenSoft.HexManiac.Tests {
       // TODO undo/redo for SetTableGroup
 
       // TODO saving to metadata
-
 
       [Fact]
       public void TableGroupInMetadata_Load_TableGroupInModel() {
@@ -63,5 +58,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("group1", metadata.TableGroups[0].GroupName);
          Assert.Equal(new[] { "table1", "table2" }, metadata.TableGroups[0].Tables);
       }
+
+      // TODO splitting one table into multiple groups (ex trainer stats)
    }
 }

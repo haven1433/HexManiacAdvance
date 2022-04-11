@@ -246,12 +246,15 @@
                         </StackPanel>
                      </StackPanel>
                      <!-- Items -->
-                     <ItemsControl ItemsSource="{Binding TableTool.Children}" Grid.IsSharedSizeScope="True">
+                     <ItemsControl ItemsSource="{Binding TableTool.Groups}" Grid.IsSharedSizeScope="True">
                         <ItemsControl.ItemsPanel>
                            <ItemsPanelTemplate>
                               <hsg3hv:ColumnStackPanel VerticalAlignment="Top" MinimumColumnWidth="245" ColumnMargin="10" HeaderMargin="10"/>
                            </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                        <ItemsControl ItemsSource="{Binding Members}">
                         <ItemsControl.ItemContainerStyle>
                            <Style>
                               <Setter Property="Panel.ZIndex" Value="{Binding Path=Content.ZIndex, RelativeSource={RelativeSource Self}}"/>
@@ -620,6 +623,9 @@
                               </StackPanel>
                            </DataTemplate>
                         </ItemsControl.Resources>
+                        </ItemsControl>
+                        </DataTemplate>
+                        </ItemsControl.ItemTemplate>
                      </ItemsControl>
                   </StackPanel>
                </ScrollViewer>

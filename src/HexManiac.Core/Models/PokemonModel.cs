@@ -2394,7 +2394,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public void RemoveTableGroup(ModelDelta token, string groupName) {
          // TODO
       }
-      public void AppendTableGroup(ModelDelta token, string groupName, string[] tableNames) {
+      public override void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames) {
          RemoveTableGroup(token, groupName);
          TableGroups.Add(new(groupName, tableNames));
       }
