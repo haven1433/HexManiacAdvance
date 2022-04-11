@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var cleanLine = line.Split('#').First().Trim();
             if (cleanLine == string.Empty) continue;
             if (cleanLine.StartsWith("[")) {
-               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts);
+               CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, tableGroups);
                currentItem = cleanLine;
                continue;
             }
@@ -203,7 +203,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts);
+         CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, tableGroups);
 
          NamedAnchors = anchors;
          UnmappedPointers = pointers;
@@ -330,7 +330,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int currentItemMultOffset = 1;
       string currentItemNote = null;
 
-      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists, IList<StoredUnmappedConstant> unmappedConstants, IList<StoredGotoShortcut> gotoShortcuts) {
+      private void CloseCurrentItem(IList<StoredAnchor> anchors, IList<StoredUnmappedPointer> pointers, IList<StoredMatchedWord> matchedWords, IList<StoredOffsetPointer> offsetPointers, IList<StoredList> lists, IList<StoredUnmappedConstant> unmappedConstants, IList<StoredGotoShortcut> gotoShortcuts, IList<TableGroup> tableGroups) {
          if (currentItem == "[[UnmappedPointers]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an UnmappedPointer that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has an UnmappedPointer that didn't specify an Address!");
@@ -374,6 +374,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (currentItemImage == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify an Image!");
             if (currentItemDestination == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify a Destination!");
             gotoShortcuts.Add(new StoredGotoShortcut(currentItemName, currentItemImage, currentItemDestination));
+         }
+
+         if (currentItem == "[[TableGroup]]") {
+            if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a TableGroup that didn't specify a name!");
+            if (currentItemChildren == null) throw new ArgumentNullException("The Metadat file has a TableGroup that didn't specify any children!");
+            tableGroups.Add(new(currentItemName, currentItemChildren));
          }
 
          currentItem = null;

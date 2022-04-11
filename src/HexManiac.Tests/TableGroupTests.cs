@@ -48,6 +48,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { "table3", "table4" }, groups[1].Tables);
       }
 
-      // TODO loading metadata from text
+      [Fact]
+      public void Text_LoadMetadata_ContainsTableGroups() {
+         var metadata = new StoredMetadata(new[] {
+            "[[TableGroup]]",
+            "Name = '''group1'''",
+            "0 = [",
+            "   '''table1''',",
+            "   '''table2''',",
+            "]",
+         });
+
+         Assert.Single(metadata.TableGroups);
+         Assert.Equal("group1", metadata.TableGroups[0].GroupName);
+         Assert.Equal(new[] { "table1", "table2" }, metadata.TableGroups[0].Tables);
+      }
    }
 }
