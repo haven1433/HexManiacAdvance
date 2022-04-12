@@ -1063,7 +1063,7 @@ namespace HavenSoft.HexManiac.Tests {
          test.ViewPort.Edit("@04 firepunch ");
          Assert.Equal(1, test.Model.ReadMultiByteValue(0x04, 2));
          Assert.Equal(new Point(2, 0), test.ViewPort.SelectionStart);
-         Assert.Equal($"pokemoves/3{Environment.NewLine}pokemoves/\"Psycho Boost\"", test.ViewPort.Tools.TableTool.CurrentElementName);
+         Assert.Equal($"pokemoves/3", test.ViewPort.Tools.TableTool.CurrentElementName);
       }
 
       [Fact]
