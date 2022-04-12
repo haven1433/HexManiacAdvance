@@ -304,11 +304,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var index = (Address - array.Start) / array.ElementLength;
 
          if (0 <= index && index < array.ElementCount) {
-            if (array.ElementNames.Count > index) {
-               CurrentElementName = $"{basename}/{index}" + Environment.NewLine + $"{basename}/{array.ElementNames[index]}";
-            } else {
-               CurrentElementName = $"{basename}/{index}";
-            }
+            CurrentElementName = $"{basename}/{index}";
             UpdateCurrentElementSelector(array, index);
 
             var elementOffset = array.Start + array.ElementLength * index;

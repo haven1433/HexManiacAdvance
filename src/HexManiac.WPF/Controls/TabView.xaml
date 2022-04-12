@@ -167,8 +167,11 @@
                <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Backlight}">
                   <!-- Table Selector -->
                   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                     <ComboBox Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" Margin="0,0,5,0" />
-                     <ComboBox Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" />
+                     <ComboBox Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" />
+                     <ComboBox Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" Margin="5,0" />
+                     <hsg3hv:AngleBorder BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Direction="None">
+                        <TextBlock Text="{Binding TableTool.CurrentElementName}" Margin="2,0"/>
+                     </hsg3hv:AngleBorder>
                   </StackPanel>
                   <!-- Prev / Element / Next -->
                   <Grid HorizontalAlignment="Stretch" Grid.IsSharedSizeScope="True" Margin="0,2">
