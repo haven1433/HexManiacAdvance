@@ -2077,7 +2077,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             gotoShortcuts.Add(new StoredGotoShortcut(shortcut.DisplayText, shortcut.ImageAnchor, shortcut.GotoAnchor));
          }
 
-         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, metadataInfo,
+         return new StoredMetadata(anchors, unmappedPointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, TableGroups.ToList(), metadataInfo,
             new StoredMetadataFields {
                FreeSpaceSearch = FreeSpaceStart,
                FreeSpaceBuffer = FreeSpaceBuffer,

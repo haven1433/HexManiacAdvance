@@ -317,6 +317,19 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add(string.Empty);
          }
 
+         lines.Add("#################################");
+
+         foreach (var group in TableGroups) {
+            lines.Add("[[TableGroup]]");
+            lines.Add($"Name = '''{group.GroupName}'''");
+            lines.Add($"0 = [");
+            foreach (var table in group.Tables) {
+               lines.Add($"   '''{table}''',");
+            }
+            lines.Add($"]");
+            lines.Add(string.Empty);
+         }
+
          return lines.ToArray();
       }
 

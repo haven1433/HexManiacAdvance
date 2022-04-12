@@ -62,6 +62,17 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void Metadata_Export_ContainsTableGroups() {
+         var initialMetadata = new StoredMetadata(tableGroups: new[] { new TableGroup("group1", new[] { "table1" }) });
+         Model.Load(new byte[0x200], initialMetadata);
+
+         var newMetadata = Model.ExportMetadata(Singletons.MetadataInfo);
+         var text = newMetadata.Serialize();
+
+         Assert.Contains("[[TableGroup]]", text);
+      }
+
+      [Fact]
       public void SplitTable_HasSplitSegment() {
          var error = ArrayRun.TryParse(Model, "[data: | more:]4", 0, SortedSpan<int>.None, out var table);
 
