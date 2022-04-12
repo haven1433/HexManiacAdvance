@@ -389,6 +389,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string TupleFormatString = "|t";
       public const string ColorFormatString = "|c";
       public const string CalculatedFormatString = "|=";
+      public const string SplitterFormatString = "|";
 
       private const int JunkLimit = 80;
 
@@ -1168,9 +1169,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             int nameEnd = 0;
             while (nameEnd < segments.Length && IsValidFieldNameCharacter(segments[nameEnd])) nameEnd++;
             var name = segments.Substring(0, nameEnd);
-            if (name == string.Empty) throw new ArrayRunParseException("expected name, but none was found: " + segments);
             segments = segments.Substring(nameEnd);
             var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
+            if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException("expected name, but none was found: " + segments);
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
@@ -1232,6 +1233,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var sourceName = segments.Substring(BitArray.SharedFormatString.Length, formatLength - BitArray.SharedFormatString.Length);
                segments = segments.Substring(formatLength).Trim();
                list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName));
+            } else if (format == ElementContentType.Splitter) {
+               segments = segments.Substring(formatLength).Trim();
+               list.Add(new ArrayRunSplitterSegment(name));
             } else {
                segments = segments.Substring(formatLength).Trim();
                if (format == ElementContentType.Unknown) {
@@ -1282,6 +1286,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var options = model.GetBitOptions(name);
             var count = options?.Count ?? 8;
             return (ElementContentType.BitArray, format.Length, (int)Math.Ceiling(count / 8.0));
+         } else if (segments.StartsWith(SplitterFormatString + " ")) {
+            return (ElementContentType.Splitter, 1, 0);
          }
 
          return (ElementContentType.Unknown, 0, 0);

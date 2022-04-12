@@ -58,7 +58,19 @@ Name = '''Moves'''
    '''data.pokemon.moves.tmcompatibility''',
 ]
 
-# TODO trainers
+[[TableGroup]]
+Name = '''Trainer'''
+0 = [
+   '''data.trainers.stats|0''',
+]
+
+[[TableGroup]]
+Name = '''Team'''
+0 = [
+   '''data.trainers.stats|1''',
+]
+
+
 
 # TODO items
 # TODO moves

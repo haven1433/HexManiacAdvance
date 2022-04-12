@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       Integer,
       Pointer,
       BitArray,
+      Splitter,
    }
 
    public interface IHasOptions {
@@ -755,5 +756,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          
          throw new NotImplementedException();
       }
+   }
+
+   public class ArrayRunSplitterSegment : ArrayRunElementSegment {
+      public const string Separator = "|";
+      public ArrayRunSplitterSegment(string name) : base(name, ElementContentType.Integer, 0) { }
    }
 }

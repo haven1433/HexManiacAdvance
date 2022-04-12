@@ -1,4 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Linq;
 using Xunit;
 
@@ -59,6 +61,52 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { "table1", "table2" }, metadata.TableGroups[0].Tables);
       }
 
-      // TODO splitting one table into multiple groups (ex trainer stats)
+      [Fact]
+      public void SplitTable_HasSplitSegment() {
+         var error = ArrayRun.TryParse(Model, "[data: | more:]4", 0, SortedSpan<int>.None, out var table);
+
+         Assert.False(error.HasError);
+         Assert.IsType<ArrayRunSplitterSegment>(table.ElementContent[1]);
+      }
+
+      [Fact]
+      public void SplitTable_SplitGroup_LoadMultipleGroups() {
+         Model.Load(new byte[0x200], new StoredMetadata(
+            anchors: new[] {
+               new StoredAnchor(0, "table1", "[data: | more:]4"),
+            },
+            tableGroups: new[] {
+               new TableGroup("group1", new[] { "table1|0" }),
+               new TableGroup("group2", new[] { "table1|1" }),
+            }
+         ));
+
+         var groups = Model.GetTableGroups("table1");
+
+         Assert.Equal(new[] { "group1", "group2" }, groups.Select(group => group.GroupName));
+         Assert.Equal(new[] { "table1|0" }, groups[0].Tables);
+         Assert.Equal(new[] { "table1|1" }, groups[1].Tables);
+      }
+
+      [Fact]
+      public void SplitTable_LoadTableTool_LoadMultipleGroups() {
+         Model.Load(new byte[0x200], new StoredMetadata(
+            anchors: new[] {
+               new StoredAnchor(0, "table1", "[data: | more:]4"),
+            },
+            tableGroups: new[] {
+               new TableGroup("group1", new[] { "table1|0" }),
+               new TableGroup("group2", new[] { "table1|1" }),
+            }
+         ));
+
+         ViewPort.Goto.Execute(4);
+
+         var groups = ViewPort.Tools.TableTool.Groups;
+
+         Assert.Equal(2, groups.Count);
+         Assert.Equal("data", groups[0].Members.Single<FieldArrayElementViewModel>().Name);
+         Assert.Equal("more", groups[1].Members.Single<FieldArrayElementViewModel>().Name);
+      }
    }
 }

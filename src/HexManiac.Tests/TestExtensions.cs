@@ -1,9 +1,11 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -24,5 +26,7 @@ namespace HavenSoft.HexManiac.Tests {
       public static IStreamRun DeserializeRun(this IStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
       public static TrainerPokemonTeamRun DeserializeRun(this TrainerPokemonTeamRun streamRun, string content, ModelDelta token, bool setDefaultMoves, bool setDefaultItems) => streamRun.DeserializeRun(content, token, setDefaultMoves, setDefaultItems, out var _);
       public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
+
+      public static T Single<T>(this ObservableCollection<IArrayElementViewModel> self) => (T)self.Single(item => item is T);
    }
 }

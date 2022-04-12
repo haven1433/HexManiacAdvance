@@ -239,6 +239,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private InsertionIndex childIndex = new();
       private void AddChild(IArrayElementViewModel child) {
+         if (child == null) return;
          while (Groups.Count <= childIndex.Group) Groups.Add(new TableGroupViewModel());
          if (childIndex.Member == Groups[childIndex.Group].Members.Count) {
             Groups[childIndex.Group].Members.Add(child);
@@ -323,14 +324,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
                var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup("Other", new[] { originalTableName }) };
                foreach (var group in groups) {
-                  foreach (var tableName in group.Tables) {
+                  foreach (var table in group.Tables) {
+                     var (tableName, partition) = (table, 0);
+                     var parts = table.Split(ArrayRunSplitterSegment.Separator);
+                     if (parts.Length == 2) {
+                        tableName = parts[0];
+                        if (!int.TryParse(parts[1], out partition)) partition = 0;
+                     }
+
                      var currentArrayStart = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
                      if (model.GetNextRun(currentArrayStart) is not ArrayRun currentArray) continue;
                      var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
                      if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                         AddChild(new SplitterArrayElementViewModel(viewPort, tableName, elementOffset));
-                        AddChildrenFromTable(currentArray, currentIndex);
+                        AddChildrenFromTable(currentArray, currentIndex, partition);
                      }
                   }
                   while (Groups.Count <= childIndex.Group) Groups.Add(new TableGroupViewModel());
@@ -440,11 +448,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private void AddChildrenFromTable(ITableRun table, int index) {
+      private void AddChildrenFromTable(ITableRun table, int index, int splitPortion = -1) {
          var itemAddress = table.Start + table.ElementLength * index;
+         var currentPartition = 0;
          foreach (var itemSegment in table.ElementContent) {
             var item = itemSegment;
             if (item is ArrayRunRecordSegment recordItem) item = recordItem.CreateConcrete(model, itemAddress);
+
+            if (itemSegment is ArrayRunSplitterSegment) {
+               currentPartition += 1;
+               continue;
+            } else if (splitPortion != -1 && splitPortion != currentPartition) {
+               itemAddress += item.Length;
+               continue;
+            }
+
             IArrayElementViewModel viewModel = null;
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStrategy());
@@ -473,10 +491,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                throw new NotImplementedException();
             }
-            AddChild(viewModel);
-            AddChildrenFromPointerSegment(itemAddress, item, childIndex.Member - 1, recursionLevel: 0);
+            if (!SkipElement(item)) {
+               AddChild(viewModel);
+               AddChildrenFromPointerSegment(itemAddress, item, childIndex.Member - 1, recursionLevel: 0);
+            }
             itemAddress += item.Length;
          }
+      }
+
+      private static bool SkipElement(ArrayRunElementSegment element) {
+         return element.Name.StartsWith("unused") || element.Name.StartsWith("padding");
       }
 
       private void AddChildrenFromPointerSegment(int itemAddress, ArrayRunElementSegment item, int parentIndex, int recursionLevel) {

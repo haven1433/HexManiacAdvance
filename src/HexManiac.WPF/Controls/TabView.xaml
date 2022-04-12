@@ -406,8 +406,8 @@
                                                    <Button.ToolTip>
                                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                                          <TextBlock TextAlignment="Left">
-                                                      Jump to the table used as<LineBreak/>
-                                                      a source for the options.
+                                                            Jump to the table used as<LineBreak/>
+                                                            a source for the options.
                                                          </TextBlock>
                                                       </ToolTip>
                                                    </Button.ToolTip>
@@ -415,8 +415,8 @@
                                                 </Button>
                                              </Grid>
                                              <TextBlock Foreground="{DynamicResource Error}" TextWrapping="Wrap"
-                                          Text="{Binding ErrorText}"
-                                          Visibility="{Binding IsInError, Converter={StaticResource BoolToVisibility}}"/>
+                                                Text="{Binding ErrorText}"
+                                                Visibility="{Binding IsInError, Converter={StaticResource BoolToVisibility}}"/>
                                              <ItemsControl ItemsSource="{Binding}">
                                                 <ItemsControl.ContextMenu>
                                                    <ContextMenu>
@@ -431,7 +431,7 @@
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.ItemTemplate>
                                                    <DataTemplate>
-                                                      <CheckBox Margin="5,1,0,1" Width="115" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}" KeyUp="CheckboxKeyUp"/>
+                                                      <CheckBox Margin="3,1,0,1" Width="112" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}" KeyUp="CheckboxKeyUp"/>
                                                    </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                              </ItemsControl>
@@ -442,11 +442,11 @@
                                              <hsg3hv:CommonTableStreamControl />
                                              <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
                                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                                             Background="Transparent"
-                                             VerticalAlignment="Top"
-                                             CaretBrush="{DynamicResource Secondary}"
-                                             AcceptsReturn="True" FontFamily="Consolas"
-                                             Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                                                   Background="Transparent"
+                                                   VerticalAlignment="Top"
+                                                   CaretBrush="{DynamicResource Secondary}"
+                                                   AcceptsReturn="True" FontFamily="Consolas"
+                                                   Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
                                                    <TextBox.InputBindings>
                                                       <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
                                                       <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
@@ -528,11 +528,11 @@
                                                    </ItemsControl>
                                                 </Viewbox>
                                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                                             Background="Transparent"
-                                             VerticalAlignment="Top"
-                                             CaretBrush="{DynamicResource Secondary}"
-                                             AcceptsReturn="True" FontFamily="Consolas"
-                                             Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                                                   Background="Transparent"
+                                                   VerticalAlignment="Top"
+                                                   CaretBrush="{DynamicResource Secondary}"
+                                                   AcceptsReturn="True" FontFamily="Consolas"
+                                                   Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
                                                    <TextBox.InputBindings>
                                                       <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
                                                       <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
@@ -541,8 +541,8 @@
                                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
                                              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
-                                                <Button Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves"/>
-                                                <Button Command="{Binding SetDefaultItems}" Content="Default Items"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out"/>
                                              </StackPanel>
                                           </StackPanel>
                                        </DataTemplate>
@@ -557,7 +557,7 @@
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTupleElementViewModel}">
-                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="120" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                                          <Grid.ColumnDefinitions>
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="2*"/>
@@ -570,7 +570,7 @@
                                                       </Grid>
                                                    </DataTemplate>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTupleElementViewModel}">
-                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="120" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                                          <Grid.ColumnDefinitions>
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="2*"/>
@@ -582,7 +582,7 @@
                                                       </Grid>
                                                    </DataTemplate>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:CheckBoxTupleElementViewModel}">
-                                                      <CheckBox Margin="2" Width="120" Content="{Binding Name}" IsChecked="{Binding IsChecked}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
+                                                      <CheckBox Margin="2" Width="112" Content="{Binding Name}" IsChecked="{Binding IsChecked}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
                                                    </DataTemplate>
                                                 </ItemsControl.Resources>
                                              </ItemsControl>
@@ -601,14 +601,14 @@
                                              <Expander Margin="20,0,0,5" HorizontalAlignment="Left">
                                                 <Expander.Header>
                                                    <TextBlock>
-                                                <Run>How's it Calculated?</Run>
+                                                      <Run>How's it Calculated?</Run>
                                                    </TextBlock>
                                                 </Expander.Header>
                                                 <StackPanel HorizontalAlignment="Left">
                                                    <TextBlock FontStyle="Italic" HorizontalAlignment="Left">
-                                                <Run>(Operator </Run>
-                                                <Run Text="{Binding Operator, Mode=OneWay}"/>
-                                                <Run Text=")"/>
+                                                      <Run>(Operator </Run>
+                                                      <Run Text="{Binding Operator, Mode=OneWay}"/>
+                                                      <Run Text=")"/>
                                                    </TextBlock>
                                                    <ItemsControl ItemsSource="{Binding Operands}">
                                                       <ItemsControl.ItemTemplate>
@@ -617,7 +617,7 @@
                                                                <Button DockPanel.Dock="Right" Command="{Binding JumpTo}" Width="20" Height="20" IsTabStop="False">
                                                                   <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                                                                </Button>
-                                                               <TextBlock Text="{Binding Text}"/>
+                                                               <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
                                                             </DockPanel>
                                                          </DataTemplate>
                                                       </ItemsControl.ItemTemplate>

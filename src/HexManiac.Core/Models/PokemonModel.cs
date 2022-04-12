@@ -2406,12 +2406,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          var groups = new List<TableGroup>();
          foreach (var arrayRun in related) {
             if (!anchorForAddress.TryGetValue(arrayRun.Start, out var arrayName)) continue;
-            var matchingGroup = TableGroups.FirstOrDefault(group => group.Tables.Contains(arrayName));
-            if (groups.Contains(matchingGroup)) continue;
-            if (matchingGroup == null) {
-               others.Add(arrayName);
-            } else {
+            var matchingGroups = TableGroups.Where(group => group.Tables.Any(table => table.Split(ArrayRunSplitterSegment.Separator)[0] == arrayName)).ToList();
+            foreach (var matchingGroup in matchingGroups) {
+               if (groups.Contains(matchingGroup)) continue;
                groups.Add(matchingGroup);
+            }
+            if (matchingGroups.Count == 0) {
+               others.Add(arrayName);
             }
          }
          if (others.Count > 0) {
