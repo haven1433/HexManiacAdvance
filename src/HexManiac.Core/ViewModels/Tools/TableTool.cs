@@ -352,6 +352,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             foreach (var member in group.Members) member.DataChanged += ForwardModelChanged;
          }
          foreach (var child in UsageChildren) child.DataChanged += ForwardModelChanged;
+         AddDummyGroup();
 
          var paletteIndex = Children.Where(child => child is SpriteElementViewModel).Select(c => {
             var spriteElement = (SpriteElementViewModel)c;
@@ -373,6 +374,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateCurrentElementSelector(ITableRun array, int index) {
          CurrentElementSelector.SetupFromModel(array.Start + array.ElementLength * index);
+      }
+
+      /// <summary>
+      /// This extra group is added just to make the single tables look right in the table tool.
+      /// </summary>
+      private void AddDummyGroup() {
+         if (Groups.Count > 1) return;
+         Groups.Add(new());
       }
 
       private void UpdateViewPortSelectionFromTableComboBoxIndex(object sender = null, EventArgs e = null) {
