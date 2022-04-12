@@ -70,10 +70,33 @@ Name = '''Team'''
    '''data.trainers.stats|1''',
 ]
 
+[[TableGroup]]
+Name = '''Move'''
+0 = [
+   '''data.pokemon.moves.names''',
+   '''data.pokemon.moves.descriptions''',
+   '''graphics.pokemon.moves.animations''',
+   '''data.pokemon.moves.stats.contest''',
+]
 
+[[TableGroup]]
+Name = '''Battle'''
+0 = [
+   '''data.pokemon.moves.stats.battle''',
+]
 
-# TODO items
-# TODO moves
+[[TableGroup]]
+Name = '''Stats'''
+0 = [
+   '''data.items.stats''',
+]
+
+[[TableGroup]]
+Name = '''More'''
+0 = [
+   '''graphics.items.sprites''',
+   '''data.items.effects''',
+]
 
 [[List]]
 Name = '''egggroups'''
