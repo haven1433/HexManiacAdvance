@@ -118,15 +118,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateAvailablePalettes(int start) {
          var run = GetRun(start);
-         PaletteSelection.Clear();
          var index = 0;
          foreach (var palette in run.FindRelatedPalettes(ViewPort.Model, start)) {
             var name = ViewPort.BuildElementName(ViewPort.Model, palette.Start);
-            var ps = new SelectionViewModel { Name = name, Selected = PaletteSelection.Count == currentPalette, Index = index };
+            var ps = new SelectionViewModel { Name = name, Selected = index == currentPalette, Index = index };
             ps.Bind(nameof(ps.Selected), (o, e) => { if (o.Selected) CurrentPalette = o.Index; });
-            PaletteSelection.Add(ps);
+            if (index < PaletteSelection.Count) {
+               PaletteSelection[index] = ps;
+            } else {
+               PaletteSelection.Add(ps);
+            }
             index += 1;
          }
+         while (PaletteSelection.Count > index) PaletteSelection.RemoveAt(PaletteSelection.Count - 1);
          MaxPalette = PaletteSelection.Count - 1;
       }
 
