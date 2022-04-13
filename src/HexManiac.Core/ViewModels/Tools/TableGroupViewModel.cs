@@ -14,11 +14,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string groupName;
       public bool DisplayHeader => GroupName != "Other";
       public string GroupName { get => groupName; set => Set(ref groupName, value, old => NotifyPropertyChanged(nameof(DisplayHeader))); }
+
       public ObservableCollection<IArrayElementViewModel> Members { get; } = new();
-      public TableGroupViewModel() { GroupName = "Other"; }
 
       public Action<IStreamArrayElementViewModel> ForwardModelChanged { get; init; }
       public Action<IStreamArrayElementViewModel> ForwardModelDataMoved { get; init; }
+
+      public TableGroupViewModel() { GroupName = "Other"; }
 
       public void Open() => currentMember = 0;
 
