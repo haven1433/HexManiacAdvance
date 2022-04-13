@@ -235,23 +235,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public IList<IArrayElementViewModel> Children => Groups.SelectMany(group => group.Members).ToList();
-      private record InsertionIndex(int Group = 0, int Member = 0);
 
-      private InsertionIndex childIndex = new();
+      private void AddGroup() {
+         Groups.Add(new TableGroupViewModel {
+            ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
+            ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
+         });
+      }
+
+      private int childIndexGroup = 0;
       private void AddChild(IArrayElementViewModel child) {
          if (child == null) return;
-         while (Groups.Count <= childIndex.Group) Groups.Add(new TableGroupViewModel());
-         if (childIndex.Member == Groups[childIndex.Group].Members.Count) {
-            Groups[childIndex.Group].Members.Add(child);
-         } else if (!Groups[childIndex.Group].Members[childIndex.Member].TryCopy(child)) {
-            Groups[childIndex.Group].Members[childIndex.Member] = child;
-         }
-         childIndex = childIndex with { Member = childIndex.Member + 1 };
+         while (Groups.Count <= childIndexGroup) AddGroup();
+         Groups[childIndexGroup].Add(child);
       }
+
       private void MoveToNextGroup() {
-         var group = Groups[childIndex.Group];
-         while (group.Members.Count > childIndex.Member) group.Members.RemoveAt(group.Members.Count - 1);
-         childIndex = new(childIndex.Group + 1, 0);
+         Groups[childIndexGroup].Close();
+         childIndexGroup += 1;
+         if (Groups.Count > childIndexGroup) Groups[childIndexGroup].Open();
       }
 
       private int usageChildInsertionIndex = 0;
@@ -270,7 +272,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             foreach (var member in group.Members) member.DataChanged -= ForwardModelChanged;
          }
          foreach (var child in UsageChildren) child.DataChanged -= ForwardModelChanged;
-         childIndex = new();
+         foreach (var group in Groups) group.Open();
+         childIndexGroup = 0;
          usageChildInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
@@ -310,7 +313,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var elementOffset = array.Start + array.ElementLength * index;
             if (array is not ArrayRun arrayRun) {
                AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
-               AddChildrenFromTable(array, index);
+               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index);
                MoveToNextGroup();
                Groups[0].GroupName = basename;
             } else {
@@ -334,11 +337,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                         AddChild(new SplitterArrayElementViewModel(viewPort, tableName, elementOffset));
-                        AddChildrenFromTable(currentArray, currentIndex, partition);
+                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, partition);
                      }
                   }
-                  while (Groups.Count <= childIndex.Group) Groups.Add(new TableGroupViewModel());
-                  Groups[childIndex.Group].GroupName = group.GroupName;
+                  while (Groups.Count <= childIndexGroup) AddGroup();
+                  Groups[childIndexGroup].GroupName = group.GroupName;
                   MoveToNextGroup();
                }
             }
@@ -346,7 +349,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             AddChildrenFromStreams(array, basename, index);
          }
 
-         while (Groups.Count > childIndex.Group) Groups.RemoveAt(Groups.Count - 1);
+         while (Groups.Count > childIndexGroup) Groups.RemoveAt(Groups.Count - 1);
          while (UsageChildren.Count > usageChildInsertionIndex) UsageChildren.RemoveAt(UsageChildren.Count - 1);
          foreach (var group in Groups) {
             foreach (var member in group.Members) member.DataChanged += ForwardModelChanged;
@@ -381,7 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// </summary>
       private void AddDummyGroup() {
          if (Groups.Count > 1) return;
-         Groups.Add(new());
+         AddGroup();
       }
 
       private void UpdateViewPortSelectionFromTableComboBoxIndex(object sender = null, EventArgs e = null) {
@@ -450,118 +453,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             AddUsageChild(new ButtonArrayElementViewModel("other streams", () => {
                viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
             }));
-         }
-      }
-
-      private void AddChildrenFromTable(ITableRun table, int index, int splitPortion = -1) {
-         var itemAddress = table.Start + table.ElementLength * index;
-         var currentPartition = 0;
-         foreach (var itemSegment in table.ElementContent) {
-            var item = itemSegment;
-            if (item is ArrayRunRecordSegment recordItem) item = recordItem.CreateConcrete(model, itemAddress);
-
-            if (itemSegment is ArrayRunSplitterSegment) {
-               currentPartition += 1;
-               continue;
-            } else if (splitPortion != -1 && splitPortion != currentPartition) {
-               itemAddress += item.Length;
-               continue;
-            }
-
-            IArrayElementViewModel viewModel = null;
-            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
-            else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStrategy());
-            else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
-            else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
-            else if (item.Type == ElementContentType.Integer) {
-               if (item is ArrayRunEnumSegment enumSegment) {
-                  viewModel = new ComboBoxArrayElementViewModel(viewPort, selection, item.Name, itemAddress, item.Length);
-                  var anchor = model.GetAnchorFromAddress(-1, table.Start);
-                  var enumSourceTableStart = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumSegment.EnumName);
-                  if (!string.IsNullOrEmpty(anchor) && model.GetDependantArrays(anchor).Count() == 1 && enumSourceTableStart >= 0) {
-                     AddChild(viewModel);
-                     viewModel = new BitListArrayElementViewModel(selection, history, model, item.Name, itemAddress);
-                  }
-               } else if (item is ArrayRunTupleSegment tupleItem) {
-                  viewModel = new TupleArrayElementViewModel(viewPort, tupleItem, itemAddress);
-               } else if (item is ArrayRunHexSegment) {
-                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
-               } else if (item is ArrayRunColorSegment) {
-                  viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
-               } else if (item is ArrayRunCalculatedSegment calcSeg) {
-                  viewModel = new CalculatedElementViewModel(viewPort, calcSeg, itemAddress);
-               } else {
-                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
-               }
-            } else {
-               throw new NotImplementedException();
-            }
-            if (!SkipElement(item)) {
-               AddChild(viewModel);
-               AddChildrenFromPointerSegment(itemAddress, item, childIndex.Member - 1, recursionLevel: 0);
-            }
-            itemAddress += item.Length;
-         }
-      }
-
-      private static bool SkipElement(ArrayRunElementSegment element) {
-         return element.Name.StartsWith("unused") || element.Name.StartsWith("padding");
-      }
-
-      private void AddChildrenFromPointerSegment(int itemAddress, ArrayRunElementSegment item, int parentIndex, int recursionLevel) {
-         if (!(item is ArrayRunPointerSegment pointerSegment)) return;
-         if (pointerSegment.InnerFormat == string.Empty) return;
-         var destination = model.ReadPointer(itemAddress);
-         IFormattedRun streamRun = null;
-         if (destination != Pointer.NULL) {
-            streamRun = model.GetNextRun(destination);
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(model, new NoDataChangeDeltaModel(), itemAddress, destination, null, parentIndex)) streamRun = null;
-            if (streamRun != null && streamRun.Start != destination) {
-               // For some reason (possibly because of a run length conflict),
-               //    the destination data appears to match the expected type,
-               //    but there is no run for it.
-               // Go ahead and generate a new temporary run for the data.
-               var strategy = model.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat);
-               strategy.TryParseData(model, string.Empty, destination, ref streamRun);
-            }
-         }
-
-         IStreamArrayElementViewModel streamElement = null;
-         if (streamRun == null || streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, itemAddress, pointerSegment.InnerFormat);
-         if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.FormatString, spriteRun.SpriteFormat, itemAddress);
-         if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, history, paletteRun.FormatString, paletteRun.PaletteFormat, itemAddress);
-         if (streamRun is TrainerPokemonTeamRun tptRun) streamElement = new TrainerPokemonTeamElementViewModel(viewPort, tptRun, itemAddress);
-         if (streamElement == null) return;
-
-         var streamAddress = itemAddress;
-         var myIndex = childIndex.Member;
-         Groups[childIndex.Group].Members[parentIndex].DataChanged += (sender, e) => {
-            var closure_destination = model.ReadPointer(streamAddress);
-            var run = model.GetNextRun(closure_destination) as IStreamRun;
-            IStreamArrayElementViewModel newStream = null;
-
-            if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, streamAddress, pointerSegment.InnerFormat);
-            if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.FormatString, spriteRun1.SpriteFormat, streamAddress);
-            if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, history, paletteRun1.FormatString, paletteRun1.PaletteFormat, streamAddress);
-
-            newStream.DataChanged += ForwardModelChanged;
-            newStream.DataMoved += ForwardModelDataMoved;
-            if (!Groups[childIndex.Group].Members[myIndex].TryCopy(newStream)) Groups[childIndex.Group].Members[myIndex] = newStream;
-         };
-         streamElement.DataMoved += ForwardModelDataMoved;
-         AddChild(streamElement);
-
-         parentIndex = childIndex.Member - 1;
-         if (streamRun is ITableRun tableRun && recursionLevel < 1) {
-            int segmentOffset = 0;
-            for (int i = 0; i < tableRun.ElementContent.Count; i++) {
-               if (!(tableRun.ElementContent[i] is ArrayRunPointerSegment)) { segmentOffset += tableRun.ElementContent[i].Length; continue; }
-               for (int j = 0; j < tableRun.ElementCount; j++) {
-                  itemAddress = tableRun.Start + segmentOffset + j * tableRun.ElementLength;
-                  AddChildrenFromPointerSegment(itemAddress, tableRun.ElementContent[i], parentIndex, recursionLevel + 1);
-               }
-               segmentOffset += tableRun.ElementContent[i].Length;
-            }
          }
       }
 
