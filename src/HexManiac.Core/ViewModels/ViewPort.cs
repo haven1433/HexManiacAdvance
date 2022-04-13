@@ -891,6 +891,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             tools?.StringTool.DataForCurrentRunChanged();
             RefreshBackingData();
+            scroll.UpdateHeaders();
          };
 
          copy.CanExecute = CanAlwaysExecute;
@@ -1599,6 +1600,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int i = index + 1; i < offsets.SegmentStart + array.ElementContent[offsets.SegmentIndex].Length; i++) history.CurrentChange.ChangeData(Model, i, 0x00);
                history.CurrentChange.ChangeData(Model, index, 0xFF);
                RefreshBackingData();
+               scroll.UpdateHeaders();
                SelectionStart = scroll.DataIndexToViewPoint(index - 1);
             } else if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                TableBackspace(4);
@@ -2761,6 +2763,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run.Start < scroll.ViewPointToDataIndex(new Point(Width - 1, Height - 1)) || run.Start + run.Length > scroll.DataIndex) {
             // there's some visible data that changed
             RefreshBackingData();
+            scroll.UpdateHeaders();
          }
 
          if (run is ITableRun && sender != Tools.StringTool && Model.GetNextRun(Tools.StringTool.Address).Start == run.Start) Tools.StringTool.DataForCurrentRunChanged();

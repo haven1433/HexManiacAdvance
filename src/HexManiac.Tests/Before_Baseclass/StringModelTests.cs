@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
@@ -556,6 +557,40 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Copy.Execute(fs);
 
          Assert.True(ViewPort.Redo.CanExecute(default));
+      }
+
+      [Fact]
+      public void TextTable_Backspace_UpdateHeaders() {
+         ViewPort.UseCustomHeaders = true;
+         CreateTextTable("table", 0, "adam", "bob", "carl", "dave");
+
+         ViewPort.Goto.Execute(2);
+         ViewPort.Edit(ConsoleKey.Backspace);
+
+         Assert.NotEqual("adam", ViewPort.Headers[0]);
+      }
+
+      [Fact]
+      public void TextTable_Delete_UpdateHeaders() {
+         ViewPort.UseCustomHeaders = true;
+         CreateTextTable("table", 0, "adam", "bob", "carl", "dave");
+
+         ViewPort.Goto.Execute(2);
+         ViewPort.Clear.Execute();
+
+         Assert.NotEqual("adam", ViewPort.Headers[0]);
+      }
+
+      [Fact]
+      public void TextTable_EditViaTableTool_UpdateHeaders() {
+         ViewPort.UseCustomHeaders = true;
+         CreateTextTable("table", 0, "adam", "bob", "carl", "dave");
+
+         ViewPort.Goto.Execute(2);
+         var vm = (FieldArrayElementViewModel)ViewPort.Tools.TableTool.Children[1];
+         vm.Content = "am";
+
+         Assert.NotEqual("adam", ViewPort.Headers[0]);
       }
 
       private void Write(IDataModel model, ref int i, string characters) {
