@@ -538,5 +538,12 @@ namespace HavenSoft.HexManiac.Tests {
          var table = Model.GetTable("table");
          Assert.Equal(3, Model[table.Start]);
       }
+
+      [Theory]
+      [InlineData("^anchor[[]] ")]
+      public void Anchor_BadFormat_NoCrash(string text) {
+         ViewPort.Edit(text);
+         Assert.Single(Errors);
+      }
    }
 }

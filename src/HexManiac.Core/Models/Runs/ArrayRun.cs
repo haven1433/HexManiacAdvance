@@ -1160,7 +1160,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                segments = segments.Substring(subArrayClose + 1);
                int repeatLength = 0;
                while (repeatLength < segments.Length && char.IsDigit(segments[repeatLength])) repeatLength++;
-               var innerCount = int.Parse(segments.Substring(0, repeatLength));
+               if (!int.TryParse(segments.Substring(0, repeatLength), out int innerCount)) {
+                  throw new ArrayRunParseException($"Could not parse '{segments}' as a number.");
+               }
                for (int i = 0; i < innerCount; i++) list.AddRange(innerSegments);
                segments = segments.Substring(repeatLength);
                continue;
