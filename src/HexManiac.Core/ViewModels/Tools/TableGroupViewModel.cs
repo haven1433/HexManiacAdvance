@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (Members.Count > currentMember) Members.RemoveAt(Members.Count - 1);
       }
 
-      public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, int splitPortion = -1) {
+      public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, TableGroupViewModel helperGroup, int splitPortion = -1) {
          var itemAddress = table.Start + table.ElementLength * index;
          var currentPartition = 0;
          foreach (var itemSegment in table.ElementContent) {
@@ -82,20 +82,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             if (!SkipElement(item)) {
                Add(viewModel);
-               AddChildrenFromPointerSegment(viewPort, itemAddress, item, currentMember - 1, recursionLevel: 0);
+               helperGroup.AddChildrenFromPointerSegment(viewPort, itemAddress, item, viewModel, recursionLevel: 0);
             }
             itemAddress += item.Length;
          }
       }
 
-      private void AddChildrenFromPointerSegment(ViewPort viewPort, int itemAddress, ArrayRunElementSegment item, int parentIndex, int recursionLevel) {
+      private void AddChildrenFromPointerSegment(ViewPort viewPort, int itemAddress, ArrayRunElementSegment item, IArrayElementViewModel parent, int recursionLevel) {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
          if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = viewPort.Model.ReadPointer(itemAddress);
          IFormattedRun streamRun = null;
          if (destination != Pointer.NULL) {
             streamRun = viewPort.Model.GetNextRun(destination);
-            if (!pointerSegment.DestinationDataMatchesPointerFormat(viewPort.Model, new NoDataChangeDeltaModel(), itemAddress, destination, null, parentIndex)) streamRun = null;
+            if (!pointerSegment.DestinationDataMatchesPointerFormat(viewPort.Model, new NoDataChangeDeltaModel(), itemAddress, destination, null, -1)) streamRun = null;
             if (streamRun != null && streamRun.Start != destination) {
                // For some reason (possibly because of a run length conflict),
                //    the destination data appears to match the expected type,
@@ -115,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var streamAddress = itemAddress;
          var myIndex = currentMember;
-         Members[parentIndex].DataChanged += (sender, e) => {
+         parent.DataChanged += (sender, e) => {
             var closure_destination = viewPort.Model.ReadPointer(streamAddress);
             var run = viewPort.Model.GetNextRun(closure_destination) as IStreamRun;
             IStreamArrayElementViewModel newStream = null;
@@ -134,14 +134,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          //streamElement.DataMoved += (sender, e) => ForwardModelDataMoved(sender, e);
          Add(streamElement);
 
-         parentIndex = currentMember - 1;
+         var nextParent = streamElement;
          if (streamRun is ITableRun tableRun && recursionLevel < 1) {
             int segmentOffset = 0;
             for (int i = 0; i < tableRun.ElementContent.Count; i++) {
                if (!(tableRun.ElementContent[i] is ArrayRunPointerSegment)) { segmentOffset += tableRun.ElementContent[i].Length; continue; }
                for (int j = 0; j < tableRun.ElementCount; j++) {
                   itemAddress = tableRun.Start + segmentOffset + j * tableRun.ElementLength;
-                  AddChildrenFromPointerSegment(viewPort, itemAddress, tableRun.ElementContent[i], parentIndex, recursionLevel + 1);
+                  AddChildrenFromPointerSegment(viewPort, itemAddress, tableRun.ElementContent[i], streamElement, recursionLevel + 1);
                }
                segmentOffset += tableRun.ElementContent[i].Length;
             }

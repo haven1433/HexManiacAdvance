@@ -310,10 +310,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CurrentElementName = $"{basename}/{index}";
             UpdateCurrentElementSelector(array, index);
 
+            TableGroupViewModel streamGroup = null;
             var elementOffset = array.Start + array.ElementLength * index;
             if (array is not ArrayRun arrayRun) {
+               streamGroup = new TableGroupViewModel {
+                  ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
+                  ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
+               };
                AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
-               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index);
+               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, streamGroup);
                MoveToNextGroup();
                Groups[0].GroupName = basename;
             } else {
@@ -322,7 +327,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
                var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup("Other", new[] { originalTableName }) };
+               if (groups.Count == 1) streamGroup = new TableGroupViewModel {
+                  ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
+                  ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
+               };
                foreach (var group in groups) {
+                  while (Groups.Count <= childIndexGroup) AddGroup();
+                  var helperGroup = streamGroup ?? Groups[childIndexGroup];
                   foreach (var table in group.Tables) {
                      var (tableName, partition) = (table, 0);
                      var parts = table.Split(ArrayRunSplitterSegment.Separator);
@@ -337,7 +348,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                         AddChild(new SplitterArrayElementViewModel(viewPort, tableName, elementOffset));
-                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, partition);
+                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, helperGroup, partition);
                      }
                   }
                   while (Groups.Count <= childIndexGroup) AddGroup();
@@ -346,6 +357,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
 
+            if (Groups.Count == 1) {
+               Groups.Add(streamGroup);
+               childIndexGroup++;
+            } else if (streamGroup != null) {
+               while (Groups.Count <= childIndexGroup) AddGroup();
+               Groups[childIndexGroup] = streamGroup;
+               childIndexGroup++;
+            }
             AddChildrenFromStreams(array, basename, index);
          }
 
