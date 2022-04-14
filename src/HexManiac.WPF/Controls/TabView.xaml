@@ -149,7 +149,7 @@
             <DockPanel Name="TableToolPanel">
                <DockPanel.Resources>
                   <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
-                     <hsg3hv:AngleButton Margin="2,2" Direction="Out" HorizontalAlignment="Stretch"
+                     <hsg3hv:AngleButton Margin="2,2" Direction="None" HorizontalAlignment="Stretch"
                                  Content="{Binding Text}" ToolTip="{Binding ToolTipText}" Command="{Binding Command}"
                                  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
                   </DataTemplate>
@@ -544,8 +544,8 @@
                                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
                                              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out"/>
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="None"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="None"/>
                                              </StackPanel>
                                           </StackPanel>
                                        </DataTemplate>
