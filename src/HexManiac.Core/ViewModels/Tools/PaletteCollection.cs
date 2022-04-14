@@ -174,12 +174,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void SetContents(IReadOnlyList<short> colors) {
-         Elements.Clear();
          var (left, right) = (Math.Min(SelectionStart, SelectionEnd), Math.Max(SelectionStart, SelectionEnd));
-         foreach (var element in colors.Count.Range()
-            .Select(i => new SelectableColor { Color = colors[i], Index = i, Selected = left <= i && i <= right })) {
-            Elements.Add(element);
+         var toAdd = colors.Count.Range().Select(i => new SelectableColor { Color = colors[i], Index = i, Selected = left <= i && i <= right }).ToList();
+         for (int i = 0; i < toAdd.Count; i++) {
+            if (Elements.Count > i) {
+               Elements[i] = toAdd[i];
+            } else {
+               Elements.Add(toAdd[i]);
+            }
          }
+         while (Elements.Count > toAdd.Count) Elements.RemoveAt(Elements.Count - 1);
          NotifyPropertyChanged(nameof(ColorWidth));
          NotifyPropertyChanged(nameof(ColorHeight));
       }
