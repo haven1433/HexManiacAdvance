@@ -496,6 +496,16 @@ Script:
          Assert.Equal(expected, result);
       }
 
+      [Fact]
+      public void TrainerBattle_WrongNumberOfArguments_ErrorMessageIncludesTrainerBattleTypeInErrorMessage() {
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+
+         ViewPort.Tools.CodeTool.Contents[0].Content = "trainerbattle 00";
+
+         var message = "0: Command trainerbattle 00 expects 4 arguments, but received 0 instead.";
+         Assert.Equal(ViewPort.Tools.CodeTool.ErrorText.Trim(), message);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

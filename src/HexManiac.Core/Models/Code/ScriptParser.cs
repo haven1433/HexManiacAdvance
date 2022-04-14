@@ -467,12 +467,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          result = null;
          var tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
+         var commandText = LineCommand;
+         for (int i = 1; i < LineCode.Count; i++) commandText += " " + LineCode[i].ToString("X2");
          if (Args.Count > 0 && Args.Last() is ArrayArg) {
             if (Args.Count > tokens.Length) {
-               return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
+               return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
             }
          } else if (Args.Count != tokens.Length - LineCode.Count) {
-            return $"Command {LineCommand} expects {Args.Count} arguments, but received {tokens.Length - 1} instead.";
+            return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
          }
          var results = new List<byte>(LineCode);
          for (int i = 0; i < Args.Count; i++) {
