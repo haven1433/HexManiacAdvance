@@ -98,6 +98,18 @@ Name = '''More'''
    '''data.items.effects''',
 ]
 
+[[TableGroup]]
+Name = '''Background'''
+0 = [
+   '''graphics.battle.background.sprites|0'''
+]
+
+[[TableGroup]]
+Name = '''Intro'''
+0 = [
+   '''graphics.battle.background.sprites|1'''
+]
+
 [[List]]
 Name = '''egggroups'''
 0 = [
