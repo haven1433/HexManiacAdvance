@@ -495,7 +495,7 @@
                                                 <Grid Grid.Column="3">
                                                    <hsg3hv:AngleButton Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportMany, Converter={StaticResource InverseBoolToVisibility}}" />
                                                    <Menu Background="Transparent" Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}">
-                                                      <hsg3hv:AngleMenuItem Header="Export" Background="{DynamicResource Backlight}" Direction="Right" Width="{Binding ActualWidth, ElementName=EditButton}" FontSize="10">
+                                                      <hsg3hv:AngleMenuItem Header="Export" Background="{DynamicResource Backlight}" Direction="None" Width="{Binding ActualWidth, ElementName=EditButton}" FontSize="10">
                                                          <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
                                                          <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
                                                       </hsg3hv:AngleMenuItem>
