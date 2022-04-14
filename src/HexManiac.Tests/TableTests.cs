@@ -841,6 +841,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("|", format);
       }
 
+      [Fact]
+      public void TableWithNoName_FindRelatedTables_NoTablesRelated() {
+         ArrayRun.TryParse(Model, "[data:]4", 0x100, SortedSpan<int>.None, out var table1);
+         ArrayRun.TryParse(Model, "[data:]4", 0x180, SortedSpan<int>.None, out var table2);
+         Model.ObserveAnchorWritten(Token, string.Empty, table1);
+         Model.ObserveAnchorWritten(Token, "some.name", table2);
+
+         var related = Model.GetRelatedArrays((ArrayRun)table1).ToList();
+
+         Assert.Equal(new[] { (ArrayRun)table1 }, related);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

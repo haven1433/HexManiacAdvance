@@ -741,7 +741,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var array in model.Arrays) {
             if (array == table) continue;
             var currentArrayName = model.GetAnchorFromAddress(-1, array.Start);
-            if (!basename.IsAny(array.LengthFromAnchor, currentArrayName)) continue;
+            var options = new List<string> { currentArrayName };
+            if (!string.IsNullOrEmpty(array.LengthFromAnchor)) options.Add(array.LengthFromAnchor);
+            if (!basename.IsAny(options.ToArray())) continue;
             yield return array;
          }
       }
