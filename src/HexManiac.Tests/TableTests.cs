@@ -832,6 +832,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(run.PointerSources);
       }
 
+      [Fact]
+      public void SplitterSegment_Serialize_NoCrash() {
+         var segment = new ArrayRunSplitterSegment();
+
+         var format = segment.SerializeFormat;
+
+         Assert.Equal("|", format);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

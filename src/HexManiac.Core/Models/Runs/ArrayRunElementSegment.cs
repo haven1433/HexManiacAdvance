@@ -760,6 +760,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class ArrayRunSplitterSegment : ArrayRunElementSegment {
       public const string Separator = "|";
-      public ArrayRunSplitterSegment(string name) : base(name, ElementContentType.Integer, 0) { }
+      public ArrayRunSplitterSegment() : base(string.Empty, ElementContentType.Integer, 0) { }
+      public override string SerializeFormat => Separator;
    }
 }

@@ -1237,7 +1237,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName));
             } else if (format == ElementContentType.Splitter) {
                segments = segments.Substring(formatLength).Trim();
-               list.Add(new ArrayRunSplitterSegment(name));
+               list.Add(new ArrayRunSplitterSegment());
             } else {
                segments = segments.Substring(formatLength).Trim();
                if (format == ElementContentType.Unknown) {
