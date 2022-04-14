@@ -390,5 +390,30 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.False(history.Redo.CanExecute(default));
       }
+
+      [Fact]
+      public void TextTable_ChangeAndUndo_HeadersUpdate() {
+         ViewPort.UseCustomHeaders = true;
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+         ViewPort.Goto.Execute(0x102);
+
+         ViewPort.Edit(ConsoleKey.Backspace);
+         ViewPort.Undo.Execute();
+
+         Assert.Equal("adam", ViewPort.Headers[0]);
+      }
+
+      [Fact]
+      public void TextTable_UndoAndRedo_HeadersUpdate() {
+         ViewPort.UseCustomHeaders = true;
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+         ViewPort.Goto.Execute(0x102);
+
+         ViewPort.Edit(ConsoleKey.Backspace);
+         ViewPort.Undo.Execute();
+         ViewPort.Redo.Execute();
+
+         Assert.Equal("ad", ViewPort.Headers[0]);
+      }
    }
 }

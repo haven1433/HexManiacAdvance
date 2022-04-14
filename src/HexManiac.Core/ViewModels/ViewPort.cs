@@ -422,6 +422,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private ModelDelta RevertChanges(ModelDelta changes) {
          var reverse = changes.Revert(Model);
          RefreshBackingData();
+         scroll.UpdateHeaders();
          return reverse;
       }
 
@@ -850,11 +851,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
-         undoWrapper.Execute = arg => { history.Undo.Execute(arg); using (ModelCacheScope.CreateScope(Model)) tools.RefreshContent(); };
+         undoWrapper.Execute = arg => { history.Undo.Execute(arg); tools.RefreshContent(); };
          history.Undo.CanExecuteChanged += (sender, e) => undoWrapper.CanExecuteChanged.Invoke(undoWrapper, e);
 
          redoWrapper.CanExecute = history.Redo.CanExecute;
-         redoWrapper.Execute = arg => { history.Redo.Execute(arg); using (ModelCacheScope.CreateScope(Model)) tools.RefreshContent(); };
+         redoWrapper.Execute = arg => { history.Redo.Execute(arg); tools.RefreshContent(); };
          history.Redo.CanExecuteChanged += (sender, e) => redoWrapper.CanExecuteChanged.Invoke(redoWrapper, e);
 
          clear.CanExecute = CanAlwaysExecute;

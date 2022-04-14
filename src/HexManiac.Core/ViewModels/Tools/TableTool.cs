@@ -331,7 +331,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         if (!int.TryParse(parts[1], out partition)) partition = 0;
                      }
 
-                     var currentArrayStart = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
+                     var currentArrayStart = model.GetAddressFromAnchor(new(), -1, tableName);
                      if (model.GetNextRun(currentArrayStart) is not ArrayRun currentArray) continue;
                      var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
                      if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
