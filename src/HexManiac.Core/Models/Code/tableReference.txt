@@ -257,7 +257,7 @@ graphics.bag.berrycase.sprite,         ,,,, 4644A8, 463EC8, 464508, 463F38, , `l
 graphics.bag.inside1.palette,          ,,,, 108304, 1082DC, 10837C, 108354, , `lzp4:012`
 graphics.bag.inside1.tileset,          ,,,, 108294, 10826C, 10830C, 1082E4, , `lzt4|graphics.bag.inside1.palette`
 graphics.bag.inside1.tilemap.item,     ,,,, 1082BC, 108294, 108334, 10830C, , `lzm4x32x32|graphics.bag.inside1.tileset`
-graphics.bag.inside1.tilemap.keyitems, ,,,, 1082D0, 1082A8, 108348, 108320, , `lzm4x32x32|graphics.bag.inside1.tileset`
+graphics.bag.inside1.tilemap.deposite, ,,,, 1082D0, 1082A8, 108348, 108320, , `lzm4x32x32|graphics.bag.inside1.tileset`
 graphics.bag.inside1.berry.palette,    ,,,, 10D7FC, 10D7D4, 10D874, 10D84C, , `lzp4:012`
 graphics.bag.inside1.berry.tileset,    ,,,, 10D7CC, 10D7A4, 10D844, 10D81C, , `lzt4|graphics.bag.inside1.berry.palette`
 graphics.bag.inside1.berry.tilemap,    ,,,, 10D7E8, 10D7C0, 10D860, 10D838, , `lzm4x32x32|graphics.bag.inside1.berry.tileset`
