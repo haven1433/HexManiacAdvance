@@ -530,7 +530,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // for ever NoInfoRun, something points to it
             if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
-               Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, "Unnamed NoInfoRuns must have something pointing to them!");
+               Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, $"{runs[i].Start:X6}: Unnamed NoInfoRuns must have something pointing to them!");
             }
 
             // for every run with sources, make sure the pointer at that source actually points to it
