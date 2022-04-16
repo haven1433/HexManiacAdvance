@@ -851,11 +851,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
-         undoWrapper.Execute = arg => { history.Undo.Execute(arg); tools.RefreshContent(); };
+         undoWrapper.Execute = arg => { history.Undo.Execute(arg); Refresh(); tools.RefreshContent(); };
          history.Undo.CanExecuteChanged += (sender, e) => undoWrapper.CanExecuteChanged.Invoke(undoWrapper, e);
 
          redoWrapper.CanExecute = history.Redo.CanExecute;
-         redoWrapper.Execute = arg => { history.Redo.Execute(arg); tools.RefreshContent(); };
+         redoWrapper.Execute = arg => { history.Redo.Execute(arg); Refresh(); tools.RefreshContent(); };
          history.Redo.CanExecuteChanged += (sender, e) => redoWrapper.CanExecuteChanged.Invoke(redoWrapper, e);
 
          clear.CanExecute = CanAlwaysExecute;
@@ -1093,6 +1093,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() {
          scroll.DataLength = Model.Count;
+         var selectionStart = ConvertViewPointToAddress(SelectionStart);
+         if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
          RefreshBackingData();
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();

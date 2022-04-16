@@ -36,6 +36,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedLists = new Dictionary<string, IReadOnlyList<string>>(),
          removedLists = new Dictionary<string, IReadOnlyList<string>>();
 
+      private int oldDataLength = -1, newDataLength = -1;
+
       public event EventHandler OnNewChange;
       public bool HasDataChange { get; private set; }
       public bool HasAnyChange =>
@@ -100,6 +102,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          return anyChanges;
       }
 
+      public bool SetDataLength(IDataModel model, int length) {
+         oldDataLength = model.RawData.Length;
+         newDataLength = length;
+         if (!HasAnyChange) {
+            HasDataChange |= oldDataLength != newDataLength;
+            if (HasDataChange) {
+               OnNewChange?.Invoke(this, EventArgs.Empty);
+            }
+         }
+         return true;
+      }
+
       public void ChangeList(string name, IReadOnlyList<string> oldValues, IReadOnlyList<string> newValues) {
          using (CaptureNonDataChange()) {
             if (!removedLists.ContainsKey(name)) removedLists.Add(name, oldValues);
@@ -154,8 +168,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var kvp in oldData) {
             var (index, data) = (kvp.Key, kvp.Value);
-            reverse.oldData[index] = model[index];
-            model[index] = data;
+            reverse.oldData[index] = model.Count > index ? model[index] : (byte)0xFF;
+            if (model.Count > index) model[index] = data;
          }
 
          foreach (var kvp in addedRuns) reverse.removedRuns[kvp.Key] = kvp.Value;
@@ -172,6 +186,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in removedUnmappedPointers) reverse.addedUnmappedPointers[kvp.Key] = kvp.Value;
          foreach (var kvp in addedUnmappedConstants) reverse.removedUnmappedConstants[kvp.Key] = kvp.Value;
          foreach (var kvp in removedUnmappedConstants) reverse.addedUnmappedConstants[kvp.Key] = kvp.Value;
+
+         if (oldDataLength != -1 || newDataLength != -1) {
+            model.ExpandData(reverse, oldDataLength - 1);
+            model.ContractData(reverse, oldDataLength - 1);
+         }
 
          model.MassUpdateFromDelta(addedRuns, removedRuns,
             addedNames, removedNames,

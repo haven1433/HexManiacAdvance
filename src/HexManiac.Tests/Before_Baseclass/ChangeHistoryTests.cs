@@ -415,5 +415,43 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("ad", ViewPort.Headers[0]);
       }
+
+      [Fact]
+      public void Rom_Expand_CanUndo() {
+         Model.ExpandData(ViewPort.CurrentChange, 0x400 - 1);
+
+         Assert.True(ViewPort.ChangeHistory.Undo.CanExecute(default));
+      }
+
+      [Fact]
+      public void ExpandRom_Undo_RomShrinks() {
+         Model.ExpandData(ViewPort.CurrentChange, 0x400 - 1);
+
+         ViewPort.Undo.Execute();
+
+         Assert.Equal(0x200, Model.Count);
+      }
+
+      [Fact]
+      public void UndoExpandedRom_Redo_ExpandRom() {
+         Model.ExpandData(ViewPort.CurrentChange, 0x400 - 1);
+         ViewPort.Undo.Execute();
+
+         ViewPort.Redo.Execute();
+
+         Assert.Equal(0x400, Model.Count);
+      }
+
+      [Fact]
+      public void MassUpdateFromDelta_DataOutOfRange_NoFail() {
+         var token = new ModelDelta();
+         Model.ExpandData(token, 0x400);
+         token.ChangeData(Model, 0x300, 1);
+
+         var reverse = token.Revert(Model);
+         var original = reverse.Revert(Model);
+
+         // if no error, then we're fine
+      }
    }
 }

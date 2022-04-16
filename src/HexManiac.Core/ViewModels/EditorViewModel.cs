@@ -440,6 +440,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             new LevelUpMoveSorter(),
          }.Select(edit => new EditItemWrapper(edit)).ToList();
          var expansionUtils = new List<IQuickEditItem> {
+            new ExpandRom(fileSystem),
             new MakeTutorsExpandable(),
             new MakeMovesExpandable(),
             // new MakeTmsExpandable(),   // expanding TMs requires further research.

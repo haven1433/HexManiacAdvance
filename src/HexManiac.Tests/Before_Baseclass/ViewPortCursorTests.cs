@@ -434,6 +434,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, test.ViewPort.DataOffset);
       }
 
+      [Fact]
+      public void CursorAtEndOfFile_MakeFileSmaller_CursorMoves() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Goto.Execute(test.Model.Count - 1);
+
+         test.Model.ContractData(test.Token, 0x100);
+         test.ViewPort.Refresh();
+
+         Assert.Equal(0x101, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionStart));
+      }
+
       private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {
          data = new byte[0x200];
          model = new PokemonModel(data);

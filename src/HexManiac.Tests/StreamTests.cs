@@ -322,7 +322,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.WritePointer(ViewPort.CurrentChange, 0x100, 0);
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.options]", null, new FixedLengthStreamStrategy(2));
          Model.ObserveRunWritten(new NoDataChangeDeltaModel(), stream);
-         var vm = new TextStreamElementViewModel(ViewPort, 0x100, stream.FormatString);
+         var vm = new TextStreamElementViewModel(ViewPort, default, 0x100, stream.FormatString);
          var view = new StubView(vm);
          Assert.Equal(0, vm.ZIndex);
 
@@ -340,7 +340,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.WritePointer(ViewPort.CurrentChange, 0x100, 0);
          var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[abc.options]", null, new FixedLengthStreamStrategy(2));
          Model.ObserveRunWritten(new NoDataChangeDeltaModel(), stream);
-         var vm = new TextStreamElementViewModel(ViewPort, 0x100, stream.FormatString);
+         var vm = new TextStreamElementViewModel(ViewPort, default, 0x100, stream.FormatString);
 
          vm.GetAutoCompleteOptions("xzy", 0, 3);
 

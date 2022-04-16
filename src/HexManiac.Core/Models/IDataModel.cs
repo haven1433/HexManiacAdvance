@@ -205,6 +205,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var newData = new byte[minimumIndex + 1];
          Array.Copy(RawData, newData, RawData.Length);
          for (int i = RawData.Length; i < newData.Length; i++) newData[i] = 0xFF;
+         changeToken.SetDataLength(this, newData.Length);
          RawData = newData;
       }
 
@@ -213,6 +214,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var newData = new byte[maximumIndex + 1];
          Array.Copy(RawData, newData, newData.Length);
+         changeToken.SetDataLength(this, newData.Length);
          RawData = newData;
       }
 
