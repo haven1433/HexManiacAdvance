@@ -441,7 +441,7 @@
                                           </StackPanel>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" ToolTip="{Binding ParentName}">
                                              <hsg3hv:CommonTableStreamControl />
                                              <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
                                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
@@ -518,7 +518,7 @@
                                           </StackPanel>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:TrainerPokemonTeamElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" ToolTip="{Binding ParentName}">
                                              <hsg3hv:CommonTableStreamControl />
                                              <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
                                                 <Viewbox HorizontalAlignment="Right" Height="{Binding ActualHeight, ElementName=StreamTextBox}" Stretch="Uniform" IsHitTestVisible="False" Opacity=".5">

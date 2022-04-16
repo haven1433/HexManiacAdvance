@@ -107,10 +107,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          IStreamArrayElementViewModel streamElement = null;
-         if (streamRun == null || streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, itemAddress, pointerSegment.InnerFormat);
-         if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, spriteRun.FormatString, spriteRun.SpriteFormat, itemAddress);
-         if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, paletteRun.FormatString, paletteRun.PaletteFormat, itemAddress);
-         if (streamRun is TrainerPokemonTeamRun tptRun) streamElement = new TrainerPokemonTeamElementViewModel(viewPort, tptRun, itemAddress);
+         if (streamRun == null || streamRun is IStreamRun) streamElement = new TextStreamElementViewModel(viewPort, item.Name, itemAddress, pointerSegment.InnerFormat);
+         if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, item.Name, spriteRun.FormatString, spriteRun.SpriteFormat, itemAddress);
+         if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, item.Name, paletteRun.FormatString, paletteRun.PaletteFormat, itemAddress);
+         if (streamRun is TrainerPokemonTeamRun tptRun) streamElement = new TrainerPokemonTeamElementViewModel(viewPort, tptRun, item.Name, itemAddress);
          if (streamElement == null) return;
 
          var streamAddress = itemAddress;
@@ -120,21 +120,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var run = viewPort.Model.GetNextRun(closure_destination) as IStreamRun;
             IStreamArrayElementViewModel newStream = null;
 
-            if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, streamAddress, pointerSegment.InnerFormat);
-            if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, spriteRun1.FormatString, spriteRun1.SpriteFormat, streamAddress);
-            if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, paletteRun1.FormatString, paletteRun1.PaletteFormat, streamAddress);
+            if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, item.Name, streamAddress, pointerSegment.InnerFormat);
+            if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, item.Name, spriteRun1.FormatString, spriteRun1.SpriteFormat, streamAddress);
+            if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, item.Name, paletteRun1.FormatString, paletteRun1.PaletteFormat, streamAddress);
 
             ForwardModelChanged(newStream);
             ForwardModelDataMoved(newStream);
-            //newStream.DataChanged += ForwardModelChanged;
-            //newStream.DataMoved += (sender, e) => ForwardModelDataMoved(sender, e);
             if (!Members[myIndex].TryCopy(newStream)) Members[myIndex] = newStream;
          };
          ForwardModelDataMoved(streamElement);
-         //streamElement.DataMoved += (sender, e) => ForwardModelDataMoved(sender, e);
          Add(streamElement);
 
-         var nextParent = streamElement;
          if (streamRun is ITableRun tableRun && recursionLevel < 1) {
             int segmentOffset = 0;
             for (int i = 0; i < tableRun.ElementContent.Count; i++) {

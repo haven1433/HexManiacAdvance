@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public PaletteCollection Colors { get; }
 
-      public PaletteElementViewModel(ViewPort viewPort, ChangeHistory<ModelDelta> history, string runFormat, PaletteFormat format, int itemAddress) : base(viewPort, runFormat, itemAddress) {
+      public PaletteElementViewModel(ViewPort viewPort, ChangeHistory<ModelDelta> history, string parentName, string runFormat, PaletteFormat format, int itemAddress) : base(viewPort, parentName, runFormat, itemAddress) {
          this.format = format;
 
          var table = (ITableRun)viewPort.Model.GetNextRun(itemAddress);

@@ -9,8 +9,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public TrainerPokemonTeamRun Run { get; private set; }
 
-      public TrainerPokemonTeamElementViewModel(ViewPort viewPort, TrainerPokemonTeamRun tptRun, int itemAddress)
-      : base(viewPort, itemAddress, tptRun.FormatString) {
+      public TrainerPokemonTeamElementViewModel(ViewPort viewPort, TrainerPokemonTeamRun tptRun, string parentName, int itemAddress)
+      : base(viewPort, parentName, itemAddress, tptRun.FormatString) {
          Run = tptRun;
       }
 

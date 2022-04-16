@@ -104,6 +104,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => TryUpdate(ref errorText, value);
       }
 
+      public string ParentName { get; private set; }
+
       private int zIndex;
       public int ZIndex { get => zIndex; private set => Set(ref zIndex, value); }
 
@@ -117,11 +119,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
-      public StreamElementViewModel(ViewPort viewPort, string runFormat, int start) {
+      public StreamElementViewModel(ViewPort viewPort, string parentName, string runFormat, int start) {
          ViewPort = viewPort;
          Model = viewPort.Model;
          Start = start;
          RunFormat = runFormat;
+         ParentName = parentName;
          Undo = ViewPort.Undo;
          Redo = ViewPort.Redo;
 
@@ -161,11 +164,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          dataChanged = that.dataChanged;
          Start = that.Start;
          RunFormat = that.RunFormat;
-         Visible = other.Visible;
+         Visible = that.Visible;
+         ParentName = that.ParentName;
          NotifyPropertyChanged(nameof(CanRepoint));
          NotifyPropertyChanged(nameof(CanRepointAll));
          repoint.RaiseCanExecuteChanged();
          NotifyPropertyChanged(nameof(DataIsValidButNoRun));
+         NotifyPropertyChanged(nameof(ParentName));
 
          return true;
       }

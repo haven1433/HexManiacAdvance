@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public TextStreamElementViewModel(ViewPort viewPort, int start, string format) : base(viewPort, format ?? PCSRun.SharedFormatString, start) {
+      public TextStreamElementViewModel(ViewPort viewPort, string parentName, int start, string format) : base(viewPort, parentName, format ?? PCSRun.SharedFormatString, start) {
          var destination = viewPort.Model.ReadPointer(Start);
          if (viewPort.Model.GetNextRun(destination) is IStreamRun run) {
             content = run.SerializeRun() ?? string.Empty;

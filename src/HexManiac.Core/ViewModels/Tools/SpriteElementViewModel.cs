@@ -108,7 +108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public override bool ShowPageControls => base.ShowPageControls || CanExecuteImageEditor();
 
-      public SpriteElementViewModel(ViewPort viewPort, string runFormat, SpriteFormat format, int itemAddress) : base(viewPort, runFormat, itemAddress) {
+      public SpriteElementViewModel(ViewPort viewPort, string parentName, string runFormat, SpriteFormat format, int itemAddress) : base(viewPort, parentName, runFormat, itemAddress) {
          this.format = format;
          RunFormat = runFormat;
          var run = GetRun();
