@@ -196,6 +196,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          var pixels = sprite.GetPixels(model, 0);
          if (pixels == null) return null;
          var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
+         if (colors.Count == 16 && useTransparency) colors = SpriteTool.CreatePaletteWithUniqueTransparentColor(colors);
          var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
          return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData, useTransparency ? colors[0] : (short)-1);
       }

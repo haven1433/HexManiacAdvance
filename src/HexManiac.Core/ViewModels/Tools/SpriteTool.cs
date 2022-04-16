@@ -578,6 +578,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return data;
       }
 
+      public static IReadOnlyList<short> CreatePaletteWithUniqueTransparentColor(IReadOnlyList<short> palette) {
+         var copy = palette.ToList();
+         var otherColors = palette.Skip(1).ToList();
+         while (otherColors.Contains(copy[0])) copy[0] = (short)((copy[0] + 1) % 0x8000);
+         return copy;
+      }
+
       private void LoadSprite() {
          var run = model.GetNextRun(spriteAddress) as ISpriteRun;
          if (run == null) {
