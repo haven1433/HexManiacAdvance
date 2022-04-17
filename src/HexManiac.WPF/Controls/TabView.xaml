@@ -164,11 +164,11 @@
                      </Style.Triggers>
                   </Style>
                </DockPanel.Style>
-               <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Backlight}">
+               <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
                   <!-- Table Selector -->
                   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                     <ComboBox Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" />
-                     <ComboBox Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" Margin="5,0" />
+                     <hsg3hv:AngleComboBox x:Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" Direction="None" />
+                     <hsg3hv:AngleComboBox x:Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" Margin="5,0" Direction="None" />
                      <hsg3hv:AngleBorder BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Direction="None">
                         <TextBlock Text="{Binding TableTool.CurrentElementName}" Margin="2,0"/>
                      </hsg3hv:AngleBorder>
@@ -181,7 +181,7 @@
                         <ColumnDefinition Width="Auto" SharedSizeGroup="NextPrev"/>
                      </Grid.ColumnDefinitions>
                      <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                        IsEditable="True" IsTextSearchEnabled="False" Direction="None"
+                        IsEditable="True" IsTextSearchEnabled="False" Margin="5,0" Direction="None"
                         DataContext="{Binding TableTool.CurrentElementSelector}"
                         ItemsSource="{Binding Options}"
                         SelectedIndex="{Binding SelectedIndex}"
