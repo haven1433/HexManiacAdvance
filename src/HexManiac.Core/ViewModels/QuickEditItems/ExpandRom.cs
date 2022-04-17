@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             "New File Length",
             $"What length (in hex) would you like to expand your file to?{Environment.NewLine}If you choose a length shorter than the current length, the file will be truncated.");
          if (text == null) return Task.FromResult(ErrorInfo.NoError);
-         if (!int.TryParse(text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var length)) {
+         if (!uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var length)) {
             return Task.FromResult(new ErrorInfo($"{text} is not a valid hex length"));
          } else if (length < 0x100000) {
             return Task.FromResult(new ErrorInfo($"The file must be at least 0x100_000 bytes long."));
@@ -35,8 +35,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             return Task.FromResult(new ErrorInfo($"GBA games can only be 0x2_000_000 bytes long."));
          }
 
-         viewPort.Model.ExpandData(editableViewPort.ChangeHistory.CurrentChange, length - 1);
-         viewPort.Model.ContractData(editableViewPort.ChangeHistory.CurrentChange, length - 1);
+         viewPort.Model.ExpandData(editableViewPort.ChangeHistory.CurrentChange, (int)(length - 1));
+         viewPort.Model.ContractData(editableViewPort.ChangeHistory.CurrentChange, (int)(length - 1));
          viewPort.Refresh();
 
          return Task.FromResult(ErrorInfo.NoError);
