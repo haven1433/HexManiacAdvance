@@ -853,6 +853,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { (ArrayRun)table1 }, related);
       }
 
+      [Fact]
+      public void TableWithPointersToSelf_Repoint_AnchorUpdated() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^table[data:: ptr<>]2 13 <table> 14 <table> DEADBEEF ");
+
+         ViewPort.Edit("@010 +");
+
+         var table = Model.GetTable("table");
+         var source1 = table.Start + 4;
+         var source2 = table.Start + 12;
+         var source3 = table.Start + 20;
+         Assert.Equal(new[] { source1, source2, source3 }, table.PointerSources);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

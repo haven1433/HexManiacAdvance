@@ -1076,6 +1076,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var destination = ReadPointer(movedStart);
                if (destination < 0 || destination >= RawData.Length) continue;
                var destinationRun = GetNextRun(destination);
+               if (destination == moved.Start) destinationRun = moved;
                changeToken.RemoveRun(destinationRun);
 
                if (destinationRun is ISupportInnerPointersRun destinationTable && destinationTable.SupportsInnerPointers) {
@@ -1089,7 +1090,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                changeToken.AddRun(destinationRun);
                var runIndex = BinarySearch(destinationRun.Start);
-               SetIndex(runIndex, destinationRun);
+               if (runIndex >= 0) {
+                  SetIndex(runIndex, destinationRun);
+               }
             }
             originalOffset += original.ElementContent[i].Length;
             segmentOffset += moved.ElementContent[i].Length;
@@ -2319,7 +2322,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart) where T : IFormattedRun {
          // repoint
-         foreach (var source in run.PointerSources) {
+         foreach (var source in run.PointerSources.ToList()) {
+            // special update for pointers to this run that live within this run
+            if (run.Start < source && source < run.Start + run.Length) {
+               run = (T)run.RemoveSource(source);
+               run = (T)run.Duplicate(run.Start, run.PointerSources.Add1(source + newStart - run.Start));
+            }
             WritePointer(changeToken, source, newStart);
          }
          if (run is ArrayRun tableRun && tableRun.SupportsInnerPointers) {
