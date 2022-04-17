@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void ContractData(ModelDelta changeToken, int maximumIndex) {
-         if (Count < maximumIndex) return;
+         if (Count <= maximumIndex + 1) return;
 
          var newData = new byte[maximumIndex + 1];
          Array.Copy(RawData, newData, newData.Length);

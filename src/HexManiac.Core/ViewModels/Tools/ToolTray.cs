@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly StubCommand stringToolCommand, tableToolCommand, codeToolCommand, spriteToolCommand;
       private readonly HashSet<Action> deferredWork = new HashSet<Action>();
       private readonly IDataModel model;
-
+      private readonly Selection selection;
       private int selectedIndex;
       public int SelectedIndex {
          get => selectedIndex;
@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ToolTray(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort) {
          this.model = model;
+         this.selection = selection;
          tools = new IToolViewModel[] {
             new TableTool(model, selection, history, viewPort, this),
             new PCSTool(model, selection, history, this),
@@ -126,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void RefreshContent() {
+         selection.Scroll.DataLength = model.Count;
          StringTool.DataForCurrentRunChanged();
          TableTool.DataForCurrentRunChanged();
          SpriteTool.DataForCurrentRunChanged();
