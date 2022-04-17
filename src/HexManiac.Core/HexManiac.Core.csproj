@@ -70,14 +70,14 @@
   </ItemGroup>
   <PropertyGroup>
     <PreBuildEvent>
-      if not exist $(CodeGenDir) mkdir $(CodeGenDir)
+      if not exist "$(CodeGenDir)" mkdir "$(CodeGenDir)"
 
-      $(AutoImplement) "System.ObjectModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" ICommand
-      move /Y StubCommand.cs  $(CodeGenDir)
+      "$(AutoImplement)" "System.ObjectModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" ICommand
+      move /Y StubCommand.cs "$(CodeGenDir)"
 
-      $(AutoImplement) "System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" IDisposable IComparer`1
-      move /Y StubDisposable.cs $(CodeGenDir)
-      move /Y StubComparer`1.cs $(CodeGenDir)
+      "$(AutoImplement)" "System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" IDisposable IComparer`1
+      move /Y StubDisposable.cs "$(CodeGenDir)"
+      move /Y StubComparer`1.cs "$(CodeGenDir)"
 
       del *.cs
     </PreBuildEvent>
