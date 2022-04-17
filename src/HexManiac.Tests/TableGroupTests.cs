@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
@@ -119,5 +121,45 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("data", groups[0].Members.Single<FieldArrayElementViewModel>().Name);
          Assert.Equal("more", groups[1].Members.Single<FieldArrayElementViewModel>().Name);
       }
+
+      [Fact]
+      public void SingleTableGroup_TableToolRefresh_StreamGroupObjectRemainsTheSame() {
+         SetFullModel(0xFF);
+         Model.WriteValue(Token, 0, 0);
+         Model.WriteValue(Token, 4, 0);
+         ViewPort.Edit("^table[ptr<\"\">]2 @{ Adam\" @} @{ Bob\" @} ");
+
+         ViewPort.Goto.Execute(0);
+         var oldGroup = ViewPort.Tools.TableTool.Groups[1];
+
+         ViewPort.Goto.Execute(4);
+         var newGroup = ViewPort.Tools.TableTool.Groups[1];
+
+         Assert.Equal(oldGroup, newGroup, new TableGroupReferenceComparer());
+         Assert.Single(newGroup.Members);
+      }
+
+      [Fact]
+      public void StreamTable_RefreshTableTool_StreamGroupObjectRemainsTheSame() {
+         SetFullModel(0xFF);
+         Model.WriteValue(Token, 0, 0);
+         Model.WriteValue(Token, 4, 0);
+         ViewPort.Edit("^table[ptr<\"\">]!FFFF @{ Adam\" @} @{ Bob\" @} ");
+
+         ViewPort.Goto.Execute(0);
+         var oldGroup = ViewPort.Tools.TableTool.Groups[1];
+
+         ViewPort.Goto.Execute(4);
+         var newGroup = ViewPort.Tools.TableTool.Groups[1];
+
+         Assert.Equal(oldGroup, newGroup, new TableGroupReferenceComparer());
+         Assert.Single(newGroup.Members);
+      }
+   }
+
+   internal class TableGroupReferenceComparer : IEqualityComparer<TableGroupViewModel> {
+      public bool Equals(TableGroupViewModel? a, TableGroupViewModel? b) => a == b;
+
+      public int GetHashCode([DisallowNull] TableGroupViewModel obj) => throw new System.NotImplementedException();
    }
 }

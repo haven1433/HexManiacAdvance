@@ -9,6 +9,7 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class TableGroupViewModel : ViewModelCore {
 
+      private bool isOpen;
       private int currentMember; // used with open/close when refreshing the collection
 
       private string groupName;
@@ -22,7 +23,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public TableGroupViewModel() { GroupName = "Other"; }
 
-      public void Open() => currentMember = 0;
+      public bool IsOpen => isOpen;
+
+      public void Open() {
+         if (isOpen) return;
+         currentMember = 0;
+         isOpen = true;
+      }
 
       public void Add(IArrayElementViewModel child) {
          if (currentMember == Members.Count) {
@@ -34,7 +41,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void Close() {
+         if (!isOpen) return;
          while (Members.Count > currentMember) Members.RemoveAt(Members.Count - 1);
+         isOpen = false;
       }
 
       public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, TableGroupViewModel helperGroup, int splitPortion = -1) {

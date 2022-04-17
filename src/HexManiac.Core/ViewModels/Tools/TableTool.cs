@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -313,10 +314,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             TableGroupViewModel streamGroup = null;
             var elementOffset = array.Start + array.ElementLength * index;
             if (array is not ArrayRun arrayRun) {
-               streamGroup = new TableGroupViewModel {
-                  ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
-                  ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
-               };
+               if (Groups.Count == 2) {
+                  streamGroup = Groups[1];
+                  streamGroup.Open();
+               } else {
+                  streamGroup = new TableGroupViewModel {
+                     ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
+                     ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
+                  };
+                  streamGroup.Open();
+               }
+
                AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
                Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, streamGroup);
                MoveToNextGroup();
@@ -327,10 +335,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
                var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup("Other", new[] { originalTableName }) };
-               if (groups.Count == 1) streamGroup = new TableGroupViewModel {
-                  ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
-                  ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
-               };
+               if (groups.Count == 1) {
+                  if (Groups.Count == 2) {
+                     streamGroup = Groups[1];
+                     streamGroup.Open();
+                  } else {
+                     streamGroup = new TableGroupViewModel {
+                        ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
+                        ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
+                     };
+                     streamGroup.Open();
+                  }
+               }
                foreach (var group in groups) {
                   while (Groups.Count <= childIndexGroup) AddGroup();
                   var helperGroup = streamGroup ?? Groups[childIndexGroup];
@@ -359,10 +375,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             if (Groups.Count == 1) {
                Groups.Add(streamGroup);
+               streamGroup.Close();
                childIndexGroup++;
             } else if (streamGroup != null) {
                while (Groups.Count <= childIndexGroup) AddGroup();
                Groups[childIndexGroup] = streamGroup;
+               streamGroup.Close();
                childIndexGroup++;
             }
             AddChildrenFromStreams(array, basename, index);
@@ -391,6 +409,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is SplitterArrayElementViewModel splitter) splitter.UpdateCollapsed(fieldFilter);
          }
 
+         foreach (var group in Groups) Debug.Assert(!group.IsOpen, "You forgot to close a group! " + group.GroupName);
          NotifyPropertyChanged(nameof(Children));
       }
 
