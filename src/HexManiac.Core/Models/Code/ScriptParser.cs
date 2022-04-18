@@ -168,8 +168,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var sources = source >= 0 ? SortedSpan.One(source) : SortedSpan<int>.None;
          TableStreamRun.TryParseTableStream(model, start, sources, string.Empty, format, null, out var tsRun);
          if (tsRun != null) {
-            model.ClearFormat(token, tsRun.Start, tsRun.Length);
-            model.ObserveRunWritten(token, tsRun);
+            if (model.GetNextRun(tsRun.Start) is ITableRun existingRun && existingRun.Start == tsRun.Start && tsRun.DataFormatMatches(existingRun)) {
+               // no need to update the format, the format already matches what we want
+            } else {
+               model.ClearFormat(token, tsRun.Start, tsRun.Length);
+               model.ObserveRunWritten(token, tsRun);
+            }
          }
       }
 

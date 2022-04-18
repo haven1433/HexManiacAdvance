@@ -516,6 +516,25 @@ Script:
          Assert.Equal(8, content.Length);
       }
 
+      [Fact]
+      public void CreateSpritePointingToNamedAnchor_ChangePointer_NamedAnchorRemains() {
+         SetFullModel(0xFF);
+         ViewPort.Tools.CodeToolCommand.Execute();
+         ViewPort.Tools.CodeTool.Mode = CodeMode.AnimationScript;
+         ViewPort.Tools.CodeTool.Contents[0].Content = "createsprite <100> 0";
+         ViewPort.Edit("@100 ^somename @000 ");
+         ViewPort.Tools.CodeToolCommand.Execute();
+
+         var lines = ViewPort.Tools.CodeTool.Contents[0].Content.SplitLines();
+         lines[0] = "createsprite <180> 0";
+         ViewPort.Tools.CodeTool.Contents[0].Content = Environment.NewLine.Join(lines);
+
+         lines[0] = "createsprite <100> 0";
+         ViewPort.Tools.CodeTool.Contents[0].Content = Environment.NewLine.Join(lines);
+
+         Assert.Equal("somename", Model.GetAnchorFromAddress(-1, 0x100));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
