@@ -73,9 +73,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private StubCommand acceptCommand;
-      public ICommand Accept => StubCommand(ref acceptCommand, ExecuteAccept);
-
       public FieldArrayElementViewModel(ViewPort viewPort, string name, int start, int length, IFieldArrayElementViewModelStrategy strategy) {
          this.strategy = strategy;
          (ViewPort, Model, Name, Start, Length) = (viewPort, viewPort.Model, name, start, length);
@@ -94,17 +91,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          TryUpdate(ref content, field.Content, nameof(Content));
          ErrorText = field.ErrorText;
          dataChanged = field.dataChanged;
+         CanAcceptChanged?.Invoke(this, EventArgs.Empty);
          return true;
       }
 
       protected virtual bool TryCopy(FieldArrayElementViewModel other) => true;
 
-      private void ExecuteAccept() {
+      public event EventHandler CanAcceptChanged;
+
+      public void Accept() {
          // If we add more accept commands, move this logic into the strategy classes.
          // right now, don't bother, since there's just one.
          if (Type == ElementContentViewModelType.Address) {
             ViewPort.Goto.Execute(Content);
          }
+      }
+
+      public bool CanAccept() {
+         return Type == ElementContentViewModelType.Address && ViewPort.Goto.CanExecute(Content);
       }
    }
 

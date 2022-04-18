@@ -1,5 +1,4 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using System.Windows.Input;

@@ -828,5 +828,28 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("ldr", lines[1]);
          Assert.Contains("8>", lines[1]);
       }
+
+      [Fact]
+      public void TableWithNullPointer_LoadTableTool_CannotJumpToNull() {
+         ViewPort.Edit("^table[ptr<>]1 ");
+         ViewPort.Refresh();
+
+         var field = ViewPort.Tools.TableTool.Groups[0].Members.Single<FieldArrayElementViewModel>();
+
+         Assert.False(field.CanAccept());
+      }
+
+      [Fact]
+      public void TableWithNullPointer_ReloadTableTool_NotifyCannotAccept() {
+         ViewPort.Edit("^table[ptr<>]2 <100> @000 ");
+         ViewPort.Refresh();
+         var field = ViewPort.Tools.TableTool.Groups[0].Members.Single<FieldArrayElementViewModel>();
+         var counter = 0;
+         field.CanAcceptChanged += (sender, e) => counter += 1;
+
+         ViewPort.Tools.TableTool.Next.Execute();
+
+         Assert.Equal(1, counter);
+      }
    }
 }

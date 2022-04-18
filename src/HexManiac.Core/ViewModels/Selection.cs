@@ -146,7 +146,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          resetAlignmentCommand.Execute = args => GotoAddressAndAlign(Scroll.DataIndex, 0x10);
 
          gotoCommand = new StubCommand {
-            CanExecute = args => true,
+            CanExecute = args => {
+               if (args is string str) {
+                  str = str.Replace(PointerRun.PointerStart.ToString(), string.Empty).Replace(PointerRun.PointerEnd.ToString(), string.Empty).ToLower();
+                  if (str == "null") return false;
+               }
+               return true;
+            },
             Execute = args => {
                if (args is int intArgs) args = intArgs.ToString("X6");
                var address = args.ToString().Trim();
