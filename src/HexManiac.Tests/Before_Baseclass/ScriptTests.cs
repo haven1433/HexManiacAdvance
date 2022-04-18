@@ -506,6 +506,16 @@ Script:
          Assert.Equal(ViewPort.Tools.CodeTool.ErrorText.Trim(), message);
       }
 
+      [Fact]
+      public void Many00AndEnd_DecompileAnimation_GetManyLoadSpriteGfx() {
+         Model[18] = 8;
+
+         var length = ViewPort.Tools.CodeTool.AnimationScriptParser.FindLength(Model, 0);
+         var content = ViewPort.Tools.CodeTool.AnimationScriptParser.Parse(Model, 0, length).SplitLines();
+
+         Assert.Equal(8, content.Length);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

@@ -73,8 +73,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
             if (line == null) break;
-            consecutiveNops = model[address + length] == 0 ? consecutiveNops + 1 : 0;
-            if (consecutiveNops > 5) return 0;
+            consecutiveNops = line.LineCommand.StartsWith("nop") ? consecutiveNops + 1 : 0;
+            if (consecutiveNops > 16) return 0;
             length += line.CompiledByteLength(model, address + length);
             if (line.IsEndingCommand) break;
          }
