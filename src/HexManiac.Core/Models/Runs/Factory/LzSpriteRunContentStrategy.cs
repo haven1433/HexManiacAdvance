@@ -36,7 +36,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var runAttempt = new LzSpriteRun(localSpriteFormat, model, run.Start, run.PointerSources);
          if (runAttempt.Length > 0) {
             run = runAttempt.MergeAnchor(run.PointerSources);
-            model.ClearFormat(token, run.Start, run.Length);
+            if (run is LzSpriteRun lzRun && lzRun.SpriteFormat.Equals(runAttempt.SpriteFormat) && lzRun.Length == runAttempt.Length) {
+               // no need to clear this one, the format matches
+            } else {
+               model.ClearFormat(token, run.Start, run.Length);
+            }
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {

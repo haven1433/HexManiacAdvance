@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -865,6 +866,21 @@ namespace HavenSoft.HexManiac.Tests {
          var source2 = table.Start + 12;
          var source3 = table.Start + 20;
          Assert.Equal(new[] { source1, source2, source3 }, table.PointerSources);
+      }
+
+      [Fact]
+      public void TablePointersToNamedSprites_UpdatePointerToNamedSprite_NoNull() {
+         Token.ChangeData(Model, 0, LZRun.Compress(new byte[32]));
+         ViewPort.Refresh();
+         ViewPort.Shortcuts.DisplayAsSprite.Execute();
+         ViewPort.Edit("@100 ^table[ptr<`lzs4x1x1`>]2 <000> <null> ");
+         ViewPort.Edit("@000 ^some.name ");
+
+         ViewPort.Edit("@104 <some.name> ");
+
+         Assert.Equal("some.name", Model.GetAnchorFromAddress(-1, 0));
+         Assert.Equal(0, Model.ReadPointer(0x100));
+         Assert.Equal(0, Model.ReadPointer(0x104));
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
