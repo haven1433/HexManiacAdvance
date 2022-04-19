@@ -475,6 +475,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@004 3 ");
 
          Assert.NotEqual(0x100, Model.ReadPointer(0));
+         Assert.Single(Messages);
       }
    }
 }

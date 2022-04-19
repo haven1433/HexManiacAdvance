@@ -461,7 +461,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
          if (run is ITableRun tableRun) {
             var offset = tableRun.ConvertByteOffsetToArrayOffset(integer.Source);
-            tableRun.NotifyChildren(Model, CurrentChange, offset.ElementIndex, offset.SegmentIndex);
+            var info = tableRun.NotifyChildren(Model, CurrentChange, offset.ElementIndex, offset.SegmentIndex);
+            if (info != null && info.IsWarning) MessageText = info.ErrorMessage;
          }
          var (newDataIndex, messageText, errorText) = UpdateAllWords(Model, run, CurrentChange, result, alsoUpdateArrays: true);
          NewDataIndex = run.Start + runIndex + integer.Length;
