@@ -461,5 +461,20 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Contains("[]", FileSystem.CopyText.value);
       }
+
+      [Fact]
+      public void StreamWithLengthFromParentWithNonFreeSpaceAfter_ChangeLengthInParent_RepointChildStream() {
+         SetFullModel(0xFF);
+         Model.WritePointer(Token, 0, 0x100);                 // 000: <100> 2
+         Model.WriteMultiByteValue(4, 4, Token, 2);
+         Model.WriteMultiByteValue(0x108, 4, Token, 0xDEAD);  // 108: 00 00 00 00
+         ViewPort.Edit("^table[ptr<[a: b:]/count> count::]1 ");
+         ViewPort.Refresh();
+
+         // editing the 'count' parameter should try to expand the child table, which should cause a repoint
+         ViewPort.Edit("@004 3 ");
+
+         Assert.NotEqual(0x100, Model.ReadPointer(0));
+      }
    }
 }

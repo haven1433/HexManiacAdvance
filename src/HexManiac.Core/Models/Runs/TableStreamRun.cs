@@ -611,10 +611,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var newRun = run;
          if (newElementCount != newRun.ElementCount) {
+            var endOfCurrentRun = run.Start + run.Length;
             var nextRunMinimumStart = newRun.Start + newRun.ElementLength * newElementCount;
-            if (TableStreamRun.DataMatches(model, newRun, newElementCount) && model.GetNextRun(nextRunMinimumStart).Start >= nextRunMinimumStart) {
+            if (
+               TableStreamRun.DataMatches(model, newRun, newElementCount) &&
+               model.GetNextRun(nextRunMinimumStart).Start >= nextRunMinimumStart &&
+               run.ElementCount <= 1
+            ) {
                // no need to repoint: the next data matches
-               // this is important for when we're pasting pointers to existing formats before pasting those formats lengths.
+               // this is important for when we're pasting pointers to existing formats before pasting those formats' lengths.
+               // example: paste ^newanchor <pointer> count, where pointer points to existing data. We don't want writing the 'count' to cause a repoint
+               model.ClearFormat(token, endOfCurrentRun, nextRunMinimumStart - endOfCurrentRun);
                UpdateParents(token, parent, segmentIndex, newElementCount, newRun.PointerSources);
                newRun = new TableStreamRun(model, newRun.Start, newRun.PointerSources, newRun.FormatString, newRun.ElementContent, this);
             } else {
