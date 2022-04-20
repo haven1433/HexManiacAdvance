@@ -477,5 +477,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0x100, Model.ReadPointer(0));
          Assert.Single(Messages);
       }
+
+      [Fact]
+      public void TableStream_Append_CopyLastElement() {
+         SetFullModel(0xFF);
+         Token.ChangeData(Model, 0, new byte[8]);
+         ViewPort.Edit("^parent[ptr<[pointer<> data::]/count> count::]1 ");
+
+         ViewPort.Edit("@{ <100> 4 +");
+
+         var table = new ModelTable(Model, Model.ReadPointer(0));
+         Assert.Equal(0x100, table[1].GetAddress("pointer"));
+         Assert.Equal(4, table[1].GetValue("data"));
+      }
    }
 }

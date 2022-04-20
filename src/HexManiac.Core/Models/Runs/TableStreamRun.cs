@@ -592,8 +592,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          UpdateParents(token, parent, segmentIndex, run.ElementCount + length, run.PointerSources);
 
          var naturalLength = run.Length;
-         var newRun = (TableStreamRun)model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
-         for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0x00);
+         var newRun = model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
+         for (int i = 0; i < run.ElementLength * length; i++) {
+            var prevIndex = newRun.Start + naturalLength + i - newRun.ElementLength * length;
+            byte prevData = prevIndex > newRun.Start ? model[prevIndex] : default;
+            token.ChangeData(model, newRun.Start + naturalLength + i, prevData);
+         }
          for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
       }
