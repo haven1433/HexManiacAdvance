@@ -708,7 +708,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (TryUpdate(ref anchorText, value)) {
                var index = scroll.ViewPointToDataIndex(SelectionStart);
                var run = Model.GetNextRun(index);
-               if (run is PointerRun && run.Start <= index && string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start))) {
+               var hasAnchor = (run.PointerSources != null && run.PointerSources.Count > 0) || !string.IsNullOrEmpty(Model.GetAnchorFromAddress(-1, run.Start));
+               if (run is PointerRun pRun && !hasAnchor) {
                   index = Model.ReadPointer(run.Start);
                   run = Model.GetNextRun(index);
                }

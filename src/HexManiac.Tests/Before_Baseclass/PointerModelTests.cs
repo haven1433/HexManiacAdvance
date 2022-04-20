@@ -868,6 +868,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x80, model.ReadPointer(0x20));
       }
 
+      [Fact]
+      public void PointerWithAnchor_CheckAnchorText_IsFromThisPointerNotDestination() {
+         ViewPort.Edit("<100> ^destination @100 <004> ");
+
+         ViewPort.Goto.Execute(0x100);
+
+         Assert.Equal("^", ViewPort.AnchorText);
+      }
+
+      [Fact]
+      public void PointerWithAnchor_WriteAnchorIntoViewPort_EditsPointer() {
+         ViewPort.Edit("<100> @100 <180> @100 ");
+
+         ViewPort.AnchorText = "^some.name";
+
+         Assert.Equal("some.name", Model.GetAnchorFromAddress(-1, 0x100));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
