@@ -421,6 +421,32 @@ namespace HavenSoft.HexManiac.Tests {
          }
       }
 
+      [Fact]
+      public void TableWithTableStreamPointers_RepointToMiddleOfAnotherRun_NoAssert() {
+         var test = new BaseViewModelTestClass();
+         test.Model[5] = 5;
+         test.ViewPort.Edit("@100 ^table[ptr<[a.]!05>]2 <000> ");
+
+         test.ViewPort.Edit("<002> ");
+
+         var streamRun = (TableStreamRun)test.Model.GetNextRun(0);
+         Assert.Equal(0, streamRun.Start);
+         Assert.Equal(6, streamRun.Length);
+      }
+
+      [Fact]
+      public void TableWithTableStreamPointers_RepointToContainingAnotherRun_NoAssert() {
+         var test = new BaseViewModelTestClass();
+         test.Model[5] = 5;
+         test.ViewPort.Edit("@100 ^table[ptr<[a.]!05>]2 <002> ");
+
+         test.ViewPort.Edit("<000> ");
+
+         var streamRun = (TableStreamRun)test.Model.GetNextRun(0);
+         Assert.Equal(0, streamRun.Start);
+         Assert.Equal(6, streamRun.Length);
+      }
+
       // creates a move table that is 0x40 bytes long
       private void SetupMoveTable(int start) {
          viewPort.Goto.Execute(start.ToString("X6"));

@@ -17,7 +17,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          if (TableStreamRun.TryParseTableStream(owner, destination, new SortedSpan<int>(source), name, Format, sourceSegments, out var tsRun)) {
-            if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, tsRun);
+            if (token is not NoDataChangeDeltaModel) {
+               // we know that the data format matches, but there may already be a run there that starts sooner
+               if (owner.GetNextRun(tsRun.Start) is ITableRun existingTable && existingTable.Start < tsRun.Start) {
+                  // there is already a format that starts sooner: do nothing, but return true because the format matches
+               } else {
+                  owner.ClearFormat(token, tsRun.Start + 1, tsRun.Length - 1);
+                  owner.ObserveRunWritten(token, tsRun);
+               }
+            }
             return true;
          }
          return false;
