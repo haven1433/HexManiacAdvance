@@ -117,7 +117,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   address = model.GetAddressFromAnchor(token, -1, data);
                }
                data = remainder;
-               return model.WritePointer(token, start, address);
+
+               if (this is not ArrayRunPointerSegment pointerSegment || pointerSegment.DestinationDataMatchesPointerFormat(model, token, start, address, null, -1)) {
+                  var currentDestination = model.ReadPointer(start);
+                  model.UpdateArrayPointer(token, this, null, default, start, address);
+                  return currentDestination != address;
+               } else {
+                  var oldDestination = model.ReadPointer(start);
+                  var oldRun = model.GetNextRun(oldDestination);
+                  if (oldRun.Start == oldDestination) {
+                     oldRun = oldRun.RemoveSource(start);
+                     if (oldRun.PointerSources.Count == 0 && model.GetAnchorFromAddress(-1, oldRun.Start) == string.Empty) model.ClearFormat(token, oldDestination, 1);
+                  }
+                  var changed = model.WritePointer(token, start, address);
+                  model.ObserveRunWritten(token, new NoInfoRun(address, new SortedSpan<int>(start)));
+                  return changed;
+               }
             default:
                throw new NotImplementedException();
          }

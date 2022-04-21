@@ -490,5 +490,55 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, table[1].GetAddress("pointer"));
          Assert.Equal(4, table[1].GetValue("data"));
       }
+
+      [Fact]
+      public void TableStreamRun_DeserializeNewPointerToText_NewTextRunAdded() {
+         SetFullModel(0xFF);
+         Token.ChangeData(Model, 0, new byte[8]);
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[text<\"\">]", default, new FixedLengthStreamStrategy(2));
+         Model.ObserveRunWritten(Token, stream);
+
+         var text = Environment.NewLine.Join(new[] { "<100>", "<null>" });
+         stream.DeserializeRun(text, Token, out var changedOffsets);
+
+         var destinationRun = Model.GetNextRun(0x100);
+         Assert.Equal(0x100, destinationRun.Start);
+         Assert.IsType<PCSRun>(destinationRun);
+         Assert.Equal(0, destinationRun.PointerSources.Single());
+      }
+
+      [Fact]
+      public void TableStreamRun_DeserializeNewPointerDestination_OldAnchorRemovedNewAnchorAdded() {
+         SetFullModel(0xFF);
+         Token.ChangeData(Model, 0, new byte[4]);
+         Model.WritePointer(Token, 4, 0x100);
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[pointer<>]", default, new FixedLengthStreamStrategy(2));
+         Model.ObserveRunWritten(Token, stream);
+
+         var text = Environment.NewLine.Join(new[] { "<180>", "<null>" });
+         stream.DeserializeRun(text, Token, out var _);
+
+         var destinationRun = Model.GetNextRun(0x100);
+         Assert.Equal(0x180, destinationRun.Start);
+         Assert.Equal(0, destinationRun.PointerSources.Single());
+      }
+
+      [Fact]
+      public void TableStreamRun_DeserializeNewPointerDestinationToIncorrectFormat_OldAnchorRemovedNewAnchorAdded() {
+         SetFullModel(0xFF);
+         Token.ChangeData(Model, 0, new byte[4]);
+         Model.WritePointer(Token, 4, 0x100);
+         var stream = new TableStreamRun(Model, 0, SortedSpan<int>.None, "[pointer<\"\">]", default, new FixedLengthStreamStrategy(2));
+         Model.ObserveRunWritten(Token, stream);
+
+         Model[0x180] = 0x40; // invalid text byte
+         var text = Environment.NewLine.Join(new[] { "<180>", "<null>" });
+         stream.DeserializeRun(text, Token, out var _);
+
+         var destinationRun = Model.GetNextRun(0x100);
+         Assert.Equal(0x180, destinationRun.Start);
+         Assert.IsType<NoInfoRun>(destinationRun);
+         Assert.Equal(0, destinationRun.PointerSources.Single());
+      }
    }
 }
