@@ -341,6 +341,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public string[] MetadataFor(string fileName) {
          var metadataName = Path.ChangeExtension(fileName, ".toml");
+         if (!fileName.ToLower().EndsWith(".gba")) metadataName = fileName + ".toml";
          if (!File.Exists(metadataName)) return null;
          var lines = File.ReadAllLines(metadataName);
 
