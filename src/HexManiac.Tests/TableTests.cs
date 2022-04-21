@@ -720,6 +720,49 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void CalculatedSegment_SourceTableDoesNotExist_NoSource() {
+         var contract = "(not.a.table/field1=content)/field2";
+
+         ArrayRun.TryParse(Model, "[content:]1", 0, default, out var table);
+         var source = ArrayRunCalculatedSegment.CalculateSource(Model, table, 0, contract);
+
+         Assert.Equal(Pointer.NULL, source);
+      }
+
+      [Fact]
+      public void CalculatedSegment_SourceTableDoesNotExist_NoJump() {
+         var contract = "(not.a.table/field1=content)/field2";
+
+         var segment = new ArrayRunCalculatedSegment(Model, "name", contract);
+         var viewModel = new CalculatedElementViewModel(ViewPort, segment, 0);
+
+         Assert.False(viewModel.Operands[0].JumpTo.CanExecute(default));
+      }
+
+      [Fact]
+      public void CalculatedSegment_SourceTableDoesNotExist_CanCalculate() {
+         var contract = "(not.a.table/field1=content)/field2";
+         Model.ObserveRunWritten(Token, new TableStreamRun(Model, 0, SortedSpan<int>.None, "[content:]", default, new FixedLengthStreamStrategy(1)));
+         var segment = new ArrayRunCalculatedSegment(Model, "name", contract);
+
+         var value = segment.CalculatedValue(0);
+
+         Assert.Equal(0, value);
+      }
+
+      [Fact]
+      public void CalculatedSegment_SourceTableDoesNotHaveMatch_UseLastValue() {
+         ViewPort.Edit("@100 ^some.table[key: value:]2 1 1 2 2 ");
+         var contract = "(some.table/key=content)/value";
+         Model.ObserveRunWritten(Token, new TableStreamRun(Model, 0, SortedSpan<int>.None, "[content:]", default, new FixedLengthStreamStrategy(1)));
+         var segment = new ArrayRunCalculatedSegment(Model, "name", contract);
+
+         var value = segment.CalculatedValue(0);
+
+         Assert.Equal(2, value);
+      }
+
+      [Fact]
       public void ZeroWidthSegment_GetColumnHeaders_NoHeaderForZeroWidthColumn() {
          ViewPort.Edit("^table[a: b|=a c:]2 ");
          var table = (ArrayRun)Model.GetTable("table");

@@ -677,7 +677,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (string.IsNullOrEmpty(content)) return Pointer.NULL;
          if (int.TryParse(content, out var _)) return Pointer.NULL;
 
-         var tableSegment = table.ElementContent.FirstOrDefault(seg => seg.Name == content);
+         var tableSegment = table?.ElementContent.FirstOrDefault(seg => seg.Name == content);
          if (tableSegment != null) {
             return table.Start + table.ElementLength * elementIndex +
                table.ElementContent.Until(seg => seg == tableSegment).Sum(seg => seg.Length);
@@ -694,7 +694,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var localFieldValue = ParseValue(model, table, elementIndex, matchLocalField);
             var valueField = parts[5];
             var matchTable = model.GetTable(matchTableName);
-            if (matchTable == null) throw new NotImplementedException(message);
+            if (matchTable == null) return Pointer.NULL;
             for (int i = 0; i < matchTable.ElementCount; i++) {
                if (matchTable.ReadValue(model, i, matchTableField) != localFieldValue) continue;
                return CalculateSource(model, matchTable, i, valueField);
@@ -720,7 +720,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (int.TryParse(content, out int simpleValue)) return simpleValue;
          if (content == "last") return table.ElementCount - 1;
 
-         if (table.ElementContent.Any(seg => seg.Name == content)) {
+         if (table != null && table.ElementContent.Any(seg => seg.Name == content)) {
             return table.ReadValue(model, elementIndex, content);
          }
 
@@ -735,7 +735,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var localFieldValue = ParseValue(model, table, elementIndex, matchLocalField);
             var valueField = parts[5];
             var matchTable = model.GetTable(matchTableName);
-            if (matchTable == null) throw new NotImplementedException(message);
+            if (matchTable == null) return 0;
             for (int i = 0; i < matchTable.ElementCount; i++) {
                if (matchTable.ReadValue(model, i, matchTableField) != localFieldValue) continue;
                return ParseValue(model, matchTable, i, valueField);
