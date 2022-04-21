@@ -207,6 +207,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
             foreach (var word in metadata.MatchedWords) {
+               if (word.Address + word.Length >= Count) continue;
                if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
                matchedWords[word.Name].Add(word.Address);
                var index = BinarySearch(word.Address);
@@ -223,6 +224,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             RemoveMatchedWordsThatDoNotMatch(noChange);
             foreach (var offsetPointer in metadata.OffsetPointers) {
+               if (offsetPointer.Address + 4 >= Count) continue;
                var newRun = new OffsetPointerRun(offsetPointer.Address, offsetPointer.Offset);
                ClearFormat(noChange, newRun.Start, newRun.Length);
                pointerOffsets[offsetPointer.Address] = offsetPointer.Offset;

@@ -886,6 +886,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("some.name", Model.GetAnchorFromAddress(-1, 0x100));
       }
 
+      [Fact]
+      public void OffsetPointerOutOfRange_InitMetadata_NoOffsetPointer() {
+         var metadata = new StoredMetadata(offsetPointers: new[] { new StoredOffsetPointer(0x300, 1) });
+
+         var model = New.PokemonModel(Data, metadata, Singletons);
+
+         Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
+      }
+
+      [Fact]
+      public void OffsetPointerOutOfRange_LoadMetadata_NoOffsetPointer() {
+         var metadata = new StoredMetadata(offsetPointers: new[] { new StoredOffsetPointer(0x300, 1) });
+
+         Model.LoadMetadata(metadata);
+
+         Assert.Equal(int.MaxValue, Model.GetNextRun(0).Start);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
