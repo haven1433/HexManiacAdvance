@@ -84,17 +84,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          return scriptLines.ToArray();
       }
 
-      private static readonly string[] referenceOrder = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };
+      public static IReadOnlyList<string> ReferenceOrder { get; } = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };
       private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTables() {
          if (!File.Exists(TableReferenceFileName)) return new Dictionary<string, GameReferenceTables>();
          var lines = File.ReadAllLines(TableReferenceFileName);
          var tables = new Dictionary<string, List<ReferenceTable>>();
-         for (int i = 0; i < referenceOrder.Length - 2; i++) tables[referenceOrder[i + 1]] = new List<ReferenceTable>();
+         for (int i = 0; i < ReferenceOrder.Count - 2; i++) tables[ReferenceOrder[i + 1]] = new List<ReferenceTable>();
          foreach (var line in lines) {
             var row = line.Trim();
             if (row.StartsWith("//")) continue;
             var segments = row.Split("//")[0].Split(",");
-            if (segments.Length != referenceOrder.Length) continue;
+            if (segments.Length != ReferenceOrder.Count) continue;
             var name = segments[0].Trim();
             var offset = 0;
             if (name.Contains("+")) {
@@ -108,11 +108,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                offset = -offset;
             }
             var format = segments.Last().Trim();
-            for (int i = 0; i < referenceOrder.Length - 2; i++) {
+            for (int i = 0; i < ReferenceOrder.Count - 2; i++) {
                var addressHex = segments[i + 1].Trim();
                if (addressHex == string.Empty) continue;
                if (!int.TryParse(addressHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) continue;
-               tables[referenceOrder[i + 1]].Add(new ReferenceTable(name, offset, address, format));
+               tables[ReferenceOrder[i + 1]].Add(new ReferenceTable(name, offset, address, format));
             }
          }
 
@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!File.Exists(ConstantReferenceFileName)) return new Dictionary<string, GameReferenceConstants>();
          var lines = File.ReadAllLines(ConstantReferenceFileName);
          var constants = new Dictionary<string, List<ReferenceConstant>>();
-         for (int i = 0; i < referenceOrder.Length - 2; i++) constants[referenceOrder[i + 1]] = new List<ReferenceConstant>();
+         for (int i = 0; i < ReferenceOrder.Count - 2; i++) constants[ReferenceOrder[i + 1]] = new List<ReferenceConstant>();
          foreach (var line in lines) {
             if (string.IsNullOrWhiteSpace(line)) continue;
             var cleanLine = line.Trim();

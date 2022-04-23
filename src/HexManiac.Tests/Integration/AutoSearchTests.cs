@@ -39,11 +39,17 @@ namespace HavenSoft.HexManiac.Tests {
          "Altair",          // from Emerald
       }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
 
-      public static IEnumerable<object[]> VanillaPokemonGames { get; } = new[] {
+      public static IEnumerable<string> VanillaPokemonGames { get; } = new[] {
          "Ruby",
+         "Sapphire",
+         "Ruby v1.1",
+         "Sapphire v1.1",
          "FireRed",
+         "LeafGreen",
+         "FireRed v1.1",
+         "LeafGreen v1.1",
          "Emerald",
-      }.Select(game => new object[] { "sampleFiles/Pokemon " + game + ".gba" });
+      }.Select(game => "sampleFiles/Pokemon " + game + ".gba");
 
       private readonly AutoSearchFixture fixture;
       private readonly NoDataChangeDeltaModel noChange = new NoDataChangeDeltaModel();
@@ -119,21 +125,29 @@ namespace HavenSoft.HexManiac.Tests {
 
       public static IEnumerable<object[]> VanillaTilemapsWithPalettes {
          get {
-            var fixture = new AutoSearchFixture();
-            foreach (var game in VanillaPokemonGames.Select(args => (string)args[0])) {
-               var model = fixture.LoadModel(game);
-               foreach (var anchor in model.Anchors) {
+            var games = VanillaPokemonGames.ToList();
+            int gameIndex = 0;
+            foreach (var pair in BaseViewModelTestClass.Singletons.GameReferenceTables) {
+               var gameCode = pair.Key;
+               var gameName = games[gameIndex];
+               foreach (var anchor in pair.Value) {
                   // graphics.titlescreen.publisher.palette is loaded into both slot E and slot F, but we only recognize it being loaded into slot F.
                   // graphics.titlescreen.widescreen.tilemap expects it to load into slot E. We'll ignore this.
-                  if (anchor == "graphics.titlescreen.widescreen.tilemap") continue;
+                  if (anchor.Name == "graphics.titlescreen.widescreen.tilemap") continue;
 
-                  var run = model.GetNextAnchor(anchor) as ITilemapRun;
-                  if (run == null || run.SpriteFormat.BitsPerPixel != 4 || run.SpriteFormat.PaletteHint == null || run.BytesPerTile != 2) continue;
-                  var palettes = run.FindRelatedPalettes(model);
-                  if (palettes.Count == 0) continue;
-
-                  yield return new object[] { game, anchor };
+                  // only return tilemaps that have palettes
+                  var isTilemap = anchor.Format.StartsWith("`lzm4") || anchor.Format.StartsWith("`ucm4");
+                  if (!isTilemap) continue;
+                  var tileSetName = anchor.Format.Split("|")[1].Split("`")[0];
+                  if (tileSetName.Length == 0) continue;
+                  var tileset = pair.Value[tileSetName];
+                  if (tileset == null) continue;
+                  var hasPalette = tileset.Format.Contains("|");
+                  if (!hasPalette) continue;
+                  
+                  yield return new object[] { gameName, anchor.Name };
                }
+               gameIndex++;
             }
          }
       }
