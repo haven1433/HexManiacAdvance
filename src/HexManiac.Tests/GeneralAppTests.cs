@@ -616,14 +616,19 @@ ApplicationVersion = '''0.1.0'''
       }
 
       [Fact]
-      public void namewillbegiven() {
-         var filesystem = new StubFileSystem();
-         var editor = new EditorViewModel(filesystem);
+      public void Editor_OpenFile_NotifyRecentFileMenuEnabled() {
          var view = new StubView(editor);
 
          editor.Open.Execute(new LoadedFile("TestRom.gba", new byte[0x200]));
 
          Assert.Contains(nameof(editor.RecentFileMenuEnabled), view.PropertyNotifications);
+      }
+
+      [Fact]
+      public void Editor_New_PokemonModel() {
+         editor.New.Execute();
+         var viewPort = (IViewPort)editor.SelectedTab;
+         Assert.IsType<PokemonModel>(viewPort.Model);
       }
 
       private StubTabContent CreateClosableTab() {

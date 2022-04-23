@@ -560,7 +560,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ImplementCommands() {
          newCommand.CanExecute = CanAlwaysExecute;
-         newCommand.Execute = arg => Add(new ViewPort());
+         newCommand.Execute = arg => Add(new ViewPort(string.Empty, new PokemonModel(new byte[0], singletons: Singletons), workDispatcher, Singletons));
 
          open.CanExecute = CanAlwaysExecute;
          open.Execute = ExecuteOpen;
