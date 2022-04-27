@@ -489,7 +489,7 @@
                                                    <ColumnDefinition Width="*"/>
                                                    <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding PreviousPage}" />
+                                                <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
                                                 <hsg3hv:AngleButton Content="Import" Grid.Column="1" Command="{Binding ImportPair}" CommandParameter="{DynamicResource FileSystem}" />
                                                 <hsg3hv:AngleButton Content="Edit" Grid.Column="2" Command="{Binding OpenEditor}" x:Name="EditButton" ToolTip="Open image in editor" />
                                                 <Grid Grid.Column="3">
@@ -501,7 +501,7 @@
                                                       </hsg3hv:AngleMenuItem>
                                                    </Menu>
                                                 </Grid>
-                                                <hsg3hv:AngleButton Content="Next" Grid.Column="4" Command="{Binding NextPage}" />
+                                                <hsg3hv:AngleButton Content="Next" Grid.Column="4" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
                                              </Grid>
                                           </StackPanel>
                                        </DataTemplate>
@@ -509,11 +509,11 @@
                                           <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                              <hsg3hv:CommonTableStreamControl />
                                              <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
-                                             <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}">
-                                                <Button Content="Previous" Command="{Binding PreviousPage}" DockPanel.Dock="Left"/>
-                                                <Button Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette"/>
-                                                <Button Content="Next" Command="{Binding NextPage}" DockPanel.Dock="Right"/>
-                                                <Button Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette"/>
+                                             <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                                                <hsg3hv:AngleButton MinWidth="20" Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette" />
+                                                <hsg3hv:AngleButton MinWidth="20" Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette" />
+                                                <hsg3hv:AngleButton MinWidth="60" Content="Previous" DockPanel.Dock="Left" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
+                                                <hsg3hv:AngleButton MinWidth="60" Content="Next" DockPanel.Dock="Right" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
                                              </DockPanel>
                                           </StackPanel>
                                        </DataTemplate>

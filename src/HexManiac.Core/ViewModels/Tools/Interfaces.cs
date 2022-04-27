@@ -148,9 +148,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       bool ShowPageControls { get; }
       int Pages { get; }
       int CurrentPage { get; set; }
-      ICommand PreviousPage { get; }
-      ICommand NextPage { get; }
+
       ICommand AddPage { get; }
       ICommand DeletePage { get; }
+
+      bool CanMovePrevious { get; }
+      bool CanMoveNext { get; }
+      void MovePrevious();
+      void MoveNext();
    }
 }

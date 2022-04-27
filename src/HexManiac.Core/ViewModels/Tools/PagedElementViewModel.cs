@@ -12,8 +12,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => currentPage;
          set {
             if (!TryUpdate(ref currentPage, value % Pages)) return;
-            previousPage.RaiseCanExecuteChanged();
-            nextPage.RaiseCanExecuteChanged();
+            NotifyPropertyChanged(nameof(CanMovePrevious));
+            NotifyPropertyChanged(nameof(CanMoveNext));
             UpdateOtherPagedViewModels();
             addPage.RaiseCanExecuteChanged();
             PageChanged();
@@ -24,17 +24,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #region Commands
 
-      private readonly StubCommand previousPage = new StubCommand();
-      public ICommand PreviousPage => previousPage;
-
-      private readonly StubCommand nextPage = new StubCommand();
-      public ICommand NextPage => nextPage;
+      public bool CanMovePrevious => currentPage > 0;
+      public bool CanMoveNext => currentPage < Pages - 1;
+      public void MovePrevious() => CurrentPage -= 1;
+      public void MoveNext() => CurrentPage += 1;
 
       private StubCommand addPage, deletePage;
       public ICommand AddPage => StubCommand(ref addPage, ExecuteAddPage, CanExecuteAddPage);
       public ICommand DeletePage => StubCommand(ref deletePage, ExecuteDeletePage, CanExecuteDeletePage);
+
       protected abstract bool CanExecuteAddPage();
       protected abstract bool CanExecuteDeletePage();
+
       protected virtual void ExecuteAddPage() {
          var destination = ViewPort.Model.ReadPointer(Start);
          if (!(ViewPort.Model.GetNextRun(destination) is PagedLZRun run)) return;
@@ -50,10 +51,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (pvm.Pages == Pages - 1) pvm.ExecuteAddPage();
          }
          deletePage.RaiseCanExecuteChanged();
-         previousPage.RaiseCanExecuteChanged();
+         NotifyPropertyChanged(nameof(CanMovePrevious));
 
          PageChanged();
       }
+
       protected virtual void ExecuteDeletePage() {
          var destination = ViewPort.Model.ReadPointer(Start);
          if (!(ViewPort.Model.GetNextRun(destination) is PagedLZRun run)) return;
@@ -66,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (pvm.Pages == Pages + 1) pvm.ExecuteDeletePage();
          }
          deletePage.RaiseCanExecuteChanged();
-         nextPage.RaiseCanExecuteChanged();
+         NotifyPropertyChanged(nameof(CanMoveNext));
 
          PageChanged();
       }
@@ -79,11 +81,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // update usage count, assuming that our run is paged.
          var run = Model.GetNextRun(Model.ReadPointer(Start)) as IPagedRun;
          UsageCount = run?.PointerSources?.Count ?? 0;
-
-         previousPage.CanExecute = arg => currentPage > 0;
-         previousPage.Execute = arg => CurrentPage -= 1;
-         nextPage.CanExecute = arg => currentPage < Pages - 1;
-         nextPage.Execute = arg => CurrentPage += 1;
       }
 
       public void UpdateOtherPagedViewModels() {
@@ -105,8 +102,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          addPage.RaiseCanExecuteChanged();
          deletePage?.RaiseCanExecuteChanged();
          NotifyPropertyChanged(nameof(CurrentPage));
-         previousPage.RaiseCanExecuteChanged();
-         nextPage.RaiseCanExecuteChanged();
+         NotifyPropertyChanged(nameof(CanMovePrevious));
+         NotifyPropertyChanged(nameof(CanMoveNext));
 
          return true;
       }

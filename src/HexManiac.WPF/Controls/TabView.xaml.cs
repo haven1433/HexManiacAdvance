@@ -513,5 +513,35 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          box.IsChecked = !box.IsChecked;
          e.Handled = true;
       }
+
+      private void PageMovePrevious(object sender, RoutedEventArgs e) {
+         if (e.Source is not FrameworkElement element) return;
+         if (element.DataContext is not PagedElementViewModel vm) return;
+         var offset = TableScrollViewer.ContentVerticalOffset;
+         vm.MovePrevious();
+
+         // hack: WPF is calling a layout update that's causing an undesired auto-scroll.
+         // prevent the auto-scroll by observing it and reversing it.
+         void HandleScrollChanged(object sender, ScrollChangedEventArgs e) {
+            TableScrollViewer.ScrollChanged -= HandleScrollChanged;
+            TableScrollViewer.ScrollToVerticalOffset(offset);
+         }
+         TableScrollViewer.ScrollChanged += HandleScrollChanged;
+      }
+
+      private void PageMoveNext(object sender, RoutedEventArgs e) {
+         if (e.Source is not FrameworkElement element) return;
+         if (element.DataContext is not PagedElementViewModel vm) return;
+         var offset = TableScrollViewer.ContentVerticalOffset;
+         vm.MoveNext();
+
+         // hack: WPF is calling a layout update that's causing an undesired auto-scroll.
+         // prevent the auto-scroll by observing it and reversing it.
+         void HandleScrollChanged(object sender, ScrollChangedEventArgs e) {
+            TableScrollViewer.ScrollChanged -= HandleScrollChanged;
+            TableScrollViewer.ScrollToVerticalOffset(offset);
+         }
+         TableScrollViewer.ScrollChanged += HandleScrollChanged;
+      }
    }
 }
