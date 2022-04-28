@@ -428,6 +428,10 @@ graphics.titlescreen.version.palette,               ,   ,   ,   ,   ,   ,   ,   
 graphics.titlescreen.version.sprite,                ,   ,   ,   ,   ,   ,   ,   , 540048, `lzs8x8x8|graphics.titlescreen.version.palette`
 graphics.titlescreen.pokemon.tileset,               ,   ,   ,   ,   ,   ,   ,   , 0AA95C, `lzt4|graphics.titlescreen.logo.palette`
 graphics.titlescreen.pokemon.tilemap,               ,   ,   ,   ,   ,   ,   ,   , 0AA964, `lzm4x32x32|graphics.titlescreen.pokemon.tileset`
+graphics.titlescreen.introscene.bike.male,    416DAC, 416E08, 416DC0, 416E20, ,,,, 5F52BC, `lzs4x8x8|graphics.titlescreen.introscene.bike.palette`
+graphics.titlescreen.introscene.bike.female,  416DBC, 416E18, 416DD0, 416E30, ,,,, 5F52CC, `lzs4x8x8|graphics.titlescreen.introscene.bike.palette`
+graphics.titlescreen.introscene.bike.bottom,  416DCC, 416E28, 416DE0, 416E40, ,,,, 5F52DC, `lzs4x8x4|graphics.titlescreen.introscene.bike.palette`
+graphics.titlescreen.introscene.bike.palette, 416DFC, 416E58, 416E10, 416E70, ,,,, 5F530C, `ucp4`
 graphics.titlescreen.introscene.gengar.palette,    ,,,, 40BF14, 40BD50, 40BF84, 40BDC0, , `ucp4:5`
 graphics.titlescreen.introscene.nidorino.palette,  ,,,, 40BF1C, 40BD58, 40BF8C, 40BDC8, , `ucp4`
 graphics.titlescreen.introscene.grass.palette,     ,,,, 40BF24, 40BD60, 40BF94, 40BDD0, , `ucp4`
