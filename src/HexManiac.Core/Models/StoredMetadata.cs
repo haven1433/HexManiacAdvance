@@ -513,11 +513,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       #endregion
 
-      public static string GenerateHash<T>(IEnumerable<T> items, uint seed = 0xCafeBabe) {
+      public static string GenerateHash(IEnumerable<string> items, uint seed = 0xCafeBabe) {
          var hash = seed;
+         var sha = System.Security.Cryptography.SHA256.Create();
          foreach (var item in items) {
             hash = (hash << 3) | (hash >> 29);
-            hash ^= (uint)(item?.GetHashCode() ?? 0);
+            if (item == null) continue;
+            var encoded = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(item));
+            hash ^= BitConverter.ToUInt32(encoded);
          }
          return hash.ToString("X8");
       }
@@ -530,10 +533,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       public StoredGotoShortcut(string name, string image, string destination) => (Display, Image, Anchor) = (name, image, destination);
    }
 
-   public class ValidationList<T> : List<T> {
+   public class ValidationList : List<string> {
       public string StoredHash { get; }
       public ValidationList(string hash) => StoredHash = hash;
-      public ValidationList(string hash, IEnumerable<T> content) : base(content) => StoredHash = hash;
+      public ValidationList(string hash, IEnumerable<string> content) : base(content) => StoredHash = hash;
       public bool StoredHashMatches => StoredHash == StoredList.GenerateHash(this);
    }
 }

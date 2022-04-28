@@ -32,9 +32,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          addedUnmappedConstants = new Dictionary<string, int>(),
          removedUnmappedConstants = new Dictionary<string, int>();
 
-      private readonly Dictionary<string, ValidationList<string>>
-         addedLists = new Dictionary<string, ValidationList<string>>(),
-         removedLists = new Dictionary<string, ValidationList<string>>();
+      private readonly Dictionary<string, ValidationList>
+         addedLists = new Dictionary<string, ValidationList>(),
+         removedLists = new Dictionary<string, ValidationList>();
 
       private int oldDataLength = -1, newDataLength = -1;
 
@@ -114,7 +114,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return true;
       }
 
-      public void ChangeList(string name, ValidationList<string> oldValues, ValidationList<string> newValues) {
+      public void ChangeList(string name, ValidationList oldValues, ValidationList newValues) {
          using (CaptureNonDataChange()) {
             if (!removedLists.ContainsKey(name)) removedLists.Add(name, oldValues);
             addedLists[name] = newValues;

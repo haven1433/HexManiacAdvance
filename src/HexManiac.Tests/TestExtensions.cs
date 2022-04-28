@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Tests {
       public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
 
       public static void ChangeList(this ModelDelta token, string name, string[] oldValues, string[] newValues) {
-         token.ChangeList(name, new ValidationList<string>(null, oldValues), new ValidationList<string>(null, newValues));
+         token.ChangeList(name, new ValidationList(null, oldValues), new ValidationList(null, newValues));
       }
 
       public static T Single<T>(this ObservableCollection<IArrayElementViewModel> self) => (T)self.Single(item => item is T);

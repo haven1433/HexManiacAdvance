@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(@"[[List]]
 Name = '''Input'''
-DefaultHash = '''471ACB84'''
+DefaultHash = '''0BEEDA92'''
 0 = [
    '''bob''',
    '''tom''',

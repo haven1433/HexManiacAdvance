@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IFormattedRun GetNextAnchor(int dataIndex);
 
       bool TryGetUsefulHeader(int address, out string header);
-      bool TryGetList(string name, out ValidationList<string> nameArray);
+      bool TryGetList(string name, out ValidationList nameArray);
 
       bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun); // is this byte the first one after the end of a table run? (also return true if the table is length 0 and starts right here)
 
@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove, IReadOnlyDictionary<string, ValidationList<string>> listsToAdd);
+         IReadOnlyDictionary<string, ValidationList> listsToRemove, IReadOnlyDictionary<string, ValidationList> listsToAdd);
       T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
       int FindFreeSpace(int start, int length);
       void ClearAnchor(ModelDelta changeToken, int start, int length);
@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual bool TryGetUsefulHeader(int address, out string header) { header = null; return false; }
 
-      public virtual bool TryGetList(string name, out ValidationList<string> list) { list = null; return false; }
+      public virtual bool TryGetList(string name, out ValidationList list) { list = null; return false; }
 
       public abstract bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun);
 
@@ -264,8 +264,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
          IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove,
-         IReadOnlyDictionary<string, ValidationList<string>> listsToAdd);
+         IReadOnlyDictionary<string, ValidationList> listsToRemove,
+         IReadOnlyDictionary<string, ValidationList> listsToAdd);
 
       public abstract T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
 
@@ -778,7 +778,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove, IReadOnlyDictionary<string, ValidationList<string>> listsToAdd) { }
+         IReadOnlyDictionary<string, ValidationList> listsToRemove, IReadOnlyDictionary<string, ValidationList> listsToAdd) { }
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) => throw new NotImplementedException();
       public override int FindFreeSpace(int start, int length) => throw new NotImplementedException();
       public override void ClearAnchor(ModelDelta changeToken, int start, int length) { }

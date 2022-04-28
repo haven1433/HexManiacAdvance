@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
       private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
 
-      private readonly Dictionary<string, ValidationList<string>> lists = new Dictionary<string, ValidationList<string>>();
+      private readonly Dictionary<string, ValidationList> lists = new Dictionary<string, ValidationList>();
 
       private readonly Singletons singletons;
       private readonly bool showRawIVByteForTrainer;
@@ -189,7 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // metadata is more important than anything already found
             foreach (var list in metadata.Lists) {
-               lists[list.Name] = new ValidationList<string>(list.Hash, list);
+               lists[list.Name] = new ValidationList(list.Hash, list);
             }
             foreach (var anchor in metadata.NamedAnchors) {
                // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
@@ -1370,12 +1370,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
          IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove,
-         IReadOnlyDictionary<string, ValidationList<string>> listsToAdd
+         IReadOnlyDictionary<string, ValidationList> listsToRemove,
+         IReadOnlyDictionary<string, ValidationList> listsToAdd
       ) {
          foreach (var kvp in listsToRemove) lists.Remove(kvp.Key);
          foreach (var kvp in listsToAdd) {
-            var newList = new ValidationList<string>(kvp.Value.StoredHash);
+            var newList = new ValidationList(kvp.Value.StoredHash);
             newList.AddRange(kvp.Value);
             lists.Add(kvp.Key, newList);
          }
@@ -1544,12 +1544,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else {
-            lists[name] = new ValidationList<string>(hash, list);
+            lists[name] = new ValidationList(hash, list);
          }
-         changeToken.ChangeList(name, oldContent, new ValidationList<string>(hash, list));
+         changeToken.ChangeList(name, oldContent, new ValidationList(hash, list));
       }
 
-      public override bool TryGetList(string name, out ValidationList<string> list) {
+      public override bool TryGetList(string name, out ValidationList list) {
          return lists.TryGetValueCaseInsensitive(name, out list);
       }
 
