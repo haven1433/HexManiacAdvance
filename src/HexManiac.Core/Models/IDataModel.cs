@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IFormattedRun GetNextAnchor(int dataIndex);
 
       bool TryGetUsefulHeader(int address, out string header);
-      bool TryGetList(string name, out IReadOnlyList<string> nameArray);
+      bool TryGetList(string name, out ValidationList<string> nameArray);
 
       bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun); // is this byte the first one after the end of a table run? (also return true if the table is length 0 and starts right here)
 
@@ -74,14 +74,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove, IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd);
+         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove, IReadOnlyDictionary<string, ValidationList<string>> listsToAdd);
       T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
       int FindFreeSpace(int start, int length);
       void ClearAnchor(ModelDelta changeToken, int start, int length);
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
-      void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list);
+      void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -194,7 +194,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public virtual void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list) => throw new NotImplementedException();
+      public virtual void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash) => throw new NotImplementedException();
 
       public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual bool TryGetUsefulHeader(int address, out string header) { header = null; return false; }
 
-      public virtual bool TryGetList(string name, out IReadOnlyList<string> list) { list = null; return false; }
+      public virtual bool TryGetList(string name, out ValidationList<string> list) { list = null; return false; }
 
       public abstract bool IsAtEndOfArray(int dataIndex, out ITableRun tableRun);
 
@@ -264,8 +264,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
          IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove,
-         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd);
+         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove,
+         IReadOnlyDictionary<string, ValidationList<string>> listsToAdd);
 
       public abstract T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
 
@@ -504,7 +504,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static void LoadMetadata(this IDataModel model, StoredMetadata metadata) {
          var noChange = new NoDataChangeDeltaModel();
-         foreach (var list in metadata.Lists) model.SetList(noChange, list.Name, list.Contents);
+         foreach (var list in metadata.Lists) {
+            if (model.TryGetList(list.Name, out var existingList) && !existingList.StoredHashMatches) {
+               // the list has been manually tampered with by the user
+               // do not update it
+            } else {
+               model.SetList(noChange, list.Name, list.Contents, list.Hash);
+            }
+         }
          foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
          foreach (var match in metadata.MatchedWords) {
             model.ClearFormat(noChange, match.Address, match.Length);
@@ -750,7 +757,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items);
+      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, null);
    }
 
    public class BasicModel : BaseModel {
@@ -771,7 +778,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, string> matchedWordsToRemove, IReadOnlyDictionary<int, string> matchedWordsToAdd,
          IReadOnlyDictionary<int, int> offsetPointersToRemove, IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove, IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd) { }
+         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove, IReadOnlyDictionary<string, ValidationList<string>> listsToAdd) { }
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) => throw new NotImplementedException();
       public override int FindFreeSpace(int start, int length) => throw new NotImplementedException();
       public override void ClearAnchor(ModelDelta changeToken, int start, int length) { }

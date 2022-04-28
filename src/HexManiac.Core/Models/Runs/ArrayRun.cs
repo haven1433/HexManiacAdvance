@@ -892,7 +892,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!owner.TryGetList(LengthFromAnchor, out var originalList)) return;
          var newList = originalList.ToList();
          while (newList.Count < desiredValue) newList.Add($"unnamed{newList.Count}");
-         owner.SetList(token, LengthFromAnchor, newList);
+         owner.SetList(token, LengthFromAnchor, newList, originalList.StoredHash);
       }
 
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {

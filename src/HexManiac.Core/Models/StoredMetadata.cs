@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int FreeSpaceBuffer { get; } = -1;
       public bool ShowRawIVByteForTrainer { get; } = false;
 
-      public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0;
+      public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0 && Lists.Count == 0;
 
       // for backwards compatibility for tests
       public StoredMetadata(
@@ -153,6 +153,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (cleanLine.StartsWith("Format = '''")) {
                currentItemFormat = cleanLine.Split("'''")[1];
+            }
+
+            if (cleanLine.StartsWith("DefaultHash = '''")) {
+               currentItemHash = cleanLine.Split("'''")[1];
             }
 
             if (cleanLine.StartsWith("Note = '''")) {
@@ -333,7 +337,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return lines.ToArray();
       }
 
-      string currentItem, currentItemName, currentItemFormat, currentItemImage, currentItemDestination;
+      string currentItem, currentItemName, currentItemFormat, currentItemImage, currentItemDestination, currentItemHash;
       List<string> currentItemChildren;
       bool continueCurrentItemIndex;
       int currentItemLength = -1;
@@ -373,7 +377,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (currentItem == "[[List]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify a name!");
             if (currentItemChildren == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify any children!");
-            lists.Add(new StoredList(currentItemName, currentItemChildren));
+            lists.Add(new StoredList(currentItemName, currentItemChildren, currentItemHash));
          }
 
          if (currentItem == "[[UnmappedConstant]]") {
@@ -408,6 +412,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentItemNote = null;
          currentItemImage = null;
          currentItemDestination = null;
+         currentItemHash = null;
       }
    }
 
@@ -465,12 +470,18 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class StoredList : IReadOnlyList<string> {
       public string Name { get; }
       public IReadOnlyList<string> Contents { get; }
+      public string Hash { get; }
+      public bool HashMatches => Hash == GenerateHash(Contents);
 
-      public StoredList(string name, IReadOnlyList<string> contents) => (Name, Contents) = (name, contents);
+      public StoredList(string name, IReadOnlyList<string> contents, string hash = null) {
+         if (hash == null) hash = GenerateHash(contents);
+         (Name, Hash, Contents) = (name, hash, contents);
+      }
 
       public void AppendContents(IList<string> builder) {
          builder.Add("[[List]]");
          builder.Add($"Name = '''{Name}'''");
+         if (Hash != null) builder.Add($"DefaultHash = '''{Hash}'''");
          for (int i = 0; i < Contents.Count; i++) {
             var prevNull = i == 0 || Contents[i - 1] == null;
             var nextNull = i == Contents.Count - 1 || Contents[i + 1] == null;
@@ -495,11 +506,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       #region IReadOnlyList members
 
       public int Count => Contents.Count;
+
       public string this[int index] => Contents[index] ?? index.ToString();
       public IEnumerator<string> GetEnumerator() => Contents.GetEnumerator();
       IEnumerator IEnumerable.GetEnumerator() => Contents.GetEnumerator();
 
       #endregion
+
+      public static string GenerateHash<T>(IEnumerable<T> items, uint seed = 0xCafeBabe) {
+         var hash = seed;
+         foreach (var item in items) {
+            hash = (hash << 3) | (hash >> 29);
+            hash ^= (uint)(item?.GetHashCode() ?? 0);
+         }
+         return hash.ToString("X8");
+      }
    }
 
    public class StoredGotoShortcut {
@@ -507,5 +528,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       public string Image { get; }   // Image
       public string Anchor { get; }  // Destination
       public StoredGotoShortcut(string name, string image, string destination) => (Display, Image, Anchor) = (name, image, destination);
+   }
+
+   public class ValidationList<T> : List<T> {
+      public string StoredHash { get; }
+      public ValidationList(string hash) => StoredHash = hash;
+      public ValidationList(string hash, IEnumerable<T> content) : base(content) => StoredHash = hash;
+      public bool StoredHashMatches => StoredHash == StoredList.GenerateHash(this);
    }
 }

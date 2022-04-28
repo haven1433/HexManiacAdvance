@@ -56,6 +56,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(@"[[List]]
 Name = '''Input'''
+DefaultHash = '''471ACB84'''
 0 = [
    '''bob''',
    '''tom''',
@@ -164,6 +165,66 @@ Name = '''Input'''
          var text = segment.ToText(Model, 0, false);
 
          Assert.Equal("- \"with spaces\" /", text);
+      }
+
+      [Fact]
+      public void DefaultToml_LoadList_HashMatches() {
+         var metadatas = BaseModel.GetDefaultMetadatas("AXVE0", "BPRE", "BPEE0");
+
+         foreach (var list in metadatas.SelectMany(metadata => metadata.Lists)) {
+            Assert.True(list.HashMatches);
+         }
+      }
+
+      [Fact]
+      public void DefaultList_ChangeContent_HashDoesNotMatch() {
+         var text = new List<string>();
+         BaseModel.GetDefaultMetadatas().First().Lists[0].AppendContents(text);
+
+         var hashLine = text.Single(line => line.Trim().StartsWith("DefaultHash = '''"));
+         text[text.IndexOf(hashLine)] = "DefaultHash = '''0'''";
+         var metadata = new StoredMetadata(text.ToArray());
+
+         Assert.False(metadata.Lists[0].HashMatches);
+      }
+
+      [Fact]
+      public void DefaultList_HashMatches() {
+         var list = BaseModel.GetDefaultMetadatas().First().Lists[0];
+
+         Assert.True(list.HashMatches);
+      }
+
+      [Fact]
+      public void HashMatches_UpdateVersion_ListUpdates() {
+         var someRealList = BaseModel.GetDefaultMetadatas().First().Lists.First();
+         SetGameCode("BPRE0");
+
+         var content = new[] { "some", "content" };
+         var metadata = new StoredMetadata(
+            generalInfo: new StubMetadataInfo { VersionNumber = "0.0.1" },
+            lists: new[] { new StoredList(someRealList.Name, content, StoredList.GenerateHash(content)) }
+         );
+         var model = new PokemonModel(Model.RawData, metadata, Singletons);
+
+         model.TryGetList(someRealList.Name, out var list);
+         Assert.Equal(someRealList.Contents, list.ToList());
+      }
+
+      [Fact]
+      public void HashDoesNotMatch_UpdateVersion_ListDoesNotUpdate() {
+         var someRealList = BaseModel.GetDefaultMetadatas().First().Lists.First();
+         SetGameCode("BPRE0");
+
+         var content = new[] { "some", "content" };
+         var metadata = new StoredMetadata(
+            generalInfo: new StubMetadataInfo { VersionNumber = "0.0.1" },
+            lists: new[] { new StoredList(someRealList.Name, content, hash: "0") }
+         );
+         var model = new PokemonModel(Model.RawData, metadata, Singletons);
+
+         model.TryGetList(someRealList.Name, out var list);
+         Assert.Equal(content, list.ToList());
       }
    }
 }

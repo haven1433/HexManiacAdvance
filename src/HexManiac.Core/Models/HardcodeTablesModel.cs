@@ -157,6 +157,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             constantSet[constant.Name].Add(constant);
          }
          foreach (var constant in constantSet.Values) {
+            if (constant.Any(c => c.Address + c.Length > model.Count)) continue;
             var virtualValues = constant.Select(c => (model.ReadMultiByteValue(c.Address, c.Length) - c.AddOffset) / c.MultOffset).ToList();
             var match = virtualValues.All(vv => vv == virtualValues[0]);
             if (match) words.AddRange(constant);

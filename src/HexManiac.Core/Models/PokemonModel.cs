@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
       private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
 
-      private readonly Dictionary<string, List<string>> lists = new Dictionary<string, List<string>>();
+      private readonly Dictionary<string, ValidationList<string>> lists = new Dictionary<string, ValidationList<string>>();
 
       private readonly Singletons singletons;
       private readonly bool showRawIVByteForTrainer;
@@ -189,7 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // metadata is more important than anything already found
             foreach (var list in metadata.Lists) {
-               lists[list.Name] = list.ToList();
+               lists[list.Name] = new ValidationList<string>(list.Hash, list);
             }
             foreach (var anchor in metadata.NamedAnchors) {
                // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
@@ -304,6 +304,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var changedLocations = new HashSet<int>();
 
          foreach (var reference in referenceTables) {
+            if (reference.Address + 4 > Count) continue;
             var destination = base.ReadPointer(reference.Address) - reference.Offset;
             if (!anchorForAddress.ContainsKey(destination) && !addressForAnchor.ContainsKey(reference.Name)) {
                ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
@@ -1369,11 +1370,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<int, int> offsetPointersToAdd,
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove,
          IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
-         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToRemove,
-         IReadOnlyDictionary<string, IReadOnlyList<string>> listsToAdd
+         IReadOnlyDictionary<string, ValidationList<string>> listsToRemove,
+         IReadOnlyDictionary<string, ValidationList<string>> listsToAdd
       ) {
          foreach (var kvp in listsToRemove) lists.Remove(kvp.Key);
-         foreach (var kvp in listsToAdd) lists.Add(kvp.Key, kvp.Value.ToList());
+         foreach (var kvp in listsToAdd) {
+            var newList = new ValidationList<string>(kvp.Value.StoredHash);
+            newList.AddRange(kvp.Value);
+            lists.Add(kvp.Key, newList);
+         }
 
          foreach (var kvp in namesToRemove) {
             var (address, name) = (kvp.Key, kvp.Value);
@@ -1535,17 +1540,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list) {
+      public override void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash) {
          if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
-         else lists[name] = list.ToList();
-         changeToken.ChangeList(name, oldContent, list);
+         else {
+            lists[name] = new ValidationList<string>(hash, list);
+         }
+         changeToken.ChangeList(name, oldContent, new ValidationList<string>(hash, list));
       }
 
-      public override bool TryGetList(string name, out IReadOnlyList<string> list) {
-         var result = lists.TryGetValueCaseInsensitive(name, out var value);
-         list = value;
-         return result;
+      public override bool TryGetList(string name, out ValidationList<string> list) {
+         return lists.TryGetValueCaseInsensitive(name, out list);
       }
 
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
