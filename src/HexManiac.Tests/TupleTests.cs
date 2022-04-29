@@ -342,6 +342,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2,  Model[6]);
       }
 
+      [Fact]
+      public void EnumTuple_Create_HasFilteredText() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+         var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default);
+         Assert.Equal("adam", tuple.FilterText);
+      }
+
+      [Fact]
+      public void EnumTuple_ValueOutsideOptionsRange_FilteredTextIsNumber() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+         Model[0] = 9;
+
+         var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default);
+
+         Assert.Equal("9", tuple.FilterText);
+      }
+
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

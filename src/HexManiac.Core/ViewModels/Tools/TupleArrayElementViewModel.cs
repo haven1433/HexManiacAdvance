@@ -186,6 +186,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged) {
          (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
+         var selectedIndex = SelectedIndex;
+         var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
+         filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex] : selectedIndex.ToString();
          RaiseDataChanged = raiseDataChanged;
       }
 
