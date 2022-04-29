@@ -108,7 +108,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
       IReadOnlyList<TableGroup> GetTableGroups(string tableName);
-      void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames);
+      void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash);
    }
 
    public abstract class BaseModel : IDataModel {
@@ -309,7 +309,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public bool Equals(IDataModel other) => other == this;
 
-      public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames) { }
+      public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash) { }
    }
 
    public static class IDataModelExtensions {
@@ -542,7 +542,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          foreach (var group in metadata.TableGroups) {
-            model.AppendTableGroup(default, group.GroupName, group.Tables);
+            model.AppendTableGroup(default, group.GroupName, group.Tables, group.Hash);
          }
          model.LoadMetadataProperties(metadata);
       }

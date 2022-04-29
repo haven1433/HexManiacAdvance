@@ -286,8 +286,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      /// <summary>
+      /// Delete whatever TableGroups have matching Hashes: those haven't been edited by the user.
+      /// </summary>
+      private void ClearNoEditTableGroups() {
+         var groupsToRemove = new List<TableGroup>(TableGroups.Where(group => group.HashMatches));
+         groupsToRemove.ForEach(group => TableGroups.Remove(group));
+      }
+
       private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas) {
          var noChange = new NoDataChangeDeltaModel();
+
+         ClearNoEditTableGroups();
 
          if (singletons.GameReferenceConstants != null && singletons.GameReferenceConstants.TryGetValue(this.GetGameCode(), out var referenceConstants)) {
             var metadata = HardcodeTablesModel.DecodeConstantsFromReference(this, singletons.MetadataInfo, new StoredMetadata(new string[0]), referenceConstants);
@@ -2406,12 +2416,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private readonly List<TableGroup> TableGroups = new();
-      public void RemoveTableGroup(ModelDelta token, string groupName) {
-         // TODO
-      }
-      public override void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames) {
-         RemoveTableGroup(token, groupName);
-         TableGroups.Add(new(groupName, tableNames));
+      public override void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash) {
+         if (TableGroups.Any(group => tableNames.Any(group.Tables.Contains))) return; // don't add it if it contains the same table as one already added
+         TableGroups.Add(new(groupName, tableNames, hash));
       }
       public override IReadOnlyList<TableGroup> GetTableGroups(string tableName) {
          if (!addressForAnchor.TryGetValue(tableName, out var address)) return null;
@@ -2438,7 +2445,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
    }
 
-   public record TableGroup(string GroupName, IReadOnlyList<string> Tables);
+   public record TableGroup(string GroupName, IReadOnlyList<string> Tables) {
+      private string hash;
+      public string Hash {
+         get {
+            if (hash == null) hash = StoredList.GenerateHash(Tables);
+            return hash;
+         }
+      }
+
+      public bool HashMatches => StoredList.GenerateHash(Tables) == Hash;
+
+      public TableGroup(string groupName, IReadOnlyList<string> tables, string hash) : this(groupName, tables) {
+         this.hash = hash;
+      }
+   }
 
    public static class StringDictionaryExtensions {
       public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {

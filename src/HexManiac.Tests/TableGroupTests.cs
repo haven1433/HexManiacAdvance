@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableGroup_LoadTable_TableToolContainsGroup() {
          ViewPort.Edit("@10 ^table1[data:]4 @20 ^table2[data:]table1 @30 ^table3[data:]table1 @40 ^table4[data:]table1 ");
-         Model.AppendTableGroup(Token, "tables", new[] { "table1", "table2" });
+         Model.AppendTableGroup(Token, "tables", new[] { "table1", "table2" }, null);
 
          ViewPort.Goto.Execute(0x10);
          var groups = ViewPort.Tools.TableTool.Groups;
@@ -72,6 +73,86 @@ namespace HavenSoft.HexManiac.Tests {
          var text = newMetadata.Serialize();
 
          Assert.Contains("[[TableGroup]]", text);
+      }
+
+      [Fact]
+      public void NoGroups_UpdateVersion_Groups() {
+         SetGameCode(HardcodeTablesModel.FireRed);
+         var metadata = new StoredMetadata(
+            anchors: new[] { new StoredAnchor(0x100, "anchor", string.Empty) },
+            generalInfo: New.EarliestVersionInfo
+         );
+
+         var model = New.PokemonModel(Model.RawData, metadata, Singletons);
+
+         var groups = model.ExportMetadata(Singletons.MetadataInfo).TableGroups;
+         Assert.NotEmpty(groups);
+      }
+
+      [Fact]
+      public void TableGroup_GenerateHash_HashMatches() {
+         var group = new TableGroup("group", new[] { "table1", "table2" });
+         Assert.True(group.HashMatches);
+      }
+
+      [Fact]
+      public void TableGroup_IncludeWrongHash_HashDoesNotMatch() {
+         var group = new TableGroup("group", new[] { "table1", "table2" }, "0");
+         Assert.False(group.HashMatches);
+      }
+
+      [Fact]
+      public void Groups_UpdateVersion_NoDuplicates() {
+         // calculate 'default' TableGroups
+         SetGameCode(HardcodeTablesModel.FireRed);
+         var model = New.HardcodeTablesModel(Singletons, Model.RawData);
+         var metadata = model.ExportMetadata(Singletons.MetadataInfo);
+         var tableGroups = metadata.TableGroups;
+
+         // upgrade version
+         metadata = new StoredMetadata(
+            tableGroups: tableGroups,
+            generalInfo: New.EarliestVersionInfo);
+         model = New.PokemonModel(model.RawData, metadata, Singletons);
+
+         var newGroups = model.ExportMetadata(Singletons.MetadataInfo).TableGroups;
+         Assert.Equal(tableGroups.Count, newGroups.Count);
+         for (int i = 0; i < newGroups.Count; i++) {
+            Assert.Equal(tableGroups[i].GroupName, newGroups[i].GroupName);
+            Assert.Equal(tableGroups[i].Hash, newGroups[i].Hash);
+         }
+      }
+
+      [Fact]
+      public void TableGroupWithEditedHash_UpdateVersion_DoNotAddGroupsWithSameTables() {
+         SetGameCode(HardcodeTablesModel.FireRed);
+         var metadata = new StoredMetadata(
+            tableGroups: new[] { new TableGroup("custom", new[] { HardcodeTablesModel.PokemonNameTable }, "0") },
+            generalInfo: New.EarliestVersionInfo
+         );
+
+         var model = New.PokemonModel(Model.RawData, metadata, Singletons);
+         var groups = model.ExportMetadata(Singletons.MetadataInfo).TableGroups;
+
+         var group = groups.Single(group => group.GroupName == "custom");
+         Assert.Single(group.Tables);
+         Assert.Single(groups.Where(group => group.Tables.Contains(HardcodeTablesModel.PokemonNameTable)));
+      }
+
+      [Fact]
+      public void Text_LoadMetadata_CaptureHash() {
+         var text = @"
+[[TableGroup]]
+Name = '''custom'''
+DefaultHash = '''0'''
+0 = [
+   '''table''',
+]
+";
+
+         var metadata = new StoredMetadata(text.SplitLines());
+
+         Assert.Equal("0", metadata.TableGroups.Single().Hash);
       }
 
       [Fact]

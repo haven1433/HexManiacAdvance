@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int FreeSpaceBuffer { get; } = -1;
       public bool ShowRawIVByteForTrainer { get; } = false;
 
-      public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0 && Lists.Count == 0;
+      public bool IsEmpty => NamedAnchors.Count == 0 && UnmappedPointers.Count == 0 && Lists.Count == 0 && TableGroups.Count == 0;
 
       // for backwards compatibility for tests
       public StoredMetadata(
@@ -396,7 +396,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (currentItem == "[[TableGroup]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a TableGroup that didn't specify a name!");
             if (currentItemChildren == null) throw new ArgumentNullException("The Metadat file has a TableGroup that didn't specify any children!");
-            tableGroups.Add(new(currentItemName, currentItemChildren));
+            tableGroups.Add(new(currentItemName, currentItemChildren, currentItemHash));
          }
 
          currentItem = null;
