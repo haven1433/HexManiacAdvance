@@ -503,6 +503,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.Key == Key.Enter) viewModel.ConfirmSelection();
       }
 
+      private void ComboBoxTupleElementViewKeyDown(object sender, KeyEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = (EnumTupleElementViewModel)element.DataContext;
+         if (e.Key == Key.Enter) viewModel.ConfirmSelection();
+      }
+
       private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {
          LeftToolsPane.Width = new GridLength(500);
       }

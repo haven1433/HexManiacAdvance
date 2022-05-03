@@ -74,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(Options));
          recursionCheck--;
       }
+
       public void ConfirmSelection() {
          SelectedIndex = 0;
       }

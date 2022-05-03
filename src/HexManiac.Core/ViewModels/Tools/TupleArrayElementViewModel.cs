@@ -145,9 +145,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public void ConfirmSelection() => SelectedIndex = 0;
+
       public int SelectedIndex {
          get => seg.Read(viewPort.Model, Start, BitOffset);
          set {
+            if (recursionCheck != 0) return;
+            var filteredOptions = Options;
+            var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
+            var currentOption = (0 <= value && value < filteredOptions.Count) ? filteredOptions[value] : fullOptions[0];
+            IsFiltering = false;
+            if (0 <= value && value < fullOptions.Count) value = fullOptions.IndexOf(currentOption);
+            if (value >= 0) FilterText = fullOptions[value];
+            if (filteredOptions.Count != fullOptions.Count) {
+               NotifyPropertyChanged(nameof(Options));
+            }
+
             seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, value);
             RaiseDataChanged();
             NotifyPropertyChanged();

@@ -384,12 +384,12 @@
                                                 </hsg3hv:AngleComboBox.ItemTemplate>
                                              </hsg3hv:AngleComboBox>
                                              <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Direction="None"
-                                             Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                                Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                                 <hsg3hv:AngleButton.ToolTip>
                                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                                       <TextBlock TextAlignment="Left">
-                                                   Jump to the table used as<LineBreak/>
-                                                   a source for the options.
+                                                         Jump to the table used as<LineBreak/>
+                                                         a source for the options.
                                                       </TextBlock>
                                                    </ToolTip>
                                                 </hsg3hv:AngleButton.ToolTip>
@@ -560,7 +560,7 @@
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTupleElementViewModel}">
-                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" PreviewKeyDown="ComboBoxTupleElementViewKeyDown">
                                                          <Grid.ColumnDefinitions>
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="2*"/>
