@@ -728,14 +728,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public int Convert(IDataModel model, string value) {
          int result;
-         if (string.IsNullOrEmpty(EnumTableName)) {
-            if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
-            if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return result;
-            if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return result;
-            if (int.TryParse(value, out result)) return result;
-            return 0;
+         if (!string.IsNullOrEmpty(EnumTableName)) {
+            if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result;
          }
-         if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result;
+         if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
+         if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return result;
+         if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return result;
+         if (int.TryParse(value, out result)) return result;
          return 0;
       }
    }

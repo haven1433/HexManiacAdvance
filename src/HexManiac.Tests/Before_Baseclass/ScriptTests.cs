@@ -535,6 +535,16 @@ Script:
          Assert.Equal("somename", Model.GetAnchorFromAddress(-1, 0x100));
       }
 
+      [Fact]
+      public void ScriptWithPokemonArgument_GiveVariableAsArgument_WriteVariableToRom() {
+         SetFullModel(0xFF);
+
+         var script = Script("showpokepic 0x8004 0 0", "end");
+         var code = ViewPort.Tools.CodeTool.ScriptParser.Compile(Token, Model, 0, ref script, out var _);
+
+         Assert.Equal(0x8004, code.ReadMultiByteValue(1, 2));
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
