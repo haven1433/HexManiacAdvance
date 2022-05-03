@@ -545,6 +545,16 @@ Script:
          Assert.Equal(0x8004, code.ReadMultiByteValue(1, 2));
       }
 
+      [Fact]
+      public void ScriptCommandWithFillerArgs_Parse_FillerArgsNotShown() {
+         Model[0] = 0x79;  // givePokemon
+         Model[15] = 0x02; // end
+
+         var script = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, 16).SplitLines();
+
+         Assert.Equal("givePokemon 0 0 0", script[0].Trim());
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

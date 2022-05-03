@@ -473,6 +473,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var commandText = LineCommand;
          for (int i = 1; i < LineCode.Count; i++) commandText += " " + LineCode[i].ToString("X2");
+         var fillerCount = Args.Count(arg => arg.Name == "filler");
+         for (int i = 0; i < fillerCount; i++) {
+            if (tokens.Length < Args.Count + LineCode.Count) tokens = tokens.Append("0").ToArray();
+         }
          if (Args.Count > 0 && Args.Last() is ArrayArg) {
             if (Args.Count > tokens.Length) {
                return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
@@ -555,15 +559,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          for (int i = 0; i < LineCode.Count; i++) {
             if (LineCode[i] != data[start + i]) throw new ArgumentException($"Data at {start:X6} does not match the {LineCommand} command.");
          }
+         var allFillerIsZero = IsAllFillerZero(data, start);
          start += LineCode.Count;
          var builder = new StringBuilder(LineCommand);
          for (int i = 1; i < LineCode.Count; i++) {
             builder.Append(" " + LineCode[i].ToHexString());
          }
+
          int lastAddress = -1;
          foreach (var arg in Args) {
             builder.Append(" ");
             if (arg is ScriptArg scriptArg) {
+               if (allFillerIsZero && scriptArg.Name == "filler") continue;
                if (arg.Type == ArgType.Byte) builder.Append(scriptArg.Convert(data, data[start]));
                if (arg.Type == ArgType.Short) builder.Append(scriptArg.Convert(data, data.ReadMultiByteValue(start, 2)));
                if (arg.Type == ArgType.Word) builder.Append(scriptArg.Convert(data, data.ReadMultiByteValue(start, 4)));
@@ -593,6 +600,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
          return builder.ToString();
+      }
+
+      private bool IsAllFillerZero(IDataModel data, int start) {
+         start += LineCode.Count;
+         foreach (var arg in Args) {
+            var value = data.ReadMultiByteValue(start, arg.Length(data, start));
+            if (value != 0) return false;
+            start += arg.Length(data, start);
+         }
+         return true;
       }
 
       public static string ReadString(IReadOnlyList<byte> data, int start) {
