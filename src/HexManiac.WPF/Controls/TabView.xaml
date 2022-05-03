@@ -364,24 +364,14 @@
                                              </hsg3hv:AngleBorder>
                                              <hsg3hv:AngleComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1" Direction="None"
                                                  IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
-                                                <hsg3hv:AngleComboBox.ItemTemplate>
-                                                   <DataTemplate>
-                                                      <StackPanel>
-                                                         <TextBlock Text="{Binding Text}" Visibility="{Binding DisplayAsText, Converter={StaticResource BoolToVisibility}}"/>
-                                                         <hsg3hv:PixelImage>
-                                                            <hsg3hv:PixelImage.Style>
-                                                               <Style TargetType="hsg3hv:PixelImage">
-                                                                  <Style.Triggers>
-                                                                     <DataTrigger Binding="{Binding DisplayAsText}" Value="True">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
-                                                                     </DataTrigger>
-                                                                  </Style.Triggers>
-                                                               </Style>
-                                                            </hsg3hv:PixelImage.Style>
-                                                         </hsg3hv:PixelImage>
-                                                      </StackPanel>
+                                                <hsg3hv:AngleComboBox.Resources>
+                                                   <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
+                                                      <hsg3hv:PixelImage />
                                                    </DataTemplate>
-                                                </hsg3hv:AngleComboBox.ItemTemplate>
+                                                   <DataTemplate DataType="{x:Type hsg3hvmtr:ComboOption}">
+                                                      <TextBlock Text="{Binding Text}" />
+                                                   </DataTemplate>
+                                                </hsg3hv:AngleComboBox.Resources>
                                              </hsg3hv:AngleComboBox>
                                              <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Direction="None"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
