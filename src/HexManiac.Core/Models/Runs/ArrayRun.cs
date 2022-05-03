@@ -110,7 +110,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          length += offsets.SegmentOffset;
          for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
             var offset = offsets.SegmentStart;
-            if (offsets.SegmentIndex == 0 && offsets.ElementIndex > 0) text.Append(ArrayRun.ExtendArray);
+            var couldBeExtension = offsets.ElementIndex > 0 || self is TableStreamRun streamRun && streamRun.AllowsZeroElements;
+            if (offsets.SegmentIndex == 0 && couldBeExtension) text.Append(ArrayRun.ExtendArray);
             for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
                var segment = self.ElementContent[j];
                if (j == 0 && segment.Type != ElementContentType.PCS && names != null && names.Count > i && !string.IsNullOrEmpty(names[i])) {

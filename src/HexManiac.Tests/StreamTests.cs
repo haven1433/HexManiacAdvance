@@ -540,5 +540,33 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<NoInfoRun>(destinationRun);
          Assert.Equal(0, destinationRun.PointerSources.Single());
       }
+
+      [Fact]
+      public void TableStream_Copy_FirstElementStartsWithPlus() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^stream[a: b:]!FFFF +1,2 +3,4 +5,6 ");
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.MoveSelectionEnd.Execute(Direction.End);
+
+         ViewPort.Copy.Execute(FileSystem);
+
+         string text = FileSystem.CopyText;
+         var addCount = text.ToCharArray().Where(c => c == '+').Count();
+         Assert.Equal(3, addCount);
+      }
+
+      [Fact]
+      public void TableStream_DeepCopyPointer_CloseElementIncludedOnce() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^stream[a: b:]!FFFF +1,2 +3,4 +5,6 ");
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.MoveSelectionEnd.Execute(Direction.End);
+
+         ViewPort.Edit("@100 <stream> @100 ^table[ptr<>]1 ");
+         ViewPort.DeepCopy.Execute(FileSystem);
+
+         string text = FileSystem.CopyText;
+         Assert.Equal(text.IndexOf("[]"), text.LastIndexOf("[]"));
+      }
    }
 }

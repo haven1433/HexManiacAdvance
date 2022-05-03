@@ -64,7 +64,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   run.AppendTo(rawData, builder, run.Start, run.Length, deep);
                }
                recursionStopper = false;
-               if (run is TableStreamRun tsr && tsr.AllowsZeroElements) builder.Append(" []"); // Include the end token, allowing streams to be made shorter.
+               if (run is TableStreamRun tsr && tsr.AllowsZeroElements) {
+                  if (builder.Length >= 2 && builder.ToString(builder.Length - 2, 2) != "[]") {
+                     builder.Append(" []"); // Include the end token, allowing streams to be made shorter.
+                  }
+               }
                builder.Append(" @} ");
 
                return builder.ToString();
