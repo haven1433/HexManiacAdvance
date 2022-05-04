@@ -320,6 +320,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(editor.ShowMessage);
       }
 
+      [Fact]
+      public void SecondByte7F_ReadVariableWidthInteger_DecodeCorrectly() {
+         var data = new byte[] { 0x00, 0x7F, 0x81 };
+         int start = 0;
+
+         var result = DiffViewPort.ReadVariableWidthInteger(data, ref start);
+
+         Assert.Equal("C000", result.ToString("X4"));
+         Assert.Equal(3, start);
+      }
+
       // TODO Can I use this pointer information to then show diffs between dynamic addresses?
       //      If a pointer is recognized as moved, show a diff for the two destinations together, instead of just based on linear address
       //      i.e. instead of diffing 720000 with 720000, diff <720000> with <840000> (because of a pointer difference found)

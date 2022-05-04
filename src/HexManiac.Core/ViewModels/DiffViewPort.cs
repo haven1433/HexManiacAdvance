@@ -290,7 +290,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (patchCRC != patch.ReadMultiByteValue(patch.Length - 4, 4)) return -3;
 
          // resize (bigger)
-         int readIndex = 4, writeIndex = 0, firstEdit = int.MaxValue;
+         int readIndex = 4, firstEdit = int.MaxValue;
          int sourceSize = ReadVariableWidthInteger(patch, ref readIndex);
          int destinationSize = ReadVariableWidthInteger(patch, ref readIndex);
          int writeLength = destinationSize;
@@ -347,7 +347,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public static int ReadVariableWidthInteger(byte[] data, ref int index) {
          int result = 0, shift = 0;
          while (true) {
-            result |= (data[index] & 0x7F) << shift;
+            result += (data[index] & 0x7F) << shift;
             if (shift != 0) result += 1 << shift;
             shift += 7;
             index += 1;
