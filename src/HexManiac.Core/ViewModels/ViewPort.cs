@@ -1097,6 +1097,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionStart = ConvertViewPointToAddress(SelectionStart);
          if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
          RefreshBackingData();
+         scroll.UpdateHeaders();
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
