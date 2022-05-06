@@ -545,5 +545,11 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit(text);
          Assert.Single(Errors);
       }
+
+      [Fact]
+      public void Constant_TwoBytes_HasRightFormat() {
+         var word = new WordRun(0, "name", 2, 0, 1);
+         Assert.Equal(":", word.FormatString);
+      }
    }
 }

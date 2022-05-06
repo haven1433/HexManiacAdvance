@@ -14,7 +14,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public string Note { get; }
 
-      public override string FormatString => Length == 4 ? "::" : ".";
+      public override string FormatString => Length switch {
+         4 => "::",
+         2 => ":",
+         _ => ".",
+      };
 
       public WordRun(int start, string name, int length, int valueOffset, int multOffset, string note = null, SortedSpan<int> sources = null) : base(start, sources) {
          SourceArrayName = name;
