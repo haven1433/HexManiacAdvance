@@ -1119,7 +1119,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void UpdateDependantArrayLengths(ModelDelta changeToken, ArrayRun arrayRun) {
          if (!anchorForAddress.TryGetValue(arrayRun.Start, out string anchor)) return;
-         foreach (var table in this.GetDependantArrays(anchor)) {
+         var dependentArrays = this.GetDependantArrays(anchor).ToList();
+         foreach (var table in dependentArrays) {
             var newTable = table;
 
             // runs may have changed since getting the dependent arrays

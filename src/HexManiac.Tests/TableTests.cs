@@ -926,6 +926,40 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, Model.ReadPointer(0x104));
       }
 
+      [Fact]
+      public void MetadataHasTwoCloseTablesWithOverlappingConstantLength_Load_KeepSecondTableWithPointer() {
+         Model.WritePointer(Token, 0x100, 0x10); // pointer to table1
+         Model.WritePointer(Token, 0x110, 0x20); // pointer to table2 (16 bytes after table1)
+         Model[0x120] = 6;                       // table length (24 bytes)
+
+         var metadata = new StoredMetadata(
+            anchors: new StoredAnchor[] { new(0x10, "table1", "[a::]constant"), new(0x20, "table2", "[b::]constant") },
+            matchedWords: new[] { new StoredMatchedWord(0x120, "constant", 1, 0, 1, "note") }
+         );
+         var model = new PokemonModel(Model.RawData, metadata, Singletons);
+
+         var pointerRun = model.GetNextRun(0x110);
+         Assert.IsType<PointerRun>(pointerRun);
+         Assert.Equal(0x110, pointerRun.Start);
+      }
+
+      [Fact]
+      public void MetadataHasTwoCloseTablesWithBarelyOverlappingConstantLength_Load_KeepSecondTableWithPointer() {
+         Model.WritePointer(Token, 0x100, 0x10); // pointer to table1
+         Model.WritePointer(Token, 0x110, 0x20); // pointer to table2 (16 bytes after table1)
+         Model[0x120] = 5;                       // table length (24 bytes)
+
+         var metadata = new StoredMetadata(
+            anchors: new StoredAnchor[] { new(0x10, "table1", "[a::]constant"), new(0x20, "table2", "[b::]constant") },
+            matchedWords: new[] { new StoredMatchedWord(0x120, "constant", 1, 0, 1, "note") }
+         );
+         var model = new PokemonModel(Model.RawData, metadata, Singletons);
+
+         var pointerRun = model.GetNextRun(0x110);
+         Assert.IsType<PointerRun>(pointerRun);
+         Assert.Equal(0x110, pointerRun.Start);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

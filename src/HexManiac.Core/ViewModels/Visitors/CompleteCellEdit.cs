@@ -498,19 +498,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                      var anchorName = model.GetAnchorFromAddress(-1, newArray.Start);
                      if (!string.IsNullOrWhiteSpace(anchorName)) name = anchorName;
                      messageText = $"Table {name} was moved. Pointers have been updated.";
-                     if (newArray.Length > array.Length && newArray.Start == array.Start) model.ClearFormat(token, array.Start + array.Length, newArray.Length - array.Length);
-                     model.ObserveRunWritten(token, newArray);
-                     // if this run supports pointers to elements, the clear may've accidentally cleared some pointers to those inner elements.
-                     // re-add pointers as needed
-                     if (newArray.SupportsInnerPointers) {
-                        for (int i = array.ElementCount; i < newArray.ElementCount; i++) {
-                           foreach (var source in newArray.PointerSourcesForInnerElements[i]) {
-                              var existingRun = model.GetNextRun(source);
-                              if (existingRun.Start <= source) continue;
-                              model.ObserveRunWritten(token, new PointerRun(source));
-                           }
+                     if (newArray.Length > array.Length && newArray.Start == array.Start) {
+                        model.ClearFormat(token, array.Start + array.Length, newArray.Length - array.Length);
+                        // edge case: if the run in this spot isn't the run we're about to add, clear that too
+                        if (model.GetNextRun(newArray.Start).Start != newArray.Start) {
+                           model.ClearFormat(token, newArray.Start, array.Length);
                         }
                      }
+                     model.ObserveRunWritten(token, newArray);
+                     // if this run has pointers, those may have been cleared by some earlier update
+                     InsertPointersToRun(model, token, newArray);
                   }
                }
             }
@@ -530,6 +527,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          return (newDataIndex, messageText, errorText);
+      }
+
+      private static void InsertPointersToRun(IDataModel model, ModelDelta token, IFormattedRun run) {
+         foreach (var source in run.PointerSources) {
+            var existingRun = model.GetNextRun(source);
+            if (existingRun.Start <= source) continue;
+            model.ObserveRunWritten(token, new PointerRun(source));
+         }
+
+         if (run is ArrayRun newArray && newArray.SupportsInnerPointers) {
+            for (int i = 0; i < newArray.ElementCount; i++) {
+               foreach (var source in newArray.PointerSourcesForInnerElements[i]) {
+                  var existingRun = model.GetNextRun(source);
+                  if (existingRun.Start <= source) continue;
+                  model.ObserveRunWritten(token, new PointerRun(source));
+               }
+            }
+         }
       }
 
       private void CompleteIntegerEnumEdit() {
