@@ -80,11 +80,18 @@ namespace HavenSoft.HexManiac.Tests {
                }.Contains(namedAnchor.Name);
                exemptFormat |= new[] { // legitimate format changes: same name, new format
                   "graphics.gamecorner.game.palette",
+                  "scripts.specials.thumb",
                }.Contains(namedAnchor.Name);
             }
+            if (tomlName == "_0.3.0.toml" || tomlName == "_0.3.5.toml") {
+               exemptFormat |= new[] { // legitimate format changes: same name, new format
+                  "scripts.specials.thumb",
+               }.Contains(namedAnchor.Name);
+            }
+
             var newNamedAnchor = freshMetadata.NamedAnchors.Single(anchor => anchor.Name == namedAnchor.Name);
             if (!exemptAddress) Assert.True(newNamedAnchor.Address == namedAnchor.Address, $"Did {namedAnchor.Name} move?");
-            if (!exemptFormat) Assert.True(newNamedAnchor.Format == namedAnchor.Format, $"Did {namedAnchor.Name} get a new format?");
+            if (!exemptFormat) Assert.True(newNamedAnchor.Format == namedAnchor.Format, $"Did {namedAnchor.Name} get a new format? {newNamedAnchor.Format} (new) != {namedAnchor.Format} (old)");
          }
 
          foreach (var offsetPointer in upgradedMetadata.OffsetPointers) {
