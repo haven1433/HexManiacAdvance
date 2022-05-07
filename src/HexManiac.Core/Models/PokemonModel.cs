@@ -1634,7 +1634,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
 
             if (alsoClearData && start < run.Start) {
-               for (int i = 0; i < length && i < run.Start - start; i++) changeToken.ChangeData(this, start + i, 0xFF);
+               for (int i = 0; i < length && i < run.Start - start; i++) {
+                  if (start + i < Count) {
+                     changeToken.ChangeData(this, start + i, 0xFF);
+                  }
+               }
             }
 
             if (run.Start >= start + length) return;

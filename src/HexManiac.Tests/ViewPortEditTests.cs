@@ -551,5 +551,26 @@ namespace HavenSoft.HexManiac.Tests {
          var word = new WordRun(0, "name", 2, 0, 1);
          Assert.Equal(":", word.FormatString);
       }
+
+      [Fact]
+      public void CursorAtEndOfFile_DeleteThenGoto_CannotUndo() {
+         ViewPort.Goto.Execute(0x1FF);
+         ViewPort.MoveSelectionStart.Execute(Direction.Right);
+
+         ViewPort.Clear.Execute();
+         ViewPort.Goto.Execute(0);
+
+         Assert.False(ViewPort.Undo.CanExecute(default));
+      }
+
+      [Fact]
+      public void SelectMultipleBytesIncludingEndOfFile_Delete_NoEdit() {
+         ViewPort.Goto.Execute(0x1FF);
+         ViewPort.MoveSelectionEnd.Execute(Direction.Right);
+
+         ViewPort.Clear.Execute();
+
+         Assert.Equal(0x200, Model.RawData.Length);
+      }
    }
 }

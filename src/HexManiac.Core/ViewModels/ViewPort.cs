@@ -888,6 +888,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (startRun == endRun && (startRun.Start < left || startRun.Start + startRun.Length > right + 1)) {
                // clearing _within_ a single run
                Model.ClearData(history.CurrentChange, left, right - left + 1);
+            } else if (left >= Model.Count) {
+               // don't do any clearing, we are past the last byte
             } else {
                Model.ClearFormatAndData(history.CurrentChange, left, right - left + 1);
             }
