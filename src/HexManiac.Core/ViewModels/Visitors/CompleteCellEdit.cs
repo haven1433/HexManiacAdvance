@@ -506,8 +506,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                         }
                      }
                      model.ObserveRunWritten(token, newArray);
+
                      // if this run has pointers, those may have been cleared by some earlier update
-                     InsertPointersToRun(model, token, newArray);
+                     model.InsertPointersToRun(token, newArray);
                   }
                }
             }
@@ -527,24 +528,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          return (newDataIndex, messageText, errorText);
-      }
-
-      private static void InsertPointersToRun(IDataModel model, ModelDelta token, IFormattedRun run) {
-         foreach (var source in run.PointerSources) {
-            var existingRun = model.GetNextRun(source);
-            if (existingRun.Start <= source) continue;
-            model.ObserveRunWritten(token, new PointerRun(source));
-         }
-
-         if (run is ArrayRun newArray && newArray.SupportsInnerPointers) {
-            for (int i = 0; i < newArray.ElementCount; i++) {
-               foreach (var source in newArray.PointerSourcesForInnerElements[i]) {
-                  var existingRun = model.GetNextRun(source);
-                  if (existingRun.Start <= source) continue;
-                  model.ObserveRunWritten(token, new PointerRun(source));
-               }
-            }
-         }
       }
 
       private void CompleteIntegerEnumEdit() {

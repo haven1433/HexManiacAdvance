@@ -960,6 +960,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x110, pointerRun.Start);
       }
 
+      [Fact]
+      public void MetadataHasTwoCloseTablesWithOverlappingParentTableLength_ParentTableConstantLoad_KeepSecondTableWithPointer() {
+         ViewPort.Edit("@000 ^child1[a::]parent @010 ^child2[b::]parent @080 <child1> <child2> ");
+
+         ArrayRun.TryParse(Model, "[a::]5", 0x100, SortedSpan<int>.None, out var parent);
+         Model.ObserveAnchorWritten(new NoDataChangeDeltaModel(), "parent", parent);
+
+         Model.ResolveConflicts();
+         var pointerRun = Model.GetNextRun(0x080);
+         Assert.IsType<PointerRun>(pointerRun);
+         Assert.Equal(0x084, pointerRun.Start);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

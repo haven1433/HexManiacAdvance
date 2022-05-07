@@ -757,6 +757,24 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public static void InsertPointersToRun(this IDataModel model, ModelDelta token, IFormattedRun run) {
+         foreach (var source in run.PointerSources) {
+            var existingRun = model.GetNextRun(source);
+            if (existingRun.Start <= source) continue;
+            model.ObserveRunWritten(token, new PointerRun(source));
+         }
+
+         if (run is ArrayRun newArray && newArray.SupportsInnerPointers) {
+            for (int i = 0; i < newArray.ElementCount; i++) {
+               foreach (var source in newArray.PointerSourcesForInnerElements[i]) {
+                  var existingRun = model.GetNextRun(source);
+                  if (existingRun.Start <= source) continue;
+                  model.ObserveRunWritten(token, new PointerRun(source));
+               }
+            }
+         }
+      }
+
       public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, null);
    }
 

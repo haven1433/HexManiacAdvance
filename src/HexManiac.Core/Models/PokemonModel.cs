@@ -1155,6 +1155,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                } else {
                   ObserveAnchorWritten(changeToken, tableAnchor, newTable);
                }
+
+               // if this run has pointers, those may have been cleared by some earlier update
+               this.InsertPointersToRun(changeToken, newTable);
             }
             // option 2: this table includes a bit-array based on the given table
             var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
