@@ -19,6 +19,7 @@ data.pokemon.natures.names,            0443D8, 0443D8, 0443F8, 0443F8, 0488B8, 0
 data.menus.text.options,                     ,       ,       ,       , 088DDC, 088DB0, 088DF0, 088DC4,       , [text<"">]7
 data.menus.text.pc,                          ,       ,       ,       , 08FBC8, 08FB9C, 08FBDC, 08FBB0,       , [text<""> data::]31
 data.menus.text.pokemon,                     ,       ,       ,       , 121DF4, 121DCC, 121E6C, 121E44,       , [text<"">]27
+data.menus.text.pcoptions,                   ,       ,       ,       , 0EB80C, 0EB7E4, 0EB820, 0EB80C,       , [text<""> code<>]3
 scripts.newgame.names.male,            00B7BC, 00B7BC, 00B7BC, 00B7BC,       ,       ,       ,       ,       , [name<""> unused::]5
 scripts.newgame.names.male,                  ,       ,       ,       , 1316F0, 1316C8, 131768, 131740,       , [name<"">]19
 scripts.newgame.names.male,                  ,       ,       ,       ,       ,       ,       ,       , 031DE0, [name<"">]20
