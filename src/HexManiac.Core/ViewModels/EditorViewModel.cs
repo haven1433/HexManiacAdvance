@@ -438,6 +438,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             new ReorderDex("National", HardcodeTablesModel.NationalDexTableName),
             new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
             new LevelUpMoveSorter(),
+            // new DecapNames(),
          }.Select(edit => new EditItemWrapper(edit)).ToList();
          var expansionUtils = new List<IQuickEditItem> {
             new ExpandRom(fileSystem),
