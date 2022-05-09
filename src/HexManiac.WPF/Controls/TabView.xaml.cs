@@ -258,21 +258,23 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void HandleViewPortScrollChanged(object sender, PropertyChangedEventArgs e) {
-         if (!AnimateScroll) return;
-         if (e.PropertyName != nameof(IViewPort.ScrollValue)) return;
-         if (!(e is ExtendedPropertyChangedEventArgs<int>)) return;
-         if (!preppedForScrolling) return;
-         var viewPort = (IViewPort)sender;
-         var oldValue = ((ExtendedPropertyChangedEventArgs<int>)e).OldValue;
-         var newValue = viewPort.ScrollValue;
-         var scrollChange = newValue - oldValue;
-         if (scrollChange == 0) return;
+         Dispatcher.Invoke(() => {
+            if (!AnimateScroll) return;
+            if (e.PropertyName != nameof(IViewPort.ScrollValue)) return;
+            if (!(e is ExtendedPropertyChangedEventArgs<int>)) return;
+            if (!preppedForScrolling) return;
+            var viewPort = (IViewPort)sender;
+            var oldValue = ((ExtendedPropertyChangedEventArgs<int>)e).OldValue;
+            var newValue = viewPort.ScrollValue;
+            var scrollChange = newValue - oldValue;
+            if (scrollChange == 0) return;
 
-         var translate = (TranslateTransform)ScrollingHexContent.RenderTransform;
-         var currentOffset = scrollChange * HexContent.CellHeight;
-         translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(currentOffset, 0, new Duration(TimeSpan.FromMilliseconds(100))));
-         ((TranslateTransform)OldContent.RenderTransform).Y = -currentOffset;
-         preppedForScrolling = false;
+            var translate = (TranslateTransform)ScrollingHexContent.RenderTransform;
+            var currentOffset = scrollChange * HexContent.CellHeight;
+            translate.BeginAnimation(TranslateTransform.YProperty, new DoubleAnimation(currentOffset, 0, new Duration(TimeSpan.FromMilliseconds(100))));
+            ((TranslateTransform)OldContent.RenderTransform).Y = -currentOffset;
+            preppedForScrolling = false;
+         });
       }
 
       #endregion
