@@ -1689,6 +1689,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             results.AddRange(Model.Search(searchBytes).Select(result => (result, result + 3)));
          }
 
+         // it might be a word
+         if (cleanedSearchString.Length == 8 && cleanedSearchString.All(AllHexCharacters.Contains)) {
+            searchBytes.AddRange(Parse(cleanedSearchString).Reverse().Select(b => (SearchByte)b));
+            results.AddRange(Model.Search(searchBytes).Select(result => (result, result + 3)));
+         }
+
          // it might be a bl command
          if (cleanedSearchString.StartsWith("BL ") && cleanedSearchString.Contains("<") && cleanedSearchString.EndsWith(">")) {
             results.AddRange(FindBranchLink(cleanedSearchString));

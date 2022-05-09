@@ -548,6 +548,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("4", editor.InformationMessage);
       }
 
+      [Fact]
+      public void Word_Find_Found() {
+         var test = new BaseViewModelTestClass();
+         test.Model.WriteMultiByteValue(0x10, 4, test.Token, 0x12345678);
+
+         var results = test.ViewPort.Find("12345678").Select(result => result.start);
+
+         Assert.Single(results, 0x10);
+      }
+
       private static ViewPort Create(string name, params int[] changeAddresses) {
          var metadata = new StoredMetadata(new string[0]);
          var singletons = BaseViewModelTestClass.Singletons;
