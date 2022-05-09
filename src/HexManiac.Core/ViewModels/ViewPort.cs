@@ -1669,7 +1669,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IReadOnlyList<(int start, int end)> Find(string rawSearch, bool matchExactCase = false) {
          var results = new List<(int start, int end)>();
          var cleanedSearchString = rawSearch;
-         if (!matchExactCase) cleanedSearchString = rawSearch.ToUpper();
+         if (!matchExactCase) cleanedSearchString = rawSearch.ToUpper().Trim();
          var searchBytes = new List<ISearchByte>();
 
          // it might be a string with no quotes, we should check for matches for that.

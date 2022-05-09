@@ -558,6 +558,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(results, 0x10);
       }
 
+      [Fact]
+      public void ExtraWhitespace_Find_IgnoreWhitespace() {
+         var test = new BaseViewModelTestClass();
+         test.Model.WritePointer(test.Token, 0x10, 0x123456);
+
+         var results = test.ViewPort.Find(" 123456 ").Select(result => result.start);
+
+         Assert.Single(results, 0x10);
+      }
+
       private static ViewPort Create(string name, params int[] changeAddresses) {
          var metadata = new StoredMetadata(new string[0]);
          var singletons = BaseViewModelTestClass.Singletons;
