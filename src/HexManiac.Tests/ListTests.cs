@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -225,6 +226,78 @@ DefaultHash = '''0BEEDA92'''
 
          model.TryGetList(someRealList.Name, out var list);
          Assert.Equal(content, list.ToList());
+      }
+
+      [Fact]
+      public void ListWithNullEntries_AutoComplete_NoThrow() {
+         Model.SetList("list", new[] { "zero", "one", null, "three" });
+         ViewPort.Edit("^table[a:list]2 ");
+
+         var visitor = new AutocompleteCell(Model, "e", 0);
+         ViewPort[0, 0].Format.Visit(visitor, 0);
+         var result = visitor.Result.Select(item => item.DisplayText.Trim()).ToArray();
+
+         Assert.Equal(new[] { "zero", "one", "three" }, result);
+      }
+
+      [Fact]
+      public void ListWithNullEntries_FilterOptionInTableTool_FilterOptions() {
+         Model.SetList("list", new[] { "zero", "one", null, "three" });
+         ViewPort.Edit("^table[a:list]2 ");
+         ViewPort.Refresh();
+
+         var item = ViewPort.Tools.TableTool.Groups[0].Members.Single<ComboBoxArrayElementViewModel>();
+         item.IsFiltering = true;
+         item.FilterText = "r";
+
+         Assert.Equal(new[] { "zero", "three" }, item.Options.Select(option => option.Text));
+      }
+
+      [Fact]
+      public void ListWithNullEntries_NoFilter_DoNotShowNullOptions() {
+         Model.SetList("list", new[] { "zero", "one", null, "three" });
+         ViewPort.Edit("^table[a:list]2 ");
+         ViewPort.Refresh();
+
+         var item = ViewPort.Tools.TableTool.Groups[0].Members.Single<ComboBoxArrayElementViewModel>();
+
+         Assert.Equal(new[] { "zero", "one", "three" }, item.Options.Select(option => option.Text));
+      }
+
+      [Fact]
+      public void ListWithNullEntries_ByteHasNullName_ShowAsNumber() {
+         Model[0] = 2;
+         Model.SetList("list", new[] { "zero", "one", null, "three" });
+         ViewPort.Edit("^table[a:list]2 ");
+         ViewPort.Refresh();
+
+         var item = ViewPort.Tools.TableTool.Groups[0].Members.Single<ComboBoxArrayElementViewModel>();
+
+         Assert.Equal(new[] { "zero", "one", "2", "three" }, item.Options.Select(option => option.Text));
+      }
+
+      [Fact]
+      public void ListWithNullEntries_SelectValueInTableTool_CorrectValueInModel() {
+         Model.SetList("list", new[] { "zero", "one", null, "three" });
+         ViewPort.Edit("^table[a:list]2 ");
+         ViewPort.Refresh();
+
+         var item = ViewPort.Tools.TableTool.Groups[0].Members.Single<ComboBoxArrayElementViewModel>();
+         item.SelectedIndex = 2; // "three"
+
+         Assert.Equal(3, Model[0]);
+      }
+
+      [Fact]
+      public void ListWithNullEntries_ValueAfterNullInModel_ShowInTableTool() {
+         Model[0] = 3;
+         Model.SetList("list", new[] { "zero", "one", null, "three" });
+         ViewPort.Edit("^table[a:list]2 ");
+         ViewPort.Refresh();
+
+         var item = ViewPort.Tools.TableTool.Groups[0].Members.Single<ComboBoxArrayElementViewModel>();
+
+         Assert.Equal("three", item.FilterText);
       }
    }
 }

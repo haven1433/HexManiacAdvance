@@ -173,6 +173,13 @@ Name = '''bodycolors'''
 ]
 
 [[List]]
+Name = '''effectiveness'''
+0 = '''None'''
+5 = '''Half'''
+10 = '''Normal'''
+20 = '''Double'''
+
+[[List]]
 Name = '''moveeffectoptions'''
 0 = [
    '''None''',

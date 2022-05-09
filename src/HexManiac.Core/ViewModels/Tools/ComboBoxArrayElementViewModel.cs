@@ -115,8 +115,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (recursionCheck != 0) return;
             IsFiltering = false;
-            if (Options.Count > value && value >= 0) value = Options[value].Index;
-            if (value >= 0) FilterText = fullOptions[value].Text;
+            if (Options.Count > value && value >= 0) {
+               var selectedOption = Options[value];
+               value = fullOptions.FindIndex(option => option.Index == selectedOption.Index);
+               FilterText = selectedOption.Text;
+            } else if (value >= 0) {
+               FilterText = fullOptions[value].Text;
+            }
             if (Options.Count != fullOptions.Count) {
                Options = fullOptions.ToList();
                NotifyPropertyChanged(nameof(Options));
@@ -138,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                selectedIndex = parsedValue - segment.ValueOffset;
             }
 
-            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, selectedIndex + segment.ValueOffset);
+            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, Options[selectedIndex].Index + segment.ValueOffset);
             var info = run.NotifyChildren(ViewPort.Model, ViewPort.ChangeHistory.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
             if (info.HasError && info.IsWarning) ViewPort.RaiseMessage(info.ErrorMessage);
             else if (info.HasError) ViewPort.RaiseError(info.ErrorMessage);
@@ -162,18 +167,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Debug.Assert(segment != null);
          if (segment != null) {
             optionSource = new Lazy<int>(() => CalculateOptionSource(segment.EnumName));
-
             fullOptions = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
             fullOptions = new List<ComboOption>();
          }
          var modelValue = ViewPort.Model.ReadMultiByteValue(start, length) - segment.ValueOffset;
-         if (modelValue >= fullOptions.Count) {
-            fullOptions.Add(new ComboOption(modelValue.ToString(), fullOptions.Count));
-            selectedIndex = fullOptions.Count - 1;
+         if (fullOptions.All(option => option.Index != modelValue)) {
+            var newOption = new ComboOption(modelValue.ToString(), modelValue);
+            var insertIndex = fullOptions.Where(option => option.Index < newOption.Index).Count();
+            fullOptions.Insert(insertIndex, newOption);
+            selectedIndex = insertIndex;
             containsUniqueOption = true;
          } else {
-            selectedIndex = modelValue;
+            selectedIndex = fullOptions.FindIndex(option => option.Index == modelValue);
          }
          filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex].Text : string.Empty;
          Options = fullOptions.ToList();

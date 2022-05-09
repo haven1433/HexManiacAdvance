@@ -218,7 +218,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       // TODO do some sort of caching: rendering these images every time probably sucks for performance.
       public IEnumerable<ComboOption> GetComboOptions(IDataModel model) {
-         var defaultOptions = GetOptions(model).Select((option, i) => new ComboOption(option, i)).ToList();
+         var defaultOptions = GetOptions(model)
+            .Select((option, i) => new ComboOption(option, i))
+            .Where(combo => combo.Text != null)
+            .ToList();
          if (!(model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, EnumName)) is ITableRun tableRun)) return defaultOptions;
          if (!(tableRun.ElementContent[0] is ArrayRunPointerSegment pointerSegment)) return defaultOptions;
          if (!LzSpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _) && !SpriteRun.TryParseSpriteFormat(pointerSegment.InnerFormat, out var _)) return defaultOptions;
