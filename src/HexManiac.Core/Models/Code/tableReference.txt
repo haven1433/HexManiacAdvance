@@ -175,6 +175,7 @@ data.pokemon.natures.stats,                  ,       ,       ,       , 0436D8, 0
 data.pokemon.swarm,                          ,       ,       ,       ,       ,       ,       ,       , 0ED800, [pokemon:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names level. location.]5
 
 scripts.moves.animations.tightenfocus, 1C776C, 1C76FC, 1C7784, 1C7714, 1C6EF8, 1C6ED4, 1C6F68, 1C6F44, 2C9370, `ase`
+scripts.moves.animations.doomdesire,   1C7768, 1C76F8, 1C7780, 1C7710, 1C6EF4, 1C6ED0, 1C6F64, 1C6F40, 2C936C, `ase`
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
 scripts.specials.thumb,                      ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       , 099314, [code<>]
