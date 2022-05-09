@@ -904,6 +904,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(int.MaxValue, Model.GetNextRun(0).Start);
       }
 
+      [Fact]
+      public void RawBytes_WriteSameBytesAsOffsetPointer_MetadataOnlyChange() {
+         Model.WritePointer(Token, 0, 0x104);
+         Model.ObserveAnchorWritten(Token, "anchor", new NoInfoRun(0x100));
+         ViewPort.Refresh();
+
+         ViewPort.Edit("<anchor+4>");
+
+         Assert.True(ViewPort.IsMetadataOnlyChange);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
