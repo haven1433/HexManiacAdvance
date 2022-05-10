@@ -399,7 +399,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
             changedOffsets = new List<int>(changedAddresses);
             changedAddresses = null;
-            return editScope.Result;
+            var result = editScope.Result;
+            editScope = null;
+            return result;
          }
       }
 
@@ -488,7 +490,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          public ModelDelta ChangeToken { get; private set; }
          public PIERun Result { get; set; }
          public EditScope(ModelDelta token, PIERun initialResult) => (ChangeToken, Result) = (token, initialResult);
-         public void Dispose() => ChangeToken = null;
+         public void Dispose() {
+            ChangeToken = null;
+            Result.editScope = null;
+         }
       }
       private EditScope editScope;
 
@@ -545,7 +550,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < newFlags.Length - Length; i++) {
             editScope.ChangeToken.ChangeData(model, newRun.Start + Length + i, 0x00);
          }
-         editScope.Result = new PIERun(model, newRun.Start, newRun.PointerSources);
+         editScope.Result = new PIERun(model, newRun.Start, newRun.PointerSources) { editScope = editScope };
       }
 
       #endregion

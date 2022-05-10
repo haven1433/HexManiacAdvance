@@ -1,4 +1,7 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
 using System.Linq;
 using Xunit;
 namespace HavenSoft.HexManiac.Tests {
@@ -118,6 +121,32 @@ namespace HavenSoft.HexManiac.Tests {
 
          var data = Model.RawData.Skip(0x10).Take(7).ToArray();
          Assert.Equal(new byte[] { 0x00, 0x00, 0x00, 0x20, 0x00, 0x00, 0xFF }, data);
+      }
+
+      [Fact]
+      public void TextTool_EditItemEffect_ChangeModel() {
+         ViewPort.Edit("00 00 00 00 04 00 14 @000 ^run`pie` ");
+         var textTool = ViewPort.Tools.StringTool;
+
+         var lines = textTool.Content.SplitLines();
+         var lineIndex = lines.IndexOfPartial("Arg =");
+         lines[lineIndex] = "Arg = 30";
+         textTool.Content = Environment.NewLine.Join(lines);
+
+         Assert.Equal(30, Model[6]);
+      }
+
+      [Fact]
+      public void TableTool_EditArgWithNamedValue_ChangeModel() {
+         ViewPort.Edit("00 00 00 00 04 00 14 @000 ^run`pie` @100 <run> @100 ^table[ptr<`pie`>]1 ");
+
+         var stream = ViewPort.Tools.TableTool.Groups[1].Members.Single<TextStreamElementViewModel>();
+         var lines = stream.Content.SplitLines();
+         var lineIndex = lines.IndexOfPartial("Arg =");
+         lines[lineIndex] = "Arg = Half";
+         stream.Content = Environment.NewLine.Join(lines);
+
+         Assert.Equal(PIERun.HealthRestore_Half, (sbyte)Model[6]);
       }
    }
 }
