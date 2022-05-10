@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       public MainWindow(EditorViewModel viewModel) {
          InitializeComponent();
          ViewModel = viewModel;
+         Title += $" ({viewModel.Singletons.MetadataInfo.VersionNumber})";
          viewModel.RequestDelayedWork += (sender, e) => deferredActions.Add(e);
          DataContext = viewModel;
          viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
