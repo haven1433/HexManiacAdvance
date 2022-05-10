@@ -1122,7 +1122,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          } else if (file.Name.ToLower().EndsWith(".ups")) {
             history.ChangeCompleted();
-            var destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, CurrentChange, ignoreChecksums: false, out var direction);
+            var destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: false, out var direction);
             scroll.DataLength = Model.Count;
             switch (destination) {
                case -1: RaiseError("UPS Header didn't match!"); break;
@@ -1132,7 +1132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      new VisualOption { Option = "Cancel", Index = 1, ShortDescription = "This is SAFE", Description = "The UPS will instead be opened as a hex file in a separate tab." }
                      );
                   if (choice == 0) {
-                     destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, CurrentChange, ignoreChecksums: true, out direction);
+                     destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: true, out direction);
                      scroll.DataLength = Model.Count;
                   } else {
                      return false;

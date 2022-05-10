@@ -265,8 +265,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       // return -6 if the UPS content didn't finish the last chunk with exactly 12 bytes left
       // return -7 if trying to write past the end of the destination file
       // returns a positive integer, the address of the first change, if everything worked correctly
-      public static int ApplyUPSPatch(IDataModel model, byte[] patch, ModelDelta token, bool ignoreChecksums, out PatchDirection direction) {
+      public static int ApplyUPSPatch(IDataModel model, byte[] patch, Func<ModelDelta> tokenFactory, bool ignoreChecksums, out PatchDirection direction) {
          // 4 byte header: "UPS1"
+         // variable width source-size
+         // variable width destination-size
          // 12 byte footer: 3 CRC32 checksums. Source file, destination file, patch file (CRC of everything except the last 4 bytes)
          direction = PatchDirection.Fail;
 
@@ -296,6 +298,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          int writeLength = destinationSize;
          if (direction == PatchDirection.DestinationToSource) (sourceSize, destinationSize) = (destinationSize, sourceSize);
          if (sourceSize != model.Count && !ignoreChecksums) return -4;
+         var token = tokenFactory.Invoke();
          model.ExpandData(token, destinationSize - 1);
          token.ChangeData(model, sourceSize, new byte[Math.Max(0, destinationSize - sourceSize)]);
          token.ChangeData(model, destinationSize, new byte[Math.Max(0, sourceSize - destinationSize)]);
@@ -355,6 +358,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return result;
             }
          }
+      }
+
+      public static IEnumerable<byte> WriteVariableWidthInteger(int value) {
+         do {
+            var payload = value & 0x7F;
+            value >>= 7;
+            if (value > 0) payload |= 0x80;
+            value -= 1;
+            yield return (byte)payload;
+         } while (value >= 0);
       }
 
       private (int childIndex, int childLine) ConvertLine(int parentLine) {
