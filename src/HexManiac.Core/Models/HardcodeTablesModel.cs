@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
       public const string
+         MapNameTable = "data.maps.names",
          WildTableName = "data.pokemon.wild",
          SpecialsTable = "scripts.specials.thumb",
          MoveDataTable = "data.pokemon.moves.stats.battle",
@@ -37,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          OverworldPalettes = "graphics.overworld.palettes",
          BallPalettesTable = "graphics.items.ball.palettes",
          FrontSpritesTable = "graphics.pokemon.sprites.front",
+         ContestTypesTable = "data.pokemon.type.contest.names",
          PokePalettesTable = "graphics.pokemon.palettes.normal",
          ShinyPalettesTable = "graphics.pokemon.palettes.normal",
          EvolutionTableName = "data.pokemon.evolutions",

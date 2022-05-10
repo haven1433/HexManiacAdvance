@@ -38,11 +38,16 @@ namespace HavenSoft.HexManiac.Core {
          }
       }
 
-      public static T FirstOfType<T>(this IEnumerable list) {
-         foreach(var item in list) {
+      public static T FirstOfTypeOrDefault<T>(this IEnumerable list) where T : class {
+         foreach (var item in list) {
             if (item is T t) return t;
          }
-         throw new InvalidOperationException("Enumerable did not contain any elements of type " + typeof(T));
+         return null;
+      }
+
+      public static T FirstOfType<T>(this IEnumerable list) where T : class {
+         return list.FirstOfTypeOrDefault<T>() ??
+            throw new InvalidOperationException($"Enumerable did not contain any {typeof(T)} elements.");
       }
 
       public static void Sort<T>(this List<T> list, Func<T, T, int> compare) {

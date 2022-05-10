@@ -29,12 +29,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          // text lists
          foreach (var tableName in new[] {
             HardcodeTablesModel.AbilityNamesTable,
+            HardcodeTablesModel.ContestTypesTable,
+            HardcodeTablesModel.DecorationsTableName,
             HardcodeTablesModel.DexInfoTableName,
             HardcodeTablesModel.ItemsTableName,
             HardcodeTablesModel.MoveNamesTable,
             HardcodeTablesModel.PokemonNameTable,
+            HardcodeTablesModel.TrainerClassNamesTable,
             HardcodeTablesModel.TrainerTableName,
             HardcodeTablesModel.TypesTableName,
+            "data.items.berry.stats",
+            "data.pokemon.contest.stats",
+            "data.pokemon.trades",
          }) {
             var tableAddress = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
             if (tableAddress == Pointer.NULL) continue;
@@ -55,21 +61,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // pointer-to-text lists
          foreach (var tableName in new[] {
+            HardcodeTablesModel.MapNameTable,
             HardcodeTablesModel.NaturesTableName,
-            "scripts.newgame.names.rival",
-            "scripts.newgame.names.male",
-            "scripts.newgame.names.female",
+            "data.battle.text",
+            "data.maps.dungeons.stats",
             "data.menus.text.options", // TODO the values (FireRed=3CC330): Slow/Mid/Fast, On/Off, Shift/Set, Mono/Stereo, Help/LR/L=A
             "data.menus.text.pc",
             "data.menus.text.pcoptions",
+            "data.menus.text.pokemon",
+            "data.pokedex.habitat.names",
+            "data.pokemon.moves.fallback.names",
             "data.text.menu.pause",
+            "data.text.menu.pokemon.options",
+            "scripts.newgame.names.female",
+            "scripts.newgame.names.male",
+            "scripts.newgame.names.rival",
          }) {
             var tableAddress = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
             if (tableAddress == Pointer.NULL) continue;
             var tableRun = model.GetNextRun(tableAddress);
             if (tableRun.Start != tableAddress || tableRun is not ITableRun table) continue;
             for (int i = 0; i < table.ElementCount; i++) {
-               var destination = model.ReadPointer(table.Start + table.ElementLength * i);
+               var segment = table.ElementContent.FirstOfTypeOrDefault<ArrayRunPointerSegment>();
+               var offset = table.ElementContent.Until(seg => seg == segment).Sum(seg => seg.Length);
+               var destination = model.ReadPointer(table.Start + table.ElementLength * i + offset);
                if (destination < 0 || destination >= model.Count) continue;
                Decapitalize(model, viewPort.CurrentChange, destination);
             }
