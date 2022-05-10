@@ -17,6 +17,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private static readonly Thickness TextContentThickness = new(0, 1, 0, 1);
 
+      private bool keepTextBoxForContextMenu;
+
       private Binding textBinding;
       public Binding TextBinding {
          get => textBinding;
@@ -130,7 +132,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       /// *look* like TextBoxes, and really be TextBlocks instead.
       /// </summary>
       private void UpdateFieldTextBox(object sender, RoutedEventArgs e) {
-         var isActive = IsMouseOver || IsFocused || IsKeyboardFocusWithin;
+         var isActive = IsMouseOver || IsFocused || IsKeyboardFocusWithin || keepTextBoxForContextMenu;
+         isActive |= Content is TextBox tb && tb.ContextMenu != null && tb.ContextMenu.IsOpen;
          if (isActive && Content is TextBoxLookAlike) {
             var keyBinding = new KeyBinding { Key = Key.Enter };
             BindingOperations.SetBinding(keyBinding, InputBinding.CommandProperty, new Binding(nameof(FieldArrayElementViewModel.Accept)));
@@ -146,6 +149,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
             }
             Content = textBox;
+            textBox.ContextMenuOpening += (sender, args) => keepTextBoxForContextMenu = true;
+            textBox.ContextMenuClosing += (sender, args) => keepTextBoxForContextMenu = false;
             if (IsKeyboardFocused) {
                textBox.Loaded += HandleTextboxLoaded;
             } else {

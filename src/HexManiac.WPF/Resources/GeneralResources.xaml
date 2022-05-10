@@ -586,6 +586,15 @@
       <Setter Property="BorderThickness" Value="1,1,1,1"/>
       <Setter Property="MinHeight" Value="18"/>
       <Setter Property="SnapsToDevicePixels" Value="True"/>
+      <Setter Property="ContextMenu">
+         <Setter.Value>
+            <ContextMenu>
+               <MenuItem Command="ApplicationCommands.Cut" />
+               <MenuItem Command="ApplicationCommands.Copy" />
+               <MenuItem Command="ApplicationCommands.Paste" />
+            </ContextMenu>
+         </Setter.Value>
+      </Setter>
       <Setter Property="Template">
          <Setter.Value>
             <ControlTemplate TargetType="TextBox">
