@@ -973,6 +973,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x084, pointerRun.Start);
       }
 
+      [Fact]
+      public void ChildWithLengthFromParent_ParentWithConstantLength_GetRelatedArraysFindsChild() {
+         ViewPort.Edit("@00 .some.constant 5 ");
+         ViewPort.Edit("@10 ^parent[a:]some.constant ");
+         ViewPort.Edit("@20 ^child[a:]parent ");
+
+         var relatedArrays = Model.GetRelatedArrays((ArrayRun)Model.GetTable("parent")).ToList();
+
+         Assert.Equal(2, relatedArrays.Count);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

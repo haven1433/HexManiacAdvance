@@ -746,13 +746,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IEnumerable<ArrayRun> GetRelatedArrays(this IDataModel model, ArrayRun table) {
          yield return table; // a table is related to itself
          var basename = model.GetAnchorFromAddress(-1, table.Start);
-         if (!string.IsNullOrEmpty(table.LengthFromAnchor)) basename = table.LengthFromAnchor;
+         var nameOptions = new HashSet<string> { basename };
+         if (!string.IsNullOrEmpty(table.LengthFromAnchor)) {
+            basename = table.LengthFromAnchor;
+            nameOptions.Add(basename);
+         }
          foreach (var array in model.Arrays) {
             if (array == table) continue;
             var currentArrayName = model.GetAnchorFromAddress(-1, array.Start);
             var options = new List<string> { currentArrayName };
             if (!string.IsNullOrEmpty(array.LengthFromAnchor)) options.Add(array.LengthFromAnchor);
-            if (!basename.IsAny(options.ToArray())) continue;
+            if (!options.Any(nameOptions.Contains)) continue;
             yield return array;
          }
       }
