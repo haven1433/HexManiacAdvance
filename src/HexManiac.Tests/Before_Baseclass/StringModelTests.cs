@@ -593,6 +593,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual("adam", ViewPort.Headers[0]);
       }
 
+      [Fact]
+      public void ControlCharacterText_CopyPaste_SameBytesPasted() {
+         SetFullModel(0xFF);
+         //             T  M  1  3  cc 13 48  4  ,  0  0  0     C  O  I  N  S
+         var payload = "CE C7 A2 A4 FC 13 48 A5 B8 A1 A1 A1 00 BD C9 C3 C8 CD FF".ToByteArray();
+         Token.ChangeData(Model, 0, payload);
+         ViewPort.Edit("^text\"\" ");
+
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(FileSystem);
+         ViewPort.Goto.Execute(0x100);
+         ViewPort.Edit(FileSystem.CopyText);
+
+         var result = payload.Length.Range().Select(i => Model[i + 0x100]).ToArray();
+         Assert.Equal(payload, result);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

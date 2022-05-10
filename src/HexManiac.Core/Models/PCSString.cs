@@ -198,7 +198,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (data[index - 1].IsAny(Escape, DynamicEscape, ButtonEscape, FunctionEscape)) return true;
          if (index == 1) return false;
          for (int codeDist = 2; codeDist <= 4; codeDist++) {
-            if (index >= codeDist && data[index - codeDist] == FunctionEscape && GetLengthForControlCode(data[index - codeDist + 1]) >= 2) return true;
+            if (index >= codeDist && data[index - codeDist] == FunctionEscape && GetLengthForControlCode(data[index - codeDist + 1]) >= codeDist) return true;
          }
          return false;
       }
