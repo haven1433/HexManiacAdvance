@@ -109,7 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateShortcutSize() {
          if (shortcuts != null) {
-            foreach (var shortcut in shortcuts) shortcut.SmallMode = true; // showAll; // always small mode for the first test, see how that does.
+            foreach (var shortcut in shortcuts) shortcut.SmallMode = false; // showAll; // always small mode for the first test, see how that does.
          }
       }
 
