@@ -40,6 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(Integer integer, byte data);
       void Visit(IntegerEnum integer, byte data);
       void Visit(IntegerHex integer, byte data);
+      void Visit(IntegerUnused integer, byte data);
       void Visit(EggSection section, byte data);
       void Visit(EggItem item, byte data);
       void Visit(PlmItem item, byte data);
@@ -353,6 +354,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          var format = "X" + (Length * 2);
          return Value.ToString(format);
       }
+   }
+
+   public class IntegerUnused : Integer {
+      public IntegerUnused(int source, int position, int value, int length) : base(source, position, value, length) { }
+
+      public override bool Equals(IDataFormat other) {
+         if (!(other is IntegerUnused)) return false;
+         return base.Equals(other);
+      }
+
+      public override string ToString() => Value.ToString();
    }
 
    public class Tuple : IDataFormatInstance {

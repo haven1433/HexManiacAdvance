@@ -179,6 +179,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
 
+      public void Visit(IntegerUnused integerUnused, byte data) {
+         if (!integerUnused.CanStartWithCharacter(Input)) return;
+
+         NewFormat = new UnderEdit(integerUnused, Input.ToString(), integerUnused.Length, null);
+         Result = true;
+      }
+
       public void Visit(EggSection section, byte data) => VisitEgg(section);
 
       public void Visit(EggItem item, byte data) => VisitEgg(item);

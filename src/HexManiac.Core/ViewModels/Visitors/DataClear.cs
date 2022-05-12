@@ -52,6 +52,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(IntegerHex integerHex, byte data) => buffer.WriteMultiByteValue(index, integerHex.Length, currentChange, 0);
 
+      public void Visit(IntegerUnused integerUnused, byte data) => buffer.WriteMultiByteValue(index, integerUnused.Length, currentChange, 0);
+
       public void Visit(EggSection section, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, EggMoveRun.MagicNumber);
 
       public void Visit(EggItem item, byte data) => buffer.WriteMultiByteValue(index, 2, currentChange, 0x0000);

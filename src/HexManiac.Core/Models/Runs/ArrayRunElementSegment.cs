@@ -400,6 +400,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunUnusedSegment : ArrayRunElementSegment {
+      public ArrayRunUnusedSegment(string name, int length) : base(name, ElementContentType.Integer, length) { }
+   }
+
    public class ArrayRunTupleSegment : ArrayRunHexSegment {
       public IReadOnlyList<TupleSegment> Elements { get; }
       public int VisibleElementCount => Elements.Count - Elements.Count(e => string.IsNullOrEmpty(e.Name));

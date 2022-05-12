@@ -51,6 +51,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Visit(IntegerHex integerHex, byte data) => Result = integerHex.ToString();
 
+      public void Visit(IntegerUnused integerUnused, byte data) => Result = integerUnused.Value.ToString();
+
       public void Visit(EggSection section, byte data) => Result = section.SectionName;
 
       public void Visit(EggItem item, byte data) => Result = item.ItemName;

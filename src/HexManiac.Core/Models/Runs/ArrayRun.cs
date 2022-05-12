@@ -46,7 +46,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var position = index - offsets.SegmentStart;
          if (currentSegment is ArrayRunRecordSegment recordSegment) currentSegment = recordSegment.CreateConcrete(data, index);
          if (currentSegment.Type == ElementContentType.Integer) {
-            if (currentSegment is ArrayRunEnumSegment enumSegment) {
+            if (currentSegment is ArrayRunUnusedSegment) {
+               var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
+               return new IntegerUnused(offsets.SegmentStart, position, value, currentSegment.Length);
+            } else if (currentSegment is ArrayRunEnumSegment enumSegment) {
                var value = enumSegment.ToText(data, offsets.SegmentStart, false);
                return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
             } else if (currentSegment is ArrayRunTupleSegment tupleSegment) {
@@ -852,7 +855,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private void AdjustTableIndexValues(ModelDelta token, int newElementCount) {
          for (int i = 0; i < ElementContent.Count; i++) {
             if (ElementContent[i].Type != ElementContentType.Integer) continue;
-            if (ElementContent[i] is ArrayRunRecordSegment || ElementContent[i] is ArrayRunHexSegment || ElementContent[i] is ArrayRunEnumSegment) continue;
+            if (ElementContent[i] is ArrayRunRecordSegment || ElementContent[i] is ArrayRunHexSegment || ElementContent[i] is ArrayRunEnumSegment || ElementContent[i] is ArrayRunUnusedSegment) continue;
             if (ElementContent[i].Name.ToLower() != "id" && ElementContent[i].Name.ToLower() != "index") continue;
 
             var currentCount = ElementCount;
@@ -1177,6 +1180,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException("expected name, but none was found: " + segments);
 
             // check to see if a name or length is part of the format
+            if (name.ToLower() == "unused" || name.ToLower() == "padding") {
+               var endOfToken = segments.IndexOf(' ');
+               if (endOfToken == -1) endOfToken = segments.Length;
+               segments = segments.Substring(endOfToken).Trim();
+               list.Add(new ArrayRunUnusedSegment(name, segmentLength));
+            } else
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
                segments = segments.Substring(formatLength);
                if (segments.StartsWith(HexFormatString)) {

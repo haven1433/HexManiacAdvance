@@ -165,6 +165,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
+      public void Visit(IntegerUnused integerUnused, byte data) {
+         if (char.IsWhiteSpace(CurrentText.Last()) || CurrentText.Last() == ')') {
+            CompleteIntegerEdit(integerUnused);
+            Result = true;
+         }
+      }
+
       public void Visit(EggSection section, byte data) => CompleteEggEdit();
 
       public void Visit(EggItem item, byte data) => CompleteEggEdit();

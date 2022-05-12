@@ -92,6 +92,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(IntegerHex integer, byte data) { }
 
+      public void Visit(IntegerUnused integer, byte data) { }
+
       public void Visit(EggSection section, byte data) { }
 
       public void Visit(EggItem item, byte data) { }
