@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          collector.Initialize<None>(typeface, fontSize);            // actually None
          collector.Initialize<Undefined>(italicTypeface, fontSize); // actually None -> FF
-         collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00
+         collector.Initialize<UnderEdit>(typeface, fontSize);       // actually None -> 00 and 'unused' Ints
          collector.Initialize<ErrorPCS>(typeface, fontSize);        // actually error pointer
          collector.Initialize<PCS>(typeface, fontSize);
          collector.Initialize<EscapedPCS>(typeface, fontSize);
@@ -109,9 +109,17 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is IntegerEnum intEnum) {
                collector.Collect<IntegerEnum>(format, x, intEnum.Length, intEnum.DisplayValue);
             } else if (format is IntegerHex integerHex) {
-               collector.Collect<IntegerHex>(format, x, integerHex.Length, integerHex.ToString());
+               if (integerHex.IsUnused) {
+                  collector.Collect<UnderEdit>(format, x, integerHex.Length, integerHex.ToString());
+               } else {
+                  collector.Collect<IntegerHex>(format, x, integerHex.Length, integerHex.ToString());
+               }
             } else if (format is Integer integer) {
-               collector.Collect<Integer>(format, x, integer.Length, integer.Value.ToString());
+               if (integer.IsUnused) {
+                  collector.Collect<UnderEdit>(format, x, integer.Length, integer.Value.ToString());
+               } else {
+                  collector.Collect<Integer>(format, x, integer.Length, integer.Value.ToString());
+               }
             } else if (format is Ascii asc) {
                collector.Collect<Ascii>(format, x, 1, asc.ThisCharacter.ToString());
             } else if (format is None none) {

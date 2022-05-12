@@ -40,6 +40,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayOffset(elementIndex, segmentIndex, byteOffset - segmentOffset, segmentOffset);
       }
 
+      public static bool IsUnused(this ArrayRunElementSegment segment) {
+         return segment.Name.StartsWith("unused") || segment.Name.StartsWith("padding");
+      }
+
       public static IDataFormat CreateSegmentDataFormat(this ITableRun self, IDataModel data, int index) {
          var offsets = self.ConvertByteOffsetToArrayOffset(index);
          var currentSegment = self.ElementContent[offsets.SegmentIndex];
@@ -53,7 +57,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return new ViewModels.DataFormats.Tuple(data, tupleSegment, offsets.SegmentStart, position);
             } else if (currentSegment is ArrayRunHexSegment) {
                var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
-               return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length);
+               return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length) { IsUnused = currentSegment.IsUnused() };
             } else if (currentSegment is ArrayRunColorSegment) {
                var color = (short)data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
                return new UncompressedPaletteColor(offsets.SegmentStart, position, color);
@@ -62,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return new Integer(offsets.SegmentStart, position, signedValue, currentSegment.Length);
             } else {
                var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
-               return new Integer(offsets.SegmentStart, position, value, currentSegment.Length);
+               return new Integer(offsets.SegmentStart, position, value, currentSegment.Length) { IsUnused = currentSegment.IsUnused() };
             }
          }
 

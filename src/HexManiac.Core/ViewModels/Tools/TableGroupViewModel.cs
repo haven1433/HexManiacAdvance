@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                throw new NotImplementedException();
             }
-            if (!SkipElement(item)) {
+            if (!item.IsUnused()) {
                Add(viewModel);
                helperGroup.AddChildrenFromPointerSegment(viewPort, itemAddress, item, viewModel, recursionLevel: 0);
             }
@@ -151,10 +151,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                segmentOffset += tableRun.ElementContent[i].Length;
             }
          }
-      }
-
-      private static bool SkipElement(ArrayRunElementSegment element) {
-         return element.Name.StartsWith("unused") || element.Name.StartsWith("padding");
       }
    }
 }

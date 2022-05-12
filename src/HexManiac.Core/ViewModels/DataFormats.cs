@@ -291,6 +291,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Position { get; }
       public int Value { get; }
       public int Length { get; } // number of bytes used by this integer
+      public bool IsUnused { get; init; }
 
       public Integer(int source, int position, int value, int length) => (Source, Position, Value, Length) = (source, position, value, length);
 
