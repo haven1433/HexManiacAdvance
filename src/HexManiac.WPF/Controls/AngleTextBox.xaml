@@ -14,12 +14,13 @@
       <Style TargetType="hsg3hv:AngleTextBox">
          <Setter Property="Background" Value="{DynamicResource Backlight}"/>
          <Setter Property="BorderBrush" Value="{DynamicResource TopToBottomBrush}"/>
+         <Setter Property="MinHeight" Value="18"/>
          <Setter Property="Template">
             <Setter.Value>
                <ControlTemplate TargetType="hsg3hv:AngleTextBox">
                   <DockPanel Name="Container">
                      <Path Name="LeftEdge" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" DockPanel.Dock="Left"
-                           Width="6" Height="18" StrokeThickness="1" Margin="0,0,-1,0" Stretch="Fill" SnapsToDevicePixels="True">
+                           Width="6" Height="{TemplateBinding MinHeight}" StrokeThickness="1" Margin="0,0,-1,0" Stretch="Fill" SnapsToDevicePixels="True">
                         <Path.Data>
                            <PathGeometry>
                               <PathGeometry.Figures>
@@ -36,7 +37,7 @@
                         </Path.Data>
                      </Path>
                      <Path Name="RightEdge" Fill="{TemplateBinding Background}" Stroke="{TemplateBinding BorderBrush}" DockPanel.Dock="Right"
-                           Width="6" Height="18" StrokeThickness="1" Margin="-1,0,0,0" Stretch="Fill" SnapsToDevicePixels="True">
+                           Width="6" Height="{TemplateBinding MinHeight}" StrokeThickness="1" Margin="-1,0,0,0" Stretch="Fill" SnapsToDevicePixels="True">
                         <Path.Data>
                            <PathGeometry>
                               <PathGeometry.Figures>
@@ -52,7 +53,7 @@
                            </PathGeometry>
                         </Path.Data>
                      </Path>
-                     <ContentPresenter Height="18"/>
+                     <ContentPresenter Height="{TemplateBinding MinHeight}" />
                   </DockPanel>
                   <ControlTemplate.Triggers>
                      <Trigger Property="Direction" Value="None">

@@ -149,7 +149,7 @@
             <DockPanel Name="TableToolPanel">
                <DockPanel.Resources>
                   <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
-                     <hsg3hv:AngleButton Margin="2,2" Direction="None" HorizontalAlignment="Stretch"
+                     <hsg3hv:AngleButton Margin="2,2" Direction="Out" HorizontalAlignment="Stretch"
                                  Content="{Binding Text}" ToolTip="{Binding ToolTipText}" Command="{Binding Command}"
                                  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
                   </DataTemplate>
@@ -167,9 +167,9 @@
                <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
                   <!-- Table Selector -->
                   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                     <hsg3hv:AngleComboBox x:Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" Direction="None" />
-                     <hsg3hv:AngleComboBox x:Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" Margin="5,0" Direction="None" />
-                     <hsg3hv:AngleBorder BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Direction="None">
+                     <hsg3hv:AngleComboBox x:Name="SectionSelector" ItemsSource="{Binding TableTool.TableSections}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableSection}" MaxWidth="200" Direction="Left" />
+                     <hsg3hv:AngleComboBox x:Name="TableSelector" ItemsSource="{Binding TableTool.TableList}" DropDownClosed="TableSelected" SelectedIndex="{Binding TableTool.SelectedTableIndex}" MaxWidth="200" Margin="5,0" Direction="Out" />
+                     <hsg3hv:AngleBorder BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Direction="Right">
                         <TextBlock Text="{Binding TableTool.CurrentElementName}" Margin="2,0"/>
                      </hsg3hv:AngleBorder>
                   </StackPanel>
@@ -181,13 +181,13 @@
                         <ColumnDefinition Width="Auto" SharedSizeGroup="NextPrev"/>
                      </Grid.ColumnDefinitions>
                      <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                        IsEditable="True" IsTextSearchEnabled="False" Margin="5,0" Direction="None"
+                        IsEditable="True" IsTextSearchEnabled="False" Margin="5,0" Direction="Out"
                         DataContext="{Binding TableTool.CurrentElementSelector}"
                         ItemsSource="{Binding Options}"
                         SelectedIndex="{Binding SelectedIndex}"
                         Text="{Binding Text}" />
-                     <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding TableTool.Previous}" Padding="0" Direction="None"/>
-                     <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="None"/>
+                     <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding TableTool.Previous}" Padding="0" Direction="Left"/>
+                     <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="Right"/>
                   </Grid>
                   <!-- Show Uses -->
                   <!--
@@ -195,7 +195,7 @@
                        so we declare an extra ItemsControl just so we can access its HasItems property
                   -->
                   <ItemsControl Name="UsageItems" ItemsSource="{Binding TableTool.UsageChildren}" Visibility="Collapsed" />
-                  <hsg3hv:AngleButton x:Name="ShowUsesButton" Content="Show Uses" HorizontalAlignment="Center" IsEnabled="{Binding HasItems, ElementName=UsageItems}" />
+                  <hsg3hv:AngleButton x:Name="ShowUsesButton" Content="Show Uses" HorizontalAlignment="Center" IsEnabled="{Binding HasItems, ElementName=UsageItems}" Direction="In" />
                   <Popup IsOpen="{Binding IsChecked, ElementName=ShowUsesButton}" StaysOpen="{Binding IsMouseOver, ElementName=ShowUsesButton}" PlacementTarget="{Binding ElementName=ShowUsesButton}">
                      <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
                         <ItemsControl ItemsSource="{Binding TableTool.UsageChildren}" />
@@ -213,10 +213,10 @@
                            <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <hsg3hv:AngleBorder Grid.Column="0">
+                        <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                            <TextBlock Text="Filter" />
                         </hsg3hv:AngleBorder>
-                        <hsg3hv:AngleTextBox Grid.Column="1" TextBinding="{Binding TableTool.FieldFilter, UpdateSourceTrigger=PropertyChanged}"/>
+                        <hsg3hv:AngleTextBox Grid.Column="1" TextBinding="{Binding TableTool.FieldFilter, UpdateSourceTrigger=PropertyChanged}" Direction="Out"/>
                      </Grid>
                      <!-- Add X New -->
                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4">
@@ -290,7 +290,7 @@
                                              </DockPanel.ContextMenu>
                                              <Grid DockPanel.Dock="Right">
                                                 <Rectangle Width="4" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
-                                                <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="None"
+                                                <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="Right"
                                                       Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                                    <hsg3hv:AngleButton.ToolTip>
                                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
@@ -300,16 +300,18 @@
                                                          </TextBlock>
                                                       </ToolTip>
                                                    </hsg3hv:AngleButton.ToolTip>
-                                                   <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                                                   <Path Data="{hsv:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                                                 </hsg3hv:AngleButton>
                                              </Grid>
                                              <Expander VerticalAlignment="Center" IsExpanded="{Binding Visible}" LayoutTransform="0,1,-1,0,0,0" Tag="{Binding Tag, ElementName=ContainerPanel}" />
-                                             <hsg3hv:AngleBorder BorderBrush="{DynamicResource Background}" Margin="0,0,-2,0" Direction="None">
+                                             <hsg3hv:AngleBorder BorderBrush="{DynamicResource Background}" Margin="0,0,-2,0" Direction="Out">
                                                 <hsg3hv:AngleBorder.InputBindings>
                                                    <MouseBinding MouseAction="LeftClick" Command="{Binding ToggleVisibility}" />
                                                    <MouseBinding MouseAction="LeftDoubleClick" Command="{Binding ToggleVisibility}" />
                                                 </hsg3hv:AngleBorder.InputBindings>
-                                                <TextBlock Text="{Binding SectionName}" HorizontalAlignment="Center" Foreground="{DynamicResource Secondary}" />
+                                                <Decorator HorizontalAlignment="Center">
+                                                   <TextBlock Text="{Binding SectionName}" HorizontalAlignment="Right" Foreground="{DynamicResource Secondary}" />
+                                                </Decorator>
                                              </hsg3hv:AngleBorder>
                                           </DockPanel>
                                        </DataTemplate>
@@ -320,11 +322,11 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                              </Grid.ColumnDefinitions>
-                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="Out">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleTextBox Grid.Column="1" Direction="None" />
-                                             <hsg3hv:AngleButton Grid.Column="2" Command="{hsv:MethodCommand Accept}" Direction="None"
+                                             <hsg3hv:AngleTextBox Grid.Column="1" Direction="Right" />
+                                             <hsg3hv:AngleButton Grid.Column="2" Command="{hsv:MethodCommand Accept}" Direction="Right"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}"
                                                 Tag="{Binding Type, Converter={StaticResource Equality}, ConverterParameter=Address}"
                                                 Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}">
@@ -333,7 +335,7 @@
                                                       <TextBlock TextAlignment="Left" Text="Jump to the pointer's destination" />
                                                    </ToolTip>
                                                 </hsg3hv:AngleButton.ToolTip>
-                                                <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                                                <Path Data="{hsv:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                                              </hsg3hv:AngleButton>
                                           </Grid>
                                        </DataTemplate>
@@ -344,12 +346,14 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                              </Grid.ColumnDefinitions>
-                                             <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                             <Rectangle Width="14" Height="14" Grid.Column="1"
-                                          Stroke="{DynamicResource Primary}" StrokeThickness="1"
-                                          Fill="{Binding Color, Converter={StaticResource PaletteColorConverter}}"
-                                          MouseLeftButtonUp="ShowColorFieldSwatch"/>
-                                             <hsg3hv:AngleTextBox Margin="5,0" Grid.Column="2" />
+                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
+                                                <TextBlock Text="{Binding Name}"/>
+                                             </hsg3hv:AngleBorder>
+                                             <hsg3hv:AngleBorder Grid.Column="1" Height="18" Width="20" Direction="Out" SnapsToDevicePixels="True"
+                                                BorderBrush="{DynamicResource Primary}" BorderThickness="1"
+                                                Background="{Binding Color, Converter={StaticResource PaletteColorConverter}}"
+                                                MouseLeftButtonUp="ShowColorFieldSwatch"/>
+                                             <hsg3hv:AngleTextBox Grid.Column="2" Direction="Right"/>
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
@@ -359,10 +363,10 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                              </Grid.ColumnDefinitions>
-                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1" Direction="None"
+                                             <hsg3hv:AngleComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1" Direction="Out"
                                                  IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
@@ -373,7 +377,7 @@
                                                    </DataTemplate>
                                                 </hsg3hv:AngleComboBox.Resources>
                                              </hsg3hv:AngleComboBox>
-                                             <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Direction="None"
+                                             <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Direction="Right"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                                 <hsg3hv:AngleButton.ToolTip>
                                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
@@ -383,7 +387,7 @@
                                                       </TextBlock>
                                                    </ToolTip>
                                                 </hsg3hv:AngleButton.ToolTip>
-                                                <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill"/>
+                                                <Path Data="{hsv:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill"/>
                                              </hsg3hv:AngleButton>
                                           </Grid>
                                        </DataTemplate>
@@ -394,18 +398,21 @@
                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                                    <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                                <Button Grid.Column="1" HorizontalAlignment="Right" Command="{Binding LinkCommand}" Width="20" Height="20">
-                                                   <Button.ToolTip>
+                                                <hsg3hv:AngleBorder Grid.Column="0" Grid.ColumnSpan="2" Margin="0,0,22,0" Direction="Out">
+                                                   <TextBlock Text="{Binding Name}"/>
+                                                </hsg3hv:AngleBorder>
+                                                <hsg3hv:AngleButton Grid.Column="1" HorizontalAlignment="Right" Command="{Binding LinkCommand}" Direction="Right"
+                                                      Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                                   <hsg3hv:AngleButton.ToolTip>
                                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                                          <TextBlock TextAlignment="Left">
                                                             Jump to the table used as<LineBreak/>
                                                             a source for the options.
                                                          </TextBlock>
                                                       </ToolTip>
-                                                   </Button.ToolTip>
-                                                   <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                                </Button>
+                                                   </hsg3hv:AngleButton.ToolTip>
+                                                   <Path Data="{hsv:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill"/>
+                                                </hsg3hv:AngleButton>
                                              </Grid>
                                              <TextBlock Foreground="{DynamicResource Error}" TextWrapping="Wrap"
                                                 Text="{Binding ErrorText}"
@@ -479,19 +486,19 @@
                                                    <ColumnDefinition Width="*"/>
                                                    <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
-                                                <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
-                                                <hsg3hv:AngleButton Content="Import" Grid.Column="1" Command="{Binding ImportPair}" CommandParameter="{DynamicResource FileSystem}" />
-                                                <hsg3hv:AngleButton Content="Edit" Grid.Column="2" Command="{Binding OpenEditor}" x:Name="EditButton" ToolTip="Open image in editor" />
+                                                <hsg3hv:AngleButton Direction="Left" Content="Previous" Grid.Column="0" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
+                                                <hsg3hv:AngleButton Direction="Left" Content="Import" Grid.Column="1" Command="{Binding ImportPair}" CommandParameter="{DynamicResource FileSystem}" />
+                                                <hsg3hv:AngleButton Direction="Out" Content="Edit" Grid.Column="2" Command="{Binding OpenEditor}" x:Name="EditButton" ToolTip="Open image in editor" />
                                                 <Grid Grid.Column="3">
-                                                   <hsg3hv:AngleButton Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportMany, Converter={StaticResource InverseBoolToVisibility}}" />
+                                                   <hsg3hv:AngleButton Direction="Right" Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportMany, Converter={StaticResource InverseBoolToVisibility}}" />
                                                    <Menu Background="Transparent" Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}">
-                                                      <hsg3hv:AngleMenuItem Header="Export" Background="{DynamicResource Backlight}" Direction="None" Width="{Binding ActualWidth, ElementName=EditButton}" FontSize="10">
+                                                      <hsg3hv:AngleMenuItem Header="Export" Background="{DynamicResource Backlight}" Direction="Right" Width="{Binding ActualWidth, ElementName=EditButton}" FontSize="10">
                                                          <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
                                                          <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
                                                       </hsg3hv:AngleMenuItem>
                                                    </Menu>
                                                 </Grid>
-                                                <hsg3hv:AngleButton Content="Next" Grid.Column="4" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
+                                                <hsg3hv:AngleButton Direction="Right" Content="Next" Grid.Column="4" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
                                              </Grid>
                                           </StackPanel>
                                        </DataTemplate>
@@ -500,10 +507,10 @@
                                              <hsg3hv:CommonTableStreamControl />
                                              <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
                                              <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
-                                                <hsg3hv:AngleButton MinWidth="20" Content="-" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette" />
-                                                <hsg3hv:AngleButton MinWidth="20" Content="+" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette" />
-                                                <hsg3hv:AngleButton MinWidth="60" Content="Previous" DockPanel.Dock="Left" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
-                                                <hsg3hv:AngleButton MinWidth="60" Content="Next" DockPanel.Dock="Right" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
+                                                <hsg3hv:AngleButton MinWidth="20" Content="-" Direction="Left" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette" />
+                                                <hsg3hv:AngleButton MinWidth="20" Content="+" Direction="Right" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette" />
+                                                <hsg3hv:AngleButton MinWidth="60" Content="Previous" Direction="Left" DockPanel.Dock="Left" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
+                                                <hsg3hv:AngleButton MinWidth="60" Content="Next" Direction="Right" DockPanel.Dock="Right" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
                                              </DockPanel>
                                           </StackPanel>
                                        </DataTemplate>
@@ -534,8 +541,8 @@
                                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
                                              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="None"/>
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="None"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out"/>
                                              </StackPanel>
                                           </StackPanel>
                                        </DataTemplate>
@@ -555,10 +562,10 @@
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="2*"/>
                                                          </Grid.ColumnDefinitions>
-                                                         <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                                         <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                                                             <TextBlock Text="{Binding Name}" />
                                                          </hsg3hv:AngleBorder>
-                                                         <hsg3hv:AngleComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1" Direction="None"
+                                                         <hsg3hv:AngleComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1" Direction="Out"
                                                              IsEditable="True" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxTupleElementTextInput"/>
                                                       </Grid>
                                                    </DataTemplate>
@@ -568,10 +575,10 @@
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="2*"/>
                                                          </Grid.ColumnDefinitions>
-                                                         <hsg3hv:AngleBorder Grid.Column="0" Direction="None">
+                                                         <hsg3hv:AngleBorder Grid.Column="0" Direction="Out">
                                                             <TextBlock Text="{Binding Name}" />
                                                          </hsg3hv:AngleBorder>
-                                                         <hsg3hv:AngleTextBox Grid.Column="1" Direction="None"/>
+                                                         <hsg3hv:AngleTextBox Grid.Column="1" Direction="Right"/>
                                                       </Grid>
                                                    </DataTemplate>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:CheckBoxTupleElementViewModel}">
@@ -607,9 +614,10 @@
                                                       <ItemsControl.ItemTemplate>
                                                          <DataTemplate>
                                                             <DockPanel>
-                                                               <Button DockPanel.Dock="Right" Command="{Binding JumpTo}" Width="20" Height="20" IsTabStop="False">
-                                                                  <Path Data="{hsv:Icon RightArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                                                               </Button>
+                                                               <hsg3hv:AngleButton DockPanel.Dock="Right" Command="{Binding JumpTo}" Direction="Right"
+                                                                     Width="22" Height="18" Padding="0,2" IsTabStop="False" BorderBrush="{DynamicResource Backlight}">
+                                                                  <Path Data="{hsv:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill"/>
+                                                               </hsg3hv:AngleButton>
                                                                <TextBlock Text="{Binding Text}" TextWrapping="Wrap"/>
                                                             </DockPanel>
                                                          </DataTemplate>
@@ -640,19 +648,19 @@
                   </Style>
                </DockPanel.Style>
                <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
-               <TextBox Text="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
+               <hsg3hv:AngleTextBox Direction="Out" TextBinding="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
                <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
-               <Button Margin="0,3" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
-               <Button Command="{Binding StringTool.InsertText}" Content="Insert New Text" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+               <hsg3hv:AngleButton Direction="Out" Margin="0,3,0,1" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" Height="28" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+               <hsg3hv:AngleButton Direction="Out" Margin="0,1,0,3" Command="{Binding StringTool.InsertText}" Content="Insert New Text" Height="28" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
                <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
 
-               <Button Command="{Binding StringTool.Search}" Margin="5,0" Content="Search" HorizontalAlignment="Right" DockPanel.Dock="Bottom" />
-               <TextBox Margin="5,0" FontFamily="Consolas" Text="{Binding StringTool.SearchText, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding StringTool.Enabled}" DockPanel.Dock="Bottom">
-                  <TextBox.InputBindings>
+               <hsg3hv:AngleButton Direction="Out" Command="{Binding StringTool.Search}" Margin="5,2" Content="Search" Height="28" HorizontalAlignment="Right" DockPanel.Dock="Bottom" />
+               <hsg3hv:AngleTextBox Direction="Out" TextBinding="{Binding StringTool.SearchText, UpdateSourceTrigger=PropertyChanged}" Margin="5,2" IsEnabled="{Binding StringTool.Enabled}" DockPanel.Dock="Bottom">
+                  <hsg3hv:AngleTextBox.InputBindings>
                      <KeyBinding Key="Return" Command="{Binding StringTool.Search}"/>
                      <KeyBinding Key="F3" Command="{Binding StringTool.Search}"/>
-                  </TextBox.InputBindings>
-               </TextBox>
+                  </hsg3hv:AngleTextBox.InputBindings>
+               </hsg3hv:AngleTextBox>
                <TextBlock Text="Search:" Margin="5,0" DockPanel.Dock="Bottom"/>
 
                <Grid Margin="5,5" MinHeight="50">
@@ -680,20 +688,13 @@
                </ScrollViewer.Style>
                <StackPanel>
                   <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                     <Button Content="Import" Command="{Binding SpriteTool.ImportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
-                     <Button Content="Edit" Command="{Binding SpriteTool.OpenInImageTab}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
+                     <hsg3hv:AngleButton Direction="Left" Content="Import" Command="{Binding SpriteTool.ImportPair}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
+                     <hsg3hv:AngleButton Direction="Out" Content="Edit" Command="{Binding SpriteTool.OpenInImageTab}" CommandParameter="{DynamicResource FileSystem}" Margin="5"/>
                      <Grid Margin="5">
-                        <Button Content="Export" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}">
-                           <Button.Style>
-                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding SpriteTool.CanExportMany}" Value="True">
-                                       <Setter Property="Visibility" Value="Collapsed"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Button.Style>
-                        </Button>
+                        <hsg3hv:AngleButton Content="Export" Direction="Right" Height="24"
+                           Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}"
+                           Visibility="{Binding SpriteTool.CanExportMany, Converter={StaticResource InverseBoolToVisibility}}">
+                        </hsg3hv:AngleButton>
                         <Menu Visibility="{Binding SpriteTool.CanExportMany, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
                            <Menu.Style>
                               <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
@@ -705,21 +706,21 @@
                                  </Style.Triggers>
                               </Style>
                            </Menu.Style>
-                           <MenuItem Header="Export" Margin="0,1,0,0">
+                           <hsg3hv:AngleMenuItem Direction="Right" Header="Export" Margin="0,1,0,0">
                               <MenuItem Header="Single Page" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
                               <MenuItem Header="All Pages" Command="{Binding SpriteTool.ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
-                           </MenuItem>
+                           </hsg3hv:AngleMenuItem>
                         </Menu>
                      </Grid>
                   </StackPanel>
                   <!-- Sprite Address -->
                   <UniformGrid Columns="2" Margin="5,15,5,1">
                      <TextBlock VerticalAlignment="Center" Text="Image Address:" />
-                     <TextBox Text="{Binding SpriteTool.SpriteAddressText, UpdateSourceTrigger=PropertyChanged}" Margin="5">
-                        <TextBox.InputBindings>
+                     <hsg3hv:AngleTextBox Direction="Right" TextBinding="{Binding SpriteTool.SpriteAddressText, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                        <hsg3hv:AngleTextBox.InputBindings>
                            <KeyBinding Key="Return" Command="{Binding SpriteTool.GotoSpriteAddress}" />
-                        </TextBox.InputBindings>
-                     </TextBox>
+                        </hsg3hv:AngleTextBox.InputBindings>
+                     </hsg3hv:AngleTextBox>
                   </UniformGrid>
 
                   <!-- Sprite Properties -->
@@ -730,7 +731,7 @@
                      </UniformGrid>
                      <UniformGrid Columns="2" Margin="5,1">
                         <TextBlock VerticalAlignment="Center" Text="Tile Size:" />
-                        <TextBox Text="{Binding SpriteTool.SpriteWidthHeight, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                        <hsg3hv:AngleTextBox Direction="Right" TextBinding="{Binding SpriteTool.SpriteWidthHeight, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                      </UniformGrid>
                      <DockPanel Margin="5,1">
                         <TextBlock Width="75" VerticalAlignment="Center">
@@ -745,7 +746,7 @@
                               </Style>
                            </TextBlock.Style>
                         </TextBlock>
-                        <TextBox Text="{Binding SpriteTool.SpritePaletteHint, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                        <hsg3hv:AngleTextBox Direction="Right" TextBinding="{Binding SpriteTool.SpritePaletteHint, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                      </DockPanel>
                   </StackPanel>
                   <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find sprite data starting at that address." Visibility="{Binding SpriteTool.ShowNoSpriteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
@@ -753,18 +754,18 @@
                   <!-- Sprite -->
                   <hsg3hv:PixelImage Margin="0,5,0,2" DataContext="{Binding SpriteTool}" />
                   <DockPanel Visibility="{Binding SpriteTool.HasMultipleSpritePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
-                     <Button Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
-                     <Button Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
+                     <hsg3hv:AngleButton Direction="Left" Content="Previous" Command="{Binding SpriteTool.PreviousSpritePage}" DockPanel.Dock="Left"/>
+                     <hsg3hv:AngleButton Direction="Right" Content="Next" Command="{Binding SpriteTool.NextSpritePage}" DockPanel.Dock="Right"/>
                   </DockPanel>
 
                   <!-- Palette Address -->
                   <UniformGrid Columns="2" Margin="5,15,5,1">
                      <TextBlock VerticalAlignment="Center" Text="Palette Address:" />
-                     <TextBox Text="{Binding SpriteTool.PaletteAddressText, UpdateSourceTrigger=PropertyChanged}" Margin="5">
-                        <TextBox.InputBindings>
+                     <hsg3hv:AngleTextBox Direction="Right" TextBinding="{Binding SpriteTool.PaletteAddressText, UpdateSourceTrigger=PropertyChanged}" Margin="5">
+                        <hsg3hv:AngleTextBox.InputBindings>
                            <KeyBinding Key="Return" Command="{Binding SpriteTool.GotoPaletteAddress}" />
-                        </TextBox.InputBindings>
-                     </TextBox>
+                        </hsg3hv:AngleTextBox.InputBindings>
+                     </hsg3hv:AngleTextBox>
                   </UniformGrid>
 
                   <!-- Palette Properties -->
@@ -772,7 +773,7 @@
                      <CheckBox Margin="5,1" Content="256 Color Palette" IsChecked="{Binding SpriteTool.PaletteIs256Color}"/>
                      <UniformGrid Columns="2" Margin="5,1">
                         <TextBlock VerticalAlignment="Center" Text="Pages:" />
-                        <TextBox Text="{Binding SpriteTool.PalettePages, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                        <hsg3hv:AngleTextBox Direction="Right" TextBinding="{Binding SpriteTool.PalettePages, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
                      </UniformGrid>
                   </StackPanel>
                   <TextBlock Margin="5,1" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Error}" Text="Could not find palette data starting at that address." Visibility="{Binding SpriteTool.ShowNoPaletteAnchorMessage, Converter={StaticResource BoolToVisibility}}"/>
@@ -780,8 +781,8 @@
                   <!-- Palette -->
                   <hsg3hv:PaletteControl DataContext="{Binding SpriteTool.Colors}" />
                   <DockPanel Visibility="{Binding SpriteTool.HasMultiplePalettePages, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
-                     <Button Content="Previous" Command="{Binding SpriteTool.PreviousPalettePage}" DockPanel.Dock="Left"/>
-                     <Button Content="Next" Command="{Binding SpriteTool.NextPalettePage}" DockPanel.Dock="Right"/>
+                     <hsg3hv:AngleButton Direction="Left" Content="Previous" Command="{Binding SpriteTool.PreviousPalettePage}" DockPanel.Dock="Left"/>
+                     <hsg3hv:AngleButton Direction="Right" Content="Next" Command="{Binding SpriteTool.NextPalettePage}" DockPanel.Dock="Right"/>
                   </DockPanel>
                </StackPanel>
             </ScrollViewer>
@@ -802,7 +803,7 @@
                      <ColumnDefinition Width="*"/>
                   </Grid.ColumnDefinitions>
                   <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
-                  <ComboBox Grid.Column="1" Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
+                  <hsg3hv:AngleComboBox Height="22" Direction="Out" Grid.Column="1" x:Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
                </Grid>
                <Grid Name="CodeToolBody" DataContext="{Binding CodeTool}">
                   <DockPanel Visibility="{Binding UseSingleContent, Converter={StaticResource BoolToVisibility}}">

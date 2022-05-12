@@ -639,16 +639,18 @@
                   <StackPanel Grid.Row="3" VerticalAlignment="Center">
                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                         <Grid>
-                           <TextBox Name="GotoBox" FontSize="30" Text="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}" MinWidth="400" IsVisibleChanged="EditBoxVisibilityChanged">
-                              <TextBox.InputBindings>
+                           <hsg3hv:AngleTextBox x:Name="GotoBox" FontSize="30" MinHeight="40" MinWidth="400" Direction="Out"
+                                 TextBinding="{Binding GotoViewModel.Text, UpdateSourceTrigger=PropertyChanged}"
+                                 IsVisibleChanged="EditBoxVisibilityChanged">
+                              <hsg3hv:AngleTextBox.InputBindings>
                                  <KeyBinding Key="Esc" Command="{Binding GotoViewModel.ShowGoto}">
                                     <KeyBinding.CommandParameter>
                                        <sys:Boolean>false</sys:Boolean>
                                     </KeyBinding.CommandParameter>
                                  </KeyBinding>
                                  <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
-                              </TextBox.InputBindings>
-                           </TextBox>
+                              </hsg3hv:AngleTextBox.InputBindings>
+                           </hsg3hv:AngleTextBox>
                            <TextBlock IsHitTestVisible="False" Foreground="{DynamicResource Secondary}" FontStyle="Italic" FontSize="25" VerticalAlignment="Bottom" Margin="3" Text="Search or type an Address">
                               <TextBlock.Style>
                                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -662,7 +664,8 @@
                               </TextBlock.Style>
                            </TextBlock>
                         </Grid>
-                        <Button Content="Go" VerticalAlignment="Stretch" Padding="12,0" Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}"/>
+                        <hsg3hv:AngleButton Content="Go" VerticalAlignment="Stretch" Padding="12,0" Direction="Right"
+                           Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}" />
                      </StackPanel>
                      <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}">
                         <ItemsControl.ItemTemplate>

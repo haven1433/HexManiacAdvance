@@ -385,7 +385,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void AboutClick(object sender, EventArgs e) => new AboutWindow(ViewModel.Singletons.MetadataInfo).ShowDialog();
 
       private void EditBoxVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e) {
-         var box = (TextBox)sender;
+         var box = sender as TextBox ?? ((AngleTextBox)sender).GetTextBox();
          if (!box.IsVisible) {
             if (ViewModel.SelectedIndex == -1) return;
             var selectedElement = (HexContent)GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]);
@@ -403,7 +403,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void FocusGotoBox(object sender = default, EventArgs e = default) {
-         if (!GotoBox.IsFocused) FocusTextBox(GotoBox);
+         if (!GotoBox.IsFocused) FocusTextBox(GotoBox.GetTextBox());
       }
 
       private void FocusTextBox(TextBox textBox) {
@@ -602,9 +602,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void FillGotoBox(object sender, MouseButtonEventArgs e) {
          var source = (TextBlock)sender;
-         GotoBox.Text = source.Text;
-         GotoBox.SelectAll();
-         GotoBox.Focus();
+         var textbox = GotoBox.GetTextBox();
+         textbox.Text = source.Text;
+         textbox.SelectAll();
+         textbox.Focus();
          e.Handled = true;
       }
    }

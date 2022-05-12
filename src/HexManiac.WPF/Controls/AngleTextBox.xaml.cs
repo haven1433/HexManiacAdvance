@@ -18,6 +18,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private static readonly Thickness TextContentThickness = new(0, 1, 0, 1);
 
       private bool keepTextBoxForContextMenu;
+      public TextBox GetTextBox() {
+         keepTextBoxForContextMenu = true;
+         UpdateFieldTextBox(default, default);
+         return (TextBox)Content;
+      }
 
       private Binding textBinding;
       public Binding TextBinding {
