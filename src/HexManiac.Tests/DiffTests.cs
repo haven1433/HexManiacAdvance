@@ -325,7 +325,7 @@ namespace HavenSoft.HexManiac.Tests {
          var data = new byte[] { 0x00, 0x7F, 0x81 };
          int start = 0;
 
-         var result = DiffViewPort.ReadVariableWidthInteger(data, ref start);
+         var result = Patcher.ReadVariableWidthInteger(data, ref start);
 
          Assert.Equal("C000", result.ToString("X4"));
          Assert.Equal(3, start);

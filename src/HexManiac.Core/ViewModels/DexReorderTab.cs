@@ -62,6 +62,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler ITabContent.RequestMenuClose { add { } remove { } }
       event EventHandler<Direction> ITabContent.RequestDiff { add { } remove { } }
       event EventHandler<CanDiffEventArgs> ITabContent.RequestCanDiff { add { } remove { } }
+      event EventHandler<CanPatchEventArgs> ITabContent.RequestCanCreatePatch { add { } remove { } }
+      event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
 
       private int selectionStart;
       public int SelectionStart {

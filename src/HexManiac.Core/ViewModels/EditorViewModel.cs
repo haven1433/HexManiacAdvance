@@ -809,6 +809,65 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (direction == Direction.Right) ExecuteDiffRight(tab);
       }
 
+      private void CanCreatePatch(object sender, CanPatchEventArgs e) {
+         var tab = (ITabContent)sender;
+         var index = tabs.IndexOf(tab);
+         var otherIndex = e.Direction switch {
+            Direction.Left => index - 1,
+            Direction.Right => index + 1,
+            _ => throw new NotImplementedException()
+         };
+
+         if (otherIndex < 0 || otherIndex >= tabs.Count) return;
+         if (tabs[index] is not ViewPort viewPort1) return;
+         if (tabs[otherIndex] is not ViewPort viewPort2) return;
+         var bigFile = viewPort1.Model.Count > 0x1000000 || viewPort2.Model.Count > 0x1000000;
+         if (e.PatchType == PatchType.Ips && bigFile) return;
+         if (!viewPort1.ChangeHistory.IsSaved || !viewPort2.ChangeHistory.IsSaved) return;
+
+         e.Result = true;
+      }
+
+      private void CreatePatch(object sender, CanPatchEventArgs e) {
+         var tab = (ITabContent)sender;
+         var index = tabs.IndexOf(tab);
+         var otherIndex = e.Direction switch {
+            Direction.Left => index - 1,
+            Direction.Right => index + 1,
+            _ => throw new NotImplementedException()
+         };
+
+         if (otherIndex < 0 || otherIndex >= tabs.Count) return;
+         if (tabs[index] is not ViewPort viewPort1) return;
+         if (tabs[otherIndex] is not ViewPort viewPort2) return;
+         var bigFile = viewPort1.Model.Count > 0x1000000 || viewPort2.Model.Count > 0x1000000;
+         if (e.PatchType == PatchType.Ips && bigFile) return;
+         if (!viewPort1.ChangeHistory.IsSaved || !viewPort2.ChangeHistory.IsSaved) return;
+
+         string extension;
+         byte[] patchData;
+         if (e.PatchType == PatchType.Ips) {
+            patchData = Patcher.BuildIpsPatch(viewPort1.Model.RawData, viewPort2.Model.RawData);
+            extension = "ips";
+         } else if (e.PatchType == PatchType.Ups) {
+            patchData = Patcher.BuildUpsPatch(viewPort1.Model.RawData, viewPort2.Model.RawData);
+            extension = "ups";
+         } else {
+            throw new NotImplementedException();
+         }
+
+         var path = Path.GetDirectoryName(viewPort1.FullFileName);
+         var defaultName = $"{path}/{viewPort1.Name}_to_{viewPort2.Name}.{extension}";
+         if (!fileSystem.Exists(defaultName)) {
+            fileSystem.Save(new LoadedFile(defaultName, patchData));
+         } else {
+            defaultName = fileSystem.RequestNewName(defaultName, "Patch", extension);
+            if (defaultName == null) return;
+            fileSystem.Save(new(defaultName, patchData));
+         }
+         InformationMessage = $"Created {defaultName}";
+      }
+
       private void ExecuteDiffLeft(ITabContent tab) {
          if (tab == null) tab = SelectedTab;
          var index = tabs.IndexOf(tab);
@@ -990,6 +1049,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.RequestDelayedWork += ForwardDelayedWork;
          content.RequestCanDiff += CanDiffRequested;
          content.RequestDiff += DiffRequested;
+         content.RequestCanCreatePatch += CanCreatePatch;
+         content.RequestCreatePatch += CreatePatch;
          content.PropertyChanged += TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
 
@@ -1010,6 +1071,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.RequestDelayedWork -= ForwardDelayedWork;
          content.RequestCanDiff -= CanDiffRequested;
          content.RequestDiff -= DiffRequested;
+         content.RequestCanCreatePatch -= CanCreatePatch;
+         content.RequestCreatePatch -= CreatePatch;
          content.PropertyChanged -= TabPropertyChanged;
          if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
 

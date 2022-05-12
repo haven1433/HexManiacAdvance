@@ -167,6 +167,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler RequestMenuClose { add => ForEach(child => child.RequestMenuClose += value); remove => ForEach(child => child.RequestMenuClose -= value); }
       public event EventHandler<Direction> RequestDiff { add => ForEach(child => child.RequestDiff += value); remove => ForEach(child => child.RequestDiff -= value); }
       public event EventHandler<CanDiffEventArgs> RequestCanDiff { add => ForEach(child => child.RequestCanDiff += value); remove => ForEach(child => child.RequestCanDiff -= value); }
+      event EventHandler<CanPatchEventArgs> ITabContent.RequestCanCreatePatch { add { } remove { } }
+      event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
       public event PropertyChangedEventHandler PropertyChanged { add => ForEach(child => child.PropertyChanged += value); remove => ForEach(child => child.PropertyChanged -= value); }
       public event NotifyCollectionChangedEventHandler CollectionChanged { add => ForEach(child => child.CollectionChanged += value); remove => ForEach(child => child.CollectionChanged -= value); }
 

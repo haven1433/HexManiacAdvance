@@ -63,6 +63,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;
+      event EventHandler<CanPatchEventArgs> ITabContent.RequestCanCreatePatch { add { } remove { } }
+      event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
 
       public void RaiseMessage(string message) => OnMessage?.Invoke(this, message);

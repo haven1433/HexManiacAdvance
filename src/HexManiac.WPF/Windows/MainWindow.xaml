@@ -512,9 +512,12 @@
                         </StackPanel.ToolTip>
                         <StackPanel.ContextMenu>
                            <ContextMenu>
+                              <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
                               <MenuItem Header="Diff with Left" Command="{Binding DiffLeft}" />
                               <MenuItem Header="Diff with Right" Command="{Binding DiffRight}" />
-                              <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
+                              <Separator/>
+                              <MenuItem Header="Make IPS Patch, this -> Right" Command="{hsv:MethodCommand IpsPatchRight}"/>
+                              <MenuItem Header="Make UPS Patch, this -> Right" Command="{hsv:MethodCommand UpsPatchRight}"/>
                            </ContextMenu>
                         </StackPanel.ContextMenu>
                         <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">

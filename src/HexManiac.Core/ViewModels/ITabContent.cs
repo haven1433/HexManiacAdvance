@@ -38,6 +38,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler RequestMenuClose;
       event EventHandler<Direction> RequestDiff;
       event EventHandler<CanDiffEventArgs> RequestCanDiff;
+      event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
+      event EventHandler<CanPatchEventArgs> RequestCreatePatch;
 
       bool CanDuplicate { get; }
       void Duplicate();
@@ -54,5 +56,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Direction Direction { get; }
       public bool Result { get; set; }
       public CanDiffEventArgs(Direction d) => Direction = d;
+   }
+
+   public class CanPatchEventArgs : EventArgs {
+      public Direction Direction { get; }
+      public PatchType PatchType { get; }
+      public bool Result { get; set; }
+      public CanPatchEventArgs(Direction d, PatchType p) => (Direction, PatchType) = (d, p);
    }
 }

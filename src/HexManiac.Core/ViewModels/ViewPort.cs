@@ -478,7 +478,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void SaveAsExecuted(IFileSystem fileSystem) {
-         var newName = fileSystem.RequestNewName(FileName, "GameBoy Advanced", "gba");
+         var newName = fileSystem.RequestNewName(FileName, "Game Boy Advance", "gba");
          if (newName == null) return;
 
          var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
@@ -659,6 +659,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool CanDuplicate => true;
       public void Duplicate() => OpenInNewTab(scroll.DataIndex);
+
+      #endregion
+
+      #region CreatePatch
+
+      public event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
+      public event EventHandler<CanPatchEventArgs> RequestCreatePatch;
+
+      public bool CanIpsPatchRight {
+         get {
+            var args = new CanPatchEventArgs(Direction.Right, PatchType.Ips);
+            RequestCanCreatePatch?.Invoke(this, args);
+            return args.Result;
+         }
+      }
+      public bool CanUpsPatchRight {
+         get {
+            var args = new CanPatchEventArgs(Direction.Right, PatchType.Ups);
+            RequestCanCreatePatch?.Invoke(this, args);
+            return args.Result;
+         }
+      }
+
+      public void IpsPatchRight() => RequestCreatePatch?.Invoke(this, new(Direction.Right, PatchType.Ips));
+
+      public void UpsPatchRight() => RequestCreatePatch?.Invoke(this, new(Direction.Right, PatchType.Ups));
 
       #endregion
 
@@ -1117,12 +1143,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          } else if (file.Name.ToLower().EndsWith(".ips")) {
             history.ChangeCompleted();
-            var destination = DiffViewPort.ApplyIPSPatch(Model, file.Contents, CurrentChange);
+            var destination = Patcher.ApplyIPSPatch(Model, file.Contents, CurrentChange);
             Goto.Execute(destination);
             return true;
          } else if (file.Name.ToLower().EndsWith(".ups")) {
             history.ChangeCompleted();
-            var destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: false, out var direction);
+            var destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: false, out var direction);
             scroll.DataLength = Model.Count;
             switch (destination) {
                case -1: RaiseError("UPS Header didn't match!"); break;
@@ -1132,7 +1158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      new VisualOption { Option = "Cancel", Index = 1, ShortDescription = "This is SAFE", Description = "The UPS will instead be opened as a hex file in a separate tab." }
                      );
                   if (choice == 0) {
-                     destination = DiffViewPort.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: true, out direction);
+                     destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: true, out direction);
                      scroll.DataLength = Model.Count;
                   } else {
                      return false;
@@ -1149,9 +1175,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (destination >= 0) {
                ConsiderReload(fileSystem);
                Goto.Execute(destination);
-               if (direction == DiffViewPort.PatchDirection.SourceToDestination) {
+               if (direction == Patcher.UpsPatchDirection.SourceToDestination) {
                   RaiseMessage("Applied UPS: source->destination patch.");
-               } else if (direction == DiffViewPort.PatchDirection.DestinationToSource) {
+               } else if (direction == Patcher.UpsPatchDirection.DestinationToSource) {
                   RaiseMessage("Reverted UPS: destination->source patch.");
                }
             }
