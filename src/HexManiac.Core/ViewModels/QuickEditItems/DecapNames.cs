@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    // TODO test rival battle -> does the rival name still work if the source name is Terry instead of TERRY?
-   // TODO multichoice options
    // TODO battle menu
    public class DecapNames : IQuickEditItem {
       public string Name => "Decapitalize Names";
@@ -85,8 +84,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
                var segment = table.ElementContent.FirstOfTypeOrDefault<ArrayRunPointerSegment>();
                var offset = table.ElementContent.Until(seg => seg == segment).Sum(seg => seg.Length);
                var destination = model.ReadPointer(table.Start + table.ElementLength * i + offset);
-               if (destination < 0 || destination >= model.Count) continue;
                Decapitalize(model, viewPort.CurrentChange, destination);
+            }
+         }
+
+         // multichoice [options< [text<""> unused::]/count > count::]
+         if (model.GetTable(HardcodeTablesModel.MultichoiceTableName) is ITableRun parent) {
+            for (int i = 0; i < parent.ElementCount; i++) {
+               var destination = model.ReadPointer(parent.Start + parent.ElementLength * i);
+               if (model.GetNextRun(destination) is ITableRun child) {
+                  for (int j = 0; j < child.ElementCount; j++) {
+                     destination = model.ReadPointer(child.Start + child.ElementLength * j);
+                     Decapitalize(model, viewPort.CurrentChange, destination);
+                  }
+               }
             }
          }
 
@@ -106,6 +117,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
 
       private void Decapitalize(IDataModel model, ModelDelta token, int address) {
+         if (address < 0 || address >= model.Count) return;
          var textLength = PCSString.ReadString(model, address, true);
          if (textLength < 3) return;
          var text = PCSString.Convert(model, address, textLength).ToCharArray();
