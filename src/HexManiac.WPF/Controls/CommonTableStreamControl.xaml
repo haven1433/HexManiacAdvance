@@ -22,7 +22,7 @@
                   </ToolTip>
                </hmc:AngleButton.ToolTip>
             </hmc:AngleButton>
-            <Menu Visibility="{Binding CanRepointAll, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
+            <Menu Visibility="{Binding CanRepointAll, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Background}">
                <Menu.Style>
                   <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
                      <Setter Property="BorderThickness" Value="1"/>
