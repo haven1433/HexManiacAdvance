@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
@@ -304,6 +305,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(((None)ViewPort[4, 2].Format).IsSearchResult);
          Assert.True(((None)ViewPort[7, 2].Format).IsSearchResult);
          Assert.False(((None)ViewPort[8, 2].Format).IsSearchResult);
+      }
+
+      [Fact]
+      public void GotoTwice_GoBack_GoBack() {
+         ViewPort.Goto.Execute(0x24);
+         ViewPort.Goto.Execute(0x24);
+
+         ViewPort.Back.Execute();
+
+         Assert.Equal(0, ViewPort.DataOffset);
       }
    }
 }

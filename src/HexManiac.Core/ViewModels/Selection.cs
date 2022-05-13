@@ -284,6 +284,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
          }
          GotoAddressHelper(address);
+
+         // if we didn't actually move anything, don't put the jump point in the back-stack
+         var jump = backStack.Peek();
+         if (Scroll.DataIndex == jump.ViewStart && Scroll.ViewPointToDataIndex(SelectionStart) == jump.SelectionStart) {
+            backStack.Pop();
+         }
       }
 
       public void SetJumpBackPoint(int address) {
