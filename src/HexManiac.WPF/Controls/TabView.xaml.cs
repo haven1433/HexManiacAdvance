@@ -487,6 +487,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (keyString.Length == 1 && char.IsLetterOrDigit(keyString[0])) filter = true;
          else if (keyString.Length == 1 && keyString[0].IsAny(" '?\"-_".ToCharArray())) filter = true;
          viewModel.IsFiltering = filter;
+         if (element is ComboBox cb) cb.IsDropDownOpen |= filter;
+      }
+
+      private void ComboElementLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
+         viewModel.IsFiltering = false;
       }
 
       private void ComboBoxTupleElementTextInput(object sender, TextCompositionEventArgs e) {
@@ -497,6 +504,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (keyString.Length == 1 && char.IsLetterOrDigit(keyString[0])) filter = true;
          else if (keyString.Length == 1 && keyString[0].IsAny(" '?\"-_".ToCharArray())) filter = true;
          viewModel.IsFiltering = filter;
+         if (element is ComboBox cb) cb.IsDropDownOpen |= filter;
+      }
+
+      private void ComboTupleElementLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var viewModel = (EnumTupleElementViewModel)element.DataContext;
+         viewModel.IsFiltering = false;
       }
 
       private void ComboBoxArrayElementViewKeyDown(object sender, KeyEventArgs e) {

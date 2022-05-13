@@ -50,7 +50,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private int recursionCheck;
       private bool isFiltering;
-      public bool IsFiltering { get => isFiltering; set => Set(ref isFiltering, value); }
+      public bool IsFiltering {
+         get => isFiltering;
+         set => Set(ref isFiltering, value, wasFiltering => {
+            if (wasFiltering) SelectedIndex = 0; // reset selection
+         });
+      }
 
       public bool CanFilter => fullOptions[0].DisplayAsText;
       private string filterText;
@@ -114,6 +119,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => selectedIndex;
          set {
             if (recursionCheck != 0) return;
+            recursionCheck++;
+            using var _ = new StubDisposable { Dispose = () => recursionCheck-- };
             IsFiltering = false;
             if (Options.Count > value && value >= 0) {
                var selectedOption = Options[value];
@@ -143,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                selectedIndex = parsedValue - segment.ValueOffset;
             }
 
-            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, Options[selectedIndex].Index + segment.ValueOffset);
+            ViewPort.Model.WriteMultiByteValue(Start, Length, ViewPort.ChangeHistory.CurrentChange, fullOptions[selectedIndex].Index + segment.ValueOffset);
             var info = run.NotifyChildren(ViewPort.Model, ViewPort.ChangeHistory.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
             if (info.HasError && info.IsWarning) ViewPort.RaiseMessage(info.ErrorMessage);
             else if (info.HasError) ViewPort.RaiseError(info.ErrorMessage);

@@ -151,6 +151,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => seg.Read(viewPort.Model, Start, BitOffset);
          set {
             if (recursionCheck != 0) return;
+            recursionCheck++;
+            using var _ = new StubDisposable { Dispose = () => recursionCheck-- };
             var filteredOptions = Options;
             var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
             var currentOption = (0 <= value && value < filteredOptions.Count) ? filteredOptions[value] : fullOptions[0];
@@ -172,7 +174,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int recursionCheck;
 
       private bool isFiltering;
-      public bool IsFiltering { get => isFiltering; set => Set(ref isFiltering, value); }
+      public bool IsFiltering {
+         get => isFiltering;
+         set => Set(ref isFiltering, value, wasFiltering => {
+            if (wasFiltering) SelectedIndex = 0; // reset selection
+         });
+      }
 
       private string filterText;
       public string FilterText {

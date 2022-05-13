@@ -367,7 +367,8 @@
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
                                              <hsg3hv:AngleComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1" Direction="Out"
-                                                 IsEditable="{Binding CanFilter}" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
+                                                    LostKeyboardFocus="ComboElementLostKeyboardFocus" IsEditable="{Binding CanFilter}" Text="{Binding FilterText}"
+                                                    IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
                                                       <hsg3hv:PixelImage />
@@ -566,7 +567,8 @@
                                                             <TextBlock Text="{Binding Name}" />
                                                          </hsg3hv:AngleBorder>
                                                          <hsg3hv:AngleComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1" Direction="Out"
-                                                             IsEditable="True" Text="{Binding FilterText}" IsTextSearchEnabled="False" PreviewTextInput="ComboBoxTupleElementTextInput"/>
+                                                             LostKeyboardFocus="ComboTupleElementLostKeyboardFocus" IsEditable="True" Text="{Binding FilterText}"
+                                                             IsTextSearchEnabled="False" PreviewTextInput="ComboBoxTupleElementTextInput"/>
                                                       </Grid>
                                                    </DataTemplate>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTupleElementViewModel}">
