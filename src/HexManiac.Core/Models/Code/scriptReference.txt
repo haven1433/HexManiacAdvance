@@ -74,7 +74,7 @@
 30 waitsound                                 # blocks script execution until any playing sounds finish
 31 fanfare song:                             # plays a song from the song list as a fanfare
 32 waitfanfare                               # blocks script execution until any playing fanfair finishes
-33 playsong song: mode.songLoopOptions       # plays a song once or loop
+33 playsong song: mode.songloopoptions       # plays a song once or loop
 34 playsong2 song:                           # seems buggy?
 35 fadedefault                               # fades the music back to the default song
 36 fadesong song:                            # fades the music into the given song
