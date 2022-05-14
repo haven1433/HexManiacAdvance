@@ -71,7 +71,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             // selected index is already fine
          } else if (Options.Count > 0) {
             // based on typing filter text, we can change the selection
-            selectedIndex = Options[0].Index;
+            selectedIndex = 0;
             var options = Options;
             SelectionChanged();
             Options = options;
