@@ -688,8 +688,21 @@ Name = '''trainergender'''
 ]
 
 [[List]]
-Name = '''songLoopOptions'''
+Name = '''songloopoptions'''
 0 = [
     '''playOnce''',
     '''loop''',
 ]
+
+[[List]]
+Name = '''genderratiovalues''' 
+0 = '''100% Male'''
+31 = '''87% Male'''
+63 = '''75% Male'''
+89 = '''65% Male'''
+127 = '''50% Male & 50% Female'''
+165 = '''65% Female'''
+181 = '''75% Female'''
+223 = '''87% Female'''
+254 = '''100% Female'''
+255 = '''Genderless'''
