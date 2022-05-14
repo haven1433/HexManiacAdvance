@@ -405,6 +405,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var mainEnumAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchorName);
          var enumArray = model.GetNextRun(mainEnumAddress) as ArrayRun;
          if (enumArray == null) return false;
+         if (enumArray.ElementCount < 2) return false;
          if (enumArray.ElementContent.Count != 1) return false;
          if (!(enumArray.ElementContent[0] is ArrayRunEnumSegment mainEnumSegment)) return false;
          var enumSourceAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, mainEnumSegment.EnumName);

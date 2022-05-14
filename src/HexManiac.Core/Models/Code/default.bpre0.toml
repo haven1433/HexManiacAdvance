@@ -1,0 +1,16 @@
+﻿# BPRE0
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.left'''
+Address = 0x169BB5
+Format = '''[species1:data.pokemon.names]scripts.newgame.starters.middle'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.middle'''
+Address = 0x169D82
+Format = '''[species2:data.pokemon.names]1'''
+
+[[NamedAnchors]]
+Name = '''scripts.newgame.starters.right'''
+Address = 0x169DB8
+Format = '''[species3:data.pokemon.names]scripts.newgame.starters.middle'''
