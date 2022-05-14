@@ -656,7 +656,8 @@ graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
 
-sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168,       , [pointer<> musicplayer: unknown:]songnames
+sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168, 2E0158, [pointer<> musicplayer: unknown:]songnames
+sound.musicplayer,                                                ,,,,                            ,,,, 2E010C, [info::|h track::|h num: unknown:]4
 sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.hoennconversion,     03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277
