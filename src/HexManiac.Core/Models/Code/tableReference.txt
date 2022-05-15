@@ -330,8 +330,8 @@ graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 13
 graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
 graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
 graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10B938, , `ucp4`
-graphics.menu.storage.background.palette1, , , , , 08F0C0, 08F094, 08F0D4, 08F0A8, , `ucp4`
-graphics.menu.storage.background.palette2, , , , , 08F0EC, 08F0C0, 08F100, 08F0D4, , `ucp4`
+graphics.menu.storage.background.palette1, , , , , 08F0C0, 08F094, 08F0D4, 08F0A8, , `ucp4:3`
+graphics.menu.storage.background.palette2, , , , , 08F0EC, 08F0C0, 08F100, 08F0D4, , `ucp4:3`
 graphics.menu.storage.background.tileset,  , , , , 08EFBC, 08EF90, 08EFD0, 08EFA4, , `lzs4x4x2|graphics.menu.storage.background.palette1`
 graphics.menu.storage.background.tilemap,  , , , , 08EFC0, 08EF94, 08EFD4, 08EFA8, , `lzm4x32x32|graphics.menu.storage.background.tileset`
 
