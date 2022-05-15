@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:hshmcvmt="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
+             xmlns:sys="clr-namespace:System;assembly=mscorlib"
              Background="{DynamicResource Background}">
    <ItemsControl Name="ToolTipContent" ItemsSource="{Binding}">
       <ItemsControl.Resources>
@@ -22,6 +23,9 @@
                   </DataTemplate>
                </ItemsControl.ItemTemplate>
             </ItemsControl>
+         </DataTemplate>
+         <DataTemplate DataType="{x:Type sys:String}">
+            <TextBlock Text="{Binding}" MaxWidth="400" TextWrapping="Wrap" />
          </DataTemplate>
       </ItemsControl.Resources>
    </ItemsControl>
