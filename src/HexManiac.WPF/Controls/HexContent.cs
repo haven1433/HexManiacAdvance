@@ -662,6 +662,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          base.OnPreviewKeyDown(e);
       }
 
+      protected override void OnKeyDown(KeyEventArgs e) {
+         base.OnKeyDown(e);
+         if (e.Key == Key.Enter && Keyboard.Modifiers == ModifierKeys.Control) {
+            if (ViewPort is IEditableViewPort viewPort) {
+               var point = viewPort.SelectionStart;
+               viewPort.FollowLink(point.X, point.Y);
+               e.Handled = true;
+            }
+         }
+      }
+
       private void ShowMenu(IList<FrameworkElement> children) {
          if (children.Count == 0) return;
 
