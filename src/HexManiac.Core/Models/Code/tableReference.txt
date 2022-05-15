@@ -414,6 +414,17 @@ graphics.battle.textbox.tilemap,                       ,       ,       ,       ,
 graphics.battle.textbox.tilemap,                 00DAEC, 00DAEC, 00DAEC, 00DAEC,       ,       ,       ,       ,       , `ucm4x32x64|graphics.battle.textbox.tileset`
 graphics.battle.animations.status,               07BDA0, 07BDA4, 07BDC0, 07BDC4, 0788B0, 0788B0, 0788C4, 0788C4, 0AA3A8, [animation<`ase`>]statusanimations
 graphics.battle.animations.special,              0315DC, 0315DC, 0315DC, 0315DC, 034150, 034150, 034164, 034164, 05DA3C, [animation<`ase`>]effectanimations
+graphics.battle.animations.statchange.palette1, , , , , 0BB38C, 0BB360, 0BB3A0, 0BB374, , `lzp4`
+graphics.battle.animations.statchange.palette2, , , , , 0BB384, 0BB358, 0BB398, 0BB36C, , `lzp4`
+graphics.battle.animations.statchange.palette3, , , , , 0BB394, 0BB368, 0BB3A8, 0BB37C, , `lzp4`
+graphics.battle.animations.statchange.palette4, , , , , 0BB39C, 0BB370, 0BB3B0, 0BB384, , `lzp4`
+graphics.battle.animations.statchange.palette5, , , , , 0BB3FC, 0BB3D0, 0BB410, 0BB3E4, , `lzp4`
+graphics.battle.animations.statchange.palette6, , , , , 0BB3A4, 0BB378, 0BB3B8, 0BB38C, , `lzp4`
+graphics.battle.animations.statchange.palette7, , , , , 0BB3AC, 0BB380, 0BB3C0, 0BB394, , `lzp4`
+graphics.battle.animations.statchange.palette8, , , , , 0BB3C0, 0BB394, 0BB3D4, 0BB3A8, , `lzp4`
+graphics.battle.animations.statchange.tileset,  , , , , 0BB358, 0BB32C, 0BB36C, 0BB340, , `lzt4|graphics.battle.animations.statchange.palette1`
+graphics.battle.animations.statchange.tilemap1, , , , , 0BB308, 0BB2DC, 0BB31C, 0BB2F0, , `lzm4x32x32|graphics.battle.animations.statchange.tileset`
+graphics.battle.animations.statchange.tilemap2, , , , , 0BB354, 0BB328, 0BB368, 0BB33C, , `lzm4x32x32|graphics.battle.animations.statchange.tileset`
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:EF`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
