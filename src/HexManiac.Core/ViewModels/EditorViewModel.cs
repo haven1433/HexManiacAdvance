@@ -985,7 +985,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          FindControlVisible = false;
 
          if (results.Count == 0) {
-            ErrorMessage = $"Could not find {search}.";
+            if (search.Length < 4) {
+               ErrorMessage = $"Query '{search}' is too short. Narrow your search.";
+            } else {
+               ErrorMessage = $"Could not find {search}.";
+            }
             return;
          }
 
