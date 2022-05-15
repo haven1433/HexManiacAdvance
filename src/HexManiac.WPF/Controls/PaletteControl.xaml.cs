@@ -28,6 +28,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          new TextBox { ToolTip = "Blue (0 to 31)" },
          new TextBox { ToolTip = "Color Code (0000 to 7FFF)" },
       };
+      private readonly TextBox[] decompTextBoxes = new[] {
+         new TextBox { ToolTip = "Red (0 to 255)" },
+         new TextBox { ToolTip = "Green (0 to 255)" },
+         new TextBox { ToolTip = "Blue (0 to 255)" },
+         new TextBox { ToolTip = "Color Code (000000-FFFFFF or a color word)" },
+      };
 
       private Point interactionPoint;
       private short[] initialColors;
@@ -80,11 +86,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                      }),
                      new UniformGrid {
                         Columns = 4,
+                        Rows = 2,
                         Children = {
                            swatchTextBoxes[3],
                            swatchTextBoxes[0],
                            swatchTextBoxes[1],
                            swatchTextBoxes[2],
+                           decompTextBoxes[3],
+                           decompTextBoxes[0],
+                           decompTextBoxes[1],
+                           decompTextBoxes[2],
                         },
                      },
                   },
@@ -93,6 +104,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          };
          LoseKeyboardFocusCausesLoseMultiSelect = true;
          Unloaded += (sender, e) => ClosePopup();
+
+         swatchTextBoxes[0].TextChanged += UpdateSwatchColorFromTextBoxes;
+         swatchTextBoxes[1].TextChanged += UpdateSwatchColorFromTextBoxes;
+         swatchTextBoxes[2].TextChanged += UpdateSwatchColorFromTextBoxes;
+         swatchTextBoxes[3].TextChanged += UpdateSwatchColorFromBytesBox;
+         decompTextBoxes[0].TextChanged += UpdateSwatchColorFromDecompTextBoxes;
+         decompTextBoxes[1].TextChanged += UpdateSwatchColorFromDecompTextBoxes;
+         decompTextBoxes[2].TextChanged += UpdateSwatchColorFromDecompTextBoxes;
+         decompTextBoxes[3].TextChanged += UpdateSwatchColorFromDecompBytesBox;
       }
 
       private void AppClosePopup(object sender, EventArgs e) => ClosePopup();
@@ -176,55 +196,106 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void UpdateSwatchTextBoxContentFromSwatch() {
          if (!commitTextboxChanges) return;
+         commitTextboxChanges = false;
+
          var color32 = (Color)ColorConverter.ConvertFromString(swatch.Result);
-         var color16 = TileImage.Convert16BitColor(color32);
-         var channels = Color16ToChannelStrings(color16);
-         color16 = PaletteRun.FlipColorChannels(color16);
-         for (int i = 0; i < channels.Length; i++) {
-            swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
-            swatchTextBoxes[i].Text = channels[i];
-            swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
-         }
-         swatchTextBoxes[3].TextChanged -= UpdateSwatchColorFromBytesBox;
-         swatchTextBoxes[3].Text = color16.ToString("X4");
-         swatchTextBoxes[3].TextChanged += UpdateSwatchColorFromBytesBox;
+         UpdateTextBoxes(color32, ignoreSwatch: true);
+
+         commitTextboxChanges = true;
       }
 
       private void UpdateSwatchColorFromTextBoxes(object sender, TextChangedEventArgs e) {
          if (!commitTextboxChanges) return;
          commitTextboxChanges = false;
-         for (int i = 0; i < 3; i++) swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
 
          var color16 = ChannelStringsToColor16(swatchTextBoxes.Select(box => box.Text).ToArray());
          var color32 = TileImage.Convert16BitColor(color16);
-         color16 = PaletteRun.FlipColorChannels(color16);
-         swatch.Result = color32.ToString();
-         swatchTextBoxes[3].Text = color16.ToString("X4");
+         UpdateTextBoxes(color32, ignore5bitChannels: true);
 
-         for (int i = 0; i < 3; i++) swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
          commitTextboxChanges = true;
       }
 
       private void UpdateSwatchColorFromBytesBox(object sender, TextChangedEventArgs e) {
          if (!commitTextboxChanges) return;
          commitTextboxChanges = false;
-         swatchTextBoxes[3].TextChanged -= UpdateSwatchColorFromBytesBox;
 
          if (short.TryParse(swatchTextBoxes[3].Text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var color16)) {
             color16 = PaletteRun.FlipColorChannels(color16);
             var color32 = TileImage.Convert16BitColor(color16);
-            swatch.Result = color32.ToString();
+            UpdateTextBoxes(color32, ignore16bitColor: true);
+         }
 
-            var channels = Color16ToChannelStrings(color16);
+         commitTextboxChanges = true;
+      }
+
+      private void UpdateSwatchColorFromDecompTextBoxes(object sender, TextChangedEventArgs e) {
+         if (!commitTextboxChanges) return;
+         commitTextboxChanges = false;
+
+         if (
+            byte.TryParse(decompTextBoxes[0].Text, out var red) &&
+            byte.TryParse(decompTextBoxes[1].Text, out var green) &&
+            byte.TryParse(decompTextBoxes[2].Text, out var blue)
+         ) {
+            var color32 = Color.FromRgb(red, green, blue);
+            UpdateTextBoxes(color32, ignore32bitColor: true);
+         }
+
+         commitTextboxChanges = true;
+      }
+
+      private void UpdateSwatchColorFromDecompBytesBox(object sender, TextChangedEventArgs e) {
+         if (!commitTextboxChanges) return;
+         commitTextboxChanges = false;
+
+         try {
+            var color32 = (Color)ColorConverter.ConvertFromString(decompTextBoxes[3].Text);
+            UpdateTextBoxes(color32, ignore32bitColor: true);
+         } catch (FormatException) { // ConvertFromString can fail
+            try {
+               var color32 = (Color)ColorConverter.ConvertFromString("#" + decompTextBoxes[3].Text); // maybe its 6 hex characters?
+               UpdateTextBoxes(color32, ignore32bitColor: true);
+            } catch (FormatException) { }
+         }
+
+         commitTextboxChanges = true;
+      }
+
+      private void UpdateTextBoxes(
+         Color color32,
+         bool ignore5bitChannels = false,
+         bool ignore8bitChannels = false,
+         bool ignore16bitColor = false,
+         bool ignore32bitColor = false,
+         bool ignoreSwatch = false
+      ) {
+         var color16 = TileImage.Convert16BitColor(color32);
+         var channels = Color16ToChannelStrings(color16);
+         color16 = PaletteRun.FlipColorChannels(color16);
+
+         if (!ignore5bitChannels) {
             for (int i = 0; i < channels.Length; i++) {
-               swatchTextBoxes[i].TextChanged -= UpdateSwatchColorFromTextBoxes;
                swatchTextBoxes[i].Text = channels[i];
-               swatchTextBoxes[i].TextChanged += UpdateSwatchColorFromTextBoxes;
             }
          }
 
-         swatchTextBoxes[3].TextChanged += UpdateSwatchColorFromBytesBox;
-         commitTextboxChanges = true;
+         if (!ignore16bitColor) {
+            swatchTextBoxes[3].Text = color16.ToString("X4");
+         }
+
+         if (!ignore8bitChannels) {
+            for (int i = 0; i < channels.Length; i++) {
+               decompTextBoxes[i].Text = (int.Parse(channels[i]) * 255 / 31).ToString();
+            }
+         }
+
+         if (!ignore32bitColor) {
+            decompTextBoxes[3].Text = color32.ToString().Substring(3); // cut off the #FF at the beginning
+         }
+
+         if (!ignoreSwatch) {
+            swatch.Result = color32.ToString();
+         }
       }
 
       private void PaletteColorMove(object sender, MouseEventArgs e) {

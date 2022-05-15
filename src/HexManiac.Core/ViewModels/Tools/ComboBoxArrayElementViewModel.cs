@@ -137,6 +137,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Set(ref selectedIndex, value, prev => SelectionChanged());
          }
       }
+
       private void SelectionChanged() {
          using (ModelCacheScope.CreateScope(ViewPort.Model)) {
             var run = (ITableRun)ViewPort.Model.GetNextRun(Start);

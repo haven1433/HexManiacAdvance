@@ -51,8 +51,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          byte g = (byte)((color >> 5) & 0b11111);
          byte r = (byte)((color >> 10) & 0b11111);
 
-         return Color.FromArgb(255, (byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
+         return Color.FromArgb(255, ScaleUp(r), ScaleUp(g), ScaleUp(b));
       }
+
+      public static byte ScaleUp(byte channel) => (byte)((channel * 255) / 31);
 
       public static short Convert16BitColor(Color color) {
          byte r = (byte)(color.R >> 3);
