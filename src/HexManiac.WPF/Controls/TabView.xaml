@@ -652,8 +652,8 @@
                <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
                <hsg3hv:AngleTextBox Direction="Out" TextBinding="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
                <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
-               <hsg3hv:AngleButton Direction="Out" Margin="0,3,0,1" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" Height="28" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
-               <hsg3hv:AngleButton Direction="Out" Margin="0,1,0,3" Command="{Binding StringTool.InsertText}" Content="Insert New Text" Height="28" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+               <hsg3hv:AngleButton Direction="Out" Margin="0,3,5,1" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" Height="28" MinWidth="104" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
+               <hsg3hv:AngleButton Direction="Out" Margin="0,1,5,3" Command="{Binding StringTool.InsertText}" Content="Insert New Text" Height="28" MinWidth="104" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
                <TextBlock Text="Content:" Margin="5,30,0,0" DockPanel.Dock="Top"/>
 
                <hsg3hv:AngleButton Direction="Out" Command="{Binding StringTool.Search}" Margin="5,2" Content="Search" Height="28" HorizontalAlignment="Right" DockPanel.Dock="Bottom" />
