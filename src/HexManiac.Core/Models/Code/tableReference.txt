@@ -408,7 +408,7 @@ graphics.battle.hud.hpbox.opponent,              20A484, 20A414, 20A49C, 20A42C,
 graphics.battle.hud.hpbox.doublebattle.player,   20A494, 20A424, 20A4AC, 20A43C, 260220, 260200, 260290, 260270, , `lzs4x8x8|graphics.battle.hud.palette`
 graphics.battle.hud.hpbox.doublebattle.opponent, 20A4A4, 20A434, 20A4BC, 20A44C, 260230, 260210, 2602A0, 260280, , `lzs4x8x8|graphics.battle.hud.palette`
 graphics.battle.hud.hpbox.safarizone,            20A4AC, 20A43C, 20A4C4, 20A454, 260238, 260218, 2602A8, 260288, , `lzs4x8x16|graphics.battle.hud.palette`
-graphics.battle.hud.status,                            ,       ,       ,       , 26049C, 26047C, 26050C, 2604EC, , `ucs4x10x5|graphics.battle.hud.hpbar.palette`
+graphics.battle.hud.status,                            ,       ,       ,       , 26049C, 26047C, 26050C, 2604EC, , `ucs4x9x6|graphics.battle.hud.hpbar.palette`
 graphics.battle.hud.pokeballbar,                       ,       ,       ,       , 26046C, 26044C, 2604DC, 2604BC, , `lzs4x16x1|graphics.battle.hud.palette`
 graphics.battle.hud.idlelevel.palette,                 ,       ,       ,       , 0264C8, 0264C8, 0264DC, 0264DC, , `ucp4`
 graphics.battle.hud.idlelevel.sprite,                  ,       ,       ,       , 0264CC, 0264CC, 0264E0, 0264E0, , `lzs4x12x3|graphics.battle.hud.idlelevel.palette`
