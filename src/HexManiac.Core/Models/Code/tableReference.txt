@@ -316,6 +316,7 @@ graphics.menu.boxes.background,                  ,,,, 09191C, 0918F0, 091930, 09
 graphics.menu.boxes.picker.party.palette,        ,,,, 08F70C, 08F6E0, 08F720, 08F6F4,       , `ucp4`
 graphics.menu.boxes.picker.cursor.palette,       ,,,, 08F0B0, 08F084, 08F0C4, 08F098,       , `ucp4`
 graphics.menu.boxes.picker.palette,              ,,,, 08F0B4, 08F088, 08F0C8, 08F09C, 0CA114, `ucp4`
+graphics.menu.boxes.picker.palette2,             ,,,, 08F0B0, 08F084, 08F0C4, 08F098, 0CA110, `ucp4`
 graphics.menu.boxes.picker.tileset,              ,,,, 08F034, 08F008, 08F048, 08F01C, 0CA094, `lzt4|graphics.menu.boxes.picker.palette`
 //graphics.menu.boxes.picker.tilemap,              ,,,, 08F038, 08F00C, 08F04C, 08F020, 0CA098, `lzm4x32x20|graphics.menu.boxes.picker.tileset` // BPRE0, needs testing for LG/1.1
 //  this tilemap assumes the tileset is loaded at index 0x100 instead of index 0x00. The tilemap won't show right unless we support that.
@@ -329,8 +330,11 @@ graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 13
 graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
 graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
 graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10B938, , `ucp4`
+graphics.menu.storage.background.palette1, , , , , 08F0C0, 08F094, 08F0D4, 08F0A8, , `ucp4`
+graphics.menu.storage.background.palette2, , , , , 08F0EC, 08F0C0, 08F100, 08F0D4, , `ucp4`
+graphics.menu.storage.background.tileset,  , , , , 08EFBC, 08EF90, 08EFD0, 08EFA4, , `lzs4x4x2|graphics.menu.storage.background.palette1`
+graphics.menu.storage.background.tilemap,  , , , , 08EFC0, 08EF94, 08EFD4, 08EFA8, , `lzm4x32x32|graphics.menu.storage.background.tileset`
 
-// from Scyrous
 graphics.townmap.pokenav.zoom.tileset,    ,,,, ,,,, 1CCAD0, `lzt4|graphics.townmap.pokenav.zoom.palette`
 graphics.townmap.pokenav.zoom.palette,    ,,,, ,,,, 1CCAD8, `ucp4:3`
 graphics.menu.partymenu.palette,          ,,,, ,,,, 1B0678, `lzp4:0123456789A`
