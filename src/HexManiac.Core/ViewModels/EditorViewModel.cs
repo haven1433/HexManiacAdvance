@@ -375,6 +375,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEditsExpansion { get; }
 
+      public IReadOnlyList<IQuickEditItem> QuickEditsMisc { get; }
+
       public Singletons Singletons { get; }
 
       public event EventHandler<Action> RequestDelayedWork;
@@ -403,7 +405,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   duplicateCurrentTab.RaiseCanExecuteChanged();
                   if (selectedIndex >= 0 && selectedIndex < tabs.Count) tabs[selectedIndex].Refresh();
                   UpdateGotoViewModel();
-                  foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
+                  foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion).Concat(QuickEditsMisc)) edit.TabChanged();
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
                   NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
@@ -438,7 +440,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             new ReorderDex("National", HardcodeTablesModel.NationalDexTableName),
             new ReorderDex("Regional", HardcodeTablesModel.RegionalDexTableName),
             new LevelUpMoveSorter(),
-            // new DecapNames(),
          }.Select(edit => new EditItemWrapper(edit)).ToList();
          var expansionUtils = new List<IQuickEditItem> {
             new ExpandRom(fileSystem),
@@ -452,6 +453,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             expansionUtils.Add(new MakePokemonExpandable());
          }
          QuickEditsExpansion = expansionUtils.Select(edit => new EditItemWrapper(edit)).ToList();
+         QuickEditsMisc = new List<IQuickEditItem> {
+            new RomOverview(),
+            new DecapNames(),
+         };
 
          tabs = new List<ITabContent>();
          selectedIndex = -1;
@@ -720,7 +725,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (content is IViewPort viewModel) {
             if (viewModel.Model != null) {
                viewModel.Model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => {
-                  foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion)) edit.TabChanged();
+                  foreach (var edit in QuickEditsPokedex.Concat(QuickEditsExpansion).Concat(QuickEditsMisc)) edit.TabChanged();
                   gotoViewModel.RefreshOptions();
                   var collection = CreateGotoShortcuts(gotoViewModel);
                   if (collection != null) gotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);

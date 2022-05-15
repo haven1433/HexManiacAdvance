@@ -227,6 +227,7 @@
                <MenuItem Header="Utilities">
                   <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
                   <MenuItem Name="QuickEditsExpansion" Header="Expand" />
+                  <MenuItem Name="QuickEditsMisc" Header="Misc" />
                   <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}" />
                </MenuItem>
                <MenuItem Header="_Tools">

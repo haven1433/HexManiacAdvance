@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public string Description => "Decapitalize names of Pokemon, Species, Moves, Abilities, Items, Trainers, Types, and Natures";
 
-      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Rom-Expansion-Explained";
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Decapitalization-Explained";
 
       public event EventHandler CanRunChanged;
 

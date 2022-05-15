@@ -179,6 +179,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                Command = command,
             });
          }
+
+         foreach (var edit in ViewModel.QuickEditsMisc) {
+            var command = CreateQuickEditCommand(edit);
+            QuickEditsMisc.Items.Add(new MenuItem {
+               Header = edit.Name,
+               Command = command
+            });
+         }
+         ((RomOverview)ViewModel.QuickEditsMisc[0]).EditSelected += (sender, e) => DeveloperRenderRomOverview(default, default);
       }
 
       private ICommand CreateQuickEditCommand(IQuickEditItem edit) {
