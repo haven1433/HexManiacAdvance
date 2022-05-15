@@ -200,7 +200,11 @@ BPGE1.scripts.newgame.start.map  054A1A
 BPGE1.scripts.newgame.start.x    054A1C
 BPGE1.scripts.newgame.start.y    054A14
 
-BPEE0:scripts.newgame.professor.pokemon 031924,030B0C   # ID of the pokemon shown during the pofessor's introduction
+BPRE0.scripts.newgame.professor.pokemon  12FB38,130F40,130F4C # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
+BPGE0.scripts.newgame.professor.pokemon  12FB10,130F18,130F24 # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
+BPRE1.scripts.newgame.professor.pokemon  12FBB0,130FB8,130FC4 # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
+BPGE1.scripts.newgame.professor.pokemon  12FB88,130F90,130F9C # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
+BPEE0:scripts.newgame.professor.pokemon  031924,030B0C        # ID of the pokemon shown during the professor's introduction
 
 # Catchmap. See http://sfc.pokefans.net/lesson.php?id=20
 BPRE0.data.maps.catchmap.conversion.kanto.length 13CA9C
