@@ -706,3 +706,45 @@ Name = '''genderratiovalues'''
 223 = '''87% Female'''
 254 = '''100% Female'''
 255 = '''Genderless'''
+
+[[List]]
+Name = '''statusanimations'''
+0 = [
+   '''Poison''',
+   '''Confusion''',
+   '''Burn''',
+   '''Infatuation''',
+   '''Sleep''',
+   '''Paralysis''',
+   '''Freeze''',
+   '''Curse''',
+   '''Nightmare''',
+]
+
+[[List]]
+Name = '''effectanimations'''
+0 = [
+   '''FormChange''',
+   '''StatChange''',
+   '''SubstituteFade''',
+   '''SubstituteAppear''',
+   '''PokeblockThrow''',
+   '''ItemKnockOff''',
+   '''TurnTrap''',
+   '''HeldItemEffect''',
+   '''SmokeBall''',
+   '''FocusBand''',
+   '''Rain''',
+   '''Sun''',
+   '''Sandstorm''',
+   '''Hail''',
+   '''LeechSeedDrain''',
+   '''ConfuseHit''',
+   '''ItemSteal''',
+   '''SnatchMove''',
+   '''FutureSight''',
+   '''DoomDesire''',
+   '''FocusPunchSetUp''',
+   '''IngrainHeal''',
+   '''WishHeal''',
+]

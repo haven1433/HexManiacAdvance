@@ -176,9 +176,6 @@ data.pokemon.type.chart,               01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 0
 data.pokemon.natures.stats,                  ,       ,       ,       , 0436D8, 0436D8, 0436EC, 0436EC,        , [attack.|z defense.|z speed.|z spAttack.|z spDefense.|z]data.pokemon.natures.names
 data.pokemon.swarm,                          ,       ,       ,       ,       ,       ,       ,       , 0ED800, [pokemon:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names level. location.]5
 
-scripts.moves.animations.tightenfocus, 1C776C, 1C76FC, 1C7784, 1C7714, 1C6EF8, 1C6ED4, 1C6F68, 1C6F44, 2C9370, `ase`
-scripts.moves.animations.doomdesire,   1C7768, 1C76F8, 1C7780, 1C7710, 1C6EF4, 1C6ED0, 1C6F64, 1C6F40, 2C936C, `ase`
-scripts.moves.animations.useitem,      1C7738, 1C76C8, 1C7750, 1C76E0, 1C6EC4, 1C6EA0, 1C6F34, 1C6F10, 2C933C, `ase`
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
 scripts.specials.thumb,                      ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       , 099314, [code<>]
@@ -411,7 +408,8 @@ graphics.battle.textbox.palette,                 00DAF4, 00DAF4, 00DAF4, 00DAF4,
 graphics.battle.textbox.tileset,                 00DAE8, 00DAE8, 00DAE8, 00DAE8, 00F454, 00F454, 00F468, 00F468, 035AD8, `lzt4|graphics.battle.textbox.palette`
 graphics.battle.textbox.tilemap,                       ,       ,       ,       , 00F458, 00F458, 00F46C, 00F46C, 035ADC, `lzm4x32x64|graphics.battle.textbox.tileset`
 graphics.battle.textbox.tilemap,                 00DAEC, 00DAEC, 00DAEC, 00DAEC,       ,       ,       ,       ,       , `ucm4x32x64|graphics.battle.textbox.tileset`
-
+graphics.battle.animations.status,               07BDA0, 07BDA4, 07BDC0, 07BDC4, 0788B0, 0788B0, 0788C4, 0788C4, 0AA3A8, [animation<`ase`>]statusanimations
+graphics.battle.animations.special,              0315DC, 0315DC, 0315DC, 0315DC, 034150, 034150, 034164, 034164, 05DA3C, [animation<`ase`>]effectanimations
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:EF`
 graphics.titlescreen.pokemon.tileset,              07C280, 07C284, 07C2A0, 07C2A4, ,,,, , `lzt4|graphics.titlescreen.pokemon.palette`
