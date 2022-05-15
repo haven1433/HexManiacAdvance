@@ -523,6 +523,16 @@ graphics.newgame.pokemon.selection.bag.tilemap,        ,,,,,,,, 134194, `lzm4x32
 graphics.newgame.pokemon.selection.background.tilemap, ,,,,,,,, 13419C, `lzm4x32x32|graphics.newgame.pokemon.selection.tileset`
 graphics.newgame.pokemon.selection.tileset,            ,,,,,,,, 134190, `lzt4|graphics.newgame.pokemon.selection.palette`
 graphics.newgame.pokemon.selection.pokeball,           ,,,,,,,, 5B1ED8, `lzs4x4x4|graphics.newgame.pokemon.selection.palette`
+graphics.newgame.menu.naming.palette,  , , , , 09F8F8, 09F8CC, 09F90C, 09F8E0, , `ucp4:0123`
+graphics.newgame.menu.naming.palette2, , , , , 3E2704, 3E2540, 3E2774, 3E25B0, , `ucp4:01`
+graphics.newgame.menu.naming.palette3, , , , , 09F8FC, 09F8D0, 09F910, 09F8E4, , `ucp4`
+graphics.newgame.menu.naming.sprite,   , , , , 3E268C, 3E24C8, 3E26FC, 3E2538, , `ucs4x5x18|graphics.newgame.menu.naming.palette2`
+graphics.newgame.menu.naming.sprite2,  , , , , 3E2534, 3E2370, 3E25A4, 3E23E0, , `ucs4x2x6|graphics.newgame.menu.naming.palette`
+graphics.newgame.menu.naming.tileset,  , , , , 09F8AC, 09F880, 09F8C0, 09F894, , `lzs4x6x6|graphics.newgame.menu.naming.palette`
+graphics.newgame.menu.naming.tilemap1, , , , , 09DF08, 09DEDC, 09DF1C, 09DEF0, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01234`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
