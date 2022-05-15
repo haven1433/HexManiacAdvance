@@ -181,6 +181,8 @@ data.pokemon.natures.stats,                  ,       ,       ,       , 0436D8, 0
 data.pokemon.swarm,                          ,       ,       ,       ,       ,       ,       ,       , 0ED800, [pokemon:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names level. location.]5
 
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
+scripts.moves.setupeffects,            ,,,, 1DBA96, 1DBA72, 1DBB06, 1DBAE2, , [effects.moveeffectoptions]!FF
+scripts.moves.setupeffects,            ,,,, ,,,, 2DDE7F,                      [effects.moveeffectoptions]!FF
 scripts.specials.thumb,                      ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       , 099314, [code<>]
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
@@ -202,6 +204,7 @@ data.battle.text,                                         ,       ,       ,     
 data.battle.text,                                         ,       ,       ,       ,       ,       ,       ,       , 13EC60, [text<"">]369
 data.pokemon.contest.stats,            0AE470, 0AE470, 0AE490, 0AE490, ,,,,       , [species:data.pokemon.names nickname""11 trainerName""8 trainerGfxId. unused: aiChecks::|h flags|b[]contestPokemonFlags unused. move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names cool. beauty. cute. smart. tough. sheen. highestRank. gameCleared. unused""10 personality::|h otId:|h unused:]60
 data.pokemon.contest.stats,                  ,       ,       ,       , ,,,, 0DABE4, [species:data.pokemon.names nickname""11 trainerName""8 trainerGfxId. unused: aiChecks::|h flags|b[]contestPokemonFlags unused. move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names cool. beauty. cute. smart. tough. sheen. highestRank. gameCleared. unused""10 personality::|h otId:|h unused:]96
+data.pokemon.contest.paintings,        ,,,, ,,,, 0DF07C, [personality:: trainerID::|h species:data.pokemon.names paintmode. nickname""11 trainerName""8 rank:]8
 
 
 data.pokedex.regional,                 03F7F0, 03F7F0, 03F7F0, 03F7F0, 0431F0, 0431F0, 043204, 043204, 06D3FC, [index:]data.pokemon.names-1
