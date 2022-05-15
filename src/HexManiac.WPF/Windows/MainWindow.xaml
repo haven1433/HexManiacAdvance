@@ -651,7 +651,7 @@
                                  <KeyBinding Key="Return" Command="{Binding GotoViewModel.Goto}"/>
                               </hsg3hv:AngleTextBox.InputBindings>
                            </hsg3hv:AngleTextBox>
-                           <TextBlock IsHitTestVisible="False" Foreground="{DynamicResource Secondary}" FontStyle="Italic" FontSize="25" VerticalAlignment="Bottom" Margin="3" Text="Search or type an Address">
+                           <TextBlock IsHitTestVisible="False" Foreground="{DynamicResource Secondary}" FontStyle="Italic" FontSize="25" VerticalAlignment="Bottom" Margin="10" Text="Search or type an Address">
                               <TextBlock.Style>
                                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
                                     <Setter Property="Visibility" Value="Collapsed"/>

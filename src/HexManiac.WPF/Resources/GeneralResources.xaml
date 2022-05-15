@@ -22,6 +22,7 @@
 
    <!-- Button Style -->
    <Style TargetType="Button">
+      <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="Padding" Value="3"/>
       <Setter Property="BorderBrush" Value="{DynamicResource Backlight}"/>
       <Setter Property="Background" Value="{DynamicResource Backlight}"/>
