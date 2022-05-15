@@ -66,7 +66,7 @@ graphics.pokemon.icons.palettes,            09D53C, 09D53C, 09D55C, 09D55C, 0001
 graphics.pokemon.icons.deoxys,                    ,       ,       ,       , 3D3E08, 3D3C44, 3D3E78, 3D3CB4, 57C310, `ucs4x4x16|graphics.pokemon.icons.index`
 graphics.pokemon.shiny.star.sprite,               ,       ,       ,       , 13AE68, 13AE40, 13AEE0, 13AEB8,       , `lzs4x1x2|graphics.pokemon.shiny.star.palette`
 graphics.pokemon.shiny.star.palette,              ,       ,       ,       , 13AE6C, 13AE44, 13AEE4, 13AEBC,       , `ucp4`
-graphics.pokemon.evolution.scene.palette,         ,       ,       ,       , 0D036C, 0D0340, 0D0380, 0D0354,       , `ucp4:01`
+graphics.pokemon.evolution.scene.palette,         ,       ,       ,       , 0D036C, 0D0340, 0D0380, 0D0354,       , `ucp4:AB`
 graphics.pokemon.evolution.scene.tileset,         ,       ,       ,       , 0D0424, 0D03F8, 0D0438, 0D040C,       , `lzt4|graphics.pokemon.evolution.scene.palette`
 graphics.pokemon.evolution.scene.tilemap1,        ,       ,       ,       , 0D0428, 0D03FC, 0D043C, 0D0410,       , `lzm4x32x32|graphics.pokemon.evolution.scene.tileset`
 graphics.pokemon.evolution.scene.tilemap2,        ,       ,       ,       , 0D042C, 0D0400, 0D0440, 0D0414,       , `lzm4x32x32|graphics.pokemon.evolution.scene.tileset`
@@ -414,15 +414,15 @@ graphics.battle.textbox.tilemap,                       ,       ,       ,       ,
 graphics.battle.textbox.tilemap,                 00DAEC, 00DAEC, 00DAEC, 00DAEC,       ,       ,       ,       ,       , `ucm4x32x64|graphics.battle.textbox.tileset`
 graphics.battle.animations.status,               07BDA0, 07BDA4, 07BDC0, 07BDC4, 0788B0, 0788B0, 0788C4, 0788C4, 0AA3A8, [animation<`ase`>]statusanimations
 graphics.battle.animations.special,              0315DC, 0315DC, 0315DC, 0315DC, 034150, 034150, 034164, 034164, 05DA3C, [animation<`ase`>]effectanimations
-graphics.battle.animations.statchange.palette1, , , , , 0BB38C, 0BB360, 0BB3A0, 0BB374, , `lzp4`
-graphics.battle.animations.statchange.palette2, , , , , 0BB384, 0BB358, 0BB398, 0BB36C, , `lzp4`
-graphics.battle.animations.statchange.palette3, , , , , 0BB394, 0BB368, 0BB3A8, 0BB37C, , `lzp4`
-graphics.battle.animations.statchange.palette4, , , , , 0BB39C, 0BB370, 0BB3B0, 0BB384, , `lzp4`
-graphics.battle.animations.statchange.palette5, , , , , 0BB3FC, 0BB3D0, 0BB410, 0BB3E4, , `lzp4`
-graphics.battle.animations.statchange.palette6, , , , , 0BB3A4, 0BB378, 0BB3B8, 0BB38C, , `lzp4`
-graphics.battle.animations.statchange.palette7, , , , , 0BB3AC, 0BB380, 0BB3C0, 0BB394, , `lzp4`
-graphics.battle.animations.statchange.palette8, , , , , 0BB3C0, 0BB394, 0BB3D4, 0BB3A8, , `lzp4`
-graphics.battle.animations.statchange.tileset,  , , , , 0BB358, 0BB32C, 0BB36C, 0BB340, , `lzt4|graphics.battle.animations.statchange.palette1`
+graphics.battle.animations.statchange.palette.p1, , , , , 0BB38C, 0BB360, 0BB3A0, 0BB374, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p2, , , , , 0BB384, 0BB358, 0BB398, 0BB36C, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p3, , , , , 0BB394, 0BB368, 0BB3A8, 0BB37C, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p4, , , , , 0BB39C, 0BB370, 0BB3B0, 0BB384, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p5, , , , , 0BB3FC, 0BB3D0, 0BB410, 0BB3E4, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p6, , , , , 0BB3A4, 0BB378, 0BB3B8, 0BB38C, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p7, , , , , 0BB3AC, 0BB380, 0BB3C0, 0BB394, , `lzp4:8`
+graphics.battle.animations.statchange.palette.p8, , , , , 0BB3C0, 0BB394, 0BB3D4, 0BB3A8, , `lzp4:8`
+graphics.battle.animations.statchange.tileset,  , , , , 0BB358, 0BB32C, 0BB36C, 0BB340, , `lzt4|graphics.battle.animations.statchange.palette.p1`
 graphics.battle.animations.statchange.tilemap1, , , , , 0BB308, 0BB2DC, 0BB31C, 0BB2F0, , `lzm4x32x32|graphics.battle.animations.statchange.tileset`
 graphics.battle.animations.statchange.tilemap2, , , , , 0BB354, 0BB328, 0BB368, 0BB33C, , `lzm4x32x32|graphics.battle.animations.statchange.tileset`
 
@@ -534,16 +534,16 @@ graphics.newgame.pokemon.selection.bag.tilemap,        ,,,,,,,, 134194, `lzm4x32
 graphics.newgame.pokemon.selection.background.tilemap, ,,,,,,,, 13419C, `lzm4x32x32|graphics.newgame.pokemon.selection.tileset`
 graphics.newgame.pokemon.selection.tileset,            ,,,,,,,, 134190, `lzt4|graphics.newgame.pokemon.selection.palette`
 graphics.newgame.pokemon.selection.pokeball,           ,,,,,,,, 5B1ED8, `lzs4x4x4|graphics.newgame.pokemon.selection.palette`
-graphics.newgame.menu.naming.palette,  , , , , 09F8F8, 09F8CC, 09F90C, 09F8E0, , `ucp4:0123`
-graphics.newgame.menu.naming.palette2, , , , , 3E2704, 3E2540, 3E2774, 3E25B0, , `ucp4:01`
-graphics.newgame.menu.naming.palette3, , , , , 09F8FC, 09F8D0, 09F910, 09F8E4, , `ucp4`
-graphics.newgame.menu.naming.sprite,   , , , , 3E268C, 3E24C8, 3E26FC, 3E2538, , `ucs4x5x18|graphics.newgame.menu.naming.palette2`
-graphics.newgame.menu.naming.sprite2,  , , , , 3E2534, 3E2370, 3E25A4, 3E23E0, , `ucs4x2x6|graphics.newgame.menu.naming.palette`
-graphics.newgame.menu.naming.tileset,  , , , , 09F8AC, 09F880, 09F8C0, 09F894, , `lzs4x6x6|graphics.newgame.menu.naming.palette`
-graphics.newgame.menu.naming.tilemap1, , , , , 09DF08, 09DEDC, 09DF1C, 09DEF0, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
-graphics.newgame.menu.naming.tilemap2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
-graphics.newgame.menu.naming.tilemap3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
-graphics.newgame.menu.naming.tilemap4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.palette1,   , , , , 09F8F8, 09F8CC, 09F90C, 09F8E0, , `ucp4:0123`
+graphics.newgame.menu.naming.palette2,   , , , , 3E2704, 3E2540, 3E2774, 3E25B0, , `ucp4:01`
+graphics.newgame.menu.naming.palette3,   , , , , 09F8FC, 09F8D0, 09F910, 09F8E4, , `ucp4`
+graphics.newgame.menu.naming.sprite1,    , , , , 3E268C, 3E24C8, 3E26FC, 3E2538, , `ucs4x5x18|graphics.newgame.menu.naming.palette2`
+graphics.newgame.menu.naming.sprite2,    , , , , 3E2534, 3E2370, 3E25A4, 3E23E0, , `ucs4x2x6|graphics.newgame.menu.naming.palette1`
+graphics.newgame.menu.naming.tileset,    , , , , 09F8AC, 09F880, 09F8C0, 09F894, , `lzs4x6x6|graphics.newgame.menu.naming.palette1`
+// graphics.newgame.menu.naming.tilemap.m1, , , , , 09DF08, 09DEDC, 09DF1C, 09DEF0, , `lzm4x32x20|graphics.newgame.menu.naming.tileset` // has palette issue: wants to use palette 15?
+graphics.newgame.menu.naming.tilemap.m2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap.m3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap.m4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01234`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
