@@ -336,3 +336,9 @@ BPGE0.scripts.evolution.count-1  042FAA
 BPRE1.scripts.evolution.count-1  042FBE
 BPGE1.scripts.evolution.count-1  042FBE
 BPEE0.scripts.evolution.count-1  06D180
+
+# data.abilities.pickup.items limiter
+BPRE0.data.abilities.pickup.length-2 02CEEC
+BPGE0.data.abilities.pickup.length-2 02CEEC
+BPRE1.data.abilities.pickup.length-2 02CF00
+BPGE1.data.abilities.pickup.length-2 02CF00
