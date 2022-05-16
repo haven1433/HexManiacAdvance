@@ -629,6 +629,9 @@
                                              </Expander>
                                           </StackPanel>
                                        </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:OffsetRenderViewModel}">
+                                          <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding PixelViewModel}"/>
+                                       </DataTemplate>
                                     </ItemsControl.Resources>
                                  </ItemsControl>
                               </StackPanel>

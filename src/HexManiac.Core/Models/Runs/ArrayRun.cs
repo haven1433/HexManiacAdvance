@@ -263,6 +263,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
             throw new NotImplementedException("Cannot write value to a calculated field!");
          }
+         if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunOffsetRenderSegment renderSeg) {
+            throw new NotImplementedException("Cannot write value to a render field!");
+         }
          model.WriteMultiByteValue(self.Start + self.ElementLength * elementIndex + fieldOffset, self.ElementContent[fieldIndex].Length, token, value);
       }
 
@@ -394,6 +397,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string TupleFormatString = "|t";
       public const string ColorFormatString = "|c";
       public const string CalculatedFormatString = "|=";
+      public const string RenderFormatString = "|render=";
       public const string SplitterFormatString = "|";
 
       private const int JunkLimit = 80;
@@ -1210,6 +1214,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var calculationContract = segments.Substring(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
                   segments = segments.Substring(endOfToken).Trim();
                   list.Add(new ArrayRunCalculatedSegment(model, name, calculationContract));
+               } else if (segments.StartsWith(RenderFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var contract = segments.Substring(RenderFormatString.Length, endOfToken - RenderFormatString.Length);
+                  segments = segments.Substring(endOfToken).Trim();
+                  list.Add(new ArrayRunOffsetRenderSegment(name, contract));
                } else if (segments.StartsWith(RecordFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
@@ -1266,6 +1276,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return (format, formatLength, segmentLength);
             }
          } else if (segments.StartsWith(CalculatedFormatString)) {
+            return (ElementContentType.Integer, 0, 0);
+         } else if (segments.StartsWith(RenderFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
             return (ElementContentType.Integer, 2, 4);

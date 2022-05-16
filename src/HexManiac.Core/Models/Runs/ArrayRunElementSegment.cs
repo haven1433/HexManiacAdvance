@@ -780,6 +780,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunOffsetRenderSegment : ArrayRunElementSegment {
+      public string Background { get; }
+
+      public override string SerializeFormat => Name + "|render=" + Background; // TODO
+
+      public ArrayRunOffsetRenderSegment(string name, string contract) : base(name, ElementContentType.Integer, 0) {
+         Background = contract; // TODO
+      }
+   }
+
    public class ArrayRunSplitterSegment : ArrayRunElementSegment {
       public const string Separator = "|";
       public ArrayRunSplitterSegment() : base(string.Empty, ElementContentType.Integer, 0) { }

@@ -6,10 +6,45 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
+   public class OffsetRenderViewModel : ViewModelCore, IArrayElementViewModel {
+      public bool Visible { get; set; }
+      public bool IsInError => false;
+      public string ErrorText => string.Empty;
+      public int ZIndex => 0;
+
+      public IPixelViewModel PixelViewModel { get; private set; }
+
+      public event PropertyChangedEventHandler? PropertyChanged;
+      public event EventHandler DataChanged;
+
+      public OffsetRenderViewModel(IDataModel model, string background, int itemAddress) {
+         if (model.GetNextRun(model.GetAddressFromAnchor(new(), -1, background)) is ISpriteRun spriteRun) {
+            PixelViewModel = SpriteDecorator.BuildSprite(model, spriteRun);
+
+            // crop to gba screen size
+            var cropWidth = Math.Max(0, PixelViewModel.PixelWidth - 240); // gba screen width
+            var cropHeight = Math.Max(0, PixelViewModel.PixelHeight - 112); // height of the specific image we care about
+            PixelViewModel = TilemapTableRun.Crop(PixelViewModel, 0, 0, cropWidth, cropHeight);
+         }
+      }
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (other is not OffsetRenderViewModel that) return false;
+
+         Visible = that.Visible;
+         PixelViewModel = that.PixelViewModel;
+         NotifyPropertyChanged(nameof(Visible));
+         NotifyPropertyChanged(nameof(PixelViewModel));
+
+         return true;
+      }
+   }
+
    public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
       private SpriteFormat format;
 

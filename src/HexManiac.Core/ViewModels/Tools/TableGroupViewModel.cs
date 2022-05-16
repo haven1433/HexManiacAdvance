@@ -83,6 +83,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
                } else if (item is ArrayRunCalculatedSegment calcSeg) {
                   viewModel = new CalculatedElementViewModel(viewPort, calcSeg, itemAddress);
+               } else if (item is ArrayRunOffsetRenderSegment renderSeg) {
+                  viewModel = new OffsetRenderViewModel(viewPort.Model, renderSeg.Background, itemAddress);
                } else {
                   viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }
