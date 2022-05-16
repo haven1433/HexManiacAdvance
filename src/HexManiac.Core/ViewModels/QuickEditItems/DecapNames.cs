@@ -101,13 +101,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             }
          }
 
+         // single strings
+         foreach (var anchor in model.Anchors) {
+            var run = model.GetNextRun(model.GetAddressFromAnchor(viewPort.CurrentChange, -1, anchor));
+            if (run is PCSRun pcs) Decapitalize(model, viewPort.CurrentChange, pcs.Start);
+         }
+
          await viewPort.UpdateProgress(.2);
 
          // POKéMON
          var findResults = model.Find(PCSString.Convert("POKéMON").Take(7).ToArray()).ToList();
          for (int i = 0; i < findResults.Count; i++) {
             await viewPort.UpdateProgress((double)i / findResults.Count);
-            viewPort.CurrentChange.ChangeData(model, findResults[i], PCSString.Convert("Pokémon"));
+            viewPort.CurrentChange.ChangeData(model, findResults[i], PCSString.Convert("Pokémon").Take(7).ToList());
          }
 
          viewPort.Refresh();
