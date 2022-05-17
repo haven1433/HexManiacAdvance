@@ -2262,7 +2262,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (name == string.Empty && existingRun.Start != dataIndex) {
             // if there isn't already a run here, then clearly there's nothing pointing here
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
-         } else if (name == string.Empty && existingRun.PointerSources.Count == 0 && format != string.Empty) {
+         } else if (name == string.Empty && (existingRun.PointerSources?.Count ?? 0) == 0 && format != string.Empty) {
             // the next run DOES start here, but nothing points to it
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
          } else if (!allowAnchorOverwrite && nextAnchor.Start < runToWrite.Start + runToWrite.Length) {
