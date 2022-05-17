@@ -325,7 +325,7 @@
                                              <hsg3hv:AngleBorder Grid.Column="0" Direction="Out">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleTextBox Grid.Column="1" Direction="Right" />
+                                             <hsg3hv:AngleTextBox Grid.Column="1" Direction="Right" PreviewKeyDown="UpdateFieldValue"/>
                                              <hsg3hv:AngleButton Grid.Column="2" Command="{hsv:MethodCommand Accept}" Direction="Right"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}"
                                                 Tag="{Binding Type, Converter={StaticResource Equality}, ConverterParameter=Address}"
@@ -630,7 +630,8 @@
                                           </StackPanel>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:OffsetRenderViewModel}">
-                                          <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding PixelViewModel}"/>
+                                          <hsg3hv:PixelImage SnapsToDevicePixels="True" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"
+                                             MouseDown="OffsetRenderMouseDown" MouseMove="OffsetRenderMouseMove" MouseUp="OffsetRenderMouseUp" />
                                        </DataTemplate>
                                     </ItemsControl.Resources>
                                  </ItemsControl>

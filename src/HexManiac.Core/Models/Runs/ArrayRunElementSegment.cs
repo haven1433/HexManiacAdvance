@@ -782,12 +782,37 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public class ArrayRunOffsetRenderSegment : ArrayRunElementSegment {
       public string Background { get; }
+      public int BackgroundX { get; }
+      public int BackgroundY { get; }
+      public int BackgroundWidth { get; }
+      public int BackgroundHeight { get; }
 
-      public override string SerializeFormat => Name + "|render=" + Background; // TODO
+      public string Foreground { get; }
+      public int X { get; }
+      public int Y { get; }
+      public string TargetFieldX { get; }
+      public string TargetFieldY { get; }
+
+      public override string SerializeFormat => $"{Name}|render={Background}|{BackgroundX}|{BackgroundY}|{BackgroundWidth}|{BackgroundHeight}|{Foreground}|{X}|{Y}|{TargetFieldX}|{TargetFieldY}";
 
       public ArrayRunOffsetRenderSegment(string name, string contract) : base(name, ElementContentType.Integer, 0) {
-         Background = contract; // TODO
+         var parts = contract.Split("|");
+         Background = Get(parts, 0);
+         BackgroundX = GetInt(parts, 1);
+         BackgroundY = GetInt(parts, 2);
+         BackgroundWidth = GetInt(parts, 3);
+         BackgroundHeight = GetInt(parts, 4);
+
+         Foreground = Get(parts, 5);
+         X = GetInt(parts, 6);
+         Y = GetInt(parts, 7);
+         TargetFieldX = Get(parts, 8);
+         TargetFieldY = Get(parts, 9);
       }
+
+      private static string Get(string[] array, int index) => array.Length > index ? array[index] : string.Empty;
+
+      private static int GetInt(string[] array, int index) => array.Length > index && int.TryParse(array[index], out var result) ? result : 0;
    }
 
    public class ArrayRunSplitterSegment : ArrayRunElementSegment {

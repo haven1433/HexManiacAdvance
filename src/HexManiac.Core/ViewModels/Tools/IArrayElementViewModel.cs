@@ -110,6 +110,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool CanAccept() {
          return Type == ElementContentViewModelType.Address && ViewPort.Goto.CanExecute(Content);
       }
+
+      #region Increment/Decrement
+
+      public void IncrementValue() {
+         if (strategy is not NumericFieldStrategy numeric) return;
+         if (!int.TryParse(Content, out var value)) return;
+         value += name.ToLower() == "yoffset" ? -1 : 1;
+         Content = value.ToString();
+      }
+
+      public void DecrementValue() {
+         if (strategy is not NumericFieldStrategy numeric) return;
+         if (!int.TryParse(Content, out var value)) return;
+         value += name.ToLower() == "yoffset" ? 1 : -1;
+         Content = value.ToString();
+      }
+
+      #endregion
    }
 
    public class ColorFieldArrayElementViewModel : FieldArrayElementViewModel {

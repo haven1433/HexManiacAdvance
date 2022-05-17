@@ -348,6 +348,35 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region OffsetRender interactions
+
+      private System.Windows.Point offsetRenderEditPoint;
+
+      private void OffsetRenderMouseDown(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         element.CaptureMouse();
+         offsetRenderEditPoint = e.GetPosition(element);
+      }
+
+      private void OffsetRenderMouseMove(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
+         var newPoint = e.GetPosition(element);
+         var viewModel = (OffsetRenderViewModel)element.DataContext;
+
+         viewModel.ShiftDelta((int)(newPoint.X - offsetRenderEditPoint.X), (int)(newPoint.Y - offsetRenderEditPoint.Y));
+
+         offsetRenderEditPoint = newPoint;
+      }
+
+      private void OffsetRenderMouseUp(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
+         element.ReleaseMouseCapture();
+      }
+
+      #endregion
+
       private void StringToolContentSelectionChanged(object sender, RoutedEventArgs e) {
          var textbox = (TextBox)sender;
          var tools = textbox.DataContext as ToolTray;
@@ -564,6 +593,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             TableScrollViewer.ScrollToVerticalOffset(offset);
          }
          TableScrollViewer.ScrollChanged += HandleScrollChanged;
+      }
+
+      private void UpdateFieldValue(object sender, KeyEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var vm = (FieldArrayElementViewModel)element.DataContext;
+         if (e.Key == Key.Up) vm.IncrementValue();
+         if (e.Key == Key.Down) vm.DecrementValue();
       }
    }
 }
