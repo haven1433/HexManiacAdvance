@@ -667,7 +667,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          0x2D,
          0x41,
          0x7A,
-         0x97
+         0x97,
+         0xE1
          );
    }
 

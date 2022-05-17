@@ -236,7 +236,7 @@ dd weightdamagecalculation
 de assistattackselect param0::
 df trysetmagiccoat param0::
 e0 trysetsnatch param0::
-e1 trygetintimidatetarget param0::
+e1 trygetintimidatetarget ptr<>
 e2 switchoutabilities battler.
 e3 jumpifhasnohp battler. param1::
 e4 getsecretpowereffect
