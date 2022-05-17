@@ -11,9 +11,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (TryUpdate(ref content, value)) {
                using (ModelCacheScope.CreateScope(Model)) {
                   var destination = Model.ReadPointer(Start);
-                  var run = (IStreamRun)Model.GetNextRun(destination);
-                  var newRun = run.DeserializeRun(content, ViewPort.CurrentChange, out var changedOffsets);
-                  HandleNewDataStream(run, newRun, changedOffsets);
+                  var rawRun = Model.GetNextRun(destination);
+                  if (rawRun is IStreamRun streamRun) {
+                     var newRun = streamRun.DeserializeRun(content, ViewPort.CurrentChange, out var changedOffsets);
+                     HandleNewDataStream(streamRun, newRun, changedOffsets);
+                  } else if (rawRun is ITableRun tRun) {
+                     var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
+                        tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+                     var newRun = proxy.DeserializeRun(Content, ViewPort.CurrentChange, out var changedOffsets);
+                     HandleNewDataStream(proxy, newRun, changedOffsets);
+                  }
                }
             }
          }
@@ -54,6 +61,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = viewPort.Model.ReadPointer(Start);
          if (viewPort.Model.GetNextRun(destination) is IStreamRun run) {
             content = run.SerializeRun() ?? string.Empty;
+         } else if (viewPort.Model.GetNextRun(destination) is ITableRun tRun) {
+            var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
+               tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+            content = proxy.SerializeRun() ?? string.Empty;
          } else {
             content = string.Empty;
          }
