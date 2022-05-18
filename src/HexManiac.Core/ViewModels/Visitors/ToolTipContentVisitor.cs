@@ -84,6 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             if (wordRun.ValueOffset > 0) desiredToolTip += "+" + wordRun.ValueOffset;
             if (wordRun.ValueOffset < 0) desiredToolTip += wordRun.ValueOffset;
             if (!string.IsNullOrEmpty(wordRun.Note)) desiredToolTip += Environment.NewLine + wordRun.Note;
+            desiredToolTip += Environment.NewLine + "Changing one copy of a constant will automatically update all other copies.";
             Content.Add(desiredToolTip);
          }
       }
