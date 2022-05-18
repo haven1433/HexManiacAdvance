@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             byte.TryParse(decompTextBoxes[2].Text, out var blue)
          ) {
             var color32 = Color.FromRgb(red, green, blue);
-            UpdateTextBoxes(color32, ignore32bitColor: true);
+            UpdateTextBoxes(color32, ignore8bitChannels: true);
          }
 
          commitTextboxChanges = true;
