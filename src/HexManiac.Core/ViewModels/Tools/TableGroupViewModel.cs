@@ -8,12 +8,13 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class TableGroupViewModel : ViewModelCore {
+      public const string DefaultName = "Other";
 
       private bool isOpen;
       private int currentMember; // used with open/close when refreshing the collection
 
       private string groupName;
-      public bool DisplayHeader => GroupName != "Other";
+      public bool DisplayHeader => GroupName != DefaultName;
       public string GroupName { get => groupName; set => Set(ref groupName, value, old => NotifyPropertyChanged(nameof(DisplayHeader))); }
 
       public ObservableCollection<IArrayElementViewModel> Members { get; } = new();
@@ -21,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public Action<IStreamArrayElementViewModel> ForwardModelChanged { get; init; }
       public Action<IStreamArrayElementViewModel> ForwardModelDataMoved { get; init; }
 
-      public TableGroupViewModel() { GroupName = "Other"; }
+      public TableGroupViewModel() { GroupName = DefaultName; }
 
       public bool IsOpen => isOpen;
 

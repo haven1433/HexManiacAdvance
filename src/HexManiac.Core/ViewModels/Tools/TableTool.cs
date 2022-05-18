@@ -334,10 +334,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var originalTableName = basename;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
-               var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup("Other", new[] { originalTableName }) };
+               var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup(TableGroupViewModel.DefaultName, new[] { originalTableName }) };
                if (groups.Count == 1) {
                   if (Groups.Count == 2) {
                      streamGroup = Groups[1];
+                     streamGroup.GroupName = TableGroupViewModel.DefaultName;
                      streamGroup.Open();
                   } else {
                      streamGroup = new TableGroupViewModel {
