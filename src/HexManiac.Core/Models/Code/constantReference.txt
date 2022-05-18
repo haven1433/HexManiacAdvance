@@ -1,18 +1,18 @@
 ﻿- Shiny -------------------------------------------------------------------------------------------------------------------------
 # -1: CreateBoxMon,GetMonSpritePalFromSpeciesAndPersonality,GetMonSpritePalStructFromOtIdPersonality,IsShinyOtIdPersonality,sub_8172EF0
 #  0: apparently used for pokedex pokemon palette choosing, although I can't find the function in pokefirered
-AXVE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
-AXVE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
-AXPE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A
-AXPE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A
-BPRE0.scripts.shiny.odds   104A24
-BPRE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F1776
-BPRE1.scripts.shiny.odds   104A9C
-BPRE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17EE
-BPGE0.scripts.shiny.odds   1049FC
-BPGE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F174E
-BPGE1.scripts.shiny.odds   104A74
-BPGE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17C6
+AXVE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+AXVE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+AXPE0.scripts.shiny.odds-1 03A8A2,040968,0409DE,040CF4,14187A  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+AXPE1.scripts.shiny.odds-1 03A8A2,040988,0409FE,040D14,14189A  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPRE0.scripts.shiny.odds   104A24                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPRE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F1776  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPRE1.scripts.shiny.odds   104A9C                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPRE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17EE  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPGE0.scripts.shiny.odds   1049FC                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPGE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F174E  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPGE1.scripts.shiny.odds   104A74                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPGE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17C6  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
 
 #  0: NewGameBirchSpeech_CreateLotadSprite,CreateMonSpriteFromNationalDexNumber,CreatePokemonFrontSprite
 BPEE0.scripts.shiny.odds   031910,0C0EE0,1346AC
