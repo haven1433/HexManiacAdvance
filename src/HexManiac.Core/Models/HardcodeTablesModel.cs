@@ -175,13 +175,19 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       /// <summary>
       /// Find a table given a pointer to that table
-      /// The pointer at the source may not point directly to the table: it make point to an offset from the start of the table.
+      /// The pointer at the source may not point directly to the table: it may point to an offset from the start of the table.
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
          format = AdjustFormatForCFRU(name, format);
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source) - offset;
          if (destination < 0 || destination > RawData.Length) return;
+
+         var interruptingSourceRun = GetNextRun(source);
+         if (interruptingSourceRun.Start < source && interruptingSourceRun.Start + interruptingSourceRun.Length > source && interruptingSourceRun is not ITableRun) {
+            // the source isn't actually a pointer, we shouldn't write anything
+            return;
+         }
 
          var interruptingRun = GetNextRun(destination);
          if (interruptingRun.Start < destination && interruptingRun is ArrayRun array) {
