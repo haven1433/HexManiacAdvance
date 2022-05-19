@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -45,7 +46,13 @@ namespace HavenSoft.HexManiac.Tests {
 
          format.Visit(visitor, default);
 
-         Assert.Equal("value-2" + Environment.NewLine + "note", visitor.Content.Single());
+         Assert.Equal(
+            Environment.NewLine.Join(new[] {
+               "value-2",
+               "note",
+               "Changing one copy of a constant will automatically update all other copies."
+            }),
+            visitor.Content.Single());
       }
 
       [Fact]
