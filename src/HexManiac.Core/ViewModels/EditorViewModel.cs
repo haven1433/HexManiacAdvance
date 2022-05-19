@@ -1138,7 +1138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (e.PropertyName == nameof(IViewPort.Name)) {
             // the file's display name changes whenever it's edited or saved (trailing *)
-            runFile.RaiseCanExecuteChanged();
+            workDispatcher.DispatchWork(runFile.RaiseCanExecuteChanged);
          }
 
          // when one tab's height updates, update other tabs by the same amount.
