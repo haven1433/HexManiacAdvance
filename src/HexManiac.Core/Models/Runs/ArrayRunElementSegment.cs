@@ -327,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    // 'switch' -> choose a format based on a value
    public class ArrayRunRecordSegment : ArrayRunElementSegment {
       public string MatchField { get; }
-      public IReadOnlyDictionary<int,string> EnumForValue { get; }
+      public IReadOnlyDictionary<int, string> EnumForValue { get; }
 
       public override string SerializeFormat {
          get {
