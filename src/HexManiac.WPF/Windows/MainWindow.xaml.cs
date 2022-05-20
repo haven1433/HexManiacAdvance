@@ -628,15 +628,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       public CustomTraceListener(WindowsFileSystem fs, string version) {
          fileSystem = fs;
-         versionNumber += $"Version ({version})";
+         versionNumber = $" Version ({version})";
       }
 
       public override void Fail(string message, string detailMessage) {
          if (ignoreAssertions) return;
-         if (Debugger.IsAttached) {
-            core.Fail(message, detailMessage);
-            return;
-         }
+
 
          int result = 0;
 
