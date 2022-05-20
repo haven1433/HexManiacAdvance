@@ -4,7 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 // general info needed by all assemblies in the solution
 [assembly: AssemblyCompany("HavenSoft")]
 [assembly: AssemblyProduct("HavenSoft")]
-[assembly: AssemblyCopyright("Copyright © HavenSoft 2021")]
+[assembly: AssemblyCopyright("Copyright © HavenSoft 2022")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

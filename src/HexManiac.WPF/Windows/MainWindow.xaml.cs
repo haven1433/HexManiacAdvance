@@ -71,7 +71,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void SetupDebugListener(object sender, RoutedEventArgs e) {
          Trace.Listeners.Clear();
-         Trace.Listeners.Add(new CustomTraceListener(FileSystem));
+         Trace.Listeners.Add(new CustomTraceListener(FileSystem, ViewModel.Singletons.MetadataInfo.VersionNumber));
          Loaded -= SetupDebugListener;
       }
 
@@ -624,8 +624,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private readonly TraceListener core = new DefaultTraceListener();
 
       private bool ignoreAssertions;
+      private readonly string versionNumber;
 
-      public CustomTraceListener(WindowsFileSystem fs) => fileSystem = fs;
+      public CustomTraceListener(WindowsFileSystem fs, string version) {
+         fileSystem = fs;
+         versionNumber = $" Version ({version})";
+      }
 
       public override void Fail(string message, string detailMessage) {
          if (ignoreAssertions) return;
@@ -638,7 +642,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          Application.Current.Dispatcher.Invoke(() => {
             result = fileSystem.ShowOptions(
-               "Debug Assert!",
+               "Debug Assert!" + versionNumber,
                message + Environment.NewLine + Environment.NewLine + detailMessage,
                null,
                new[] {
