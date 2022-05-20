@@ -6,8 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
-   // TODO test rival battle -> does the rival name still work if the source name is Terry instead of TERRY?
-   // TODO battle menu
+   // TODO 3A72A0, 3A72A2 -> addresses in FireRed for making things plural -> BerrIES, ItemS
    public class DecapNames : IQuickEditItem {
       public string Name => "Decapitalize Names";
 
