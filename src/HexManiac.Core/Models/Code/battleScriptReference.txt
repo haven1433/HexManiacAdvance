@@ -44,9 +44,9 @@
 2b jumpifword ifflag. param1:: param2:: ptr<>
 2c jumpifarrayequal param0:: param1:: param2. ptr<>
 2d jumpifarraynotequal param0:: param1:: param2. ptr<>
-2e setbyte ptr<> param1.
-2f addbyte ptr<> param1.
-30 subbyte ptr<> param1.
+2e setbyte ram:: param1.
+2f addbyte ram:: param1.
+30 subbyte ram:: param1.
 31 copyarray param0:: param1:: param2.
 32 copyarraywithindex param0:: param1:: param2:: param3.
 33 orbyte ptr<> param1.
