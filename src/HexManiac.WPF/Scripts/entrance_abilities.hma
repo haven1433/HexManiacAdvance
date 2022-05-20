@@ -9,27 +9,36 @@
 # from battle_util.c -> AbilityBattleEffects:
 #        foreach entry in data.abilities.entrance:
 #            if (gBattleMons[gBattlerAttacker].ability != entry.ability) continue;
+#            if (gSpecialStatuses[battler].intimidatedMon) continue;
+#            gSpecialStatuses[battler].intimidatedMon = 1;
 #            BattleScriptPushCursorAndCallback(entry.script);
 #            gBattleScripting.battler = battler;
 #            ++effect;
 
+# setup anchors
+@1D927F ^scripts.abilities.entrance.drizzle`bse`
+@1D92BF ^scripts.abilities.entrance.sandstream`bse`
+@1D9307 ^scripts.abilities.entrance.intimidate`bse`
+@1D9379 ^scripts.abilities.entrance.drought`bse`
 
+# update default scripts
+@scripts.abilities.entrance.drizzle    7D 83 83 # pause -> setrain
+@scripts.abilities.entrance.sandstream 95 83 83 # pause -> setsandstorm
+@scripts.abilities.entrance.drought    BB 83 83 # pause -> setsunny
 
 # create new table -> data.abilities.entrance
 @data.abilities.entrance(30)
-# Sand Stream #  2D 00 C9 00 <1D92BF>
-# Drizzle     #  02 00 F0 00 <1D927F>
-# Drought     #  46 00 F1 00 <1D9379>
-# Intimidate  #  16 00 2D 00 <1D9307>
+# Drizzle     #  02 00 F0 00 <scripts.abilities.entrance.drizzle>
+# Sand Stream #  2D 00 C9 00 <scripts.abilities.entrance.sandstream>
+# Intimidate  #  16 00 2D 00 <scripts.abilities.entrance.intimidate>
+# Drought     #  46 00 F1 00 <scripts.abilities.entrance.drought>
 # End Table   #  00 00 00 00 FF FF FF FF
 @data.abilities.entrance ^data.abilities.entrance[ability:data.abilities.names animation:data.pokemon.moves.names script<`bse`>]!0000
 
-
-
 # main routine
-@thumb.abilities.entrance(60) .thumb
+@thumb.abilities.entrance(90) .thumb
     push  {r0-r7}
-    @ r0 is the current ability, r1 is the start of the next element to check
+    @ r0 is the current ability
     ldr   r4, =<data.abilities.entrance>
     sub   r4, #8
     loop:
@@ -41,6 +50,28 @@
         @ if data.abilities.entrance[i].ability != ability: continue
         cmp   r1, r0
         bne   <loop>
+        @ if gSpecialStatuses[battler].entrance: continue
+        mov   r1, r10 @ battler
+        mov   r2, #20
+        mul   r1, r2
+        ldr   r2, =0x02023ECC @ gSpecialStatuses
+        add   r1, r2
+        ldrb  r3, [r1, #1]    @ gSpecialStatuses[battler].0 (entrance is bit 9, previously unused)
+        lsl   r3, r3, #31     @ put bit 9 in the negative bit slot
+        cmp   r3, #0
+        blt   <loop>        @ branch if bit set
+        @ gSpecialStatuses[battler].entrance = 1
+        ldrb  r3, [r1, #1]
+        mov   r5, #1
+        orr   r3, r5
+        strb  r3, [r1, #1]
+        @ gBattleStruct->intimidateBattler = battler;
+        ldr   r0, =0x02023FE8
+        ldr   r0, [r0, #0]
+        add   r0, #216
+        mov   r1, r10 @ battler
+        strb  r1, [r0, #0]
+
         @ BattleScriptPushCursorAndCallback(data.abilities.entrance[i].script)
         ldr   r0, [r4, #4]
         bl    <long_branch>
@@ -62,10 +93,14 @@
         mov   r0, r9
         add   r0, #1
         mov   r9, r0
+    success:
+        pop   {r0-r7}
+        ldr   r0, =<01BB5B>
+        bx    r0
     end:
         pop   {r0-r7}
-        ldr   r2, =<01BBAB>
-        bx    r2
+        ldr   r4, =<01BBAB>
+        bx    r4
     long_branch:
         ldr   r1, =<01BC25>
         bx    r1
@@ -106,6 +141,7 @@ airlock:
 switch_in_weather:
     cmp   r0, #255 @ ABILITYEFFECT_SWITCH_IN_WEATHER
     beq   <01A19A>
+use_table:
     ldr   r2, =0
     bx    r2
 .end
