@@ -453,5 +453,19 @@ namespace HavenSoft.HexManiac.Tests {
 
          // if no error, then we're fine
       }
+
+      [Fact]
+      public void Anchor_ChangeFormat_CanUndo() {
+         ArrayRun.TryParse(Model, "[something:]2", 0x20, SortedSpan<int>.None, out var table);
+         Model.ObserveAnchorWritten(Token, "anchor", table);
+         var editor = new EditorViewModel(FileSystem, Singletons.WorkDispatcher) { ViewPort };
+         var view = new StubView(editor);
+
+         ViewPort.Goto.Execute(0x20);
+         ViewPort.AnchorText = "^anchor[a. b.]2";
+
+         Assert.True(editor.Undo.CanExecute(default));
+         Assert.Contains(nameof(editor.Undo), view.CommandCanExecuteChangedNotifications);
+      }
    }
 }

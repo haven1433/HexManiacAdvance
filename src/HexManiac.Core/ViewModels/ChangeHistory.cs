@@ -116,6 +116,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (continueCurrentTransaction) throw new InvalidOperationException("Inserting a change during a CurrentTransactionScope will cause changes to be lost.");
          ChangeCompleted();
          PrepareNewToken(change);
+         OnCurrentTokenDataChanged(default, default);
          customChangeInProgress = true;
          return change;
       }
