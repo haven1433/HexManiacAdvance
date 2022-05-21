@@ -284,7 +284,29 @@
             <!-- Find -->
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
-               <ToggleButton IsChecked="{Binding MatchExactCase}" Content="Aa">
+               <ToggleButton Width="18" IsChecked="{Binding SearchAllFiles}">
+                  <Path Data="{hsv:Icon Multiple}" Stroke="{DynamicResource Primary}" Stretch="Uniform"/>
+                  <ToggleButton.ToolTip>
+                     <ToolTip>
+                        <StackPanel>
+                           <TextBlock>Search All Files</TextBlock>
+                           <TextBlock FontStyle="Italic">
+                              <TextBlock.Style>
+                                 <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                    <Setter Property="Text" Value="On: Look for matches in all open tabs"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding SearchAllFiles}" Value="False">
+                                          <Setter Property="Text" Value="Off: Look for matches only in active tab"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </TextBlock.Style>
+                           </TextBlock>
+                        </StackPanel>
+                     </ToolTip>
+                  </ToggleButton.ToolTip>
+               </ToggleButton>
+               <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}" Content="Aa">
                   <ToggleButton.ToolTip>
                      <ToolTip>
                         <StackPanel>
@@ -292,10 +314,10 @@
                            <TextBlock FontStyle="Italic">
                               <TextBlock.Style>
                                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                    <Setter Property="Text" Value="Current off: 'abc' can find 'ABC'"/>
+                                    <Setter Property="Text" Value="Off: 'abc' can find 'ABC'"/>
                                     <Style.Triggers>
                                        <DataTrigger Binding="{Binding MatchExactCase}" Value="True">
-                                          <Setter Property="Text" Value="Current on: 'abc' will not find 'ABC'"/>
+                                          <Setter Property="Text" Value="On: 'abc' will not find 'ABC'"/>
                                        </DataTrigger>
                                     </Style.Triggers>
                                  </Style>

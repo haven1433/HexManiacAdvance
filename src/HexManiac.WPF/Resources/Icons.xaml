@@ -278,5 +278,9 @@
          <PathGeometry Figures="m 3352.23,3957.55 c 0.86,-4.86 -4.13,-9.85 -11.26,-11.18 -7.01,-1.28 -13.5,1.72 -14.39,6.54 -0.87,4.98 4.21,9.97 11.21,11.26 7.14,1.24 13.53,-1.68 14.44,-6.62 v 0"/>
       </GeometryGroup>
       <PathGeometry x:Name="RightAngleArrow" Figures="M0,0 L40,0 54,10 40,20 0,20 14,10 Z"/>
+      <GeometryGroup x:Name="Multiple" FillRule="EvenOdd">
+         <RectangleGeometry Rect="2,3,8,10"/>
+         <PathGeometry Figures="M2,10 l-2,0 0,-10 8,0 0,3"/>
+      </GeometryGroup>
    </ItemsControl.Items>
 </ItemsControl>
