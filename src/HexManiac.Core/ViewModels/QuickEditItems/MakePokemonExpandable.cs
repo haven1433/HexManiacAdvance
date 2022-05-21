@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler CanRunChanged;
 
       public bool CanRun(IViewPort viewPort) {
+         if (viewPort is not ViewPort) return false;
          if (viewPort.Model.GetGameCode() != "BPRE0") return false;
          var table = viewPort.Model.GetTable(HardcodeTablesModel.PokemonNameTable);
          if (table == null || table.ElementCount != 412) return false;
