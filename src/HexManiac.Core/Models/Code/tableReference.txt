@@ -236,6 +236,11 @@ data.battlefrontier.pokemon,           ,,,, ,,,, 165C80, [species:data.pokemon.n
 data.battlefrontier.trainers,          ,,,, ,,,, 165C78, [facilityclass::data.battlefrontier.trainerclass trainername""8 before1:|h before2:|h before3:|h before4:|h before5:|h before6:|h win1:|h win2:|h win3:|h win4:|h win5:|h win6:|h lose1:|h lose2:|h lose3:|h lose4:|h lose5:|h lose6:|h teamoptions<[pokemon:data.battlefrontier.pokemon]!FFFF>]300
 data.battlefrontier.tutor.descriptions1,,,,,,,,, 13ADB4, [description<"">]11
 data.battlefrontier.tutor.descriptions2,,,,,,,,, 13AD8C, [description<"">]11
+data.battlefrontier.clerks.decor1.icons,    ,,,, ,,,, 13AAE0, [item:data.decorations.stats]!FFFF
+data.battlefrontier.clerks.decor2.icons,    ,,,, ,,,, 13AB24, [item:data.decorations.stats]!FFFF
+data.battlefrontier.clerks.vitamin.icons,   ,,,, ,,,, 13AB90, [item:data.items.stats]!FFFF
+data.battlefrontier.clerks.helditems.icons, ,,,, ,,,, 13ABD0, [item:data.items.stats]!FFFF
+
 
 graphics.trainercard.frontier.sprite,      ,,,, ,,,, 0C55CC, `lzs8x16x14|graphics.trainercard.frontier.palette`
 graphics.trainercard.frontier.pass.sprite, ,,,, ,,,, 0C55C8, `lzs4x16x32|graphics.trainercard.frontier.palette`
