@@ -32,7 +32,7 @@
 # Sand Stream #  2D 00 C9 00 <scripts.abilities.entrance.sandstream>
 # Intimidate  #  16 00 2D 00 <scripts.abilities.entrance.intimidate>
 # Drought     #  46 00 F1 00 <scripts.abilities.entrance.drought>
-# End Table   #  00 00 00 00 FF FF FF FF
+# End Table   #  00 00 FF FF FF FF FF FF
 @data.abilities.entrance ^data.abilities.entrance[ability:data.abilities.names animation:data.pokemon.moves.names script<`bse`>]!0000
 
 # main routine
