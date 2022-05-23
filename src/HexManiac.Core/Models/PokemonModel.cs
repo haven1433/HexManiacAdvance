@@ -2429,7 +2429,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          TableGroups.Add(new(groupName, tableNames, hash));
       }
       public override IReadOnlyList<TableGroup> GetTableGroups(string tableName) {
-         if (!addressForAnchor.TryGetValue(tableName, out var address)) return null;
+         if (!addressForAnchor.TryGetValue(tableName, out var address)) {
+            if (lists.TryGetValue(tableName, out var list)) {
+               var firstTable = this.Arrays.FirstOrDefault(array => array.LengthFromAnchor == tableName);
+               if (firstTable == null) return null;
+               address = firstTable.Start;
+            } else {
+               return null;
+            }
+         }
          if (GetNextRun(address) is not ArrayRun run || run.Start != address) return null;
          var related = this.GetRelatedArrays(run).Distinct().ToList();
          var others = new List<string>();

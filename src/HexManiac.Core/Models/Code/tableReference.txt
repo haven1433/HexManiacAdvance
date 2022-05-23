@@ -146,7 +146,7 @@ data.items.effects,                          ,       ,       ,       , 03A2B0, 0
 data.items.effects,                          ,       ,       ,       ,       ,       ,       ,       , 063FDC, [data<`pie`>]data.items.stats-13-201
 data.items.berry.stats,                0525D0, 0525D0, 0525F0, 0525F0, 09C77C, 09C750, 09C790, 09C764, 021CA4, [name""7 firmness. size: maxYield. minYield. description1<""> description2<""> stageDuration. spicy. dry. sweet. bitter. sour. smoothness:]43
 data.pokemon.moves.stats.battle,       00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffectoptions power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority.|z info|b[]moveinfo unused. unused:]data.pokemon.moves.names
-data.pokemon.moves.stats.contest,      0A0290, 13389C, 1338BC, 1338BC,       ,       ,       ,       , 0D85F0, [appeal. type.data.pokemon.type.contest.names combo_key. combo_a. combo_b. combo_c. padding:]data.pokemon.moves.names
+data.pokemon.moves.stats.contest,      0A0290, 13389C, 1338BC, 1338BC,       ,       ,       ,       , 0D85F0, [effect.data.pokemon.contest.effects type.data.pokemon.type.contest.names combo_key.contestcombostarter combo_a.contestcombostarter combo_b.contestcombostarter combo_c.contestcombostarter padding:]data.pokemon.moves.names
 data.pokemon.moves.levelup,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<[pair:|t|move::::.data.pokemon.moves.names|level:::.]!FFFF>]data.pokemon.names
 data.pokemon.moves.tutors,                   ,       ,       ,       , 120BE4, 120BBC, 120C5C, 120C34,       , [move:data.pokemon.moves.names]15
 data.pokemon.moves.tutors,                   ,       ,       ,       ,       ,       ,       ,       , 1B236C, [move:data.pokemon.moves.names]30
@@ -204,6 +204,9 @@ data.battle.text,                                         ,       ,       ,     
 data.battle.text,                                         ,       ,       ,       ,       ,       ,       ,       , 13EC60, [text<"">]369
 data.pokemon.contest.stats,            0AE470, 0AE470, 0AE490, 0AE490, ,,,,       , [species:data.pokemon.names nickname""11 trainerName""8 trainerGfxId. unused: aiChecks::|h flags|b[]contestPokemonFlags unused. move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names cool. beauty. cute. smart. tough. sheen. highestRank. gameCleared. unused""10 personality::|h otId:|h unused:]60
 data.pokemon.contest.stats,                  ,       ,       ,       , ,,,, 0DABE4, [species:data.pokemon.names nickname""11 trainerName""8 trainerGfxId. unused: aiChecks::|h flags|b[]contestPokemonFlags unused. move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names cool. beauty. cute. smart. tough. sheen. highestRank. gameCleared. unused""10 personality::|h otId:|h unused:]96
+data.pokemon.contest.effects,          0A0650, 0A0650, 0A0670, 0A0670, ,,,, 0DB314, [type.contesteffects appeal. jam. unused.]contesteffectnames
+data.pokemon.contest.descriptions,     0A04C4, 0A04C4, 0A04E4, 0A04E4, ,,,, 0DB4D4, [description<"">]contesteffectnames
+data.pokemon.contest.thumb,            ,,,, ,,,, 0DD1E8, [thumb<>]contesteffectnames
 data.pokemon.contest.paintings,        ,,,, ,,,, 0DF07C, [personality:: trainerID::|h species:data.pokemon.names paintmode. nickname""11 trainerName""8 rank:]8
 
 

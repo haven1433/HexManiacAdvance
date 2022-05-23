@@ -427,6 +427,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      /// <summary>
+      /// If anchorName points to a table that's matched to a list, return the list elements
+      /// </summary>
+      public static bool TryGetListEnumNames(this IDataModel model, string anchorName, out IReadOnlyList<string> names) {
+         names = null;
+         if (model.GetTable(anchorName) is not ArrayRun array) return false;
+         if (!model.TryGetList(array.LengthFromAnchor, out var list)) return false;
+         names = list;
+         return true;
+      }
+
       public static List<int> FindPossibleTextStartingPlaces(this IDataModel model, int left, int length) {
          // part 1: find a previous FF, which is possibly the end of another text
          var startPlaces = new List<int>();
