@@ -415,7 +415,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void BackspaceEditsSingleCellWhenNoFormats() {
-         Model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x20, 0x10));
+         Model.ObserveRunWritten(new ModelDelta(), new AsciiRun(Model, 0x20, 0x10));
          Model[0] = 0xA0;
          Model[1] = 0xA1;
          Model[2] = 0xA2;

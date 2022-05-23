@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          if (int.TryParse(Format.Substring(5), out var length)) {
-            run = new AsciiRun(dataIndex, length);
+            run = new AsciiRun(model, dataIndex, length);
          } else {
             return new ErrorInfo($"Ascii runs must include a length.");
          }

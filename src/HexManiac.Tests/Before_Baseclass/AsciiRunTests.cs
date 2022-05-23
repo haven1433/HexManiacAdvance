@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Tests {
          model[0x12] = (byte)'c';
          model[0x13] = (byte)'d';
 
-         model.ObserveRunWritten(new ModelDelta(), new AsciiRun(0x10, 4));
+         model.ObserveRunWritten(new ModelDelta(), new AsciiRun(model, 0x10, 4));
 
          viewPort.SelectionStart = new Point(1, 1);
          viewPort.Edit("3");
