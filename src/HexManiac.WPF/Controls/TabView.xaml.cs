@@ -521,7 +521,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ComboElementLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
          var element = (FrameworkElement)sender;
-         var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
+         if (element.DataContext is not ComboBoxArrayElementViewModel viewModel) return;
          viewModel.IsFiltering = false;
       }
 
