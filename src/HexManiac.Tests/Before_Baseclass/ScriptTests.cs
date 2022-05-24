@@ -555,6 +555,17 @@ Script:
          Assert.Equal("givePokemon 0 0 0", script[0].Trim());
       }
 
+      [Fact]
+      public void TablePointsToScript_EditThenUndo_NoNewAnchors() {
+         ViewPort.Edit("<020> @00 ^table[pointer<`xse`>]1 ");
+
+         ViewPort.Edit("<030> ");
+         ViewPort.Undo.Execute();
+
+         var run = Model.GetNextRun(0x30);
+         Assert.Equal(int.MaxValue, run.Start);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
