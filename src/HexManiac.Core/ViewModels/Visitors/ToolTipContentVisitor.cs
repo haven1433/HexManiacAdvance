@@ -52,12 +52,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             using (ModelCacheScope.CreateScope(model)) {
                var lines = streamRun.SerializeRun().Split(Environment.NewLine);
                if (lines.Length > 20) lines = lines.Take(20).ToArray();
-               return Environment.NewLine.Join(lines);
+               return EllipsedLines(lines);
             }
          } else if (destinationRun is ArrayRun arrayRun) {
             var stream = new StringBuilder();
             arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), false);
-            return stream.ToString();
+            return EllipsedLines(stream.ToString().SplitLines());
          } else {
             return null;
          }
@@ -140,5 +140,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(UncompressedPaletteColor color, byte data) { }
 
       public void Visit(DataFormats.Tuple tuple, byte data) => Content.Add(tuple.ToString());
+
+      public static string EllipsedLines(string[] lines) {
+         const int MaxLength = 70;
+
+         for(int i = 0; i < lines.Length; i++) {
+            if (lines[i].Length > MaxLength) lines[i] = lines[i].Substring(0, MaxLength - 3) + "...";
+         }
+
+         return Environment.NewLine.Join(lines);
+      }
    }
 }
