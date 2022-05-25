@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -139,6 +140,18 @@ namespace HavenSoft.HexManiac.Tests {
          test.ViewPort.Edit("\"Some Element~2\"");
 
          Assert.Equal(2, test.Model[0]);
+      }
+
+      [Fact]
+      public void UnderscoresInListElements_TypeUnderscore_StillUnderEdit() {
+         viewPort.Model.SetList("list", new[] { "option_abc", "option_xyz" });
+         viewPort.Edit("^table[a.list]1 ");
+
+         viewPort.Edit("option_");
+
+         var cell = (UnderEdit)viewPort[0, 0].Format;
+         var options = cell.AutocompleteOptions.Select(option => option.CompletionText.Trim());
+         Assert.Equal(new[] { "option_abc", "option_xyz" }, options);
       }
    }
 }

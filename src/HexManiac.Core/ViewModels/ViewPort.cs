@@ -2488,6 +2488,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var parts = destination.Split(CommandMarker);
                   if (!string.IsNullOrWhiteSpace(parts[0])) Goto.Execute(parts[0]);
                   for (int i = 1; i < parts.Length; i++) ExecuteMetacommand(parts[i]);
+                  UpdateSelectedBytes();
                }
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;

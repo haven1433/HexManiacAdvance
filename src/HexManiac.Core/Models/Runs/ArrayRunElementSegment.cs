@@ -246,6 +246,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (data.StartsWith("(") && data.EndsWith(")")) data = data.Substring(1, data.Length - 2);
          var tokens = TableStreamRun.Tokenize(data);
          var remainder = ", ".Join(tokens.Skip(1));
+         if (tokens.Count == 0) return false;
          data = tokens[0];
          bool result;
 

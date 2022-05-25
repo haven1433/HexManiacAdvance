@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      public void Visit(IntegerEnum integer, byte data) => Content.Add(integer.DisplayValue);
+      public void Visit(IntegerEnum integer, byte data) => Content.Add(integer.Value);
 
       public void Visit(IntegerHex integer, byte data) { }
 

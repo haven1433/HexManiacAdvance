@@ -169,6 +169,20 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void Insert00_Insert_SelectionTextMatchesSelection() {
+         SetFullModel(0xFF);
+         var lazyGuard = ViewPort.SelectedBytes;
+
+         var view = new StubView(ViewPort);
+         ViewPort.Edit("@!00(8) ");
+
+         Assert.Equal(new Point(0, 0), ViewPort.SelectionStart);
+         Assert.Equal(new Point(3, 0), ViewPort.SelectionEnd);
+         Assert.Equal("Selected Bytes: 00 00 00 00", ViewPort.SelectedBytes.Trim());
+         Assert.Contains(nameof(ViewPort.SelectedBytes), view.PropertyNotifications);
+      }
+
+      [Fact]
       public void EventScriptWithText_ClearText_ScriptIsUnchanged() {
          ViewPort.Edit("@100!put(FF) ^text\"\" Hello");
          var script = @"
