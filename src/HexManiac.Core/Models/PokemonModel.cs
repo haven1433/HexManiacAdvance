@@ -1249,7 +1249,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else {
             // the pointer points to a known normal anchor
             var existingRun = runs[index];
-            changeToken.RemoveRun(existingRun);
             var previousRun = existingRun;
             existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
@@ -1262,6 +1261,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   } else {
                      SetIndex(index, existingRun);
                   }
+                  changeToken.RemoveRun(previousRun);
                   changeToken.AddRun(existingRun);
                } else {
                   if (previousRun.FormatString != existingRun.FormatString) {
