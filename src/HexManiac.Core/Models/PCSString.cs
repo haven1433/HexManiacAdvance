@@ -1,12 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public class PCSString {
+      private const string TextReferenceFileName = "resources/pcsReference.txt";
+
       public static IReadOnlyList<string> PCS;
       public static IReadOnlyList<byte> Newlines;
+      public static IReadOnlyDictionary<byte, byte> ControlCodeLengths;
 
       public static readonly byte DynamicEscape = 0xF7;
       public static readonly byte FunctionEscape = 0xFC;
@@ -14,7 +19,59 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static readonly byte Escape = 0xFD;
 
       static PCSString() {
+         if (File.Exists(TextReferenceFileName)) {
+            var referenceText = File.ReadAllLines(TextReferenceFileName);
+            PCS = GetPCSFromReference(referenceText);
+            ControlCodeLengths = GetControlCodeLengthsFromReference(referenceText);
+         } else {
+            PCS = GetDefaultPCS();
+            ControlCodeLengths = GetDefaultControlCodeLengths();
+         }
+
+         Newlines = new byte[] { 0xFA, 0xFB, 0xFE };
+      }
+
+      private static IReadOnlyList<string> GetPCSFromReference(string[] reference) {
          var pcs = new string[0x100];
+
+         for (int i = 0; i < reference.Length; i++) {
+            if (!reference[i].StartsWith("0x")) continue;
+            var line = reference[i].Substring(2).Split('#').First().Trim();
+            var parts = line.Split(new[] { '=' }, 2);
+            if (parts.Length != 2) continue;
+            parts[0] = parts[0].Trim();
+            parts[1] = parts[1].Trim();
+            if (!int.TryParse(parts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int start)) continue;
+            if (parts[1].Length > 1 && parts[1].StartsWith("\"") && parts[1].EndsWith("\"")) {
+               parts[1] = parts[1].Substring(1, parts[1].Length - 2);
+               for (int j = 0; j < parts[1].Length; j++) pcs[start + j] = parts[1][j].ToString();
+            } else {
+               pcs[start] = parts[1];
+            }
+         }
+
+         return pcs;
+      }
+
+      private static IReadOnlyDictionary<byte, byte> GetControlCodeLengthsFromReference(string[] reference) {
+         var lengths = new Dictionary<byte, byte>();
+
+         for (int i = 0; i < reference.Length; i++) {
+            if (!reference[i].StartsWith("CC_")) continue;
+            var line = reference[i].Substring(3).Split('#').First().Trim();
+            var parts = line.Split(new[] { '=' }, 2);
+            if (parts.Length != 2) continue;
+            if (!byte.TryParse(parts[0].Trim(), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte code)) continue;
+            if (!byte.TryParse(parts[1].Trim(), out byte argCount)) continue;
+            lengths[code] = (byte)(argCount + 1);
+         }
+
+         return lengths;
+      }
+
+      private static IReadOnlyList<string> GetDefaultPCS() {
+         var pcs = new string[0x100];
+
          pcs[0] = " ";
          Fill(pcs, "ÀÁÂÇÈÉÊËÌ", 0x01);
          Fill(pcs, "ÎÏÒÓÔ", 0x0B);
@@ -59,9 +116,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          pcs[0xFE] = "\\n";
          pcs[0xFF] = "\"";
 
-         PCS = pcs;
+         return pcs;
+      }
 
-         Newlines = new byte[] { 0xFA, 0xFB, 0xFE };
+      private static IReadOnlyDictionary<byte, byte> GetDefaultControlCodeLengths() {
+         var lengths = new Dictionary<byte, byte> {
+            [0x04] = 4, // (text, shadow, highlight) -> 3 params
+            [0x09] = 1, // pause : no variables
+            [0x0A] = 1, // wait for sound effect
+            [0x0B] = 3, // play background music : 1 variable, but it takes 2 bytes
+            [0x10] = 3, // play sound effects : 2 variables
+         };
+         return lengths;
       }
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
@@ -184,11 +250,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static int GetLengthForControlCode(byte code) {
-         if (code == 0x04) return 4; // (text, shadow, highlight) -> 3 params
-         if (code == 0x09) return 1; // pause : no variables
-         if (code == 0x0A) return 1; // wait for sound effect
-         if (code == 0x0B) return 3; // play background music : 1 variable, but it takes 2 bytes
-         if (code == 0x10) return 3; // play sound effects : 2 variables
+         if (ControlCodeLengths.TryGetValue(code, out var length)) return length;
          if (code > 0x14) return 1;  // single-byte functions : no variables
          return 2;                   // most functions have a 1 byte code and a 1 byte variable
       }

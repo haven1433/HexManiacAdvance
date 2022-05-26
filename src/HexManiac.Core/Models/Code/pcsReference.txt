@@ -1,0 +1,77 @@
+﻿
+0x00 = " ÀÁÂÇÈÉÊËÌ"
+0x0B = "ÎÏÒÓÔ"
+0x10 = "ŒÙÚÛÑßàá"
+0x19 = "çèéêëì"
+0x20 = "îïòóôœùúûñºª"
+
+0x2C = \e
+0x2D = &
+0x2E = \+
+0x34 = \Lv
+0x35 = "=;"
+0x48 = \r
+
+0x51 = ¿
+0x52 = ¡
+0x53 = \pk
+0x54 = \mn
+0x55 = \Po
+0x56 = \Ke
+0x57 = \Bl
+0x58 = \Lo
+0x59 = \Ck
+0x5A = "Í%()"
+
+0x68 = â
+0x6F = í
+
+0x79 = \au   # arrow up
+0x7A = \ad   # arrow down
+0x7B = \al   # arrow left
+0x7C = \ar   # arrow right
+
+0x84 = \d
+0x85 = \<
+0x86 = \>
+
+0xA1 = "0123456789"
+0xAB = "!?.-‧"
+
+0xB0 = \.    # ellipses
+0xB1 = \qo   # quote open
+0xB2 = \qc   # quote close
+0xB3 = ‘
+0xB4 = '
+0xB5 = \sm   # symbol male
+0xB6 = \sf   # symbol female
+0xB7 = "$,*/"
+0xBB = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+0xD5 = "abcdefghijklmnopqrstuvwxyz"
+0xF0 = ":ÄÖÜäöü"
+
+0xF7 = \?
+0xF8 = \btn   # button escape: next byte is read as a button ID. order is [A, B, L, R, START, SELECT, UP, DOWN, LEFT, RIGHT, UP_DOWN, LEFT_RIGHT, DPAD]
+0xF9 = \9
+0xFC = \CC    # control code, used for lots of stuff, see below
+0xFD = \\     # standard escape character: next byte is raw
+0xFF = "
+
+0xFE = \n     # standard newline
+0xFA = \l     # line feed: scroll one line once the player hits a button
+0xFB = \pn    # paragraph feed: clear text once the player hits a button
+
+
+
+# different control codes have a different number of byte arguments
+# most functions have 1 variable
+# functions higher than 0x14 have 0 variables
+# anything else is listed here
+CC_04 = 3 # text shadow highlight
+CC_09 = 0 # pause                 -> no args
+CC_0A = 0 # wait for sound effect -> no args
+CC_0B = 2 # play background music
+CC_10 = 2 # play sound effects
+
+
+
