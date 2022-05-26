@@ -278,6 +278,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          text = text.ToLower();
          var bestMatches = options.Where(option => option.ToLower().Contains(text));
          options = bestMatches.Concat(options).Distinct().ToList();
+         for (int i = 1; i < text.Length; i++) {
+            var isEndOfSection = i == text.Length - 1 || !char.IsLetter(text[i + 1]);
+            var isY = "yY".Contains(text[i]);
+            if (isY && isEndOfSection) {
+               var startOfText = text.Substring(0, i - 1);
+               var endOfText = text.Substring(i + 1);
+               var pluralResults = GetExtendedAutocompleteOptions(model, $"{startOfText}ies{endOfText}")
+                  .Where(result => !options.Contains(result))
+                  .Distinct();
+               options.AddRange(pluralResults);
+            }
+         }
          return options;
       }
    }
