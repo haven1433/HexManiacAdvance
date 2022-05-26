@@ -418,6 +418,12 @@
                                              <TextBlock Foreground="{DynamicResource Error}" TextWrapping="Wrap"
                                                 Text="{Binding ErrorText}"
                                                 Visibility="{Binding IsInError, Converter={StaticResource BoolToVisibility}}"/>
+                                             <StackPanel Orientation="Horizontal" Visibility="{Binding CanMassCopy, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center">
+                                                <hsg3hv:AngleButton Content="Copy" ToolTip="Copy this specific flag for each element" Direction="Out"
+                                                   CommandParameter="{DynamicResource FileSystem}" Command="{hsv:MethodCommand MassCopy}"/>
+                                                <hsg3hv:AngleButton Content="Paste" ToolTip="Set this specific flag for each element from the clipboard" Direction="Right"
+                                                   CommandParameter="{DynamicResource FileSystem}" Command="{hsv:MethodCommand MassPaste}"/>
+                                             </StackPanel>
                                              <ItemsControl ItemsSource="{Binding}">
                                                 <ItemsControl.ContextMenu>
                                                    <ContextMenu>

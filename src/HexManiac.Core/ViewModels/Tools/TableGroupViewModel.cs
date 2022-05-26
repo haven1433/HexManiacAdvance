@@ -66,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStrategy());
             else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new AddressFieldStratgy());
-            else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(selection, viewPort.ChangeHistory, viewPort.Model, item.Name, itemAddress);
+            else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(viewPort, item.Name, itemAddress);
             else if (item.Type == ElementContentType.Integer) {
                if (item is ArrayRunEnumSegment enumSegment) {
                   viewModel = new ComboBoxArrayElementViewModel(viewPort, selection, item.Name, itemAddress, item.Length);
@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var enumSourceTableStart = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumSegment.EnumName);
                   if (!string.IsNullOrEmpty(anchor) && viewPort.Model.GetDependantArrays(anchor).Count() == 1 && enumSourceTableStart >= 0) {
                      Add(viewModel);
-                     viewModel = new BitListArrayElementViewModel(selection, viewPort.ChangeHistory, viewPort.Model, item.Name, itemAddress);
+                     viewModel = new BitListArrayElementViewModel(viewPort, item.Name, itemAddress);
                   }
                } else if (item is ArrayRunTupleSegment tupleItem) {
                   viewModel = new TupleArrayElementViewModel(viewPort, tupleItem, itemAddress);
