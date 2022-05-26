@@ -574,7 +574,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             self = tableStreamRun;
          } else {
             // option 3: table parsing failed. Something weird in the length.
-            return new ErrorInfo($"Array length must be an anchor name or a number: {length}");
+            return new ErrorInfo($"Table format could not be parsed: {format}");
          }
 
          return ErrorInfo.NoError;

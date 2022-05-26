@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var segments = ArrayRun.ParseSegments(segmentContent, model);
             var endStream = ParseEndStream(model, fieldName, content.Substring(close + 1), segments, sourceSegments);
             if (endStream == null) return false;
+            if (segments.Count == 0) return false;
             tableStream = new TableStreamRun(model, start, sources, content, segments, endStream);
          } catch (ArrayRunParseException) {
             return false;

@@ -984,6 +984,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, relatedArrays.Count);
       }
 
+      [Fact]
+      public void AnchorFormat_TableWithNoContent_DoesNotParse() {
+         var error = ArrayRun.TryParse(Model, "[]3", 0, SortedSpan<int>.None, out var _);
+         Assert.True(error.HasError);
+      }
+
+      [Fact]
+      public void AnchorFormat_TableStreamWithNoContent_DoesNotParse() {
+         var error = ArrayRun.TryParse(Model, "[]!00", 0, SortedSpan<int>.None, out var table);
+         Assert.True(error.HasError);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
