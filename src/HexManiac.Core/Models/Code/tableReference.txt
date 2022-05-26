@@ -697,6 +697,8 @@ data.text.menu.battle,                                         , , , , 032C38, 0
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
 
+sound.fanfares,                        074E64, 074E68, 074E84, 074E88,                            ,,,,       , [songID:          duration:]12
+sound.fanfares,                                                   ,,,, 071C08, 071C08, 071C1C, 071C1C,       , [songID:songnames duration:]14
 sound.fanfares,                                                   ,,,,                            ,,,, 0A308C, [songID:songnames duration:]18
 sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168, 2E0158, [pointer<> musicplayer: unknown:]songnames
 sound.musicplayer,                                                ,,,,                            ,,,, 2E010C, [info::|h track::|h num: unknown:]4
