@@ -1030,7 +1030,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void RemoveTab(object sender, EventArgs e) {
          var tab = (ITabContent)sender;
-         if (!tabs.Contains(tab)) throw new InvalidOperationException("Cannot remove tab, because tab is not currently in editor.");
+         if (!tabs.Contains(tab)) return;
          var index = tabs.IndexOf(tab);
 
          // if the tab to remove is the selected tab, select the next tab (or the previous if there is no next)
