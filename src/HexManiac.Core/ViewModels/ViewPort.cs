@@ -1968,7 +1968,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #endregion
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {
-         var child = new ChildViewPort(this, dispatcher, Singletons);
+         var child = new ChildViewPort(this, dispatcher, Singletons) { PreferredWidth = 16, Width = Math.Min(24, Width) };
 
          var run = Model.GetNextRun(startAddress);
          if (run is ArrayRun array) {

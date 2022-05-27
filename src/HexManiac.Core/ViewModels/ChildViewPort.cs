@@ -75,6 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string FullFileName => this[0].FullFileName;
 
+      public int PreferredWidth { get => this[0].PreferredWidth; set => ForEach(child => child.PreferredWidth = value); }
       public int Width { get => this[0].Width; set => ForEach(child => child.Width = value); }
       public int Height { get => this[0].Height; set => ForEach(child => child.Height = value); }
       public bool AutoAdjustDataWidth { get => this[0].AutoAdjustDataWidth; set => ForEach(child => child.AutoAdjustDataWidth = value); }

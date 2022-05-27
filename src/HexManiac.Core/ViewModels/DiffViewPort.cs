@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public DiffViewPort(IEnumerable<IChildViewPort> leftChildren, IEnumerable<IChildViewPort> rightChildren) {
          left = leftChildren.ToList();
          right = rightChildren.ToList();
+         EqualizeScroll(left, right);
          Debug.Assert(left.Count == right.Count, "Diff views must have the same number of diff elements on each side!");
 
          // combine similar children
@@ -215,6 +216,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
       #endregion
+
+      private void EqualizeScroll(IList<IChildViewPort> left, IList<IChildViewPort> right) {
+         for (int i = 0; i < left.Count; i++) {
+            var leftRun = left[i].Model.GetNextRun(left[i].DataOffset);
+            var rightRun = right[i].Model.GetNextRun(right[i].DataOffset);
+            var leftIsFormatted = leftRun.Start <= left[i].DataOffset && (leftRun is ITableRun || leftRun is IStreamRun);
+            var rightIsFormatted = rightRun.Start <= right[i].DataOffset && (rightRun is ITableRun || rightRun is IStreamRun);
+            if (!leftIsFormatted && rightIsFormatted) {
+               EqualizeScroll(right[i], left[i]);
+            } else {
+               EqualizeScroll(left[i], right[i]);
+            }
+         }
+      }
+
+      private void EqualizeScroll(IChildViewPort example, IChildViewPort change) {
+         while (change.DataOffset > example.DataOffset) change.Scroll.Execute(Direction.Left);
+         while (change.DataOffset < example.DataOffset) change.Scroll.Execute(Direction.Right);
+         change.AutoAdjustDataWidth = false;
+         change.PreferredWidth = example.PreferredWidth;
+         change.Width = example.Width;
+         change.Height = example.Height;
+      }
 
       private (int childIndex, int childLine) ConvertLine(int parentLine) {
          var scrollLine = parentLine + scrollValue;
