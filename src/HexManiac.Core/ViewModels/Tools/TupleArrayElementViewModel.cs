@@ -15,7 +15,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
       public event EventHandler DataChanged;
+      public event EventHandler DataSelected;
       private void RaiseDataChanged() => DataChanged?.Invoke(this, EventArgs.Empty);
+      private void RaiseDataSelected() => DataSelected?.Invoke(this, EventArgs.Empty);
 
       public string Name { get; }
       public ObservableCollection<ITupleElementViewModel> Children { get; }
@@ -30,9 +32,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else if (tupleItem.Elements[i].BitWidth == 1) {
                Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
-               Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged));
+               Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected));
             } else {
-               Children.Add(new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
+               Children.Add(new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataSelected));
             }
             bitOffset += tupleItem.Elements[i].BitWidth;
          }
@@ -66,6 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int BitOffset { get; }
       public int BitLength => seg.BitWidth;
       public int Start { get; private set; }
+      private Action RaiseDataSelected { get; }
 
       public int Content {
          get => seg.Read(viewPort.Model, Start, BitOffset);
@@ -75,8 +78,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public NumericTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
+      public NumericTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataSelected) {
          (this.viewPort, seg, Start, BitOffset) = (viewPort, segment, start, bitOffset);
+         RaiseDataSelected = raiseDataSelected;
       }
 
       public virtual bool TryCopy(ITupleElementViewModel other) {
@@ -90,6 +94,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(Content));
          return true;
       }
+
+      public void Focus() => RaiseDataSelected?.Invoke();
    }
 
    public class CheckBoxTupleElementViewModel : ViewModelCore, ITupleElementViewModel {
@@ -136,6 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int Start { get; private set; }
       public string EnumName => seg.SourceName;
       private Action RaiseDataChanged { get; }
+      private Action RaiseDataSelected { get; }
 
       public IReadOnlyList<string> Options {
          get {
@@ -204,12 +211,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
-      public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged) {
+      public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged, Action raiseDataSelected) {
          (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
          var selectedIndex = SelectedIndex;
          var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
          filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex] : selectedIndex.ToString();
          RaiseDataChanged = raiseDataChanged;
+         RaiseDataSelected = raiseDataSelected;
       }
 
       public bool TryCopy(ITupleElementViewModel other) {
@@ -224,5 +232,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          NotifyPropertyChanged(nameof(SelectedIndex));
          return true;
       }
+
+      public void Focus() => RaiseDataSelected?.Invoke();
    }
 }

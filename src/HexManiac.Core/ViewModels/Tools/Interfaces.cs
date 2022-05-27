@@ -47,6 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public interface IArrayElementViewModel : INotifyPropertyChanged {
       event EventHandler DataChanged;
+      event EventHandler DataSelected;
       bool Visible { get; set; }
       bool IsInError { get; }
       string ErrorText { get; }
@@ -56,6 +57,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class SplitterArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
+      event EventHandler IArrayElementViewModel.DataSelected { add { } remove { } }
 
       private readonly IViewPort viewPort;
       private string sectionName;

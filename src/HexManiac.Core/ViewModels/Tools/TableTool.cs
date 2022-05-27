@@ -269,9 +269,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool dataForCurrentRunChangeUpdate;
       public void DataForCurrentRunChanged() {
          foreach (var group in Groups) {
-            foreach (var member in group.Members) member.DataChanged -= ForwardModelChanged;
+            foreach (var member in group.Members) ClearHandlers(member);
          }
-         foreach (var child in UsageChildren) child.DataChanged -= ForwardModelChanged;
+         foreach (var child in UsageChildren) ClearHandlers(child);
          foreach (var group in Groups) group.Open();
          childIndexGroup = 0;
          usageChildInsertionIndex = 0;
@@ -389,9 +389,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          while (Groups.Count > childIndexGroup) Groups.RemoveAt(Groups.Count - 1);
          while (UsageChildren.Count > usageChildInsertionIndex) UsageChildren.RemoveAt(UsageChildren.Count - 1);
          foreach (var group in Groups) {
-            foreach (var member in group.Members) member.DataChanged += ForwardModelChanged;
+            foreach (var member in group.Members) AddHandlers(member);
          }
-         foreach (var child in UsageChildren) child.DataChanged += ForwardModelChanged;
+         foreach (var child in UsageChildren) AddHandlers(child);
          AddDummyGroup();
 
          var paletteIndex = Children.Where(child => child is SpriteElementViewModel).Select(c => {
@@ -411,6 +411,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          foreach (var group in Groups) Debug.Assert(!group.IsOpen, "You forgot to close a group! " + group.GroupName);
          NotifyPropertyChanged(nameof(Children));
+      }
+
+      private void AddHandlers(IArrayElementViewModel member) {
+         member.DataChanged += ForwardModelChanged;
+         member.DataSelected += HandleDataSelected;
+      }
+
+      private void ClearHandlers(IArrayElementViewModel member) {
+         member.DataChanged -= ForwardModelChanged;
+         member.DataSelected -= HandleDataSelected;
       }
 
       private void UpdateCurrentElementSelector(ITableRun array, int index) {
@@ -503,5 +513,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ForwardModelChanged(object sender, EventArgs e) => ModelDataChanged?.Invoke(this, model.GetNextRun(Address));
       private void ForwardModelDataMoved(object sender, (int originalStart, int newStart) e) => ModelDataMoved?.Invoke(this, e);
+
+      private void HandleDataSelected(object sender, EventArgs e) {
+         if (sender is not IArrayElementViewModel vm) return;
+         if (vm is FieldArrayElementViewModel field) viewPort.Goto.Execute(field.Start);
+         if (vm is ComboBoxArrayElementViewModel combo) viewPort.Goto.Execute(combo.Start);
+         if (vm is TupleArrayElementViewModel tuple) viewPort.Goto.Execute(tuple.Children[0].Start);
+      }
    }
 }

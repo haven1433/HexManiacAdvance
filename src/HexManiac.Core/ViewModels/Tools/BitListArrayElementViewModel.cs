@@ -71,8 +71,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
-      private EventHandler dataChanged;
+      private EventHandler dataChanged, dataSelected;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
+
+      public event EventHandler DataSelected { add => dataSelected += value;remove => dataSelected -= value; }
 
       private StubCommand selectAll, unselectAll;
       public ICommand SelectAll => StubCommand(ref selectAll, () => SetAll(true));
@@ -243,6 +245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             children[i].PropertyChanged += ChildChanged;
          }
          dataChanged = bitList.dataChanged;
+         dataSelected = bitList.dataSelected;
 
          return true;
       }

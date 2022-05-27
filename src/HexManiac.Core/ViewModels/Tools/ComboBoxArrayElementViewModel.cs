@@ -45,8 +45,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string name;
       private int start, length;
 
-      private EventHandler dataChanged;
+      private EventHandler dataChanged, dataSelected;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
+
+      public event EventHandler DataSelected { add => dataSelected += value; remove => dataSelected -= value; }
 
       private int recursionCheck;
       private bool isFiltering;
@@ -227,9 +229,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          GotoSource = comboBox.GotoSource;
          NotifyPropertyChanged(nameof(GotoSource));
          dataChanged = comboBox.dataChanged;
+         dataSelected = comboBox.dataSelected;
 
          return true;
       }
+
+      public void Focus() => dataSelected?.Invoke(this, EventArgs.Empty);
 
       private int CalculateOptionSource(string name) {
          var model = ViewPort.Model;

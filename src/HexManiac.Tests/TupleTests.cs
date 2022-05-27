@@ -345,7 +345,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void EnumTuple_Create_HasFilteredText() {
          CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
-         var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default);
+         var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default, default);
          Assert.Equal("adam", tuple.FilterText);
       }
 
@@ -354,7 +354,7 @@ namespace HavenSoft.HexManiac.Tests {
          CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
          Model[0] = 9;
 
-         var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default);
+         var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default, default);
 
          Assert.Equal("9", tuple.FilterText);
       }

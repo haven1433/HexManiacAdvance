@@ -37,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
       public event EventHandler DataChanged;
+      public event EventHandler DataSelected;
 
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is CalculatedElementViewModel that)) return false;

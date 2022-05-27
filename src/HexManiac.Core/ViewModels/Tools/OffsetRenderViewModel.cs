@@ -32,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       #endregion
 
       public event EventHandler DataChanged;
+      public event EventHandler DataSelected;
 
       public OffsetRenderViewModel(IEditableViewPort viewPort, ArrayRunOffsetRenderSegment segment, int itemAddress) {
          this.viewPort = viewPort;

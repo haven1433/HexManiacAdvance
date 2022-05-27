@@ -117,6 +117,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
       protected void RaiseDataChanged() => dataChanged?.Invoke(this, EventArgs.Empty);
 
+      private EventHandler dataSelected;
+      public event EventHandler DataSelected { add => dataSelected += value; remove => dataSelected -= value; }
+      protected void RaiseDataSelected() => dataSelected?.Invoke(this, EventArgs.Empty);
+
       #endregion
 
       public StreamElementViewModel(ViewPort viewPort, string parentName, string runFormat, int start) {
@@ -162,6 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          ErrorText = that.ErrorText;
          dataMoved = that.dataMoved;
          dataChanged = that.dataChanged;
+         dataSelected = that.dataSelected;
          Start = that.Start;
          RunFormat = that.RunFormat;
          Visible = that.Visible;

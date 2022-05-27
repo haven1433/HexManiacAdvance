@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int ZIndex => 0;
 
       event EventHandler IArrayElementViewModel.DataChanged { add { } remove { } }
+      event EventHandler IArrayElementViewModel.DataSelected { add { } remove { } }
 
       public string Text { get; private set; }
       public string ToolTipText { get; private set; }

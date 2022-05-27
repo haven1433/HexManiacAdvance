@@ -31,6 +31,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private EventHandler dataChanged;
       public event EventHandler DataChanged { add => dataChanged += value; remove => dataChanged -= value; }
 
+      private EventHandler dataSelected;
+      public event EventHandler DataSelected { add => dataSelected += value; remove => dataSelected -= value; }
+
       public ViewPort ViewPort { get; }
       public IDataModel Model { get; }
       public string Name { get => name; set => TryUpdate(ref name, value); }
@@ -91,6 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          TryUpdate(ref content, field.Content, nameof(Content));
          ErrorText = field.ErrorText;
          dataChanged = field.dataChanged;
+         dataSelected = field.dataSelected;
          CanAcceptChanged?.Invoke(this, EventArgs.Empty);
          return true;
       }
@@ -110,6 +114,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool CanAccept() {
          return Type == ElementContentViewModelType.Address && ViewPort.Goto.CanExecute(Content);
       }
+
+      public void Focus() => dataSelected?.Invoke(this, EventArgs.Empty);
 
       #region Increment/Decrement
 

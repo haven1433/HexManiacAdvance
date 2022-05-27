@@ -601,5 +601,25 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.Key == Key.Up) vm.IncrementValue();
          if (e.Key == Key.Down) vm.DecrementValue();
       }
+
+      private void HandleFieldKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.DataContext is FieldArrayElementViewModel vm) vm.Focus();
+      }
+
+      private void HandleComboClick(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.DataContext is ComboBoxArrayElementViewModel vm) vm.Focus();
+      }
+
+      private void HandleTupleFieldKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.DataContext is NumericTupleElementViewModel vm) vm.Focus();
+      }
+
+      private void HandleTupleComboClick(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.DataContext is EnumTupleElementViewModel vm) vm.Focus();
+      }
    }
 }
