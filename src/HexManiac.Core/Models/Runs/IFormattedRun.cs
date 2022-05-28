@@ -149,6 +149,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) {
          return new NoInfoRun(Start, newPointerSources);
       }
+
+      public static NoInfoRun Proxy(IFormattedRun run) => new NoInfoRun(run.Start, run.PointerSources);
    }
 
    public static class SortedSpan {
