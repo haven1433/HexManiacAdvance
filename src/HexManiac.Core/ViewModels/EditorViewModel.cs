@@ -643,7 +643,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                copyText = copyText.Replace(Environment.NewLine, "\n"); // normalize newline inputs
             }
 
-            (SelectedTab as ViewPort)?.Edit(copyText);
+            if (SelectedTab is ViewPort viewPort && viewPort.IsFocused) viewPort.Edit(copyText);
          };
       }
 

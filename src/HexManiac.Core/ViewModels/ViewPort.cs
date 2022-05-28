@@ -772,6 +772,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private int anchorTextSelectionLength;
       public int AnchorTextSelectionLength { get => anchorTextSelectionLength; set => Set(ref anchorTextSelectionLength, value); }
 
+      private bool isFocused;
+      public bool IsFocused { get => isFocused; set => Set(ref isFocused, value); }
+
       public ICommand Copy => copy;
       public ICommand CopyAddress => copyAddress;
       public ICommand CopyBytes => copyBytes;

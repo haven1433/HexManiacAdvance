@@ -643,6 +643,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          recentMenu.IsOpen = true;
       }
 
+      protected override void OnIsKeyboardFocusedChanged(DependencyPropertyChangedEventArgs e) {
+         base.OnIsKeyboardFocusedChanged(e);
+         if (ViewPort is IEditableViewPort editableViewPort) editableViewPort.IsFocused = IsKeyboardFocused;
+      }
+
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
          base.OnRenderSizeChanged(sizeInfo);
          UpdateViewPortSize();
