@@ -303,7 +303,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (targetSegment is ArrayRunEnumSegment enumSegment) {
             if (currentToken.StartsWith("\"")) currentToken = currentToken.Substring(1);
             if (currentToken.EndsWith("\"")) currentToken = currentToken.Substring(0, currentToken.Length - 1);
-            var optionText = enumSegment.GetOptions(model).Where(option => option.MatchesPartial(currentToken));
+            var optionText = enumSegment.GetOptions(model).Where(option => option?.MatchesPartial(currentToken) ?? false);
             results.AddRange(CreateEnumAutocompleteOptions(tokens, optionText, lineEnd));
          } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
             var tupleTokens = currentToken.Split(" ").ToList();
