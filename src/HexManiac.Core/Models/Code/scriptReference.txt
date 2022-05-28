@@ -149,7 +149,7 @@
 61 cleartrainerflag trainer:                 # set flag 0x500+trainer to 1. That trainer now counts as defeated.
 62 settrainerflag trainer:                   # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
-64 moveoffscreen ncp:                        # moves the npc to just above the left-top corner of the screen
+64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
 65 spritebehave npc: behavior.               # ???
 66 waitmsg                                   # block script execution until box/text is fully drawn
 67 preparemsg text<>                         # text can be a pointer to a text pointer, or just a pointer to text
