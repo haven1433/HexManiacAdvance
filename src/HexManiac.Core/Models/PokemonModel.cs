@@ -181,7 +181,6 @@ namespace HavenSoft.HexManiac.Core.Models {
             WritePointerRuns(pointersForDestination, destinationForSource);
             WriteSpriteRuns(pointersForDestination);
             WriteStringRuns(pointersForDestination);
-            ResolveConflicts();
             FreeSpaceStart = EarliestAllowedAnchor;
 
             if (metadata == null) return;
@@ -255,7 +254,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
 
-            ResolveConflicts();
+            if (GetType() == typeof(PokemonModel)) ResolveConflicts();
          }
       }
 
@@ -879,17 +878,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override IFormattedRun GetNextRun(int dataIndex) {
          if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
          lock (threadlock) {
-            var index = BinarySearch(dataIndex);
-            if (index < 0) {
-               index = ~index;
-               if (index > 0) {
-                  var previous = runs[index - 1];
-                  if (previous.Start + previous.Length > dataIndex) index -= 1;
-               }
-            }
+            var index = GetIndexForNextRun(dataIndex);
             if (index >= runs.Count) return NoInfoRun.NullRun;
             return runs[index];
          }
+      }
+
+      private int GetIndexForNextRun(int address) {
+         var index = BinarySearch(address);
+         if (index >= 0) return index;
+         index = ~index;
+         if (index > 0) {
+            var previous = runs[index - 1];
+            if (previous.Start + previous.Length > address) index -= 1;
+         }
+         return index;
       }
 
       public override IFormattedRun GetNextAnchor(int dataIndex) {
@@ -2497,6 +2500,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private static readonly int[] TargetAddresses = new int[] { };
       public int InsertCount { get; private set; }
       public int RemoveCount { get; private set; }
+      public Dictionary<Type, int> RemovedRunTypes { get; } = new();
       public int ReplaceCount { get; private set; }
       void ICollection<IFormattedRun>.Add(IFormattedRun item) {
          if (TargetAddresses.Contains(item.Start)) Debugger.Break();
@@ -2512,6 +2516,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          var item = this[index];
          if (TargetAddresses.Contains(item.Start)) Debugger.Break();
          RemoveCount += 1;
+
+         var type = item.GetType();
+         if (!RemovedRunTypes.ContainsKey(type)) RemovedRunTypes[type] = 0;
+         RemovedRunTypes[type] += 1;
+
          RemoveAt(index);
       }
       IFormattedRun IList<IFormattedRun>.this[int index] {
