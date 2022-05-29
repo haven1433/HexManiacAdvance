@@ -1235,7 +1235,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void TabChangeRequested(object sender, ITabContent newTab) {
-         if (sender != SelectedTab) return;
+         var isNewTabWithSameModel = !tabs.Contains(newTab) && sender is ViewPort oldViewPort && newTab is ViewPort newViewPort && oldViewPort.Model == newViewPort.Model;
+         if (sender != SelectedTab && !isNewTabWithSameModel) return;
          var index = tabs.IndexOf(newTab);
          if (index == -1) {
             Add(newTab);
