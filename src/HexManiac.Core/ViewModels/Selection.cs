@@ -196,9 +196,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
                         GotoAddress(anchor + offset);
                      } else if (options.Count > 1) {
-                        var bestMatches = options.Where(option => option.ToLower().Contains(address));
-                        options = bestMatches.Concat(options.Take(1).Distinct()).ToList();
-                        anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
+                        var bestMatches = options.Where(option => option.ToLower().Contains(address)).ToList();
+                        if (bestMatches.Count > 0) {
+                           var shortestMatch = bestMatches.OrderBy(match => match.Split("/").Last().Length).First();
+                           anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, shortestMatch);
+                        } else {
+                           anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
+                        }
                         GotoAddress(anchor + offset);
                      } else {
                         OnError?.Invoke(this, $"Unable to goto address '{address}'");

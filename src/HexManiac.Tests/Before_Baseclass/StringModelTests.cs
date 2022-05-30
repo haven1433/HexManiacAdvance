@@ -610,6 +610,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(payload, result);
       }
 
+      [Fact]
+      public void TextList_Goto_PreferExactMatch() {
+         this.CreateTextTable("names", 0x100, "content", "THUNDERPUNCH", "other", "THUNDER", "something");
+
+         ViewPort.Goto.Execute("thunder");
+
+         Assert.Equal(3, ViewPort.Tools.TableTool.CurrentElementSelector.SelectedIndex);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());
