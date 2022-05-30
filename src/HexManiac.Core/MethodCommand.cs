@@ -85,7 +85,7 @@ namespace HavenSoft.HexManiac.Core {
 
       public void Execute(object parameter) {
          var execute = Context.GetType().GetMethod(ExecuteName);
-         if (execute == null) throw new InvalidOperationException($"Could not find {ExecuteName} on {Context}.");
+         if (execute == null) return;
          object result;
          switch (execute.GetParameters().Length) {
             case 0: result = execute.Invoke(Context, Array.Empty<object>()); break;
