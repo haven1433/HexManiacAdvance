@@ -915,6 +915,40 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(ViewPort.IsMetadataOnlyChange);
       }
 
+      [Fact]
+      public void DefaultAnchorNameInPuse_CreateDefaultAnchor_UsesDifferentName() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@20 ^misc.temp._000100 @00!00(8) ^table[ptr<>]2 <100> ");
+
+         ViewPort.Goto.Execute("100");
+         ViewPort.SelectionEnd = new(3, 0);
+         ViewPort.Cut(FileSystem);
+
+         Assert.Equal(0x20, Model.GetAddressFromAnchor(new(), -1, "misc.temp._000100")); // old anchor is still there
+         Assert.Equal("^misc.temp._000100_1 FF FF FF FF", FileSystem.CopyText.value);    // copy includes new anchor
+         Assert.Equal(new[] { 0x00 }, Model.GetUnmappedSourcesToAnchor("misc.temp._000100_1")); // address 0 should point to the new anchor
+      }
+
+      [Fact]
+      public void TempAnchor_ExportMetadata_DoNotIncludeTempAnchor() {
+         ViewPort.Edit("^misc.temp.stuff ");
+
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+
+         var anchors = metadata.NamedAnchors.Select(anchor => anchor.Name).ToList();
+         Assert.DoesNotContain("misc.temp.stuff", anchors);
+      }
+
+      [Fact]
+      public void PointerToTempAnchor_ExportMetadata_DoIncludeUnmappedPointer() {
+         ViewPort.Edit("<misc.temp.stuff>");
+
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+
+         var unmappedPointers = metadata.UnmappedPointers.Select(up => up.Name).ToList();
+         Assert.Contains("misc.temp.stuff", unmappedPointers);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

@@ -1918,14 +1918,21 @@ namespace HavenSoft.HexManiac.Core.Models {
          var textSample = GetSampleText(run);
          var initialAddress = run.Start.ToString("X6");
 
-         return $"misc.{gameCodeText}_{initialAddress}{textSample}";
+         var defaultName = $"misc.temp.{gameCodeText}_{initialAddress}{textSample}";
+         if (!addressForAnchor.ContainsKey(defaultName)) return defaultName;
+
+         int counter = 0;
+         while (true) {
+            counter++;
+            if (!addressForAnchor.ContainsKey(defaultName + "_" + counter)) return defaultName + "_" + counter;
+         }
       }
 
       /// <summary>
       /// If this model recognizes a GameCode AsciiRun, return that code formatted as a name.
       /// </summary>
       public static string ReadGameCode(IDataModel model) {
-         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "GameCode");
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "data.header.gamecode");
          if (address == Pointer.NULL) return string.Empty;
          if (!(model.GetNextRun(address) is AsciiRun gameCode) || gameCode.Start != address) return string.Empty;
          return new string(gameCode.Length.Range().Select(i => (char)model[gameCode.Start + i]).ToArray());
@@ -2066,6 +2073,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var anchors = new List<StoredAnchor>();
          foreach (var kvp in anchorForAddress) {
             var (address, name) = (kvp.Key, kvp.Value);
+            if (name.StartsWith("misc.temp.")) continue; // don't persist miscilaneous temp anchors
             var index = BinarySearch(address);
             if (index < 0) continue;
             var format = runs[index].FormatString;
