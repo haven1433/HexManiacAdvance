@@ -60,7 +60,7 @@ Visit the [Wiki](https://github.com/haven1433/HexManiacAdvance/wiki) to see a us
 
 Visit the [Discord](https://discord.gg/x9eQuBg) to connect with other users.
 
-Running HexManiacAdvance requires Windows and .Net 6.0.
+Running HexManiacAdvance requires Windows and .Net 6.0: [x64](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-6.0.5-windows-x64-installer) [x86](https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/runtime-desktop-6.0.5-windows-x86-installer)
 
 ## As a Developer
 
