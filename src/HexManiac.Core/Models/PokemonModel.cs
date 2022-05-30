@@ -1847,7 +1847,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start += len;
                   continue;
                }
-               if (run.Start == start) {
+               if (run.Start == start && run.Length <= length) {
                   if (run is LZRun lzRun) {
                      // the user is copying an lzrun. Make sure to include a metacommand to insert a new lzrun during the paste.
                      text.Append($"@!lz({lzRun.DecompressedLength}) ");

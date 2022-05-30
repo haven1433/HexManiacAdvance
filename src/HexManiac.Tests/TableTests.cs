@@ -996,6 +996,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(error.HasError);
       }
 
+      [Fact]
+      public void TableContent_CopyNotWholeTable_DoNotIncludeAnchorContentInClipboard() {
+         var nl = Environment.NewLine;
+         ViewPort.Edit("^table[a: b:]3 1 2 3 4 5 6 ");
+
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.SelectionEnd = new(7, 0);
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Equal($"1, 2{nl}+3, 4{nl}", FileSystem.CopyText.value);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
