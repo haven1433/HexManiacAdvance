@@ -847,7 +847,7 @@
                      </Decorator>
                      <TextBox Name="CodeToolSingleTextBox" UndoLimit="0" Margin="5" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto"
                         Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                        IsReadOnly="{Binding IsReadOnly}" AcceptsReturn="True" VerticalScrollBarVisibility="Auto"/>
+                        IsReadOnly="{Binding IsReadOnly}" AcceptsReturn="True" AcceptsTab="True" VerticalScrollBarVisibility="Auto"/>
                   </DockPanel>
                   <DockPanel Visibility="{Binding UseMultiContent, Converter={StaticResource BoolToVisibility}}">
                      <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
@@ -861,7 +861,7 @@
                                     <Grid Margin="5">
                                        <TextBox Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" UndoLimit="0"
                                              HorizontalScrollBarVisibility="Auto"
-                                             AcceptsReturn="True" FontFamily="Consolas" SelectionChanged="CodeToolContentsSelectionChanged"/>
+                                             AcceptsReturn="True" AcceptsTab="True" FontFamily="Consolas" SelectionChanged="CodeToolContentsSelectionChanged"/>
                                        <TextBlock Visibility="{Binding IsOpen, ElementName=CodeContentsPopup, Converter={StaticResource BoolToVisibility}}"
                                              HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" FontFamily="Consolas" FontWeight="Bold"/>
                                     </Grid>
