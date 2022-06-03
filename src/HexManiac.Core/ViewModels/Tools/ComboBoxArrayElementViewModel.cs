@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void FilterTextChanged(string oldValue) {
          if (recursionCheck != 0 || !isFiltering) return;
          recursionCheck++;
-         Options = fullOptions.Where(option => option.Text.MatchesPartial(filterText)).ToList();
+         Options = new(fullOptions.Where(option => option.Text.MatchesPartial(filterText)));
          if (selectedIndex >= 0 && selectedIndex < fullOptions.Count && Options.Contains(fullOptions[selectedIndex])) {
             // selected index is already fine
          } else if (Options.Count > 0) {
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private bool containsUniqueOption;
       private List<ComboOption> fullOptions;
-      public List<ComboOption> Options { get; private set; }
+      public ObservableCollection<ComboOption> Options { get; private set; }
 
       private int selectedIndex;
 
@@ -132,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                FilterText = fullOptions[value].Text;
             }
             if (Options.Count != fullOptions.Count) {
-               Options = fullOptions.ToList();
+               Options = new(fullOptions);
                NotifyPropertyChanged(nameof(Options));
             }
 
@@ -192,7 +192,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             selectedIndex = fullOptions.FindIndex(option => option.Index == modelValue);
          }
          filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex].Text : string.Empty;
-         Options = fullOptions.ToList();
+         Options = new(fullOptions);
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource.Value != Pointer.NULL,
             Execute = arg => {
@@ -217,8 +217,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!fullOptions.Select(option => option.Text).SequenceEqual(comboBox.fullOptions.Select(option => option.Text))) {
             selectedIndex = -1; // changing options will make the UIElement update the SelectedIndex automatically. Set it first so that we don't cause a data change.
             fullOptions = comboBox.fullOptions;
-            Options = comboBox.Options;
-            NotifyPropertyChanged(nameof(Options));
+            if (Options.Count == comboBox.Options.Count) {
+               for (int i = 0; i < Options.Count; i++) {
+                  if (Options[i].DisplayAsText && Options[i].Text == comboBox.Options[i].Text && Options[i].Index == comboBox.Options[i].Index) {
+                     // all good, don't need to copy
+                  } else {
+                     Options[i] = comboBox.Options[i];
+                  }
+               }
+            } else {
+               Options = comboBox.Options;
+               NotifyPropertyChanged(nameof(Options));
+            }
             NotifyPropertyChanged(nameof(CanFilter));
          }
 
