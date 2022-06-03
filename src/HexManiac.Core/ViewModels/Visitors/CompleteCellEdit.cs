@@ -649,7 +649,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       private void CompleteNamedConstantEdit(int byteCount) {
          var constantName = CurrentText.Substring(1).Trim();
-         int offset = 0, multOffset = 1;
+         int offset = 0, multOffset = 1, newValue = int.MinValue;
+         if (constantName.Contains("=")) {
+            var split = constantName.Split('=');
+            if (!int.TryParse(split[1], out newValue)) newValue = int.MinValue;
+            constantName = split[0];
+         }
          if (constantName.Contains("+")) {
             var split = constantName.Split('+');
             int.TryParse(split[1], out offset);
@@ -676,6 +681,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          var coreValue = (Model[memoryLocation] / multOffset) - offset;
+         if (newValue != int.MinValue) coreValue = newValue / multOffset - offset;
          var maxValue = Math.Pow(2, byteCount * 8) - 1;
          if (coreValue < 0) {
             if (offset != 0) {
@@ -690,9 +696,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                ErrorText = $"Could not create {constantName} with multiplier {offset} because then the virtual value would be above {maxValue}.";
             }
          } else {
+            if (newValue != int.MinValue) Model.WriteMultiByteValue(memoryLocation, byteCount, CurrentChange, newValue);
             CurrentChange.AddMatchedWord(Model, memoryLocation, constantName, byteCount);
             Model.ObserveRunWritten(CurrentChange, new WordRun(memoryLocation, constantName, byteCount, offset, multOffset));
-            NewDataIndex = memoryLocation;
+            NewDataIndex = memoryLocation + (newValue != int.MinValue ? byteCount : 0);
          }
       }
 

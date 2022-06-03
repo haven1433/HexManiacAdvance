@@ -41,7 +41,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }
 
             if (UnderEdit.CurrentText[0] == '.') {
-               Result = char.IsLetterOrDigit(Input) || Input.IsAny(" .+-".ToCharArray());
+               Result = char.IsLetterOrDigit(Input) || Input.IsAny(" .+-=".ToCharArray());
                return;
             }
          }

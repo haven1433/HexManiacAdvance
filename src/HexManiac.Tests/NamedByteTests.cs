@@ -173,5 +173,29 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Empty(Model.GetMatchedWords("name"));
       }
+
+      [Fact]
+      public void TypingConstant_TypeEquals_SetsValue() {
+         ViewPort.Edit(".some.constant=3 ");
+         Assert.Equal(3, Model[0]);
+         Assert.Equal(new Point(1, 0), ViewPort.SelectionStart);
+      }
+
+      [Fact]
+      public void TypingConstantWithOffset_TypeEquals_SetsValue() {
+         ViewPort.Edit(".some.constant+4=12 ");
+         Assert.Equal(12, Model[0]);
+      }
+
+      [Fact]
+      public void NamedConstant_Copy_CopyConstantFormat() {
+         ViewPort.Edit(".some.constant ");
+
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.SelectionEnd = new(0, 0);
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Equal(".some.constant=0 ", FileSystem.CopyText.value);
+      }
    }
 }

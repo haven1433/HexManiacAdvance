@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 using System.Diagnostics;
 using System.Text;
 
@@ -40,8 +41,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
          if (Length == 4) {
             builder.Append(FormatString + SourceArrayName);
+         } else if (Length == 2 || Length == 1) {
+            var offset = string.Empty;
+            if (MultOffset != 1) offset += "*" + MultOffset;
+            if (ValueOffset > 0) offset += "+" + ValueOffset;
+            if (ValueOffset < 0) offset += "-" + ValueOffset;
+            builder.Append($"{FormatString}{SourceArrayName}{offset}={model[start]} ");
          } else {
-            builder.Append(model[start]);
+            throw new NotImplementedException();
          }
       }
 
