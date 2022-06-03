@@ -200,6 +200,27 @@ BPGE1.scripts.newgame.start.map  054A1A
 BPGE1.scripts.newgame.start.x    054A1C
 BPGE1.scripts.newgame.start.y    054A14
 
+AXVE0.scripts.newgame.start.bank 052E10
+AXVE0.scripts.newgame.start.map  052E12
+AXVE0.scripts.newgame.start.x    052E14
+AXVE0.scripts.newgame.start.y    052E0C
+AXPE0.scripts.newgame.start.bank 052E10
+AXPE0.scripts.newgame.start.map  052E12
+AXPE0.scripts.newgame.start.x    052E14
+AXPE0.scripts.newgame.start.y    052E0C
+AXVE1.scripts.newgame.start.bank 052E30
+AXVE1.scripts.newgame.start.map  052E32
+AXVE1.scripts.newgame.start.x    052E34
+AXVE1.scripts.newgame.start.y    052E2C
+AXPE1.scripts.newgame.start.bank 052E30
+AXPE1.scripts.newgame.start.map  052E32
+AXPE1.scripts.newgame.start.x    052E34
+AXPE1.scripts.newgame.start.y    052E2C
+BPEE0.scripts.newgame.start.bank 084458
+BPEE0.scripts.newgame.start.map  08445A
+BPEE0.scripts.newgame.start.x    08445C
+BPEE0.scripts.newgame.start.y    084454
+
 BPRE0.scripts.newgame.professor.pokemon  12FB38,130F40,130F4C # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
 BPGE0.scripts.newgame.professor.pokemon  12FB10,130F18,130F24 # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
 BPRE1.scripts.newgame.professor.pokemon  12FBB0,130FB8,130FC4 # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
