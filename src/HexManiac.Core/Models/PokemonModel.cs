@@ -213,12 +213,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                WordRun newRun;
                if (index > 0) {
                   newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
-                  SetIndex(index, newRun);
                } else {
-                  ClearFormat(noChange, word.Address, word.Length);
                   newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note);
-                  ObserveRunWritten(noChange, newRun);
                }
+               ClearFormat(noChange, word.Address, word.Length);
+               ObserveRunWritten(noChange, newRun);
                CompleteCellEdit.UpdateAllWords(this, newRun, noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
             }
             RemoveMatchedWordsThatDoNotMatch(noChange);
