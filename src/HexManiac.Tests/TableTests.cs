@@ -1008,6 +1008,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal($"1, 2{nl}+3, 4{nl}", FileSystem.CopyText.value);
       }
 
+      [Fact]
+      public void NameWithDash_Goto_Goto() {
+         CreateTextTable("table", 0x100, "some", "option", "ho-oh", "steve");
+
+         ViewPort.Goto.Execute("ho-oh");
+
+         Assert.Equal(2, ViewPort.Tools.TableTool.CurrentElementSelector.SelectedIndex);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

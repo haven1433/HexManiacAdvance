@@ -165,9 +165,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   address = addParts[0];
                   int.TryParse(addParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
                } else if (address.Split("-") is string[] subtractParts && subtractParts.Length == 2) {
-                  address = subtractParts[0];
-                  int.TryParse(subtractParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
-                  offset = -offset;
+                  if (int.TryParse(subtractParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
+                     address = subtractParts[0];
+                     offset = -offset;
+                  }
                }
                using (ModelCacheScope.CreateScope(this.model)) {
                   var minSize = -1;
