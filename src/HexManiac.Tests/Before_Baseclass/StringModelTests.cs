@@ -619,6 +619,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, ViewPort.Tools.TableTool.CurrentElementSelector.SelectedIndex);
       }
 
+      [Theory]
+      [InlineData("BPRE", "[white]", "FC 01 00 FF")]
+      public void TextWithMacro_Convert_CorrectBytes(string gameCode, string macro, string bytes) {
+         var result = PCSString.Convert(macro, gameCode, out var containsBadCharacters);
+         Assert.False(containsBadCharacters);
+         Assert.Equal(bytes.ToByteArray(), result);
+      }
+
+      [Theory]
+      [InlineData("BPEE", "\"[orange]\"", "FC 01 05 FF")]
+      public void BytesWithMacro_Convert_CorrectText(string gameCode, string macro, string bytesAsText) {
+         var bytes = bytesAsText.ToByteArray();
+         var result = PCSString.Convert(gameCode, bytes, 0, bytes.Length);
+         Assert.Equal(macro, result);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

@@ -612,9 +612,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return true;
       }
 
-      public static string ReadString(IReadOnlyList<byte> data, int start) {
+      public static string ReadString(IDataModel data, int start) {
          var length = PCSString.ReadString(data, start, true);
-         return PCSString.Convert(data, start, length);
+         return data.TextConverter.Convert(data, start, length);
       }
 
       public static string[] Tokenize(string scriptLine) {

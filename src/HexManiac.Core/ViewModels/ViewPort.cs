@@ -1793,7 +1793,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IEnumerable<(int start, int end)> FindUnquotedText(string cleanedSearchString, List<ISearchByte> searchBytes, bool matchExactCase) {
-         var pcsBytes = PCSString.Convert(cleanedSearchString, out bool containsBadCharacters);
+         var pcsBytes = Model.TextConverter.Convert(cleanedSearchString, out bool containsBadCharacters);
          pcsBytes.RemoveAt(pcsBytes.Count - 1); // remove the 0xFF that was added, since we're searching for a string segment instead of a whole string.
 
          // only search for the string if every character in the search string is allowed
@@ -1958,7 +1958,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var endIndex = cleanedSearchString.IndexOf(StringDelimeter, i + 1);
          while (endIndex > i && cleanedSearchString[endIndex - 1] == '\\') endIndex = cleanedSearchString.IndexOf(StringDelimeter, endIndex + 1);
          if (endIndex > i) {
-            var pcsBytes = PCSString.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i));
+            var pcsBytes = Model.TextConverter.Convert(cleanedSearchString.Substring(i, endIndex + 1 - i), out var _);
             i = endIndex + 1;
             if (i == cleanedSearchString.Length) pcsBytes.RemoveAt(pcsBytes.Count - 1);
             searchBytes.AddRange(pcsBytes.Select(b => new PCSSearchByte(b)));

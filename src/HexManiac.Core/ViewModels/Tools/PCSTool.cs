@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var lines = new string[array.ElementCount];
                var textStart = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength; // the starting address of the first text element
                for (int i = 0; i < lines.Length; i++) {
-                  var newContent = PCSString.Convert(model, textStart + i * array.ElementLength, segment.Length)?.Trim() ?? string.Empty;
+                  var newContent = model.TextConverter.Convert(model, textStart + i * array.ElementLength, segment.Length)?.Trim() ?? string.Empty;
                   newContent = RemoveQuotes(newContent);
                   lines[i] = newContent;
                }
@@ -259,8 +259,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var selectionLength = contentSelectionLength;
 
          if (run is PCSRun) {
-            selectionLength = Math.Max(PCSString.Convert(content.Substring(selectionStart, selectionLength)).Count - 2, 0); // remove 1 byte since 0xFF was added on and 1 byte since the selection should visually match
-            selectionStart = PCSString.Convert(content.Substring(0, selectionStart)).Count - 1 + run.Start; // remove 1 byte since the 0xFF was added on
+            selectionLength = Math.Max(model.TextConverter.Convert(content.Substring(selectionStart, selectionLength), out var _).Count - 2, 0); // remove 1 byte since 0xFF was added on and 1 byte since the selection should visually match
+            selectionStart = model.TextConverter.Convert(content.Substring(0, selectionStart), out var _).Count - 1 + run.Start; // remove 1 byte since the 0xFF was added on
          } else if (run is ArrayRun array) {
             var offset = array.ConvertByteOffsetToArrayOffset(Address);
             var textStart = offset.SegmentStart - offset.ElementIndex * array.ElementLength; // the starting address of the first text element
@@ -300,7 +300,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (arrayRun.Start != newRun.Start) ModelDataMoved?.Invoke(this, (arrayRun.Start, newRun.Start));
             var segmentLength = newRun.ElementContent[offsets.SegmentIndex].Length;
             for (int i = 0; i < lines.Length; i++) {
-               var bytes = PCSString.Convert(lines[i]);
+               var bytes = model.TextConverter.Convert(lines[i], out var _);
                if (bytes.Count > segmentLength) bytes[segmentLength - 1] = 0xFF; // truncate and always end with an endstring character
                for (int j = 0; j < segmentLength; j++) {
                   if (j < bytes.Count) {

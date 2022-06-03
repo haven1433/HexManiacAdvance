@@ -24,6 +24,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayRunElementSegment {
+      protected ITextConverter TextConverter { get; }
+
       public string Name { get; }
       public ElementContentType Type { get; }
       public int Length { get; }
@@ -39,13 +41,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public ArrayRunElementSegment(string name, ElementContentType type, int length) => (Name, Type, Length) = (name, type, length);
+      public ArrayRunElementSegment(string name, ElementContentType type, int length, ITextConverter converter = null) => (Name, Type, Length, TextConverter) = (name, type, length, converter);
 
       private bool recursionStopper;
       public virtual string ToText(IDataModel rawData, int offset, bool deep = false) {
          switch (Type) {
             case ElementContentType.PCS:
-               return PCSString.Convert(rawData, offset, Length);
+               return rawData.TextConverter.Convert(rawData, offset, Length);
             case ElementContentType.Integer:
                return ToInteger(rawData, offset, Length).ToString();
             case ElementContentType.Pointer:
@@ -98,7 +100,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          switch (Type) {
             case ElementContentType.PCS:
-               var bytes = PCSString.Convert(data);
+               var bytes = TextConverter.Convert(data, out var _);
                while (bytes.Count > Length) bytes.RemoveAt(bytes.Count - 1);
                if (!bytes.Contains(0xFF)) bytes[bytes.Count - 1] = 0xFF;
                while (bytes.Count < Length) bytes.Add(0);
@@ -356,7 +358,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public ArrayRunElementSegment CreateConcrete(IDataModel model, int offset) {
-         var defaultConcrete = new ArrayRunElementSegment(Name, ElementContentType.Integer, Length);
+         var defaultConcrete = new ArrayRunElementSegment(Name, ElementContentType.Integer, Length, TextConverter);
          var table = (ITableRun)model.GetNextRun(offset);
          int matchFieldOffset = 0;
          int matchFieldIndex = 0;

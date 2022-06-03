@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          if (currentSegment.Type == ElementContentType.PCS) {
-            return new PCS(offsets.SegmentStart, offsets.SegmentOffset, PCSString.Convert(data, offsets.SegmentStart, currentSegment.Length), PCSString.PCS[index]);
+            return new PCS(offsets.SegmentStart, offsets.SegmentOffset, data.TextConverter.Convert(data, offsets.SegmentStart, currentSegment.Length), PCSString.PCS[index]);
          }
 
          throw new NotImplementedException();
@@ -279,7 +279,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var segOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          var textStart = self.Start + self.ElementLength * elementIndex + segOffset;
          var length = PCSString.ReadString(model.RawData, textStart, true, self.ElementContent[fieldIndex].Length);
-         return PCSString.Convert(model.RawData, textStart, length);
+         return model.TextConverter.Convert(model.RawData, textStart, length);
       }
 
       public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
@@ -754,7 +754,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
                currentCachedStartIndex = offsets.SegmentStart;
                currentCachedIndex = offsets.SegmentOffset;
-               cachedCurrentString = PCSString.Convert(data, offsets.SegmentStart, currentSegment.Length);
+               cachedCurrentString = data.TextConverter.Convert(data, offsets.SegmentStart, currentSegment.Length);
             }
 
             return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
@@ -1260,7 +1260,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   format = ElementContentType.Integer;
                   segmentLength = 1;
                }
-               list.Add(new ArrayRunElementSegment(name, format, segmentLength));
+               list.Add(new ArrayRunElementSegment(name, format, segmentLength, model.TextConverter));
             }
          }
 

@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          // only read the full string from the data once per pass.
          // This assumes that we read data starting at the lowest index and working our way up.
-         if (index < cachedIndex) cachedFullString = PCSString.Convert(data, Start, Length);
+         if (index < cachedIndex) cachedFullString = data.TextConverter.Convert(data, Start, Length);
          cachedIndex = index;
 
          return CreatePCSFormat(data, Start, index, cachedFullString);
@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (isEscaped) {
             return new EscapedPCS(start, index - start, fullString, model[index]);
          } else {
-            var pcsCharacters = PCSString.Convert(model, index, 1);
+            var pcsCharacters = model.TextConverter.Convert(model, index, 1);
             if (pcsCharacters == null) {
                return new ErrorPCS(start, index - start, fullString, model[index]);
             }
@@ -52,13 +52,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public string SerializeRun() {
-         var newContent = PCSString.Convert(model, Start, Length) ?? "\"\"";
+         var newContent = model.TextConverter.Convert(model, Start, Length) ?? "\"\"";
          newContent = newContent.Substring(1, newContent.Length - 2); // remove quotes
          return newContent;
       }
 
       public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
-         var bytes = PCSString.Convert(content);
+         var bytes = model.TextConverter.Convert(content, out var _);
          var changedAddresses = new List<int>();
          var newRun = model.RelocateForExpansion(token, this, bytes.Count);
 
@@ -82,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => builder.Append(PCSString.Convert(model, Start, Length));
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => builder.Append(model.TextConverter.Convert(model, Start, Length));
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) {

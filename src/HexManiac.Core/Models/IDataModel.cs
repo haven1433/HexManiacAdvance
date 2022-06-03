@@ -35,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int NextExportID { get; set; }
 
       IFormatRunFactory FormatRunFactory { get; }
+      ITextConverter TextConverter { get; }
 
       new byte this[int index] { get; set; }
       IReadOnlyList<string> ListNames { get; }
@@ -131,6 +132,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public BaseModel(byte[] data) {
          RawData = data;
+         var code = data.GetGameCode();
+         if (code.Length > 4) code = code.Substring(0, 4);
+         TextConverter = new PCSConverter(code);
          InitializationWorkload = Task.CompletedTask;
       }
 
@@ -141,6 +145,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int NextExportID { get; set; }
 
       public IFormatRunFactory FormatRunFactory { get; protected set; } = new FormatRunFactory(false);
+      public ITextConverter TextConverter { get; private set; }
 
       public virtual IReadOnlyList<string> ListNames { get; } = new List<string>();
       public virtual IReadOnlyList<ArrayRun> Arrays { get; } = new List<ArrayRun>();

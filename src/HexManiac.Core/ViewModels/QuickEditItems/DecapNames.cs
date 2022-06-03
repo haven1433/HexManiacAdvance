@@ -109,10 +109,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          await viewPort.UpdateProgress(.2);
 
          // POKéMON
-         var findResults = model.Find(PCSString.Convert("POKéMON").Take(7).ToArray()).ToList();
+         var findResults = model.Find(model.TextConverter.Convert("POKéMON", out var _).Take(7).ToArray()).ToList();
          for (int i = 0; i < findResults.Count; i++) {
             await viewPort.UpdateProgress((double)i / findResults.Count);
-            viewPort.CurrentChange.ChangeData(model, findResults[i], PCSString.Convert("Pokémon").Take(7).ToList());
+            viewPort.CurrentChange.ChangeData(model, findResults[i], model.TextConverter.Convert("Pokémon", out var _).Take(7).ToList());
          }
 
          viewPort.Refresh();
@@ -125,13 +125,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (address < 0 || address >= model.Count) return;
          var textLength = PCSString.ReadString(model, address, true);
          if (textLength < 3) return;
-         var text = PCSString.Convert(model, address, textLength).ToCharArray();
+         var text = model.TextConverter.Convert(model, address, textLength).ToCharArray();
          for (int i = 1; i < text.Length; i++) {
             if (IsLetter(text[i - 1]) && IsCap(text[i])) {
                text[i] += (char)('a' - 'A');
             }
          }
-         token.ChangeData(model, address, PCSString.Convert(new string(text)));
+         token.ChangeData(model, address, model.TextConverter.Convert(new string(text), out var _));
       }
 
       private bool IsLetter(char c) {

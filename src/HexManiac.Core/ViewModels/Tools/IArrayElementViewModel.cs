@@ -158,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ElementContentViewModelType Type => ElementContentViewModelType.TextField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
-         var textBytes = PCSString.Convert(viewModel.Content);
+         var textBytes = viewModel.Model.TextConverter.Convert(viewModel.Content, out var _);
          while (textBytes.Count < viewModel.Length) textBytes.Add(0x00);
          if (textBytes.Count > viewModel.Length) textBytes[viewModel.Length - 1] = 0xFF;
          for (int i = 0; i < viewModel.Length; i++) {
@@ -167,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
-         var text = PCSString.Convert(viewModel.Model, viewModel.Start, viewModel.Length)?.Trim() ?? string.Empty;
+         var text = viewModel.Model.TextConverter.Convert(viewModel.Model, viewModel.Start, viewModel.Length)?.Trim() ?? string.Empty;
 
          // take off quotes
          if (text.StartsWith("\"")) text = text.Substring(1);

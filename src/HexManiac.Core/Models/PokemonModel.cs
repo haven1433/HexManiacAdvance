@@ -1943,7 +1943,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private string GetSampleText(IFormattedRun run) {
          if (!(run is PCSRun)) return string.Empty;
-         var text = PCSString.Convert(this, run.Start, run.Length);
+         var text = TextConverter.Convert(this, run.Start, run.Length);
          var words = text.Split(' ');
          if (words.Length > 3) words = words.Take(3).ToArray();
          text = string.Concat(words);

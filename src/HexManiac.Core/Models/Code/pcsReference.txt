@@ -75,3 +75,60 @@ CC_10 = 2 # play sound effects
 
 
 
+# macros for colors
+
+@!game(BPRE_BPGE)
+[white]        FC 01 00
+[white2]       FC 01 01
+[black]        FC 01 02
+[grey]         FC 01 03
+[red]          FC 01 04
+[orange]       FC 01 05
+[green]        FC 01 06
+[lightgreen]   FC 01 07
+[blue]         FC 01 08
+[lightblue]    FC 01 09
+[white3]       FC 01 0A
+[lightblue2]   FC 01 0B
+[cyan]         FC 01 0C
+[lightblue3]   FC 01 0D
+[navyblue]     FC 01 0E
+[darknavyblue] FC 01 0F
+
+@!game(AXVE_AXPE)
+[transp]       FC 01 00
+[darkgrey]     FC 01 01
+[red]          FC 01 02
+[lightgreen]   FC 01 03
+[blue]         FC 01 04
+[yellow]       FC 01 05
+[cyan]         FC 01 06
+[magenta]      FC 01 07
+[grey]         FC 01 08
+[black]        FC 01 09
+[black2]       FC 01 0A
+[lightgrey]    FC 01 0B
+[white]        FC 01 0C
+[skyblue]      FC 01 0D
+[darkskyblue]  FC 01 0E
+[white2]       FC 01 0F
+
+@!game(BPEE)
+[white]        FC 01 00
+[white2]       FC 01 01
+[darkgrey]     FC 01 02
+[grey]         FC 01 03
+[red]          FC 01 04
+[orange]       FC 01 05
+[green]        FC 01 06
+[lightgreen]   FC 01 07
+[blue]         FC 01 08
+[lightblue]    FC 01 09
+[white3]       FC 01 0A
+[grey2]        FC 01 0B
+[white4]       FC 01 0C
+[limegreen]    FC 01 0D
+[aqua]         FC 01 0E
+[navy]         FC 01 0F
+
+

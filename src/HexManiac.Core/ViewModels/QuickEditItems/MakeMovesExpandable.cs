@@ -269,7 +269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          table = model.RelocateForExpansion(token, table, table.ElementCount * NewElementLength);
          for (int i = table.ElementCount - 1; i >= 0; i--) {
             var text = table.ReadText(model, i);
-            var writeBytes = PCSString.Convert(text);
+            var writeBytes = model.TextConverter.Convert(text, out var _);
             while (writeBytes.Count < NewElementLength) writeBytes.Add(0x00);
             token.ChangeData(model, table.Start + i * NewElementLength, writeBytes.ToArray());
          }

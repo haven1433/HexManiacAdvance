@@ -49,11 +49,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg.Type == ElementContentType.PCS) {
-            return PCSString.Convert(model, valueAddress, seg.Length);
+            return model.TextConverter.Convert(model, valueAddress, seg.Length);
          } else if (seg.Type == ElementContentType.Pointer) {
             valueAddress = model.ReadPointer(valueAddress);
             var length = PCSString.ReadString(model, valueAddress, true);
-            return PCSString.Convert(model, valueAddress, length);
+            return model.TextConverter.Convert(model, valueAddress, length);
          } else {
             throw new NotImplementedException();
          }
