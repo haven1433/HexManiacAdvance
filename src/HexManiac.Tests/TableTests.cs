@@ -1017,6 +1017,24 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, ViewPort.Tools.TableTool.CurrentElementSelector.SelectedIndex);
       }
 
+      [Fact]
+      public void OptionsWithPercentSign_EnterOption_ValueChanges() {
+         Model.SetList(Token, "gender", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%");
+
+         ViewPort.Edit("^table[option:gender]2 30% ");
+
+         Assert.Equal(2, Model[0]);
+      }
+
+      [Fact]
+      public void OptionsWithAmpersand_EnterOption_ValueChanges() {
+         Model.SetList(Token, "gender", "1&2", "3&4", "5&6", "7&8");
+
+         ViewPort.Edit("^table[option:gender]2 5&6 ");
+
+         Assert.Equal(2, Model[0]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

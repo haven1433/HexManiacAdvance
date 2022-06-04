@@ -95,7 +95,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(IntegerEnum integer, byte data) {
          Result = integer.CanStartWithCharacter(Input) ||
-            ".'~|,_)".Contains(Input) ||
+            ".'~|,_&%)".Contains(Input) ||
             char.IsWhiteSpace(Input);
       }
 
