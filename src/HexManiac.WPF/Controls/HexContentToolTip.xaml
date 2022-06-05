@@ -8,7 +8,7 @@
    <ItemsControl Name="ToolTipContent" ItemsSource="{Binding}">
       <ItemsControl.Resources>
          <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
-            <hshmwpfc:PixelImage SnapsToDevicePixels="True" />
+            <hshmwpfc:PixelImage SnapsToDevicePixels="True" TransparentBrush="{DynamicResource Background}" />
          </DataTemplate>
          <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPaletteCollection}">
             <ItemsControl SnapsToDevicePixels="True" ItemsSource="{Binding Colors}">

@@ -28,7 +28,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Content.Add(pointer.DestinationAsText);
          var destinationRun = model.GetNextRun(pointer.Destination);
          var runSpecificContent = BuildContentForRun(model, pointer.Source, pointer.Destination, destinationRun);
-         if (runSpecificContent != null) Content.Add(runSpecificContent);
+         if (runSpecificContent != null) {
+            // special case: add images for pointers to OWs
+            if (destinationRun is ITableRun table && table.ElementCount == 1 && table.ElementContent.Any(seg => seg.Name == "sprites")) {
+               if (model.GetNextRun(table.ReadPointer(model, 0, "sprites")) is OverworldSpriteListRun osl) {
+                  if (model.GetNextRun(osl.ReadPointer(model, 0, 0)) is ISpriteRun spriteRun) {
+                     var image = ReadonlyPixelViewModel.Create(model, spriteRun, true);
+                     Content.Add(image);
+                  }
+               }
+            }
+            Content.Add(runSpecificContent);
+         }
       }
 
       public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun, int preferredPaletteStart = -1, int preferredSpritePage = 0) {
@@ -49,11 +60,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var colors = paletteRun.GetPalette(model, 0);
             return new ReadonlyPaletteCollection(colors);
          } else if (destinationRun is IStreamRun streamRun) {
-            using (ModelCacheScope.CreateScope(model)) {
-               var lines = streamRun.SerializeRun().Split(Environment.NewLine);
-               if (lines.Length > 20) lines = lines.Take(20).ToArray();
-               return EllipsedLines(lines);
-            }
+            var lines = streamRun.SerializeRun().Split(Environment.NewLine);
+            if (lines.Length > 20) lines = lines.Take(20).ToArray();
+            return EllipsedLines(lines);
          } else if (destinationRun is ArrayRun arrayRun) {
             var stream = new StringBuilder();
             arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), false);
@@ -89,7 +98,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
       }
 
-      public void Visit(IntegerEnum integer, byte data) => Content.Add(integer.Value);
+      public void Visit(IntegerEnum integer, byte data) {
+         Content.Add(integer.Value);
+
+         if (model.GetNextRun(integer.Source) is not ITableRun containingTable) return;
+         var offset = containingTable.ConvertByteOffsetToArrayOffset(integer.Source);
+         var enumValue = model.ReadMultiByteValue(offset.SegmentStart, containingTable.ElementContent[offset.SegmentIndex].Length);
+         var segment = containingTable.ElementContent[offset.SegmentIndex];
+         if (segment is ArrayRunRecordSegment recordSegment) segment = recordSegment.CreateConcrete(model, integer.Source);
+         if (segment is not ArrayRunEnumSegment enumSeg) return;
+         var parentAddress = model.GetAddressFromAnchor(new(), -1, enumSeg.EnumName);
+         if (model.GetNextRun(parentAddress) is not ArrayRun parentArray) return;
+         foreach (var array in model.GetRelatedArrays(parentArray)) {
+            int segOffset = 0;
+            foreach (var seg in array.ElementContent) {
+               var itemIndex = enumValue + array.ParentOffset.BeginningMargin;
+               var destination = model.ReadPointer(array.Start + array.ElementLength * itemIndex + segOffset);
+               segOffset += seg.Length;
+               if (seg.Type != ElementContentType.Pointer) continue;
+               if (model.GetNextRun(destination) is not ISpriteRun spriteRun) continue;
+               Content.Add(ReadonlyPixelViewModel.Create(model, spriteRun, true));
+               return;
+            }
+         }
+      }
 
       public void Visit(IntegerHex integer, byte data) { }
 
