@@ -635,6 +635,22 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(macro, result);
       }
 
+      [Fact]
+      public void TextWithMacro_ShowInHexContent_FirstByteDoesNotShowMacro() {
+         SetFullModel(0xFF);
+         var converter = new PCSConverter("BPRE");
+         var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
+         property = property.DeclaringType.GetProperty(nameof(Model.TextConverter));
+         property.GetSetMethod(true).Invoke(Model, new object[] { converter });
+
+         Token.ChangeData(Model, 0, new byte[] { 0xFC, 0x01, 0x05, 0xFF });
+         Model.ObserveRunWritten(Token, new PCSRun(Model, 0, 4));
+         ViewPort.Refresh();
+         var cell = (PCS)ViewPort[0, 0].Format;
+
+         Assert.Equal("\"\\CC", cell.ThisCharacter);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

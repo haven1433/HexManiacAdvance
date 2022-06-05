@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (isEscaped) {
             return new EscapedPCS(start, index - start, fullString, model[index]);
          } else {
-            var pcsCharacters = model.TextConverter.Convert(model, index, 1);
+            var pcsCharacters = PCSString.Convert(model, index, 1);
             if (pcsCharacters == null) {
                return new ErrorPCS(start, index - start, fullString, model[index]);
             }
