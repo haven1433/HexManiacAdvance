@@ -1,13 +1,13 @@
 ﻿<Window x:Class="HavenSoft.HexManiac.WPF.Windows.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
-        xmlns:hshmcvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels;assembly=HexManiac.Core"
-        xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
-        xmlns:sys="clr-namespace:System;assembly=mscorlib"
-        Icon="..\Resources\AppIcon.ico"
-        PreviewMouseDown="RunDeferredActions"
-        Title="Hex Maniac Advance" Height="480" MinHeight="300" Width="1105" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+      xmlns:hshmcvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels;assembly=HexManiac.Core"
+      xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
+      xmlns:sys="clr-namespace:System;assembly=mscorlib"
+      Icon="..\Resources\AppIcon.ico"
+      PreviewMouseDown="RunDeferredActions"
+      Title="Hex Maniac Advance" Height="480" MinHeight="300" Width="1105" MinWidth="400" AllowDrop="True" Background="{DynamicResource Backlight}">
    <Window.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    </Window.Resources>
@@ -72,317 +72,317 @@
    <Grid Name="ContentPanel">
       <DockPanel>
          <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
-            <DockPanel.Resources>
-               <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
-                  <Setter Property="HorizontalAlignment" Value="Right"/>
-                  <Setter Property="DockPanel.Dock" Value="Right"/>
-                  <Setter Property="Background" Value="{DynamicResource Backlight}"/>
-               </Style>
-            </DockPanel.Resources>
-            <!-- Menu -->
-            <Menu DockPanel.Dock="Left">
-               <MenuItem Header="_File">
-                  <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon New}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="Open Recent" ItemsSource="{Binding RecentFileViewModels}" IsEnabled="{Binding RecentFileMenuEnabled}">
-                     <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
-                           <Setter Property="Header" Value="{Binding ShortName}"/>
-                           <Setter Property="Command" Value="{Binding Open}"/>
-                        </Style>
-                     </MenuItem.ItemContainerStyle>
-                  </MenuItem>
-                  <MenuItem Header="Duplicate Current Tab" Command="{Binding DuplicateCurrentTab}" InputGestureText="Ctrl+T"/>
-                  <Separator />
-                  <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon Save}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
-                  <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
-                  <MenuItem Header="_Export Backup" Command="{Binding ExportBackup}" InputGestureText="Ctrl+E" />
-                  <Separator />
-                  <MenuItem Header="_Run" Command="{Binding RunFile}" InputGestureText="F5" CommandParameter="{DynamicResource FileSystem}"/>
-                  <Separator />
-                  <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
-                  <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-               </MenuItem>
-               <MenuItem Header="_Edit">
-                  <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <Separator />
-                  <MenuItem Header="Display As...">
-                     <MenuItem Header="Text" Command="{Binding DisplayAsText}" InputGestureText="Ctrl+D, T"/>
-                     <MenuItem Header="Event Script" Command="{Binding DisplayAsEventScript}" InputGestureText="Ctrl+D, E"/>
-                     <MenuItem Header="Sprite" Command="{Binding DisplayAsSprite}" InputGestureText="Ctrl+D, S"/>
-                     <MenuItem Header="Color Palette" Command="{Binding DisplayAsColorPalette}" InputGestureText="Ctrl+D, C"/>
-                  </MenuItem>
-                  <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
-                  <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
-                  <MenuItem Header="D_eep Copy" Command="{Binding DeepCopy}" InputGestureText="Ctrl+Shift+C"/>
-                  <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
-                  <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+B"/>
-                  <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
-                  <MenuItem Header="_Select All" Command="{Binding SelectAll}" InputGestureText="Ctrl+A"/>
-                  <Separator />
-                  <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
-                     <MenuItem.CommandParameter>
-                        <sys:Boolean>true</sys:Boolean>
-                     </MenuItem.CommandParameter>
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon Search}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
-                  <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
-                  <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
-                     <MenuItem.CommandParameter>
-                        <sys:Boolean>true</sys:Boolean>
-                     </MenuItem.CommandParameter>
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon Home}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
-                  <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
-                  <MenuItem Header="Show Hex Converter" Command="{Binding ShowHexConverter}" InputGestureText="Ctrl+H">
-                     <MenuItem.CommandParameter>
-                        <sys:Boolean>true</sys:Boolean>
-                     </MenuItem.CommandParameter>
-                  </MenuItem>
-               </MenuItem>
-               <MenuItem Header="_View">
-                  <MenuItem Header="Diff">
-                     <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+Shift+D"/>
-                     <MenuItem Header="Diff selected tab with left neighbor" Command="{Binding DiffLeft}" />
-                     <MenuItem Header="Diff selected tab with right neighbor" Command="{Binding DiffRight}" />
+               <DockPanel.Resources>
+                  <Style TargetType="Panel" x:Key="AnimateOnVisibilityChanged">
+                     <Setter Property="HorizontalAlignment" Value="Right"/>
+                     <Setter Property="DockPanel.Dock" Value="Right"/>
+                     <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+                  </Style>
+               </DockPanel.Resources>
+               <!-- Menu -->
+               <Menu DockPanel.Dock="Left">
+                  <MenuItem Header="_File">
+                     <MenuItem Header="_New" Command="{Binding New}" InputGestureText="Ctrl+N">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon New}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="_Open" Command="{Binding Open}" InputGestureText="Ctrl+O">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon Open}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="Open Recent" ItemsSource="{Binding RecentFileViewModels}" IsEnabled="{Binding RecentFileMenuEnabled}">
+                        <MenuItem.ItemContainerStyle>
+                           <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                              <Setter Property="Header" Value="{Binding ShortName}"/>
+                              <Setter Property="Command" Value="{Binding Open}"/>
+                           </Style>
+                        </MenuItem.ItemContainerStyle>
+                     </MenuItem>
+                     <MenuItem Header="Duplicate Current Tab" Command="{Binding DuplicateCurrentTab}" InputGestureText="Ctrl+T"/>
                      <Separator />
-                     <MenuItem Header="Exclude Pointer-only changes from diffs" IsCheckable="True" IsChecked="{Binding HideDiffPointerChanges}" />
+                     <MenuItem Header="_Save" Command="{Binding Save}" InputGestureText="Ctrl+S">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon Save}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="Save _As" Command="{Binding SaveAs}" InputGestureText="Ctrl+Shift+S" />
+                     <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
+                     <MenuItem Header="_Export Backup" Command="{Binding ExportBackup}" InputGestureText="Ctrl+E" />
+                     <Separator />
+                     <MenuItem Header="_Run" Command="{Binding RunFile}" InputGestureText="F5" CommandParameter="{DynamicResource FileSystem}"/>
+                     <Separator />
+                     <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
+                     <MenuItem Header="E_xit" Click="ExitClicked" InputGestureText="Alt+F4">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
                   </MenuItem>
-                  <Separator/>
-                  <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" InputGestureText="Ctrl+M"/>
-                  <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>
-                  <MenuItem Header="Use Table Entry Headers" IsCheckable="True" IsChecked="{Binding UseTableEntryHeaders}">
-                     <MenuItem.ToolTip>
-                        <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
-                           <TextBlock Text="Replaces raw address with a name when possible."/>
-                        </ToolTip>
-                     </MenuItem.ToolTip>
+                  <MenuItem Header="_Edit">
+                     <MenuItem Header="_Undo" Command="{Binding Undo}" InputGestureText="Ctrl+Z">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="_Redo" Command="{Binding Redo}" InputGestureText="Ctrl+Y">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <Separator />
+                     <MenuItem Header="Display As...">
+                        <MenuItem Header="Text" Command="{Binding DisplayAsText}" InputGestureText="Ctrl+D, T"/>
+                        <MenuItem Header="Event Script" Command="{Binding DisplayAsEventScript}" InputGestureText="Ctrl+D, E"/>
+                        <MenuItem Header="Sprite" Command="{Binding DisplayAsSprite}" InputGestureText="Ctrl+D, S"/>
+                        <MenuItem Header="Color Palette" Command="{Binding DisplayAsColorPalette}" InputGestureText="Ctrl+D, C"/>
+                     </MenuItem>
+                     <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
+                     <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
+                     <MenuItem Header="D_eep Copy" Command="{Binding DeepCopy}" InputGestureText="Ctrl+Shift+C"/>
+                     <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
+                     <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+B"/>
+                     <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
+                     <MenuItem Header="_Select All" Command="{Binding SelectAll}" InputGestureText="Ctrl+A"/>
+                     <Separator />
+                     <MenuItem Header="_Find" Command="{Binding ShowFind}" InputGestureText="Ctrl+F">
+                        <MenuItem.CommandParameter>
+                           <sys:Boolean>true</sys:Boolean>
+                        </MenuItem.CommandParameter>
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon Search}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="F3"/>
+                     <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" InputGestureText="Shift+F3"/>
+                     <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" InputGestureText="Ctrl+G">
+                        <MenuItem.CommandParameter>
+                           <sys:Boolean>true</sys:Boolean>
+                        </MenuItem.CommandParameter>
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon Home}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="Go _Back" Command="{Binding Back}" InputGestureText="Ctrl+-"/>
+                     <MenuItem Header="Go _Forward" Command="{Binding Forward}" InputGestureText="Ctrl+Shift+-"/>
+                     <MenuItem Header="Show Hex Converter" Command="{Binding ShowHexConverter}" InputGestureText="Ctrl+H">
+                        <MenuItem.CommandParameter>
+                           <sys:Boolean>true</sys:Boolean>
+                        </MenuItem.CommandParameter>
+                     </MenuItem>
                   </MenuItem>
-                  <MenuItem Header="Enable Single Table Focus" IsCheckable="True" IsChecked="{Binding AllowSingleTableMode}">
-                     <MenuItem.ToolTip>
-                        <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
-                           <TextBlock Text="Limit the scrollable area to a single table after a goto."/>
-                        </ToolTip>
-                     </MenuItem.ToolTip>
+                  <MenuItem Header="_View">
+                     <MenuItem Header="Diff">
+                        <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" InputGestureText="Ctrl+Shift+D"/>
+                        <MenuItem Header="Diff selected tab with left neighbor" Command="{Binding DiffLeft}" />
+                        <MenuItem Header="Diff selected tab with right neighbor" Command="{Binding DiffRight}" />
+                        <Separator />
+                        <MenuItem Header="Exclude Pointer-only changes from diffs" IsCheckable="True" IsChecked="{Binding HideDiffPointerChanges}" />
+                     </MenuItem>
+                     <Separator/>
+                     <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" InputGestureText="Ctrl+M"/>
+                     <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>
+                     <MenuItem Header="Use Table Entry Headers" IsCheckable="True" IsChecked="{Binding UseTableEntryHeaders}">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock Text="Replaces raw address with a name when possible."/>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                     <MenuItem Header="Enable Single Table Focus" IsCheckable="True" IsChecked="{Binding AllowSingleTableMode}">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock Text="Limit the scrollable area to a single table after a goto."/>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                     <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
+                        <MenuItem.ToolTip>
+                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                              <TextBlock Text="You can increase or decrease the size of the text in the cells using Ctrl+Scroll."/>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                     </MenuItem>
+                     <MenuItem Header="Reset _Alignment" Command="{Binding ResetAlignment}" />
+                     <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
+                     <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
                   </MenuItem>
-                  <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
-                     <MenuItem.ToolTip>
-                        <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
-                           <TextBlock Text="You can increase or decrease the size of the text in the cells using Ctrl+Scroll."/>
-                        </ToolTip>
-                     </MenuItem.ToolTip>
+                  <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
+                     <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
+                     <Separator />
+                     <MenuItem Header="Assert" Click="DeveloperRaiseAssert"/>
+                     <MenuItem Header="Throw ArgumentOutOfRangeException" Click="DeveloperThrowArgumentOutOfRangeException"/>
+                     <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
+                     <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
+                     <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
+                     <Separator />
+                     <MenuItem Header="Render Rom Overview" Click="DeveloperRenderRomOverview"/>
+                     <Separator />
+                     <MenuItem Header="Calculate SHA1" Click="DeveloperGetSHA1"/>
+                     <MenuItem Header="Calculate CRC32" Click="DeveloperGetCRC32"/>
+                     <Separator />
+                     <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
                   </MenuItem>
-                  <MenuItem Header="Reset _Alignment" Command="{Binding ResetAlignment}" />
-                  <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
-                  <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
-               </MenuItem>
-               <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
-                  <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
-                  <Separator />
-                  <MenuItem Header="Assert" Click="DeveloperRaiseAssert"/>
-                  <MenuItem Header="Throw ArgumentOutOfRangeException" Click="DeveloperThrowArgumentOutOfRangeException"/>
-                  <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
-                  <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
-                  <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
-                  <Separator />
-                  <MenuItem Header="Render Rom Overview" Click="DeveloperRenderRomOverview"/>
-                  <Separator />
-                  <MenuItem Header="Calculate SHA1" Click="DeveloperGetSHA1"/>
-                  <MenuItem Header="Calculate CRC32" Click="DeveloperGetCRC32"/>
-                  <Separator />
-                  <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
-               </MenuItem>
-               <MenuItem Header="Utilities">
-                  <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
-                  <MenuItem Name="QuickEditsExpansion" Header="Expand" />
-                  <MenuItem Name="QuickEditsMisc" Header="Misc" />
-                  <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}" />
-               </MenuItem>
-               <MenuItem Header="_Tools">
-                  <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
-                  <Separator/>
-                  <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
-                  <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
-                  <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
-                  <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
-               </MenuItem>
-               <MenuItem Header="_Help">
-                  <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
-                     <MenuItem.ToolTip>
+                  <MenuItem Header="Utilities">
+                     <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
+                     <MenuItem Name="QuickEditsExpansion" Header="Expand" />
+                     <MenuItem Name="QuickEditsMisc" Header="Misc" />
+                     <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}" />
+                  </MenuItem>
+                  <MenuItem Header="_Tools">
+                     <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
+                     <Separator/>
+                     <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
+                     <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
+                     <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
+                     <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
+                  </MenuItem>
+                  <MenuItem Header="_Help">
+                     <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
+                        <MenuItem.ToolTip>
+                           <ToolTip>
+                              <ToolTip.Content>
+                                 <TextBlock>
+                                    Takes you to the releases page so you
+                                    <LineBreak/>
+                                    can download the new version.
+                                 </TextBlock>
+                              </ToolTip.Content>
+                           </ToolTip>
+                        </MenuItem.ToolTip>
+                        <MenuItem.Style>
+                           <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                              <Style.Triggers>
+                                 <MultiDataTrigger>
+                                    <MultiDataTrigger.Conditions>
+                                       <Condition Binding="{Binding NewVersionAcknowledged}" Value="False"/>
+                                       <Condition Binding="{Binding IsNewVersionAvailable}" Value="True"/>
+                                    </MultiDataTrigger.Conditions>
+                                    <MultiDataTrigger.Setters>
+                                       <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                                    </MultiDataTrigger.Setters>
+                                 </MultiDataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </MenuItem.Style>
+                     </MenuItem>
+                     <MenuItem Header="_Wiki" Click="WikiClick"/>
+                     <MenuItem Header="_Tutorials" Click="TutorialsClick" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged"/>
+                     <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
+                     <MenuItem Header="_Discord" Click="DiscordClick">
+                        <MenuItem.Icon>
+                           <Path Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                        </MenuItem.Icon>
+                     </MenuItem>
+                     <MenuItem Header="Assist Development">
+                        <MenuItem Header="Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
+                     </MenuItem>
+                     <MenuItem Header="_About" Click="AboutClick"/>
+                  </MenuItem>
+               </Menu>
+               <!-- Find -->
+               <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
+                  <TextBlock Text="Find :" Margin="10,0" />
+                  <ToggleButton Width="18" IsChecked="{Binding SearchAllFiles}">
+                     <Path Data="{hsv:Icon Multiple}" Stroke="{DynamicResource Primary}" Stretch="Uniform"/>
+                     <ToggleButton.ToolTip>
                         <ToolTip>
-                           <ToolTip.Content>
-                              <TextBlock>
-                                 Takes you to the releases page so you
-                                 <LineBreak/>
-                                 can download the new version.
+                           <StackPanel>
+                              <TextBlock>Search All Files</TextBlock>
+                              <TextBlock FontStyle="Italic">
+                                 <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                       <Setter Property="Text" Value="On: Look for matches in all open tabs"/>
+                                       <Style.Triggers>
+                                          <DataTrigger Binding="{Binding SearchAllFiles}" Value="False">
+                                             <Setter Property="Text" Value="Off: Look for matches only in active tab"/>
+                                          </DataTrigger>
+                                       </Style.Triggers>
+                                    </Style>
+                                 </TextBlock.Style>
                               </TextBlock>
-                           </ToolTip.Content>
+                           </StackPanel>
                         </ToolTip>
-                     </MenuItem.ToolTip>
-                     <MenuItem.Style>
-                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
-                           <Style.Triggers>
-                              <MultiDataTrigger>
-                                 <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding NewVersionAcknowledged}" Value="False"/>
-                                    <Condition Binding="{Binding IsNewVersionAvailable}" Value="True"/>
-                                 </MultiDataTrigger.Conditions>
-                                 <MultiDataTrigger.Setters>
-                                    <Setter Property="Background" Value="{DynamicResource Accent}"/>
-                                 </MultiDataTrigger.Setters>
-                              </MultiDataTrigger>
-                           </Style.Triggers>
-                        </Style>
-                     </MenuItem.Style>
-                  </MenuItem>
-                  <MenuItem Header="_Wiki" Click="WikiClick"/>
-                  <MenuItem Header="_Tutorials" Click="TutorialsClick" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged"/>
-                  <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-                  <MenuItem Header="_Discord" Click="DiscordClick">
-                     <MenuItem.Icon>
-                        <Path Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                     </MenuItem.Icon>
-                  </MenuItem>
-                  <MenuItem Header="Assist Development">
-                     <MenuItem Header="Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
-                  </MenuItem>
-                  <MenuItem Header="_About" Click="AboutClick"/>
-               </MenuItem>
-            </Menu>
-            <!-- Find -->
-            <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
-               <TextBlock Text="Find :" Margin="10,0" />
-               <ToggleButton Width="18" IsChecked="{Binding SearchAllFiles}">
-                  <Path Data="{hsv:Icon Multiple}" Stroke="{DynamicResource Primary}" Stretch="Uniform"/>
-                  <ToggleButton.ToolTip>
-                     <ToolTip>
-                        <StackPanel>
-                           <TextBlock>Search All Files</TextBlock>
-                           <TextBlock FontStyle="Italic">
-                              <TextBlock.Style>
-                                 <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                    <Setter Property="Text" Value="On: Look for matches in all open tabs"/>
-                                    <Style.Triggers>
-                                       <DataTrigger Binding="{Binding SearchAllFiles}" Value="False">
-                                          <Setter Property="Text" Value="Off: Look for matches only in active tab"/>
-                                       </DataTrigger>
-                                    </Style.Triggers>
-                                 </Style>
-                              </TextBlock.Style>
-                           </TextBlock>
-                        </StackPanel>
-                     </ToolTip>
-                  </ToggleButton.ToolTip>
-               </ToggleButton>
-               <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}" Content="Aa">
-                  <ToggleButton.ToolTip>
-                     <ToolTip>
-                        <StackPanel>
-                           <TextBlock>Match Exact Case</TextBlock>
-                           <TextBlock FontStyle="Italic">
-                              <TextBlock.Style>
-                                 <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                                    <Setter Property="Text" Value="Off: 'abc' can find 'ABC'"/>
-                                    <Style.Triggers>
-                                       <DataTrigger Binding="{Binding MatchExactCase}" Value="True">
-                                          <Setter Property="Text" Value="On: 'abc' will not find 'ABC'"/>
-                                       </DataTrigger>
-                                    </Style.Triggers>
-                                 </Style>
-                              </TextBlock.Style>
-                           </TextBlock>
-                        </StackPanel>
-                     </ToolTip>
-                  </ToggleButton.ToolTip>
-               </ToggleButton>
-               <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}">
-                  <TextBox.InputBindings>
-                     <KeyBinding Key="Esc" Command="{Binding ShowFind}">
-                        <KeyBinding.CommandParameter>
-                           <sys:Boolean>false</sys:Boolean>
-                        </KeyBinding.CommandParameter>
-                     </KeyBinding>
-                     <KeyBinding Key="Return" Command="{Binding Find}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
-                  </TextBox.InputBindings>
-               </TextBox>
-            </StackPanel>
-            <!-- Hex Converter -->
-            <StackPanel Name="HexConverter" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding HexConverterVisible, Converter={StaticResource BoolToVisibility}}">
-               <TextBlock Text="Hex :" Margin="10,0" />
-               <TextBox Name="HexBox" MinWidth="100" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding HexText, UpdateSourceTrigger=PropertyChanged}">
-                  <TextBox.InputBindings>
-                     <KeyBinding Key="Esc" Command="{Binding ShowHexConverter}">
-                        <KeyBinding.CommandParameter>
-                           <sys:Boolean>false</sys:Boolean>
-                        </KeyBinding.CommandParameter>
-                     </KeyBinding>
-                  </TextBox.InputBindings>
-               </TextBox>
-               <TextBlock Text="Decimal :" Margin="10,0" />
-               <TextBox Name="DecBox" MinWidth="100" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding DecText, UpdateSourceTrigger=PropertyChanged}">
-                  <TextBox.InputBindings>
-                     <KeyBinding Key="Esc" Command="{Binding ShowHexConverter}">
-                        <KeyBinding.CommandParameter>
-                           <sys:Boolean>false</sys:Boolean>
-                        </KeyBinding.CommandParameter>
-                     </KeyBinding>
-                  </TextBox.InputBindings>
-               </TextBox>
-            </StackPanel>
-            <!-- Message -->
-            <StackPanel Name="MessagePanel" Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
-               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{DynamicResource Accent}"/>
-               <Button Command="{Binding ClearMessage}" Width="15">
-                  <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-               </Button>
-            </StackPanel>
-            <!-- Error -->
-            <Grid Name="ErrorPanel" Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
-               <Grid.ColumnDefinitions>
-                  <ColumnDefinition/>
-                  <ColumnDefinition Width="Auto"/>
-               </Grid.ColumnDefinitions>
-               <Grid.InputBindings>
-                  <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
-               </Grid.InputBindings>
-               <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{DynamicResource Error}"/>
-               <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
-                  <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-               </Button>
-            </Grid>
-         </DockPanel>
+                     </ToggleButton.ToolTip>
+                  </ToggleButton>
+                  <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}" Content="Aa">
+                     <ToggleButton.ToolTip>
+                        <ToolTip>
+                           <StackPanel>
+                              <TextBlock>Match Exact Case</TextBlock>
+                              <TextBlock FontStyle="Italic">
+                                 <TextBlock.Style>
+                                    <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                                       <Setter Property="Text" Value="Off: 'abc' can find 'ABC'"/>
+                                       <Style.Triggers>
+                                          <DataTrigger Binding="{Binding MatchExactCase}" Value="True">
+                                             <Setter Property="Text" Value="On: 'abc' will not find 'ABC'"/>
+                                          </DataTrigger>
+                                       </Style.Triggers>
+                                    </Style>
+                                 </TextBlock.Style>
+                              </TextBlock>
+                           </StackPanel>
+                        </ToolTip>
+                     </ToggleButton.ToolTip>
+                  </ToggleButton>
+                  <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}">
+                     <TextBox.InputBindings>
+                        <KeyBinding Key="Esc" Command="{Binding ShowFind}">
+                           <KeyBinding.CommandParameter>
+                              <sys:Boolean>false</sys:Boolean>
+                           </KeyBinding.CommandParameter>
+                        </KeyBinding>
+                        <KeyBinding Key="Return" Command="{Binding Find}" CommandParameter="{Binding Text, ElementName=FindBox}"/>
+                     </TextBox.InputBindings>
+                  </TextBox>
+               </StackPanel>
+               <!-- Hex Converter -->
+               <StackPanel Name="HexConverter" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding HexConverterVisible, Converter={StaticResource BoolToVisibility}}">
+                  <TextBlock Text="Hex :" Margin="10,0" />
+                  <TextBox Name="HexBox" MinWidth="100" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding HexText, UpdateSourceTrigger=PropertyChanged}">
+                     <TextBox.InputBindings>
+                        <KeyBinding Key="Esc" Command="{Binding ShowHexConverter}">
+                           <KeyBinding.CommandParameter>
+                              <sys:Boolean>false</sys:Boolean>
+                           </KeyBinding.CommandParameter>
+                        </KeyBinding>
+                     </TextBox.InputBindings>
+                  </TextBox>
+                  <TextBlock Text="Decimal :" Margin="10,0" />
+                  <TextBox Name="DecBox" MinWidth="100" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding DecText, UpdateSourceTrigger=PropertyChanged}">
+                     <TextBox.InputBindings>
+                        <KeyBinding Key="Esc" Command="{Binding ShowHexConverter}">
+                           <KeyBinding.CommandParameter>
+                              <sys:Boolean>false</sys:Boolean>
+                           </KeyBinding.CommandParameter>
+                        </KeyBinding>
+                     </TextBox.InputBindings>
+                  </TextBox>
+               </StackPanel>
+               <!-- Message -->
+               <StackPanel Name="MessagePanel" Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
+                  <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{DynamicResource Accent}"/>
+                  <Button Command="{Binding ClearMessage}" Width="15">
+                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </Button>
+               </StackPanel>
+               <!-- Error -->
+               <Grid Name="ErrorPanel" Visibility="{Binding ShowError, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}">
+                  <Grid.ColumnDefinitions>
+                     <ColumnDefinition/>
+                     <ColumnDefinition Width="Auto"/>
+                  </Grid.ColumnDefinitions>
+                  <Grid.InputBindings>
+                     <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
+                  </Grid.InputBindings>
+                  <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{DynamicResource Error}"/>
+                  <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
+                     <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                  </Button>
+               </Grid>
+            </DockPanel>
          <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Background}" HorizontalAlignment="Stretch" Orientation="Horizontal">
             <StackPanel.Resources>
                <Style TargetType="Path">
@@ -500,91 +500,102 @@
          </StackPanel>
          <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource Backlight}"/>
          <Grid Background="{DynamicResource Background}">
-            <hsg3hv:StartScreen>
-               <hsg3hv:StartScreen.Style>
-                  <Style TargetType="FrameworkElement">
-                     <Setter Property="Visibility" Value="Collapsed"/>
-                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
-                           <Setter Property="Visibility" Value="Visible"/>
-                        </DataTrigger>
-                     </Style.Triggers>
-                  </Style>
-               </hsg3hv:StartScreen.Style>
-            </hsg3hv:StartScreen>
-            <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
-               <TabControl.Style>
-                  <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
-                     <Style.Triggers>
-                        <Trigger Property="SelectedIndex" Value="-1">
-                           <Setter Property="Visibility" Value="Collapsed"/>
-                        </Trigger>
-                     </Style.Triggers>
-                  </Style>
-               </TabControl.Style>
-               <TabControl.InputBindings>
-                  <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
-               </TabControl.InputBindings>
-               <TabControl.ItemTemplate>
-                  <DataTemplate>
-                     <StackPanel Orientation="Horizontal">
-                        <StackPanel.ToolTip>
-                           <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
-                              <TextBlock Text="{Binding FullFileName}"/>
-                           </ToolTip>
-                        </StackPanel.ToolTip>
-                        <StackPanel.ContextMenu>
-                           <ContextMenu>
-                              <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
-                              <MenuItem Header="Diff with Left" Command="{Binding DiffLeft}" />
-                              <MenuItem Header="Diff with Right" Command="{Binding DiffRight}" />
-                              <Separator/>
-                              <MenuItem Header="Make IPS Patch, this -> Right" Command="{hsv:MethodCommand IpsPatchRight}"/>
-                              <MenuItem Header="Make UPS Patch, this -> Right" Command="{hsv:MethodCommand UpsPatchRight}"/>
-                           </ContextMenu>
-                        </StackPanel.ContextMenu>
-                        <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
-                           <TextBlock.InputBindings>
-                              <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
-                           </TextBlock.InputBindings>
-                        </TextBlock>
-                        <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}"
-                           VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                           <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
-                        </Button>
-                     </StackPanel>
-                  </DataTemplate>
-               </TabControl.ItemTemplate>
-               <TabControl.ContentTemplate>
-                  <DataTemplate>
-                     <ContentControl Content="{Binding}">
-                        <ContentControl.Resources>
-                           <DataTemplate DataType="{x:Type hshmcvm:ViewPort}">
-                              <hsg3hv:TabView
-                                 AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
-                                 ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
-                           </DataTemplate>
-                           <DataTemplate DataType="{x:Type hshmcvm:SearchResultsViewPort}">
-                              <hsg3hv:TabView
-                                 AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
-                                 ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
-                           </DataTemplate>
-                           <DataTemplate DataType="{x:Type hshmcvm:DiffViewPort}">
-                              <hsg3hv:TabView
-                                 AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
-                                 ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
-                           </DataTemplate>
-                           <DataTemplate DataType="{x:Type hshmcvm:DexReorderTab}">
-                              <hsg3hv:DexReorderView />
-                           </DataTemplate>
-                           <DataTemplate DataType="{x:Type hshmcvm:ImageEditorViewModel}">
-                              <hsg3hv:ImageEditorView />
-                           </DataTemplate>
-                        </ContentControl.Resources>
-                     </ContentControl>
-                  </DataTemplate>
-               </TabControl.ContentTemplate>
-            </TabControl>
+               <hsg3hv:StartScreen>
+                  <hsg3hv:StartScreen.Style>
+                     <Style TargetType="FrameworkElement">
+                        <Setter Property="Visibility" Value="Collapsed"/>
+                        <Style.Triggers>
+                           <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
+                              <Setter Property="Visibility" Value="Visible"/>
+                           </DataTrigger>
+                        </Style.Triggers>
+                     </Style>
+                  </hsg3hv:StartScreen.Style>
+               </hsg3hv:StartScreen>
+            <Grid>
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="1"/>
+                  <ColumnDefinition Width="0"/>
+               </Grid.ColumnDefinitions>
+               <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
+                  <TabControl.Style>
+                     <Style TargetType="TabControl" BasedOn="{StaticResource {x:Type TabControl}}">
+                        <Style.Triggers>
+                           <Trigger Property="SelectedIndex" Value="-1">
+                              <Setter Property="Visibility" Value="Collapsed"/>
+                           </Trigger>
+                        </Style.Triggers>
+                     </Style>
+                  </TabControl.Style>
+                  <TabControl.InputBindings>
+                     <KeyBinding Key="Esc" Command="{Binding HideSearchControls}"/>
+                  </TabControl.InputBindings>
+                  <TabControl.ItemTemplate>
+                     <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                           <StackPanel.ToolTip>
+                              <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                                 <TextBlock Text="{Binding FullFileName}"/>
+                              </ToolTip>
+                           </StackPanel.ToolTip>
+                           <StackPanel.ContextMenu>
+                              <ContextMenu>
+                                 <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
+                                 <MenuItem Header="Diff with Left" Command="{Binding DiffLeft}" />
+                                 <MenuItem Header="Diff with Right" Command="{Binding DiffRight}" />
+                                 <Separator/>
+                                 <MenuItem Header="Make IPS Patch, this -> Right" Command="{hsv:MethodCommand IpsPatchRight}"/>
+                                 <MenuItem Header="Make UPS Patch, this -> Right" Command="{hsv:MethodCommand UpsPatchRight}"/>
+                              </ContextMenu>
+                           </StackPanel.ContextMenu>
+                           <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
+                              <TextBlock.InputBindings>
+                                 <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
+                              </TextBlock.InputBindings>
+                           </TextBlock>
+                           <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}"
+                                    VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                              <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+                           </Button>
+                        </StackPanel>
+                     </DataTemplate>
+                  </TabControl.ItemTemplate>
+                  <TabControl.ContentTemplate>
+                     <DataTemplate>
+                        <ContentControl Content="{Binding}">
+                           <ContentControl.Resources>
+                              <DataTemplate DataType="{x:Type hshmcvm:ViewPort}">
+                                 <hsg3hv:TabView
+                                          AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
+                                          ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:SearchResultsViewPort}">
+                                 <hsg3hv:TabView
+                                          AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
+                                          ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:DiffViewPort}">
+                                 <hsg3hv:TabView
+                                          AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
+                                          ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:DexReorderTab}">
+                                 <hsg3hv:DexReorderView />
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type hshmcvm:ImageEditorViewModel}">
+                                 <hsg3hv:ImageEditorView />
+                              </DataTemplate>
+                           </ContentControl.Resources>
+                        </ContentControl>
+                     </DataTemplate>
+                  </TabControl.ContentTemplate>
+               </TabControl>
+               <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4"/>
+               <DockPanel Grid.Column="2">
+                  <hsg3hv:PythonPanel/>
+               </DockPanel>
+            </Grid>
             <Rectangle Fill="{DynamicResource Background}" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
             <!-- Goto Panel -->
             <ScrollViewer Name="GotoPanel" VerticalScrollBarVisibility="Auto" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}">

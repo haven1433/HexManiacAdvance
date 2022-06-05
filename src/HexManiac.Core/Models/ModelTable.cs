@@ -8,10 +8,11 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class ModelTable {
       private readonly IDataModel model;
       private readonly int arrayAddress;
+      private readonly ModelDelta token;
 
       public ModelArrayElement this[int value] {
          get {
-            return new ModelArrayElement(model, arrayAddress, value);
+            return new ModelArrayElement(model, arrayAddress, value, token);
          }
       }
 
@@ -26,8 +27,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public ModelTable(IDataModel model, int address) {
+      public ModelTable(IDataModel model, int address, ModelDelta token = null) {
          (this.model, arrayAddress) = (model, address);
+         this.token = token ?? new();
       }
    }
 
@@ -36,10 +38,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly int arrayAddress;
       private readonly int arrayIndex;
       private readonly ITableRun table;
+      private readonly ModelDelta token;
 
-      public ModelArrayElement(IDataModel model, int address, int index) {
+      public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token) {
          (this.model, arrayAddress, arrayIndex) = (model, address, index);
          table = (ITableRun)model.GetNextRun(arrayAddress);
+         this.token = token;
       }
 
       public string GetFieldName(int index) => table.ElementContent[index].Name;
@@ -130,7 +134,80 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public ModelTable GetSubtable(string fieldName) {
+      public object this[string fieldName] {
+         get {
+            var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
+            if (seg.Type == ElementContentType.Pointer) return GetAddress(fieldName);
+            if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
+            return GetValue(fieldName);
+         }
+         set {
+            var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            if (seg is ArrayRunEnumSegment) SetEnumValue(fieldName, (string)value);
+            else if (seg.Type == ElementContentType.Pointer) SetAddress(fieldName, (int)value);
+            else if (seg.Type == ElementContentType.PCS) SetStringValue(fieldName, (string)value);
+            else SetValue(fieldName, (int)value);
+         }
+      }
+
+      public void SetEnumValue(string fieldName, string value) {
+         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         if (seg is ArrayRunEnumSegment enumSeg) {
+            enumSeg.Write(model, token, valueAddress, ref value);
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      public void SetAddress(string fieldName, int value) {
+         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         if (seg.Type == ElementContentType.Pointer) {
+            model.WritePointer(token, valueAddress, value);
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      public void SetStringValue(string fieldName, string value) {
+         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         if (seg.Type == ElementContentType.PCS) {
+            var bytes = model.TextConverter.Convert(value, out var _);
+            while (bytes.Count > seg.Length) bytes.RemoveAt(bytes.Count - 1);
+            bytes[bytes.Count - 1] = 0xFF;
+            while (bytes.Count < seg.Length) bytes.Add(0);
+            token.ChangeData(model, valueAddress, bytes);
+         } else if (seg.Type == ElementContentType.Pointer) {
+            valueAddress = model.ReadPointer(valueAddress);
+            var length = PCSString.ReadString(model, valueAddress, true);
+            var bytes = model.TextConverter.Convert(value, out var _);
+            var pcsRun = (PCSRun)model.GetNextRun(valueAddress);
+            pcsRun = model.RelocateForExpansion(token, pcsRun, bytes.Count);
+            token.ChangeData(model, pcsRun.Start, bytes);
+            for (int i = pcsRun.Length; i < length; i++) token.ChangeData(model, pcsRun.Start + i, 0xFF);
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      public void SetValue(string fieldName, int value) {
+         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         if (seg.Type == ElementContentType.Integer) {
+            model.WriteMultiByteValue(valueAddress, seg.Length, token, value);
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      public ModelTable GetSubTable(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
