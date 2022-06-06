@@ -389,7 +389,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          // harder case: the hint is a table
          if (!(hintRun is ITableRun hintTable)) return hintRun.Start;
-         if (run.PointerSources.Count == 0) return Pointer.NULL;
+         if ((run.PointerSources?.Count ?? 0) == 0) return Pointer.NULL;
          var tilemapPointer = run.PointerSources[0];
          var tilemapTable = model.GetNextRun(tilemapPointer) as ITableRun;
          for (int i = 1; i < run.PointerSources.Count && tilemapTable == null; i++) {
