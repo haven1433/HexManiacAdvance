@@ -19,7 +19,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override bool Matches(IFormattedRun run) => run is TilesetRun tsRun && tsRun.TilesetFormat.BitsPerPixel == TilesetFormat.BitsPerPixel && tsRun.TilesetFormat.Tiles == TilesetFormat.Tiles;
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         throw new NotImplementedException();
+         var newRun = new TilesetRun(TilesetFormat, owner, destination, SortedSpan.One(source));
+         return newRun;
       }
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
@@ -33,7 +34,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var error = SpriteRunContentStrategy.IsValid(TilesetFormat.BitsPerPixel);
          if (error.HasError) return error;
          var newRun = new TilesetRun(TilesetFormat, model, run.Start, run.PointerSources);
-         if (model.GetNextRun(run.Start + 1).Start < run.Start + newRun.Length) return new ErrorInfo($"Format was specified as a tileset with {TilesetFormat.Tiles} tiles, but there wasn't enough space.");
+         var nextRun = model.GetNextRun(run.Start + 1);
+         if (run.Start < nextRun.Start && nextRun.Start < run.Start + newRun.Length) return new ErrorInfo($"Format was specified as a tileset with {TilesetFormat.Tiles} tiles, but there wasn't enough space.");
          run = newRun;
          return ErrorInfo.NoError;
       }

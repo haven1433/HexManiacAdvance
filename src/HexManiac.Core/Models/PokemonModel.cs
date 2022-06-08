@@ -690,7 +690,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return errorInfo;
       }
 
-      private static ErrorInfo UniquifyName(IDataModel model, ModelDelta changeToken, int desiredAddressForName, ref string name) {
+      public static ErrorInfo UniquifyName(IDataModel model, ModelDelta changeToken, int desiredAddressForName, ref string name) {
          var address = model.GetAddressFromAnchor(changeToken, -1, name);
          if (address == Pointer.NULL || address == desiredAddressForName) return ErrorInfo.NoError;
 

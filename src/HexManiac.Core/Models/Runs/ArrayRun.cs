@@ -172,6 +172,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex);
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+               } else if (run.Start == destination && run is MapAnimationTilesRun matRun) {
+                  var newRun = matRun.UpdateFromParent(token, segmentIndex, pointerSource, out bool childrenMoved);
+                  model.ObserveRunWritten(token, newRun);
+                  if (newRun.Start != matRun.Start) info = new ErrorInfo($"Tiles were automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                }
             }
             offset += segment.Length;
