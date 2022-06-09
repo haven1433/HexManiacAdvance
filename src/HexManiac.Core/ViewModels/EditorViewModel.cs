@@ -448,6 +448,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             new ExpandRom(fileSystem),
             new MakeTutorsExpandable(),
             new MakeMovesExpandable(),
+            new AddTilesetAnimation(fileSystem),
             // new MakeTmsExpandable(),   // expanding TMs requires further research.
             // new MakeItemsExpandable(),
          };

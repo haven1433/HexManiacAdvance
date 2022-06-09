@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          "Look for your new table with the name `graphics.maps.tilesets.animations. <something>.table`." + Environment.NewLine +
          "Look for your new animation routine with the name `graphics.maps.tilesets.animations. <something>.init`.";
 
-      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Move-Expansion-Explained"; // TODO
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Tileset-Animations-Explained";
 
       public event EventHandler CanRunChanged;
 
@@ -194,7 +194,8 @@ strh  r1, [r0, #0]
 
 @ sPrimaryTilesetAnimCallback = TilesetAnim_Custom
 ldr   r0, =0x{sPrimaryTilesetAnimCallback:X8}
-ldr   r1, =<{callbackAddress:X6}>
+ldr   r1, =<{(callbackAddress + 1):X6}>
+str   r1, [r0, #0]
 
 pop   {{pc}}
 "; // 45
