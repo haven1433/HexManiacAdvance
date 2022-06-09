@@ -791,6 +791,17 @@ Name = '''script_compare'''
 ]
 
 [[List]]
+Name = '''battle_compare'''
+0 = [
+    '''=''',
+    '''!=''',
+    '''>''',
+    '''<''',
+    '''&''',
+    '''&~''',
+]
+
+[[List]]
 Name = '''catchmap_shape'''
 0 = [
     '''small''',

@@ -1,3 +1,11 @@
+# conditions:
+# 00 A = B
+# 01 A != B
+# 02 A > B
+# 03 A < B
+# 04 A & B   <- at least one common bit
+# 05 A &~ B  <- no common bits
+
 00 attackcanceler
 01 accuracycheck param0<> param1:
 02 attackstring
@@ -39,9 +47,9 @@
 26 setmultihit value.
 27 decrementmultihit value::
 28 goto ptr<>
-29 jumpifbyte ifflag. param1:: param2. ptr<>
-2a jumpifhalfword ifflag. address:: value: ptr<>
-2b jumpifword ifflag. param1:: param2:: ptr<>
+29 jumpifbyte ifflag.battle_compare param1:: param2. ptr<>
+2a jumpifhalfword ifflag.battle_compare address:: value: ptr<>
+2b jumpifword ifflag.battle_compare param1:: param2:: ptr<>
 2c jumpifarrayequal param0:: param1:: param2. ptr<>
 2d jumpifarraynotequal param0:: param1:: param2. ptr<>
 2e setbyte ram:: param1.
