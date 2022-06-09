@@ -10,7 +10,7 @@ using System.Globalization;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -224,12 +224,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (DateTime.Now < viewModel.LastUpdateCheck + TimeSpan.FromDays(1)) return;
          viewModel.LastUpdateCheck = DateTime.Now;
          try {
-            using (var client = new WebClient()) {
-               string content = client.DownloadString(ReleaseUrl);
+            using (var client = new HttpClient()) {
+               string content = client.GetStringAsync(ReleaseUrl).Result;
                var mostRecentVersion = content
                   .Split('\n')
                   .Where(line => line.Contains("/haven1433/HexManiacAdvance/tree/"))
-                  .Select(line => line.Split("title=").Last().Split('"')[1])
+                  .Select(line => line.Split("title=").Last().Split('"')[1].Split('v').Last())
                   .First();
                viewModel.IsNewVersionAvailable = StoredMetadata.NeedVersionUpdate(viewModel.Singletons.MetadataInfo.VersionNumber, mostRecentVersion);
             }

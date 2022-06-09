@@ -227,7 +227,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (previousVersion == null && currentVersion != null) return true;
 
          if (previousVersion.StartsWith("v")) previousVersion = previousVersion.Substring(1);
-         if (currentVersion.StartsWith("v")) currentVersion = currentVersion.Substring(1);
+         while (currentVersion.Contains("v")) currentVersion = currentVersion.Substring(1);
 
          while (previousVersion.Count(c => c == '.') < currentVersion.Count(c => c == '.')) previousVersion += ".0";
          while (currentVersion.Count(c => c == '.') < previousVersion.Count(c => c == '.')) currentVersion += ".0";
