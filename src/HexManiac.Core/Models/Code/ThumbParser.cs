@@ -1008,7 +1008,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public static bool IsEndOfSection(string line) {
-         return line.StartsWith("b ") || line.StartsWith("bx ") || (line.StartsWith("pop ") && line.Contains(" pc"));
+         return line.StartsWith("b ") || line.StartsWith("bx ") || (line.StartsWith("pop ") && line.Contains("pc"));
       }
 
       public static bool TryCompile(int address, string line, LabelLibrary labels, Queue<DeferredLoadRegisterToken> inlineWords) {

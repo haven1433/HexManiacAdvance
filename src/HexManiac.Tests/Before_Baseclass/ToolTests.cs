@@ -556,6 +556,28 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void ThumbCode_InlineLoadLastSection_Compiles() {
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100,
+            "    push {lr}",
+            "    ldr  r0, =1",
+            "    pop  {pc}"
+            // implicit nop for alignment
+            // implicit .word 0x01
+         ).ToArray();
+
+         var expected = new byte[] {
+            0x00, 0xB5,
+            0x01, 0x48,
+            0x00, 0xBD,
+            0, 0,              // nop
+            1, 0, 0, 0,        // inserted word
+         };
+
+         Assert.Equal(expected, result);
+      }
+
+      [Fact]
       public void ThumbCode_InlinePointerLoad_Compiles() {
          Model.ObserveAnchorWritten(new ModelDelta(), "destination", new NoInfoRun(0x20));
          var result = parser.Compile(new ModelDelta(), Model, 0x100,
