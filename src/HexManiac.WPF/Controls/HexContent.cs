@@ -379,23 +379,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newMouseOverPoint = ControlCoordinatesToModelCoordinates(e);
          if (!newMouseOverPoint.Equals(mouseOverPoint)) {
             mouseOverPoint = newMouseOverPoint;
-            var format = ViewPort[newMouseOverPoint.X, newMouseOverPoint.Y].Format;
-
-            bool needClearToolTip = true;
-            if (ViewPort is ViewPort viewPort1) {
-               var source = viewPort1.ConvertViewPointToAddress(newMouseOverPoint);
-               if (format is IDataFormatInstance dfi) source = dfi.Source;
-               if (source == previousSource && ToolTipService.GetIsEnabled(this)) {
-                  // already set
-                  needClearToolTip = false;
-               } else if (MakeNewToolTip(format)) {
-                  previousSource = source;
-                  needClearToolTip = false;
-               }
-            }
-            if (needClearToolTip) {
-               ClearTooltip();
-            }
+            UpdateTooltip(newMouseOverPoint);
          }
          if (!IsMouseCaptured) return;
 
@@ -414,6 +398,34 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             viewPort.SelectionEnd = new ModelPoint(viewPort.Width - 1, modelPoint.Y);
          } else {
             viewPort.SelectionEnd = modelPoint;
+         }
+      }
+
+      private void UpdateTooltip(ModelPoint newMouseOverPoint) {
+         IDataFormat format;
+         try {
+            format = ViewPort[newMouseOverPoint.X, newMouseOverPoint.Y].Format;
+         } catch (InvalidOperationException) {
+            // if the user moves the mouse during reload, there's a chance that this tries to query the model runs while they're reloading.
+            // if that happens, just skip the tooltip update
+            ClearTooltip();
+            return;
+         }
+
+         bool needClearToolTip = true;
+         if (ViewPort is ViewPort viewPort1) {
+            var source = viewPort1.ConvertViewPointToAddress(newMouseOverPoint);
+            if (format is IDataFormatInstance dfi) source = dfi.Source;
+            if (source == previousSource && ToolTipService.GetIsEnabled(this)) {
+               // already set
+               needClearToolTip = false;
+            } else if (MakeNewToolTip(format)) {
+               previousSource = source;
+               needClearToolTip = false;
+            }
+         }
+         if (needClearToolTip) {
+            ClearTooltip();
          }
       }
 
