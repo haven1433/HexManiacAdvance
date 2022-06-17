@@ -2844,10 +2844,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RefreshBackingData() {
          lock (threadlock) {
             currentView = new HexElement[Width, Height];
-            if (scroll.DataStart != 0) {
-               var table = Model.GetNextRun(scroll.DataStart);
-               scroll.SetTableMode(table.Start, table.Length);
-            }
 
             RequestMenuClose?.Invoke(this, EventArgs.Empty);
             NotifyCollectionChanged(ResetArgs);
