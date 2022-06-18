@@ -1,14 +1,18 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
-   public class ModelTable {
+   public class ModelTable : IReadOnlyList<ModelArrayElement> {
       private readonly IDataModel model;
       private readonly int arrayAddress;
       private readonly ModelDelta token;
+
+      public int Count => (model.GetNextRun(arrayAddress) as ITableRun)?.ElementCount ?? 0;
+      public int __len__() => Count; // for python
 
       public ModelArrayElement this[int value] {
          get {
@@ -31,6 +35,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          (this.model, arrayAddress) = (model, address);
          this.token = token ?? new();
       }
+
+      public IEnumerator<ModelArrayElement> GetEnumerator() {
+         var count = Count;
+         for (int i = 0; i < count; i++) yield return this[i];
+      }
+
+      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
    }
 
    public class ModelArrayElement {
