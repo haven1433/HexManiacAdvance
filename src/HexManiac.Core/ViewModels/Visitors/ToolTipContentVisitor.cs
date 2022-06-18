@@ -117,7 +117,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                segOffset += seg.Length;
                if (seg.Type != ElementContentType.Pointer) continue;
                if (model.GetNextRun(destination) is not ISpriteRun spriteRun) continue;
-               Content.Add(ReadonlyPixelViewModel.Create(model, spriteRun, true));
+               var paletteRuns = spriteRun.FindRelatedPalettes(model, array.Start + array.ElementLength * itemIndex);
+               Content.Add(ReadonlyPixelViewModel.Create(model, spriteRun, paletteRuns.FirstOrDefault(), true));
                return;
             }
          }

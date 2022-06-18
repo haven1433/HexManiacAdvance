@@ -40,6 +40,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return SpriteDecorator.BuildSprite(model, sprite, useTransparency);
       }
 
+      public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, IPaletteRun palette, bool useTransparency = false) {
+         return SpriteDecorator.BuildSprite(model, sprite, palette, useTransparency);
+      }
+
       public static IPixelViewModel Crop(IPixelViewModel pixels, int x, int y, int width, int height) {
          return TilemapTableRun.Crop(pixels, x, y, Math.Max(0, pixels.PixelWidth - width - x), Math.Max(0, pixels.PixelHeight - height - y));
       }
