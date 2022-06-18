@@ -194,24 +194,31 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public static readonly DependencyProperty HorizontalScrollValueProperty = DependencyProperty.Register("HorizontalScrollValue", typeof(double), typeof(HexContent), new FrameworkPropertyMetadata(0.0, RequestInvalidateVisual));
 
       DoubleAnimation lastAnimation;
+      double targetValue;
       private void MakeSelectionEndOnScreen() {
          if (!(ViewPort is IEditableViewPort viewPort)) return;
          var x = viewPort.SelectionEnd.X;
          var newDesiredValue = HorizontalScrollValue;
+         if (lastAnimation != null) newDesiredValue = targetValue;
          if (HorizontalScrollValue > x * CellWidth) {
             // can't see left edge of cell
             newDesiredValue = x * CellWidth;
-         } else if (HorizontalScrollValue + ActualWidth < (x + 1) * CellWidth) {
+         }
+         if (newDesiredValue + ActualWidth < (x + 1) * CellWidth) {
             // can't see right edge of cell
             newDesiredValue = (x + 1) * CellWidth - ActualWidth;
          }
 
-         if (newDesiredValue != HorizontalScrollValue) {
+         if (newDesiredValue != HorizontalScrollValue || lastAnimation != null) {
             var duration = new Duration(TimeSpan.FromMilliseconds(200));
             var animation = new DoubleAnimation(newDesiredValue, duration) { DecelerationRatio = 1, FillBehavior = FillBehavior.Stop };
             lastAnimation = animation;
+            targetValue = newDesiredValue;
             animation.Completed += (sender, e) => {
-               if (animation == lastAnimation) HorizontalScrollValue = newDesiredValue;
+               if (animation == lastAnimation) {
+                  HorizontalScrollValue = newDesiredValue;
+                  lastAnimation = null;
+               }
             };
             BeginAnimation(HorizontalScrollValueProperty, animation);
          }
