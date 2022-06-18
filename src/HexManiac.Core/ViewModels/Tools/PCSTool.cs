@@ -116,7 +116,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          checkIsText.CanExecute = arg => ShowMessage;
          checkIsText.Execute = arg => {
             var startPlaces = model.FindPossibleTextStartingPlaces(Address, 1);
-            var results = model.ConsiderResultsAsTextRuns(history.CurrentChange, startPlaces);
+            var results = model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
             if (results == 0) {
                OnError?.Invoke(this, $"Could not discover text at {address:X6}.");
             } else {

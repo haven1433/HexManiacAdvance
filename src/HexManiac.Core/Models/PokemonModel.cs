@@ -1570,12 +1570,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
-      public override int ConsiderResultsAsTextRuns(ModelDelta currentChange, IReadOnlyList<int> searchResults) {
+      public override int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
          foreach (var result in searchResults) {
-            var run = ConsiderAsTextStream(this, result, currentChange);
+            var run = ConsiderAsTextStream(this, result, futureChange);
             if (run != null) {
-               ObserveAnchorWritten(currentChange, string.Empty, run);
+               ObserveAnchorWritten(futureChange(), string.Empty, run);
                resultsRecognizedAsTextRuns++;
             }
          }
@@ -1597,14 +1597,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          return true;
       }
 
-      public static PCSRun ConsiderAsTextStream(IDataModel model, int address, ModelDelta currentChange) {
+      public static PCSRun ConsiderAsTextStream(IDataModel model, int address, Func<ModelDelta> futureCurrentChange) {
          var nextRun = model.GetNextRun(address);
          if (nextRun.Start < address) return null;
          if (nextRun.Start == address && !(nextRun is NoInfoRun)) return null;
          var length = PCSString.ReadString(model, address, true);
          if (length < 1) return null;
          if (address + length > nextRun.Start && nextRun.Start != address) return null;
-         var pointers = model.SearchForPointersToAnchor(currentChange, address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
+         var pointers = model.SearchForPointersToAnchor(futureCurrentChange(), address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
          if (pointers.Count == 0) return null;
          return new PCSRun(model, address, length, pointers);
       }

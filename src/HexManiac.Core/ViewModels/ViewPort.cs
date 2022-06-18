@@ -1801,7 +1801,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          searchBytes.AddRange(pcsBytes.Select(b => PCSSearchByte.Create(b, matchExactCase)));
          var textResults = Model.Search(searchBytes).ToList();
-         Model.ConsiderResultsAsTextRuns(history.CurrentChange, textResults);
+         Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, textResults);
          foreach (var result in textResults) {
             // also look for elements that use that text as a name or value
             // (if matching exact case, we only want to find text: skip this step)
@@ -2289,7 +2289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
          // do the actual search now that we know places to start
-         var foundCount = Model.ConsiderResultsAsTextRuns(history.CurrentChange, startPlaces);
+         var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
          if (foundCount == 0) {
             OnError?.Invoke(this, "Failed to automatically find text at that location.");
          } else {
@@ -2699,7 +2699,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // if it's an unnamed text/stream anchor, we have special logic for that
          using (ModelCacheScope.CreateScope(Model)) {
             if (underEdit.CurrentText.Trim() == AnchorStart + PCSRun.SharedFormatString) {
-               int count = Model.ConsiderResultsAsTextRuns(history.CurrentChange, new[] { index });
+               int count = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, new[] { index });
                if (count == 0) {
                   errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
                } else {

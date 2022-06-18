@@ -651,6 +651,13 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("\"\\CC", cell.ThisCharacter);
       }
 
+      [Fact]
+      public void SearchText_NoResults_NoMetadataChange() {
+         var results = ViewPort.Find("Not in file");
+         Assert.Empty(results);
+         Assert.True(ViewPort.ChangeHistory.IsSaved);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30);
       StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
-      int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations);
+      int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> startLocations);
 
       IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
       IReadOnlyList<int> GetMatchedWords(string name);
@@ -300,7 +300,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <summary>
       /// Returns the number of new runs found.
       /// </summary>
-      public virtual int ConsiderResultsAsTextRuns(ModelDelta changeToken, IReadOnlyList<int> startLocations) => 0;
+      public virtual int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> startLocations) => 0;
 
       public virtual IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30) => new string[0];
 
