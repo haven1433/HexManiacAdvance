@@ -16,6 +16,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    // cursor size is in terms of destination pixels (1x1, 2x2, 4x4, 8x8)
    // cursor sprite position is in terms of the sprite (ranging from 0,0 to width,height)
 
+   public class ImageEditorViewModelCreationException : Exception {
+      public ImageEditorViewModelCreationException(string message) : base(message) { }
+   }
+
    public class ImageEditorViewModel : ViewModelCore, ITabContent, IPixelViewModel, IRaiseMessageTab {
       public const int MaxZoom = 24;
 
@@ -444,9 +448,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var inputRun = model.GetNextRun(address);
          var spriteRun = inputRun as ISpriteRun;
          var palRun = inputRun as IPaletteRun;
-         if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).First();
+         if (spriteRun == null && palRun == null) throw new ImageEditorViewModelCreationException($"Input {address:X6} was not a sprite or palette.");
+         if (spriteRun == null) spriteRun = palRun.FindDependentSprites(model).FirstOrDefault();
+         if (spriteRun == null) throw new ImageEditorViewModelCreationException($"Could not find sprite for palette {palRun.Start:X6}");
+         if (spriteRun.PointerSources.Count == 0) throw new ImageEditorViewModelCreationException($"Could not find pointer to sprite at {spriteRun.Start:X6}");
          if (palRun == null && spriteRun.SpriteFormat.BitsPerPixel > 2) palRun = spriteRun.FindRelatedPalettes(model).FirstOrDefault();
          if (palRun == null && spriteRun.SpriteFormat.BitsPerPixel > 2) palRun = model.GetNextRun(toolPaletteAddress) as IPaletteRun;
+         if (palRun != null && palRun.PointerSources.Count == 0) throw new ImageEditorViewModelCreationException($"Could not find pointer to palette at {palRun.Start:X6}");
+
          SpritePointer = spriteRun.PointerSources[0];
          PalettePointer = palRun?.PointerSources[0] ?? Pointer.NULL;
          Palette = new PaletteCollection(this, model, history) {

@@ -2155,11 +2155,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenImageEditorTab(int address, int spritePage, int palettePage) {
-         var newTab = new ImageEditorViewModel(history, Model, address, Save, tools.SpriteTool.PaletteAddress) {
-            SpritePage = spritePage,
-            PalettePage = palettePage,
-         };
-         RequestTabChange(this, newTab);
+         try {
+            var newTab = new ImageEditorViewModel(history, Model, address, Save, tools.SpriteTool.PaletteAddress) {
+               SpritePage = spritePage,
+               PalettePage = palettePage,
+            };
+            RequestTabChange(this, newTab);
+         } catch (ImageEditorViewModelCreationException e) {
+            RaiseError(e.Message);
+         }
       }
 
       private void ValidateMatchedWords() {
