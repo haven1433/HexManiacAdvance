@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) =>
-         new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream);
+         new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream, ElementCount);
 
       #endregion
 
@@ -666,8 +666,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          foreach (var source in pointerSources) {
             var offsets = parent.ConvertByteOffsetToArrayOffset(source);
             if (offsets.ElementIndex < 0 || offsets.ElementIndex > parent.ElementCount) continue;
-            if (model.ReadMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, segmentLength) != newValue) {
-               model.WriteMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, segmentLength, token, newValue);
+            var lengthAddress = parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset;
+            if (model.ReadMultiByteValue(lengthAddress, segmentLength) != newValue) {
+               model.WriteMultiByteValue(lengthAddress, segmentLength, token, newValue);
             }
          }
       }

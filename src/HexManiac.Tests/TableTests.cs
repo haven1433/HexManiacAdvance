@@ -1035,6 +1035,32 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, Model[0]);
       }
 
+      [Fact]
+      public void TableWithTableStreamChild_IncreaseLengthCausesRepoint_NoAssert() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 <180> <1C0> DEAD @00 <100> 02 @00 ^table[child<[text<\"\">]/count> count.]1 ");
+
+         ViewPort.Edit("@04 3 ");
+
+         Model.ResolveConflicts();
+      }
+
+      /// <summary>
+      /// Cloning a TableStreamRun should keep the same length as the parent, even in cases where that length is 'wrong'
+      /// due to the underlying rom data being different from when the TableStreamRun was created.
+      /// </summary>
+      [Fact]
+      public void TableStreamRun_Clone_SameLength() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("<100> 01 @00 ^parent[child<[a.]/count> count.]1 ");
+         Model.RawData[4] = 2;
+
+         var childTable = (ITableRun)Model.GetNextRun(0x100);
+         var clone = (ITableRun)childTable.Duplicate(0x100, childTable.PointerSources);
+
+         Assert.Equal(childTable.ElementCount, clone.ElementCount);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
