@@ -261,7 +261,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             NewDataIndex = memoryLocation + newRun.Start - run.Start;
             DataMoved = true;
          }
+
          Model.ObserveRunWritten(CurrentChange, newRun);
+
+         if (newRun.Start == run.Start) {
+            // table was expanded, update the scroll so it knows about the new table length
+            scroll.SetTableMode(newRun.Start, newRun.Length);
+         }
       }
 
       public void Visit(LzMagicIdentifier lz, byte data) {

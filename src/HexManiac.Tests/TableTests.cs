@@ -1074,6 +1074,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.InRange(ViewPort.DataOffset, 0x80, 0x200);
       }
 
+      [Fact]
+      public void SingleTableMode_ExtendTableNoRepoint_VisibleSpaceExpands() {
+         SetFullModel(0xFF);
+         ViewPort.AllowSingleTableMode = true;
+         ViewPort.Edit("01 02 03 @00 ^table[a.]!FF ");
+
+         ViewPort.Edit("@03 +");
+
+         Assert.IsType<EndStream>(ViewPort[1, 0].Format);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
