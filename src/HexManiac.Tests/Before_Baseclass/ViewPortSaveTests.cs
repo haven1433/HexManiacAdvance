@@ -667,5 +667,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("0", list.Hash);
          Assert.False(list.HashMatches);
       }
+
+      [Fact]
+      public void TableGroup_ExportMetadata_ExportHash() {
+         var items = new[] { "a", "b", "c" };
+         Model.AppendTableGroup(Token, "group", items, null);
+
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+         var lines = metadata.Serialize();
+
+         var line = lines.Single(line => line.StartsWith("DefaultHash"));
+         var expectedHash = StoredList.GenerateHash(items);
+         Assert.Equal($"DefaultHash = '''{expectedHash:X8}'''", line);
+      }
    }
 }

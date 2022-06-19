@@ -326,6 +326,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var group in TableGroups) {
             lines.Add("[[TableGroup]]");
             lines.Add($"Name = '''{group.GroupName}'''");
+            lines.Add($"DefaultHash = '''{group.Hash:X8}'''");
             lines.Add($"0 = [");
             foreach (var table in group.Tables) {
                lines.Add($"   '''{table}''',");

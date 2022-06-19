@@ -2483,6 +2483,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool HashMatches => StoredList.GenerateHash(Tables) == Hash;
 
       public TableGroup(string groupName, IReadOnlyList<string> tables, string hash) : this(groupName, tables) {
+         if (hash == null) hash = StoredList.GenerateHash(tables);
          this.hash = hash;
       }
    }
