@@ -2418,7 +2418,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (completeEditOperation.NewCell != null) {
                      currentView[point.X, point.Y] = completeEditOperation.NewCell;
                   }
-                  if (completeEditOperation.DataMoved || completeEditOperation.NewDataIndex > scroll.DataLength) scroll.DataLength = Model.Count;
+                  if (completeEditOperation.DataMoved || completeEditOperation.NewDataIndex > scroll.DataLength) {
+                     scroll.DataLength = Model.Count;
+                     scroll.ClearTableMode();
+                  }
 
                   // update tools from the new moved selection
                   var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
