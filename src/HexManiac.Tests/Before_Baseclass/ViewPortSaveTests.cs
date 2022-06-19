@@ -680,5 +680,16 @@ namespace HavenSoft.HexManiac.Tests {
          var expectedHash = StoredList.GenerateHash(items);
          Assert.Equal($"DefaultHash = '''{expectedHash:X8}'''", line);
       }
+
+      [Fact]
+      public void LoadShortcut_SameTableAlreadyInShortcut_NoLoad() {
+         var shortcut1 = new StoredGotoShortcut("name1", "image1", "destination/1");
+         Model.LoadMetadata(new StoredMetadata(gotoShortcuts: new[] { shortcut1 }));
+
+         var shortcut2 = new StoredGotoShortcut("name2", "image2", "destination/2");
+         Model.LoadMetadata(new StoredMetadata(gotoShortcuts: new[] { shortcut2 }));
+
+         Assert.Single(Model.GotoShortcuts);
+      }
    }
 }

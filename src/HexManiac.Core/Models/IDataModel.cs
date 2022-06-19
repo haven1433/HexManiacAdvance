@@ -555,6 +555,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          var shortcuts = (IList<GotoShortcutModel>)model.GotoShortcuts;
          foreach (var gotoShortcut in metadata.GotoShortcuts) {
             if (shortcuts.Any(shortcut => shortcut.DisplayText == gotoShortcut.Display)) continue;
+            var tableName = gotoShortcut.Anchor.Split("/")[0];
+            if (shortcuts.Any(shortcut => shortcut.GotoAnchor.Split("/")[0] == tableName)) continue;
             shortcuts.Add(new GotoShortcutModel(gotoShortcut.Image, gotoShortcut.Anchor, gotoShortcut.Display));
          }
 
