@@ -2100,7 +2100,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in this.lists) {
             var name = kvp.Key;
             var members = kvp.Value.Select((text, i) => i.ToString() == text ? null : text);
-            lists.Add(new StoredList(name, members.ToList()));
+            lists.Add(new StoredList(name, members.ToList(), kvp.Value.StoredHash));
          }
 
          var unmappedConstants = new List<StoredUnmappedConstant>();

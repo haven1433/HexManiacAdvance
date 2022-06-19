@@ -655,5 +655,17 @@ namespace HavenSoft.HexManiac.Tests {
          var metadata = new StoredMetadata(new[] { "ShowRawIVByteForTrainer = True" });
          Assert.True(metadata.ShowRawIVByteForTrainer);
       }
+
+      [Fact]
+      public void StoredListWithCustomHash_ExportMetadata_HashSaved() {
+         Model.SetList(Token, "list", new[] { "a", "b", "c" }, "0");
+
+         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+
+         var list = metadata.Lists[0];
+         Assert.Equal("list", list.Name);
+         Assert.Equal("0", list.Hash);
+         Assert.False(list.HashMatches);
+      }
    }
 }
