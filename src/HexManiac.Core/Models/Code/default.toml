@@ -865,30 +865,3 @@ Name = '''statusanimations'''
    '''Nightmare''',
 ]
 
-[[List]]
-Name = '''effectanimations'''
-0 = [
-   '''FormChange''',
-   '''StatChange''',
-   '''SubstituteFade''',
-   '''SubstituteAppear''',
-   '''PokeblockThrow''',
-   '''ItemKnockOff''',
-   '''TurnTrap''',
-   '''HeldItemEffect''',
-   '''SmokeBall''',
-   '''FocusBand''',
-   '''Rain''',
-   '''Sun''',
-   '''Sandstorm''',
-   '''Hail''',
-   '''LeechSeedDrain''',
-   '''ConfuseHit''',
-   '''ItemSteal''',
-   '''SnatchMove''',
-   '''FutureSight''',
-   '''DoomDesire''',
-   '''FocusPunchSetUp''',
-   '''IngrainHeal''',
-   '''WishHeal''',
-]

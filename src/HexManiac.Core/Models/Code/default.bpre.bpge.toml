@@ -496,3 +496,36 @@ Destination = '''data.pokemon.moves.stats.battle'''
 Name = '''Items'''
 Image = '''graphics.items.sprites/13/sprite/'''
 Destination = '''data.items.stats'''
+
+[[List]]
+Name = '''effectanimations'''
+0 = [
+   '''FormChange''',
+   '''StatChange''',
+   '''SubstituteFade''',
+   '''SubstituteAppear''',
+   '''BaitThrow''',
+   '''ItemKnockOff''',
+   '''TurnTrap''',
+   '''HeldItemEffect''',
+   '''SmokeBall''',
+   '''FocusBand''',
+   '''Rain''',
+   '''Sun''',
+   '''Sandstorm''',
+   '''Hail''',
+   '''LeechSeedDrain''',
+   '''ConfuseHit''',
+   '''ItemSteal''',
+   '''SnatchMove''',
+   '''FutureSight''',
+   '''DoomDesire''',
+   '''FocusPunchSetUp''',
+   '''IngrainHeal''',
+   '''WishHeal''',
+   '''MonScared''',
+   '''GhostGetOut''',
+   '''SilphScoped''',
+   '''SafariRockThrow''',
+   '''SafariReaction''',
+]
