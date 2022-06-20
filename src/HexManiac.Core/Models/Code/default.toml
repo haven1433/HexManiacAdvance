@@ -865,3 +865,13 @@ Name = '''statusanimations'''
    '''Nightmare''',
 ]
 
+# This item list isn't actually used... it works for most items, but for pokeball items, the 'type' list means something totally different.
+[[List]]
+Name = '''itemtype'''
+0 = [
+    '''Mail''',
+    '''Party_Menu''',
+    '''Field''',
+    '''PokeBlock_Case''',
+    '''Bag_Menu''',
+]
