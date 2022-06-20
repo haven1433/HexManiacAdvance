@@ -218,14 +218,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var displayName = string.Empty;
          if (!string.IsNullOrEmpty(file.Name)) displayName = Environment.NewLine + file.Name;
          var result = ShowCustomMessageBox($"Would you like to save{displayName}?");
-         if (result == MessageBoxResult.Cancel) return null;
-         if (result == MessageBoxResult.No) return false;
+         if (result != true) return result;
          if (displayName == string.Empty) displayName = RequestNewName(displayName);
          if (string.IsNullOrEmpty(displayName)) return null;
          return Save(new LoadedFile(displayName.Trim(), file.Contents));
       }
 
-      public MessageBoxResult ShowCustomMessageBox(string message, bool showYesNoCancel = true, params ProcessModel[] links) {
+      public bool? ShowCustomMessageBox(string message, bool showYesNoCancel = true, params ProcessModel[] links) {
          var choices = showYesNoCancel ? new StackPanel {
             HorizontalAlignment = HorizontalAlignment.Right,
             Orientation = Orientation.Horizontal,
@@ -311,7 +310,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          passingResult = MessageBoxResult.Cancel;
          window.ShowDialog();
-         return passingResult;
+
+         return passingResult switch {
+            MessageBoxResult.No => false,
+            MessageBoxResult.OK => true,
+            MessageBoxResult.Yes => true,
+            MessageBoxResult.Cancel => null,
+            _ => throw new NotSupportedException()
+         };
       }
 
       private MessageBoxResult passingResult = MessageBoxResult.Cancel;
@@ -567,6 +573,4 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
       #endregion
    }
-
-   public record ProcessModel(string DisplayText, string Content);
 }

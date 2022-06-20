@@ -111,6 +111,7 @@
                      <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" InputGestureText="Ctrl+Shift+A" />
                      <MenuItem Header="_Export Backup" Command="{Binding ExportBackup}" InputGestureText="Ctrl+E" />
                      <Separator />
+                     <MenuItem Header="Calculate Common _Hashes" Command="{hsv:MethodCommand CalculateHashes}" />
                      <MenuItem Header="_Run" Command="{Binding RunFile}" InputGestureText="F5" CommandParameter="{DynamicResource FileSystem}"/>
                      <Separator />
                      <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" InputGestureText="Ctrl+W" />
@@ -216,11 +217,6 @@
                      <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
                      <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                      <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
-                     <Separator />
-                     <MenuItem Header="Render Rom Overview" Click="DeveloperRenderRomOverview"/>
-                     <Separator />
-                     <MenuItem Header="Calculate SHA1" Click="DeveloperGetSHA1"/>
-                     <MenuItem Header="Calculate CRC32" Click="DeveloperGetCRC32"/>
                      <Separator />
                      <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
                   </MenuItem>

@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -412,6 +413,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   NotifyPropertyChanged(nameof(SelectedTab));
                   NotifyPropertyChanged(nameof(ShowWidthOptions));
                   NotifyPropertyChanged(nameof(IsMetadataOnlyChange));
+                  NotifyPropertyChanged(nameof(CanCalculateHashes));
                   diffLeft.RaiseCanExecuteChanged();
                   diffRight.RaiseCanExecuteChanged();
                   if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
@@ -770,6 +772,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          if (anyTabsClosed) InformationMessage = "Other tabs for that in-memory file were automatically closed.";
       }
+
+      #region CalculateHashes
+
+      public bool CanCalculateHashes => SelectedTab is IEditableViewPort;
+      public void CalculateHashes() {
+         if (SelectedTab is not IEditableViewPort viewPort) return;
+         var sha = GetSHA1(viewPort);
+         var crc = GetCRC32(viewPort);
+         var nl = Environment.NewLine;
+         fileSystem.ShowCustomMessageBox($"SHA1:{nl}{sha}{nl}{nl}CRC32:{nl}{crc}", false);
+      }
+
+      public static string GetSHA1(IEditableViewPort viewPort) {
+         var sha = SHA1.Create();
+         var result = string.Concat(sha.ComputeHash(viewPort.Model.RawData).Select(b => b.ToString("X2")));
+         return result;
+      }
+
+      public static string GetCRC32(IEditableViewPort viewPort) {
+         var crc = Force.Crc32.Crc32Algorithm.Compute(viewPort.Model.RawData);
+         return crc.ToString("X8");
+      }
+
+      #endregion
 
       public void SwapTabs(int a, int b) {
          var temp = tabs[a];

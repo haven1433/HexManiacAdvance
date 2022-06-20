@@ -187,7 +187,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                Command = command
             });
          }
-         ((RomOverview)ViewModel.QuickEditsMisc[0]).EditSelected += (sender, e) => DeveloperRenderRomOverview(default, default);
+         ((RomOverview)ViewModel.QuickEditsMisc[0]).EditSelected += (sender, e) => DeveloperRenderRomOverview();
       }
 
       private ICommand CreateQuickEditCommand(IQuickEditItem edit) {
@@ -523,7 +523,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
 
-      private void DeveloperRenderRomOverview(object sender, RoutedEventArgs e) {
+      private void DeveloperRenderRomOverview() {
          var tab = (ViewPort)ViewModel.SelectedTab;
          var model = tab.Model;
          int BlockSize = 64, BlockWidth = 16, BlockHeight = 16, BytesPerPixel = 16;
@@ -577,19 +577,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             SizeToContent = SizeToContent.WidthAndHeight,
          };
          window.Show();
-      }
-
-      private void DeveloperGetSHA1(object sender, EventArgs e) {
-         var tab = (ViewPort)ViewModel.SelectedTab;
-         var sha = SHA1.Create();
-         var result = string.Concat(sha.ComputeHash(tab.Model.RawData).Select(b => b.ToString("X2")));
-         FileSystem.ShowCustomMessageBox(result, showYesNoCancel: false);
-      }
-
-      private void DeveloperGetCRC32(object sender, EventArgs e) {
-         var tab = (ViewPort)ViewModel.SelectedTab;
-         var crc = Force.Crc32.Crc32Algorithm.Compute(tab.Model.RawData);
-         FileSystem.ShowCustomMessageBox(crc.ToString("X8"), showYesNoCancel: false);
       }
 
       private void DeveloperReloadMetadata(object sender, EventArgs e) {

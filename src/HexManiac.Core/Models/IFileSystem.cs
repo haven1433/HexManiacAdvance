@@ -108,7 +108,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       int ShowOptions(string title, string prompt, IReadOnlyList<IReadOnlyList<object>> additionalDetails, params VisualOption[] options);
 
       string RequestText(string title, string prompt);
+
+      bool? ShowCustomMessageBox(string message, bool showYesNoCancel = true, params ProcessModel[] links);
    }
+
+   public record ProcessModel(string DisplayText, string Content);
 
    public interface IWorkDispatcher {
       /// <summary>
