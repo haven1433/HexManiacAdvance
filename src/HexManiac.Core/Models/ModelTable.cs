@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
@@ -44,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
    }
 
-   public class ModelArrayElement {
+   public class ModelArrayElement : DynamicObject {
       private readonly IDataModel model;
       private readonly int arrayAddress;
       private readonly int arrayIndex;
@@ -229,5 +230,24 @@ namespace HavenSoft.HexManiac.Core.Models {
             throw new NotImplementedException();
          }
       }
+
+      #region DynamicObject
+
+      public override bool TryGetMember(GetMemberBinder binder, out object? result) {
+         result = null;
+         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == binder.Name);
+         if (seg == null) return base.TryGetMember(binder, out result);
+         result = this[seg.Name];
+         return true;
+      }
+
+      public override bool TrySetMember(SetMemberBinder binder, object? value) {
+         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == binder.Name);
+         if (seg == null) return base.TrySetMember(binder, value);
+         this[seg.Name] = value;
+         return true;
+      }
+
+      #endregion
    }
 }
