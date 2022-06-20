@@ -195,7 +195,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public bool SaveMetadata(string originalFileName, string[] metadata) {
          if (metadata == null) return true; // nothing to save
-         var metadataName = Path.ChangeExtension(originalFileName, ".toml");
+         var metadataName = originalFileName + ".toml";
+         if (originalFileName.ToLower().EndsWith(".gba")) {
+            metadataName = Path.ChangeExtension(originalFileName, ".toml");
+         }
          int tryCount = 0;
          while (tryCount < 5) {
             try {
