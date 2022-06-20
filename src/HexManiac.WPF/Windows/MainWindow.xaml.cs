@@ -604,6 +604,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          textbox.Focus();
          e.Handled = true;
       }
+
+      private void SetPythonPanelWidth(object sender, RoutedEventArgs e) {
+         TabContainer.ColumnDefinitions[2].Width = new GridLength(300);
+      }
    }
 
    public class CustomTraceListener : TraceListener {

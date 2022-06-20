@@ -4,11 +4,16 @@
       xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
       xmlns:hmar="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       Background="{DynamicResource Background}">
-   <DockPanel>
-      <TextBlock Name="ResultText" Text="{Binding ResultText}" DockPanel.Dock="Bottom" MinHeight="24" TextWrapping="Wrap" />
-      <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-         <local:AngleButton Content="Run" Direction="Out" Height="24" Command="{hmar:MethodCommand RunPython}"/>
-      </StackPanel>
-      <TextBox Margin="5" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" PreviewKeyDown="PythonTextKeyDown" FontSize="18" FontFamily="Consolas" />
-   </DockPanel>
+   <Grid>
+      <Grid.RowDefinitions>
+         <RowDefinition Height="*"/>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <TextBox Grid.Row="0" Margin="5" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" VerticalScrollBarVisibility="Visible"
+               AcceptsReturn="True" PreviewKeyDown="PythonTextKeyDown" PreviewMouseWheel="ChangeInputTextSize" />
+      <local:AngleButton HorizontalAlignment="Right" Margin="10,0" Grid.Row="1" Content="Run" Direction="Out" Height="24" Command="{hmar:MethodCommand RunPython}"/>
+      <TextBox Grid.Row="2" Margin="5" Text="{Binding ResultText}" FontFamily="Consolas" VerticalScrollBarVisibility="Visible"
+               IsReadOnly="True" BorderThickness="0" Background="{DynamicResource Background}" />
+   </Grid>
 </UserControl>

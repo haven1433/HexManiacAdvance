@@ -52,6 +52,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly ITableRun table;
       private readonly ModelDelta token;
 
+      public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
+
       public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token) {
          (this.model, arrayAddress, arrayIndex) = (model, address, index);
          table = (ITableRun)model.GetNextRun(arrayAddress);
@@ -65,11 +67,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg.Type == ElementContentType.PCS) {
-            return model.TextConverter.Convert(model, valueAddress, seg.Length);
+            return model.TextConverter.Convert(model, valueAddress, seg.Length).Trim('"');
          } else if (seg.Type == ElementContentType.Pointer) {
             valueAddress = model.ReadPointer(valueAddress);
             var length = PCSString.ReadString(model, valueAddress, true);
-            return model.TextConverter.Convert(model, valueAddress, length);
+            return model.TextConverter.Convert(model, valueAddress, length).Trim('"');
          } else {
             throw new NotImplementedException();
          }

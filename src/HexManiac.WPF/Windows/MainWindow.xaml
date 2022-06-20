@@ -208,6 +208,7 @@
                   <MenuItem Header="Reset _Alignment" Command="{Binding ResetAlignment}" />
                   <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
+                  <MenuItem Header="Show Automation Tool" Click="SetPythonPanelWidth"/>
                </MenuItem>
                <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
                   <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
@@ -496,19 +497,19 @@
          </StackPanel>
          <Border DockPanel.Dock="Top" Height="1" Background="{DynamicResource Backlight}"/>
          <Grid Background="{DynamicResource Background}">
-               <hsg3hv:StartScreen>
-                  <hsg3hv:StartScreen.Style>
-                     <Style TargetType="FrameworkElement">
-                        <Setter Property="Visibility" Value="Collapsed"/>
-                        <Style.Triggers>
-                           <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
-                              <Setter Property="Visibility" Value="Visible"/>
-                           </DataTrigger>
-                        </Style.Triggers>
-                     </Style>
-                  </hsg3hv:StartScreen.Style>
-               </hsg3hv:StartScreen>
-            <Grid>
+            <hsg3hv:StartScreen>
+               <hsg3hv:StartScreen.Style>
+                  <Style TargetType="FrameworkElement">
+                     <Setter Property="Visibility" Value="Collapsed"/>
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=Tabs, Path=SelectedIndex}" Value="-1">
+                           <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </hsg3hv:StartScreen.Style>
+            </hsg3hv:StartScreen>
+            <Grid Name="TabContainer">
                <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="1"/>

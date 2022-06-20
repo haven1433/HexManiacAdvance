@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using Microsoft.Scripting.Hosting;
 using System;
+using System.Collections;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PythonTool : ViewModelCore {
@@ -10,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private string text, resultText;
       public string Text { get => text; set => Set(ref text, value); }
-      public string ResultText { get=> resultText; set => Set(ref resultText, value); }
+      public string ResultText { get => resultText; set => Set(ref resultText, value); }
 
       public PythonTool(EditorViewModel editor) {
          this.editor = editor;
@@ -36,7 +37,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ErrorInfo RunPythonScript(string code) {
          try {
             var result = engine.Execute(code, scope);
-            var resultText = result?.ToString();
+            string resultText = result?.ToString();
+            if (result is IEnumerable enumerable && result is not string) {
+               resultText = string.Empty;
+               foreach (var item in enumerable) {
+                  if (resultText.Length > 0) resultText += Environment.NewLine;
+                  resultText += item.ToString();
+               }
+            }
             if (resultText == null) return ErrorInfo.NoError;
             return new ErrorInfo(resultText, isWarningLevel: true);
          } catch (Exception ex) {
