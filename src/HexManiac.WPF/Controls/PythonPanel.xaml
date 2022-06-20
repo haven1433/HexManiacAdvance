@@ -2,12 +2,13 @@
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+      xmlns:hmar="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       Background="{DynamicResource Background}">
    <DockPanel>
-      <TextBlock Name="ResultText" DockPanel.Dock="Bottom" MinHeight="24" TextWrapping="Wrap" />
+      <TextBlock Name="ResultText" Text="{Binding ResultText}" DockPanel.Dock="Bottom" MinHeight="24" TextWrapping="Wrap" />
       <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="10">
-         <local:AngleButton Content="Run" Direction="Out" Height="24" Click="RunPython"/>
+         <local:AngleButton Content="Run" Direction="Out" Height="24" Command="{hmar:MethodCommand RunPython}"/>
       </StackPanel>
-      <TextBox Margin="5" x:Name="PythonTextBox" AcceptsReturn="True" PreviewKeyDown="PythonTextKeyDown" FontSize="18" FontFamily="Consolas" />
+      <TextBox Margin="5" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" PreviewKeyDown="PythonTextKeyDown" FontSize="18" FontFamily="Consolas" />
    </DockPanel>
 </UserControl>

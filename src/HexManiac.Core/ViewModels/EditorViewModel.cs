@@ -361,6 +361,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public Theme Theme { get; }
 
+      public IFileSystem FileSystem => fileSystem;
+
       private string infoMessage;
       public string InformationMessage {
          get => infoMessage;
@@ -380,6 +382,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IReadOnlyList<IQuickEditItem> QuickEditsExpansion { get; }
 
       public IReadOnlyList<IQuickEditItem> QuickEditsMisc { get; }
+
+      public PythonTool PythonTool { get; }
 
       public Singletons Singletons { get; }
 
@@ -538,6 +542,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RecentFiles = new ObservableCollection<string>();
          }
          PopulateRecentFilesViewModel();
+         PythonTool = new PythonTool(this);
       }
 
       public static ICommand Wrap(IQuickEditItem quickEdit) => new StubCommand {

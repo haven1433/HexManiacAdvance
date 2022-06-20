@@ -589,7 +589,7 @@
                </TabControl>
                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4"/>
                <DockPanel Grid.Column="2">
-                  <hsg3hv:PythonPanel/>
+                  <hsg3hv:PythonPanel DataContext="{Binding PythonTool}"/>
                </DockPanel>
             </Grid>
             <Rectangle Fill="{DynamicResource Background}" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
