@@ -4,6 +4,11 @@ Name = '''data.header.romname'''
 Address = 0x000108
 Format = '''`asc`32'''
 
+[[NamedAnchors]]
+Name = '''sound.newgame.titlescreen.song'''
+Address = 0x0AAAE8
+Format = '''[track::songnames]1'''
+
 [[OffsetPointer]]
 Address = 0x038850
 Offset = 0x000004
