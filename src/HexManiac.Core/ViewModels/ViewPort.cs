@@ -50,6 +50,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public Singletons Singletons { get; }
 
+      public PythonTool PythonTool { get; }
+
       private HexElement[,] currentView;
       private bool exitEditEarly, withinComment, skipToNextGameCode;
 
@@ -831,8 +833,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
          Singletons = singletons ?? new Singletons();
+         PythonTool = pythonTool;
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
          this.dispatcher = dispatcher ?? InstantDispatch.Instance;
@@ -1313,6 +1316,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var thumbLength = (lines.Length - 1) + lines.Sum(line => line.Length);
                   i += thumbLength - 1;
                   InsertThumbCode(lines);
+               } else if (input[i] == '.' && input.Length > i + 7 && input.Substring(i + 1, 6).ToLower() == "python" && precededByWhitespace) {
+                  var lines = input.Substring(i).Split('\n', '\r');
+                  var endLine = lines.Length.Range().FirstOrDefault(j => (lines[j] + " ").ToLower().StartsWith(".end "));
+                  if (endLine == 0) endLine = lines.Length - 1;
+                  lines = lines.Take(endLine + 1).ToArray();
+                  var pythonLength = (lines.Length - 1) + lines.Sum(line => line.Length);
+                  i += pythonLength - 1;
+                  // note that we're ignoring any non-error result here
+                  var pythonContent = Environment.NewLine.Join(lines.Skip(1).Take(lines.Length - 2));
+                  var result = PythonTool.RunPythonScript(pythonContent);
+                  if (result.HasError && !result.IsWarning) {
+                     RaiseError(result.ErrorMessage);
+                     exitEditEarly = true;
+                  }
                } else {
                   Edit(input[i]);
                }
@@ -1478,7 +1495,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, dispatcher, Singletons, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, PythonTool, history);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, child);
       }
@@ -2756,6 +2773,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (currentText.StartsWith(".text")) {
             ClearEdits(point);
          } else if (currentText.StartsWith(".thumb")) {
+            ClearEdits(point);
+         } else if (currentText.StartsWith(".python")) {
             ClearEdits(point);
          } else {
             RaiseError($"'{currentText.Substring(1).Trim()}' is not a valid directive.");

@@ -577,7 +577,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ImplementCommands() {
          newCommand.CanExecute = CanAlwaysExecute;
-         newCommand.Execute = arg => Add(new ViewPort(string.Empty, new PokemonModel(new byte[0], singletons: Singletons), workDispatcher, Singletons));
+         newCommand.Execute = arg => Add(new ViewPort(string.Empty, new PokemonModel(new byte[0], singletons: Singletons), workDispatcher, Singletons, PythonTool));
 
          open.CanExecute = CanAlwaysExecute;
          open.Execute = ExecuteOpen;
@@ -672,7 +672,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             var metadata = new StoredMetadata(metadataText);
             var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
-            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons);
+            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, PythonTool);
             if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
                   fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());

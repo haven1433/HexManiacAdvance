@@ -29,14 +29,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void RunPython() {
-         try {
-            var result = engine.Execute(text, scope);
-            ResultText = result?.ToString() ?? "null";
-         } catch (Exception ex) {
-            ResultText = ex.Message;
-         }
-
+         ResultText = RunPythonScript(text).ErrorMessage ?? "null";
          editor.SelectedTab?.Refresh();
+      }
+
+      public ErrorInfo RunPythonScript(string code) {
+         try {
+            var result = engine.Execute(code, scope);
+            var resultText = result?.ToString();
+            if (resultText == null) return ErrorInfo.NoError;
+            return new ErrorInfo(resultText, isWarningLevel: true);
+         } catch (Exception ex) {
+            return new ErrorInfo(ex.Message);
+         }
       }
 
       public void Printer(string text) {
