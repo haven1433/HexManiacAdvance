@@ -283,7 +283,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private string errorMessage;
       public string ErrorMessage {
          get => errorMessage;
-         private set {
+         set {
             TryUpdate(ref errorMessage, value);
             ShowError = !string.IsNullOrEmpty(ErrorMessage);
          }

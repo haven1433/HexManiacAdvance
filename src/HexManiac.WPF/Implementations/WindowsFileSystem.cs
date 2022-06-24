@@ -41,7 +41,15 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                return string.Empty;
             }
          }
-         set => Clipboard.SetDataObject(value, true);
+         set {
+            try {
+               Clipboard.SetDataObject(value, true);
+            } catch (COMException) {
+               // something went wrong... we couldn't copy
+               var window = (MainWindow)Application.Current.MainWindow;
+               window.ViewModel.ErrorMessage = "Could not copy";
+            }
+         }
       }
 
       public (short[] image, int width) CopyImage {
