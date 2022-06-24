@@ -962,7 +962,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (word.EndsWith(")")) word = word.Substring(0, word.Length - 1).Trim();
 
          var more = 0;
-         if (word.Contains("+")) {
+         if (word.Contains("+") && !word.StartsWith("<")) {
             var parts = word.Split("+");
             if (parts.Length == 2) int.TryParse(parts[1], out more);
             word = parts[0];
