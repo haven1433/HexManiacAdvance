@@ -1,5 +1,4 @@
 # Add item effect for changing pokemon secondary types.
-# FireRed Only
 # After running this script:
 #   Set item effect -> 0x43=67
 #   Set effect parameter -> index of the type you want
@@ -14,22 +13,35 @@
 #            sMonSumaryScreen->unk3220[1] = data.items.stats[heldItem].param;
 
 
+
 # The main routine: check items on switch in for the new effect (0x43)
 
-@thumb.battle_util.item_effets.switch_in.cases(44) .thumb
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @01A02C
+@!game(BPRE0_BPGE0)             @01BC68
+@!game(BPRE1_BPGE1)             @01BC7C
+@!game(BPEE0)                   @0444DC
+@!game(All)                     ^thumb.battle_util.ItemBattleEffects
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @03CB60
+@!game(BPRE0_BPGE0)             @03FBE8
+@!game(BPRE1_BPGE1)             @03FBFC
+@!game(BPEE0)                   @06A518
+@!game(All)                     ^thumb.pokemon.GetMonData
+
+@thumb.battle_util.item_effects.switch_in.cases(40) .thumb
     cmp   r5, #23
     beq   <restore_stats>
     cmp   r5, #32
     beq   <double_money>
     cmp   r5, 0x43   @ the new value for type-changing items
     beq   <type_change>
-    ldr   r0, =<01CFA7>
+    ldr   r0, [pc, <no_effect>]
     bx    r0
 restore_stats:
-    ldr   r0, =<01BD95>
+    ldr   r0, [pc, <restore_stats_effect>]
     bx    r0
 double_money:
-    ldr   r0, =<01BD81>
+    ldr   r0, [pc, <double_money_effect>]
     bx    r0
 type_change:
     ldr   r1, [pc, <gBattleMons>]
@@ -42,29 +54,42 @@ type_change:
     add   r1, #0x22    @ .type2
     mov   r0, r9       @ = battlerHoldEffectParam;
     strb  r0, [r1, #0] @ gBattleMons[battlerId].type2 = battlerHoldEffectParam;
-    ldr   r0, =<01CFA7>
+    ldr   r0, [pc, <no_effect>]
     bx    r0
-gBattleMons:
-    .word 0x02023BE4
+gBattleMons:          .word 0x02023BE4
+no_effect:            .word <thumb.battle_util.ItemBattleEffects+133F>
+restore_stats_effect: .word <thumb.battle_util.ItemBattleEffects+12D>
+double_money_effect:  .word <thumb.battle_util.ItemBattleEffects+119>
 .end
 
-@01BD74 .thumb
-    ldr r0, =<thumb.battle_util.item_effets.switch_in.cases>
-    add r0, #1
+@thumb.battle_util.item_effects.switch_in.cases+30
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) 80 4A 02 02 <thumb.battle_util.ItemBattleEffects+139F> <thumb.battle_util.ItemBattleEffects+131> <thumb.battle_util.ItemBattleEffects+119>
+@!game(BPEE0)                   84 40 02 02 <thumb.battle_util.ItemBattleEffects+134F> <thumb.battle_util.ItemBattleEffects+13D> <thumb.battle_util.ItemBattleEffects+129>
+
+@!game(All)
+@thumb.battle_util.ItemBattleEffects+10C .thumb
+    ldr r0, =<thumb.battle_util.item_effects.switch_in.cases+1>
     bx  r0
 .end
 
 
-# summary screen routine: shows the right type based on hold item
 
-@thumb.pokemon_summary_screen.sub_81360D4.set_types(50) .thumb
+# summary screen routine FR/LG: shows the right type based on hold item
+
+@!game(BPRE0)                   @1360D4
+@!game(BPGE0)                   @1360AC
+@!game(BPRE1)                   @13614C
+@!game(BPGE1)                   @136124
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) ^thumb.pokemon_summary_screen.BufferMonInfo
+
+@thumb.pokemon_summary_screen.BufferMonInfo.set_types(50) .thumb
     push  {lr, r4-r6}        @ r4 = dexNum
     ldr   r6, [r6, #0]       @ r6 = sMonSummaryScreen
     ldr   r5, =0x3290        @ currentMon
     add   r0, r6, r5         @ sMonSummaryScreen->currentMon
     mov   r1, #12            @ Held_Item
-    ldr   r2, =0x0803FBE8
-    bl    <long_branch_link> @ r0 = GetMonData( , )
+    ldr   r2, =<thumb.pokemon.GetMonData>
+    bl    <long_branch_link> @ r0 = GetMonData(currentMon, Held_Item)
     ldr   r1, =0x3220
     ldr   r3, =<data.pokemon.stats>
     mov   r2, #28
@@ -92,15 +117,124 @@ long_branch_link:
     bx  r2
 .end
 
-@13617C .thumb
-    mov   r1, r4
-    bl    <040FD0>
+@thumb.pokemon_summary_screen.BufferMonInfo+AE .thumb
     bl    <long_branch_link>
-    b     <1361A0>
+    b     <thumb.pokemon_summary_screen.BufferMonInfo+E6>
 long_branch_link:
-    ldr   r0,  =<thumb.pokemon_summary_screen.sub_81360D4.set_types>
+    ldr   r0,  =<thumb.pokemon_summary_screen.BufferMonInfo.set_types>
     add   r0, #1
     bx    r0
 .end
 
-@136194 FFFFFFFF FFFFFFFF FFFFFFFF
+
+
+# summary screen routine Emerald: shows the right type based on hold item
+@!game(BPEE0)
+@1C4204 ^thumb.pokemon_summary_screen.SetSpriteInvisibility
+@1C4318 ^thumb.pokemon_summary_screen.SetTypeSpritePosAndPal
+@1C43A0 ^thumb.pokemon_summary_screen.SetMonTypeIcons
+
+@thumb.pokemon_summary_screen.SetType2Sprite(54) .thumb
+    @r4 is data.pokemon.stats
+    @[r5, 0] is summary->species
+    ldrh  r1, [r5, #0]
+    mov   r0, #28
+    mul   r0, r1       @ species*28
+    add   r3, r0, r4   @ r3 = gBaseStats+species*28 (start of pokemon stats)
+    ldrh  r2, [r5, #46] @ r2 = item
+    mov   r1, #44
+    mul   r2, r1        @ r2 = heldItem*44
+    ldr   r4, =<data.items.stats>
+    add   r4, r4, r2         @ r4 = data.items.stats+heldItem*44
+    ldrb  r5, [r4, #19]      @ r5 = data.items.stats[heldItem].holdeffectparam
+    ldrb  r4, [r4, #18]      @ r4 = data.items.stats[heldItem].holdeffect
+    cmp   r4, #0x43
+    bne   <type_2_from_species>
+type_2_from_item:
+    mov   r0, r5
+    b     <have_type_2>
+type_2_from_species:
+    ldrb  r0, [r3, #7]
+have_type_2:
+    ldrb  r1, [r3, #6]  @ r1 = type1
+    cmp   r0, r1
+    beq   <invisible_type2>
+    mov   r1, #160
+    mov   r2, #48
+    mov   r3, #4
+    ldr   r5, =<thumb.pokemon_summary_screen.SetTypeSpritePosAndPal>
+    bl    <long_branch_link>
+    mov   r1, #0
+    b     <end>
+invisible_type2:
+    mov   r1, #1
+end:
+    mov   r0, #4
+    ldr   r5, =<thumb.pokemon_summary_screen.SetSpriteInvisibility>
+    bl    <long_branch_link>
+    pop   {r4-r5, pc}
+long_branch_link:
+    add   r5, #1
+    bx    r5
+.end
+
+@thumb.pokemon_summary_screen.SetMonTypeIcons+44 .thumb
+    ldr   r0, =<thumb.pokemon_summary_screen.SetType2Sprite+1>
+    bx    r0
+.end
+
+
+
+# summary screen routine Ruby/Sapphire
+
+@!game(AXVE0_AXPE0)             @0A198C
+@!game(AXVE1_AXPE1)             @0A19AC
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) ^thumb.pokemon_summary_screen.SetTypeSpritePosAndPal
+@!game(AXVE0_AXPE0)             @09FC34
+@!game(AXVE1_AXPE1)             @09FC54
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) ^thumb.pokemon_summary_screen.SummaryScreen_PrintPokemonInfo
+
+@thumb.pokemon_summary_screen.printtype(44) .thumb
+    @ r4 is type1
+    @ ldrb  ..., [r5, #7] is type2
+    @ r6 is mon (arg0 for GetMonData)
+    push  {r4-r7, lr}
+    ldrb  r5, [r5, #7]
+    ldr   r7, =<thumb.pokemon.GetMonData>
+    mov   r0, r6
+    mov   r1, #12
+    bl    <long_branch_link> @ GetMonData(r6, HoldItem)
+    ldr   r1, =<data.items.stats>
+    mov   r2, #44
+    mul   r0, r2
+    add   r1, r0
+    ldrb  r0, [r1, #18] @ r0 = item.effect
+    cmp   r0, #0x43
+    bne   <compare_types>
+    ldrb  r5, [r1, #19]
+compare_types:
+    cmp   r5, r4
+    beq   <end>
+    ldr   r7, =<thumb.pokemon_summary_screen.SetTypeSpritePosAndPal>
+    mov   r0, r5
+    mov   r1, #160
+    mov   r2, #48
+    mov   r3, #1
+    bl    <long_branch_link> @ SetTypeSpritePosAndPal(type2, 160, 48, 1);
+end:
+    pop {r4-r7, pc}
+long_branch_link:
+    add r7, #1
+    bx r7
+.end
+
+@thumb.pokemon_summary_screen.SummaryScreen_PrintPokemonInfo+1B2 .thumb
+    bl  <long_branch_link>
+    b   <thumb.pokemon_summary_screen.SummaryScreen_PrintPokemonInfo+1C4>
+long_branch_link:
+    ldr r0, =<thumb.pokemon_summary_screen.printtype>
+    add r0, #1
+    bx  r0
+.end
+
+@!game(All)
