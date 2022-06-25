@@ -72,9 +72,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewModel = new ComboBoxArrayElementViewModel(viewPort, selection, item.Name, itemAddress, item.Length);
                   var anchor = viewPort.Model.GetAnchorFromAddress(-1, table.Start);
                   var enumSourceTableStart = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumSegment.EnumName);
-                  if (!string.IsNullOrEmpty(anchor) && viewPort.Model.GetDependantArrays(anchor).Count() == 1 && enumSourceTableStart >= 0) {
-                     Add(viewModel);
-                     viewModel = new BitListArrayElementViewModel(viewPort, item.Name, itemAddress);
+                  if (!string.IsNullOrEmpty(anchor)) {
+                     var dependentArrays = viewPort.Model.GetDependantArrays(anchor).ToList();
+                     if (dependentArrays.Count == 1 && enumSourceTableStart >= 0 && dependentArrays[0].ElementContent[0] is ArrayRunBitArraySegment) {
+                        Add(viewModel);
+                        viewModel = new BitListArrayElementViewModel(viewPort, item.Name, itemAddress);
+                     }
                   }
                } else if (item is ArrayRunTupleSegment tupleItem) {
                   viewModel = new TupleArrayElementViewModel(viewPort, tupleItem, itemAddress);
