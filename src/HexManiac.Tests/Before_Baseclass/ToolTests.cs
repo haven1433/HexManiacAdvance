@@ -873,5 +873,21 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(1, counter);
       }
+
+      /// <summary>
+      /// Because of the way bx instructions work, it's expected for pointer to point to the address of a thumb routine _plus one_.
+      /// Make sure that editing the thumb routine doesn't destroy the pointer format.
+      /// </summary>
+      [Fact]
+      public void PointerToThumbRoutinePlusOne_EditThumb_StillPointer() {
+         ViewPort.Edit("@100 <011> ");
+
+         ViewPort.Edit(@"@10 .thumb
+            push {lr}
+            pop  {pc}
+         .end");
+
+         Assert.IsType<PointerRun>(Model.GetNextRun(0x100));
+      }
    }
 }

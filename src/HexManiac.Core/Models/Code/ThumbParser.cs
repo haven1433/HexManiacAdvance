@@ -188,7 +188,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var result = Compile(model, start, out var newRuns, lines);
 
          // we want to clear the format since pointers may have moved
-         model.ClearFormat(token, start, result.Count);
+         // but be careful not to clear any pointers to this routine+1, because of the way bx instructions work
+         model.ClearFormat(token, start, 1);
+         if (result.Count > 1) model.ClearFormat(token, start + 1, result.Count - 1);
          // but we want to keep an initial anchor pointing to this code block if there was one.
          if (!string.IsNullOrEmpty(initialAnchor)) model.ObserveAnchorWritten(token, initialAnchor, new NoInfoRun(start));
 
