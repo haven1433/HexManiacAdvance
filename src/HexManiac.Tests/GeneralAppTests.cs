@@ -631,6 +631,21 @@ ApplicationVersion = '''0.1.0'''
          Assert.IsType<PokemonModel>(viewPort.Model);
       }
 
+      [Fact]
+      public void Tab_SaveAs_UpdatesRecentFiles() {
+         var filename = "Test.gba";
+
+         editor.Add(new StubViewPort {
+            FileName = filename,
+            SaveAs = new StubCommand {
+               CanExecute = arg => true,
+            },
+         });
+
+         editor.SaveAs.Execute();
+         Assert.Contains(filename, editor.RecentFiles);
+      }
+
       private StubTabContent CreateClosableTab() {
          var tab = new StubTabContent();
          var close = new StubCommand { CanExecute = arg => true };
