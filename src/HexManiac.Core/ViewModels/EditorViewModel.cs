@@ -984,6 +984,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
                   using (new StubDisposable { Dispose = () => fileSystem.AddListenerToFile(viewPort.FileName, viewPort.ConsiderReload) }) {
                      innerCommand.Execute(fileSystem);
+                     UpdateRecentFiles(viewPort.FileName);
                   }
                } else {
                   if (tab is ViewPort vp) vp.MaxDiffSegmentCount = this.maxDiffSegCount;
