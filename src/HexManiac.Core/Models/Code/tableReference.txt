@@ -545,8 +545,6 @@ graphics.newgame.player.female.palette,        ,       ,       ,       , 131240,
 graphics.newgame.player.female.sprite,         ,       ,       ,       , 131244, 13121C, 1312BC, 131294,       , `lzs8x8x12|graphics.newgame.player.female.palette`
 graphics.newgame.rival.palette,                ,       ,       ,       , 131260, 131238, 1312D8, 1312B0,       , `ucp4:67`
 graphics.newgame.rival.sprite,                 ,       ,       ,       , 131264, 13123C, 1312DC, 1312B4,       , `lzs8x8x12|graphics.newgame.rival.palette`
-graphics.newgame.rival.nameselection.palette,  , , , , 3E23C8, 3E2204, 3E2438, 3E2274, , `ucp4`
-graphics.newgame.rival.nameselection.sprite,   , , , , 3E23C0, 3E21FC, 3E2430, 3E226C, , `ucs4x2x36|graphics.newgame.rival.nameselection.palette`
 graphics.newgame.professor.palette,            ,       ,       ,       , 131300, 1312D8, 131378, 131350,       , `ucp4:67`
 graphics.newgame.professor.sprite,             ,       ,       ,       , 131304, 1312DC, 13137C, 131354,       , `lzs8x8x12|graphics.newgame.professor.palette`
 graphics.newgame.professor.palette,      39F114, 39EF5C, 39F12C, 39EF74,       ,       ,       ,       , 55C230, `ucp4`
@@ -671,6 +669,10 @@ graphics.overworld.sprites,                  ,       ,       ,       ,       ,  
 graphics.overworld.sprites2,           05AB4C, 05AB50, 05AB6C, 05AB70, 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36
 graphics.overworld.sprites2,                 ,       ,       ,       ,       ,       ,       ,       , 08D4EC, [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]37
 graphics.overworld.textcolor,                ,       ,       ,       , 13CD44, 13CD1C, 13CDBC, 13CD94,       , [data.|t|low::|high::]76
+
+# these should be loaded after the overworld palettes because some hacks change these semi-overworld sprites to use overworld palettes (example, Vega)
+graphics.newgame.rival.nameselection.palette,  , , , , 3E23C8, 3E2204, 3E2438, 3E2274, , `ucp4`
+graphics.newgame.rival.nameselection.sprite,   , , , , 3E23C0, 3E21FC, 3E2430, 3E226C, , `ucs4x2x36|graphics.newgame.rival.nameselection.palette`
 
 graphics.text.font.other.characters, ,,,, 00658C, 00658C, 0065A0, 0065A0, 0068BC, `ucs2x2x1024`
 graphics.text.font.other.width,      ,,,, 006594, 006594, 0065A8, 0065A8, 0068C4, [width.]512
