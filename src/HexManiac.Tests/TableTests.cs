@@ -1085,6 +1085,36 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<EndStream>(ViewPort[1, 0].Format);
       }
 
+      [Fact]
+      public void TwoTablesWithLengthFromConstant_ExpandOneTable_BothTablesAndConstantChanged() {
+         SetFullModel(0xFF);
+         Model[0x20] = 2;
+         ViewPort.Edit("@20 .constant.value ");
+         ViewPort.Edit("@00 ^table1[a.]constant.value ");
+         ViewPort.Edit("@10 ^table2[b.]constant.value ");
+
+         ViewPort.Edit("@02 +");
+
+         Assert.Equal(3, Model.GetTable("table1").ElementCount);
+         Assert.Equal(3, Model.GetTable("table2").ElementCount);
+         Assert.Equal(3, Model[0x20]);
+      }
+
+      [Fact]
+      public void TwoTablesWithLengthFromContstant_ExpandConstant_BothTablesAndConstantChanged() {
+         SetFullModel(0xFF);
+         Model[0x20] = 2;
+         ViewPort.Edit("@20 .constant.value ");
+         ViewPort.Edit("@00 ^table1[a.]constant.value ");
+         ViewPort.Edit("@10 ^table2[b.]constant.value ");
+
+         ViewPort.Edit("@20 3 ");
+
+         Assert.Equal(3, Model.GetTable("table1").ElementCount);
+         Assert.Equal(3, Model.GetTable("table2").ElementCount);
+         Assert.Equal(3, Model[0x20]);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

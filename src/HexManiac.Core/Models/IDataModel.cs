@@ -604,6 +604,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var newTable = ExtendTableAndChildren(model, changeToken, table, count);
+         foreach (var otherTable in model.TablesWithSameConstantForLength(newTable)) {
+            ExtendTableAndChildren(model, changeToken, otherTable, count);
+         }
 
          if (newTable.Start != table.Start && string.IsNullOrEmpty(currentArrayName)) {
             table = newTable;
@@ -648,6 +651,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          newRun = newRun.Append(changeToken, count);
          model.ObserveRunWritten(changeToken, newRun);
          return newRun;
+      }
+
+      public static IEnumerable<ITableRun> TablesWithSameConstantForLength(this IDataModel model, ITableRun tableRun) {
+         if (tableRun is not ArrayRun arrayRun) yield break;
+         var constants = model.GetMatchedWords(arrayRun.LengthFromAnchor);
+         if (constants == null || constants.Count == 0) yield break;
+         foreach (var array in model.Arrays) {
+            if (tableRun == array) continue;
+            if (array.LengthFromAnchor != arrayRun.LengthFromAnchor) continue;
+            yield return array;
+         }
       }
 
       public static IFormattedRun GetNextAnchor(this IDataModel model, string name) => model.GetNextRun(model.GetAddressFromAnchor(new ModelDelta(), -1, name));
