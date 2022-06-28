@@ -1,0 +1,18 @@
+# Make Starters Expandable (Emerald)
+# This effects the Professor's bag scene (special 0x9F)
+# Pokeball coordinates must be a multiple of 4!
+# Thanks to CynoxxKh for helping with the research
+
+@!game(BPEE0)
+
+# this updates the thumb code for starter_choose.CB2_ChooseStarter
+# it puts CreateSprite for pokeballs be in a loop, so it's expandable
+@133F0C F0
+@134110 00 27 29 78 6A 78 30 1C 02 23 D2 F6 6B FE 44 21 41 43 41 44 CC 85 38 1C 08 86 01 37 02 35 03 2F EF D1
+@13412E .scripts.newgame.starters.count
+@13417A F0
+
+
+# that's it! Now you can safely expand
+@scripts.newgame.starters.pokemon
+

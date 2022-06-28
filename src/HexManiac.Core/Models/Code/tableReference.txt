@@ -27,7 +27,11 @@ scripts.newgame.names.female,          00B7F4, 00B7F4, 00B7F4, 00B7F4,       ,  
 scripts.newgame.names.female,                ,       ,       ,       , 1316EC, 1316C4, 131764, 13173C,       , [name<"">]19
 scripts.newgame.names.female,                ,       ,       ,       ,       ,       ,       ,       , 031E10, [name<"">]20
 scripts.newgame.names.rival,                 ,       ,       ,       , 131750, 131728, 1317C8, 1317A0,       , [name<"">]4
-scripts.newgame.starters,              109E68, 109E68, 109E88, 109E88,       ,       ,       ,       , 133EF4, [option:data.pokemon.names]3
+scripts.newgame.starters.pokemon,      109E68, 109E68, 109E88, 109E88,       ,       ,       ,       ,       , [option:data.pokemon.names]3
+scripts.newgame.starters.pokemon,            ,       ,       ,       ,       ,       ,       ,       , 133EF4, [option:data.pokemon.names]scripts.newgame.starters.count
+scripts.newgame.starters.labels,             ,       ,       ,       ,       ,       ,       ,       , 1345F0, [x. y.]scripts.newgame.starters.count
+scripts.newgame.starters.pokeballs,          ,       ,       ,       ,       ,       ,       ,       , 1341D8, [x. y.]scripts.newgame.starters.count
+scripts.newgame.starters.pointer,            ,       ,       ,       ,       ,       ,       ,       , 134734, [x. y.]scripts.newgame.starters.count
 
 data.maps.names,                       0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [a b c d name<"">]
 data.maps.names,                             ,       ,       ,       , 0C0C94, 0C0C68, 0C0CA8, 0C0C7C,       , [name<"">]

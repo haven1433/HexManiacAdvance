@@ -227,6 +227,9 @@ BPRE1.scripts.newgame.professor.pokemon  12FBB0,130FB8,130FC4 # ID of the pokemo
 BPGE1.scripts.newgame.professor.pokemon  12FB88,130F90,130F9C # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
 BPEE0:scripts.newgame.professor.pokemon  031924,030B0C        # ID of the pokemon shown during the professor's introduction
 
+BPEE0.scripts.newgame.starters.count     133EE2
+BPEE0.scripts.newgame.starters.count-2   13431E
+
 # Catchmap. See http://sfc.pokefans.net/lesson.php?id=20
 BPRE0.data.maps.catchmap.conversion.kanto.length 13CA9C
 BPRE1.data.maps.catchmap.conversion.kanto.length 13CB14
