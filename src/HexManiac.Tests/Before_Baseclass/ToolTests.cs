@@ -889,5 +889,23 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.IsType<PointerRun>(Model.GetNextRun(0x100));
       }
+
+      [Fact]
+      public void LdrToAnchorPlusOneOutsideBraces_Compile_PointerIsCorrect() {
+         Model.ObserveAnchorWritten(Token, "anchor", new NoInfoRun(0x100));
+
+         ViewPort.Tools.CodeTool.Parser.Compile(Token, Model, 0, "ldr r0, =<anchor>+1", "bx r0");
+
+         Assert.Equal(0x101, Model.ReadPointer(4));
+      }
+
+      [Fact]
+      public void LdrToAnchorPlusOneInsideBraces_Compile_PointerIsCorrect() {
+         Model.ObserveAnchorWritten(Token, "anchor", new NoInfoRun(0x100));
+
+         ViewPort.Tools.CodeTool.Parser.Compile(Token, Model, 0, "ldr r0, =<anchor+1>", "bx r0");
+
+         Assert.Equal(0x101, Model.ReadPointer(4));
+      }
    }
 }

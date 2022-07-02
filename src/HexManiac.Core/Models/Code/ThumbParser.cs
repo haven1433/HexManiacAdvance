@@ -964,7 +964,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (word.EndsWith(")")) word = word.Substring(0, word.Length - 1).Trim();
 
          var more = 0;
-         if (word.Contains("+") && !word.StartsWith("<")) {
+         if (word.IndexOf("+") > word.IndexOf(">")) {
             var parts = word.Split("+");
             if (parts.Length == 2) int.TryParse(parts[1], out more);
             word = parts[0];
