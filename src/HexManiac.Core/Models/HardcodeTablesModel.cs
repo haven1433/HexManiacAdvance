@@ -119,10 +119,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (gameCode == Emerald && data.Length > EarliestAllowedAnchor && data[0x1C3] == 0x08) ObserveRunWritten(noChangeDelta, new PointerRun(0x1C0));
 
                var gamesToDecode = new[] { Ruby, Sapphire, Emerald, FireRed, LeafGreen, Ruby1_1, Sapphire1_1, FireRed1_1, LeafGreen1_1, "BPRF0" };
+
+               foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.PadRight(4).Substring(0, 4).ToLower(), gameCode.ToLower())) {
+                  this.LoadMetadata(defaultMetadata);
+               }
                if (gamesToDecode.Contains(gameCode)) {
-                  foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.Substring(0, 4).ToLower(), gameCode.ToLower())) {
-                     this.LoadMetadata(defaultMetadata);
-                  }
                   if (singletons.GameReferenceTables.TryGetValue(gameCode, out var referenceTables)) {
                      DecodeTablesFromReference(referenceTables);
                   }

@@ -671,7 +671,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
             }
             var metadata = new StoredMetadata(metadataText);
-            var model = new HardcodeTablesModel(Singletons, file.Contents, metadata);
+            IDataModel model = file.Name.ToLower().EndsWith(".gba") ?
+               new HardcodeTablesModel(Singletons, file.Contents, metadata) :
+               new PokemonModel(file.Contents, metadata, Singletons);
             var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, PythonTool);
             if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
