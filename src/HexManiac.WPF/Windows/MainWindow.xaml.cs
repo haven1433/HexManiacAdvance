@@ -550,6 +550,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                var blockOffset = blockOffsetY * imageWidth + blockOffsetX;
                var pixelIndex = blockStart + blockOffset;
                var address = (i * BlockSize * BlockSize * BytesPerPixel) + j;
+               if (address < 0 || address >= model.Count) break;
                var run = model.GetNextRun(address);
                if (model[address] == 0xFF) {
                   imageData[pixelIndex] = backlight;
