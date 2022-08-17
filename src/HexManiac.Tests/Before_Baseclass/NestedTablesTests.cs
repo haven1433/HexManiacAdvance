@@ -254,7 +254,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit($"^{HardcodeTablesModel.LevelMovesTableName}[data<`plm`>]{HardcodeTablesModel.PokemonNameTable} ");
 
          viewPort.Goto.Execute("000110"); // jump to the anchor for Bob's moves
-         Assert.Contains($"| {HardcodeTablesModel.LevelMovesTableName}/Bob/data", viewPort.SelectedAddress);
+         Assert.Contains($"{HardcodeTablesModel.LevelMovesTableName}/Bob/data", viewPort.SelectedElementName);
       }
 
       [Fact]

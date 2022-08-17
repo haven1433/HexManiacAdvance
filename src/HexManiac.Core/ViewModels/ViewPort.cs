@@ -186,21 +186,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private StubCommand gotoCommand;
       private void ExecuteGoto(object arg) {
-         if (arg is string str) {
-            var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
-            if (possibleMatches.Count == 1) str = possibleMatches[0];
-            else if (possibleMatches.Count > 1 && possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
-            var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length < 3).ToList();
-            if (words.Count == 1) {
-               selection.Goto.Execute(words[0]);
-               return;
-            } else if (words.Count > 1) {
-               OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
-               return;
+         Model.InitializationWorkload.ContinueWith(task => {
+            if (arg is string str) {
+               var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
+               if (possibleMatches.Count == 1) str = possibleMatches[0];
+               else if (possibleMatches.Count > 1 && possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
+               var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length < 3).ToList();
+               if (words.Count == 1) {
+                  selection.Goto.Execute(words[0]);
+                  return;
+               } else if (words.Count > 1) {
+                  OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
+                  return;
+               }
             }
-         }
 
-         selection.Goto.Execute(arg);
+            selection.Goto.Execute(arg);
+         }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
@@ -315,28 +317,45 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private string selectedAddress;
+      #region Selected Address/ElementName/Length, bottom row
+
+      private string selectedAddress, selectedLength, selectedElementName;
       public string SelectedAddress {
          get => selectedAddress;
-         private set => TryUpdate(ref selectedAddress, value);
+         set => Set(ref selectedAddress, value, SelectedAddressChanged);
       }
+      public string SelectedLength {
+         get => selectedLength;
+         set => Set(ref selectedLength, value, SelectedLengthChanged);
+      }
+      public string SelectedElementName => selectedElementName;
 
       private void UpdateSelectedAddress() {
          var dataIndex1 = scroll.ViewPointToDataIndex(SelectionStart);
          var dataIndex2 = scroll.ViewPointToDataIndex(SelectionEnd);
          var left = Math.Min(dataIndex1, dataIndex2);
-         var result = "Address: " + left.ToString("X6");
+         Set(ref selectedAddress, left.ToAddress(), nameof(SelectedAddress));
 
          var elementName = BuildElementName(Model, left);
-         if (!string.IsNullOrWhiteSpace(elementName)) result += $" | {elementName}";
+         Set(ref selectedElementName, elementName ?? string.Empty, nameof(SelectedElementName));
 
-         if (!SelectionStart.Equals(SelectionEnd)) {
-            int length = Math.Abs(dataIndex1 - dataIndex2) + 1;
-            result += $" | {length} bytes selected";
-         }
-
-         SelectedAddress = result;
+         int length = Math.Abs(dataIndex1 - dataIndex2) + 1;
+         Set(ref selectedLength, length.ToString("X1"), nameof(SelectedLength));
       }
+
+      private void SelectedAddressChanged(string old) {
+         if (!selectedAddress.TryParseHex(out int address)) return;
+         SelectionStart = ConvertAddressToViewPoint(address);
+      }
+
+      private void SelectedLengthChanged(string old) {
+         if (!selectedLength.TryParseHex(out int length)) return;
+         var left = Math.Min(ConvertViewPointToAddress(SelectionStart), ConvertViewPointToAddress(SelectionEnd));
+         SelectionStart = ConvertAddressToViewPoint(left);
+         SelectionEnd = ConvertAddressToViewPoint(left + length - 1);
+      }
+
+      #endregion
 
       public static string BuildElementName(IDataModel model, int address) {
          var run = model.GetNextRun(address);

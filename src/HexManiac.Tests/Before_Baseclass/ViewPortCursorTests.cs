@@ -445,6 +445,29 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x101, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionStart));
       }
 
+      [Fact]
+      public void SelectByte_SetSelectionLength_SelectMoreBytes() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.SelectedAddress = "000100";
+         test.ViewPort.SelectedLength = "3";
+
+         Assert.Equal(0x000100, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionStart));
+         Assert.Equal(0x000102, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionEnd));
+      }
+
+      [Fact]
+      public void SelectLeft_SetSelectionLength_ChangeSelectionEndToSelectionStart() {
+         var test = new BaseViewModelTestClass();
+
+         test.ViewPort.SelectionStart = new(2, 0);
+         test.ViewPort.SelectionEnd = new(1, 0);
+         test.ViewPort.SelectedLength = "3";
+
+         Assert.Equal(1, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionStart));
+         Assert.Equal(3, test.ViewPort.ConvertViewPointToAddress(test.ViewPort.SelectionEnd));
+      }
+
       private static void CreateStandardTestSetup(out ViewPort viewPort, out PokemonModel model, out byte[] data) {
          data = new byte[0x200];
          model = new PokemonModel(data);

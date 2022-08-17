@@ -36,9 +36,17 @@
                   <Path Data="{hsv:Icon Search}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                </Button>
             </StackPanel>
-            <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedAddress}" MouseRightButtonUp="AddressShowMenu" Margin="10,0,0,0"/>
+            <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="10,0,0,0">
+               <TextBlock Text="Address:" />
+            </hsg3hv:AngleBorder>
+            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="60" Direction="Out" TextBinding="{Binding SelectedAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
+            <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="5,0,0,0">
+               <TextBlock Text="Length:" />
+            </hsg3hv:AngleBorder>
+            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="40" Direction="Out" TextBinding="{Binding SelectedLength, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
+            <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedElementName}" Margin="5,0,0,0"/>
             <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">
-               <TextBlock Margin="10,0,0,0" Text="{Binding SelectedBytes}" MouseRightButtonUp="BytesShowMenu"/>
+               <TextBlock Margin="5,0,0,0" Text="{Binding SelectedBytes}" MouseRightButtonUp="BytesShowMenu"/>
             </Grid>
          </DockPanel>
          <Rectangle Visibility="{Binding UpdateInProgress, Converter={StaticResource BoolToVisibility}}">

@@ -322,7 +322,7 @@ namespace HavenSoft.HexManiac.Tests {
          test.ViewPort.SelectionStart = new Point(3, 0);
          test.ViewPort.SelectionEnd = new Point(0, 0);
 
-         Assert.Contains("| 4 bytes selected", test.ViewPort.SelectedAddress);
+         Assert.Contains("4", test.ViewPort.SelectedLength);
       }
 
       [Fact]
