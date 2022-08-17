@@ -412,7 +412,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void FocusGotoBox(object sender = default, EventArgs e = default) {
-         if (!GotoBox.IsFocused) FocusTextBox(GotoBox.GetTextBox());
+         if (!GotoBox.GetTextBox().IsKeyboardFocused) FocusTextBox(GotoBox.GetTextBox());
       }
 
       private void FocusTextBox(TextBox textBox) {
