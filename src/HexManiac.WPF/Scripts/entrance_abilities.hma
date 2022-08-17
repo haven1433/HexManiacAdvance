@@ -15,6 +15,8 @@
 #            gBattleScripting.battler = battler;
 #            ++effect;
 
+
+
 # setup anchors
 @1D927F ^scripts.abilities.entrance.drizzle`bse`
 @1D92BF ^scripts.abilities.entrance.sandstream`bse`
@@ -35,6 +37,8 @@
 # End Table   #  00 00 FF FF FF FF FF FF
 @data.abilities.entrance ^data.abilities.entrance[ability:data.abilities.names animation:data.pokemon.moves.names script<`bse`>]!0000
 
+
+
 # main routine
 @thumb.abilities.entrance(90) .thumb
     push  {r0-r7}
@@ -54,7 +58,7 @@
         mov   r1, r10 @ battler
         mov   r2, #20
         mul   r1, r2
-        ldr   r2, =0x02023ECC @ gSpecialStatuses
+        ldr   r2, [pc, <gSpecialStatuses>]
         add   r1, r2
         ldrb  r3, [r1, #1]    @ gSpecialStatuses[battler].0 (entrance is bit 9, previously unused)
         lsl   r3, r3, #31     @ put bit 9 in the negative bit slot
@@ -66,7 +70,7 @@
         orr   r3, r5
         strb  r3, [r1, #1]
         @ gBattleStruct->intimidateBattler = battler;
-        ldr   r0, =0x02023FE8
+        ldr   r0, [pc, <intimidateBattler>]
         ldr   r0, [r0, #0]
         add   r0, #216
         mov   r1, r10 @ battler
@@ -79,14 +83,14 @@
         mov   r0, r10
         mov   r1, #1
         eor   r1, r0
-        ldr   r0, =0x02023d6c @ gBattlerTarget
+        ldr   r0, [pc, <gBattlerTarget>]
         strb  r1, [r0, #0]
         @ gCurrentMove = data.abilities.entrance[i].move // 02023d4a
-        ldr   r0, =0x02023d4a
+        ldr   r0, [pc, <gCurrentMove>]
         ldrh  r1, [r4, #2]
         strh  r1, [r0, #0]
         @ gBattleScripting.battler = battler;
-        ldr   r0, =0x02023FC4 @ gBattleScripting
+        ldr   r0, [pc, <gBattleScripting>]
         mov   r1, r10
         strb  r1, [r0, #23] @ .battler
         @ ++effect;
@@ -104,6 +108,11 @@
     long_branch:
         ldr   r1, =<01BC25>
         bx    r1
+    gCurrentMove:      .word 0x02023D4A
+    gBattlerTarget:    .word 0x02023D6C
+    gSpecialStatuses:  .word 0x02023ECC
+    gBattleScripting:  .word 0x02023FC4
+    intimidateBattler: .word 0x02023FE8
 .end
 
 

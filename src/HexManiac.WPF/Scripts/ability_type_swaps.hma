@@ -1,5 +1,4 @@
 # Introduce a new ability type-swap table.
-# FireRed Only
 # Abilities in this table will change moves of one type to another
 # Example: Pixilate
 
@@ -20,10 +19,21 @@
 
 
 
-# main routine
+# mark the divide method
+@!game(AXVE0) @1E0868 @!game(AXPE0) @1E07F8
+@!game(AXVE1) @1E0880 @!game(AXPE1) @1E0810
+@!game(BPRE0) @1E4018 @!game(BPGE0) @1E3FF4
+@!game(BPRE1) @1E4088 @!game(BPGE1) @1E4064
+@!game(BPEE0) @2E7540
+@!game(All)   ^thumb.divide
+
+
+
+# main routine (FR/LG/Emerald)
+@!game(BPRE0_BPGE0_BPRE1_BPGE1_BPEE0)
 @thumb.abilities.typeswaps(B0) .thumb
     @ from original script
-    push  {r4-r7, lr}
+    push  {r4-r7, lr} # TODO in ruby, we push 6 registers, not just 4
     sub   sp, #16
 
     @ r0 = current pokemon ability
@@ -79,7 +89,7 @@
         ldr   r0, [r0, #0]
         strb  r3, [r0, #19] @ gBattleStruct->dynamicMoveType = data.abilities.typeswaps[i].change | 0x40
     checkInitialDynamicBasePower:
-        ldr   r5, =0x02023F50 @ gDynamicBasePower
+        ldr   r5, [pc, <gDynamicBasePower>]
         ldrh  r0, [r5, #0]
         cmp r0, #0
         bne <scalePower>
@@ -100,28 +110,141 @@
         strh  r0, [r5, #0]   @ gDynamicBasePower = gDynamicBasePower * scale / 100
     end:
         @ from original script
-        ldr   r4, =0x02023DDE
-        ldr   r5, =0x02023D6C
+        ldr   r4, [pc, <gSideStatuses>]
+        ldr   r5, [pc, <gBattlerTarget>]
         @ return to original script
-        ldr   r0, =<scripts.battle.thumb/5/code/>+8
+        ldr   r0, =<scripts.battle.thumb/5/code/+8>  @ damagecalc
         bx    r0
-    gBattleMons:      .word 0x02023BE4
-    gBattlerAttacker: .word 0x02023D6B
-    gCurrentMove:     .word 0x02023D4A
-    gBattleStruct:    .word 0x02023FE8
     divide:
-        ldr   r2, =<1E4018>+1
+        ldr   r2, =<thumb.divide+1>
         bx    r2
+    gBattleMons:       .word 0x02023BE4
+    gCurrentMove:      .word 0x02023D4A
+    gBattlerAttacker:  .word 0x02023D6B
+    gBattlerTarget:    .word 0x02023D6C
+    gSideStatuses:     .word 0x02023DDE
+    gDynamicBasePower: .word 0x02023F50
+    gBattleStruct:     .word 0x02023FE8
 .end
+
+@!game(BPEE0)
+@thumb.abilities.typeswaps+8C .thumb
+    gBattleMons:       .word 0x02024084
+    gCurrentMove:      .word 0x020241EA
+    gBattlerAttacker:  .word 0x0202420B
+    gBattlerTarget:    .word 0x0202420C
+    gSideStatuses:     .word 0x0202428E
+    gDynamicBasePower: .word 0x02024400
+    gBattleStruct:     .word 0x0202449C
+.end
+
+
+
+# main routine (Ruby/Sapphire) (separate because R/S version uses more stack)
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)
+@thumb.abilities.typeswaps(B0) .thumb
+    @ from original script
+    push  {r4-r7, lr}
+    mov   r7, r9
+    mov   r6, r8
+    push  {r6-r7}
+
+    @ r0 = current pokemon ability
+    @ r1 = current pokemon move type
+    @ r2 = typeswap ability table
+    @ r3 = index
+    @ loop until -1
+    @ compare pokemon ability (r0) vs first 2 bytes
+    @ when match:
+    @    compare pokemon type (r1) vs next byte
+    @    when match:
+    @       set dynamic type as 0x40 + target type (last byte)
+
+    @ r0 = gBattleMons[gBattlerAttacker].ability
+    ldr   r0, [pc, <gBattleMons>]
+    ldr   r1, [pc, <gBattlerAttacker>]
+    ldrb  r1, [r1, #0]
+    mov   r2, 0x58     @ sizeof(BattlePokemon)
+    mul   r1, r2
+    add   r1, #0x20    @ BattlePokemon.ability
+    ldrb  r0, [r0, r1] @ r0 = gBattleMons[gBattlerAttacker].ability
+
+    @ r1 = gBattleMoves[gCurrentMove].type
+    ldr   r1, =<data.pokemon.moves.stats.battle>
+    ldr   r2, [pc, <gCurrentMove>]
+    ldrh  r2, [r2, #0]
+    mov   r3, #12        @ sizeof(BattleMove)
+    mul   r2, r3
+    add   r2, #2         @ BattleMove.type (change to 3 if you've done move expansion)
+    ldrb  r1, [r1, r2]   @ r1 = gBattleMoves[gCurrentMove].type
+
+    @ r2 = pixilate ability table + index*4 (4 is the size of the table elements)
+    ldr   r2, =<data.abilities.typeswaps>
+    sub   r2, #4
+
+    loop:
+        add   r2, #4
+        ldrh  r3, [r2, #0] @ r3 = FFFF if we're at the end of the table
+        ldr   r4, =0xFFFF
+        cmp   r3, r4  @ ability == FFFF
+        beq   <end>
+        ldrb  r3, [r2, #0] @ r3 = the ability from the table
+        cmp   r0, r3  @ ability == gBattleMons[gBattlerAttacker].ability
+        bne   <loop>
+        ldrb  r3, [r2, #1] @ r3 = the source type from the table
+        cmp   r1, r3
+        bne   <loop>
+    setDynamicMoveType:
+        ldrb  r3, [r2, #2] @ r3 = the target type
+        mov   r0, #0x40
+        orr   r3, r0
+        ldr   r0, [pc, <gBattleStructDynamicMoveType>]
+        strb  r3, [r0, #0] @ gBattleStruct->dynamicMoveType = data.abilities.typeswaps[i].change | 0x40
+    checkInitialDynamicBasePower:
+        ldr   r5, [pc, <gDynamicBasePower>]
+        ldrh  r0, [r5, #0]
+        cmp r0, #0
+        bne <scalePower>
+    setInitialDynamicBasePower:
+        ldr   r0, [pc, <gCurrentMove>]
+        ldrh  r0, [r0, #0]
+        mov   r1, #12        @ sizeof(BattleMove)
+        mul   r0, r1
+        add   r0, #1         @ BattleMove.power (change to 2 if you've done move expansion)
+        ldr   r1, =<data.pokemon.moves.stats.battle>
+        ldrb  r0, [r1, r0]   @ r0 = gBattleMoves[gCurrentMove].power
+        strh  r0, [r5, #0]   @ gDynamicBasePower = gBattleMoves[gCurrentMove].power
+    scalePower:
+        ldrb  r3, [r2, #3]   @ r3 = the target scale
+        mul r0, r3
+        mov r1, #100
+        bl <divide>
+        strh  r0, [r5, #0]   @ gDynamicBasePower = gDynamicBasePower * scale / 100
+    end:
+        @ return to original script
+        ldr   r0, =<scripts.battle.thumb/5/code/+8>  @ damagecalc
+        bx    r0
+    divide:
+        ldr   r2, =<thumb.divide+1>
+        bx    r2
+    gBattleMons:       .word 0x02024A80
+    gCurrentMove:      .word 0x02024BE6
+    gBattlerAttacker:  .word 0x02024C07
+    gBattlerTarget:    .word 0x02024C08
+    gSideStatuses:     .word 0x02024C7A
+    gDynamicBasePower: .word 0x02024DEC
+    gBattleStructDynamicMoveType:     .word 0x0201601C
+.end
+@!game(All)
 
 
 
 # hook atk05_damagecalc
-@01E59C .thumb
+@scripts.battle.thumb/5/code/-1 .thumb
     ldr   r0, =0
     bx    r0
 .end
-@01E59C+4 <thumb.abilities.typeswaps+1>
+@scripts.battle.thumb/5/code/+3 <thumb.abilities.typeswaps+1>
 
 
 
