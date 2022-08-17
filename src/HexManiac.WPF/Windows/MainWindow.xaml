@@ -234,6 +234,11 @@
                   <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
                   <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
                   <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
+                  <MenuItem Header="Show _Hex Converter" Command="{Binding ShowHexConverter}" InputGestureText="Ctrl+H">
+                     <MenuItem.CommandParameter>
+                        <sys:Boolean>true</sys:Boolean>
+                     </MenuItem.CommandParameter>
+                  </MenuItem>
                </MenuItem>
                <MenuItem Header="_Help">
                   <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
