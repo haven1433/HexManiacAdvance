@@ -658,6 +658,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(ViewPort.ChangeHistory.IsSaved);
       }
 
+      [Fact]
+      public void TextAnchor_ChangeToNoInfoAnchor_NoNameIsError() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^text\"\" ");
+
+         ViewPort.AnchorText = "^";
+
+         Assert.NotEmpty(Errors);
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());

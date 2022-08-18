@@ -762,7 +762,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
                if (run.Start <= index) {
                   var token = new NoDataChangeDeltaModel();
-                  var errorInfo = PokemonModel.ApplyAnchor(Model, token, run.Start, AnchorText);
+
+                  // During edits, typing `^` is allowed, and is used as a way to remove an anchor.
+                  // When doing AnchorText edits, clearing the name/format when there are no pointers is an error.
+                  ErrorInfo errorInfo = ErrorInfo.NoError;
+                  if (AnchorText == AnchorStart.ToString() && run.PointerSources.Count == 0) {
+                     errorInfo = new ErrorInfo("An anchor with nothing pointing to it must have a name.");
+                  }
+
+                  if (errorInfo == ErrorInfo.NoError) {
+                     errorInfo = PokemonModel.ApplyAnchor(Model, token, run.Start, AnchorText);
+                  }
+
                   if (errorInfo == ErrorInfo.NoError) {
                      OnError?.Invoke(this, string.Empty);
                      var newRun = Model.GetNextRun(index);
