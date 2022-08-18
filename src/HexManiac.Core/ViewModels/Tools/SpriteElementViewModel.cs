@@ -100,7 +100,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             spriteTool.SpritePage = CurrentPage;
             if (palette != null) spriteTool.PaletteAddress = palette.Start;
             spriteTool.PalettePage = CurrentPalette;
-            if (palettes.Count > 0 && palettes[CurrentPalette].Pages == sRun.Pages) spriteTool.PalettePage = CurrentPage;
+            if (palettes.Count > CurrentPalette && palettes[CurrentPalette].Pages == sRun.Pages) spriteTool.PalettePage = CurrentPage;
             command.Execute(fs);
          }
       }
