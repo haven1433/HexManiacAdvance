@@ -1086,6 +1086,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RemoveContentListeners(tab);
          tabs.Remove(tab);
          CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+         diffLeft.RaiseCanExecuteChanged();
+         diffRight.RaiseCanExecuteChanged();
       }
 
       private void AddContentListeners(ITabContent content) {

@@ -331,6 +331,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, start);
       }
 
+      [Fact]
+      public void SelectLeft_CloseRight_CannotDiffRight() {
+         editor.SelectedIndex = 0;
+
+         var view = new StubView(editor);
+         ViewModel1.Close.Execute();
+
+         Assert.False(editor.DiffRight.CanExecute(default));
+         Assert.Contains(nameof(editor.DiffRight), view.CommandCanExecuteChangedNotifications);
+      }
+
       // TODO Can I use this pointer information to then show diffs between dynamic addresses?
       //      If a pointer is recognized as moved, show a diff for the two destinations together, instead of just based on linear address
       //      i.e. instead of diffing 720000 with 720000, diff <720000> with <840000> (because of a pointer difference found)
