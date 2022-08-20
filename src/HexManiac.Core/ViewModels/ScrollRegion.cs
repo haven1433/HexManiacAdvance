@@ -179,6 +179,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          NotifyPropertyChanged(nameof(MinimumScroll));
          NotifyPropertyChanged(nameof(MaximumScroll));
          NotifyPropertyChanged(nameof(DataLength));
+         UpdateHeaders();
       }
 
       public void ClearTableMode() => SetTableMode(0, 0);

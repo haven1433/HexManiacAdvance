@@ -312,8 +312,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoAddressAndAlign(int address, int preferredWidth, int tableStart = 0) {
-         Scroll.ClearTableMode();
-         Debug.Assert(Scroll.DataLength == model.Count, "I forgot to update the Scroll.DataLength after expanding the data!");
+         if (address < Scroll.DataStart || Scroll.DataLength < address) {
+            Scroll.ClearTableMode();
+            Debug.Assert(Scroll.DataLength == model.Count, "I forgot to update the Scroll.DataLength after expanding the data!");
+         }
 
          var startAddress = address;
          if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;
