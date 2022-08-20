@@ -45,9 +45,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             try {
                Clipboard.SetDataObject(value, true);
             } catch (COMException) {
-               // something went wrong... we couldn't copy
-               var window = (MainWindow)Application.Current.MainWindow;
-               window.ViewModel.ErrorMessage = "Could not copy";
+               try {
+                  // try again, but don't try to persist the value after app exit
+                  Clipboard.SetDataObject(value);
+               } catch (COMException) {
+                  // something went wrong... we couldn't copy
+                  var window = (MainWindow)Application.Current.MainWindow;
+                  window.ViewModel.ErrorMessage = "Could not copy";
+               }
             }
          }
       }
