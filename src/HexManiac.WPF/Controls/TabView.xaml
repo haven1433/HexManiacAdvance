@@ -717,7 +717,8 @@
                            Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}"
                            Visibility="{Binding SpriteTool.CanExportMany, Converter={StaticResource InverseBoolToVisibility}}">
                         </hsg3hv:AngleButton>
-                        <Menu Visibility="{Binding SpriteTool.CanExportMany, Converter={StaticResource BoolToVisibility}}" Background="{DynamicResource Backlight}">
+                        <Menu VerticalAlignment="Center" Background="{DynamicResource Background}" BorderThickness="0"
+                           Visibility="{Binding SpriteTool.CanExportMany, Converter={StaticResource BoolToVisibility}}">
                            <Menu.Style>
                               <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
                                  <Setter Property="BorderThickness" Value="1"/>
@@ -728,7 +729,7 @@
                                  </Style.Triggers>
                               </Style>
                            </Menu.Style>
-                           <hsg3hv:AngleMenuItem Direction="Right" Header="Export" Margin="0,1,0,0">
+                           <hsg3hv:AngleMenuItem VerticalAlignment="Stretch" Direction="Right" Header="Export" Margin="0,1,0,0" Height="24">
                               <MenuItem Header="Single Page" Command="{Binding SpriteTool.ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
                               <MenuItem Header="All Pages" Command="{Binding SpriteTool.ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
                            </hsg3hv:AngleMenuItem>
