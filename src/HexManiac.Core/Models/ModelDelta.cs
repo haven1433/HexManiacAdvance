@@ -103,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public bool SetDataLength(IDataModel model, int length) {
-         oldDataLength = model.RawData.Length;
+         if (oldDataLength == -1) oldDataLength = model.RawData.Length;
          newDataLength = length;
          if (!HasAnyChange) {
             HasDataChange |= oldDataLength != newDataLength;

@@ -316,5 +316,16 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0, ViewPort.DataOffset);
       }
+
+      [Fact]
+      public void EditToExpand_Undo_SizeResets() {
+         var initialCount = Model.Count;
+         ViewPort.Goto.Execute(Model.Count - 1);
+         ViewPort.Edit("AA AA AA AA AA AA AA AA ");
+
+         ViewPort.Undo.Execute();
+
+         Assert.Equal(initialCount, Model.Count);
+      }
    }
 }
