@@ -101,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void ChangeCompleted() {
-         customChangeInProgress = false;
+         if (!continueCurrentTransaction) customChangeInProgress = false;
          if (currentChange == null) return;
          if (!currentChange.HasAnyChange) { currentChange = null; return; }
          VerifyRevertNotInProgress();

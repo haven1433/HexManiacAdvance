@@ -668,6 +668,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEmpty(Errors);
       }
 
+      [Fact]
+      public void AddTextAnchorName_EditWithTextTool_BytesUpdate() {
+         Model[4] = 0xFF;
+         Token.ChangeData(Model, 5, PCSString.Convert("test"));
+         Model.WritePointer(Token, 0x100, 5);
+         ViewPort.SelectionStart = new(6, 0);
+         ViewPort.Shortcuts.DisplayAsText.Execute();
+
+         ViewPort.SelectionStart = new(5, 0);
+         ViewPort.AnchorText = "^name\"\"";
+
+         ViewPort.Tools.StringTool.ContentIndex = 1;
+         ViewPort.Tools.StringTool.Content = "tst";
+
+         Assert.Equal("tst", PCSString.Convert(Model, 5, 5).Trim('"'));
+      }
+
       private void Write(IDataModel model, ref int i, string characters) {
          foreach (var c in characters.ToCharArray())
             model[i++] = (byte)PCSString.PCS.IndexOf(c.ToString());
