@@ -386,7 +386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (Result) {
             var text = CurrentText;
-            tuple.Model.Write(Model, CurrentChange, memoryLocation, ref text);
+            tuple.Model.Write(null, Model, CurrentChange, memoryLocation, ref text);
             NewDataIndex = memoryLocation + tuple.Length;
          }
       }

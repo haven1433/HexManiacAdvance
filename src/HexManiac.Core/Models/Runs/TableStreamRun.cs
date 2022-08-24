@@ -188,7 +188,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int j = 0; j < ElementContent.Count; j++) {
                var data = j < tokens.Count ? tokens[j] : string.Empty;
                if (j == ElementContent.Count - 1 && tokens.Count > ElementContent.Count) data += " " + " ".Join(tokens.Skip(j + 1));
-               if (ElementContent[j].Write(model, token, start + segmentOffset, ref data)) changedAddresses.Add(start + segmentOffset);
+               if (ElementContent[j].Write(ElementContent, model, token, start + segmentOffset, ref data)) changedAddresses.Add(start + segmentOffset);
                if (data.Length > 0) tokens.Insert(j + 1, data);
                segmentOffset += ElementContent[j].Length;
             }
@@ -244,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
             if (fieldIndex >= fields.Length) break;
             var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last() : string.Empty;
-            if (ElementContent[j].Write(model, token, Start + segmentOffset, ref data)) {
+            if (ElementContent[j].Write(this.ElementContent, model, token, Start + segmentOffset, ref data)) {
                changeAddresses.Add(Start + segmentOffset);
             }
             segmentOffset += ElementContent[j].Length;

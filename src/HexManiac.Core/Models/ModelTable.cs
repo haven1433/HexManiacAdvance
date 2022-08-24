@@ -170,7 +170,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
-            enumSeg.Write(model, token, valueAddress, ref value);
+            enumSeg.Write(null, model, token, valueAddress, ref value);
          } else {
             throw new NotImplementedException();
          }
