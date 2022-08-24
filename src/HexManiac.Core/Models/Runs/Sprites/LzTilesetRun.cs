@@ -1,12 +1,28 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilesetRun : ISpriteRun {
       TilesetFormat TilesetFormat { get; }
       ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles);
       int DecompressedLength { get; }
+   }
+
+   public static class ITilesetRunExtensions {
+      public static IEnumerable<int> GetFillerTiles(this ITilesetRun tileset) {
+         var data = tileset.GetData();
+         var bytesPerTile = tileset.TilesetFormat.BitsPerPixel * 8;
+         var tileCount = data.Length / bytesPerTile;
+         for (int i = 0; i < tileCount; i++) {
+            if (IsFiller(data, i * bytesPerTile, bytesPerTile)) yield return i;
+         }
+      }
+
+      public static bool IsFiller(byte[] data, int start, int length) {
+         return length.Range().All(i => data[start + i] == 0);
+      }
    }
 
    public class LzTilesetRun : LZRun, ITilesetRun {

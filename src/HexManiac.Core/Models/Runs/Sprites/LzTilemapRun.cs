@@ -188,9 +188,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.TilesetFormat.BitsPerPixel / 8).Range());
          var originalUsedTiles = GetUsedTiles(run).ToHashSet();
          foreach (var tile in originalUsedTiles) tilesToKeep.Remove(tile);
+         foreach (var tile in tileset.GetFillerTiles()) tilesToKeep.Remove(tile);
          foreach (var tilemap in tileset.FindDependentTilemaps(model).Except(run)) {
             tilesToKeep.AddRange(GetUsedTiles(tilemap));
          }
+         tilesToKeep.Add(0); // always keep the 'transparency' tile
          var oldTileDataRaw = tileset.GetData();
          var previousTiles = Tilize(oldTileDataRaw, run.Format.BitsPerPixel);
          tiles = MergeTilesets(previousTiles, tilesToKeep, tiles, run.BytesPerTile == 2);
@@ -256,21 +258,49 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
          var newListIndex = 0;
          var mergedList = new List<int[,]>();
+
+         // merge the used-previous tiles in with the new tiles, until we've used up all the old tiles or all the new tiles
          for (int i = 0; i < previous.Count; i++) {
             if (tilesToKeep.Contains(i)) {
                mergedList.Add(previous[i]);
             } else {
-               while (newListIndex < newTiles.Count && FindMatch(newTiles[newListIndex], mergedList, allowFlips).index != -1) newListIndex += 1;
+               while (newListIndex < newTiles.Count) {
+                  // if this new tile has already been added to the merged list, skip it
+                  if (FindMatch(newTiles[newListIndex], mergedList, allowFlips).index != -1) {
+                     newListIndex += 1;
+                     continue;
+                  }
+                  // if this new tile will later be added at a different index, skip it
+                  if (FindMatch(newTiles[newListIndex], previous, allowFlips).index != -1) {
+                     newListIndex += 1;
+                     continue;
+                  }
+                  break;
+               }
                if (newListIndex == newTiles.Count) break;
                mergedList.Add(newTiles[newListIndex]);
                newListIndex += 1;
             }
          }
-         for (int i = mergedList.Count; i < previous.Count; i++) mergedList.Add(previous[i]);
+
+         // if we have any previous tiles left over, add them in (or skip them if they're unused)
+         for (int i = mergedList.Count; i < previous.Count; i++) {
+            if (tilesToKeep.Contains(i)) {
+               mergedList.Add(previous[i]);
+            } else {
+               // we don't need this tile at all
+               // we want to truncate
+               // but we have to stick _something_ in, for alignment
+               mergedList.Add(previous[0]);
+            }
+         }
+
+         // if we have any new tiles left over, add them in at the end (expanded the number of tiles)
          for (; newListIndex < newTiles.Count; newListIndex++) {
             if (FindMatch(newTiles[newListIndex], mergedList, allowFlips).index != -1) continue;
             mergedList.Add(newTiles[newListIndex]);
          }
+
          return mergedList;
       }
 
