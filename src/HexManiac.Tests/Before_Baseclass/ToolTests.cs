@@ -907,5 +907,32 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0x101, Model.ReadPointer(4));
       }
+
+      [Theory]
+      [InlineData("BPRE0", "updatemoney 1 1 1\r\nend", "95 01 01 01 02")]
+      [InlineData("AXPE0", "updatemoney 1 1\r\nend", "95 01 01 02")]
+      public void ScriptWithGameSpecificCommand_Compile_Works(string gameCode, string script, string bytes) {
+         SetGameCode(gameCode);
+         var parser = ViewPort.Tools.CodeTool.ScriptParser;
+
+         var compiled = parser.Compile(Token, Model, 0, ref script, out var _);
+
+         Assert.Equal(bytes.ToByteArray(), compiled);
+      }
+
+      [Theory]
+      [InlineData("BPRE0", "updatemoney 1 1 1\r\nend", "95 01 01 01 02")]
+      [InlineData("AXPE0", "updatemoney 1 1\r\nend", "95 01 01 02")]
+      public void ScriptWithGameSpecificCommand_Decompile_Works(string gameCode, string script, string bytes) {
+         SetGameCode(gameCode);
+         var code = bytes.ToByteArray();
+         Token.ChangeData(Model, 0, code);
+
+         var text = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, code.Length);
+
+         var expected = script.SplitLines().TrimAll().ToArray();
+         var actual = text.SplitLines().TrimAll().ToArray();
+         Assert.Equal(expected, actual);
+      }
    }
 }

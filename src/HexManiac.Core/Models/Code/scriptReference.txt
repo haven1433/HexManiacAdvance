@@ -204,10 +204,14 @@
 90 givemoney money:: check.                  # if check is 0, gives the player money
 91 paymoney money:: check.                   # if check is 0, takes money from the player
 92 checkmoney money:: check.                 # if check is 0, checks if the player has at least that much money. if so, 800D=1
-93 showmoney x. y.                           # shows how much money the player has in a separate box
+[AXPE_AXVE]      93 showmoney x. y.          # shows how much money the player has in a separate box
+[BPRE_BPGE_BPEE] 93 showmoney x. y. check.   # shows how much money the player has in a separate box
 94 hidemoney x. y.
-95 updatemoney x. y.                         # updates the amount of money shown after a money change
-96 nop96
+[AXPE_AXVE]      95 updatemoney x. y.        # updates the amount of money shown after a money change
+[BPRE_BPGE_BPEE] 95 updatemoney x. y. check. # updates the amount of money shown after a money change
+[AXPE_AXVE] 96 getpricereduction index:data.items.stats
+[BPRE_BPGE] 96 nop96
+[BPEE]      96 getpokenewsactive newsKind:
 97 fadescreen effect.                        # 00 fades in, 01 fades out
 98 fadescreendelay effect. delay.
 99 darken flashSize:                         # makes the screen go dark. Related to flash? Call from a level script.

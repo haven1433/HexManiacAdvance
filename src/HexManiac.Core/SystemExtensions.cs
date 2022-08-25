@@ -38,6 +38,13 @@ namespace HavenSoft.HexManiac.Core {
          }
       }
 
+      public static IEnumerable<string> TrimAll(this IEnumerable<string> list) {
+         foreach (var item in list) {
+            var text = item?.Trim();
+            if (!string.IsNullOrEmpty(text)) yield return text;
+         }
+      }
+
       public static T FirstOfTypeOrDefault<T>(this IEnumerable list) where T : class {
          foreach (var item in list) {
             if (item is T t) return t;

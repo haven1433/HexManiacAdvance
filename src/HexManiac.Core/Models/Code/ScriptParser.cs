@@ -189,6 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// <returns></returns>
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          movedData = new List<(int, int)>();
+         var gameCode = model.GetGameCode().Substring(0, 4);
          var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
             .Where(line => !string.IsNullOrWhiteSpace(line))
@@ -236,6 +237,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             streamLocation = -1; streamPointerLocation = -1;
             foreach (var command in engine) {
+               if (!command.MatchesGame(gameCode)) continue;
                if (!command.CanCompile(line)) continue;
                var currentSize = result.Count;
 
@@ -340,6 +342,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
+         var gameCode = data.GetGameCode().Substring(0, 4);
          var nextAnchor = data.GetNextAnchor(index);
          while (length > 0) {
             if (index == nextAnchor.Start) {
@@ -347,7 +350,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
             }
 
-            var line = engine.FirstOrDefault(option => option.Matches(data, index));
+            var line = engine.FirstOrDefault(option => option.Matches(data, index) && option.MatchesGame(gameCode));
             if (line == null) {
                results.Add($".raw {data[index]:X2}");
                index += 1;
@@ -376,6 +379,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool PointsToMart { get; }
       bool PointsToSpriteTemplate { get; }
 
+      bool MatchesGame(string game);
       int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(IReadOnlyList<byte> data, int index);
@@ -385,6 +389,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public abstract class ScriptLine : IScriptLine {
       private readonly List<string> documentation = new List<string>();
+      private readonly IReadOnlyList<string> matchingGames;
 
       public const string Hex = "0123456789ABCDEF";
       public IReadOnlyList<IScriptArg> Args { get; }
@@ -421,6 +426,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var docSplit = engineLine.Split(new[] { '#' }, 2);
          if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
          engineLine = docSplit[0].Trim();
+         matchingGames = ExtractMatchingGames(ref engineLine);
          Usage = engineLine.Split(new[] { ' ' }, 2).Last();
 
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
@@ -442,6 +448,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          LineCode = lineCode;
          Args = args;
+      }
+
+      private static IReadOnlyList<string> ExtractMatchingGames(ref string line) {
+         if (!line.StartsWith("[")) return null;
+         var gamesEnd = line.IndexOf("]");
+         if (gamesEnd == -1) return null;
+         var games = line.Substring(1, gamesEnd - 1);
+         line = line.Substring(gamesEnd + 1);
+         return games.Split("_");
+      }
+
+      public bool MatchesGame(string game) {
+         return matchingGames?.Contains(game) ?? true;
       }
 
       public void AddDocumentation(string doc) => documentation.Add(doc);
