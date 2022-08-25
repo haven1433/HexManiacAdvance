@@ -155,6 +155,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          watchers[fileName].RemoveAt(index);
       }
 
+      public void BlockOnUIWork(Action action) {
+         dispatcher.Invoke(action, DispatcherPriority.Normal);
+      }
+
       public Task DispatchWork(Action action) {
          return Task.Run(() => {
             try {

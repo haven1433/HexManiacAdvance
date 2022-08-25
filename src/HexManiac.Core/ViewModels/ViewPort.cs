@@ -187,7 +187,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private StubCommand gotoCommand;
       private void ExecuteGoto(object arg) {
          Model.InitializationWorkload.ContinueWith(task => {
-            dispatcher.DispatchWork(() => {
+            // This needs to be synchronous to make it deterministic,
+            // but needs to happen on the UI thread since it can update bound properties.
+            dispatcher.BlockOnUIWork(() => {
                if (arg is string str) {
                   var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
                   if (possibleMatches.Count == 1) str = possibleMatches[0];
