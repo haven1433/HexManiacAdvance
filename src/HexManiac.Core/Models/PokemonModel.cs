@@ -1798,7 +1798,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void ClearPointerFromAnchor(ModelDelta changeToken, int start, RunPath index) {
          var anchorRun = runs[index];
          var newAnchorRun = anchorRun.RemoveSource(start);
-         changeToken.RemoveRun(anchorRun);
 
          // the only run that is allowed to exist with nothing pointing to it and no name is a pointer run.
          // if it's any other kind of run with no name and no pointers to it, remove it.
@@ -1806,13 +1805,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (anchorRun.Start <= start && anchorRun.Start + anchorRun.Length > start) {
                // calling ClearFormat would try to clear the element we're already removing
                // no need to do that: This element should get removed higher up the callstack.
+               changeToken.RemoveRun(anchorRun);
             } else {
                ClearFormat(changeToken, anchorRun.Start, anchorRun.Length, false, false);
             }
          } else if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && newAnchorRun is PointerRun) {
             // if it IS a pointer run, we still need to remove the anchor by setting the pointerSources to null.
+            changeToken.RemoveRun(anchorRun);
             SetIndex(index, new PointerRun(newAnchorRun.Start));
          } else {
+            changeToken.RemoveRun(anchorRun);
             SetIndex(index, newAnchorRun);
             changeToken.AddRun(newAnchorRun);
          }

@@ -91,5 +91,13 @@ namespace HavenSoft.HexManiac.Tests {
          Model.WritePointer(Token, source, destination);
          Model.ObserveRunWritten(Token, new PointerRun(source));
       }
+
+      public void WriteEventScript(int address, string script) {
+         script = script.Replace(";", Environment.NewLine);
+         var bytes = ViewPort.Tools.CodeTool.ScriptParser.Compile(Token, Model, address, ref script, out var _);
+         Token.ChangeData(Model, address, bytes);
+         Model.ObserveRunWritten(Token, new XSERun(address));
+         ViewPort.Goto.Execute(address);
+      }
    }
 }
