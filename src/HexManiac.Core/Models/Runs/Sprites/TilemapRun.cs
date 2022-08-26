@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       private int arrayTilesetAddress;
-      public int FindMatchingTileset(IDataModel model) => LzTilemapRun.FindMatchingTileset(this, model, ref arrayTilesetAddress);
+      public int FindMatchingTileset(IDataModel model) => LzTilemapRun.FindMatchingTileset(this, model, -1, ref arrayTilesetAddress);
 
       public byte[] GetTilemapData() {
          var data = new byte[Format.ExpectedUncompressedLength];
@@ -110,7 +110,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return LzTilemapRun.GetData(GetTilemapData(), tiles, Format, BytesPerTile);
       }
 
-      public int[,] GetPixels(IDataModel model, int page) {
+      public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
          var mapData = GetTilemapData();
 
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);

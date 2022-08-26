@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public byte[] GetData() => Decompress(Model, Start, SpriteFormat.AllowLengthErrors);
 
-      public int[,] GetPixels(IDataModel model, int page) {
+      public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
          var data = Decompress(model, Start, AllowLengthErrors);
          if (data == null) return null;
          return SpriteRun.GetPixels(data, SpriteFormat.ExpectedByteLength * page, SpriteFormat.TileWidth, SpriteFormat.TileHeight, SpriteFormat.BitsPerPixel);

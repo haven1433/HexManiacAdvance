@@ -51,7 +51,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var paletteRuns = sprite.FindRelatedPalettes(model, source);
             var paletteRun = paletteRuns.FirstOrDefault();
             if (preferredPaletteStart >= 0) paletteRun = paletteRuns.FirstOrDefault(pRun => pRun.Start == preferredPaletteStart) ?? model.GetNextRun(preferredPaletteStart) as IPaletteRun;
-            var pixels = sprite.GetPixels(model, preferredSpritePage);
+            var tableIndex = -1;
+            if (model.GetNextRun(source) is ITableRun tableRun) tableIndex = tableRun.ConvertByteOffsetToArrayOffset(source).ElementIndex;
+            var pixels = sprite.GetPixels(model, preferredSpritePage, tableIndex);
             if (pixels == null) return null;
             var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
             var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);

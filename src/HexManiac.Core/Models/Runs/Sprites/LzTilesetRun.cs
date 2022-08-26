@@ -88,6 +88,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public byte[] GetData() => Decompress(Model, Start);
 
+      int[,] ISpriteRun.GetPixels(IDataModel model, int page, int tableIndex) => GetPixels(model, page);
+
       public int[,] GetPixels(IDataModel model, int page) {
          var data = Decompress(model, Start);
          if (data == null) return null;

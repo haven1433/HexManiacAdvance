@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       bool SupportsImport { get; }
       bool SupportsEdit { get; }
       SpriteFormat SpriteFormat { get; }
-      int[,] GetPixels(IDataModel model, int page);
+      int[,] GetPixels(IDataModel model, int page, int tableIndex);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);
       ISpriteRun Duplicate(SpriteFormat newFormat);
       byte[] GetData();

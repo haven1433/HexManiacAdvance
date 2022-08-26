@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
-      public int[,] GetPixels(IDataModel model, int page) {
+      public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
          var (width, height) = (SpriteFormat.TileWidth, SpriteFormat.TileHeight);
          var data = new byte[Length];
          Array.Copy(model.RawData, Start, data, 0, Length);

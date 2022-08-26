@@ -114,7 +114,7 @@ public class MetatileRun : BaseRun, ISpriteRun {
       }
    }
 
-   public int[,] GetPixels(IDataModel model, int page) {
+   public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
       // return everything as if a single layer, combining multiple tiles together, mixing palettes as needed
       throw new System.NotImplementedException();
    }

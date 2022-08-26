@@ -18,6 +18,10 @@ namespace HavenSoft.HexManiac.Tests {
          return data;
       }
 
+      public static int[,] GetPixels(this ISpriteRun sprite, IDataModel model, int page) {
+         return sprite.GetPixels(model, page, -1);
+      }
+
       public static int[,] ReadSprite(this IDataModel model, int address) {
          var sprite = (ISpriteRun)model.GetNextRun(address);
          return sprite.GetPixels(model, 0);

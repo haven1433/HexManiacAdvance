@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                spriteRun = tempRun as ISpriteRun;
                if (spriteRun == null) return null;
             }
-            return spriteRun.GetPixels(model, 0);
+            return spriteRun.GetPixels(model, 0, arrayIndex);
          } else {
             throw new NotImplementedException();
          }

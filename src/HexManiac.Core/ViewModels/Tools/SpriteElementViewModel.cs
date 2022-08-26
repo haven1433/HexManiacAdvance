@@ -22,13 +22,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool HasMultiplePalettes => MaxPalette > 0;
       private int currentPalette;
-      public int CurrentPalette { get => currentPalette; set => Set(ref currentPalette, value, arg => {
-         UpdateTiles(CurrentPage);
-         foreach (var child in ViewPort.Tools.TableTool.Children) {
-            if (child is SpriteElementViewModel sevm && sevm != this && sevm.MaxPalette == MaxPalette) sevm.CurrentPalette = CurrentPalette;
+      public int CurrentPalette {
+         get => currentPalette;
+         set {
+            Set(ref currentPalette, value, arg => {
+               UpdateTiles(CurrentPage);
+               foreach (var child in ViewPort.Tools.TableTool.Children) {
+                  if (child is SpriteElementViewModel sevm && sevm != this && sevm.MaxPalette == MaxPalette) sevm.CurrentPalette = CurrentPalette;
+               }
+               UpdatePaletteSelection();
+            });
          }
-         UpdatePaletteSelection();
-      }); }
+      }
       public int MaxPalette { get; private set; }
 
       public ISpriteRun GetRun(int start = int.MinValue) {
@@ -186,7 +191,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private IReadOnlyList<short> lastColors;
       private void UpdateTiles(int start, int page, bool exitPaletteSearchEarly) {
          var run = GetRun();
-         var pixels = run.GetPixels(ViewPort.Model, page);
+
+         var tableIndex = -1;
+         if (Model.GetNextRun(Start) is ITableRun tableRun) {
+            tableIndex = tableRun.ConvertByteOffsetToArrayOffset(Start).ElementIndex;
+         }
+
+         var pixels = run.GetPixels(ViewPort.Model, page, tableIndex);
          var palette = GetDesiredPalette(start, page, exitPaletteSearchEarly, out var paletteFormat);
          if (pixels == lastPixels && palette == lastColors) return;
          lastPixels = pixels;
@@ -194,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(run is LzTilemapRun)) paletteFormat = default;
 
          PixelData = SpriteTool.Render(pixels, palette, paletteFormat.InitialBlankPages, CurrentPage);
-         
+
          NotifyPropertyChanged(nameof(PixelWidth));
          NotifyPropertyChanged(nameof(PixelHeight));
          NotifyPropertyChanged(nameof(PixelData));

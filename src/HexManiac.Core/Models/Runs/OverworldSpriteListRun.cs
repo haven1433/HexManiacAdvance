@@ -237,12 +237,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       // this implementation puts all the child sprites into separate pages
-      public int[,] GetPixels(IDataModel model, int page) {
+      public int[,] GetPixels(IDataModel model, int page, int arrayIndex) {
          var width = SpriteFormat.TileWidth * 8;
          var height = SpriteFormat.TileHeight * 8;
          var spriteStart = model.ReadPointer(Start + ElementLength * page);
          if (!(model.GetNextRun(spriteStart) is ISpriteRun spriteRun)) return new int[width, height];
-         var spritePixels = spriteRun.GetPixels(model, page: 0);
+         var spritePixels = spriteRun.GetPixels(model, page: 0, tableIndex: -1);
          if (spritePixels.GetLength(0) < width || spritePixels.GetLength(1) < height) return new int[width, height];
          return spritePixels;
       }
@@ -257,7 +257,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < ElementCount; i++) {
             var spriteStart = model.ReadPointer(Start + ElementLength * i);
             if (!(model.GetNextRun(spriteStart) is ISpriteRun spriteRun)) continue;
-            var spritePixels = spriteRun.GetPixels(model, page: 0);
+            var spritePixels = spriteRun.GetPixels(model, page: 0, tableIndex: -1);
             if (spritePixels.GetLength(0) < width || spritePixels.GetLength(1) < height) continue;
             int offset = width * i;
             for (int x = 0; x < width; x++) {

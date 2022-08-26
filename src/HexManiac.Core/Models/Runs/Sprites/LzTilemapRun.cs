@@ -106,12 +106,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return GetData(GetTilemapData(), tiles, Format, BytesPerTile);
       }
 
-      public int[,] GetPixels(IDataModel model, int page) {
+      public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
          var mapData = Decompress(model, Start);
          if (mapData == null) return null;
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
-         if (tileset == null) tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+         if (tileset == null) {
+            if (tableIndex != -1) {
+               int ignore = 0;
+               tilesetAddress = FindMatchingTileset(this, Model, tableIndex, ref ignore);
+               tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
+            } else {
+               tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
+            }
+         }
          
          if (tileset == null || tileset is ITilemapRun) return new int[Format.TileWidth * 8, Format.TileHeight * 8]; // relax the conditions slightly: if the run we found is an LZSpriteRun, that's close enough, we can use it as a tileset.
 
@@ -181,7 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, run.Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as ITilesetRun;
          if (tileset == null) {
-            FindMatchingTileset(run, model, ref arrayTilesetAddress);
+            FindMatchingTileset(run, model, -1, ref arrayTilesetAddress);
             tileset = model.GetNextRun(arrayTilesetAddress) as ITilesetRun;
          }
 
@@ -401,8 +409,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       private int arrayTilesetAddress;
-      public int FindMatchingTileset(IDataModel model) => FindMatchingTileset(this, model, ref arrayTilesetAddress);
-      public static int FindMatchingTileset(ITilemapRun run, IDataModel model, ref int arrayTilesetAddress) {
+      public int FindMatchingTileset(IDataModel model) => FindMatchingTileset(this, model, -1, ref arrayTilesetAddress);
+      public static int FindMatchingTileset(ITilemapRun run, IDataModel model, int arrayIndex, ref int arrayTilesetAddress) {
          var hint = run.Format.MatchingTileset;
          IFormattedRun hintRun;
          if (hint != null) {
@@ -428,6 +436,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
          if (tilemapTable == null) return hintRun.Start;
          int tilemapIndex = (tilemapPointer - tilemapTable.Start) / tilemapTable.ElementLength;
+         if (arrayIndex != -1) tilemapIndex = arrayIndex;
 
          // get which element of the table has the tileset
          var segmentOffset = 0;

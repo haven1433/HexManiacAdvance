@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
-      public int[,] GetPixels(IDataModel model, int page) {
+      public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
          var pageSize = 8 * bitsPerPixel * tileWidth * tileHeight;
          return GetPixels(model, Start + page * pageSize, tileWidth, tileHeight, bitsPerPixel);
       }

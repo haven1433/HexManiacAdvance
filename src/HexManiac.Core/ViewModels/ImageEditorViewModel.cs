@@ -621,7 +621,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          // tilemap may have been repointed: recalculate
          if (spriteRun is ITilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
-         pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
+         pixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage, -1);
          Render();
          RefreshPaletteColors(spriteRun.SpriteFormat);
          SetupPageOptions();
@@ -689,7 +689,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void Render() {
          var spriteAddress = model.ReadPointer(SpritePointer);
          var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
-         var readPixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage);
+         var readPixels = (spriteRun is LzTilesetRun tsRun) ? tsRun.GetPixels(model, SpritePage, CurrentTilesetWidth) : spriteRun.GetPixels(model, SpritePage, -1);
 
          var palRun = ReadPalette();
 
@@ -1444,7 +1444,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var tilemapRun = (ITilemapRun)parent.model.GetNextRun(spriteAddress);
             tilemapRun.FindMatchingTileset(parent.model);
 
-            parent.pixels = tilemapRun.GetPixels(parent.model, parent.SpritePage);
+            parent.pixels = tilemapRun.GetPixels(parent.model, parent.SpritePage, -1);
             parent.Render();
          }
 
@@ -1552,7 +1552,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var (colors, _, initialBlankPages) = ImageEditorViewModel.ReadPalette(model, PalettePointer, sprite.SpriteFormat.BitsPerPixel);
 
-         var pixels = sprite.GetPixels(model, 0);
+         var pixels = sprite.GetPixels(model, 0, -1);
          PixelData = SpriteTool.Render(pixels, colors, initialBlankPages, 0);
          NotifyPropertyChanged(nameof(PixelData));
       }

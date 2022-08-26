@@ -232,7 +232,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < tableRun.ElementCount; i++) {
             var destination = model.ReadPointer(tableRun.Start + tableRun.ElementLength * i);
             if (!(model.GetNextRun(destination) is ISpriteRun run)) return defaultOptions;
-            var sprite = run.GetPixels(model, 0);
+            var sprite = run.GetPixels(model, 0, i);
             var paletteAddress = SpriteTool.FindMatchingPalette(model, run, 0);
             var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
             var palette = paletteRun?.GetPalette(model, paletteRun.PaletteFormat.InitialBlankPages) ?? TileViewModel.CreateDefaultPalette(16);
