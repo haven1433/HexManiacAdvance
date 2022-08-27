@@ -233,16 +233,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var offset = currentTable.ConvertByteOffsetToArrayOffset(SpritePointer);
          foreach (var table in model.GetRelatedArrays(currentTable)) {
-            if (!(table.ElementContent[0] is ArrayRunPointerSegment pSegment)) continue;
-            var spritePointer = table.Start + table.ElementLength * offset.ElementIndex;
-            var spriteAddress = model.ReadPointer(spritePointer);
-            var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
-            if (spriteRun == null || spriteRun.Start != spriteAddress || spriteRun.FormatString != pSegment.InnerFormat) continue;
-            foreach (var palette in spriteRun.FindRelatedPalettes(model, spritePointer, includeAllTableIndex: true)) {
-               EditOptions.Add(new EditOption(model, spritePointer, palette.PointerSources[0]));
-            }
-            if (spriteRun.SpriteFormat.BitsPerPixel < 4) {
-               EditOptions.Add(new EditOption(model, spritePointer, Pointer.NULL));
+            for (int i = 0; i < table.ElementContent.Count; i++) {
+               var segmentStart = table.ElementContent.Take(i).Sum(seg => seg.Length);
+               if (!(table.ElementContent[i] is ArrayRunPointerSegment pSegment)) continue;
+               var spritePointer = table.Start + table.ElementLength * offset.ElementIndex + segmentStart;
+               var spriteAddress = model.ReadPointer(spritePointer);
+               var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+               if (spriteRun == null || spriteRun.Start != spriteAddress || spriteRun.FormatString != pSegment.InnerFormat) continue;
+               foreach (var palette in spriteRun.FindRelatedPalettes(model, spritePointer, includeAllTableIndex: true)) {
+                  EditOptions.Add(new EditOption(model, spritePointer, palette.PointerSources[0]));
+               }
+               if (spriteRun.SpriteFormat.BitsPerPixel < 4) {
+                  EditOptions.Add(new EditOption(model, spritePointer, Pointer.NULL));
+               }
             }
          }
 
@@ -1528,7 +1531,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int PalettePointer { get; }
       public short[] PixelData { get; private set; }
 
-      public double SpriteScale => 1;
+      public double SpriteScale => PixelWidth > 240 || PixelHeight > 160 ? .5 : 1;
 
       public EditOption(IDataModel model, int spritePointer, int palettePointer) {
          (this.model, SpritePointer, PalettePointer) = (model, spritePointer, palettePointer);

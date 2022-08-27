@@ -72,10 +72,6 @@
       del "$(TargetDir)Scripts\*.hma"
       del "$(TargetDir)Scripts\*.png"
       del "$(TargetDir)Scripts\*.txt"
-      
-      <!-- Delete AutoImplement.Tool, it's not needed in this output directory -->
-      del "$(TargetDir)AutoImplement.Tool.exe"
-      del "$(TargetDir)AutoImplement.Tool.*.json"
     </PostBuildEvent>
   </PropertyGroup>
 </Project>
