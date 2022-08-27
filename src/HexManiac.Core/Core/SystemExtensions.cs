@@ -200,7 +200,7 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public static byte[] ToByteArray(this string content) {
-         return content.Split(' ').Select(t => (byte)int.Parse(t, NumberStyles.HexNumber)).ToArray();
+         return content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(t => (byte)int.Parse(t, NumberStyles.HexNumber)).ToArray();
       }
    }
 

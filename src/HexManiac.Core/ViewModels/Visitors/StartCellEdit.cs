@@ -138,7 +138,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
          if (run is PCSRun && run.Start == MemoryLocation && Input == ' ') return;
 
-         Result = Input == StringDelimeter || PCSString.PCS.Any(str => str != null && str.StartsWith(Input.ToString()));
+         Result = Input == StringDelimeter ||
+            PCSString.PCS.Any(str => str != null && str.StartsWith(Input.ToString())) ||
+            Model.TextConverter.AnyMacroStartsWith(Input.ToString());
       }
 
       public void Visit(EscapedPCS pcs, byte data) {

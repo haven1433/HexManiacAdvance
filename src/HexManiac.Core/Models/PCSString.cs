@@ -9,6 +9,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public interface ITextConverter {
       List<byte> Convert(string text, out bool containsBadCharacters);
       string Convert(IReadOnlyList<byte> data, int startIndex, int length);
+      bool AnyMacroStartsWith(string input);
    }
 
    public class PCSConverter : ITextConverter {
@@ -24,6 +25,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
          return PCSString.Convert(gameCode, data, startIndex, length);
+      }
+
+      public bool AnyMacroStartsWith(string input) {
+         if (!PCSString.TextMacros.TryGetValue(gameCode, out var macros)) return false;
+         return macros.Keys.Any(key => key.StartsWith(input));
       }
    }
 

@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -110,6 +111,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          } else if (PCSString.PCS.Any(str => str == currentText)) {
             CompleteCharacterEdit(pcs);
             Result = true;
+         } else {
+            var bytes = Model.TextConverter.Convert(currentText, out var containsBadCharacters);
+            if (bytes.Count > 1 && !containsBadCharacters) {
+               CompleteCharacterEdit(pcs);
+               Result = true;
+            }
          }
 
          if (Result) scroll.UpdateHeaders();
@@ -741,6 +748,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          var escaped = originalFormat as EscapedPCS;
          var run = Model.GetNextRun(memoryLocation);
 
+         if (Model.TextConverter.AnyMacroStartsWith(editText)) {
+            var byteValues = Model.TextConverter.Convert(editText, out var containsBadCharacters);
+            if (!containsBadCharacters && byteValues.Count > 2) {
+               byteValues = byteValues.Take(byteValues.Count - 1).ToList(); // remove the FF at the end of the convert
+               HandleLastCharacterChange(memoryLocation, run, byteValues);
+               return;
+            }
+         }
+
          var byteValue = escaped != null ?
             byte.Parse(CurrentText, NumberStyles.HexNumber) :
             (byte)0x100.Range().First(i => PCSString.PCS[i] == editText);
@@ -769,7 +785,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                Model.ObserveRunWritten(CurrentChange, run);
             }
          } else if (run is ITableRun arrayRun) {
-            // if the last characet is being edited for an array, truncate
+            // if the last character is being edited for an array, truncate
             var offsets = arrayRun.ConvertByteOffsetToArrayOffset(memoryLocation);
             if (arrayRun.ElementContent[offsets.SegmentIndex].Length == position + 1) {
                memoryLocation--; // move back one byte and edit that one instead
@@ -782,6 +798,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          CurrentChange.ChangeData(Model, memoryLocation, byteValue);
          NewDataIndex = memoryLocation + 1;
+      }
+
+      private void HandleLastCharacterChange(int memoryLocation, IFormattedRun run, IReadOnlyList<byte> bytes) {
+         if (run is PCSRun) {
+            if (run.Length < memoryLocation - run.Start + bytes.Count + 1) {
+               var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + bytes.Count);
+               if (newRun != run) {
+                  MessageText = $"Text was automatically moved to {newRun.Start:X6}. Pointers were updated.";
+                  memoryLocation += newRun.Start - run.Start;
+                  run = newRun;
+                  DataMoved = true;
+               }
+               CurrentChange.ChangeData(Model, memoryLocation + bytes.Count, 0xFF);
+               run = new PCSRun(Model, run.Start, memoryLocation - run.Start + bytes.Count + 1, run.PointerSources);
+               Model.ObserveRunWritten(CurrentChange, run);
+            }
+         } else if (run is ITableRun array) {
+            var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
+            while (array.ElementContent[offsets.SegmentIndex].Length < memoryLocation-offsets.SegmentStart+bytes.Count+1) {
+               memoryLocation--; // move back one byte and edit that one instead
+            }
+            if (bytes.Count.Range().Any(i => Model[memoryLocation + i] == 0xFF)) {
+               CurrentChange.ChangeData(Model, memoryLocation + bytes.Count, 0xFF); // overwrote the closing ", so add a new one after (since there's room)
+            }
+         }
+
+         CurrentChange.ChangeData(Model, memoryLocation, bytes);
+         NewDataIndex = memoryLocation + bytes.Count;
       }
 
       private void CompleteHexEdit(string currentText) {

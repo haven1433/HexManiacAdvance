@@ -638,10 +638,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TextWithMacro_ShowInHexContent_FirstByteDoesNotShowMacro() {
          SetFullModel(0xFF);
-         var converter = new PCSConverter("BPRE");
-         var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
-         property = property.DeclaringType.GetProperty(nameof(Model.TextConverter));
-         property.GetSetMethod(true).Invoke(Model, new object[] { converter });
+         HackTextConverter("BPRE");
 
          Token.ChangeData(Model, 0, new byte[] { 0xFC, 0x01, 0x05, 0xFF });
          Model.ObserveRunWritten(Token, new PCSRun(Model, 0, 4));
@@ -683,6 +680,34 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Tools.StringTool.Content = "tst";
 
          Assert.Equal("tst", PCSString.Convert(Model, 5, 5).Trim('"'));
+      }
+
+      [Fact]
+      public void BytesWithColorMacro_CopyTextThenPaste_SameBytes() {
+         SetFullModel(0xFF);
+         HackTextConverter("BPRE");
+         var bytes = "CD E3 E1 D9 FC 01 06 CE D9 EC E8 FF".ToByteArray(); // Some[green]Text
+         Token.ChangeData(Model, 0, bytes);
+         ViewPort.Refresh();
+         ViewPort.Edit("^text\"\"");
+
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(FileSystem);
+         ViewPort.Goto.Execute(0x30);
+         ViewPort.Edit(FileSystem.CopyText);
+
+         ViewPort.Goto.Execute(0x30);
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.CopyBytes.Execute(FileSystem);
+         var result = FileSystem.CopyText.value.ToByteArray();
+         Assert.Equal(bytes, result);
+      }
+
+      private void HackTextConverter(string game) {
+         var converter = new PCSConverter(game);
+         var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
+         property = property.DeclaringType.GetProperty(nameof(Model.TextConverter));
+         property.GetSetMethod(true).Invoke(Model, new object[] { converter });
       }
 
       private void Write(IDataModel model, ref int i, string characters) {
