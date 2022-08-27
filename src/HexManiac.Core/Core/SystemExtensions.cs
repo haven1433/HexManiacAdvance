@@ -166,7 +166,7 @@ namespace HavenSoft.HexManiac.Core {
          if (partial.Length == 0) return true;
          var parts = full.Split('.').Where(part => part.Any(partial.Contains)).ToList(); // only bother checking the parts where at least some letter matches
          foreach (var possibleOrder in EnumerateOrders(parts)) {
-            if (!MatchesPartial(possibleOrder, partial, true)) continue;
+            if (!possibleOrder.MatchesPartial(partial, true)) continue;
             return true;
          }
          return false;
@@ -176,8 +176,8 @@ namespace HavenSoft.HexManiac.Core {
       public static uint BitLetters(this string token) {
          var result = 0u;
          foreach (var letter in token) {
-            if (letter >= 'a' && letter <= 'z') result |= 1u << (letter - 'a');
-            if (letter >= 'A' && letter <= 'Z') result |= 1u << (letter - 'A');
+            if (letter >= 'a' && letter <= 'z') result |= 1u << letter - 'a';
+            if (letter >= 'A' && letter <= 'Z') result |= 1u << letter - 'A';
          }
          return result;
       }
@@ -193,7 +193,7 @@ namespace HavenSoft.HexManiac.Core {
             if (!input.Contains(".")) {
                if (options[i].MatchesPartialWithReordering(input)) result.Add(i);
             } else {
-               if (MatchesPartial(options[i], input)) result.Add(i);
+               if (options[i].MatchesPartial(input)) result.Add(i);
             }
          }
          return result;
@@ -252,7 +252,7 @@ namespace HavenSoft.HexManiac.Core {
          if (InnerDictionary != null) {
             return InnerDictionary.ContainsKey(key);
          }
-         return default(bool);
+         return default;
       }
 
       public virtual void Add(TKey key, TValue value) {
@@ -265,15 +265,15 @@ namespace HavenSoft.HexManiac.Core {
          if (InnerDictionary != null) {
             return InnerDictionary.Remove(key);
          }
-         return default(bool);
+         return default;
       }
 
       public virtual bool TryGetValue(TKey key, out TValue value) {
-         value = default(TValue);
+         value = default;
          if (InnerDictionary != null) {
             return InnerDictionary.TryGetValue(key, out value);
          }
-         return default(bool);
+         return default;
       }
 
       public virtual TValue this[TKey key] {
@@ -281,7 +281,7 @@ namespace HavenSoft.HexManiac.Core {
             if (InnerDictionary != null) {
                return InnerDictionary[key];
             }
-            return default(TValue);
+            return default;
          }
          set {
             if (InnerDictionary != null) {
@@ -294,7 +294,7 @@ namespace HavenSoft.HexManiac.Core {
             if (InnerDictionary != null) {
                return InnerDictionary.Keys;
             }
-            return default(ICollection<TKey>);
+            return default;
          }
       }
       public virtual ICollection<TValue> Values {
@@ -302,7 +302,7 @@ namespace HavenSoft.HexManiac.Core {
             if (InnerDictionary != null) {
                return InnerDictionary.Values;
             }
-            return default(ICollection<TValue>);
+            return default;
          }
       }
       public virtual void Add(KeyValuePair<TKey, TValue> item) {
@@ -321,7 +321,7 @@ namespace HavenSoft.HexManiac.Core {
          if (InnerDictionary != null) {
             return InnerDictionary.Contains(item);
          }
-         return default(bool);
+         return default;
       }
 
       public virtual void CopyTo(KeyValuePair<TKey, TValue>[] array, int arrayIndex) {
@@ -334,7 +334,7 @@ namespace HavenSoft.HexManiac.Core {
          if (InnerDictionary != null) {
             return InnerDictionary.Remove(item);
          }
-         return default(bool);
+         return default;
       }
 
       public virtual int Count {
@@ -342,7 +342,7 @@ namespace HavenSoft.HexManiac.Core {
             if (InnerDictionary != null) {
                return InnerDictionary.Count;
             }
-            return default(int);
+            return default;
          }
       }
       public virtual bool IsReadOnly {
@@ -350,17 +350,17 @@ namespace HavenSoft.HexManiac.Core {
             if (InnerDictionary != null) {
                return InnerDictionary.IsReadOnly;
             }
-            return default(bool);
+            return default;
          }
       }
       public virtual IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator() {
          if (InnerDictionary != null) {
             return InnerDictionary.GetEnumerator();
          }
-         return default(IEnumerator<KeyValuePair<TKey, TValue>>);
+         return default;
       }
 
-      System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() {
+      IEnumerator IEnumerable.GetEnumerator() {
          return GetEnumerator();
       }
    }

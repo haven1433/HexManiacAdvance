@@ -28,12 +28,6 @@
 
   <ItemGroup>
     <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
-    <Compile Include="$(CodeGenDir)StubFileSystem.cs" />
-    <Compile Include="$(CodeGenDir)StubTabContent.cs" />
-    <Compile Include="$(CodeGenDir)StubViewPort.cs" />
-    <Compile Include="$(CodeGenDir)StubDataModel.cs" />
-    <Compile Include="$(CodeGenDir)StubMetadataInfo.cs" />
-    <Compile Include="$(CodeGenDir)StubQuickEditItem.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -58,19 +52,6 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <PreBuildEvent>
-      if not exist "$(CodeGenDir)" mkdir "$(CodeGenDir)"
-
-      "$(AutoImplement)" "$(SolutionDir)artifacts\HexManiac.Core\bin\$(Configuration)\$(TargetFramework)\HexManiac.Core.dll" ITabContent IFileSystem IViewPort IDataModel IMetadataInfo IQuickEditItem
-      move /Y StubTabContent.cs "$(CodeGenDir)"
-      move /Y StubFileSystem.cs "$(CodeGenDir)"
-      move /Y StubViewPort.cs "$(CodeGenDir)"
-      move /Y StubDataModel.cs "$(CodeGenDir)"
-      move /Y StubMetadataInfo.cs "$(CodeGenDir)"
-      move /Y StubQuickEditItem.cs "$(CodeGenDir)"
-
-      del *.cs
-    </PreBuildEvent>
     <PostBuildEvent>
       mkdir "$(TargetDir)resources"
       copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"

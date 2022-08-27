@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Reflection;
 
-[assembly: AssemblyTitle("AutoImplement.Delegation")]
-
 namespace HavenSoft.AutoImplement.Delegation;
 
 /// <example>

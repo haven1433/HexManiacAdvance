@@ -11,9 +11,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
-    <Compile Include="$(CodeGenDir)StubCommand.cs" />
-    <Compile Include="$(CodeGenDir)StubComparer`1.cs" />
-    <Compile Include="$(CodeGenDir)StubDisposable.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Models\Code\default.axve.axpe.bpee.toml">
@@ -82,28 +79,4 @@
     <PackageReference Include="DynamicLanguageRuntime" Version="1.3.2" />
     <PackageReference Include="IronPython" Version="3.4.0-beta1" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)\src\AutoImplement.Delegation\AutoImplement.Delegation.csproj" />
-    <ProjectReference Include="$(SolutionDir)src\AutoImplement.Tool\AutoImplement.Tool.csproj" ReferenceOutputAssembly="false" />
-  </ItemGroup>
-  <PropertyGroup>
-    <PreBuildEvent>
-      if not exist "$(CodeGenDir)" mkdir "$(CodeGenDir)"
-
-      "$(AutoImplement)" "System.ObjectModel, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" ICommand
-      move /Y StubCommand.cs "$(CodeGenDir)"
-
-      "$(AutoImplement)" "System.Private.CoreLib, Version=6.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e" IDisposable IComparer`1
-      move /Y StubDisposable.cs "$(CodeGenDir)"
-      move /Y StubComparer`1.cs "$(CodeGenDir)"
-
-      del *.cs
-    </PreBuildEvent>
-    <PostBuildEvent>
-      $(AutoImplement) "HexManiac.Core.dll" IQuickEditItem
-      move /Y QuickEditItemDecorator.cs  $(CodeGenDir)
-      del *.cs
-    </PostBuildEvent>
-  </PropertyGroup>
-
 </Project>
