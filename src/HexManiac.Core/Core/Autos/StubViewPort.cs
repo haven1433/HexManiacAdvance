@@ -126,9 +126,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 return default(System.Collections.Generic.IReadOnlyList<Visitors.IContextItem>);
             }
         }
-        
+
+        public PropertyImplementation<double> ToolPanelWidth = new();
+        double IViewPort.ToolPanelWidth { get => ToolPanelWidth.get(); set => ToolPanelWidth.set(value); }
+
         public PropertyImplementation<string> FileName = new PropertyImplementation<string>();
-        
+
         string IViewPort.FileName
         {
             get
@@ -456,7 +459,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 this.Refresh();
             }
         }
-        
+
         public Func<HavenSoft.HexManiac.Core.Models.LoadedFile, HavenSoft.HexManiac.Core.Models.IFileSystem, bool> TryImport { get; set; }
         
         bool ITabContent.TryImport(HavenSoft.HexManiac.Core.Models.LoadedFile file, HavenSoft.HexManiac.Core.Models.IFileSystem fileSystem)

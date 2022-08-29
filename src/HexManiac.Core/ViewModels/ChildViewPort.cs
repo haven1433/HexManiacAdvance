@@ -71,6 +71,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IViewPort Parent => this[0].Parent;
 
+      public double ToolPanelWidth { get; set; } = 500;
+
       public string FileName => this[0].FileName;
 
       public string FullFileName => this[0].FullFileName;

@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return child.Width * line + child.DataOffset;
          }
       }
+      public double ToolPanelWidth { get; set; } = 500;
       public string Name { get; }
       public string FullFileName { get; }
       public string FileName => string.Empty;

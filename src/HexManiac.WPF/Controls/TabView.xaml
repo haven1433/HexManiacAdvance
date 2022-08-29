@@ -11,6 +11,7 @@
    <UserControl.Resources>
       <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
       <hsi:BooleanConverter x:Key="InverseBoolToVisibility" True="Collapsed" False="Visible" />
+      <hsi:DoubleGridLengthConverter x:Key="DoubleToGridLength" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex" />
       <hsg3hv:EqualityToBooleanConverter x:Key="Equality" />
    </UserControl.Resources>
@@ -112,7 +113,7 @@
       </StackPanel>
       <Grid>
          <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="500" Name="LeftToolsPane">
+            <ColumnDefinition Width="{Binding ToolPanelWidth, Mode=TwoWay, Converter={StaticResource DoubleToGridLength}}" Name="LeftToolsPane">
                <ColumnDefinition.Style>
                   <Style TargetType="ColumnDefinition">
                      <Style.Triggers>
