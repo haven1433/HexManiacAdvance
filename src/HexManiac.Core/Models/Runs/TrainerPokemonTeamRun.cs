@@ -514,6 +514,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var newStructType = model[pointerSource - TrainerFormat_PointerOffset];
          var newElementCount = model[pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+         newElementCount = Math.Max(newElementCount, (byte)1);
 
          var newRun = this;
          if (newElementCount != ElementCount) newRun = (TrainerPokemonTeamRun)newRun.Append(token, newElementCount - ElementCount);
