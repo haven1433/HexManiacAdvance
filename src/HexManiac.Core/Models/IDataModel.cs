@@ -112,10 +112,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash);
    }
 
+   public class LimitSet<T> : HashSet<T>, ISet<T> {
+      private readonly int limit;
+      public LimitSet(int limit) => this.limit = limit;
+      bool ISet<T>.Add(T element) {
+         if (Count >= limit) return false;
+         return Add(element);
+      }
+   }
+
    public abstract class BaseModel : IDataModel {
       public const int PointerOffset = 0x08000000;
 
-      private readonly ISet<int> changes = new HashSet<int>();
+      private readonly ISet<int> changes = new LimitSet<int>(1000);
 
       public Task InitializationWorkload { get; protected set; }
 

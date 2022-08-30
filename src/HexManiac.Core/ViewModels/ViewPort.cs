@@ -1185,13 +1185,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          } else if (file.Name.ToLower().EndsWith(".ips")) {
             history.ChangeCompleted();
-            var destination = Patcher.ApplyIPSPatch(Model, file.Contents, CurrentChange);
+            history.ClearHistory();
+            var destination = Patcher.ApplyIPSPatch(Model, file.Contents, new NoTrackChange());
             if (destination >= 0) ReloadMetadata(Model.RawData, Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
             Goto.Execute(destination);
             return true;
          } else if (file.Name.ToLower().EndsWith(".ups")) {
             history.ChangeCompleted();
-            var destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: false, out var direction);
+            history.ClearHistory();
+            var destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => new NoTrackChange(), ignoreChecksums: false, out var direction);
             scroll.DataLength = Model.Count;
             switch (destination) {
                case -1: RaiseError("UPS Header didn't match!"); break;
@@ -1201,7 +1203,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      new VisualOption { Option = "Cancel", Index = 1, ShortDescription = "This is SAFE", Description = "The UPS will instead be opened as a hex file in a separate tab." }
                      );
                   if (choice == 0) {
-                     destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => CurrentChange, ignoreChecksums: true, out direction);
+                     destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => new NoTrackChange(), ignoreChecksums: true, out direction);
                      scroll.DataLength = Model.Count;
                   } else {
                      return false;

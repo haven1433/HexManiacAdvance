@@ -39,7 +39,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       private int oldDataLength = -1, newDataLength = -1;
 
       public event EventHandler OnNewChange;
-      public bool HasDataChange { get; private set; }
+      protected void NotifyOnNewChange() => OnNewChange?.Invoke(this, EventArgs.Empty);
+      public bool HasDataChange { get; protected set; }
       public bool HasAnyChange =>
          HasDataChange ||
          addedRuns.Any() ||
@@ -252,6 +253,21 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class NoDataChangeDeltaModel : ModelDelta {
       public override bool ChangeData(IDataModel model, int index, byte data) {
          throw new InvalidOperationException("This operation is not allowed to change model data!");
+      }
+   }
+
+   public class NoTrackChange : ModelDelta {
+      public override bool ChangeData(IDataModel model, int index, byte data) {
+         if (model.Count > index && model[index] == data) return false;
+         if (model.Count <= index) model.ExpandData(this, index);
+         var valueChanged = model[index] != data;
+         model[index] = data;
+         if (!HasDataChange) {
+            HasDataChange = true;
+            NotifyOnNewChange();
+         }
+
+         return valueChanged;
       }
    }
 }

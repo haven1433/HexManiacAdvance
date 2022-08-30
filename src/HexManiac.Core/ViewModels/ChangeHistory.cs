@@ -186,5 +186,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var stub = new StubDisposable { Dispose = () => revertInProgress = false };
          return stub;
       }
+
+      public void ClearHistory() {
+         VerifyRevertNotInProgress();
+         if (!IsSaved) undoStackSizeAtSaveTag = -1;
+         undoStack.Clear();
+         redoStack.Clear();
+         currentChange = null;
+
+         NotifyPropertyChanged(nameof(HasDataChange));
+         NotifyPropertyChanged(nameof(IsSaved));
+         undo.RaiseCanExecuteChanged();
+         redo.RaiseCanExecuteChanged();
+      }
    }
 }
