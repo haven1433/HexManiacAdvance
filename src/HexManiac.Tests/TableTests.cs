@@ -1115,6 +1115,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, Model[0x20]);
       }
 
+      [Fact]
+      public void TableWithSplitterSegment_Copy_SplitterSegmentNotCopied() {
+         ViewPort.Edit("^table[a:: b:: | c:: d::]3 ");
+         ViewPort.SelectionStart = new(4, 1);
+         ViewPort.SelectionEnd = new(11, 1);
+
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Equal("0, 0,", FileSystem.CopyText.value.Trim());
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

@@ -122,10 +122,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   text.Append($"{ViewPort.CommentStart}{names[i]}{ViewPort.CommentStart}, ");
                }
 
-               text.Append(segment.ToText(data, offset, deep).Trim());
-               if (j + 1 < self.ElementContent.Count) text.Append(", ");
-               offset += segment.Length;
-               length -= segment.Length;
+               if (segment.Length > 0) {
+                  text.Append(segment.ToText(data, offset, deep).Trim());
+                  if (j + 1 < self.ElementContent.Count) text.Append(", ");
+                  offset += segment.Length;
+                  length -= segment.Length;
+               }
             }
             if (i + 1 < self.ElementCount) text.Append(Environment.NewLine);
             offsets = new ArrayOffset(i + 1, 0, offset, 0);
