@@ -55,7 +55,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new SpriteRun(Model, Start, SpriteFormat, newPointerSources);
 
-      public ISpriteRun Duplicate(SpriteFormat format) => new SpriteRun(Model, Start, format, PointerSources);
+      ISpriteRun ISpriteRun.Duplicate(SpriteFormat format) => Duplicate(format);
+      public SpriteRun Duplicate(SpriteFormat format) => new SpriteRun(Model, Start, format, PointerSources);
 
       public byte[] GetData() {
          var data = new byte[SpriteFormat.ExpectedByteLength];
@@ -191,6 +192,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          } else {
             throw new NotImplementedException();
          }
+      }
+
+      public SpriteRun IncreaseHeight(int units, ModelDelta token) {
+         if (units < 1) return this;
+         var data = GetData();
+         var format = SpriteFormat;
+         var newData = new byte[data.Length + units * format.BitsPerPixel * 8 * format.TileWidth];
+         Array.Copy(data, newData, data.Length);
+         var newRun = Model.RelocateForExpansion(token, this, newData.Length);
+         token.ChangeData(Model, newRun.Start, newData);
+         newRun = newRun.Duplicate(new SpriteFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight + units, format.PaletteHint, format.AllowLengthErrors));
+         Model.ObserveRunWritten(token, newRun);
+         return newRun;
       }
 
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
