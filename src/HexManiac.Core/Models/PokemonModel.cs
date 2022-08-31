@@ -82,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name, where is it?
       // for a location, what is its name?
-      private readonly IDictionary<string, int> addressForAnchor = new Dictionary<string, int>();
+      private readonly IDictionary<string, int> addressForAnchor = new ThreadSafeDictionary<string, int>();
       private readonly Dictionary<int, string> anchorForAddress = new Dictionary<int, string>();
 
       // for a name not actually in the file, what pointers point to it?
