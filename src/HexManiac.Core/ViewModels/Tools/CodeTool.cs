@@ -165,16 +165,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// </summary>
       /// <param name="start"></param>
       /// <param name="currentScriptStart"></param>
-      private void UpdateContents(int start, ScriptParser parser, int currentScriptStart = -1) {
+      private void UpdateContents(int start, ScriptParser parser, int currentScriptStart = -1, int currentScriptLength = -1) {
          if (currentScriptStart == -1) {
             ShowErrorText = false;
             ErrorText = string.Empty;
          }
 
          var scripts = parser?.CollectScripts(model, start) ?? new List<int>();
+         int skippedScripts = 0;
          for (int i = 0; i < scripts.Count; i++) {
             var scriptStart = scripts[i];
             if (scriptStart == currentScriptStart && Contents.Count > i && Contents[i].Address == scriptStart) continue;
+            if (scriptStart > currentScriptStart && scriptStart < currentScriptStart + currentScriptLength) {
+               // this script is included inside the current under-edit script
+               // it doesn't need its own content
+               skippedScripts += 1;
+               continue;
+            }
             var scriptLength = parser.FindLength(model, scriptStart);
             var label = scriptStart.ToString("X6");
             var content = parser.Parse(model, scriptStart, scriptLength);
@@ -195,7 +202,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
          }
 
-         while (Contents.Count > scripts.Count) {
+         while (Contents.Count > scripts.Count - skippedScripts) {
             Contents[Contents.Count - 1].ContentChanged -= ScriptChanged;
             Contents.RemoveAt(Contents.Count - 1);
          }
@@ -229,7 +236,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
             var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
             if (start > end) (start, end) = (end, start);
-            UpdateContents(start, parser, body.Address);
+            UpdateContents(start, parser, body.Address, end - start + 1);
          }
       }
 
@@ -308,9 +315,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (run == null) {
                   var availableLength = length;
                   for (int i = start + length; i < start + code.Length; i++) {
+                     // if it's freespace, then it's available
                      if (model[i] == 0xFF) {
                         availableLength++;
                         continue;
+                     }
+                     if (model.GetNextRun(i) is IScriptStartRun scriptRun) {
+                        // the next byte is a script... maybe it's ok to overwrite it
+                        // we can overwrite it if it passes 2 checks
+                        // (1) the only pointers to that script are contained within the script we're currently compiling
+                        // (2) the script is contained completely within the compiled code (meaning it's actually part of the script as written)
+                        if (scriptRun.PointerSources.All(source => start < source && source < start + length)) {
+                           var scriptLength = parser.FindLength(model, scriptRun.Start);
+                           if (i + scriptLength <= start + code.Length) {
+                              i += scriptLength - 1;
+                              availableLength += scriptLength;
+                              continue;
+                           }
+                        }
                      }
                      ErrorText = $"Script is {code.Length} bytes long, but only {availableLength} bytes are available.";
                      ShowErrorText = true;
