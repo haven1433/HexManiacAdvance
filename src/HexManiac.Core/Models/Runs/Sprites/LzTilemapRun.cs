@@ -203,12 +203,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tilesToKeep.Add(0); // always keep the 'transparency' tile
          var oldTileDataRaw = tileset.GetData();
          var previousTiles = Tilize(oldTileDataRaw, run.Format.BitsPerPixel);
+
+         // if the new tiledata matches the previous tiledata
+         var tileWidth = tileData.GetLength(0);
+         var tileHeight = tileData.GetLength(1);
+         var originalTilemap = GetUsedTiles(run).ToList();
+         for (int i = 0; i < originalTilemap.Count; i++) {
+            int y = i / tileWidth;
+            int x = i % tileWidth;
+            if (y >= tileHeight) break;
+            if (previousTiles.Count <= originalTilemap[i]) break;
+            if (TilesMatch(previousTiles[originalTilemap[i]], tileData[x, y].pixels, flipPossible: false) == TileMatchType.Normal) tilesToKeep.Add(i);
+         }
+
          tiles = MergeTilesets(previousTiles, tilesToKeep, tiles, run.BytesPerTile == 2);
          tileset.SetPixels(model, token, tiles);
          var mapData = run.GetTilemapData();
-
-         var tileWidth = tileData.GetLength(0);
-         var tileHeight = tileData.GetLength(1);
 
          for (int y = 0; y < tileHeight; y++) {
             for (int x = 0; x < tileWidth; x++) {
