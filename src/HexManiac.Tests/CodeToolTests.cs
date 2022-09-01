@@ -40,5 +40,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.False(Tool.ShowErrorText);
       }
+
+      [Fact]
+      public void ScriptWithTwoEnds_ChangeEndToNop_NoErrors() {
+         Tool.Mode = CodeMode.Script;
+
+         EventScript = "nop;end;end";
+         EventScript = "nop;nop;end";
+
+         Assert.False(Tool.ShowErrorText);
+      }
    }
 }

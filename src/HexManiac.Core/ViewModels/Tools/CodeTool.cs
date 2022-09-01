@@ -185,13 +185,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var scriptLength = parser.FindLength(model, scriptStart);
             var label = scriptStart.ToString("X6");
             var content = parser.Parse(model, scriptStart, scriptLength);
-            var body = new CodeBody { Address = scriptStart, Label = label, Content = content };
+            var body = new CodeBody { Address = scriptStart, Label = label, Content = content, CompiledLength = scriptLength };
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
                Contents[i].HelpSourceChanged -= UpdateScriptHelpFromLine;
                Contents[i].Content = body.Content;
                Contents[i].Address = body.Address;
+               Contents[i].CompiledLength = body.CompiledLength;
                Contents[i].Label = body.Label;
                Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents[i].ContentChanged += ScriptChanged;
@@ -219,11 +220,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int length = parser.FindLength(model, body.Address);
          using (ModelCacheScope.CreateScope(model)) {
             if (mode == CodeMode.Script) {
-               CompileScriptChanges<XSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<XSERun>(body, run, ref codeContent, parser, body == Contents[0]);
             } else if (mode == CodeMode.AnimationScript) {
-               CompileScriptChanges<ASERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<ASERun>(body, run, ref codeContent, parser, body == Contents[0]);
             } else {
-               CompileScriptChanges<BSERun>(body.Address, run, length, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<BSERun>(body, run, ref codeContent, parser, body == Contents[0]);
             }
 
             body.ContentChanged -= ScriptChanged;
@@ -298,10 +299,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return new StubDisposable { Dispose = () => ignoreContentUpdates = false };
       }
 
-      private void CompileScriptChanges<TSERun>(int start, IFormattedRun run, int length, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
+      private void CompileScriptChanges<TSERun>(CodeBody body, IFormattedRun run, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
          ShowErrorText = false;
          ErrorText = string.Empty;
          var sources = run?.PointerSources ?? null;
+         int start = body.Address;
+         int length = body.CompiledLength;
 
          using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
@@ -361,6 +364,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (changeStart < code.Length) model.ClearFormat(history.CurrentChange, start + changeStart, code.Length - changeStart);
 
             history.CurrentChange.ChangeData(model, start, code);
+            body.CompiledLength = code.Length;
             model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             parser.FormatScript<TSERun>(history.CurrentChange, model, start);
             if (sources != null) {
@@ -434,6 +438,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int Address {
          get => address;
          set => TryUpdate(ref address, value);
+      }
+
+      private int compiledLength;
+      public int CompiledLength {
+         get => compiledLength;
+         set => Set(ref compiledLength, value);
       }
 
       private int caretPosition;
