@@ -45,7 +45,7 @@
 24 checkteamslost ptr<>
 25 movevaluescleanup
 26 setmultihit value.
-27 decrementmultihit value::
+27 decrementmultihit ptr<>
 28 goto ptr<>
 29 jumpifbyte ifflag.battle_compare param1:: param2. ptr<>
 2a jumpifhalfword ifflag.battle_compare address:: value: ptr<>
@@ -114,7 +114,7 @@
 5c hitanimation battler.
 [BPRE_BPGE] 5d getmoneyreward ptr<>
 [BPEE_AXPE_AXVE] 5d getmoneyreward
-5e updatebattlermoves. battler.
+5e updatebattlermoves battler.
 5f swapattackerwithtarget
 60 incrementgamestat param0.
 61 drawpartystatussummary battler.
