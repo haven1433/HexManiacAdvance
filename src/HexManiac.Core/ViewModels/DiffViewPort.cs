@@ -191,7 +191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void FollowLink(int x, int y) { }
 
-      public IReadOnlyList<IContextItem> GetContextMenuItems(Point point) {
+      public IReadOnlyList<IContextItem> GetContextMenuItems(Point point, IFileSystem fileSystem) {
          var results = new List<IContextItem>();
          results.Add(new ContextItem("Copy Address", arg => {
             var fileSystem = (IFileSystem)arg;

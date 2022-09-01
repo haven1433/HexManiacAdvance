@@ -219,7 +219,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model1[1] = 1;
          ViewModel0.DiffRight.Execute();
 
-         var items = ViewModel2.GetContextMenuItems(new Point(0, 0));
+         var items = ViewModel2.GetContextMenuItems(new Point(0, 0), default);
          var itemText = items.Select(item => item.Text).ToList();
 
          Assert.Single(itemText, "Copy Address");

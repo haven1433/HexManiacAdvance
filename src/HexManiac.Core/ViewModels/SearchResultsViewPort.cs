@@ -283,7 +283,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          children[childIndex].FindAllSources(x, y);
       }
 
-      public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
+      public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint, IFileSystem fileSystem) {
          return new[] { new ContextItem("Open in Main Tab", arg => {
             FollowLink(selectionPoint.X, selectionPoint.Y);
             RequestMenuClose?.Invoke(this, EventArgs.Empty);

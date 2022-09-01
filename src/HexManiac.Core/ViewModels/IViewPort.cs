@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ChangeHistory<ModelDelta> ChangeHistory { get; }
       IToolTrayViewModel Tools { get; }
 
-      IReadOnlyList<IContextItem> GetContextMenuItems(Point point);
+      IReadOnlyList<IContextItem> GetContextMenuItems(Point point, IFileSystem fileSystem);
    }
 
    public interface IEditableViewPort : IViewPort {

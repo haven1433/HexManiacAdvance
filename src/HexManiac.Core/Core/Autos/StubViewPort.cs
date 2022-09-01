@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HavenSoft.AutoImplement.Delegation;
+using HavenSoft.HexManiac.Core.Models;
 
 // this file was created by AutoImplement
 namespace HavenSoft.HexManiac.Core.ViewModels
@@ -115,7 +116,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         
         public Func<HavenSoft.HexManiac.Core.Models.Point, System.Collections.Generic.IReadOnlyList<Visitors.IContextItem>> GetContextMenuItems { get; set; }
         
-        System.Collections.Generic.IReadOnlyList<Visitors.IContextItem> IViewPort.GetContextMenuItems(HavenSoft.HexManiac.Core.Models.Point point)
+        System.Collections.Generic.IReadOnlyList<Visitors.IContextItem> IViewPort.GetContextMenuItems(HavenSoft.HexManiac.Core.Models.Point point, IFileSystem fileSystem)
         {
             if (this.GetContextMenuItems != null)
             {

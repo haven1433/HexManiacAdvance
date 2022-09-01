@@ -1137,7 +1137,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Point ConvertAddressToViewPoint(int address) => scroll.DataIndexToViewPoint(address);
       public int ConvertViewPointToAddress(Point p) => scroll.ViewPointToDataIndex(p);
 
-      public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint) {
+      public IReadOnlyList<IContextItem> GetContextMenuItems(Point selectionPoint, IFileSystem fileSystem = null) {
          // don't show the context menu if the clicked box isn't actually selected.
          // Example: selection is outside the range of selectable data (maybe past the end of the data).
          if (!IsSelected(selectionPoint)) return new IContextItem[0];
@@ -1150,8 +1150,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             results.Add(new ContextItem("Deep Copy", DeepCopy.Execute) { ShortcutText = "Ctrl+Shift+C" });
          }
          results.Add(new ContextItem("Paste", arg => Edit(((IFileSystem)arg).CopyText)) { ShortcutText = "Ctrl+V" });
+         if (fileSystem != null && fileSystem.CopyText.All(c => AllHexCharacters.Contains(c) || char.IsWhiteSpace(c))) {
+            results.Add(new ContextItem("Paste Raw Bytes", arg => PasteRawBytes(((IFileSystem)arg).CopyText)));
+         }
          results.Add(new ContextItem("Copy Address", arg => CopyAddressExecute((IFileSystem)arg)));
          return results;
+      }
+
+      private void PasteRawBytes(string text) {
+         text = text.Replace(" ", "").Replace("\n", "").Replace("\r", "");
+         var index = Math.Min(ConvertViewPointToAddress(SelectionStart), ConvertViewPointToAddress(SelectionEnd));
+         for (int i = 0; i < text.Length / 2; i++) {
+            var high = AllHexCharacters.IndexOf(text[i * 2]);
+            var low = AllHexCharacters.IndexOf(text[i * 2 + 1]);
+            var value = (byte)((high << 4) + low);
+            var run = Model.GetNextRun(index + i);
+            if (run.Start <= index + i) {
+               // remove pointers, since randomly changing pointer bytes can lead to metadata issues
+               if (run is ITableRun tableRun) {
+                  var contentIndex = tableRun.ConvertByteOffsetToArrayOffset(index + i).SegmentIndex;
+                  if (tableRun.ElementContent[contentIndex].Type == ElementContentType.Pointer) {
+                     Model.ClearFormat(CurrentChange, index + i, 1);
+                  }
+               } 
+               if (run is PointerRun) Model.ClearFormat(CurrentChange, index + i, 1);
+            }
+            CurrentChange.ChangeData(Model, index + i, value);
+         }
+         SelectionStart = ConvertAddressToViewPoint(index + text.Length / 2);
+         RefreshBackingDataFull();
       }
 
       public bool IsSelected(Point point) => selection.IsSelected(point);
