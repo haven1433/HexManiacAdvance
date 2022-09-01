@@ -20,6 +20,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using FolderBrowserDialog = System.Windows.Forms.FolderBrowserDialog;
 
 namespace HavenSoft.HexManiac.WPF.Implementations {
    public class WindowsFileSystem : IFileSystem, IWorkDispatcher {
@@ -79,6 +80,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          var result = dialog.ShowDialog();
          if (result != true) return null;
          return LoadFile(dialog.FileName);
+      }
+
+      public string OpenFolder() {
+         using (var dialog = new FolderBrowserDialog()) {
+            var result = dialog.ShowDialog();
+            if (result != System.Windows.Forms.DialogResult.OK) return null;
+            return dialog.SelectedPath;
+         }
       }
 
       public bool Exists(string fileName) => File.Exists(fileName);
@@ -495,11 +504,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          return (data, frame.PixelWidth);
       }
 
-      public void SaveImage(short[] image, int width) {
-         var dialog = new SaveFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
-         var result = dialog.ShowDialog();
-         if (result != true) return;
-         var fileName = dialog.FileName;
+      public void SaveImage(short[] image, int width, string fileName = null) {
+         if (fileName == null) {
+            var dialog = new SaveFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
+            var result = dialog.ShowDialog();
+            if (result != true) return;
+            fileName = dialog.FileName;
+         }
 
          var frame = EncodeImage(image, width);
 

@@ -746,7 +746,7 @@ namespace HavenSoft.HexManiac.Tests {
          int width = 0;
          var fs = new StubFileSystem {
             ShowOptions = (title, text, details, options) => 0,
-            SaveImage = (img, wdth) => (imageData, width) = (img, wdth),
+            SaveImage = (img, wdth, n) => (imageData, width) = (img, wdth),
          };
 
          ViewPort.Tools.SpriteTool.ExportMany.Execute(fs);
@@ -766,7 +766,7 @@ namespace HavenSoft.HexManiac.Tests {
          int width = 0;
          var fs = new StubFileSystem {
             ShowOptions = (title, text, details, options) => 1,
-            SaveImage = (img, wdth) => (imageData, width) = (img, wdth),
+            SaveImage = (img, wdth, n) => (imageData, width) = (img, wdth),
          };
 
          ViewPort.Tools.SpriteTool.ExportMany.Execute(fs);

@@ -34,7 +34,10 @@ namespace HavenSoft.HexManiac.Core.Models
                 return default(LoadedFile);
             }
         }
-        
+
+        public Func<string> OpenFolder { get; set; }
+        string IFileSystem.OpenFolder() => OpenFolder?.Invoke() ?? default;
+
         public Func<string, bool> Exists { get; set; }
         
         bool IFileSystem.Exists(string file)
@@ -163,13 +166,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<System.Int16[], int> SaveImage { get; set; }
+        public Action<System.Int16[], int, string> SaveImage { get; set; }
         
-        void IFileSystem.SaveImage(System.Int16[] image, int width)
+        void IFileSystem.SaveImage(System.Int16[] image, int width, string fileName = null)
         {
             if (this.SaveImage != null)
             {
-                this.SaveImage(image, width);
+                this.SaveImage(image, width, fileName);
             }
         }
         

@@ -42,6 +42,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </returns>
       LoadedFile OpenFile(string extensionDescription = null, params string[] extensionOptions);
 
+      string OpenFolder();
+
       /// <returns>true if the file can be loaded</returns>
       bool Exists(string file);
 
@@ -103,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Show the user a dialog so they can create a file.
       /// Save this 16bit (5r5g5b) array into that file.
       /// </summary>
-      void SaveImage(short[] image, int width);
+      void SaveImage(short[] image, int width, string fileName = null);
 
       int ShowOptions(string title, string prompt, IReadOnlyList<IReadOnlyList<object>> additionalDetails, params VisualOption[] options);
 

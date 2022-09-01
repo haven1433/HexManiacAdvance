@@ -451,7 +451,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             if (ViewPort is ViewPort editableViewPort) {
                if (!editableViewPort.IsSelected(p)) editableViewPort.SelectionStart = p;
             }
-            var items = ViewPort.GetContextMenuItems(p);
+            var items = ViewPort.GetContextMenuItems(p, FileSystem);
             children.AddRange(BuildContextMenuUI(items));
 
             ShowMenu(children);

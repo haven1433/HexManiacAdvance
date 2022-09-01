@@ -508,10 +508,11 @@
                                                 <hsg3hv:AngleButton Direction="Out" Content="Edit" Grid.Column="2" Command="{Binding OpenEditor}" x:Name="EditButton" ToolTip="Open image in editor" />
                                                 <Grid Grid.Column="3">
                                                    <hsg3hv:AngleButton Direction="Right" Content="Export" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportMany, Converter={StaticResource InverseBoolToVisibility}}" />
-                                                   <Menu Background="Transparent" Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}">
+                                                   <Menu Background="Transparent" Visibility="{Binding CanExportManyOrAll, Converter={StaticResource BoolToVisibility}}">
                                                       <hsg3hv:AngleMenuItem Header="Export" Background="{DynamicResource Backlight}" Direction="Right" Width="{Binding ActualWidth, ElementName=EditButton}" FontSize="10">
                                                          <MenuItem Header="Single Page" Command="{Binding ExportPair}" CommandParameter="{DynamicResource FileSystem}"/>
-                                                         <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}"/>
+                                                         <MenuItem Header="All Pages" Command="{Binding ExportMany}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportMany, Converter={StaticResource BoolToVisibility}}"/>
+                                                         <MenuItem Header="All Table" Command="{Binding ExportAll}" CommandParameter="{DynamicResource FileSystem}" Visibility="{Binding CanExportAll, Converter={StaticResource BoolToVisibility}}"/>
                                                       </hsg3hv:AngleMenuItem>
                                                    </Menu>
                                                 </Grid>

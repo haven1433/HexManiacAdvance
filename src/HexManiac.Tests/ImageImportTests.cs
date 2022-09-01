@@ -96,7 +96,7 @@ namespace HavenSoft.HexManiac.Tests {
          short[] pixelData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            SaveImage = (p, w) => (pixelData, width) = (p, w),
+            SaveImage = (p, w, n) => (pixelData, width) = (p, w),
             LoadImage = fileName => (pixelData, width),
          };
 
@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Tests {
          short[] pixelData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            SaveImage = (p, w) => (pixelData, width) = (p, w),
+            SaveImage = (p, w, n) => (pixelData, width) = (p, w),
             LoadImage = fileName => (pixelData, width),
          };
 
@@ -153,7 +153,7 @@ namespace HavenSoft.HexManiac.Tests {
          short[] pixelData = null;
          int width = 0;
          var fs = new StubFileSystem {
-            SaveImage = (p, w) => (pixelData, width) = (p, w),
+            SaveImage = (p, w, n) => (pixelData, width) = (p, w),
             LoadImage = fileName => (pixelData, width),
             ShowOptions = (_0, _1, _d, _2) => 2, // use Cautious
          };
