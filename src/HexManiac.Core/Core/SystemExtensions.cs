@@ -113,17 +113,33 @@ namespace HavenSoft.HexManiac.Core {
 
       ////// these are some specific string extensions to deal with smart auto-complete //////
 
-      public static bool MatchesPartial(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
+      /// <summary>
+      /// Returns how many letters within partial can be matched into the full string
+      /// </summary>
+      public static int MatchLength(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
          full = full.Replace("é", "e");
-         foreach (var character in partial) {
-            if (onlyCheckLettersAndDigits && !char.IsLetterOrDigit(character)) continue;
-            var index = full.IndexOf(character.ToString(), StringComparison.CurrentCultureIgnoreCase);
-            if (index == -1) return false;
-            full = full.Substring(index + 1);
+         int j = 0;
+         for (int i = 0; i < partial.Length; i++) {
+            if (onlyCheckLettersAndDigits && !char.IsLetterOrDigit(partial[i])) continue;
+            var testPartial = char.ToUpperInvariant(partial[i]);
+            if (partial[i] == 'é') testPartial = 'E';
+            while (j < full.Length) {
+               var testFull = char.ToUpperInvariant(full[j]);
+               if (full[j] == 'é') testFull = 'E';
+               j++;
+               if (testFull == testPartial) break;
+               if (j == full.Length) return i;
+            }
+            if (j == full.Length) return i + 1;
          }
 
-         return true;
+         return partial.Length;
       }
+
+      public static bool MatchesPartial(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
+         return MatchLength(full, partial, onlyCheckLettersAndDigits) == partial.Length;
+      }
+
       public static int IndexOfPartial(this IReadOnlyList<string> names, string input) {
          // perfect match first
          var matchIndex = names.IndexOf(input);
@@ -163,6 +179,25 @@ namespace HavenSoft.HexManiac.Core {
       public static IEnumerable<T> Except<T>(this IEnumerable<T> collection, params T[] remove) => Enumerable.Except(collection, remove);
 
       public static bool MatchesPartialWithReordering(this string full, string partial) {
+         if (partial.Length == 0) return true;
+         if (partial.Contains('.')) return full.MatchesPartial(partial);
+         var parts = full.Split('.').ToList();
+         while (partial.Length > 0) {
+            if (parts.Count == 0) return false;
+            int bestMatchIndex = 0, bestMatchValue = parts[0].MatchLength(partial);
+            for (int i = 1; i < parts.Count; i++) {
+               var matchValue = parts[i].MatchLength(partial);
+               if (matchValue <= bestMatchValue) continue;
+               (bestMatchIndex, bestMatchValue) = (i, matchValue);
+            }
+            if (bestMatchValue == 0) return false;
+            parts.RemoveAt(bestMatchIndex);
+            partial = partial.Substring(bestMatchValue);
+         }
+         return true;
+      }
+
+      public static bool MatchesPartialWithReordering1(this string full, string partial) {
          if (partial.Length == 0) return true;
          var parts = full.Split('.').Where(part => part.Any(partial.Contains)).ToList(); // only bother checking the parts where at least some letter matches
          foreach (var possibleOrder in EnumerateOrders(parts)) {
