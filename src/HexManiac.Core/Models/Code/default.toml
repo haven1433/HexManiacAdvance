@@ -502,6 +502,14 @@ Name = '''owfootprints'''
 ]
 
 [[List]]
+Name = '''owtextcolor'''
+0 = [
+ '''Blue''',
+ '''Red''',
+ '''Black''',
+]
+
+[[List]]
 Name = '''movetarget'''
 0 = [
    '''RecentAttacker''',
