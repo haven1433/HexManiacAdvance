@@ -2040,10 +2040,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             child.SelectionEnd = endPoint;
          } else if (run is ITableRun tableRun) {
             child.Goto.Execute(tableRun.Start);
-            child.Width = tableRun.Length;
-            child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
+            child.Width = tableRun.Length <= 32 ? tableRun.Length : tableRun.ElementLength;
             var endPoint = child.ConvertAddressToViewPoint(endAddress);
-            child.Height = endPoint.Y - child.SelectionStart.Y + 1;
+            child.Height = endPoint.Y + 1;
+            child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
             child.SelectionEnd = endPoint;
          } else {
             child.Goto.Execute(startAddress.ToString("X2"));
