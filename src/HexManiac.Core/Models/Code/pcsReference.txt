@@ -82,6 +82,7 @@ CC_10 = 2 # play sound effects
 [white2]       FC 01 01
 [black]        FC 01 02
 [grey]         FC 01 03
+[gray]         FC 01 03
 [red]          FC 01 04
 [orange]       FC 01 05
 [green]        FC 01 06
@@ -98,6 +99,7 @@ CC_10 = 2 # play sound effects
 @!game(AXVE_AXPE)
 [transp]       FC 01 00
 [darkgrey]     FC 01 01
+[darkgray]     FC 01 01
 [red]          FC 01 02
 [lightgreen]   FC 01 03
 [blue]         FC 01 04
@@ -105,9 +107,11 @@ CC_10 = 2 # play sound effects
 [cyan]         FC 01 06
 [magenta]      FC 01 07
 [grey]         FC 01 08
+[gray]         FC 01 08
 [black]        FC 01 09
 [black2]       FC 01 0A
 [lightgrey]    FC 01 0B
+[lightgray]    FC 01 0B
 [white]        FC 01 0C
 [skyblue]      FC 01 0D
 [darkskyblue]  FC 01 0E
@@ -117,7 +121,9 @@ CC_10 = 2 # play sound effects
 [white]        FC 01 00
 [white2]       FC 01 01
 [darkgrey]     FC 01 02
+[darkgray]     FC 01 02
 [grey]         FC 01 03
+[gray]         FC 01 03
 [red]          FC 01 04
 [orange]       FC 01 05
 [green]        FC 01 06
@@ -126,6 +132,7 @@ CC_10 = 2 # play sound effects
 [lightblue]    FC 01 09
 [white3]       FC 01 0A
 [grey2]        FC 01 0B
+[gray2]        FC 01 0B
 [white4]       FC 01 0C
 [limegreen]    FC 01 0D
 [aqua]         FC 01 0E
