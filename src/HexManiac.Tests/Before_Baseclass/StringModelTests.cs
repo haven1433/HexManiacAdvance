@@ -703,6 +703,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(bytes, result);
       }
 
+      [Fact]
+      public void SpecialCharacters_MatchAgainstNormalCharacters_Match() {
+         Assert.True("á.é".MatchesPartialWithReordering("ea"));
+         Assert.True("a.e".MatchesPartialWithReordering("éá"));
+      }
+
       private void HackTextConverter(string game) {
          var converter = new PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));

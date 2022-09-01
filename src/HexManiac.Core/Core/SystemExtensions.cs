@@ -117,15 +117,16 @@ namespace HavenSoft.HexManiac.Core {
       /// Returns how many letters within partial can be matched into the full string
       /// </summary>
       public static int MatchLength(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
-         full = full.Replace("é", "e");
          int j = 0;
          for (int i = 0; i < partial.Length; i++) {
             if (onlyCheckLettersAndDigits && !char.IsLetterOrDigit(partial[i])) continue;
             var testPartial = char.ToUpperInvariant(partial[i]);
             if (partial[i] == 'é') testPartial = 'E';
+            if (partial[i] == 'á') testPartial = 'A';
             while (j < full.Length) {
                var testFull = char.ToUpperInvariant(full[j]);
                if (full[j] == 'é') testFull = 'E';
+               if (full[j] == 'á') testFull = 'A';
                j++;
                if (testFull == testPartial) break;
                if (j == full.Length) return i;
