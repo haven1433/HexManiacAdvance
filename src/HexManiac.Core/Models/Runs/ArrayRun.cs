@@ -511,7 +511,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             ParentOffset = ParentOffset.Default;
             ElementCount = Math.Max(1, elementCount); // if the user said there's a format here, then there is, even if the format it wrong.
             FormatString += ElementCount;
-         } else if (int.TryParse(length, out int result)) {
+         } else if (length.TryParseInt(out int result)) {
             // fixed length is easy
             LengthFromAnchor = string.Empty;
             ParentOffset = ParentOffset.Default;

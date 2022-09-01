@@ -312,7 +312,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IEnumerable<string> GetOptions(IDataModel model) => GetOptions(model, EnumName);
 
       public static IEnumerable<string> GetOptions(IDataModel model, string enumName) {
-         if (int.TryParse(enumName, out var result)) return result.Range().Select(i => i.ToString());
+         if (enumName.TryParseInt(out var result)) return result.Range().Select(i => i.ToString());
          IEnumerable<string> options = model.GetOptions(enumName);
 
          // we _need_ options for the table tool

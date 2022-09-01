@@ -24,6 +24,12 @@ namespace HavenSoft.HexManiac.Core {
          return value;
       }
 
+      public static bool TryParseInt(this string str, out int result) {
+         if (str.StartsWith("0x") && int.TryParse(str.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return true;
+         if (int.TryParse(str, out result)) return true;
+         return false;
+      }
+
       // allows writing 5.Range() instead of Enumerable.Range(0, 5)
       public static IEnumerable<int> Range(this int count) => Enumerable.Range(0, count);
 

@@ -1126,6 +1126,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("0, 0,", FileSystem.CopyText.value.Trim());
       }
 
+      [Fact]
+      public void TableWithHexLength_Parse_NoError() {
+         ViewPort.Edit("^table[a:: b::]0x10 ");
+         Assert.Equal(8 * 16, Model.GetNextRun(0).Length);
+      }
+
+      [Fact]
+      public void TableWithHexEnum_Parse_NoErrors() {
+         ViewPort.Edit("^table[a::0x10 b::]10 ");
+         var table = Model.GetTable("table");
+         var seg = (ArrayRunEnumSegment)table.ElementContent[0];
+         Assert.Equal(16, seg.GetOptions(Model).Count());
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
