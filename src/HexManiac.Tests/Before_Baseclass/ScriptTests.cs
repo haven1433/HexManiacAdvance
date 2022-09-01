@@ -69,7 +69,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ScriptLine_MultibyteEnum_Loads() {
-         var args = Singletons.ScriptLines[0x44].Args;
+         var scriptLine = Singletons.ScriptLines.Single(line => line.LineCode.Count == 1 && line.LineCode[0] == 0x44);
+         var args = scriptLine.Args;
 
          Assert.Equal(HardcodeTablesModel.ItemsTableName, args[0].EnumTableName);
          Assert.Equal(2, args[0].Length(null, 0));

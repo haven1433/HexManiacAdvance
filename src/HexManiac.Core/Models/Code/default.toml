@@ -833,7 +833,6 @@ Name = '''trainergender'''
 
 [[List]]
 Name = '''doublebattleflag'''
-DefaultHash = '''0'''
 0 = [
    '''Single''',
    '''Double''',
