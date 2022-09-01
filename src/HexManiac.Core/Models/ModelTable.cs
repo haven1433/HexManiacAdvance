@@ -152,7 +152,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          get {
             var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
             if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
-            if (seg.Type == ElementContentType.Pointer) return GetAddress(fieldName);
+            if (seg.Type == ElementContentType.Pointer) {
+               var address = GetAddress(fieldName);
+               if (model.GetNextRun(address) is ITableRun table1) {
+                  return new ModelTable(model, table1.Start, token);
+               }
+               return address;
+            }
             if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
             return GetValue(fieldName);
          }
