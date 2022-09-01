@@ -46,6 +46,9 @@
     <None Include="Scripts\ability_type_swaps.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Scripts\entrance_abilities.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
@@ -59,8 +62,7 @@
     <Resource Include="Resources\AppImage.png" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>
-      if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
+    <PostBuildEvent>      if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
       if not exist "$(TargetDir)resources\Scripts" mkdir "$(TargetDir)resources\Scripts"
       copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.txt"
@@ -72,6 +74,12 @@
       del "$(TargetDir)Scripts\*.hma"
       del "$(TargetDir)Scripts\*.png"
       del "$(TargetDir)Scripts\*.txt"
-    </PostBuildEvent>
+      rmdir "$(TargetDir)Scripts"
+      rmdir "$(TargetDir)Models\Code"
+      rmdir "$(TargetDir)Models"
+      del "$(TargetDir)IronPython.SQLite.dll"
+      del "$(TargetDir)Mono.Unix.dll"
+      rmdir "$(TargetDir)runtimes" /s /q
+</PostBuildEvent>
   </PropertyGroup>
 </Project>
