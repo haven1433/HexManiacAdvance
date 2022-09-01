@@ -42,7 +42,7 @@
 21 jumpifstatus3condition battler. status3:: param2. ptr<>
 22 jumpiftype battler. type. ptr<>
 23 getexp battler.
-24 atk24 ptr<>
+24 checkteamslost ptr<>
 25 movevaluescleanup
 26 setmultihit value.
 27 decrementmultihit value::
@@ -57,12 +57,12 @@
 30 subbyte ram:: param1.
 31 copyarray param0:: param1:: param2.
 32 copyarraywithindex param0:: param1:: param2:: param3.
-33 orbyte ptr<> param1.
-34 orhalfword ptr<> param1:
-35 orword ptr<> param1::
-36 bicbyte ptr<> param1.
-37 bichalfword ptr<> param1:
-38 bicword ptr<> param1::
+33 orbyte ram:: param1.
+34 orhalfword ram:: param1:
+35 orword ram:: param1::
+36 bicbyte ram:: param1.
+37 bichalfword ram:: param1:
+38 bicword ram:: param1::
 39 pause param0:
 3a waitstate
 3b healthbar_update battler.
@@ -99,21 +99,22 @@
 4d switchindataupdate battler.
 4e switchinanim battler. dontclearsubstitutebit.
 4f jumpifcantswitch battler. ptr<>
-50 openpartyscreen param0. param1::
+50 openpartyscreen param0. ptr<>
 51 switchhandleorder battler. param1.
 52 switchineffects battler.
 53 trainerslidein battler.
 54 playse song:
 55 fanfare song:
 56 playfaintcry battler.
-57 atk57
+57 endlinkbattle
 58 returntoball battler.
-59 handlelearnnewmove param0:: param1:: param2.
-5a yesnoboxlearnmove param0::
-5b yesnoboxstoplearningmove param0::
+59 handlelearnnewmove param0<> param1<> param2.
+5a yesnoboxlearnmove ptr<>
+5b yesnoboxstoplearningmove ptr<>
 5c hitanimation battler.
-5d getmoneyreward addr::
-5e atk5E battler.
+[BPRE_BPGE] 5d getmoneyreward ptr<>
+[BPEE_AXPE_AXVE] 5d getmoneyreward
+5e updatebattlermoves. battler.
 5f swapattackerwithtarget
 60 incrementgamestat param0.
 61 drawpartystatussummary battler.
@@ -142,19 +143,19 @@
 78 faintifabilitynotdamp
 79 setatkhptozero
 7a jumpifnexttargetvalid ptr<>
-7b tryhealhalfhealth param0:: battler.
+7b tryhealhalfhealth ptr<> battler.
 7c trymirrormove
 7d setrain
 7e setreflect
 7f setseeded
 80 manipulatedamage param0.
-81 trysetrest param0::
+81 trysetrest ptr<>
 82 jumpifnotfirstturn ptr<>
 83 nop
-84 jumpifcantmakeasleep param0::
+84 jumpifcantmakeasleep ptr<>
 85 stockpile
-86 stockpiletobasedamage param0::
-87 stockpiletohpheal param0::
+86 stockpiletobasedamage ptr<>
+87 stockpiletohpheal ptr<>
 88 negativedamage
 89 statbuffchange param0. ptr<>
 8a normalisebuffs
@@ -162,42 +163,42 @@
 8c confuseifrepeatingattackends
 8d setmultihitcounter param0.
 8e initmultihitstring
-8f forcerandomswitch param0::
-90 tryconversiontypechange param0::
+8f forcerandomswitch ptr<>
+90 tryconversiontypechange ptr<>
 91 givepaydaymoney
 92 setlightscreen
-93 tryKO param0::
+93 tryKO ptr<>
 94 damagetohalftargethp
 95 setsandstorm
 96 weatherdamage
-97 tryinfatuating param0<>
+97 tryinfatuating ptr<>
 98 updatestatusicon battler.
 99 setmist
 9a setfocusenergy
 9b transformdataexecution
 9c setsubstitute
-9d mimicattackcopy param0::
+9d mimicattackcopy ptr<>
 9e metronome
 9f dmgtolevel
 a0 psywavedamageeffect
-a1 counterdamagecalculator param0::
-a2 mirrorcoatdamagecalculator param0::
-a3 disablelastusedattack param0::
-a4 trysetencore param0::
-a5 painsplitdmgcalc param0::
-a6 settypetorandomresistance param0::
+a1 counterdamagecalculator ptr<>
+a2 mirrorcoatdamagecalculator ptr<>
+a3 disablelastusedattack ptr<>
+a4 trysetencore ptr<>
+a5 painsplitdmgcalc ptr<>
+a6 settypetorandomresistance ptr<>
 a7 setalwayshitflag
-a8 copymovepermanently param0::
-a9 trychoosesleeptalkmove param0::
+a8 copymovepermanently ptr<>
+a9 trychoosesleeptalkmove ptr<>
 aa setdestinybond
 ab trysetdestinybondtohappen
 ac remaininghptopower
-ad tryspiteppreduce param0::
+ad tryspiteppreduce ptr<>
 ae healpartystatus
-af cursetarget param0::
-b0 trysetspikes param0::
+af cursetarget ptr<>
+b0 trysetspikes ptr<>
 b1 setforesight
-b2 trysetperishsong param0::
+b2 trysetperishsong ptr<>
 b3 rolloutdamagecalculation
 b4 jumpifconfusedandstatmaxed stat. ptr<>
 b5 furycuttercalc
@@ -205,17 +206,17 @@ b6 happinesstodamagecalculation
 b7 presentdamagecalculation
 b8 setsafeguard
 b9 magnitudedamagecalculation
-ba jumpifnopursuitswitchdmg param0::
+ba jumpifnopursuitswitchdmg ptr<>
 bb setsunny
-bc maxattackhalvehp param0::
-bd copyfoestats param0::
+bc maxattackhalvehp ptr<>
+bd copyfoestats ptr<>
 be rapidspinfree
 bf setdefensecurlbit
-c0 recoverbasedonsunlight param0::
+c0 recoverbasedonsunlight ptr<>
 c1 hiddenpowercalc
 c2 selectfirstvalidtarget
-c3 trysetfutureattack param0::
-c4 trydobeatup param0:: param1::
+c3 trysetfutureattack ptr<>
+c4 trydobeatup param0<> param1<>
 c5 setsemiinvulnerablebit
 c6 clearsemiinvulnerablebit
 c7 setminimize
@@ -224,49 +225,50 @@ c9 jumpifattackandspecialattackcannotfall ptr<>
 ca setforcedtarget
 cb setcharge
 cc callterrainattack
-cd cureifburnedparalysedorpoisoned param0::
-ce settorment param0::
-cf jumpifnodamage param0::
-d0 settaunt param0::
-d1 trysethelpinghand param0::
-d2 tryswapitems param0::
-d3 trycopyability param0::
-d4 trywish param0. param1::
-d5 trysetroots param0::
+cd cureifburnedparalysedorpoisoned ptr<>
+ce settorment ptr<>
+cf jumpifnodamage ptr<>
+d0 settaunt ptr<>
+d1 trysethelpinghand ptr<>
+d2 tryswapitems ptr<>
+d3 trycopyability ptr<>
+d4 trywish param0. param1<>
+d5 trysetroots ptr<>
 d6 doubledamagedealtifdamaged
-d7 setyawn param0::
-d8 setdamagetohealthdifference param0::
+d7 setyawn ptr<>
+d8 setdamagetohealthdifference ptr<>
 d9 scaledamagebyhealthratio
-da tryswapabilities param0::
-db tryimprison param0::
-dc trysetgrudge param0::
+da tryswapabilities ptr<>
+db tryimprison ptr<>
+dc trysetgrudge ptr<>
 dd weightdamagecalculation
-de assistattackselect param0::
-df trysetmagiccoat param0::
-e0 trysetsnatch param0::
+de assistattackselect ptr<>
+df trysetmagiccoat ptr<>
+e0 trysetsnatch ptr<>
 e1 trygetintimidatetarget ptr<>
 e2 switchoutabilities battler.
-e3 jumpifhasnohp battler. param1::
+e3 jumpifhasnohp battler. ptr<>
 e4 getsecretpowereffect
 e5 pickup
 e6 docastformchangeanimation
 e7 trycastformdatachange
-e8 settypebasedhalvers param0::
+e8 settypebasedhalvers ptr<>
 e9 setweatherballtype
-ea tryrecycleitem param0::
-eb settypetoterrain param0::
-ec pursuitrelated param0::
+ea tryrecycleitem ptr<>
+eb settypetoterrain ptr<>
+ec pursuitdoubles ptr<>
 ed snatchsetbattlers
 ee removelightscreenreflect
 ef handleballthrow
 f0 givecaughtmon
-f1 trysetcaughtmondexflags param0::
+f1 trysetcaughtmondexflags ptr<>
 f2 displaydexinfo
-f3 trygivecaughtmonnick param0::
+f3 trygivecaughtmonnick ptr<>
 f4 subattackerhpbydmg
 f5 removeattackerstatus1
 f6 finishaction
 f7 finishturn
+[BPEE] f8 trainerslideout battler.
 
 # various command changed to more readable macros
 #XX cancelmultiturnmoves {battler}
