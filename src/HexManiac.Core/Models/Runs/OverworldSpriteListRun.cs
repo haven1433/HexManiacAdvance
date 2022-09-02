@@ -7,7 +7,7 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class OverworldSpriteListRun : BaseRun, ITableRun, ISpriteRun {
-      private const int MaxOverworldSprites = 20;
+      private const int MaxOverworldSprites = 27;
       private readonly IDataModel model;
       private readonly IReadOnlyList<ArrayRunElementSegment> parent;
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "osl" + AsciiRun.StreamDelimeter;
