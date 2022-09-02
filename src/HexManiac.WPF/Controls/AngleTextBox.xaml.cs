@@ -17,6 +17,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class AngleTextBox {
 
       private static readonly Thickness TextContentThickness = new(0, 1, 0, 1);
+      private ContextMenu menu;
 
       private bool keepTextBoxForContextMenu;
       public TextBox GetTextBox() {
@@ -146,6 +147,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                BorderThickness = TextContentThickness,
                VerticalAlignment = VerticalAlignment.Stretch,
             };
+            if (ContextMenu != null) {
+               menu = ContextMenu;
+               ContextMenu = null;
+            }
+            if (menu != null) textBox.ContextMenu = menu;
+
             if (DataContext is FieldArrayElementViewModel) textBox.InputBindings.Add(
                new KeyBinding {
                   Key = Key.Enter,

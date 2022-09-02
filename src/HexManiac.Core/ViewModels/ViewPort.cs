@@ -334,6 +334,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => selectedLength;
          set => Set(ref selectedLength, value, SelectedLengthChanged);
       }
+
+      private bool base10SelectionLength;
+      public bool Base10SelectionLength {
+         get => base10SelectionLength;
+         set => Set(ref base10SelectionLength, value, arg => UpdateSelectedAddress());
+      }
+
       public string SelectedElementName => selectedElementName;
 
       private void UpdateSelectedAddress() {
@@ -346,7 +353,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Set(ref selectedElementName, elementName ?? string.Empty, nameof(SelectedElementName));
 
          int length = Math.Abs(dataIndex1 - dataIndex2) + 1;
-         Set(ref selectedLength, length.ToString("X1"), nameof(SelectedLength));
+         var lengthText = base10SelectionLength ? length.ToString() : length.ToString("X1");
+         Set(ref selectedLength, lengthText, nameof(SelectedLength));
       }
 
       private void SelectedAddressChanged(string old) {
@@ -355,7 +363,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void SelectedLengthChanged(string old) {
-         if (!selectedLength.TryParseHex(out int length)) return;
+         int length;
+         if (base10SelectionLength) {
+            if (!int.TryParse(selectedLength, out length)) return;
+         } else {
+            if (!selectedLength.TryParseHex(out length)) return;
+         }
          var left = Math.Min(ConvertViewPointToAddress(SelectionStart), ConvertViewPointToAddress(SelectionEnd));
          SelectionStart = ConvertAddressToViewPoint(left);
          SelectionEnd = ConvertAddressToViewPoint(left + length - 1);

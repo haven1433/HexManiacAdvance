@@ -44,7 +44,14 @@
             <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="5,0,0,0">
                <TextBlock Text="Length:" />
             </hsg3hv:AngleBorder>
-            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="40" Direction="Out" TextBinding="{Binding SelectedLength, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
+            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="40" Direction="Out" Margin="0"
+               TextBinding="{Binding SelectedLength, UpdateSourceTrigger=PropertyChanged}">
+               <hsg3hv:AngleTextBox.ContextMenu>
+                  <ContextMenu>
+                     <MenuItem IsCheckable="True" IsChecked="{Binding Base10SelectionLength}" Header="Display Length in Base 10"/>
+                  </ContextMenu>
+               </hsg3hv:AngleTextBox.ContextMenu>
+            </hsg3hv:AngleTextBox>
             <TextBlock DockPanel.Dock="Left" Text="{Binding SelectedElementName}" Margin="5,0,0,0"/>
             <Grid HorizontalAlignment="Right" DockPanel.Dock="Right">
                <TextBlock Margin="5,0,0,0" Text="{Binding SelectedBytes}" MouseRightButtonUp="BytesShowMenu"/>
