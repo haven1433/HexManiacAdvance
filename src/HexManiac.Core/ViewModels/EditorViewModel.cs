@@ -1020,9 +1020,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var searchedModels = new List<IDataModel>();
          foreach (var tab in tabs) {
             bool searchThisTab = searchAllFiles || tab == SelectedTab;
-            if (searchThisTab && tab is IViewPort viewPort && searchedModels.All(model => model != viewPort.Model)) {
-               results.AddRange(viewPort.Find(search, MatchExactCase).Select(offset => (viewPort, offset.start, offset.end)));
-               searchedModels.Add(viewPort.Model);
+            if (searchThisTab && tab is IViewPort viewPort &&
+               searchedModels.All(model => model != viewPort.Model)
+            ) {
+               if (tab != SelectedTab && tabs.Any(tab => tab is IViewPort vp1 && vp1 == SelectedTab && vp1.Model == viewPort.Model)) {
+                  // don't include results from this tab
+                  // a different tab has the same model and is selected
+                  // we'll get results from that tab instead.
+               } else {
+                  results.AddRange(viewPort.Find(search, MatchExactCase).Select(offset => (viewPort, offset.start, offset.end)));
+                  searchedModels.Add(viewPort.Model);
+               }
             }
          }
 
