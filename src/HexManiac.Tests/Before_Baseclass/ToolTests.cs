@@ -934,5 +934,25 @@ namespace HavenSoft.HexManiac.Tests {
          var actual = text.SplitLines().TrimAll().ToArray();
          Assert.Equal(expected, actual);
       }
+
+      [Theory]
+      [InlineData("10+10", "32")]
+      [InlineData("10-8", "8")]
+      [InlineData("18-8+10", "32")]
+      public void HexConverter_HexOperators_DoMath(string input, string output) {
+         var editor = new EditorViewModel(FileSystem, InstantDispatch.Instance, false);
+         editor.HexText = input;
+         Assert.Equal(output, editor.DecText);
+      }
+
+      [Theory]
+      [InlineData("10+10", "14")]
+      [InlineData("10-8", "2")]
+      [InlineData("18-8+10", "14")]
+      public void HexConverter_DecimalOperators_DoMath(string input, string output) {
+         var editor = new EditorViewModel(FileSystem, InstantDispatch.Instance, false);
+         editor.DecText = input;
+         Assert.Equal(output, editor.HexText);
+      }
    }
 }

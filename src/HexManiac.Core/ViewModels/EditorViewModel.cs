@@ -191,9 +191,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => hexText;
          set {
             if (!TryUpdate(ref hexText, value)) return;
-            var parseHex = hexText.Where(ViewPort.AllHexCharacters.Contains).Select(c => c.ToString()).Aggregate(string.Empty, string.Concat);
-            if (!int.TryParse(parseHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int result)) return;
-            TryUpdate(ref decText, result.ToString(), nameof(DecText));
+            var result = DoMath(hexText, text => text.TryParseHex(out int number) ? number : null);
+            Set(ref decText, result.ToString(), nameof(DecText));
          }
       }
 
@@ -202,9 +201,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => decText;
          set {
             if (!TryUpdate(ref decText, value)) return;
-            if (!int.TryParse(decText, out int result)) return;
-            TryUpdate(ref hexText, result.ToString("X2"), nameof(HexText));
+            var result = DoMath(decText, text => int.TryParse(text, out int number) ? number : null);
+            Set(ref hexText, result.ToString("X1"), nameof(HexText));
          }
+      }
+
+      private int DoMath(string text, Func<string, int?> parse) {
+         var operators = text.Length.Range().Where(i => text[i] == '+' || text[i] == '-').ToList();
+         operators.Add(text.Length);
+         var left = parse(text.Substring(0, operators[0]));
+         if (left == null) return 0;
+         for (int i = 1; i < operators.Count; i++) {
+            var op = text[operators[i - 1]];
+            var length = operators[i] - operators[i - 1] - 1;
+            var right = parse(text.Substring(operators[i - 1] + 1, length));
+            if (right == null) return 0;
+            left = op switch {
+               '-' => (int)left - (int)right,
+               _ => (int)left + (int)right,
+            };
+         }
+         return (int)left;
       }
 
       public void RunQuickEdit(IQuickEditItem edit) {
