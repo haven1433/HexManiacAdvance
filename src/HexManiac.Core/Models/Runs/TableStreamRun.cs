@@ -596,7 +596,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newRun = model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
          for (int i = 0; i < run.ElementLength * length; i++) {
             var prevIndex = newRun.Start + naturalLength + i - newRun.ElementLength * length;
-            byte prevData = prevIndex > newRun.Start ? model[prevIndex] : default;
+            while (prevIndex < newRun.Start) prevIndex += newRun.ElementLength;
+            byte prevData = prevIndex >= newRun.Start ? model[prevIndex] : default;
             token.ChangeData(model, newRun.Start + naturalLength + i, prevData);
          }
          for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
