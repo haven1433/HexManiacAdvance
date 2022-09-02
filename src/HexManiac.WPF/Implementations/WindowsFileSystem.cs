@@ -49,6 +49,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                try {
                   // try again, but don't try to persist the value after app exit
                   Clipboard.SetDataObject(value);
+                  ShowCustomMessageBox("Copied text to clipboard.", false);
                } catch (COMException) {
                   // something went wrong... we couldn't copy
                   var window = (MainWindow)Application.Current.MainWindow;
@@ -319,7 +320,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                            Inlines = { new Run(link.DisplayText) },
                         }.Fluent(hyperlink => hyperlink.Click += (sender, e) => {
                            try {
-                              if (!link.Content.StartsWith("!")) {
+                              if (link.Content.StartsWith("~")) {
+                                 CopyText = link.Content.Substring(1);
+                              } else if (!link.Content.StartsWith("!")) {
                                  NativeProcess.Start(link.Content);
                               } else {
                                  ShowFileProperties(link.Content.Substring(1));

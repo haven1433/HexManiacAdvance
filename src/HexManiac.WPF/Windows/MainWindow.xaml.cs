@@ -91,6 +91,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
          File.AppendAllText("crash.log", text.ToString());
+         var shortError = Environment.NewLine.Join(text.ToString().SplitLines().Take(20));
+         shortError = Environment.NewLine.Join(new[] {
+            $"~I got a crash! ({ViewModel.Singletons.MetadataInfo.VersionNumber})",
+            "```",
+            shortError + "...",
+            "```",
+            "Let me tell you what I was doing right before I got the crash:",
+         });
          var exceptionInfo = ExtractExceptionInfo(e.Exception);
          FileSystem.ShowCustomMessageBox(
             "An unhandled error occured. Please report it on Discord or open an issue on GitHub." + Environment.NewLine +
@@ -111,7 +119,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                   "Notes from crash.log: " + Environment.NewLine + Environment.NewLine +
                   "    " + text.ToString().Replace(Environment.NewLine, Environment.NewLine + "    ")
                )
-            )
+            ),
+            new ProcessModel("Copy a crash message to the clipboard", shortError)
          );
          e.Handled = true;
       }
