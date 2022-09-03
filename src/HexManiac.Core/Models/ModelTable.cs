@@ -11,19 +11,20 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly IDataModel model;
       private readonly int arrayAddress;
       private readonly ModelDelta token;
+      private readonly ITableRun run;
 
-      public int Count => (model.GetNextRun(arrayAddress) as ITableRun)?.ElementCount ?? 0;
+      public int Count => run?.ElementCount ?? 0;
       public int __len__() => Count; // for python
 
       public ModelArrayElement this[int value] {
          get {
-            return new ModelArrayElement(model, arrayAddress, value, token);
+            return new ModelArrayElement(model, arrayAddress, value, token, run);
          }
       }
 
       public ModelArrayElement this[string value] {
          get {
-            var table = model.GetNextRun(arrayAddress) as ITableRun;
+            var table = run;
             if (ArrayRunEnumSegment.TryMatch(value, table.ElementNames, out int index)) {
                return this[index];
             } else {
@@ -32,8 +33,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public ModelTable(IDataModel model, int address, ModelDelta token = null) {
+      public ModelTable(IDataModel model, int address, ModelDelta token = null, ITableRun tableRun = null) {
          (this.model, arrayAddress) = (model, address);
+         run = tableRun ?? model.GetNextRun(address) as ITableRun;
          this.token = token ?? new();
       }
 
@@ -54,11 +56,13 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
 
-      public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token) {
+      public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token, ITableRun table) {
          (this.model, arrayAddress, arrayIndex) = (model, address, index);
-         table = (ITableRun)model.GetNextRun(arrayAddress);
+         this.table = table ?? (ITableRun)model.GetNextRun(arrayAddress);
          this.token = token;
       }
+
+      public bool HasField(string name) => table.ElementContent.Any(field => field.Name == name);
 
       public string GetFieldName(int index) => table.ElementContent[index].Name;
 
@@ -233,7 +237,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
             var destination = model.ReadPointer(valueAddress);
-            return new ModelTable(model, destination);
+            var error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, out var childTable);
+            if (error.HasError) childTable = (ITableRun)model.GetNextRun(destination);
+            return new ModelTable(model, destination, token, childTable);
          } else {
             throw new NotImplementedException();
          }

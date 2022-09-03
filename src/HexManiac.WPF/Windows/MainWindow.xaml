@@ -3,6 +3,7 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
       xmlns:hshmcvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels;assembly=HexManiac.Core"
+      xmlns:mapvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
       xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
       xmlns:sys="clr-namespace:System;assembly=mscorlib"
       Icon="..\Resources\AppIcon.ico"
@@ -61,6 +62,7 @@
          </KeyBinding.CommandParameter>
       </KeyBinding>
 
+      <KeyBinding Key="M" Modifiers="Ctrl+Shift" Command="{hsv:Command ShowMap}" />
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, T}" Command="{Binding DisplayAsText}"/>
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, E}" Command="{Binding DisplayAsEventScript}"/>
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, S}" Command="{Binding DisplayAsSprite}"/>
@@ -68,6 +70,7 @@
    </Window.InputBindings>
    <Window.CommandBindings>
       <CommandBinding Command="NavigateJournal" Executed="ExecuteAnimation"/>
+      <CommandBinding Command="{hsv:Command ShowMap}" Executed="DeveloperOpenMapEditor" />
    </Window.CommandBindings>
    <Grid Name="ContentPanel">
       <DockPanel>
@@ -587,6 +590,9 @@
                               </DataTemplate>
                               <DataTemplate DataType="{x:Type hshmcvm:ImageEditorViewModel}">
                                  <hsg3hv:ImageEditorView />
+                              </DataTemplate>
+                              <DataTemplate DataType="{x:Type mapvm:MapEditorViewModel}">
+                                 <hsg3hv:MapTab />
                               </DataTemplate>
                            </ContentControl.Resources>
                         </ContentControl>

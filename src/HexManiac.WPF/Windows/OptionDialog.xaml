@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
         xmlns:hshmcvmt="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
+        xmlns:images="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Images;assembly=HexManiac.Core"
         Title="" Width="450" SizeToContent="Height" MaxHeight="800">
    <DockPanel Background="{DynamicResource Background}">
       <Button Content="Cancel" IsCancel="True" Margin="5" DockPanel.Dock="Bottom" HorizontalAlignment="Right"/>
@@ -34,7 +35,7 @@
             <DataTemplate>
                <ItemsControl ItemsSource="{Binding}" HorizontalAlignment="Center">
                   <ItemsControl.Resources>
-                     <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
+                     <DataTemplate DataType="{x:Type images:ReadonlyPixelViewModel}">
                         <hshmwpfc:PixelImage SnapsToDevicePixels="True" Margin="5"/>
                      </DataTemplate>
                      <DataTemplate DataType="{x:Type hshmcvmt:FlagViewModel}">

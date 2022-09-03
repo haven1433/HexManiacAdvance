@@ -541,18 +541,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static ErrorInfo TryParse(IDataModel data, string format, int start, SortedSpan<int> pointerSources, out ITableRun self) => TryParse(data, "UNUSED", format, start, pointerSources, out self);
 
       public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, SortedSpan<int> pointerSources, out ITableRun self) {
+         return TryParse(data, name, format, start, pointerSources, null, out self);
+      }
+
+      public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out ITableRun self) {
          self = null;
          var startArray = format.IndexOf(ArrayStart);
          var closeArray = format.LastIndexOf(ArrayEnd);
          if (startArray == -1 || startArray > closeArray) return new ErrorInfo($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
          var length = format.Substring(closeArray + 1);
 
-         var sourceSegments =
-            data.GetUnmappedSourcesToAnchor(name)
-            .Select(source => data.GetNextRun(source) as ITableRun)
-            .Where(tRun => tRun != null)
-            .Select(tRun => tRun.ElementContent)
-            .FirstOrDefault();
+         if (sourceSegments == null) {
+            sourceSegments =
+               data.GetUnmappedSourcesToAnchor(name)
+               .Select(source => data.GetNextRun(source) as ITableRun)
+               .Where(tRun => tRun != null)
+               .Select(tRun => tRun.ElementContent)
+               .FirstOrDefault();
+         }
 
          var (singleSegment, margins, tilemapLength) = ParseTilemapTable(data, format, length);
          if (singleSegment is ArrayRunElementSegment) {

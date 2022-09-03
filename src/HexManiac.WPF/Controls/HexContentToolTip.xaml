@@ -2,15 +2,16 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:hshmwpfc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
-             xmlns:hshmcvmt="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
+             xmlns:images="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Images;assembly=HexManiac.Core"
+             xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:sys="clr-namespace:System;assembly=mscorlib"
              Background="{DynamicResource Background}">
    <ItemsControl Name="ToolTipContent" ItemsSource="{Binding}">
       <ItemsControl.Resources>
-         <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPixelViewModel}">
+         <DataTemplate DataType="{x:Type images:ReadonlyPixelViewModel}">
             <hshmwpfc:PixelImage SnapsToDevicePixels="True" TransparentBrush="{DynamicResource Background}" />
          </DataTemplate>
-         <DataTemplate DataType="{x:Type hshmcvmt:ReadonlyPaletteCollection}">
+         <DataTemplate DataType="{x:Type tools:ReadonlyPaletteCollection}">
             <ItemsControl SnapsToDevicePixels="True" ItemsSource="{Binding Colors}">
                <ItemsControl.ItemsPanel>
                   <ItemsPanelTemplate>

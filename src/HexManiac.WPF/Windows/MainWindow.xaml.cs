@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Implementations;
@@ -592,6 +593,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperReloadMetadata(object sender, EventArgs e) {
          var tab = (ViewPort)ViewModel.SelectedTab;
          tab.ConsiderReload(FileSystem);
+      }
+
+      private void DeveloperOpenMapEditor(object sender, EventArgs e) {
+         if (!ViewModel.ShowDeveloperMenu) return;
+         if (ViewModel.SelectedTab is ViewPort viewPort) {
+            var newTab = new MapEditorViewModel(viewPort.Model, viewPort.ChangeHistory, ViewModel.Singletons);
+            ViewModel.Add(newTab);
+         }
       }
 
       private static int Color(string name) {

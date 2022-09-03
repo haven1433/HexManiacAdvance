@@ -1,7 +1,9 @@
 ﻿using HavenSoft.HexManiac.Core;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Windows;
+using System.Windows.Input;
 using System.Windows.Markup;
 using System.Windows.Media;
 
@@ -87,6 +89,19 @@ namespace HavenSoft.HexManiac.WPF.Resources {
          var context = element.DataContext;
          var command = new MethodCommand(context, CommandMethod);
          element.DataContextChanged += (sender, e) => command.Context = element.DataContext;
+         return command;
+      }
+   }
+
+   public class CommandExtension : MarkupExtension {
+      private static readonly Dictionary<string, RoutedCommand> commands = new();
+      public string Command { get; }
+      public CommandExtension(string commandName) => Command = commandName;
+      public override object ProvideValue(IServiceProvider serviceProvider) {
+         if (!commands.TryGetValue(Command, out var command)) {
+            command = new RoutedCommand(Command, typeof(CommandExtension));
+            commands[Command] = command;
+         }
          return command;
       }
    }

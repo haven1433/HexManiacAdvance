@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using HavenSoft.HexManiac.Core.ViewModels.Tools;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;

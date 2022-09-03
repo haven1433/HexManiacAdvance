@@ -1,12 +1,11 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
-using HavenSoft.HexManiac.Core.ViewModels;
-using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using HavenSoft.HexManiac.Core.ViewModels.Tools;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class TableStreamRun : BaseRun, IStreamRun, ITableRun {
