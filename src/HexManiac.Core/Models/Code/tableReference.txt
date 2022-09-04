@@ -359,6 +359,11 @@ graphics.menu.storage.background.palette1, , , , , 08F0C0, 08F094, 08F0D4, 08F0A
 graphics.menu.storage.background.palette2, , , , , 08F0EC, 08F0C0, 08F100, 08F0D4, , `ucp4:3`
 graphics.menu.storage.background.tileset,  , , , , 08EFBC, 08EF90, 08EFD0, 08EFA4, , `lzs4x4x2|graphics.menu.storage.background.palette1`
 graphics.menu.storage.background.tilemap,  , , , , 08EFC0, 08EF94, 08EFD4, 08EFA8, , `lzm4x32x32|graphics.menu.storage.background.tileset`
+graphics.menu.downarrow.palette, , , , , 00AE08, 00AE08, 00AE1C, 00AE1C, , `ucp4`
+graphics.menu.downarrow.sprite1, , , , , 005560, 005560, 005574, 005574, , `ucs4x2x4|graphics.menu.downarrow.palette`
+graphics.menu.downarrow.sprite2, , , , , 0055CC, 0055CC, 0055E0, 0055E0, , `ucs4x4x6|graphics.menu.downarrow.palette`
+graphics.menu.downarrow.sprite3, , , , , 1EA68C, 1EA668, 1EA6FC, 1EA6D8, , `ucs4x2x2|graphics.menu.downarrow.palette`
+graphics.menu.downarrow.sprite4, , , , , 1EA694, 1EA670, 1EA704, 1EA6E0, , `ucs4x2x2|graphics.menu.downarrow.palette`
 
 graphics.townmap.pokenav.zoom.tileset,    ,,,, ,,,, 1CCAD0, `lzt4|graphics.townmap.pokenav.zoom.palette`
 graphics.townmap.pokenav.zoom.palette,    ,,,, ,,,, 1CCAD8, `ucp4:3`
