@@ -52,12 +52,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private double spriteScale = 1;
-      public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value, UpdateEdgesFromScale); }
+      public double SpriteScale {
+         get => spriteScale;
+         set => Set(ref spriteScale, value, old => UpdateEdgesFromScale(old, LeftEdge + old * pixelWidth / 2, TopEdge + old * pixelHeight / 2));
+      }
 
-      private void UpdateEdgesFromScale(double old) {
-         var (cx, cy) = (LeftEdge + PixelWidth * old / 2, TopEdge + PixelHeight * old / 2);
-         LeftEdge = (int)(cx - PixelWidth * SpriteScale / 2);
-         TopEdge = (int)(cy - PixelHeight * SpriteScale / 2);
+      private void UpdateEdgesFromScale(double old, double centerX, double centerY) {
+         LeftEdge += (int)(centerX * (1 - SpriteScale / old));
+         TopEdge += (int)(centerY * (1 - SpriteScale / old));
       }
 
       #endregion
@@ -146,6 +148,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             list.Add(vm);
          }
          return list;
+      }
+
+      public void Scale(double x, double y, bool enlarge) {
+         var old = spriteScale;
+
+         if (enlarge && spriteScale < 10) spriteScale *= 2;
+         else if (!enlarge && spriteScale > .1) spriteScale /= 2;
+
+         if (old != spriteScale) UpdateEdgesFromScale(old, x - leftEdge, y - topEdge);
+         NotifyPropertyChanged(nameof(SpriteScale));
       }
 
       private void RefreshPaletteCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {

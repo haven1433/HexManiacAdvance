@@ -16,6 +16,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly Singletons singletons;
 
+      private BlockMapViewModel primaryMap;
+
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
@@ -71,7 +73,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          UpdatePrimaryMap(map);
       }
 
-      private BlockMapViewModel primaryMap;
       private void UpdatePrimaryMap(BlockMapViewModel map) {
          if (primaryMap != map) {
             primaryMap = map;
@@ -147,8 +148,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Zoom(double x, double y, bool enlarge) {
          var map = MapUnderCursor(x, y);
          if (map == null) return;
-         if (enlarge && map.SpriteScale < 10) map.SpriteScale *= 2;
-         else if (!enlarge && map.SpriteScale > .1) map.SpriteScale /= 2;
+         map.Scale(x, y, enlarge);
          UpdatePrimaryMap(map);
       }
 
