@@ -1,7 +1,9 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -61,10 +63,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public MapEditorViewModel(IDataModel model, ChangeHistory<ModelDelta> history, Singletons singletons) {
          (this.model, this.history, this.singletons) = (model, history, singletons);
-         var map = new BlockMapViewModel(model, 3, 19) { IncludeBorders = true };
+         var map = new BlockMapViewModel(model, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
          VisibleMaps.Add(map);
-         foreach (var m in map.GetNeighbors(MapDirection.Up)) VisibleMaps.Add(m);
-         foreach (var m in map.GetNeighbors(MapDirection.Down)) VisibleMaps.Add(m);
+         UpdatePrimaryMap(map);
+      }
+
+      private void UpdatePrimaryMap(BlockMapViewModel map) {
+         var oldMaps = VisibleMaps.ToList();
+
+         var newMaps = new List<BlockMapViewModel>(new List<MapDirection> {
+            MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right
+         }.SelectMany(map.GetNeighbors));
+         newMaps.Add(map);
+
+         foreach (var oldM in oldMaps) if (!newMaps.Any(newM => oldM.MapID == newM.MapID)) VisibleMaps.Remove(oldM);
+         foreach (var newM in newMaps) {
+            bool match = false;
+            foreach (var existingM in VisibleMaps) {
+               if (existingM.MapID == newM.MapID) {
+                  match = true;
+                  existingM.IncludeBorders = newM.IncludeBorders;
+                  existingM.SpriteScale = newM.SpriteScale;
+                  existingM.LeftEdge = newM.LeftEdge;
+                  existingM.TopEdge = newM.TopEdge;
+                  break;
+               }
+            }
+            if (!match) VisibleMaps.Add(newM);
+         }
       }
 
       #region Map Interaction
@@ -74,6 +100,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void LeftDown(double x, double y) {
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
+
+         var map = MapUnderCursor(x, y);
+         if (map != null) UpdatePrimaryMap(map);
       }
 
       public void LeftMove(double x, double y) {
@@ -90,6 +119,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void LeftUp(double x, double y) {
 
+      }
+
+      public void Zoom(double x, double y, bool enlarge) {
+         var map = MapUnderCursor(x, y);
+         if (map == null) return;
+         if (enlarge && map.SpriteScale < 10) map.SpriteScale *= 2;
+         else if (!enlarge && map.SpriteScale > .1) map.SpriteScale /= 2;
+         UpdatePrimaryMap(map);
+      }
+
+      private BlockMapViewModel MapUnderCursor(double x, double y) {
+         foreach(var map in VisibleMaps) {
+            if (map.LeftEdge < x && x < map.LeftEdge + map.PixelWidth * map.SpriteScale) {
+               if (map.TopEdge < y && y < map.TopEdge + map.PixelHeight * map.SpriteScale) {
+                  return map;
+               }
+            }
+         }
+         return null;
       }
 
       #endregion

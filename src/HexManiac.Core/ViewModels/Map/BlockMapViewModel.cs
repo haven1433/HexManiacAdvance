@@ -40,10 +40,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int PixelWidth { get => pixelWidth; private set => Set(ref pixelWidth, value); }
       public int PixelHeight { get => pixelHeight; private set => Set(ref pixelHeight, value); }
 
-      public short[] PixelData { get; private set; }
+      private short[] pixelData;
+      public short[] PixelData {
+         get {
+            if (pixelData == null) FillPixelData();
+            return pixelData;
+         }
+      }
 
       private double spriteScale = 1;
-      public double SpriteScale { get => spriteScale; private set => Set(ref spriteScale, value); }
+      public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value, UpdateEdgesFromScale); }
+
+      private void UpdateEdgesFromScale(double old) {
+         var (cx, cy) = (LeftEdge + PixelWidth * old / 2, TopEdge + PixelHeight * old / 2);
+         LeftEdge = (int)(cx - PixelWidth * SpriteScale / 2);
+         TopEdge = (int)(cy - PixelHeight * SpriteScale / 2);
+      }
 
       #endregion
 
@@ -74,14 +86,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void IncludeBordersChanged(bool oldValue) {
          var width = PixelWidth;
          var height = PixelHeight;
-         RefreshMapRender();
+         RefreshMapSize();
          LeftEdge -= (PixelWidth - width) / 2;
          TopEdge -= (PixelHeight - height) / 2;
       }
 
       private IPixelViewModel borderBlock;
       public IPixelViewModel BorderBlock {
-         get => borderBlock;
+         get {
+            if (borderBlock == null) RefreshBorderRender();
+            return borderBlock;
+         }
          set {
             borderBlock = value;
             NotifyPropertyChanged();
@@ -93,42 +108,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public BlockMapViewModel(IDataModel model, int group, int map) {
          this.model = model;
          (this.group, this.map) = (group, map);
-         UpdateRender();
+         Transparent = -1;
+
+         RefreshMapSize();
+
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
       }
 
       public IReadOnlyList<BlockMapViewModel> GetNeighbors(MapDirection direction) {
          var list = new List<BlockMapViewModel>();
+         var (myN, _, _, myW) = GetBorderThickness();
          foreach (var connection in GetConnections()) {
             if (connection.Direction != direction) continue;
-            var vm = new BlockMapViewModel(model, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders };
-            vm.TopEdge = TopEdge + connection.Offset * 16;
-            vm.LeftEdge = LeftEdge + connection.Offset * 16;
-            if (direction == MapDirection.Left) vm.LeftEdge = LeftEdge - vm.PixelWidth;
-            if (direction == MapDirection.Right) vm.LeftEdge = LeftEdge + PixelWidth;
-            if (direction == MapDirection.Up) vm.TopEdge = TopEdge - vm.PixelHeight;
-            if (direction == MapDirection.Down) vm.TopEdge = TopEdge + PixelHeight;
+            var vm = new BlockMapViewModel(model, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders, SpriteScale = SpriteScale };
+            var (n, _, _, w) = vm.GetBorderThickness();
+            vm.TopEdge = TopEdge + (connection.Offset + myN - n) * (int)(16 * SpriteScale);
+            vm.LeftEdge = LeftEdge + (connection.Offset + myW - w) * (int)(16 * SpriteScale);
+            if (direction == MapDirection.Left) vm.LeftEdge = LeftEdge - (int)(vm.PixelWidth * SpriteScale);
+            if (direction == MapDirection.Right) vm.LeftEdge = LeftEdge + (int)(PixelWidth * SpriteScale);
+            if (direction == MapDirection.Up) vm.TopEdge = TopEdge - (int)(vm.PixelHeight * SpriteScale);
+            if (direction == MapDirection.Down) vm.TopEdge = TopEdge + (int)(PixelHeight * SpriteScale);
             list.Add(vm);
          }
          return list;
       }
 
-      private void UpdateRender() {
-         var layout = GetLayout();
-         Transparent = -1;
-
-         var primary = new BlocksetModel(model, layout.GetAddress("tiles1"));
-         var secondary = new BlocksetModel(model, layout.GetAddress("tiles2"));
-         RefreshPaletteCache(primary, secondary);
-         RefreshTileCache(primary, secondary);
-         RefreshBlockCache(primary, secondary);
-         RefreshBlockRenderCache();
-         RefreshBorderRender();
-         RefreshMapRender();
-      }
-
       private void RefreshPaletteCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
-         if (blockModel1 == null | blockModel2 == null) {
+         if (blockModel1 == null || blockModel2 == null) {
             var layout = GetLayout();
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
@@ -143,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RefreshTileCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
-         if (blockModel1 == null | blockModel2 == null) {
+         if (blockModel1 == null || blockModel2 == null) {
             var layout = GetLayout();
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
@@ -158,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RefreshBlockCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
-         if (blockModel1 == null | blockModel2 == null) {
+         if (blockModel1 == null || blockModel2 == null) {
             var layout = GetLayout();
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
@@ -169,7 +175,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blocks = primary.Concat(secondary).ToArray();
       }
 
-      private void RefreshBlockRenderCache() {
+      private void RefreshBlockRenderCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
+         if (blocks == null || tiles == null || palettes == null) {
+            var layout = GetLayout();
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
+         }
+         if (blocks == null) RefreshBlockCache(blockModel1, blockModel2);
+         if (tiles == null) RefreshTileCache(blockModel1, blockModel2);
+         if (palettes == null) RefreshPaletteCache(blockModel1, blockModel2);
+
          var renders = new List<IPixelViewModel>();
          for (int i = 0; i < blocks.Length; i++) {
             renders.Add(BlocksetModel.RenderBlock(blocks[i], tiles, palettes));
@@ -177,33 +192,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.renders = renders;
       }
 
-      private void RefreshMapRender() {
+      private void RefreshMapSize() {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         (pixelWidth, pixelHeight) = ((width + border.West + border.East) * 16, (height + border.North + border.South) * 16);
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+      }
 
-         var (north, east, south, west) = GetBorderThickness();
-         (pixelWidth, pixelHeight) = ((width + west + east) * 16, (height + north + south) * 16);
-
+      private void FillPixelData() {
+         if (renders == null) RefreshBlockRenderCache();
+         if (borderBlock == null) RefreshBorderRender();
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
          var start = layout.GetAddress("map");
+
          var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight);
          var (borderWidth, borderHeight) = (borderBlock.PixelWidth / 16, borderBlock.PixelHeight / 16);
-         for (int y = 0; y < height + north + south; y++) {
-            for (int x = 0; x < width + west + east; x++) {
-               if (y < north || x < west || y >= north + height || x >= west + width) {
+         for (int y = 0; y < height + border.North + border.South; y++) {
+            for (int x = 0; x < width + border.West + border.East; x++) {
+               if (y < border.North || x < border.West || y >= border.North + height || x >= border.West + width) {
                   if (x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
                   continue;
                }
-               var data = model.ReadMultiByteValue(start + ((y - north) * width + x - west) * 2, 2);
+               var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
                data &= 0x3FF;
                canvas.Draw(renders[data], x * 16, y * 16);
             }
          }
 
-         PixelData = canvas.PixelData;
-         NotifyPropertyChanged(nameof(PixelData));
+         pixelData = canvas.PixelData;
       }
 
       private void RefreshBorderRender() {
+         if (renders == null) RefreshBlockRenderCache();
          var layout = GetLayout();
          var width = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
          var height = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
@@ -241,19 +265,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
-      private (int north, int east, int south, int west) GetBorderThickness() {
-         if (!includeBorders) return (0, 0, 0, 0);
+      private Border GetBorderThickness(ModelArrayElement layout = null) {
+         if (!includeBorders) return new(0, 0, 0, 0);
          var connections = GetConnections();
-         var east = borderBlock.PixelWidth / 16;
-         var west = east;
-         var north = borderBlock.PixelHeight / 16;
-         var south = north;
+         if (layout == null) layout = GetLayout();
+         var width = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
+         var height = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
+         var (east, west) = (width, width);
+         var (north, south) = (height, height);
          var directions = connections.Select(c => c.Direction).ToList();
          if (directions.Contains(MapDirection.Down)) south = 0;
          if (directions.Contains(MapDirection.Up)) north = 0;
          if (directions.Contains(MapDirection.Left)) west = 0;
          if (directions.Contains(MapDirection.Right)) east = 0;
-         return (north, east, south, west);
+         return new(north, east, south, west);
       }
 
       /*
@@ -288,6 +313,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                                                          music: layoutID: regionSectionID. cave. weather. mapType. padding: flags.|t|allowCycling.|allowEscaping.|allowRunning.|showMapName::. battleType.
        */
    }
+
+   public record Border(int North, int East, int South, int West);
 
    public class ConnectionModel {
       private readonly ModelArrayElement connection;

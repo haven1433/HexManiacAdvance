@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void LeftDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          var vm = (MapEditorViewModel)element.DataContext;
-         var p = e.GetPosition(element);
+         var p = GetCoordinates(element, e);
          element.CaptureMouse();
          withinMapInteraction = true;
          vm.LeftDown(p.X, p.Y);
@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (!withinMapInteraction) return;
          var element = (FrameworkElement)sender;
          var vm = (MapEditorViewModel)element.DataContext;
-         var p = e.GetPosition(element);
+         var p = GetCoordinates(element, e);
          vm.LeftMove(p.X, p.Y);
       }
 
@@ -43,8 +43,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (!withinMapInteraction) return;
          withinMapInteraction = false;
          var vm = (MapEditorViewModel)element.DataContext;
-         var p = e.GetPosition(element);
+         var p = GetCoordinates(element, e);
          vm.LeftUp(p.X, p.Y);
+      }
+
+      private void Wheel(object sender, MouseWheelEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var vm = (MapEditorViewModel)element.DataContext;
+         var p = GetCoordinates(element, e);
+         vm.Zoom(p.X, p.Y, e.Delta > 0);
+      }
+
+      private Point GetCoordinates(FrameworkElement element, MouseEventArgs e) {
+         var p = e.GetPosition(element);
+         return new(p.X - element.ActualWidth / 2, p.Y - element.ActualHeight / 2);
       }
 
       #endregion

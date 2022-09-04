@@ -7,7 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
    <Grid>
-      <ItemsControl Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True" MouseLeftButtonDown="LeftDown" MouseMove="LeftMove" MouseLeftButtonUp="LeftUp">
+      <ItemsControl Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True"
+                    MouseLeftButtonDown="LeftDown" MouseMove="LeftMove" MouseLeftButtonUp="LeftUp" MouseWheel="Wheel">
          <ItemsControl.RenderTransform>
             <TranslateTransform/>
          </ItemsControl.RenderTransform>
