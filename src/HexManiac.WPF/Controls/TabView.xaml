@@ -678,7 +678,20 @@
                      </Style.Triggers>
                   </Style>
                </DockPanel.Style>
-               <TextBlock Text="Address:" Margin="5,15,0,0" DockPanel.Dock="Top"/>
+               <Grid Margin="5,15,0,0" DockPanel.Dock="Top">
+                  <TextBlock Text="Address:" HorizontalAlignment="Left"/>
+                  <Menu Background="Transparent" HorizontalAlignment="Right" Height="20">
+                     <hsg3hv:AngleMenuItem Header="Goto Source" Background="{DynamicResource Backlight}" Direction="Right" FontSize="10" ItemsSource="{Binding StringTool.GotoOptions}">
+                        <hsg3hv:AngleMenuItem.ItemContainerStyle>
+                           <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                              <Setter Property="Header" Value="{Binding Text}"/>
+                              <Setter Property="Command" Value="{Binding Command}"/>
+                              <Setter Property="CommandParameter" Value="{Binding Parameter}"/>
+                           </Style>
+                        </hsg3hv:AngleMenuItem.ItemContainerStyle>
+                     </hsg3hv:AngleMenuItem>
+                  </Menu>
+               </Grid>
                <hsg3hv:AngleTextBox Direction="Out" TextBinding="{Binding StringTool.Address, Converter={StaticResource Hex}, UpdateSourceTrigger=PropertyChanged}" Margin="5" DockPanel.Dock="Top"/>
                <TextBlock DockPanel.Dock="Top" Text="{Binding StringTool.Message}" HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>
                <hsg3hv:AngleButton Direction="Out" Margin="0,3,5,1" Command="{Binding StringTool.CheckIsText}" Content="Show As Text" Height="28" MinWidth="104" HorizontalAlignment="Right" DockPanel.Dock="Top" Visibility="{Binding StringTool.ShowMessage, Converter={StaticResource BoolToVisibility}}"/>

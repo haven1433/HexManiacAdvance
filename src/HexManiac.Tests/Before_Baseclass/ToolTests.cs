@@ -128,14 +128,11 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void SelectingAPointerAddressInStringToolDisablesTheTool() {
-         var token = new ModelDelta();
-         var model = new PokemonModel(new byte[0x200]);
-         model.WritePointer(token, 16, 100);
-         model.ObserveRunWritten(token, new PointerRun(16));
+         Model.WritePointer(Token, 16, 100);
+         Model.ObserveRunWritten(Token, new PointerRun(16));
          var tool = new PCSTool(
-            model,
-            new Selection(new ScrollRegion { Width = 0x10, Height = 0x10 }, model, default),
-            new ChangeHistory<ModelDelta>(dm => dm),
+            ViewPort,
+            ViewPort.ChangeHistory,
             null) {
             Address = 18
          };

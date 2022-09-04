@@ -2220,11 +2220,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public virtual void FindAllSources(int x, int y) {
          var anchor = this[x, y].Format as Anchor;
          if (anchor == null) return;
-         var title = string.IsNullOrEmpty(anchor.Name) ? (y * Width + x + scroll.DataIndex).ToString("X6") : anchor.Name;
+         FindAllSources(ConvertViewPointToAddress(new(x, y)));
+      }
+
+      public void FindAllSources(int address) {
+         var name = Model.GetAnchorFromAddress(-1, address);
+         var run = Model.GetNextRun(address);
+         var title = string.IsNullOrEmpty(name) ? address.ToAddress() : name;
          title = "Sources of " + title;
          var newTab = new SearchResultsViewPort(title);
 
-         foreach (var source in anchor.Sources) newTab.Add(CreateChildView(source, source), source, source);
+         foreach (var source in run.PointerSources) newTab.Add(CreateChildView(source, source), source, source);
 
          RequestTabChange(this, newTab);
          RequestMenuClose?.Invoke(this, EventArgs.Empty);

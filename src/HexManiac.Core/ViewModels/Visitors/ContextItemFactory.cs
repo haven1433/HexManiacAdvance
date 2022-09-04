@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public string ShortcutText { get; set; }
       public ContextItem(string text, Action<object> action, object parameter = null) {
          Text = text;
-         Command = new StubCommand { CanExecute = action == null ? sender => false : (Func<object, bool>)CanAlwaysExecute, Execute = action };
+         Command = new StubCommand { CanExecute = action == null ? sender => false : CanAlwaysExecute, Execute = action };
          Parameter = parameter;
       }
    }
@@ -153,20 +153,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }
          }
 
-         if (anchor.Sources.Count == 0) {
-            group.Add(new ContextItem("(Nothing points to this.)", null));
-         }
-
-         if (anchor.Sources.Count > 1) {
-            group.Add(new ContextItem("Show All Sources in new tab", p => {
-               ViewPort.FindAllSources(ViewPort.SelectionStart.X, ViewPort.SelectionStart.Y);
-            }));
-         }
-
-         var destinations = anchor.Sources.Select(source => source.ToString("X6")).ToArray();
-         foreach (var destination in destinations) {
-            group.Add(new ContextItem(destination, ViewPort.Goto.Execute, destination));
-         }
+         group.AddRange(GetAnchorSourceItems(ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart)));
 
          Results.Add(group);
 
@@ -174,6 +161,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          if (anchor.OriginalFormat is None) {
             Results.AddRange(GetFormattedChildren());
+         }
+      }
+
+      public IEnumerable<ContextItem> GetAnchorSourceItems(int address) {
+         var sources = ViewPort.Model.GetNextRun(address).PointerSources;
+         if (sources == null || sources.Count == 0) {
+            yield return new ContextItem("(Nothing points to this.)", null);
+            yield break;
+         }
+
+         if (sources.Count > 1) {
+            yield return new ContextItem("Show All Sources in new tab", p => {
+               ViewPort.FindAllSources(address);
+            });
+         }
+
+         var destinations = sources.Select(SystemExtensions.ToAddress).ToArray();
+         foreach (var destination in destinations) {
+            yield return new ContextItem(destination, ViewPort.Goto.Execute, destination);
          }
       }
 

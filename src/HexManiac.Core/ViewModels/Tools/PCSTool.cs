@@ -1,15 +1,17 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PCSTool : ViewModelCore, IToolViewModel {
+      private readonly ViewPort viewPort;
       private readonly IDataModel model;
-      private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IToolTrayViewModel runner;
       private readonly StubCommand
@@ -101,6 +103,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public ObservableCollection<ContextItem> GotoOptions { get; } = new();
+
       public event EventHandler<string> OnError;
       public event EventHandler<IFormattedRun> ModelDataChanged;
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
@@ -108,9 +112,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       // properties that exist solely so the UI can remember things when the tab switches
       public double VerticalOffset { get; set; }
 
-      public PCSTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IToolTrayViewModel runner) {
-         this.model = model;
-         this.selection = selection;
+      public PCSTool(ViewPort viewPort, ChangeHistory<ModelDelta> history, IToolTrayViewModel runner) {
+         this.viewPort = viewPort;
+         this.model = viewPort.Model;
          this.history = history;
          this.runner = runner;
          checkIsText.CanExecute = arg => ShowMessage;
@@ -129,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          insertText.CanExecute = arg => ShowMessage;
          insertText.Execute = arg => {
             if (address < 0 || model.Count <= address || model[address] != 0xFF || model.GetNextRun(address).Start <= address) {
-               address = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+               address = viewPort.ConvertViewPointToAddress(viewPort.SelectionStart);
             }
             if (address < 0 || model.Count <= address || model[address] != 0xFF || model.GetNextRun(address).Start <= address) {
                OnError?.Invoke(this, $"Could not insert text at {address:X6}.{Environment.NewLine}The bytes must be unused (FF).");
@@ -174,10 +178,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             runner.Schedule(DataForCurrentRunChanged);
             Enabled = true;
             ShowMessage = false;
+            GotoOptions.Clear();
+            foreach (var option in new ContextItemFactory(viewPort).GetAnchorSourceItems(address)) {
+               GotoOptions.Add(option);
+            }
          } else {
             Enabled = false;
             ShowMessage = true;
             Message = $"{address:X6} does not appear to be text.";
+            GotoOptions.Clear();
          }
       }
 
@@ -283,8 +292,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          using (history.ContinueCurrentTransaction()) {
-            selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(selectionStart);
-            selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selectionStart + selectionLength);
+            viewPort.SelectionStart = viewPort.ConvertAddressToViewPoint(selectionStart);
+            viewPort.SelectionEnd = viewPort.ConvertAddressToViewPoint(selectionStart + selectionLength);
          }
       }
 
