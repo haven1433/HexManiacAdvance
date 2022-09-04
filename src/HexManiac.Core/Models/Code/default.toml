@@ -751,7 +751,6 @@ Name = '''effectanimations'''
 
 [[List]]
 Name = '''varmacros'''
-DefaultHash = '''00000001'''
 32780 = [
    '''Facing''',
    '''Ans''',
