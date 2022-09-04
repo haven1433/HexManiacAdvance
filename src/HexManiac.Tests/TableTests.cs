@@ -1140,6 +1140,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(16, seg.GetOptions(Model).Count());
       }
 
+      [Fact]
+      public void Table_UpdateLastElement_TableToolUpdates() {
+         ViewPort.Edit("^table[a: b:]4 ");
+
+         ViewPort.Goto.Execute(0xF);
+         ViewPort.Edit("10 ");
+
+         var field = (FieldArrayElementViewModel)ViewPort.Tools.TableTool.Children.Last();
+         Assert.Equal("10", field.Content);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

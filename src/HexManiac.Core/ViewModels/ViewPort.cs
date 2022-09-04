@@ -2508,7 +2508,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                if (completeEditOperation.Result) {
                   // if the data we just changed was in a table, notify children of that table about the change
-                  if (Model.GetNextRun(dataIndex) is ITableRun tableRun) {
+                  var previousRun = Model.GetNextRun(dataIndex);
+                  if (previousRun is ITableRun tableRun) {
                      var offsets = tableRun.ConvertByteOffsetToArrayOffset(dataIndex);
                      var errorInfo = tableRun.NotifyChildren(Model, history.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
                      HandleErrorInfo(errorInfo);
@@ -2527,11 +2528,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var run = Model.GetNextRun(completeEditOperation.NewDataIndex);
                   if (run.Start > completeEditOperation.NewDataIndex) run = new NoInfoRun(Model.Count);
                   if (completeEditOperation.DataMoved) UpdateToolsFromSelection(run.Start);
-                  if (run is ITableRun) {
+                  if (run is ITableRun || previousRun is ITableRun) {
                      Tools.Schedule(Tools.TableTool.DataForCurrentRunChanged);
                   }
-                  if (run is ITableRun || run is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
-                  if (run is ISpriteRun || run is IPaletteRun) {
+                  if (run is ITableRun || run is IStreamRun || previousRun is ITableRun || previousRun is IStreamRun) Tools.Schedule(Tools.StringTool.DataForCurrentRunChanged);
+                  if (run is ISpriteRun || run is IPaletteRun || previousRun is ISpriteRun || previousRun is IPaletteRun) {
                      tools.Schedule(tools.SpriteTool.DataForCurrentRunChanged);
                      tools.Schedule(tools.TableTool.DataForCurrentRunChanged);
                   }

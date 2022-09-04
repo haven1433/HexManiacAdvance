@@ -709,6 +709,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True("a.e".MatchesPartialWithReordering("éá"));
       }
 
+      [Fact]
+      public void AsciiText_LastEdit_Notify() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^test`asc`7 123456");
+
+         var view = new StubView(ViewPort.Tools.StringTool);
+         ViewPort.Edit("7");
+
+         Assert.Equal("1234567", ViewPort.Tools.StringTool.Content);
+         Assert.Contains(nameof(ViewPort.Tools.StringTool.Content), view.PropertyNotifications);
+      }
+
       private void HackTextConverter(string game) {
          var converter = new PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
