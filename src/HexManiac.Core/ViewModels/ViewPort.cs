@@ -1324,7 +1324,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          await EditCoreAsync(input);
       }
 
-      private const int DefaultChunkSize= 200;
+      private const int DefaultChunkSize = 200;
       private void EditCore(string input) {
          // allow chunking at newline boundaries only
          int chunkSize = Math.Max(DefaultChunkSize, initialWorkLoad / 100);

@@ -667,6 +667,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                copyText += " ";
                copyText = copyText.Replace(Environment.NewLine, "\n"); // normalize newline inputs
             }
+            if (copyText.Count('"') % 2 == 0 && copyText.Length > 2 && !copyText.EndsWith(' ')) {
+               // In the case of 'paste' inputs with no open quotes, add a space
+               // at the end to make it more likely to complete the last element.
+               copyText += ' ';
+            }
+
 
             if (SelectedTab is ViewPort viewPort && viewPort.IsFocused) viewPort.Edit(copyText);
          };

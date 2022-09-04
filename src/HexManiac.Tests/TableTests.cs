@@ -1151,6 +1151,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("10", field.Content);
       }
 
+      [Fact]
+      public void Table_PasteMultipleFieldsButNoSpaceAtEnd_LastFieldChanged() {
+         var editor = new EditorViewModel(FileSystem, InstantDispatch.Instance);
+         editor.Add(ViewPort);
+         ViewPort.IsFocused = true;
+         ViewPort.Edit("^table[a:: b:: c:: d::]4 ");
+
+         FileSystem.CopyText = "1 2 3 4";
+         editor.Paste.Execute();
+
+         Assert.Equal(4, Model.ReadMultiByteValue(12, 4));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
