@@ -1089,6 +1089,17 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
+      public void SingleSpriteMultiplePalette_Draw8x8WithPalette1_DoNotSwitchPalette() {
+         editor.PalettePage = 1;
+         editor.SelectedTool = ImageEditorTools.Draw;
+
+         editor.CursorSize = 8;
+         ToolMove(new Point(0, 0));
+
+         Assert.Equal(1, editor.PalettePage);
+      }
+
+      [Fact]
       public void SingleSpriteMutltiplePalettes_EyeDropToolOnSecondPalette_SecondPaletteStillSelected() {
          editor.PalettePage = 1;
          editor.Palette.SelectionStart = 1;

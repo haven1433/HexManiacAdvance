@@ -828,7 +828,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                // allow editing the selected palette to match the tile if a tile is selected
                var pageChange = (int)Math.Floor((float) parent.PaletteIndex(tile[0, 0]) / parent.Palette.Elements.Count);
-               if (drawWidth == 8 && drawHeight == 8 && pageChange != 0) {
+               if (!spriteOnlyExpects16Colors && drawWidth == 8 && drawHeight == 8 && pageChange != 0) {
                   parent.PalettePage += pageChange;
                   pageChange = 0;
                }
