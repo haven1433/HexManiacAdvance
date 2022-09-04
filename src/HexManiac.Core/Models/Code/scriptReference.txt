@@ -56,7 +56,7 @@
 1E compareFarByteToBank pointer<> bank.4     # opposite of 1D
 1F compareFarByteToByte pointer<> value.     # compares the value at the RAM address to the value
 20 compareFarBytes a<> b<>                   # compares the two values at the two RAM addresses
-21 compare variable: value:
+21 compare variable:varmacros value:
 22 comparevars var1: var2:
 23 callasm code<>
 24 setcode pointer<>                         # puts a pointer to some assembly code at a specific place in RAM
