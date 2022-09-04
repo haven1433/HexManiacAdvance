@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -16,6 +17,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Singletons singletons;
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
+
+      public IPixelViewModel Blocks => primaryMap?.BlockPixels;
 
       #region ITabContent
 
@@ -68,13 +71,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          UpdatePrimaryMap(map);
       }
 
+      private BlockMapViewModel primaryMap;
       private void UpdatePrimaryMap(BlockMapViewModel map) {
+         if (primaryMap != map) {
+            primaryMap = map;
+            NotifyPropertyChanged(nameof(Blocks));
+         }
          var oldMaps = VisibleMaps.ToList();
 
-         var newMaps = new List<BlockMapViewModel>(new List<MapDirection> {
-            MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right
-         }.SelectMany(map.GetNeighbors));
+         var newMaps = GetMapNeighbors(map, map.SpriteScale < .5 ? 2 : 1).ToList();
          newMaps.Add(map);
+         var mapDict = new Dictionary<int, BlockMapViewModel>();
+         newMaps.ForEach(m => mapDict[m.MapID] = m);
+         newMaps = mapDict.Values.ToList();
 
          foreach (var oldM in oldMaps) if (!newMaps.Any(newM => oldM.MapID == newM.MapID)) VisibleMaps.Remove(oldM);
          foreach (var newM in newMaps) {
@@ -90,6 +99,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
             if (!match) VisibleMaps.Add(newM);
+         }
+      }
+
+      private IEnumerable<BlockMapViewModel> GetMapNeighbors(BlockMapViewModel map, int recursionLevel) {
+         if (recursionLevel < 1) yield break;
+         var directions = new List<MapDirection> {
+            MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right
+         };
+         var newMaps = new List<BlockMapViewModel>(directions.SelectMany(map.GetNeighbors));
+         foreach (var m in newMaps) {
+            yield return m;
+            if (recursionLevel > 1) {
+               foreach (var mm in GetMapNeighbors(m, recursionLevel - 1)) yield return mm;
+            }
          }
       }
 
