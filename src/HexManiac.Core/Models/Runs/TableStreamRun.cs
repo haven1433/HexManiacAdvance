@@ -480,7 +480,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int ExtraLength => 0;
 
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
-         throw new NotImplementedException();
+         var naturalLength = run.Length;
+         var newRun = model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength);
+
+         // add new element data
+         for (int i = 0; i < run.ElementLength * length; i++) {
+            var prevIndex = newRun.Start + naturalLength + i - newRun.ElementLength * length;
+            while (prevIndex < newRun.Start) prevIndex += newRun.ElementLength;
+            byte prevData = prevIndex >= newRun.Start ? model[prevIndex] : default;
+            token.ChangeData(model, newRun.Start + naturalLength + i, prevData);
+         }
+
+         // remove excess element data
+         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+
+         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this, run.ElementCount + length);
       }
 
       public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
