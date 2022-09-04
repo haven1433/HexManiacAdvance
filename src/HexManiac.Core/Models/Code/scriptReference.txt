@@ -275,12 +275,16 @@ CF executeram                                # weird. Shouldn't use. Script exec
 D0 setworldmapflag flag:                     # This lets the player fly to a given map, if the map has a flight spot
 D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
 D2 setcatchlocation slot: location.          # changes the catch location of a pokemon in your party (0-5)
+
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
 [BPRE_BPGE] D3 braillelength pointer<>       # sets variable 8004 based on th ebraille string's length
                                              # call this, then special 0x1B2 to make a cursor appear at the end of the text
 [BPRE_BPGE] D4 bufferitems buffer.3 item: quantity:      # buffers the item name, but possibly pluralized if quantity is 2 or more
 [BPEE] D4 turnrotatingtileobjects
-D5 nopD5
+# there is no D5 in ruby
+[BPRE_BPGE] D5 nopD5
+[BPEE] D5 initrotatingtilepuzzle isTrickHouse:
+
 D6 cmdD6                                     # unknown
 D7 warp7 mapbank. map. warp. x: y:           # unknown
 D8 cmdD8                                     # unknown
