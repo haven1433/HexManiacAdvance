@@ -220,7 +220,7 @@
 A0 checkgender                               # if male, 800D=0. If female, 800D=1
 A1 cry species: effect:                      # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
 A2 setmaptile x: y: tile: attribute:         # sets the tile at x/y to be the given tile: with the attribute.
-                                             # what does attribute do? It's usually 0 or 1.
+                                             # attribute determines if the tile is passable or not. 0 = passable, 1 = unpassable
 A3 resetweather                              # queues a weather change to the map's default weather
 A4 setweather type:                          #
 A5 doweather                                 # actually does the weather change from resetweather or setweather
