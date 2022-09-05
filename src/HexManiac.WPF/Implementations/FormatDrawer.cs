@@ -69,6 +69,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Initialize<PCS>(typeface, fontSize);
          collector.Initialize<EscapedPCS>(typeface, fontSize);
          collector.Initialize<Ascii>(typeface, fontSize);
+         collector.Initialize<Braille>(typeface, fontSize);
          collector.Initialize<Pointer>(typeface, fontSize);
          collector.Initialize<IDataFormat>(typeface, fontSize);     // actually offset pointers
          collector.Initialize<PlmItem>(typeface, fontSize * .75);
@@ -122,6 +123,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                }
             } else if (format is Ascii asc) {
                collector.Collect<Ascii>(format, x, 1, asc.ThisCharacter.ToString());
+            } else if (format is Braille braille) {
+               collector.Collect<Braille>(format, x, 1, braille.ThisCharacter.ToString());
             } else if (format is None none) {
                if (!LightWeightUI) {
                   if (none.IsSearchResult) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
@@ -168,6 +171,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          collector.Render<IntegerHex>(context, Brush(nameof(Theme.Data2)));
          collector.Render<Integer>(context, Brush(nameof(Theme.Data1)));
          collector.Render<Ascii>(context, Brush(nameof(Theme.Text2)));
+         collector.Render<Braille>(context, Brush(nameof(Theme.Text2)));
          collector.Render<None>(context, Brush(nameof(Theme.Primary)));
          collector.Render<UnderEdit>(context, Brush(nameof(Theme.Secondary)));
          collector.Render<Undefined>(context, Brush(nameof(Theme.Secondary)));
@@ -264,6 +268,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void Visit(Ascii ascii, byte data) { }
+
+      public void Visit(Braille braille, byte data) { }
 
       public void Visit(Integer integer, byte data) { }
 

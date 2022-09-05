@@ -46,6 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Ascii ascii, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
+      public void Visit(Braille braille, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
+
       public void Visit(Integer integer, byte data) => buffer.WriteMultiByteValue(index, integer.Length, currentChange, 0);
 
       public void Visit(IntegerEnum integerEnum, byte data) => buffer.WriteMultiByteValue(index, integerEnum.Length, currentChange, 0);

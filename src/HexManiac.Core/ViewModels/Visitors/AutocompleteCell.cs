@@ -47,6 +47,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Ascii ascii, byte data) { }
 
+      public void Visit(Braille braille, byte data) { }
+
       public void Visit(Integer integer, byte data) { }
 
       public void Visit(IntegerEnum intEnum, byte data) => GenerateOptions(intEnum);

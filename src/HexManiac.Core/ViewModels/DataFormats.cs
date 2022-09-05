@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       void Visit(EscapedPCS pcs, byte data);
       void Visit(ErrorPCS pcs, byte data);
       void Visit(Ascii ascii, byte data);
+      void Visit(Braille braille, byte data);
       void Visit(Integer integer, byte data);
       void Visit(IntegerEnum integer, byte data);
       void Visit(IntegerHex integer, byte data);
@@ -286,6 +287,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public bool Equals(IDataFormat other) {
          if (!(other is Ascii ascii)) return false;
          return ascii.Source == Source && ascii.Position == Position && ascii.ThisCharacter == ThisCharacter;
+      }
+
+      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
+   }
+
+   public class Braille : IDataFormatStreamInstance {
+      public int Source { get; }
+      public int Position { get; }
+      public char ThisCharacter { get; }
+
+      public Braille(int source, int position, char value) => (Source, Position, ThisCharacter) = (source, position, value);
+
+      public bool Equals(IDataFormat other) {
+         if (!(other is Braille braille)) return false;
+         return braille.Source == Source && braille.Position == Position && braille.ThisCharacter == ThisCharacter;
       }
 
       public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);

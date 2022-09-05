@@ -205,6 +205,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Ascii ascii, byte data) => Results.AddRange(GetFormattedChildren());
 
+      public void Visit(Braille braille, byte data) => Results.AddRange(GetFormattedChildren());
+
       public void Visit(Integer integer, byte data) {
          if (ViewPort.Model.GetNextRun(ViewPort.Tools.TableTool.Address) is ITableRun) {
             Results.AddRange(GetTableChildren());

@@ -151,6 +151,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Ascii ascii, byte data) => Result = true;
 
+      public void Visit(Braille braille, byte data) => Result = true;
+
       public void Visit(Integer intFormat, byte data) {
          if (Input == '+' && Model.GetNextRun(MemoryLocation) is LzSpriteRun spriteRun && spriteRun.Start == MemoryLocation - 1 && spriteRun.Pages == 1) {
             Result = true;

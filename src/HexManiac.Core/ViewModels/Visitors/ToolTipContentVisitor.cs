@@ -89,6 +89,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Ascii ascii, byte data) { }
 
+      public void Visit(Braille braille, byte data) { }
+
       public void Visit(Integer integer, byte data) {
          if (model.GetNextRun(integer.Source) is WordRun wordRun) {
             var desiredToolTip = wordRun.SourceArrayName;

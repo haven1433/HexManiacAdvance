@@ -62,6 +62,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new PCSRunContentStrategy();
          } else if (format.StartsWith(AsciiRun.SharedFormatString)) {
             strategy = new AsciiRunContentStrategy();
+         } else if (format == BrailleRun.SharedFormatString) {
+            strategy = new BrailleRunContentStrategy();
          } else if (format == EggMoveRun.SharedFormatString) {
             strategy = new EggRunContentStrategy();
          } else if (format == PIERun.SharedFormatString) {

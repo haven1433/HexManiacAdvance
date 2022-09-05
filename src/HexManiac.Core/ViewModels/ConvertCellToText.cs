@@ -45,6 +45,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Visit(Ascii ascii, byte data) => Result = ((char)data).ToString();
 
+      public void Visit(Braille braille, byte data){
+         if (data == 0xFF) Result = "\"";
+         else if (BrailleRun.Encoding.TryGetValue(data, out var value)) Result = value.ToString();
+         else Result = " ";
+      }
+
       public void Visit(Integer integer, byte data) => Result = integer.Value.ToString();
 
       public void Visit(IntegerEnum integerEnum, byte data) => Result = integerEnum.Value;

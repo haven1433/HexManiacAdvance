@@ -90,6 +90,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       // not possible: all ascii edits are single-stroke
       public void Visit(Ascii ascii, byte data) => throw new NotImplementedException();
 
+      public void Visit(Braille braille, byte data) => throw new NotImplementedException();
+
       public void Visit(Integer integer, byte data) {
          Result = integer.CanStartWithCharacter(Input) || char.IsWhiteSpace(Input) || Input == ')';
       }

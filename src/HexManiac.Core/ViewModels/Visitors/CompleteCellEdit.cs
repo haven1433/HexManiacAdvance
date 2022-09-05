@@ -135,6 +135,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = true;
       }
 
+      public void Visit(Braille braille, byte data) {
+         var currentText = CurrentText;
+         if (currentText.StartsWith(StringDelimeter.ToString())) currentText = currentText.Substring(1);
+         if (braille.Position != 0 && CurrentText == StringDelimeter.ToString()) {
+            CompleteBrailleStringEdit(braille);
+         } else if (braille.Position == 0 && CurrentText == StringDelimeter.ToString() + StringDelimeter) {
+            CompleteBrailleStringEdit(braille);
+         } else {
+            CompleteBrailleCharacterEdit(braille);
+         }
+
+         Result = true;
+         scroll.UpdateHeaders();
+      }
+
       public void Visit(Integer integer, byte data) {
          if (CurrentText == "+" && Model.GetNextRun(memoryLocation) is LzSpriteRun spriteRun) {
             var newRun = spriteRun.IncreaseHeight(1, CurrentChange);
@@ -572,6 +587,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          CurrentChange.ChangeData(Model, memoryLocation, content);
          NewCell = new HexElement(content, true, new Ascii(asciiFormat.Source, asciiFormat.Position, CurrentText[0]));
          NewDataIndex = memoryLocation + 1;
+      }
+
+      private void CompleteBrailleCharacterEdit(Braille brailleFormat) {
+         var memoryLocation = this.memoryLocation;
+
+         // complete edit on this cell
+         // move to next cell, potentially increasing the run length.
+         var run = (BrailleRun)Model.GetNextRun(memoryLocation);
+         var content = BrailleRun.DeserializeCharacter(CurrentText[0]);
+         CurrentChange.ChangeData(Model, memoryLocation, content);
+         NewCell = new HexElement(content, true, new Braille(brailleFormat.Source, brailleFormat.Position, CurrentText[0]));
+
+         if (NewDataIndex == run.Start + run.Length) {
+            var newRun = Model.RelocateForExpansion(CurrentChange, run, run.Length + 1);
+            if (newRun != run) {
+               MessageText = $"Braille text was automatically moved to {newRun.Start:X6}. Pointers were updated.";
+               memoryLocation += newRun.Start - run.Start;
+               run = newRun;
+               DataMoved = true;
+            }
+
+            run = new BrailleRun(Model, run.Start, run.PointerSources);
+            Model.ObserveRunWritten(CurrentChange, run);
+         }
+
+         NewDataIndex = memoryLocation + 1;
+      }
+
+      private void CompleteBrailleStringEdit(Braille format) {
+         var run = (BrailleRun)Model.GetNextRun(memoryLocation);
+         for (int i = format.Source + format.Position; i < run.Start + run.Length; i++) CurrentChange.ChangeData(Model, i, 0xFF);
+         NewCell = new HexElement(0xFF, true, new Braille(format.Source, format.Position, StringDelimeter));
+         NewDataIndex = memoryLocation + 1;
+         Model.ObserveRunWritten(CurrentChange,new BrailleRun(Model,run.Start,run.PointerSources));
       }
 
       private void CompletePointerEdit() {
