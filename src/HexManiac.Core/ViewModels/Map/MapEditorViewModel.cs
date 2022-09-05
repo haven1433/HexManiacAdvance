@@ -20,7 +20,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 
+      #region Block Picker
+
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
+
+      private int drawBlockIndex = -10;
+      public int DrawBlockIndex {
+         get => drawBlockIndex;
+         set {
+            Set(ref drawBlockIndex, value, old => {
+               NotifyPropertyChanged(nameof(HighlightBlockX));
+               NotifyPropertyChanged(nameof(HighlightBlockY));
+               NotifyPropertyChanged(nameof(HighlightBlockSize));
+            });
+         }
+      }
+
+      public double HighlightBlockX => (drawBlockIndex % BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
+      public double HighlightBlockY => (drawBlockIndex / BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
+      public double HighlightBlockSize => 16 * Blocks.SpriteScale + 2;
+
+      #endregion
 
       #region ITabContent
 
@@ -150,6 +170,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map == null) return;
          map.Scale(x, y, enlarge);
          UpdatePrimaryMap(map);
+      }
+
+      public void SelectBlock(int x, int y) {
+         DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
       }
 
       private BlockMapViewModel MapUnderCursor(double x, double y) {

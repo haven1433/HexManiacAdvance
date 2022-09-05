@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private double spriteScale = 1;
       public double SpriteScale {
          get => spriteScale;
-         set => Set(ref spriteScale, value, old => UpdateEdgesFromScale(old, LeftEdge + old * pixelWidth / 2, TopEdge + old * pixelHeight / 2));
+         set => Set(ref spriteScale, value, old => UpdateEdgesFromScale(old, old * pixelWidth / 2, old * pixelHeight / 2));
       }
 
       private void UpdateEdgesFromScale(double old, double centerX, double centerY) {
@@ -253,17 +253,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          pixelData = canvas.PixelData;
       }
 
+      public const int BlocksPerRow = 8;
       private void FillBlockPixelData() {
          var layout = GetLayout();
          if (blockRenders == null) RefreshBlockRenderCache(layout);
 
-         var blockWidth = 8;
-         var blockHeight = TotalBlocks / blockWidth;
-         var canvas = new CanvasPixelViewModel(blockWidth * 16, blockHeight * 16) { SpriteScale = 2 };
+         var blockHeight = TotalBlocks / BlocksPerRow;
+         var canvas = new CanvasPixelViewModel(BlocksPerRow * 16, blockHeight * 16) { SpriteScale = 2 };
 
          for (int y = 0; y < blockHeight; y++) {
-            for (int x = 0; x < blockWidth; x++) {
-               canvas.Draw(blockRenders[y * blockWidth + x], x * 16, y * 16);
+            for (int x = 0; x < BlocksPerRow; x++) {
+               canvas.Draw(blockRenders[y * BlocksPerRow + x], x * 16, y * 16);
             }
          }
 

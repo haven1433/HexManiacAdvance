@@ -6,7 +6,16 @@
       public short[] PixelData { get; }
 
       private double spriteScale = 1;
-      public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
+      public double SpriteScale {
+         get => spriteScale;
+         set => Set(ref spriteScale, value, old => {
+            NotifyPropertyChanged(nameof(ScaledWidth));
+            NotifyPropertyChanged(nameof(ScaledHeight));
+         });
+      }
+
+      public double ScaledWidth => PixelWidth * SpriteScale;
+      public double ScaledHeight => PixelHeight * SpriteScale;
 
       public CanvasPixelViewModel(int width, int height) {
          (PixelWidth, PixelHeight) = (width, height);
