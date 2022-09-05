@@ -141,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private double cursorX, cursorY, deltaX, deltaY;
 
-      public void LeftDown(double x, double y) {
+      public void DragDown(double x, double y) {
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
 
@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map != null) UpdatePrimaryMap(map);
       }
 
-      public void LeftMove(double x, double y) {
+      public void DragMove(double x, double y) {
          deltaX += x - cursorX;
          deltaY += y - cursorY;
          (cursorX, cursorY) = (x, y);
@@ -161,9 +161,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          deltaY -= (int)deltaY;
       }
 
-      public void LeftUp(double x, double y) {
+      public void DragUp(double x, double y) {
 
       }
+
+      public void DrawDown(double x, double y) => DrawMove(x, y);
+
+      public void DrawMove(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map != null) map.DrawBlock(history.CurrentChange, drawBlockIndex, x, y);
+      }
+
+      public void DrawUp(double x, double y) => history.ChangeCompleted();
 
       public void Zoom(double x, double y, bool enlarge) {
          var map = MapUnderCursor(x, y);

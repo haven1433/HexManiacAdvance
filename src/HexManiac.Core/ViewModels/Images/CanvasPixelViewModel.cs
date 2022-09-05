@@ -17,9 +17,9 @@
       public double ScaledWidth => PixelWidth * SpriteScale;
       public double ScaledHeight => PixelHeight * SpriteScale;
 
-      public CanvasPixelViewModel(int width, int height) {
+      public CanvasPixelViewModel(int width, int height, short[] data = null) {
          (PixelWidth, PixelHeight) = (width, height);
-         PixelData = new short[width * height];
+         PixelData = data ?? new short[width * height];
       }
 
       public void Draw(IPixelViewModel foreground, int x, int y) {

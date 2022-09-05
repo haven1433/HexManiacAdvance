@@ -15,7 +15,7 @@
          </Canvas>
       </ScrollViewer>
       <ItemsControl Grid.Column="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True"
-                    MouseLeftButtonDown="LeftDown" MouseMove="LeftMove" MouseLeftButtonUp="LeftUp" MouseWheel="Wheel">
+                    MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
          <ItemsControl.RenderTransform>
             <TranslateTransform/>
          </ItemsControl.RenderTransform>

@@ -160,6 +160,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(SpriteScale));
       }
 
+      public void DrawBlock(ModelDelta token, int index, double x, double y) {
+         if (index < 0 || index > blockRenders.Count) return;
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         if (x < 0 || y < 0 || x > width || x > height) return;
+         var start = layout.GetAddress("map");
+
+         var border = GetBorderThickness(layout);
+
+         var modelAddress = start + (((int)y - border.North) * width + (int)x - border.West) * 2;
+         var data = model.ReadMultiByteValue(modelAddress, 2);
+         var high = data & 0xFC00;
+         var low = index;
+         model.WriteMultiByteValue(modelAddress, 2, token, high | low);
+
+         var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
+         canvas.Draw(blockRenders[index], (int)x * 16, (int)y * 16);
+
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
       private void RefreshPaletteCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
             var layout = GetLayout();

@@ -20,33 +20,48 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #region Map Interaction
 
-      private bool withinMapInteraction;
+      private MouseButton withinMapInteraction = MouseButton.XButton1; // track which button is being used. Set to XButton1 when not in use.
 
-      private void LeftDown(object sender, MouseButtonEventArgs e) {
+      private void ButtonDown(object sender, MouseButtonEventArgs e) {
+         if (withinMapInteraction != MouseButton.XButton1) return;
          var element = (FrameworkElement)sender;
          var vm = (MapEditorViewModel)element.DataContext;
          var p = GetCoordinates(element, e);
          element.CaptureMouse();
-         withinMapInteraction = true;
-         vm.LeftDown(p.X, p.Y);
+         if (e.LeftButton == MouseButtonState.Pressed) {
+            withinMapInteraction = MouseButton.Left;
+            vm.DrawDown(p.X, p.Y);
+         } else if (e.MiddleButton == MouseButtonState.Pressed) {
+            withinMapInteraction = MouseButton.Middle;
+            vm.DragDown(p.X, p.Y);
+         }
       }
 
-      private void LeftMove(object sender, MouseEventArgs e) {
-         if (!withinMapInteraction) return;
+      private void ButtonMove(object sender, MouseEventArgs e) {
+         if (withinMapInteraction == MouseButton.XButton1) return;
          var element = (FrameworkElement)sender;
          var vm = (MapEditorViewModel)element.DataContext;
          var p = GetCoordinates(element, e);
-         vm.LeftMove(p.X, p.Y);
+         if (withinMapInteraction == MouseButton.Left) {
+            vm.DrawMove(p.X, p.Y);
+         } else if (withinMapInteraction == MouseButton.Middle) {
+            vm.DragMove(p.X, p.Y);
+         }
       }
 
-      private void LeftUp(object sender, MouseButtonEventArgs e) {
+      private void ButtonUp(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          element.ReleaseMouseCapture();
-         if (!withinMapInteraction) return;
-         withinMapInteraction = false;
+         if (withinMapInteraction == MouseButton.XButton1) return;
+         if (e.ChangedButton != withinMapInteraction) return;
          var vm = (MapEditorViewModel)element.DataContext;
          var p = GetCoordinates(element, e);
-         vm.LeftUp(p.X, p.Y);
+         if (withinMapInteraction == MouseButton.Left) {
+            vm.DrawUp(p.X, p.Y);
+         } else if (withinMapInteraction == MouseButton.Middle) {
+            vm.DragUp(p.X, p.Y);
+         }
+         withinMapInteraction = MouseButton.XButton1;
       }
 
       private void Wheel(object sender, MouseWheelEventArgs e) {
