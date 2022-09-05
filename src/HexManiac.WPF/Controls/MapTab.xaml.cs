@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -34,6 +35,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else if (e.MiddleButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Middle;
             vm.DragDown(p.X, p.Y);
+         } else if (e.RightButton == MouseButtonState.Pressed) {
+            vm.SelectDown(p.X, p.Y);
+            UpdateBlockSelection(vm);
          }
       }
 
@@ -46,6 +50,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             vm.DrawMove(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Middle) {
             vm.DragMove(p.X, p.Y);
+         } else if (withinMapInteraction == MouseButton.Right) {
+            vm.SelectMove(p.X, p.Y);
          }
       }
 
@@ -60,6 +66,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             vm.DrawUp(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Middle) {
             vm.DragUp(p.X, p.Y);
+         } else if (withinMapInteraction == MouseButton.Right) {
+            vm.SelectUp(p.X, p.Y);
          }
          withinMapInteraction = MouseButton.XButton1;
       }
@@ -80,12 +88,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          p.Y /= 16;
          mainModel.SelectBlock((int)p.X, (int)p.Y);
 
+         UpdateBlockSelection(mainModel);
+      }
+
+      private void UpdateBlockSelection(MapEditorViewModel viewModel) {
          // couldn't get bindings to update correctly for this Rectangle for some reason
          // just do it manually
-         Canvas.SetLeft(BlockSelectionRect, mainModel.HighlightBlockX);
-         Canvas.SetTop(BlockSelectionRect, mainModel.HighlightBlockY);
-         BlockSelectionRect.Width = mainModel.HighlightBlockSize;
-         BlockSelectionRect.Height = mainModel.HighlightBlockSize;
+         Canvas.SetLeft(BlockSelectionRect, viewModel.HighlightBlockX);
+         Canvas.SetTop(BlockSelectionRect, viewModel.HighlightBlockY);
+         BlockSelectionRect.Width = viewModel.HighlightBlockSize;
+         BlockSelectionRect.Height = viewModel.HighlightBlockSize;
       }
 
       private Point GetCoordinates(FrameworkElement element, MouseEventArgs e) {

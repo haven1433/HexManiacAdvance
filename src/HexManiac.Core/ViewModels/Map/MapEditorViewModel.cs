@@ -182,6 +182,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void DrawUp(double x, double y) => history.ChangeCompleted();
 
+      public void SelectDown(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map == null) return;
+         var index = map.GetBlock(x, y);
+         if (index >= 0) DrawBlockIndex = index;
+      }
+      public void SelectMove(double x, double y) { }
+      public void SelectUp(double x, double y) { }
+
       public void Zoom(double x, double y, bool enlarge) {
          var map = MapUnderCursor(x, y);
          if (map == null) return;

@@ -194,6 +194,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
+      public int GetBlock(double x, double y) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         if (x < 0 || y < 0 || x > width || x > height) return -1;
+         var start = layout.GetAddress("map");
+
+         var border = GetBorderThickness(layout);
+
+         var modelAddress = start + (((int)y - border.North) * width + (int)x - border.West) * 2;
+         var data = model.ReadMultiByteValue(modelAddress, 2);
+         var low = data & 0x3FF;
+         return low;
+      }
+
       private void RefreshPaletteCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
             var layout = GetLayout();
