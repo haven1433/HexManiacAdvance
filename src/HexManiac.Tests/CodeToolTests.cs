@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using Xunit;
@@ -49,6 +50,17 @@ namespace HavenSoft.HexManiac.Tests {
          EventScript = "nop;nop;end";
 
          Assert.False(Tool.ShowErrorText);
+      }
+
+      [Fact]
+      public void FireRedSpecial_Decode_HasLabel() {
+         SetGameCode("BPRE0");
+         foreach (var meta in BaseModel.GetDefaultMetadatas("bpre")) Model.LoadMetadata(meta);
+         Token.ChangeData(Model, 0, "25 9E 00 02".ToByteArray());
+
+         var script = Tool.ScriptParser.Parse(Model, 0, 4).SplitLines()[0].Trim();
+
+         Assert.Equal("special ChangePokemonNickname", script);
       }
    }
 }

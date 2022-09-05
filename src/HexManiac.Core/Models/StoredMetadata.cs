@@ -187,7 +187,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (bool.TryParse(cleanLine.Split("=")[1].Trim(), out var showRawIV)) ShowRawIVByteForTrainer = showRawIV;
             }
 
-            if (cleanLine.Contains('=') && int.TryParse(cleanLine.Split('=')[0].Trim(), out int currentItemIndex)) {
+            if (cleanLine.Contains('=') && cleanLine.Split('=')[0].Trim().TryParseInt(out int currentItemIndex)) {
                if (currentItemChildren == null) currentItemChildren = new List<string>();
                while (currentItemChildren.Count < currentItemIndex) currentItemChildren.Add(null);
                if (!cleanLine.Split("'''")[0].Contains("[")) {

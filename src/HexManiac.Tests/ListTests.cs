@@ -299,5 +299,23 @@ DefaultHash = '''0BEEDA92'''
 
          Assert.Equal("three", item.FilterText);
       }
+
+      [Fact]
+      public void ListWithHexIndex_Load_ListLoaded() {
+         var input = new List<string> {
+            "[[List]]",
+            "Name = '''test'''",
+            "0x00 = '''name0'''",
+            "0x02 = '''name2'''",
+         };
+
+         var metadata = new StoredMetadata(input.ToArray());
+
+         var list = metadata.Lists.Single();
+         Assert.Equal("name0", list[0]);
+         Assert.Equal("1", list[1]);
+         Assert.Equal("name2", list[2]);
+         Assert.Equal(3, list.Count);
+      }
    }
 }
