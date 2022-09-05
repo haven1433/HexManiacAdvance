@@ -44,9 +44,9 @@
 13 setfarbyte bank.4 pointer<>               # stores the least-significant byte in the bank to a RAM address
 14 copyscriptbanks destination.4 source.4    # copies the value in source to destination
 15 copybyte destination<> source<>           # copies the value from the source RAM address to the destination RAM address
-16 setvar variable: value:                   # sets the given variable to the given value
-17 addvar variable: value:                   # variable+=value
-18 subvar variable: value:                   # variable-=value
+16 setvar variable:varmacros value:          # sets the given variable to the given value
+17 addvar variable:varmacros value:          # variable += value
+18 subvar variable:varmacros value:          # variable -= value
 19 copyvar destination: source:              # destination = source
 1A copyvarifnotzero destination: source:     # destination = source (or) destination = *source
                                              # (if source isn't a valid variable, it's read as a value)
@@ -56,7 +56,7 @@
 1E compareFarByteToBank pointer<> bank.4     # opposite of 1D
 1F compareFarByteToByte pointer<> value.     # compares the value at the RAM address to the value
 20 compareFarBytes a<> b<>                   # compares the two values at the two RAM addresses
-21 compare variable: value:
+21 compare variable:varmacros value:
 22 comparevars var1: var2:
 23 callasm code<>
 24 setcode pointer<>                         # puts a pointer to some assembly code at a specific place in RAM
@@ -225,8 +225,8 @@
 9F sethealingplace flightspot:               # where does the player warp when they die?
 A0 checkgender                               # if male, 800D=0. If female, 800D=1
 A1 cry species: effect:                      # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
-A2 setmaptile x: y: tile: attribute:         # sets the tile at x/y to be the given tile: with the attribute.
-                                             # what does attribute do? It's usually 0 or 1.
+A2 setmaptile x: y: tile: isWall:            # sets the tile at x/y to be the given tile: with the attribute.
+                                             # 0 = passable (false), 1 = impassable (true)
 A3 resetweather                              # queues a weather change to the map's default weather
 A4 setweather type:                          #
 A5 doweather                                 # actually does the weather change from resetweather or setweather
