@@ -150,6 +150,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
+      public void ClearCaches() {
+         palettes = null;
+         tiles = null;
+         blocks = null;
+         blockRenders = null;
+         blockPixels = null;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
       public void Scale(double x, double y, bool enlarge) {
          var old = spriteScale;
 

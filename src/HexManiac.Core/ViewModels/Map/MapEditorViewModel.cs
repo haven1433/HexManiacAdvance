@@ -51,7 +51,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand Save => null;
       public ICommand SaveAs => null;
       public ICommand ExportBackup => null;
-      public ICommand Undo => StubCommand(ref undo, () => history.Undo.Execute(), () => history.Undo.CanExecute(default));
+      public ICommand Undo => StubCommand(ref undo,
+         () => {
+            history.Undo.Execute();
+            Refresh();
+         },
+         () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redo, () => history.Redo.Execute(), () => history.Redo.CanExecute(default));
       public ICommand Copy => null;
       public ICommand DeepCopy => null;
@@ -81,7 +86,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event PropertyChangedEventHandler? PropertyChanged;
 
       public void Duplicate() { }
-      public void Refresh() { }
+      public void Refresh() {
+         VisibleMaps.Clear();
+         primaryMap.ClearCaches();
+         UpdatePrimaryMap(primaryMap);
+      }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
       #endregion
@@ -89,7 +98,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public MapEditorViewModel(IDataModel model, ChangeHistory<ModelDelta> history, Singletons singletons) {
          (this.model, this.history, this.singletons) = (model, history, singletons);
          var map = new BlockMapViewModel(model, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
-         VisibleMaps.Add(map);
          UpdatePrimaryMap(map);
       }
 
