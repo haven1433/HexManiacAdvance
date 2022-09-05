@@ -882,3 +882,16 @@ Name = '''itemtype'''
     '''PokeBlock_Case''',
     '''Bag_Menu''',
 ]
+
+[[List]]
+Name = '''varmacros'''
+32780 = [
+   '''Facing''',
+   '''Ans''',
+   '''ItemID''',
+   '''LastTalked''',
+   '''ContestRank''',
+   '''ContestCategory''',
+   '''MonBoxID''',
+   '''MonBoxPosition''',
+]
