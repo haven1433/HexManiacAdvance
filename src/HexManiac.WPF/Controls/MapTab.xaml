@@ -14,7 +14,7 @@
                Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}" Width="0" Height="0"/>
          </Canvas>
       </ScrollViewer>
-      <ItemsControl Grid.Column="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True"
+      <ItemsControl Grid.Column="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True" ClipToBounds="True"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
          <ItemsControl.RenderTransform>
             <TranslateTransform/>
