@@ -11,7 +11,9 @@
          <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
             <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown"/>
             <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
-               Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}" Width="0" Height="0"/>
+               Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}"
+               Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}"
+               Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}"/>
          </Canvas>
       </ScrollViewer>
       <ItemsControl Grid.Column="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True" ClipToBounds="True"
@@ -36,5 +38,12 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
+      <Rectangle Grid.Column="1" Name="HighlightCursorRect" StrokeThickness="2" IsHitTestVisible="False" Margin="-2,-2,0,0"
+         HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="{DynamicResource Backlight}"
+         Width="{Binding HighlightCursorSize, Mode=OneWay}" Height="{Binding HighlightCursorSize, Mode=OneWay}">
+         <Rectangle.RenderTransform>
+            <TranslateTransform X="{Binding HighlightCursorX, Mode=OneWay}" Y="{Binding HighlightCursorY, Mode=OneWay}"/>
+         </Rectangle.RenderTransform>
+      </Rectangle>
    </Grid>
 </UserControl>

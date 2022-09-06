@@ -83,7 +83,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
       public event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
       public event EventHandler<CanPatchEventArgs> RequestCreatePatch;
-      public event PropertyChangedEventHandler? PropertyChanged;
 
       public void Duplicate() { }
       public void Refresh() {
@@ -149,6 +148,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private double cursorX, cursorY, deltaX, deltaY;
 
+      private double highlightCursorX, highlightCursorY, highlightCursorSize;
+      public double HighlightCursorX { get => highlightCursorX; set => Set(ref highlightCursorX, value); }
+      public double HighlightCursorY { get => highlightCursorY; set => Set(ref highlightCursorY, value); }
+      public double HighlightCursorSize { get => highlightCursorSize; set => Set(ref highlightCursorSize, value); }
+
+      public void Hover(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map == null) return;
+         var dx = (int)((x - map.LeftEdge) / 16 / map.SpriteScale) + .5;
+         var dy = (int)((y - map.TopEdge) / 16 / map.SpriteScale) + .5;
+         (HighlightCursorX, HighlightCursorY) = (map.LeftEdge + dx * 16 * map.SpriteScale, map.TopEdge + dy * 16 * map.SpriteScale);
+         HighlightCursorSize = 16 * map.SpriteScale + 4;
+      }
+
       public void DragDown(double x, double y) {
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
@@ -167,6 +180,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          deltaX -= (int)deltaX;
          deltaY -= (int)deltaY;
+         Hover(x, y);
       }
 
       public void DragUp(double x, double y) {
@@ -178,6 +192,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void DrawMove(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map != null) map.DrawBlock(history.CurrentChange, drawBlockIndex, x, y);
+         Hover(x, y);
       }
 
       public void DrawUp(double x, double y) => history.ChangeCompleted();

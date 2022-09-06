@@ -8,6 +8,8 @@ using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class MapTab {
+      private MapEditorViewModel ViewModel => (MapEditorViewModel)DataContext;
+
       public MapTab() {
          InitializeComponent();
       }
@@ -26,7 +28,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ButtonDown(object sender, MouseButtonEventArgs e) {
          if (withinMapInteraction != MouseButton.XButton1) return;
          var element = (FrameworkElement)sender;
-         var vm = (MapEditorViewModel)element.DataContext;
+         var vm = ViewModel;
          var p = GetCoordinates(element, e);
          element.CaptureMouse();
          if (e.LeftButton == MouseButtonState.Pressed) {
@@ -37,15 +39,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             vm.DragDown(p.X, p.Y);
          } else if (e.RightButton == MouseButtonState.Pressed) {
             vm.SelectDown(p.X, p.Y);
-            UpdateBlockSelection(vm);
          }
       }
 
       private void ButtonMove(object sender, MouseEventArgs e) {
-         if (withinMapInteraction == MouseButton.XButton1) return;
          var element = (FrameworkElement)sender;
-         var vm = (MapEditorViewModel)element.DataContext;
+         var vm = ViewModel;
          var p = GetCoordinates(element, e);
+         if (withinMapInteraction == MouseButton.XButton1) {
+            vm.Hover(p.X, p.Y);
+            return;
+         }
          if (withinMapInteraction == MouseButton.Left) {
             vm.DrawMove(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Middle) {
@@ -60,7 +64,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          element.ReleaseMouseCapture();
          if (withinMapInteraction == MouseButton.XButton1) return;
          if (e.ChangedButton != withinMapInteraction) return;
-         var vm = (MapEditorViewModel)element.DataContext;
+         var vm = ViewModel;
          var p = GetCoordinates(element, e);
          if (withinMapInteraction == MouseButton.Left) {
             vm.DrawUp(p.X, p.Y);
@@ -74,30 +78,19 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void Wheel(object sender, MouseWheelEventArgs e) {
          var element = (FrameworkElement)sender;
-         var vm = (MapEditorViewModel)element.DataContext;
+         var vm = ViewModel;
          var p = GetCoordinates(element, e);
          vm.Zoom(p.X, p.Y, e.Delta > 0);
       }
 
       private void BlocksDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
-         var mainModel = (MapEditorViewModel)DataContext;
+         var mainModel = ViewModel;
          var imageModel = (IPixelViewModel)element.DataContext;
          var p = e.GetPosition(element);
          p.X /= 16;
          p.Y /= 16;
          mainModel.SelectBlock((int)p.X, (int)p.Y);
-
-         UpdateBlockSelection(mainModel);
-      }
-
-      private void UpdateBlockSelection(MapEditorViewModel viewModel) {
-         // couldn't get bindings to update correctly for this Rectangle for some reason
-         // just do it manually
-         Canvas.SetLeft(BlockSelectionRect, viewModel.HighlightBlockX);
-         Canvas.SetTop(BlockSelectionRect, viewModel.HighlightBlockY);
-         BlockSelectionRect.Width = viewModel.HighlightBlockSize;
-         BlockSelectionRect.Height = viewModel.HighlightBlockSize;
       }
 
       private Point GetCoordinates(FrameworkElement element, MouseEventArgs e) {
