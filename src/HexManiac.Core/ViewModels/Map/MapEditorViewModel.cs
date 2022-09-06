@@ -147,6 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Map Interaction
 
       private double cursorX, cursorY, deltaX, deltaY;
+      public event EventHandler AutoscrollBlocks;
 
       private double highlightCursorX, highlightCursorY, highlightCursorSize;
       public double HighlightCursorX { get => highlightCursorX; set => Set(ref highlightCursorX, value); }
@@ -202,6 +203,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map == null) return;
          var index = map.GetBlock(x, y);
          if (index >= 0) DrawBlockIndex = index;
+         AutoscrollBlocks?.Invoke(this, EventArgs.Empty);
       }
       public void SelectMove(double x, double y) { }
       public void SelectUp(double x, double y) { }

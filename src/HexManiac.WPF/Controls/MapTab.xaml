@@ -7,7 +7,7 @@
          <ColumnDefinition Width="Auto"/>
          <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <ScrollViewer Grid.Column="0">
+      <ScrollViewer Grid.Column="0" Name="BlockViewer" Panel.ZIndex="1">
          <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
             <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown"/>
             <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 

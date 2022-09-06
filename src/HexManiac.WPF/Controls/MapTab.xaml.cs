@@ -1,6 +1,8 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.Images;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,6 +14,30 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public MapTab() {
          InitializeComponent();
+         DataContextChanged += UpdateDataContext;
+      }
+
+      private void UpdateDataContext(object sender, DependencyPropertyChangedEventArgs e) {
+         var oldContext = e.OldValue as MapEditorViewModel;
+         if (oldContext != null) {
+            oldContext.PropertyChanged -= HandleContextPropertyChanged;
+            oldContext.AutoscrollBlocks -= AutoscrollBlocks;
+         }
+         var newContext = e.NewValue as MapEditorViewModel;
+         if (newContext != null) {
+            newContext.PropertyChanged += HandleContextPropertyChanged;
+            newContext.AutoscrollBlocks += AutoscrollBlocks;
+         }
+      }
+
+      private void HandleContextPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         // TODO any custom property logic here
+      }
+
+      private void AutoscrollBlocks(object sender, EventArgs e) {
+         var scrollRange = BlockViewer.ExtentHeight - BlockViewer.ViewportHeight;
+         var scrollPercent = ((ViewModel.DrawBlockIndex - 8) / 1008.0).LimitToRange(0, 1);
+         BlockViewer.ScrollToVerticalOffset(scrollRange * scrollPercent);
       }
 
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
