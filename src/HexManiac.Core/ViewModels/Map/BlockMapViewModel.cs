@@ -2,26 +2,19 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
 
-      /*From FireRed fieldmap.h
-         #define NUM_TILES_IN_PRIMARY 640
-         #define NUM_TILES_TOTAL 1024
-         #define NUM_METATILES_IN_PRIMARY 640
-         #define NUM_METATILES_TOTAL 1024
-         #define NUM_PALS_IN_PRIMARY 7
-         #define NUM_PALS_TOTAL 13
-         #define MAX_MAP_DATA_SIZE 0x2800
-       */
-
       private readonly IDataModel model;
       private readonly int group, map;
 
+      // TODO make these dynamic, right now this is only right for FireRed
       private int PrimaryTiles => 640;
       private int TotalTiles => 1024;
       private int PrimaryBlocks => 640;
@@ -90,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int[][,] tiles;
       private byte[][] blocks;
       private IReadOnlyList<IPixelViewModel> blockRenders;
+      private IReadOnlyList<ObjectEventModel> eventRenders;
 
       #endregion
 
@@ -157,6 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockRenders = null;
          blockPixels = null;
          pixelData = null;
+         eventRenders = null;
          NotifyPropertyChanged(nameof(PixelData));
       }
 
@@ -279,10 +274,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
+      private void RefreshMapEvents() {
+         if (eventRenders != null) return;
+         var list = new List<ObjectEventModel>();
+         var table = model.GetTable(HardcodeTablesModel.MapBankTable);
+         var mapBanks = new ModelTable(model, table.Start);
+         var bank = mapBanks[group].GetSubTable("maps");
+         var mapTable = bank[map].GetSubTable("map");
+         var events = new EventModel(mapTable[0].GetSubTable("events")[0]);
+         foreach (var obj in events.Objects) {
+            obj.Render(model);
+            list.Add(obj);
+         }
+         eventRenders = list;
+      }
+
       private void FillMapPixelData() {
          var layout = GetLayout();
          if (blockRenders == null) RefreshBlockRenderCache(layout);
          if (borderBlock == null) RefreshBorderRender();
+         if (eventRenders == null) RefreshMapEvents();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var start = layout.GetAddress("map");
@@ -299,6 +310,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                data &= 0x3FF;
                canvas.Draw(blockRenders[data], x * 16, y * 16);
             }
+         }
+
+         // now draw the events on top
+         foreach (var obj in eventRenders) {
+            var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+            canvas.Draw(obj.ObjectRender, x, y);
          }
 
          pixelData = canvas.PixelData;
@@ -392,17 +409,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                                                             tiles1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
                                                             tiles2<>
                                                             borderwidth. borderheight. unused:]1>
-                                                         events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1>
+                                                         events<[objectCount. warpCount. scriptCount. signpostCount.
+                                                            objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
+                                                            warps<[x:500 y:500 elevation. warpID. map. bank.]/warps>
+                                                            scripts<[x:500 y:500 elevation: trigger: index:: script<`xse`>]/scriptCount>
+                                                            signposts<[x:500 y:500 elevation. kind. unused: arg::|h]/signposts>]1>
                                                          mapscripts<[type. pointer<>]!00>
                                                          connections<[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]>
                                                          music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
 
          emerald: data.maps.banks,                       layout<[width:: height:: borderblock<[border:|h]4> map<> tiles1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1> tiles2<>]1>
                                                          events<[objects. warps. scripts. signposts.
-                                                            objectP<[id. graphics. unused: x:1000 y:1000 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objects>
-                                                            warpP<[x:1000 y:1000 elevation. warpID. map. bank.]/warps>
-                                                            scriptP<[x:1000 y:1000 elevation: trigger: index: unused: script<`xse`>]/scripts>
-                                                            signpostP<[x:1000 y:1000 elevation. kind. unused: arg::|h]/signposts>]1>
+                                                            objectP<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objects>
+                                                            warpP<[x:500 y:500 elevation. warpID. map. bank.]/warps>
+                                                            scriptP<[x:500 y:500 elevation: trigger: index: unused: script<`xse`>]/scripts>
+                                                            signpostP<[x:500 y:500 elevation. kind. unused: arg::|h]/signposts>]1>
                                                          mapscripts<[type. pointer<>]!00>
                                                          connections<>
                                                          music: layoutID: regionSectionID. cave. weather. mapType. padding: flags.|t|allowCycling.|allowEscaping.|allowRunning.|showMapName::. battleType.
@@ -419,6 +440,57 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int Offset => connection.GetValue("offset");
       public int MapGroup => connection.GetValue("mapGroup");
       public int MapNum => connection.GetValue("mapNum");
+   }
+
+   public class EventModel {
+      private readonly ModelArrayElement events;
+      public EventModel(ModelArrayElement events) {
+         this.events = events;
+         var objectCount = events.GetValue("objectCount");
+         var objects = events.GetSubTable("objects");
+         var objectList = new List<ObjectEventModel>();
+         for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i]));
+         Objects = objectList;
+      }
+      public IReadOnlyList<ObjectEventModel> Objects { get; }
+   }
+
+   public class ObjectEventModel {
+      private readonly ModelArrayElement objectEvent;
+      public ObjectEventModel(ModelArrayElement objectEvent) => this.objectEvent = objectEvent;
+      public int ObjectID => objectEvent.GetValue("id");
+      public int Graphics => objectEvent.GetValue("graphics");
+      public int X => objectEvent.GetValue("x");
+      public int Y => objectEvent.GetValue("y");
+      public int Elevation => objectEvent.GetValue("elevation");
+      public int MoveType => objectEvent.GetValue("moveType");
+      public int RangeX => objectEvent.GetValue("range") & 0xF;
+      public int RangeY => objectEvent.GetValue("range") >> 4;
+      public int TrainerType => objectEvent.GetValue("trainerType");
+      public int TrainerRangeOrBerryID => objectEvent.GetValue("trainerRangeOrBerryID");
+      public int ScriptAddress => objectEvent.GetAddress("scirpt");
+      public int Flag => objectEvent.GetValue("flag");
+
+      public IPixelViewModel ObjectRender { get; private set; }
+      public void Render(IDataModel model) {
+         var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
+         if (Graphics >= owTable.Count) {
+            ObjectRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
+            return;
+         }
+         var element = owTable[Graphics];
+         var data = element.GetSubTable("data")[0];
+         var sprites = data.GetSubTable("sprites")[0];
+         var graphicsAddress = sprites.GetAddress("sprite");
+         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
+         if (graphicsRun == null) {
+            ObjectRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
+            return;
+         }
+         ObjectRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+      }
+      public int TopOffset => 16 - ObjectRender.PixelHeight;
+      public int LeftOffset => (16 - ObjectRender.PixelWidth) / 2;
    }
 
    public enum MapDirection {
