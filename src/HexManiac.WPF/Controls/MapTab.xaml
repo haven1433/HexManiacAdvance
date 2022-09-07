@@ -65,22 +65,15 @@
          </ItemsControl.ItemContainerStyle>
          <ItemsControl.ItemTemplate>
             <DataTemplate>
-               <!--<Rectangle MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterMouseUp" Width="20" Height="20" Fill="{DynamicResource Backlight}"/>-->
-               <Button Width="20" Height="20" Command="{Binding}">
+               <Border MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterUp" Width="20" Height="20" Background="{DynamicResource Backlight}">
                   <Path Name="Path" Fill="{DynamicResource Secondary}" Stretch="Uniform" />
-               </Button>
+               </Border>
                <DataTemplate.Triggers>
-                  <DataTrigger Binding="{Binding Icon}" Value="LeftArrow">
-                     <Setter TargetName="Path" Property="Data" Value="{res:Icon LeftArrow}"/>
+                  <DataTrigger Binding="{Binding Icon}" Value="LeftRight">
+                     <Setter TargetName="Path" Property="Data" Value="{res:Icon ArrowsLeftRight}"/>
                   </DataTrigger>
-                  <DataTrigger Binding="{Binding Icon}" Value="RightArrow">
-                     <Setter TargetName="Path" Property="Data" Value="{res:Icon RightArrow}"/>
-                  </DataTrigger>
-                  <DataTrigger Binding="{Binding Icon}" Value="UpArrow">
-                     <Setter TargetName="Path" Property="Data" Value="{res:Icon UpArrow}"/>
-                  </DataTrigger>
-                  <DataTrigger Binding="{Binding Icon}" Value="DownArrow">
-                     <Setter TargetName="Path" Property="Data" Value="{res:Icon DownArrow}"/>
+                  <DataTrigger Binding="{Binding Icon}" Value="UpDown">
+                     <Setter TargetName="Path" Property="Data" Value="{res:Icon ArrowsUpDown}"/>
                   </DataTrigger>
                </DataTemplate.Triggers>
             </DataTemplate>

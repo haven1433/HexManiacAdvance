@@ -7,8 +7,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
-// drag to move neighbors/connections
 // drag to increase/decrease current map size
+// add new connections on sides that don't have connections
+// drag to move events
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -141,9 +142,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (!match) VisibleMaps.Add(newM);
          }
 
-         // refresh connection buttons (probably could be made more efficient)
-         MapButtons.Clear();
-         foreach (var button in primaryMap.GetConnectionButtons()) MapButtons.Add(button);
+         // refresh connection buttons
+         var newButtons = primaryMap.GetConnectionButtons().ToList();
+         for (int i = 0; i < MapButtons.Count && i < newButtons.Count; i++) {
+            if (!MapButtons[i].TryUpdate(newButtons[i])) MapButtons[i] = newButtons[i];
+         }
+         for (int i = MapButtons.Count; i < newButtons.Count; i++) MapButtons.Add(newButtons[i]);
+         while (MapButtons.Count > newButtons.Count) MapButtons.RemoveAt(MapButtons.Count - 1);
       }
 
       private void PrimaryMapNeighborsChanged(object? sender, EventArgs e) {
@@ -264,14 +269,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
          shiftButton = ButtonUnderCursor(x, y);
+         HighlightCursorSize = 0;
       }
 
       public void ShiftMove(double x, double y) {
          deltaX += x - cursorX;
          deltaY += y - cursorY;
-         var (intX, intY) = ((int)deltaX / 16, (int)deltaY / 16);
-         deltaX -= intX * 16;
-         deltaY -= intY * 16;
+         var blockSize = (int)(16 * primaryMap.SpriteScale);
+         var (intX, intY) = ((int)deltaX / blockSize, (int)deltaY / blockSize);
+         deltaX -= intX * blockSize;
+         deltaY -= intY * blockSize;
          (cursorX, cursorY) = (x, y);
          shiftButton.Move(intX, intY);
       }
@@ -286,14 +293,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                left = button.AnchorPositionX;
                right = left + ButtonSize;
             } else {
-               right = button.AnchorPositionX;
+               right = -button.AnchorPositionX;
                left = right - ButtonSize;
             }
             if (button.AnchorTopEdge) {
                top = button.AnchorPositionY;
                bottom = top + ButtonSize;
             } else {
-               bottom = button.AnchorPositionY;
+               bottom = -button.AnchorPositionY;
                top = bottom - ButtonSize;
             }
             if (left <= x && x < right && top <= y && y < bottom) return button;

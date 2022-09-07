@@ -211,30 +211,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var connections = GetConnections();
          var border = GetBorderThickness();
          var tileSize = (int)(16 * spriteScale);
+         int id = 0;
          foreach (var connection in connections) {
-            void Plus() { connection.Offset += 1; NeighborsChanged.Raise(this); }
-            void Minus() { connection.Offset -= 1; NeighborsChanged.Raise(this); }
+            void Notify() => NeighborsChanged.Raise(this);
             var map = GetNeighbor(connection, border);
 
             if (connection.Direction == MapDirection.Up) {
-               yield return new MapButton(Minus, LeftArrow, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
-               yield return new MapButton(Plus, RightArrow, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
+               yield return new MapButton(id, connection, Notify, LeftRight, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
+               yield return new MapButton(id + 1, connection, Notify, LeftRight, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
             }
 
             if (connection.Direction == MapDirection.Down) {
-               yield return new MapButton(Minus, LeftArrow, right: map.LeftEdge, top: map.TopEdge + tileSize);
-               yield return new MapButton(Plus, RightArrow, left: map.RightEdge, top: map.TopEdge + tileSize);
+               yield return new MapButton(id, connection, Notify, LeftRight, right: map.LeftEdge, top: map.TopEdge + tileSize);
+               yield return new MapButton(id + 1, connection, Notify, LeftRight, left: map.RightEdge, top: map.TopEdge + tileSize);
             }
 
             if (connection.Direction == MapDirection.Left) {
-               yield return new MapButton(Minus, UpArrow, right: map.RightEdge - tileSize, bottom: map.TopEdge);
-               yield return new MapButton(Plus, DownArrow, right: map.RightEdge - tileSize, top: map.BottomEdge);
+               yield return new MapButton(id, connection, Notify, UpDown, right: map.RightEdge - tileSize, bottom: map.TopEdge);
+               yield return new MapButton(id + 1, connection, Notify, UpDown, right: map.RightEdge - tileSize, top: map.BottomEdge);
             }
 
             if (connection.Direction == MapDirection.Right) {
-               yield return new MapButton(Minus, UpArrow, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
-               yield return new MapButton(Plus, DownArrow, left: map.LeftEdge + tileSize, top: map.BottomEdge);
+               yield return new MapButton(id, connection, Notify, UpDown, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
+               yield return new MapButton(id + 1, connection, Notify, UpDown, left: map.LeftEdge + tileSize, top: map.BottomEdge);
             }
+
+            id += 2;
          }
       }
 
@@ -475,23 +477,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public enum MapButtonIcons {
-      None, LeftArrow, UpArrow, RightArrow, DownArrow, X
+      None, LeftRight, UpDown, X
    }
 
-   public class MapButton : ViewModelCore, ICommand {
+   public class MapButton : ViewModelCore {
+      private readonly Action notify;
+      private readonly ConnectionModel connection;
+      private readonly int id;
+
       public MapButtonIcons Icon { get; }
 
+      private bool anchorLeftEdge, anchorTopEdge;
       private int anchorX, anchorY;
-      public bool AnchorLeftEdge { get; } // if false, we anchor the right edge instead
-      public bool AnchorTopEdge { get; } // if false, we anchor the bottom edge instead
+      public bool AnchorLeftEdge { get => anchorLeftEdge; set => Set(ref anchorLeftEdge, value); } // if false, we anchor the right edge instead
+      public bool AnchorTopEdge { get => anchorTopEdge; set => Set(ref anchorTopEdge, value); }    // if false, we anchor the bottom edge instead
       public int AnchorPositionX { get => anchorX; set => Set(ref anchorX, value); }
       public int AnchorPositionY { get => anchorY; set => Set(ref anchorY, value); }
 
-      private readonly Action action;
-
-      public event EventHandler? CanExecuteChanged;
-
-      public MapButton(Action action, MapButtonIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) {
+      public MapButton(int id, ConnectionModel connection, Action notify, MapButtonIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) {
          AnchorPositionX = left;
          AnchorLeftEdge = AnchorPositionX != int.MinValue;
          if (!AnchorLeftEdge) AnchorPositionX = -right;
@@ -499,15 +502,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AnchorTopEdge = AnchorPositionY != int.MinValue;
          if (!AnchorTopEdge) AnchorPositionY = -bottom;
          Icon = icon;
-         this.action = action;
+         (this.notify, this.connection) = (notify, connection);
       }
 
-      public bool CanExecute(object? parameter) => true;
-
-      public void Execute(object? parameter) => action();
-
       public void Move(int x, int y) {
+         if (Icon == LeftRight) {
+            connection.Offset += x;
+            if (x != 0) notify();
+         } else if (Icon == UpDown) {
+            connection.Offset += y;
+            if (y != 0) notify();
+         } else {
+            throw new NotImplementedException();
+         }
+      }
 
+      public bool TryUpdate(MapButton? other) {
+         if (other.id != id ||
+            other.connection.MapNum != connection.MapNum ||
+            other.connection.MapGroup != connection.MapGroup) return false;
+         AnchorLeftEdge = other.AnchorLeftEdge;
+         AnchorTopEdge = other.AnchorTopEdge;
+         AnchorPositionX = other.AnchorPositionX;
+         AnchorPositionY = other.AnchorPositionY;
+         return true;
       }
    }
 
