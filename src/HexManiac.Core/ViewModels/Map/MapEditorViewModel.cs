@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 
-      public ObservableCollection<MapButton> MapButtons { get; } = new();
+      public ObservableCollection<MapSlider> MapButtons { get; } = new();
 
       #region Block Picker
 
@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // refresh connection buttons
-         var newButtons = primaryMap.GetConnectionButtons().ToList();
+         var newButtons = primaryMap.GetMapSliders().ToList();
          for (int i = 0; i < MapButtons.Count && i < newButtons.Count; i++) {
             if (!MapButtons[i].TryUpdate(newButtons[i])) MapButtons[i] = newButtons[i];
          }
@@ -263,7 +263,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region ShiftInteraction
 
-      private MapButton shiftButton;
+      private MapSlider shiftButton;
 
       public void ShiftDown(double x, double y) {
          (cursorX, cursorY) = (x, y);
@@ -285,23 +285,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void ShiftUp(double x, double y) => history.ChangeCompleted();
 
-      private MapButton ButtonUnderCursor(double x, double y) {
-         const int ButtonSize = 20;
+      private MapSlider ButtonUnderCursor(double x, double y) {
          int left, right, top, bottom;
          foreach (var button in MapButtons) {
             if (button.AnchorLeftEdge) {
                left = button.AnchorPositionX;
-               right = left + ButtonSize;
+               right = left + MapSlider.SliderSize;
             } else {
                right = -button.AnchorPositionX;
-               left = right - ButtonSize;
+               left = right - MapSlider.SliderSize;
             }
             if (button.AnchorTopEdge) {
                top = button.AnchorPositionY;
-               bottom = top + ButtonSize;
+               bottom = top + MapSlider.SliderSize;
             } else {
                bottom = -button.AnchorPositionY;
-               top = bottom - ButtonSize;
+               top = bottom - MapSlider.SliderSize;
             }
             if (left <= x && x < right && top <= y && y < bottom) return button;
          }
