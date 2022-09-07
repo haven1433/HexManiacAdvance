@@ -7,6 +7,9 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
+// drag to move neighbors/connections
+// drag to increase/decrease current map size
+
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc
@@ -19,6 +22,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private BlockMapViewModel primaryMap;
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
+
+      public ObservableCollection<MapButton> MapButtons { get; } = new();
 
       #region Block Picker
 
@@ -66,7 +71,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand ResetAlignment => null;
       public ICommand Back => null;
       public ICommand Forward => null;
-      public ICommand Close => StubCommand(ref close, () => Closed?.Invoke(this, EventArgs.Empty));
+      public ICommand Close => StubCommand(ref close, () => Closed.Raise(this));
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
       public ICommand DiffRight => null;
@@ -101,18 +106,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {
+         // update the primary map
          if (primaryMap != map) {
+            if (primaryMap != null) {
+               primaryMap.NeighborsChanged -= PrimaryMapNeighborsChanged;
+            }
             primaryMap = map;
+            if (primaryMap != null) {
+               primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
+            }
             NotifyPropertyChanged(nameof(Blocks));
          }
-         var oldMaps = VisibleMaps.ToList();
 
+         // update the neighbor maps
+         var oldMaps = VisibleMaps.ToList();
          var newMaps = GetMapNeighbors(map, map.SpriteScale < .5 ? 2 : 1).ToList();
          newMaps.Add(map);
          var mapDict = new Dictionary<int, BlockMapViewModel>();
          newMaps.ForEach(m => mapDict[m.MapID] = m);
          newMaps = mapDict.Values.ToList();
-
          foreach (var oldM in oldMaps) if (!newMaps.Any(newM => oldM.MapID == newM.MapID)) VisibleMaps.Remove(oldM);
          foreach (var newM in newMaps) {
             bool match = false;
@@ -128,6 +140,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
             if (!match) VisibleMaps.Add(newM);
          }
+
+         // refresh connection buttons (probably could be made more efficient)
+         MapButtons.Clear();
+         foreach (var button in primaryMap.GetConnectionButtons()) MapButtons.Add(button);
+      }
+
+      private void PrimaryMapNeighborsChanged(object? sender, EventArgs e) {
+         UpdatePrimaryMap(primaryMap);
       }
 
       private IEnumerable<BlockMapViewModel> GetMapNeighbors(BlockMapViewModel map, int recursionLevel) {
@@ -174,19 +194,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void DragMove(double x, double y) {
          deltaX += x - cursorX;
          deltaY += y - cursorY;
+         var (intX, intY) = ((int)deltaX, (int)deltaY);
+         deltaX -= intX;
+         deltaY -= intY;
          (cursorX, cursorY) = (x, y);
          foreach (var map in VisibleMaps) {
-            map.LeftEdge += (int)deltaX;
-            map.TopEdge += (int)deltaY;
+            map.LeftEdge += intX;
+            map.TopEdge += intY;
          }
-         deltaX -= (int)deltaX;
-         deltaY -= (int)deltaY;
+         foreach (var button in MapButtons) {
+            button.AnchorPositionX += button.AnchorLeftEdge ? intX : -intX;
+            button.AnchorPositionY += button.AnchorTopEdge ? intY : -intY;
+         }
          Hover(x, y);
       }
 
-      public void DragUp(double x, double y) {
-
-      }
+      public void DragUp(double x, double y) { }
 
       public void DrawDown(double x, double y) => DrawMove(x, y);
 
@@ -203,7 +226,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map == null) return;
          var index = map.GetBlock(x, y);
          if (index >= 0) DrawBlockIndex = index;
-         AutoscrollBlocks?.Invoke(this, EventArgs.Empty);
+         AutoscrollBlocks.Raise(this);
       }
       public void SelectMove(double x, double y) { }
       public void SelectUp(double x, double y) { }
@@ -212,6 +235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = MapUnderCursor(x, y);
          if (map == null) return;
          map.Scale(x, y, enlarge);
+         map.IncludeBorders = map.SpriteScale <= 1;
          UpdatePrimaryMap(map);
       }
 
@@ -220,12 +244,59 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel MapUnderCursor(double x, double y) {
-         foreach(var map in VisibleMaps) {
+         foreach (var map in VisibleMaps) {
             if (map.LeftEdge < x && x < map.LeftEdge + map.PixelWidth * map.SpriteScale) {
                if (map.TopEdge < y && y < map.TopEdge + map.PixelHeight * map.SpriteScale) {
                   return map;
                }
             }
+         }
+         return null;
+      }
+
+      #endregion
+
+      #region ShiftInteraction
+
+      private MapButton shiftButton;
+
+      public void ShiftDown(double x, double y) {
+         (cursorX, cursorY) = (x, y);
+         (deltaX, deltaY) = (0, 0);
+         shiftButton = ButtonUnderCursor(x, y);
+      }
+
+      public void ShiftMove(double x, double y) {
+         deltaX += x - cursorX;
+         deltaY += y - cursorY;
+         var (intX, intY) = ((int)deltaX / 16, (int)deltaY / 16);
+         deltaX -= intX * 16;
+         deltaY -= intY * 16;
+         (cursorX, cursorY) = (x, y);
+         shiftButton.Move(intX, intY);
+      }
+
+      public void ShiftUp(double x, double y) => history.ChangeCompleted();
+
+      private MapButton ButtonUnderCursor(double x, double y) {
+         const int ButtonSize = 20;
+         int left, right, top, bottom;
+         foreach (var button in MapButtons) {
+            if (button.AnchorLeftEdge) {
+               left = button.AnchorPositionX;
+               right = left + ButtonSize;
+            } else {
+               right = button.AnchorPositionX;
+               left = right - ButtonSize;
+            }
+            if (button.AnchorTopEdge) {
+               top = button.AnchorPositionY;
+               bottom = top + ButtonSize;
+            } else {
+               bottom = button.AnchorPositionY;
+               top = bottom - ButtonSize;
+            }
+            if (left <= x && x < right && top <= y && y < bottom) return button;
          }
          return null;
       }

@@ -125,5 +125,35 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       #endregion
+
+      #region Shifter Interaction
+
+      private bool withinShiftInteraction;
+
+      private void ShifterDown(object sender, MouseButtonEventArgs e) {
+         if (withinShiftInteraction) return;
+         var element = (FrameworkElement)sender;
+         var p = GetCoordinates(MapButtons, e);
+         element.CaptureMouse();
+         withinShiftInteraction = true;
+         ViewModel.ShiftDown(p.X, p.Y);
+      }
+
+      private void ShifterMove(object sender, MouseEventArgs e) {
+         if (!withinShiftInteraction) return;
+         var p = GetCoordinates(MapButtons, e);
+         ViewModel.ShiftMove(p.X, p.Y);
+      }
+
+      private void ShifterUp(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         element.ReleaseMouseCapture();
+         if (!withinShiftInteraction) return;
+         var p = GetCoordinates(MapButtons, e);
+         ViewModel.ShiftUp(p.X, p.Y);
+         withinShiftInteraction = false;
+      }
+
+      #endregion
    }
 }

@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -237,6 +238,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
             var destination = model.ReadPointer(valueAddress);
+            if (destination == Pointer.NULL) return null;
             var error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, out var childTable);
             if (error.HasError) childTable = (ITableRun)model.GetNextRun(destination);
             return new ModelTable(model, destination, token, childTable);

@@ -7,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Windows.Input;
+
+using static HavenSoft.HexManiac.Core.ViewModels.Map.MapButtonIcons;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
@@ -62,6 +65,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int topEdge, leftEdge;
       public int TopEdge { get => topEdge; set => Set(ref topEdge, value); }
       public int LeftEdge { get => leftEdge; set => Set(ref leftEdge, value); }
+
+      private int BottomEdge => topEdge + (int)(PixelHeight * SpriteScale);
+      private int RightEdge => leftEdge + (int)(PixelWidth * SpriteScale);
 
       #endregion
 
@@ -126,19 +132,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
       }
 
+      public event EventHandler NeighborsChanged;
       public IReadOnlyList<BlockMapViewModel> GetNeighbors(MapDirection direction) {
          var list = new List<BlockMapViewModel>();
-         var (myN, _, _, myW) = GetBorderThickness();
+         var border = GetBorderThickness();
          foreach (var connection in GetConnections()) {
             if (connection.Direction != direction) continue;
-            var vm = new BlockMapViewModel(model, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders, SpriteScale = SpriteScale };
-            var (n, _, _, w) = vm.GetBorderThickness();
-            vm.TopEdge = TopEdge + (connection.Offset + myN - n) * (int)(16 * SpriteScale);
-            vm.LeftEdge = LeftEdge + (connection.Offset + myW - w) * (int)(16 * SpriteScale);
-            if (direction == MapDirection.Left) vm.LeftEdge = LeftEdge - (int)(vm.PixelWidth * SpriteScale);
-            if (direction == MapDirection.Right) vm.LeftEdge = LeftEdge + (int)(PixelWidth * SpriteScale);
-            if (direction == MapDirection.Up) vm.TopEdge = TopEdge - (int)(vm.PixelHeight * SpriteScale);
-            if (direction == MapDirection.Down) vm.TopEdge = TopEdge + (int)(PixelHeight * SpriteScale);
+            var vm = GetNeighbor(connection, border);
             list.Add(vm);
          }
          return list;
@@ -204,6 +204,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var data = model.ReadMultiByteValue(modelAddress, 2);
          var low = data & 0x3FF;
          return low;
+      }
+
+      public IEnumerable<MapButton> GetConnectionButtons() {
+         var results = new List<MapButton>();
+         var connections = GetConnections();
+         var border = GetBorderThickness();
+         var tileSize = (int)(16 * spriteScale);
+         foreach (var connection in connections) {
+            void Plus() { connection.Offset += 1; NeighborsChanged.Raise(this); }
+            void Minus() { connection.Offset -= 1; NeighborsChanged.Raise(this); }
+            var map = GetNeighbor(connection, border);
+
+            if (connection.Direction == MapDirection.Up) {
+               yield return new MapButton(Minus, LeftArrow, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
+               yield return new MapButton(Plus, RightArrow, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
+            }
+
+            if (connection.Direction == MapDirection.Down) {
+               yield return new MapButton(Minus, LeftArrow, right: map.LeftEdge, top: map.TopEdge + tileSize);
+               yield return new MapButton(Plus, RightArrow, left: map.RightEdge, top: map.TopEdge + tileSize);
+            }
+
+            if (connection.Direction == MapDirection.Left) {
+               yield return new MapButton(Minus, UpArrow, right: map.RightEdge - tileSize, bottom: map.TopEdge);
+               yield return new MapButton(Plus, DownArrow, right: map.RightEdge - tileSize, top: map.BottomEdge);
+            }
+
+            if (connection.Direction == MapDirection.Right) {
+               yield return new MapButton(Minus, UpArrow, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
+               yield return new MapButton(Plus, DownArrow, left: map.LeftEdge + tileSize, top: map.BottomEdge);
+            }
+         }
+      }
+
+      private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
+         var vm = new BlockMapViewModel(model, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders, SpriteScale = SpriteScale };
+         var (n, _, _, w) = vm.GetBorderThickness();
+         vm.TopEdge = TopEdge + (connection.Offset + border.North - n) * (int)(16 * SpriteScale);
+         vm.LeftEdge = LeftEdge + (connection.Offset + border.West - w) * (int)(16 * SpriteScale);
+         if (connection.Direction == MapDirection.Left) vm.LeftEdge = LeftEdge - (int)(vm.PixelWidth * SpriteScale);
+         if (connection.Direction == MapDirection.Right) vm.LeftEdge = LeftEdge + (int)(PixelWidth * SpriteScale);
+         if (connection.Direction == MapDirection.Up) vm.TopEdge = TopEdge - (int)(vm.PixelHeight * SpriteScale);
+         if (connection.Direction == MapDirection.Down) vm.TopEdge = TopEdge + (int)(PixelHeight * SpriteScale);
+         return vm;
       }
 
       private void RefreshPaletteCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
@@ -430,6 +474,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
        */
    }
 
+   public enum MapButtonIcons {
+      None, LeftArrow, UpArrow, RightArrow, DownArrow, X
+   }
+
+   public class MapButton : ViewModelCore, ICommand {
+      public MapButtonIcons Icon { get; }
+
+      private int anchorX, anchorY;
+      public bool AnchorLeftEdge { get; } // if false, we anchor the right edge instead
+      public bool AnchorTopEdge { get; } // if false, we anchor the bottom edge instead
+      public int AnchorPositionX { get => anchorX; set => Set(ref anchorX, value); }
+      public int AnchorPositionY { get => anchorY; set => Set(ref anchorY, value); }
+
+      private readonly Action action;
+
+      public event EventHandler? CanExecuteChanged;
+
+      public MapButton(Action action, MapButtonIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) {
+         AnchorPositionX = left;
+         AnchorLeftEdge = AnchorPositionX != int.MinValue;
+         if (!AnchorLeftEdge) AnchorPositionX = -right;
+         AnchorPositionY = top;
+         AnchorTopEdge = AnchorPositionY != int.MinValue;
+         if (!AnchorTopEdge) AnchorPositionY = -bottom;
+         Icon = icon;
+         this.action = action;
+      }
+
+      public bool CanExecute(object? parameter) => true;
+
+      public void Execute(object? parameter) => action();
+
+      public void Move(int x, int y) {
+
+      }
+   }
+
    public record Border(int North, int East, int South, int West);
 
    public class ConnectionModel {
@@ -437,7 +518,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ConnectionModel(ModelArrayElement connection) => this.connection = connection;
 
       public MapDirection Direction => (MapDirection)connection.GetValue("direction");
-      public int Offset => connection.GetValue("offset");
+      public int Offset {
+         get => connection.GetValue("offset");
+         set => connection.SetValue("offset", value);
+      }
       public int MapGroup => connection.GetValue("mapGroup");
       public int MapNum => connection.GetValue("mapNum");
    }
@@ -449,7 +533,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var objectCount = events.GetValue("objectCount");
          var objects = events.GetSubTable("objects");
          var objectList = new List<ObjectEventModel>();
-         for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i]));
+         if (objects != null) {
+            for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i]));
+         }
          Objects = objectList;
       }
       public IReadOnlyList<ObjectEventModel> Objects { get; }
