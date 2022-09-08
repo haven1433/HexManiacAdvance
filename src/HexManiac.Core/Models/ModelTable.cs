@@ -17,6 +17,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Count => run?.ElementCount ?? 0;
       public int __len__() => Count; // for python
 
+      public ITableRun Run => run;
+
       public ModelArrayElement this[int value] {
          get {
             return new ModelArrayElement(model, arrayAddress, value, token, run);
@@ -55,6 +57,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly ITableRun table;
       private readonly ModelDelta token;
 
+      public int Start => table.Start + table.ElementLength * arrayIndex;
+      public int Length => table.ElementLength;
       public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
 
       public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token, ITableRun table) {

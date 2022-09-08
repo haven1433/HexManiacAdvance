@@ -67,6 +67,17 @@
             <DataTemplate>
                <Border MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterUp" Width="20" Height="20" Background="{DynamicResource Backlight}">
                   <Path Name="Path" Fill="{DynamicResource Secondary}" Stretch="Uniform" />
+                  <Border.ContextMenu>
+                     <ContextMenu IsEnabled="{Binding EnableContextMenu}" ItemsSource="{Binding ContextItems}">
+                        <ContextMenu.ItemContainerStyle>
+                           <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                              <Setter Property="Header" Value="{Binding Text}" />
+                              <Setter Property="Command" Value="{Binding}" />
+                              <Setter Property="CommandParameter" Value="{Binding Parameter}" />
+                           </Style>
+                        </ContextMenu.ItemContainerStyle>
+                     </ContextMenu>
+                  </Border.ContextMenu>
                </Border>
                <DataTemplate.Triggers>
                   <DataTrigger Binding="{Binding Icon}" Value="LeftRight">

@@ -122,6 +122,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      public event EventHandler NeighborsChanged;
+
       public BlockMapViewModel(IDataModel model, Func<ModelDelta> tokenFactory, int group, int map) {
          this.model = model;
          this.tokenFactory = tokenFactory;
@@ -164,6 +166,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(SpriteScale));
       }
 
+      public int GetBlock(double x, double y) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         if (x < 0 || y < 0 || x > width || x > height) return -1;
+         var start = layout.GetAddress("blockmap");
+
+         var border = GetBorderThickness(layout);
+
+         var modelAddress = start + (((int)y - border.North) * width + (int)x - border.West) * 2;
+         var data = model.ReadMultiByteValue(modelAddress, 2);
+         var low = data & 0x3FF;
+         return low;
+      }
+
       public void DrawBlock(ModelDelta token, int index, double x, double y) {
          if (index < 0 || index > blockRenders.Count) return;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
@@ -203,24 +222,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public int GetBlock(double x, double y) {
-         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
-         (x, y) = (x / 16, y / 16);
-
-         var layout = GetLayout();
-         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         if (x < 0 || y < 0 || x > width || x > height) return -1;
-         var start = layout.GetAddress("blockmap");
-
-         var border = GetBorderThickness(layout);
-
-         var modelAddress = start + (((int)y - border.North) * width + (int)x - border.West) * 2;
-         var data = model.ReadMultiByteValue(modelAddress, 2);
-         var low = data & 0x3FF;
-         return low;
-      }
-
-      public event EventHandler NeighborsChanged;
       public IEnumerable<MapSlider> GetMapSliders() {
          var results = new List<MapSlider>();
          var connections = GetConnections();
@@ -229,26 +230,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          int id = 0;
 
          // get sliders for up/down/left/right connections
+         var connectionCount = (down: 0, up: 0, left: 0, right: 0);
          foreach (var connection in connections) {
             void Notify() => NeighborsChanged.Raise(this);
             var map = GetNeighbor(connection, border);
 
             if (connection.Direction == MapDirection.Up) {
+               connectionCount.up++;
                yield return new ConnectionSlider(connection, Notify, id, LeftRight, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
                yield return new ConnectionSlider(connection, Notify, id + 1, LeftRight, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
             }
 
             if (connection.Direction == MapDirection.Down) {
+               connectionCount.down++;
                yield return new ConnectionSlider(connection, Notify, id, LeftRight, right: map.LeftEdge, top: map.TopEdge + tileSize);
                yield return new ConnectionSlider(connection, Notify, id + 1, LeftRight, left: map.RightEdge, top: map.TopEdge + tileSize);
             }
 
             if (connection.Direction == MapDirection.Left) {
+               connectionCount.left++;
                yield return new ConnectionSlider(connection, Notify, id, UpDown, right: map.RightEdge - tileSize, bottom: map.TopEdge);
                yield return new ConnectionSlider(connection, Notify, id + 1, UpDown, right: map.RightEdge - tileSize, top: map.BottomEdge);
             }
 
             if (connection.Direction == MapDirection.Right) {
+               connectionCount.right++;
                yield return new ConnectionSlider(connection, Notify, id, UpDown, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
                yield return new ConnectionSlider(connection, Notify, id + 1, UpDown, left: map.LeftEdge + tileSize, top: map.BottomEdge);
             }
@@ -259,10 +265,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // get sliders for size expansion
          var centerX = (LeftEdge + RightEdge - MapSlider.SliderSize) / 2;
          var centerY = (TopEdge + BottomEdge - MapSlider.SliderSize) / 2;
-         yield return new ExpansionSlider(ResizeMapData, id + 0, UpDown, left: centerX, bottom: TopEdge);
-         yield return new ExpansionSlider(ResizeMapData, id + 1, UpDown, left: centerX, top: BottomEdge);
-         yield return new ExpansionSlider(ResizeMapData, id + 2, LeftRight, right: LeftEdge, top: centerY);
-         yield return new ExpansionSlider(ResizeMapData, id + 3, LeftRight, left: RightEdge, top: centerY);
+         yield return new ExpansionSlider(ResizeMapData, id + 0, UpDown, GetConnectionCommands(connections, MapDirection.Up), left: centerX, bottom: TopEdge);
+         yield return new ExpansionSlider(ResizeMapData, id + 1, UpDown, GetConnectionCommands(connections, MapDirection.Down), left: centerX, top: BottomEdge);
+         yield return new ExpansionSlider(ResizeMapData, id + 2, LeftRight, GetConnectionCommands(connections, MapDirection.Left), right: LeftEdge, top: centerY);
+         yield return new ExpansionSlider(ResizeMapData, id + 3, LeftRight, GetConnectionCommands(connections, MapDirection.Right), left: RightEdge, top: centerY);
+      }
+
+      private IEnumerable<SliderCommand> GetConnectionCommands(IReadOnlyList<ConnectionModel> connections, MapDirection direction) {
+         var toRemove = new List<int>();
+
+         var info = CanConnect(direction);
+         if (info != null) {
+            if (info.Size > 3) {
+               // we can make a map here of width/height longestSpanLength
+               // and the offset is availableSpace[longestSpanStart]
+               yield return new SliderCommand("Create New Map", ConnectNewMap) { Parameter = info };
+               yield return new SliderCommand("Connect Existing Map", ConnectExistingMap) { Parameter = info };
+            } else if (info.Offset < 0) {
+               // we can make a map here of width/height 4
+               // and the offset is -3
+               yield return new SliderCommand("Create New Map", ConnectNewMap) { Parameter = info };
+               yield return new SliderCommand("Connect Existing Map", ConnectExistingMap) { Parameter = info };
+            } else {
+               // we can make a map here of width/height 4
+               // and the offset is dimensionLength-1
+               yield return new SliderCommand("Create New Map", ConnectNewMap) { Parameter = info };
+               yield return new SliderCommand("Connect Existing Map", ConnectExistingMap) { Parameter = info };
+            }
+         }
+
+         for (int i = 0; i < connections.Count; i++) {
+            if (connections[i].Direction != direction) continue;
+            toRemove.Add(i);
+         }
+         if (toRemove.Count > 0) {
+            // we can remove these connections
+            yield return new SliderCommand("Remove Connections", RemoveConnections) { Parameter = toRemove };
+         }
       }
 
       public ObjectEventModel EventUnderCursor(double x, double y) {
@@ -276,9 +315,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return null;
       }
 
+      #region Work Methods
+
       private void ResizeMapData(MapDirection direction, int amount) {
          if (amount == 0) return;
-         var layout = GetLayout();
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var layout = GetLayout(map);
          var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
          if (run == null) return;
 
@@ -286,8 +329,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var tileSize = (int)(16 * spriteScale);
             if (direction == MapDirection.Left) LeftEdge -= amount * tileSize;
             if (direction == MapDirection.Up) TopEdge -= amount * tileSize;
-            var token = tokenFactory();
-            foreach (var connection in GetConnections(token)) {
+            foreach (var connection in GetConnections(map)) {
                if (direction == MapDirection.Left) {
                   if (connection.Direction == MapDirection.Down || connection.Direction == MapDirection.Up) {
                      connection.Offset += amount;
@@ -308,6 +350,134 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             RefreshMapSize();
             NeighborsChanged.Raise(this);
          }
+      }
+
+      private void ConnectNewMap(object obj) {
+         var info = (ConnectionInfo)obj;
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var connectionsAndCount = map.GetSubTable("connections")[0];
+         var connections = connectionsAndCount.GetSubTable("connections").Run;
+         connections = model.RelocateForExpansion(token, connections, connections.Length + connections.ElementLength);
+         connectionsAndCount.SetValue("count", connections.ElementCount + 1);
+         var table = new ModelTable(model, connections.Start, token, connections);
+         var newConnection = new ConnectionModel(table[connections.ElementCount]);
+         newConnection.Offset = info.Offset;
+         newConnection.Direction = info.Direction;
+
+         // TODO ask the user what group they want to add the new map to -------------------
+         int group = 0;
+         var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, token);
+         var mapTable = mapBanks[group].GetSubTable("maps").Run;
+         mapTable = mapTable.Append(token, 1);
+         var address = CreateNewMap(token, info.Size, info.Size);
+
+         model.WritePointer(token, mapTable.Length - 4, address); // TODO this probably causes a metadata inconsistency, I need to fix it
+         NeighborsChanged.Raise(this);
+      }
+
+      private void ConnectExistingMap(object obj) {
+         var info = (ConnectionInfo)obj;
+         var token = tokenFactory();
+         var opposite = info.Direction switch {
+            MapDirection.Up => MapDirection.Down,
+            MapDirection.Down => MapDirection.Up,
+            MapDirection.Left => MapDirection.Right,
+            MapDirection.Right => MapDirection.Left,
+            _ => throw new NotImplementedException(),
+         };
+
+         // find available maps
+         var options = new Dictionary<int, ConnectionInfo>();
+         var table = model.GetTable(HardcodeTablesModel.MapBankTable);
+         var mapBanks = new ModelTable(model, table.Start, token);
+         for (int group = 0; group < mapBanks.Count; group++) {
+            var bank = mapBanks[group];
+            var maps = bank.GetSubTable("maps");
+            for (int map = 0; map < maps.Count; map++) {
+               var mapVM = new BlockMapViewModel(model, tokenFactory, group, map);
+               var newInfo = mapVM.CanConnect(opposite);
+               if (newInfo != null) options[mapVM.MapID] = newInfo;
+            }
+         }
+
+         // TODO ask the user which one they want ------------------------------------
+         var choice = options.Keys.First();
+
+         var newConnection = AddConnection(info);
+         newConnection.Offset = info.Offset;
+         newConnection.Direction = info.Direction;
+         newConnection.MapGroup = choice / 1000;
+         newConnection.MapNum = choice % 1000;
+
+         var otherMap = new BlockMapViewModel(model, tokenFactory, newConnection.MapGroup, newConnection.MapNum);
+         info = options[choice];
+         newConnection = otherMap.AddConnection(info);
+         newConnection.Offset = info.Offset;
+         newConnection.MapGroup = MapID / 1000;
+         newConnection.MapNum = MapID % 1000;
+
+         NeighborsChanged.Raise(this);
+      }
+
+      private void RemoveConnections(object obj) {
+         var toRemove = (IReadOnlyList<int>)obj;
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var connections = GetConnections(map);
+         for (int i = 0; i < toRemove.Count; i++) {
+            for (int j = toRemove[i] - i + 1; j < connections.Count - i; j++) {
+               connections[j - 1].Direction = connections[j].Direction;
+               connections[j - 1].Offset = connections[j].Offset;
+               connections[j - 1].MapGroup = connections[j].MapGroup;
+               connections[j - 1].MapNum = connections[j].MapNum;
+            }
+            connections[connections.Count - i - 1].Clear(model, token);
+         }
+         var connectionsAndCount = map.GetSubTable("connections")[0];
+         connectionsAndCount.SetValue("count", connections.Count - toRemove.Count);
+         NeighborsChanged.Raise(this);
+      }
+
+      private ConnectionModel AddConnection(ConnectionInfo info) {
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var connectionsAndCount = map.GetSubTable("connections")[0];
+         var connections = connectionsAndCount.GetSubTable("connections").Run;
+         var count = connections.ElementCount;
+         connections = connections.Append(token, 1);
+         // TODO verify that connectionsAndCount.SetValue("count", ); is updated
+         var table = new ModelTable(model, connections.Start, token, connections);
+         var newConnection = new ConnectionModel(table[count]);
+         return newConnection;
+      }
+
+      /// <summary>
+      /// Inserts a new map using the existing borderblocks and block data.
+      /// Creates event data with 0 events, creates connection data with 0 connections.
+      /// Copies all the flags from the current map
+      /// 
+      /// </summary>
+      private int CreateNewMap(ModelDelta token, int width, int height) {
+         // TODO create new layout data
+         //      TODO set width/height / blockmap
+         //      TODO copy borderblock, blockdata1, blockdata2, borderwidth/borderheight
+         // TODO create new event data with 0 events
+         // TODO create new mapscript data with 0 scripts
+         // TODO create new connections data with 0 connections
+         // TODO copy flags for music, layoutID, regionSectionID, etc
+
+         // TODO return the address of the new data
+         throw new NotImplementedException();
+      }
+
+      #endregion
+
+      #region Helper Methods
+
+      private (int width, int height) GetBlockSize(ModelArrayElement layout = null) {
+         var border = GetBorderThickness(layout);
+         return (pixelWidth / 16 - border.West - border.East, pixelHeight / 16 - border.North - border.South);
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
@@ -453,20 +623,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BorderBlock = canvas;
       }
 
-      private ModelArrayElement GetLayout() {
-         var table = model.GetTable(HardcodeTablesModel.MapBankTable);
-         var mapBanks = new ModelTable(model, table.Start);
-         var bank = mapBanks[group].GetSubTable("maps");
-         var mapTable = bank[map].GetSubTable("map");
-         return mapTable[0].GetSubTable("layout")[0];
-      }
-
-      private IReadOnlyList<ConnectionModel> GetConnections(ModelDelta token = null) {
+      private ModelArrayElement GetMapModel(ModelDelta token = null) {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          var mapBanks = new ModelTable(model, table.Start, token);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
-         var connectionsAndCount = mapTable[0].GetSubTable("connections")[0];
+         return mapTable[0];
+      }
+
+      private ModelArrayElement GetLayout(ModelArrayElement map = null, ModelDelta token = null) {
+         if (map == null) map = GetMapModel(token);
+         return map.GetSubTable("layout")[0];
+      }
+
+      private IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map = null, ModelDelta token = null) {
+         if (map == null) map = GetMapModel(token);
+         var connectionsAndCount = map.GetSubTable("connections")[0];
          var connections = connectionsAndCount.GetSubTable("connections");
          var list = new List<ConnectionModel>();
          foreach (var c in connections) list.Add(new(c));
@@ -497,6 +669,76 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (directions.Contains(MapDirection.Right)) east = 0;
          return new(north, east, south, west);
       }
+
+      private ConnectionInfo CanConnect(MapDirection direction) {
+         var connections = GetConnections();
+         var (width, height) = ((int)(pixelWidth / spriteScale / 16), (int)(pixelHeight / spriteScale / 16));
+         var dimensionLength = (direction switch {
+            MapDirection.Up => width,
+            MapDirection.Down => width,
+            MapDirection.Left => height,
+            MapDirection.Right => height,
+            _ => throw new NotImplementedException(),
+         });
+         var availableSpace = dimensionLength.Range().ToList();
+
+         // can't add a connection where there already is one
+         for (int i = 0; i < connections.Count; i++) {
+            if (connections[i].Direction != direction) continue;
+            if (direction == MapDirection.Up || direction == MapDirection.Down) {
+               var map = new BlockMapViewModel(model, tokenFactory, connections[i].MapGroup, connections[i].MapNum);
+               var removeWidth = map.pixelWidth / 16;
+               var removeOffset = connections[i].Offset;
+               foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
+            } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
+               var map = new BlockMapViewModel(model, tokenFactory, connections[i].MapGroup, connections[i].MapNum);
+               var removeHeight = map.pixelHeight / 16;
+               var removeOffset = connections[i].Offset;
+               foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);
+            }
+         }
+
+         // find the longest stretch of available space
+         var longestSpanLength = 0;
+         var longestSpanStart = -1;
+         var spanLength = 0;
+         var spanStart = -1;
+         for (int j = 0; j < availableSpace.Count; j++) {
+            if (spanStart == -1) {
+               spanStart = j;
+               spanLength = 1;
+            } else if (availableSpace[j - 1] + 1 == availableSpace[j]) {
+               spanLength++;
+            } else {
+               if (spanLength > longestSpanLength) {
+                  longestSpanLength = spanLength;
+                  longestSpanStart = spanStart;
+               }
+               spanStart = j;
+               spanLength = 1;
+            }
+         }
+
+         // if a long space is availabe, we can connect to it
+         // otherwise, we could technically connect to an edge
+         if (longestSpanLength > 3) {
+            // we can make a map here of width/height longestSpanLength
+            // and the offset is availableSpace[longestSpanStart]
+            return new ConnectionInfo(longestSpanLength, availableSpace[longestSpanStart], direction);
+         } else if (availableSpace.Contains(0)) {
+            // we can make a map here of width/height 4
+            // and the offset is -3
+            return new ConnectionInfo(4, -3, direction);
+         } else if (availableSpace.Contains(dimensionLength - 1)) {
+            // we can make a map here of width/height 4
+            // and the offset is dimensionLength-1
+            return new ConnectionInfo(4, dimensionLength - 1, direction);
+         }
+
+         return null;
+      }
+
+      #endregion
 
       /*
          ruby:    data.maps.banks,                       layout<[
@@ -537,17 +779,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public record Border(int North, int East, int South, int West);
 
+   public record ConnectionInfo(int Size, int Offset, MapDirection Direction);
+
    public class ConnectionModel {
       private readonly ModelArrayElement connection;
       public ConnectionModel(ModelArrayElement connection) => this.connection = connection;
 
-      public MapDirection Direction => (MapDirection)connection.GetValue("direction");
+      public MapDirection Direction {
+         get => (MapDirection)connection.GetValue("direction");
+         set => connection.SetValue("direction", (int)value);
+      }
+
       public int Offset {
          get => connection.GetValue("offset");
          set => connection.SetValue("offset", value);
       }
-      public int MapGroup => connection.GetValue("mapGroup");
-      public int MapNum => connection.GetValue("mapNum");
+
+      public int MapGroup {
+         get => connection.GetValue("mapGroup");
+         set => connection.SetValue("mapGroup", value);
+      }
+
+      public int MapNum {
+         get => connection.GetValue("mapNum");
+         set => connection.SetValue("mapNum", value);
+      }
+
+      public void Clear(IDataModel model, ModelDelta token) {
+         token.ChangeData(model, connection.Start, connection.Length.Range(i => (byte)0xFF).ToList());
+      }
    }
 
    public class EventGroupModel {
