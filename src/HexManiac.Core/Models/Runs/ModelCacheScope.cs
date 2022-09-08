@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,6 +66,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IPixelViewModel GetImage(ISpriteRun run) {
+         if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
+         pixels = SpriteDecorator.BuildSprite(model, run);
+         cachedImages[run.Start] = pixels;
+         return pixels;
+      }
+
+      public IPixelViewModel GetImage(BlockmapRun run) {
          if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
          pixels = SpriteDecorator.BuildSprite(model, run);
          cachedImages[run.Start] = pixels;

@@ -5,7 +5,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public const int SliderSize = 20;
       protected readonly int id;
 
-      public MapSliderIcons Icon { get; }
+      private MapSliderIcons icon;
+      public MapSliderIcons Icon { get => icon; set => SetEnum(ref icon, value); }
 
       private bool anchorLeftEdge, anchorTopEdge;
       private int anchorX, anchorY;
@@ -33,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AnchorTopEdge = other.AnchorTopEdge;
          AnchorPositionX = other.AnchorPositionX;
          AnchorPositionY = other.AnchorPositionY;
+         Icon = other.Icon;
          return true;
       }
    }

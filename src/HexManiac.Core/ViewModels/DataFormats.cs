@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -188,6 +189,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          OriginalFormat = inner;
          Pixels = pixels ?? new ReadonlyPixelViewModel(new SpriteFormat(4, cellWidth, cellHeight, string.Empty), new short[0]);
          (CellWidth, CellHeight) = (cellWidth, cellHeight);
+      }
+
+      public static IPixelViewModel BuildSprite(IDataModel model, BlockmapRun run) {
+         var primarySource = run.PointerSources[0];
+         var blocks1 = new BlocksetModel(model, model.ReadPointer(primarySource + 4));
+         var blocks2 = new BlocksetModel(model, model.ReadPointer(primarySource + 8));
+         var blocks = BlockmapRun.ReadBlocks(blocks1, blocks2);
+         var tiles = BlockmapRun.ReadTiles(blocks1, blocks2, run.PrimaryTiles);
+         var pals = BlockmapRun.ReadPalettes(blocks1, blocks2, run.PrimaryPalettes);
+         var renders = BlockmapRun.CalculateBlockRenders(blocks, tiles, pals);
+         return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }
 
       public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false) {

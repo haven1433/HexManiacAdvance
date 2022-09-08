@@ -1,4 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HexManiac.Core.Models.Runs.Factory;
+using HexManiac.Core.Models.Runs.Sprites;
+using Microsoft.Scripting.Interpreter;
 using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
@@ -98,6 +101,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new TilemapRunContentStrategy(tilemapFormat1);
          } else if (SpriteRun.TryParseSpriteFormat(format, out var spriteFormat1)) {
             strategy = new SpriteRunContentStrategy(spriteFormat1);
+         } else if (format == BlockmapRun.SharedFormatString) {
+            strategy = new BlockmapRunContentStrategy();
          } else if (format == MetatileRun.SharedFormatString) {
             strategy = new MetatileRunContentStrategy();
          } else if (PaletteRun.TryParsePaletteFormat(format, out var paletteFormat1)) {

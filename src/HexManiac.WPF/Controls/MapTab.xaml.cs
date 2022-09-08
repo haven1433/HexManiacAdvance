@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          element.CaptureMouse();
          if (e.LeftButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Left;
-            vm.DrawDown(p.X, p.Y);
+            vm.PrimaryDown(p.X, p.Y);
          } else if (e.MiddleButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Middle;
             vm.DragDown(p.X, p.Y);
@@ -77,7 +77,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             return;
          }
          if (withinMapInteraction == MouseButton.Left) {
-            vm.DrawMove(p.X, p.Y);
+            vm.PrimaryMove(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Middle) {
             vm.DragMove(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Right) {
@@ -93,7 +93,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var vm = ViewModel;
          var p = GetCoordinates(element, e);
          if (withinMapInteraction == MouseButton.Left) {
-            vm.DrawUp(p.X, p.Y);
+            vm.PrimaryUp(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Middle) {
             vm.DragUp(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Right) {

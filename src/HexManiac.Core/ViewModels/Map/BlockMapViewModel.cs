@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,18 +16,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
 
       private readonly IDataModel model;
+      private readonly Func<ModelDelta> tokenFactory;
       private readonly int group, map;
 
       // TODO make these dynamic, right now this is only right for FireRed
       private int PrimaryTiles => 640;
-      private int TotalTiles => 1024;
       private int PrimaryBlocks => 640;
       private int TotalBlocks => 1024;
       private int PrimaryPalettes => 7;
-      private int TotalPalettes => 13;
 
-      private int MapSizeLimit => 0x2800; // (x+15)*(y+14) must be less that 0x2800 (5*2048). This can lead to limits like 113x66 or 497x6
-      public bool IsMapWithinSizeLimit => (PixelWidth / 16 + 15) * (PixelHeight / 16 + 14) <= MapSizeLimit;
+      private static int MapSizeLimit => 0x2800; // (x+15)*(y+14) must be less that 0x2800 (5*2048). This can lead to limits like 113x66 or 497x6
+      public static bool IsMapWithinSizeLimit(int width, int height) => (width / 16 + 15) * (height / 16 + 14) <= MapSizeLimit;
 
       public int MapID => group * 1000 + map;
 
@@ -122,8 +122,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public BlockMapViewModel(IDataModel model, int group, int map) {
+      public BlockMapViewModel(IDataModel model, Func<ModelDelta> tokenFactory, int group, int map) {
          this.model = model;
+         this.tokenFactory = tokenFactory;
          (this.group, this.map) = (group, map);
          Transparent = -1;
 
@@ -149,9 +150,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blocks = null;
          blockRenders = null;
          blockPixels = null;
-         pixelData = null;
          eventRenders = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         RefreshMapSize();
       }
 
       public void Scale(double x, double y, bool enlarge) {
@@ -172,7 +172,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          if (x < 0 || y < 0 || x > width || x > height) return;
-         var start = layout.GetAddress("map");
+         var start = layout.GetAddress("blockmap");
 
          var border = GetBorderThickness(layout);
 
@@ -188,6 +188,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
+      public void UpdateEventLocation(ObjectEventModel ev, double x, double y) {
+         var layout = GetLayout();
+         var border = GetBorderThickness(layout);
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         var (xx, yy) = ((int)(x / 16) - border.West, (int)(y / 16) - border.North);
+         if (ev.X == xx && ev.Y == yy) return;
+         if (xx < 0 || yy < 0) return;
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         if (xx >= width || yy >= height) return;
+         ev.X = xx;
+         ev.Y = yy;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
       public int GetBlock(double x, double y) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
@@ -195,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          if (x < 0 || y < 0 || x > width || x > height) return -1;
-         var start = layout.GetAddress("map");
+         var start = layout.GetAddress("blockmap");
 
          var border = GetBorderThickness(layout);
 
@@ -250,22 +265,53 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          yield return new ExpansionSlider(ResizeMapData, id + 3, LeftRight, left: RightEdge, top: centerY);
       }
 
+      public ObjectEventModel EventUnderCursor(double x, double y) {
+         var layout = GetLayout();
+         var border = GetBorderThickness(layout);
+         var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
+         var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
+         foreach (var e in GetEvents(tokenFactory())) {
+            if (e.X == tileX && e.Y == tileY) return e;
+         }
+         return null;
+      }
+
       private void ResizeMapData(MapDirection direction, int amount) {
-         if (direction == MapDirection.Left) {
-            // TODO add data to left edge
-         } else if (direction == MapDirection.Right) {
-            // TODO add data to right edge
-         } else if (direction == MapDirection.Up) {
-            // TODO add data to top edge
-         } else if (direction == MapDirection.Down) {
-            // TODO add data to bottom edge
-         } else {
-            throw new NotImplementedException();
+         if (amount == 0) return;
+         var layout = GetLayout();
+         var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
+         if (run == null) return;
+
+         if (run.TryChangeSize(tokenFactory, direction, amount) != null) {
+            var tileSize = (int)(16 * spriteScale);
+            if (direction == MapDirection.Left) LeftEdge -= amount * tileSize;
+            if (direction == MapDirection.Up) TopEdge -= amount * tileSize;
+            var token = tokenFactory();
+            foreach (var connection in GetConnections(token)) {
+               if (direction == MapDirection.Left) {
+                  if (connection.Direction == MapDirection.Down || connection.Direction == MapDirection.Up) {
+                     connection.Offset += amount;
+                  }
+               } else if (direction == MapDirection.Up) {
+                  if (connection.Direction == MapDirection.Left || connection.Direction == MapDirection.Right) {
+                     connection.Offset += amount;
+                  }
+               }
+            }
+            foreach (var e in GetEvents(token)) {
+               if (direction == MapDirection.Left) {
+                  e.X += amount;
+               } else if (direction == MapDirection.Up) {
+                  e.Y += amount;
+               }
+            }
+            RefreshMapSize();
+            NeighborsChanged.Raise(this);
          }
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
-         var vm = new BlockMapViewModel(model, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders, SpriteScale = SpriteScale };
+         var vm = new BlockMapViewModel(model, tokenFactory, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders, SpriteScale = SpriteScale };
          var (n, _, _, w) = vm.GetBorderThickness();
          vm.TopEdge = TopEdge + (connection.Offset + border.North - n) * (int)(16 * SpriteScale);
          vm.LeftEdge = LeftEdge + (connection.Offset + border.West - w) * (int)(16 * SpriteScale);
@@ -276,63 +322,47 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return vm;
       }
 
-      private void RefreshPaletteCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
+      private void RefreshPaletteCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
-            var layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
+            if (layout == null) layout = GetLayout();
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
 
-         var primary = blockModel1.ReadPalettes();
-         var secondary = blockModel2.ReadPalettes();
-         var result = new short[TotalPalettes][];
-         for (int i = 0; i < PrimaryPalettes; i++) result[i] = primary[i];
-         for (int i = PrimaryPalettes; i < TotalPalettes; i++) result[i] = secondary[i];
-         palettes = result;
+         palettes = BlockmapRun.ReadPalettes(blockModel1, blockModel2, PrimaryPalettes);
       }
 
-      private void RefreshTileCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
+      private void RefreshTileCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
-            var layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
+            if (layout == null) layout = GetLayout();
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
 
-         var primary = blockModel1.ReadTiles();
-         var secondary = blockModel2.ReadTiles();
-         var result = new int[TotalTiles][,];
-         for (int i = 0; i < PrimaryTiles; i++) result[i] = primary[i];
-         for (int i = PrimaryTiles; i < TotalTiles && i < secondary.Length + PrimaryTiles; i++) result[i] = secondary[i - PrimaryTiles];
-         tiles = result;
+         tiles = BlockmapRun.ReadTiles(blockModel1, blockModel2, PrimaryTiles);
       }
 
-      private void RefreshBlockCache(BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
+      private void RefreshBlockCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
-            var layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
+            if (layout == null) layout = GetLayout();
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
 
-         var primary = blockModel1.ReadBlocks();
-         var secondary = blockModel2.ReadBlocks();
-         blocks = primary.Concat(secondary).ToArray();
+         blocks = BlockmapRun.ReadBlocks(blockModel1, blockModel2);
       }
 
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blocks == null || tiles == null || palettes == null) {
             if (layout == null) layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("tiles1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("tiles2"));
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
-         if (blocks == null) RefreshBlockCache(blockModel1, blockModel2);
-         if (tiles == null) RefreshTileCache(blockModel1, blockModel2);
-         if (palettes == null) RefreshPaletteCache(blockModel1, blockModel2);
+         if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
+         if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
+         if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
 
-         var renders = new List<IPixelViewModel>();
-         for (int i = 0; i < blocks.Length; i++) {
-            renders.Add(BlocksetModel.RenderBlock(blocks[i], tiles, palettes));
-         }
-         this.blockRenders = renders;
+         this.blockRenders = BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes);
       }
 
       private void RefreshMapSize() {
@@ -347,12 +377,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RefreshMapEvents() {
          if (eventRenders != null) return;
          var list = new List<ObjectEventModel>();
-         var table = model.GetTable(HardcodeTablesModel.MapBankTable);
-         var mapBanks = new ModelTable(model, table.Start);
-         var bank = mapBanks[group].GetSubTable("maps");
-         var mapTable = bank[map].GetSubTable("map");
-         var events = new EventModel(mapTable[0].GetSubTable("events")[0]);
-         foreach (var obj in events.Objects) {
+         var events = GetEvents();
+         foreach (var obj in events) {
             obj.Render(model);
             list.Add(obj);
          }
@@ -366,7 +392,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventRenders == null) RefreshMapEvents();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
-         var start = layout.GetAddress("map");
+         var start = layout.GetAddress("blockmap");
 
          var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight);
          var (borderWidth, borderHeight) = (borderBlock.PixelWidth / 16, borderBlock.PixelHeight / 16);
@@ -435,9 +461,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return mapTable[0].GetSubTable("layout")[0];
       }
 
-      private IReadOnlyList<ConnectionModel> GetConnections() {
+      private IReadOnlyList<ConnectionModel> GetConnections(ModelDelta token = null) {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
-         var mapBanks = new ModelTable(model, table.Start);
+         var mapBanks = new ModelTable(model, table.Start, token);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
          var connectionsAndCount = mapTable[0].GetSubTable("connections")[0];
@@ -445,6 +471,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var list = new List<ConnectionModel>();
          foreach (var c in connections) list.Add(new(c));
          return list;
+      }
+
+      private IReadOnlyList<ObjectEventModel> GetEvents(ModelDelta token = null) {
+         var table = model.GetTable(HardcodeTablesModel.MapBankTable);
+         var mapBanks = new ModelTable(model, table.Start, token);
+         var bank = mapBanks[group].GetSubTable("maps");
+         var mapTable = bank[map].GetSubTable("map");
+         var events = new EventGroupModel(mapTable[0].GetSubTable("events")[0]);
+         return events.Objects;
       }
 
       private Border GetBorderThickness(ModelArrayElement layout = null) {
@@ -465,9 +500,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       /*
          ruby:    data.maps.banks,                       layout<[
-                                                            width:: height:: borderblock<[border:|h]4> map<>
-                                                            tiles1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
-                                                            tiles2<>]1>
+                                                            width:: height:: borderblock<[border:|h]4> blockmap<`blm`>
+                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
+                                                            blockdata2<>]1>
                                                          events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1>
                                                          mapscripts<[type. pointer<>]!00>
                                                          connections<>
@@ -475,9 +510,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          firered: data.maps.banks,                       layout<[
                                                             width:: height:: borderblock<>
-                                                            map<>
-                                                            tiles1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
-                                                            tiles2<>
+                                                            blockmap<`blm`>
+                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
+                                                            blockdata2<>
                                                             borderwidth. borderheight. unused:]1>
                                                          events<[objectCount. warpCount. scriptCount. signpostCount.
                                                             objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
@@ -488,7 +523,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                                                          connections<[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]>
                                                          music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
 
-         emerald: data.maps.banks,                       layout<[width:: height:: borderblock<[border:|h]4> map<> tiles1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1> tiles2<>]1>
+         emerald: data.maps.banks,                       layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1> blockdata2<>]1>
                                                          events<[objects. warps. scripts. signposts.
                                                             objectP<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objects>
                                                             warpP<[x:500 y:500 elevation. warpID. map. bank.]/warps>
@@ -515,9 +550,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int MapNum => connection.GetValue("mapNum");
    }
 
-   public class EventModel {
+   public class EventGroupModel {
       private readonly ModelArrayElement events;
-      public EventModel(ModelArrayElement events) {
+      public EventGroupModel(ModelArrayElement events) {
          this.events = events;
          var objectCount = events.GetValue("objectCount");
          var objects = events.GetSubTable("objects");
@@ -535,8 +570,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObjectEventModel(ModelArrayElement objectEvent) => this.objectEvent = objectEvent;
       public int ObjectID => objectEvent.GetValue("id");
       public int Graphics => objectEvent.GetValue("graphics");
-      public int X => objectEvent.GetValue("x");
-      public int Y => objectEvent.GetValue("y");
+      public int X {
+         get => objectEvent.GetValue("x");
+         set => objectEvent.SetValue("x", value);
+      }
+      public int Y {
+         get => objectEvent.GetValue("y");
+         set => objectEvent.SetValue("y", value);
+      }
       public int Elevation => objectEvent.GetValue("elevation");
       public int MoveType => objectEvent.GetValue("moveType");
       public int RangeX => objectEvent.GetValue("range") & 0xF;
@@ -576,118 +617,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       Right = 4,
       Dive = 5,
       Emerge = 6,
-   }
-
-   public class BlocksetModel {
-      private readonly IDataModel model;
-      private readonly int address;
-
-      public BlocksetModel(IDataModel model, int address) {
-         this.model = model;
-         this.address = address;
-      }
-
-      int Read(int offset) => model[address + offset];
-      int ReadPointer(int offset) => model.ReadPointer(address + offset);
-
-      public bool IsCompressed => Read(0) == 1;
-      public bool IsSecondary => Read(1) == 1;
-
-      public int[][,] ReadTiles() {
-         if (!IsCompressed) throw new NotImplementedException();
-         int start = ReadPointer(4);
-         var run = new LzTilesetRun(new TilesetFormat(4, null), model, start);
-         var fullData = run.GetPixels(model, 0, 1);
-         var list = new List<int[,]>();
-         for (int i = 0; i < fullData.GetLength(1) / 8; i++) {
-            var tile = new int[8, 8];
-            for (int x = 0; x < 8; x++) {
-               for (int y = 0; y < 8; y++) {
-                  tile[x, y] = fullData[x, y + i * 8];
-               }
-            }
-            list.Add(tile);
-         }
-         return list.ToArray();
-      }
-
-      public short[][] ReadPalettes() {
-         int start = ReadPointer(8);
-         var data = new short[16][];
-         for (int i = 0; i < 16; i++) {
-            data[i] = new short[16];
-            for (int j = 0; j < 16; j++) {
-               var bgr = (short)model.ReadMultiByteValue(start + i * 32 + j * 2, 2);
-               data[i][j] = PaletteRun.FlipColorChannels(bgr);
-            }
-         }
-         return data;
-      }
-
-      public byte[][] ReadBlocks() {
-         // each block is 16 bytes
-         int start = ReadPointer(12);
-         int blockCount = 640;
-         if (IsSecondary) blockCount = 1024 - blockCount;
-         var data = new byte[blockCount][];
-         for (int i = 0; i < blockCount; i++) {
-            data[i] = new byte[16];
-            for (int j = 0; j < 16; j++) {
-               data[i][j] = model[start + i * 16 + j];
-            }
-         }
-         return data;
-      }
-
-      public static IPixelViewModel RenderBlock(byte[] block, int[][,] tiles, short[][] palettes) {
-         var canvas = new CanvasPixelViewModel(16, 16);
-
-         // bottom layer
-         var tile = Read(block, 0, tiles, palettes);
-         canvas.Draw(tile, 0, 0);
-
-         tile = Read(block, 1, tiles, palettes);
-         canvas.Draw(tile, 8, 0);
-
-         tile = Read(block, 2, tiles, palettes);
-         canvas.Draw(tile, 0, 8);
-
-         tile = Read(block, 3, tiles, palettes);
-         canvas.Draw(tile, 8, 8);
-
-         // top layer
-         tile = Read(block, 4, tiles, palettes);
-         canvas.Draw(tile, 0, 0);
-
-         tile = Read(block, 5, tiles, palettes);
-         canvas.Draw(tile, 8, 0);
-
-         tile = Read(block, 6, tiles, palettes);
-         canvas.Draw(tile, 0, 8);
-
-         tile = Read(block, 7, tiles, palettes);
-         canvas.Draw(tile, 8, 8);
-
-         return canvas;
-      }
-
-      private static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, short[][] palettes) {
-         var (pal, hFlip, vFlip, tile) = LzTilemapRun.ReadTileData(block, index, 2);
-
-         if (tiles.Length < tile) {
-            return new ReadonlyPixelViewModel(new SpriteFormat(4, 1, 1, default), new short[64]);
-         }
-
-         var tileData = new short[64];
-         for (int yy = 0; yy < 8; yy++) {
-            for (int xx = 0; xx < 8; xx++) {
-               var inX = hFlip ? 7 - xx : xx;
-               var inY = vFlip ? 7 - yy : yy;
-               if (tiles[tile] == null || palettes[pal] == null) tileData[yy * 8 + xx] = 0; 
-               else tileData[yy * 8 + xx] = palettes[pal][tiles[tile][inX, inY]];
-            }
-         }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, 1, 1, default), tileData, palettes[pal][0]);
-      }
    }
 }

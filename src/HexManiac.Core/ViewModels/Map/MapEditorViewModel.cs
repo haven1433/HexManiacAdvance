@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using IronPython.Modules;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -102,7 +103,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public MapEditorViewModel(IDataModel model, ChangeHistory<ModelDelta> history, Singletons singletons) {
          (this.model, this.history, this.singletons) = (model, history, singletons);
-         var map = new BlockMapViewModel(model, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
+         history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
+         history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
+         var map = new BlockMapViewModel(model, () => history.CurrentChange, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
          UpdatePrimaryMap(map);
       }
 
@@ -216,15 +219,63 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void DragUp(double x, double y) { }
 
-      public void DrawDown(double x, double y) => DrawMove(x, y);
+      #region Primary Interaction (left-click)
 
-      public void DrawMove(double x, double y) {
+      private PrimaryInteractionType interactionType;
+      public void PrimaryDown(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map == null) {
+            interactionType = PrimaryInteractionType.None;
+            return;
+         }
+
+         var ev = map.EventUnderCursor(x, y);
+         if (ev != null) {
+            EventDown(x, y, ev);
+            return;
+         }
+
+         DrawDown(x, y);
+      }
+
+      public void PrimaryMove(double x, double y) {
+         if (interactionType == PrimaryInteractionType.Draw) DrawMove(x, y);
+         if (interactionType == PrimaryInteractionType.Event) EventMove(x, y);
+      }
+
+      public void PrimaryUp(double x, double y) {
+         if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
+         if (interactionType == PrimaryInteractionType.Event) EventUp(x, y);
+      }
+
+      private void DrawDown(double x, double y) {
+         interactionType = PrimaryInteractionType.Draw;
+         DrawMove(x, y);
+      }
+
+      private void DrawMove(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map != null) map.DrawBlock(history.CurrentChange, drawBlockIndex, x, y);
          Hover(x, y);
       }
 
-      public void DrawUp(double x, double y) => history.ChangeCompleted();
+      private void DrawUp(double x, double y) => history.ChangeCompleted();
+
+      private ObjectEventModel interactionEvent;
+      private void EventDown(double x, double y, ObjectEventModel ev) {
+         interactionType = PrimaryInteractionType.Event;
+         interactionEvent = ev;
+      }
+
+      private void EventMove(double x,double y) {
+         var map = MapUnderCursor(x, y);
+         if (map != null) map.UpdateEventLocation(interactionEvent, x, y);
+         Hover(x, y);
+      }
+
+      private void EventUp(double x, double y) => history.ChangeCompleted();
+
+      #endregion
 
       public void SelectDown(double x, double y) {
          var map = MapUnderCursor(x, y);
@@ -233,7 +284,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (index >= 0) DrawBlockIndex = index;
          AutoscrollBlocks.Raise(this);
       }
+
       public void SelectMove(double x, double y) { }
+
       public void SelectUp(double x, double y) { }
 
       public void Zoom(double x, double y, bool enlarge) {
@@ -273,6 +326,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void ShiftMove(double x, double y) {
+         if (shiftButton == null) return;
          deltaX += x - cursorX;
          deltaY += y - cursorY;
          var blockSize = (int)(16 * primaryMap.SpriteScale);
@@ -309,4 +363,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
    }
+
+   public enum PrimaryInteractionType { None, Draw, Event }
 }
