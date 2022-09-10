@@ -22,6 +22,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Singletons singletons;
 
       private BlockMapViewModel primaryMap;
+      public BlockMapViewModel PrimaryMap {
+         get => primaryMap;
+         set {
+            if (primaryMap == value) return;
+            primaryMap = value;
+            NotifyPropertyChanged();
+         }
+      }
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 
@@ -101,11 +109,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public MapEditorViewModel(IDataModel model, ChangeHistory<ModelDelta> history, Singletons singletons) {
+      public MapEditorViewModel(IFileSystem fileSystem, IDataModel model, ChangeHistory<ModelDelta> history, Singletons singletons) {
          (this.model, this.history, this.singletons) = (model, history, singletons);
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
-         var map = new BlockMapViewModel(model, () => history.CurrentChange, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
+         var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
          UpdatePrimaryMap(map);
       }
 
@@ -115,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (primaryMap != null) {
                primaryMap.NeighborsChanged -= PrimaryMapNeighborsChanged;
             }
-            primaryMap = map;
+            PrimaryMap = map;
             if (primaryMap != null) {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
             }

@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = parsedSegments;
          this.endStream = endStream;
          ElementLength = parsedSegments.Sum(segment => segment.Length);
-         ElementCount = elementCountOverride >= 0 ? elementCountOverride : endStream.GetCount(start, ElementLength, sources);
+         ElementCount = elementCountOverride >= 0 ? elementCountOverride : endStream.GetCount(this, start, ElementLength, sources);
          Length = ElementLength * ElementCount + endStream.ExtraLength;
          FormatString = formatString;
       }
@@ -457,7 +457,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
    public interface IStreamEndStrategy {
       int ExtraLength { get; }
-      int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources);
+      int GetCount(TableStreamRun table, int start, int elementLength, IReadOnlyList<int> pointerSources);
+      /// <summary>
+      /// Creates a new TableStreamRun with the changed length, but does not add it to the model.
+      /// </summary>
       TableStreamRun Append(TableStreamRun run, ModelDelta token, int length);
    }
 
@@ -467,7 +470,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public FixedLengthStreamStrategy(int count) => Count = count;
 
-      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) => Count;
+      public int GetCount(TableStreamRun table, int start, int elementLength, IReadOnlyList<int> pointerSources) => Count;
 
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) => run;
    }
@@ -497,7 +500,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this, run.ElementCount + length);
       }
 
-      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+      public int GetCount(TableStreamRun run, int start, int elementLength, IReadOnlyList<int> pointerSources) {
+         var segments = this.segments ?? run.ElementContent;
          Debug.Assert(elementLength == segments.Sum(seg => seg.Length), "ElementLength is expected to be the sum of the segments.");
          for (int i = 0; true; i++) {
             // verify that there's enough room for another element
@@ -532,7 +536,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          EndCode = endCode;
       }
 
-      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+      public int GetCount(TableStreamRun table, int start, int elementLength, IReadOnlyList<int> pointerSources) {
          if (start < 0) return 0;
          int length = 0;
          while (true) {
@@ -576,7 +580,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          this.sourceSegments = sourceSegments;
       }
 
-      public int GetCount(int start, int elementLength, IReadOnlyList<int> pointerSources) {
+      public int GetCount(TableStreamRun table, int start, int elementLength, IReadOnlyList<int> pointerSources) {
          int defaultValue = 1;
          var parentIndex = pointerSources != null ? GetParentIndex(pointerSources) : -1;
          var run = parentIndex >= 0 ? model.GetNextRun(parentIndex) as ITableRun : null;

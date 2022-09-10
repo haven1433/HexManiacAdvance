@@ -41,6 +41,9 @@
                      <DataTemplate DataType="{x:Type hshmcvmt:FlagViewModel}">
                         <CheckBox Content="{Binding Name}" IsChecked="{Binding IsSet}" Margin="10,5"/>
                      </DataTemplate>
+                     <DataTemplate DataType="{x:Type hshmcvmt:EnumViewModel}">
+                        <ComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding Choice}"/>
+                     </DataTemplate>
                   </ItemsControl.Resources>
                   <ItemsControl.ItemsPanel>
                      <ItemsPanelTemplate>

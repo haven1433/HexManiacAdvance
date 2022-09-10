@@ -598,7 +598,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperOpenMapEditor(object sender, EventArgs e) {
          if (!ViewModel.ShowDeveloperMenu) return;
          if (ViewModel.SelectedTab is ViewPort viewPort) {
-            var newTab = new MapEditorViewModel(viewPort.Model, viewPort.ChangeHistory, ViewModel.Singletons);
+            var newTab = new MapEditorViewModel(FileSystem, viewPort.Model, viewPort.ChangeHistory, ViewModel.Singletons);
             ViewModel.Add(newTab);
          }
       }

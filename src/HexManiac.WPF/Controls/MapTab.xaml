@@ -8,7 +8,11 @@
          <ColumnDefinition Width="Auto"/>
          <ColumnDefinition Width="*"/>
       </Grid.ColumnDefinitions>
-      <ScrollViewer Grid.Column="0" Name="BlockViewer" Panel.ZIndex="1">
+      <Grid.RowDefinitions>
+         <RowDefinition Height="Auto"/>
+         <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Name="BlockViewer" Panel.ZIndex="1">
          <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
             <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown"/>
             <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
@@ -17,7 +21,7 @@
                Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}"/>
          </Canvas>
       </ScrollViewer>
-      <ItemsControl Grid.Column="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True" ClipToBounds="True"
+      <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True" ClipToBounds="True"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
          <ItemsControl.RenderTransform>
             <TranslateTransform/>
@@ -39,7 +43,7 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <ItemsControl Grid.Column="1" Name="MapButtons" ItemsSource="{Binding MapButtons}">
+      <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapButtons" ItemsSource="{Binding MapButtons}">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False" />
@@ -90,12 +94,17 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <Rectangle Grid.Column="1" Name="HighlightCursorRect" StrokeThickness="2" IsHitTestVisible="False" Margin="-2,-2,0,0"
+      <Rectangle Grid.Column="1" Grid.Row="1" Name="HighlightCursorRect" StrokeThickness="2" IsHitTestVisible="False" Margin="-2,-2,0,0"
          HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="{DynamicResource Backlight}"
          Width="{Binding HighlightCursorSize, Mode=OneWay}" Height="{Binding HighlightCursorSize, Mode=OneWay}">
          <Rectangle.RenderTransform>
             <TranslateTransform X="{Binding HighlightCursorX, Mode=OneWay}" Y="{Binding HighlightCursorY, Mode=OneWay}"/>
          </Rectangle.RenderTransform>
       </Rectangle>
+
+      <!-- Toolbar? -->
+      <StackPanel Grid.Column="1" DataContext="{Binding PrimaryMap}">
+         <TextBlock Text="{Binding Name}" />
+      </StackPanel>
    </Grid>
 </UserControl>

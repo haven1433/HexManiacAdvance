@@ -141,6 +141,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class NoInfoRun : BaseRun {
       public static NoInfoRun NullRun { get; } = new NoInfoRun(int.MaxValue);  // effectively a null object
 
+      public static NoInfoRun FromPointer(IDataModel model, int source) => new NoInfoRun(model.ReadPointer(source), SortedSpan.One(source));
+
       public override int Length => 1;
       public override string FormatString => string.Empty;
 

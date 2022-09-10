@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -1509,6 +1510,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool IsSet { get => isSet; set => Set(ref isSet, value); }
 
       public FlagViewModel(string name) => (Name, IsSet) = (name, true);
+   }
+
+   public class EnumViewModel : ViewModelCore {
+      public ObservableCollection<string> Options { get; } = new();
+
+      private int choice;
+      public int Choice { get => choice; set => Set(ref choice, value); }
+
+      public EnumViewModel(params string[] options) {
+         foreach (var option in options) Options.Add(option);
+      }
    }
 
    public class WeightedPalette {

@@ -190,10 +190,18 @@ namespace HexManiac.Core.Models.Runs.Sprites {
    public class BlocksetModel {
       private readonly IDataModel model;
       private readonly int address;
+      private readonly int primaryBlocks, primaryTiles, primaryPalettes;
 
       public BlocksetModel(IDataModel model, int address) {
          this.model = model;
          this.address = address;
+         if (new[] { "BPRE", "BPGE" }.Contains(model.GetGameCode().Substring(0, 4))) {
+            primaryBlocks = 640;
+            primaryTiles = 640;
+            primaryPalettes = 7;
+         } else {
+            throw new NotImplementedException();
+         }
       }
 
       int Read(int offset) => model[address + offset];
@@ -203,7 +211,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public bool IsSecondary => Read(1) == 1;
 
       public int[][,] ReadTiles() {
-         if (!IsCompressed) throw new NotImplementedException();
+         if (!IsCompressed) return ReadUncompressedTiles();
          int start = ReadPointer(4);
          var run = new LzTilesetRun(new TilesetFormat(4, null), model, start);
          var fullData = run.GetPixels(model, 0, 1);
@@ -213,6 +221,23 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             for (int x = 0; x < 8; x++) {
                for (int y = 0; y < 8; y++) {
                   tile[x, y] = fullData[x, y + i * 8];
+               }
+            }
+            list.Add(tile);
+         }
+         return list.ToArray();
+      }
+
+      private int[][,] ReadUncompressedTiles() {
+         var list = new List<int[,]>();
+         var start = ReadPointer(4);
+         var tileCount = !IsSecondary ? primaryTiles : 1024 - primaryTiles;
+         for (int i = 0; i < tileCount; i++) {
+            var tile = new int[8, 8];
+            for(int y = 0; y < 8; y++) {
+               for (int x = 0; x < 4; x++) {
+                  tile[x * 2 + 0, y] = model[start + i * 32 + y * 4 + x] & 0xF;
+                  tile[x * 2 + 1, y] = model[start + i * 32 + y * 4 + x] >> 4;
                }
             }
             list.Add(tile);
@@ -234,9 +259,9 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       public byte[][] ReadBlocks() {
+         int blockCount = primaryBlocks;
          // each block is 16 bytes
          int start = ReadPointer(12);
-         int blockCount = 640;
          if (IsSecondary) blockCount = 1024 - blockCount;
          var data = new byte[blockCount][];
          for (int i = 0; i < blockCount; i++) {
