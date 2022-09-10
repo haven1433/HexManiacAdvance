@@ -49,7 +49,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             PrimaryTiles = 640;
             PrimaryPalettes = 7;
          } else {
-            throw new NotImplementedException();
+            PrimaryTiles = 512;
+            PrimaryPalettes = 6;
          }
       }
 
