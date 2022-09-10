@@ -40,6 +40,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          conditionalCodes.AddRange(singletons.ThumbConditionalCodes);
          instructionTemplates.AddRange(singletons.ThumbInstructionTemplates);
          instructionTemplates.AddRange(new IInstruction[] {
+            new ByteInstruction(),
+            new HalfWordInstruction(),
             new WordInstruction(),
             new AlignInstruction(),
             new SkipInstruction(),
@@ -165,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var newAddress = model.FindFreeSpace(0, 20);
 
          // TODO add optional push if there's no scratch register
-         Compile(token, model, start, $"ldr {scratchRegister}, =<{newAddress+1:X6}>", $"bx {scratchRegister}");
+         Compile(token, model, start, $"ldr {scratchRegister}, =<{newAddress + 1:X6}>", $"bx {scratchRegister}");
 
          // TODO add optional pop version if there's no scratch register
          Compile(token, model, newAddress, $"ldr {scratchRegister}, [pc, <{newAddress + 0x10:X6}>]", $"mov lr, {scratchRegister}");
@@ -208,6 +210,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var addedRuns = new List<IFormattedRun>();
          // labels are allowed to be on the same line as code, and code can end with comments.
          // remove excess whitespace/comments and splitting labels from code
+         RemoveMultilineComments(lines);
+         HandleEquDirectives(lines);
          lines = lines.SelectMany(line => {
             line = line.ToLower().Split('@')[0].Trim();
             if (line == string.Empty) return Enumerable.Empty<string>();
@@ -232,6 +236,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                position += 2;
                if (line.StartsWith("bl ")) position += 2;   // branch-links are double-wide
                if (line.StartsWith(".word")) position += 2; // .word elements are double-wide
+               if (line.StartsWith(".byte")) position -= 1;
+               else if (position % 2 != 0) position += 1;   // only .bytes are allowed to start on odd offsets
                if (line.StartsWith(".word") && position % 4 != 0) {
                   // alignment is off! words have to be 4-byte aligned.
                   position += 2;
@@ -268,6 +274,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             foreach (var instruction in instructionTemplates) {
                if (!instruction.TryAssemble(line, conditionalCodes, start + result.Count, labelLibrary, out byte[] code)) continue;
                if (instruction.RequiresAlignment && (result.Count + start) % 4 != 0) result.AddRange(nop);
+               if (instruction is not ByteInstruction && result.Count % 2 != 0) result.Add(0);
                result.AddRange(code);
                foundMatch = true;
                if (instruction is WordInstruction) {
@@ -306,6 +313,61 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          newRuns = addedRuns;
          return result;
+      }
+
+      public static void RemoveMultilineComments(string[] lines) {
+         int i = 0, characterIndex = 0;
+         bool insideComment = false;
+         while (i < lines.Length) {
+            if (!insideComment) {
+               var commentStart = lines[i].IndexOf("/*");
+               if (commentStart == -1) {
+                  i++;
+                  continue;
+               }
+               characterIndex = commentStart + 2;
+               insideComment = true;
+            } else {
+               var commentStart = lines[i].Substring(characterIndex).IndexOf("*/");
+               if (commentStart == -1) {
+                  if (characterIndex > 0) lines[i] = lines[i].Substring(0, characterIndex - 2);
+                  else lines[i] = string.Empty;
+                  characterIndex = 0;
+                  i++;
+                  continue;
+               }
+               if (characterIndex > 0) lines[i] = lines[i].Substring(0, characterIndex - 2) + ' ' + lines[i].Substring(commentStart + 2);
+               else lines[i] = lines[i].Substring(commentStart + 2);
+               insideComment = false;
+               characterIndex = 0;
+            }
+         }
+      }
+
+      public static void HandleEquDirectives(string[] lines) {
+         var replacers = new Dictionary<string, string>();
+         for (int i = 0; i < lines.Length; i++) {
+            var line = lines[i].Trim();
+            if (line.StartsWith(".equ")) {
+               var content = line.Substring(4).Trim().Split(",");
+               if (content.Length == 2) replacers[content[0].Trim()] = content[1].Trim();
+               lines[i] = string.Empty;
+            } else {
+               var keys = replacers.Keys.ToList();
+               for (int j = 0; j < keys.Count; j++) {
+                  var index = lines[i].IndexOf(keys[j]);
+                  while (index != -1 && (
+                     (index > 0 && char.IsLetterOrDigit(lines[i][index - 1])) ||
+                     (index + keys[j].Length < line.Length - 1 && char.IsLetterOrDigit(lines[i][index + keys[j].Length]))
+                  )) {
+                     index = lines[i].Substring(index + 1).Contains(keys[j]) ? lines[i].Substring(index + 1).IndexOf(keys[j]) + index + 1 : -1;
+                  }
+                  if (index == -1) continue;
+                  lines[i] = lines[i].Substring(0, index) + replacers[keys[j]] + lines[i].Substring(index + keys[j].Length);
+                  j--;
+               }
+            }
+         }
       }
 
       private string PatchInstruction(string line) {
@@ -616,8 +678,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // check that the command matches
-         var commandToken = line.Split(' ')[0] + " ";
-         if (!thisTemplate.StartsWith(commandToken)) return false;
+         var commandToken = line.Split(' ')[0];
+         if (!thisTemplate.StartsWith(commandToken + " ") && thisTemplate != line) return false;
          if (commandToken.Length > line.Length) return false;
          line = line.Substring(commandToken.Length);
          thisTemplate = thisTemplate.Substring(commandToken.Length);
@@ -873,6 +935,45 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
          return result;
+      }
+   }
+
+   public class ByteInstruction : IInstruction {
+      public int ByteLength => 1;
+      public bool RequiresAlignment => false;
+
+      public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) => throw new NotImplementedException();
+
+      public bool Matches(IDataModel data, int index) => false;
+
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
+         line = line.Replace(".byte", " ").Trim();
+         int result;
+         results = default;
+         if (!line.TryParseInt(out result)) return false;
+         results = new[] { (byte)result };
+         return true;
+      }
+   }
+
+   public class HalfWordInstruction : IInstruction {
+      public int ByteLength => 2;
+      public bool RequiresAlignment => false;
+
+      public string Disassemble(IDataModel data, int address, IReadOnlyList<ConditionCode> conditionalCodes) => throw new NotImplementedException();
+
+      public bool Matches(IDataModel data, int index) => false;
+
+      public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int address, LabelLibrary labels, out byte[] results) {
+         line = line.Replace(".hword", " ").Trim();
+         int result;
+         results = default;
+         if (!line.TryParseInt(out result)) return false;
+         results = new[] {
+            (byte)result,
+            (byte)(result>>8),
+         };
+         return true;
       }
    }
 

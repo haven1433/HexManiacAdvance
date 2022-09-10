@@ -62,5 +62,42 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("special ChangePokemonNickname", script);
       }
+
+      [Fact]
+      public void ThumbCode_HasComment_Compiles() {
+         var result = Tool.Parser.Compile(Model, 0,
+            "nop/*",
+            "nop",
+            "*/nop",
+            "nop");
+         Assert.Equal(6, result.Count);
+      }
+
+      [Fact]
+      public void EquDirective_Compile_DoesTextSubstitution() {
+         var result = Tool.Parser.Compile(Model, 0,
+            ".equ candy, 7",
+            "mov  r0, candy");
+         Assert.Equal(2, result.Count);
+         Assert.Equal(0b00100_000_00000111, result.ReadMultiByteValue(0, 2));
+      }
+
+      [Fact]
+      public void ByteDirective_Compile_Supported() {
+         var result = Tool.Parser.Compile(Model, 0, ".byte 10", ".byte 0x10");
+         Assert.Equal(new byte[] { 10, 0x10 }, result);
+      }
+
+      [Fact]
+      public void ByteDirective_ThenCode_AlignmentAdded() {
+         var result = Tool.Parser.Compile(Model, 0, ".byte 10", "nop");
+         Assert.Equal(new byte[] { 10, 0, 0, 0 }, result);
+      }
+
+      [Fact]
+      public void HalfWordDirective_Compile_Supported() {
+         var result = Tool.Parser.Compile(Model, 0, ".hword 10", ".hword 0x10");
+         Assert.Equal(new byte[] { 10, 0, 0x10, 0 }, result);
+      }
    }
 }
