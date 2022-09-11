@@ -26,6 +26,7 @@ namespace HexManiac.Core.Models.Runs.Factory {
 
       public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          var run = new BlockmapRun(owner, destination, SortedSpan.One(source));
+         owner.ClearFormat(token, run.Start, run.Length);
          owner.ObserveRunWritten(token, run);
          return true;
       }
