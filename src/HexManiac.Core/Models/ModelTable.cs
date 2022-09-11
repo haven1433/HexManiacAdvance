@@ -86,6 +86,26 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public string Serialize(string fieldName) {
+         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         if (seg.Type == ElementContentType.Pointer) {
+            var destination = model.ReadPointer(valueAddress);
+            if (destination == Pointer.NULL) return "null";
+            var run = model.GetNextRun(destination);
+            if (run is ArrayRun tRun) {
+               run = new TableStreamRun(model, run.Start, run.PointerSources, run.FormatString,
+                        tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
+            }
+            if (run is IStreamRun sRun) return sRun.SerializeRun();
+            return destination.ToAddress();
+         }
+         if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
+         if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
+         return GetValue(fieldName).ToString();
+      }
+
       public int[,] GetSprite(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
