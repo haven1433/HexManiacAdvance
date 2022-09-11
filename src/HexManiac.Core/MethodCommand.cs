@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -87,10 +88,15 @@ namespace HavenSoft.HexManiac.Core {
          var execute = Context.GetType().GetMethod(ExecuteName);
          if (execute == null) return;
          object result;
-         switch (execute.GetParameters().Length) {
-            case 0: result = execute.Invoke(Context, Array.Empty<object>()); break;
-            case 1: result = execute.Invoke(Context, new object[] { parameter }); break;
-            default: throw new InvalidOperationException($"{ExecuteName}: too many parameters!");
+         try {
+            switch (execute.GetParameters().Length) {
+               case 0: result = execute.Invoke(Context, Array.Empty<object>()); break;
+               case 1: result = execute.Invoke(Context, new object[] { parameter }); break;
+               default: throw new InvalidOperationException($"{ExecuteName}: too many parameters!");
+            }
+         } catch (TargetInvocationException e) {
+            // throw the exception that caused this problem
+            throw e.InnerException;
          }
          if (result is Task task) {
             task.ContinueWith(t => {
