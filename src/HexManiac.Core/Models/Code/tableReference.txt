@@ -514,6 +514,8 @@ graphics.titlescreen.publisher.tileset,            ,,,, 078AB0, 078AB0, 078AC4, 
 graphics.titlescreen.publisher.tilemap,            ,,,, 078AB4, 078AB4, 078AC8, 078AC8, , `lzm4x32x20|graphics.titlescreen.publisher.tileset`
 graphics.titlescreen.publisher.palette,                                 ,,,, ,,,, 540100, `ucp4`
 graphics.titlescreen.publisher.sprite,                                  ,,,, ,,,, 5400F0, `lzs4x20x2|graphics.titlescreen.publisher.palette`
+graphics.titlescreen.publisher.logo.tileset,                            ,,,, ,,,, 5E4FDC, `lzt4|graphics.titlescreen.publisher.logo.palette`
+graphics.titlescreen.publisher.logo.palette,                            ,,,, ,,,, 5E4FFC, `ucp4:01`
 graphics.titlescreen.widescreen.tileset,           ,,,, 078AB8, 078AB8, 078ACC, 078ACC, , `lzt4|graphics.titlescreen.publisher.palette`
 graphics.titlescreen.widescreen.tilemap,           ,,,, 078ABC, 078ABC, 078AD0, 078AD0, , `lzm4x32x20|graphics.titlescreen.widescreen.tileset`
 graphics.titlescreen.logo.sprite,                   ,   ,   ,   ,   ,   ,   ,   , 0AA94C, `lzs8x32x8|graphics.titlescreen.logo.palette`
