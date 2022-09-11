@@ -92,7 +92,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine("-------------------------------------------");
          text.AppendLine(Environment.NewLine);
          File.AppendAllText("crash.log", text.ToString());
-         var shortError = Environment.NewLine.Join(text.ToString().SplitLines().Take(20));
+         var editor = DataContext as EditorViewModel;
+         var tabCount = editor?.Count ?? 0;
+         var shortError = Environment.NewLine.Join(text.ToString().SplitLines().Take(15 + tabCount * 5));
          shortError = Environment.NewLine.Join(new[] {
             $"~I got a crash! ({ViewModel.Singletons.MetadataInfo.VersionNumber})",
             "```",
