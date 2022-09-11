@@ -125,14 +125,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!File.Exists(ConstantReferenceFileName)) return new Dictionary<string, GameReferenceConstants>();
          var lines = File.ReadAllLines(ConstantReferenceFileName);
          var constants = new Dictionary<string, List<ReferenceConstant>>();
-         for (int i = 0; i < ReferenceOrder.Count - 2; i++) constants[ReferenceOrder[i + 1]] = new List<ReferenceConstant>();
          foreach (var line in lines) {
             if (string.IsNullOrWhiteSpace(line)) continue;
             var cleanLine = line.Trim();
             if (cleanLine.Length < 6) continue;
             if (!char.IsLetter(cleanLine[0])) continue;
             var gameCode = cleanLine.Substring(0, 5).ToUpper();
-            if (!constants.TryGetValue(gameCode, out var collection)) continue;
+            if (!constants.TryGetValue(gameCode, out var collection)) {
+               collection = new List<ReferenceConstant>();
+               constants[gameCode] = collection;
+            }
             collection.Add(new ReferenceConstant(cleanLine.Substring(5)));
          }
 
