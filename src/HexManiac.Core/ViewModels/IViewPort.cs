@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       bool CanFindFreeSpace { get; }
 
-      string SelectedAddress { get; }
+      string SelectedAddress { get; set; }
       string SelectedBytes { get; }
       string AnchorText { get; }
       bool AnchorTextVisible { get; }

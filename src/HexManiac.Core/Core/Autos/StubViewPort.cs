@@ -329,6 +329,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels
             {
                 return this.SelectedAddress.get();
             }
+            set => SelectedAddress.set(value);
         }
         public PropertyImplementation<string> SelectedBytes = new PropertyImplementation<string>();
         

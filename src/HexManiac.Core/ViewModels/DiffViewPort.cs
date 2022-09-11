@@ -103,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool UpdateInProgress => false;
 
-      public string SelectedAddress => string.Empty;
+      public string SelectedAddress { get => string.Empty; set { } }
 
       public string SelectedBytes => string.Empty;
 

@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ChangeHistory<ModelDelta> ChangeHistory { get; }
       public IToolTrayViewModel Tools { get; } = new SearchResultsTools();
 
-      public string SelectedAddress => string.Empty;
+      public string SelectedAddress { get => string.Empty; set { } }
       public string SelectedBytes => string.Empty;
 
       public string AnchorText { get; set; }
