@@ -30,7 +30,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
          return false;
       }
-      public override bool Matches(IFormattedRun run) => run is TableStreamRun streamRun && streamRun.FormatString == Format;
+      public override bool Matches(IFormattedRun run) {
+         if (run == null || run.FormatString != Format) return false;
+         return run is ITableRun;
+      }
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          // don't bother checking the TryParse result: we very much expect that the data originally in the run won't fit the parse.
          TableStreamRun.TryParseTableStream(owner, destination, new SortedSpan<int>(source), name, Format, sourceSegments, out var tableStream);

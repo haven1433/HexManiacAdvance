@@ -148,8 +148,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (destination == Pointer.NULL) {
             UsageCount = 0;
          } else {
-            var run = Model.GetNextRun(destination) as IStreamRun;
-            UsageCount = run?.PointerSources?.Count ?? 0;
+            var run = Model.GetNextRun(destination);
+            UsageCount = run is IStreamRun || run is ITableRun ? run.PointerSources?.Count ?? 0 : 0;
          }
       }
 
