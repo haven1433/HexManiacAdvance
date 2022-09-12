@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
@@ -482,7 +483,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                connections[j - 1].MapGroup = connections[j].MapGroup;
                connections[j - 1].MapNum = connections[j].MapNum;
             }
-            connections[connections.Count - i - 1].Clear(model, token);
+            var connectionsTable = connections[0].Table;
+            if (connectionsTable.ElementCount == 1) {
+               Erase(connectionsTable, token);
+            } else {
+               var shorterTable = connectionsTable.Append(token, -1);
+               model.ObserveRunWritten(token, shorterTable);
+            }
          }
          var connectionsAndCount = map.GetSubTable("connections")[0];
          connectionsAndCount.SetValue("count", connections.Count - toRemove.Count);
@@ -546,6 +553,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, table);
 
          return mapStart;
+      }
+
+      private void Erase(ITableRun table, ModelDelta token) {
+         foreach (var source in table.PointerSources) {
+            model.ClearPointer(token, source, table.Start);
+            model.WritePointer(token, source, Pointer.NULL);
+         }
+         model.ClearData(token, table.Start, table.Length);
       }
 
       #endregion
@@ -948,6 +963,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => (MapDirection)connection.GetValue("direction");
          set => connection.SetValue("direction", (int)value);
       }
+
+      public ITableRun Table => connection.Table;
 
       public int Offset {
          get => connection.GetValue("offset");
