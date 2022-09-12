@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                               var existingTextRun = model.GetNextRun(destination);
                               if (existingTextRun.Start != destination) {
                                  model.ClearFormat(token, destination, destinationLength);
-                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength));
+                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(address + length)));
                               } else {
                                  model.ClearAnchor(token, destination + existingTextRun.Length, destinationLength - existingTextRun.Length); // assuming that the old run ends before the new run, clear the difference
                                  model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(address + length)));

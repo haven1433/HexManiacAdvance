@@ -968,9 +968,8 @@ namespace HavenSoft.HexManiac.Tests {
          Model.ObserveAnchorWritten(new NoDataChangeDeltaModel(), "parent", parent);
 
          Model.ResolveConflicts();
-         var pointerRun = Model.GetNextRun(0x080);
-         Assert.IsType<PointerRun>(pointerRun);
-         Assert.Equal(0x084, pointerRun.Start);
+         Assert.IsType<NoInfoRun>(Model.GetNextRun(0));
+         Assert.IsAssignableFrom<ITableRun>(Model.GetNextRun(0x10));
       }
 
       [Fact]

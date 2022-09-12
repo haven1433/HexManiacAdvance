@@ -1238,6 +1238,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
             if (newRun != null) {
+               var existingRun = GetNextRun(newRun.Start);
+               if (existingRun.Start == newRun.Start) newRun = newRun.MergeAnchor(existingRun.PointerSources);
                ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
                ObserveRunWritten(changeToken, newRun);
             }
@@ -1655,7 +1657,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (GetNextRun(run.Start).Start == run.Start) {
-               ClearAnchorFormat(changeToken, keepInitialAnchorPointers, run);
+               if (!alsoClearData && run.Start < start && run.PointerSources != null && run.PointerSources.Count > 0) {
+                  // we want to keep the pointers
+                  var simpleRun = new NoInfoRun(run.Start, run.PointerSources);
+                  var index = BinarySearch(run.Start);
+                  changeToken.RemoveRun(run);
+                  SetIndex(index, simpleRun);
+                  changeToken.AddRun(simpleRun);
+               } else {
+                  ClearAnchorFormat(changeToken, keepInitialAnchorPointers, run);
+               }
             }
 
             if (alsoClearData) {

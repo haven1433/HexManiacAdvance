@@ -949,6 +949,27 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("misc.temp.stuff", unmappedPointers);
       }
 
+      [Fact]
+      public void RunWithContent_ClearFromMiddle_AnchorWithPointersRemains() {
+         SetFullModel(0xFF);
+         Model.WritePointer(Token, 0, 0x10);
+         Model.WritePointer(Token, 4, 0x10);
+         ViewPort.Edit("@10 ^text\"\" Hello World!\"");
+
+         Model.ClearFormat(Token, 0x18, 1);
+
+         var run = Model.GetNextRun(0x10);
+         Assert.Equal(0x10, run.Start);
+         Assert.Equal(2, run.PointerSources.Count);
+         Assert.IsType<NoInfoRun>(run);
+         var p1 = Model.GetNextRun(0);
+         Assert.Equal(0, p1.Start);
+         Assert.IsType<PointerRun>(p1);
+         var p2 = Model.GetNextRun(4);
+         Assert.Equal(4, p2.Start);
+         Assert.IsType<PointerRun>(p2);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
