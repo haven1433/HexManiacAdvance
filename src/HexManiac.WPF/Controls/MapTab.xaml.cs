@@ -17,6 +17,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          DataContextChanged += UpdateDataContext;
       }
 
+      protected override void OnVisualParentChanged(DependencyObject oldParent) {
+         base.OnVisualParentChanged(oldParent);
+         Focus();
+      }
+
       private void UpdateDataContext(object sender, DependencyPropertyChangedEventArgs e) {
          var oldContext = e.OldValue as MapEditorViewModel;
          if (oldContext != null) {

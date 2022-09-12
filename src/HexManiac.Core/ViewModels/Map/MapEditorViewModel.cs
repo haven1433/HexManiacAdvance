@@ -210,14 +210,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          deltaX -= intX;
          deltaY -= intY;
          (cursorX, cursorY) = (x, y);
-         foreach (var map in VisibleMaps) {
-            map.LeftEdge += intX;
-            map.TopEdge += intY;
-         }
-         foreach (var button in MapButtons) {
-            button.AnchorPositionX += button.AnchorLeftEdge ? intX : -intX;
-            button.AnchorPositionY += button.AnchorTopEdge ? intY : -intY;
-         }
+         Pan(intX, intY);
          Hover(x, y);
       }
 
@@ -295,7 +288,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Zoom(double x, double y, bool enlarge) {
          var map = MapUnderCursor(x, y);
-         if (map == null) return;
+         if (map == null) map = primaryMap;
          map.Scale(x, y, enlarge);
          map.IncludeBorders = map.SpriteScale <= 1;
          UpdatePrimaryMap(map);
@@ -304,6 +297,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void SelectBlock(int x, int y) {
          DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
       }
+
+      private StubCommand panCommand, zoomCommand;
+      public ICommand PanCommand => StubCommand<MapDirection>(ref panCommand, Pan);
+      public ICommand ZoomCommand => StubCommand<ZoomDirection>(ref zoomCommand, Zoom);
+
+      public void Pan(MapDirection direction) {
+         int intX = 0, intY = 0;
+         if (direction == MapDirection.Left) intX = -1;
+         if (direction == MapDirection.Right) intX = 1;
+         if (direction == MapDirection.Up) intY = -1;
+         if (direction == MapDirection.Down) intY = 1;
+         Pan(intX * -32, intY * -32);
+         var map = MapUnderCursor(0, 0);
+         if (map != null) UpdatePrimaryMap(map);
+      }
+
+      private void Pan(int intX, int intY) {
+         foreach (var map in VisibleMaps) {
+            map.LeftEdge += intX;
+            map.TopEdge += intY;
+         }
+         foreach (var button in MapButtons) {
+            button.AnchorPositionX += button.AnchorLeftEdge ? intX : -intX;
+            button.AnchorPositionY += button.AnchorTopEdge ? intY : -intY;
+         }
+      }
+
+      public void Zoom(ZoomDirection direction) => Zoom(0, 0, direction == ZoomDirection.Enlarge);
 
       private BlockMapViewModel MapUnderCursor(double x, double y) {
          foreach (var map in VisibleMaps) {

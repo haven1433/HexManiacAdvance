@@ -2,7 +2,17 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:res="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
-             xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+             xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+             xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
+             Focusable="True">
+   <UserControl.InputBindings>
+      <KeyBinding Key="Left" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Left}"/>
+      <KeyBinding Key="Right" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Right}"/>
+      <KeyBinding Key="Up" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Up}"/>
+      <KeyBinding Key="Down" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Down}"/>
+      <KeyBinding Key="Add" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}"/>
+      <KeyBinding Key="Subtract" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Shrink}"/>
+   </UserControl.InputBindings>
    <Grid ClipToBounds="True">
       <Grid.ColumnDefinitions>
          <ColumnDefinition Width="Auto"/>
@@ -21,7 +31,8 @@
                Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}"/>
          </Canvas>
       </ScrollViewer>
-      <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}" SnapsToDevicePixels="True" ClipToBounds="True"
+      <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
+                    SnapsToDevicePixels="True" ClipToBounds="True" Focusable="False"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
          <ItemsControl.RenderTransform>
             <TranslateTransform/>
@@ -43,7 +54,7 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapButtons" ItemsSource="{Binding MapButtons}">
+      <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapButtons" ItemsSource="{Binding MapButtons}" Focusable="False">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
                <Canvas HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False" />

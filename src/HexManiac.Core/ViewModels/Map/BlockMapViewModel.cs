@@ -1054,4 +1054,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       Dive = 5,
       Emerge = 6,
    }
+
+   public enum ZoomDirection {
+      None = 0,
+      Shrink = 1,
+      Enlarge = 2,
+   }
 }
