@@ -8,10 +8,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
 
-// drag to increase/decrease current map size
-// add new connections on sides that don't have connections
-// drag to move events
-
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc

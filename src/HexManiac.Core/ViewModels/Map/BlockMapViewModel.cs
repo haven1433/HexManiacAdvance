@@ -192,12 +192,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         if (x < 0 || y < 0 || x > width || x > height) return -1;
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return -1;
          var start = layout.GetAddress("blockmap");
 
-         var border = GetBorderThickness(layout);
-
-         var modelAddress = start + (((int)y - border.North) * width + (int)x - border.West) * 2;
+         var modelAddress = start + (yy * width + xx) * 2;
          var data = model.ReadMultiByteValue(modelAddress, 2);
          var low = data & 0x3FF;
          return low;
@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         if (x < 0 || y < 0 || x > width || x > height) return;
+         if (x < 0 || y < 0 || x > width || y > height) return;
          var start = layout.GetAddress("blockmap");
 
          var border = GetBorderThickness(layout);
