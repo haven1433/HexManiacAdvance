@@ -186,7 +186,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(SpriteScale));
       }
 
-      public int GetBlock(double x, double y) {
+      /// <summary>
+      /// Gets the block index and collision index.
+      /// </summary>
+      public (int blockIndex, int collisionIndex) GetBlock(double x, double y) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
 
@@ -194,37 +197,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
-         if (xx < 0 || yy < 0 || xx > width || yy > height) return -1;
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return (-1, -1);
          var start = layout.GetAddress("blockmap");
 
          var modelAddress = start + (yy * width + xx) * 2;
          var data = model.ReadMultiByteValue(modelAddress, 2);
-         var low = data & 0x3FF;
-         return low;
+         return (data & 0x3FF, data >> 10);
       }
 
-      public void DrawBlock(ModelDelta token, int index, double x, double y) {
-         if (index < 0 || index > blockRenders.Count) return;
+      /// <summary>
+      /// If collisionIndex is not valid, it's ignored.
+      /// If blockIndex is not valid, it's ignored.
+      /// </summary>
+      public void DrawBlock(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
 
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         if (x < 0 || y < 0 || x > width || y > height) return;
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
          var start = layout.GetAddress("blockmap");
 
-         var border = GetBorderThickness(layout);
-
-         var modelAddress = start + (((int)y - border.North) * width + (int)x - border.West) * 2;
+         var modelAddress = start + (yy * width + xx) * 2;
          var data = model.ReadMultiByteValue(modelAddress, 2);
-         var high = data & 0xFC00;
-         var low = index;
-         model.WriteMultiByteValue(modelAddress, 2, token, high | low);
+         var high = data >> 10;
+         var low = data & 0x3FF;
+         if (blockIndex >= 0 && blockIndex < blockRenders.Count) low = blockIndex;
+         if (collisionIndex >= 0 && collisionIndex < 0x3F) high = collisionIndex;
+         model.WriteMultiByteValue(modelAddress, 2, token, (high << 10) | low);
 
-         var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
-         canvas.Draw(blockRenders[index], (int)x * 16, (int)y * 16);
-
-         NotifyPropertyChanged(nameof(PixelData));
+         if (blockIndex >= 0 && blockIndex < blockRenders.Count) {
+            var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
+            canvas.Draw(blockRenders[low], (xx + border.West) * 16, (yy + border.North) * 16);
+            NotifyPropertyChanged(nameof(PixelData));
+         }
       }
 
       public void UpdateEventLocation(ObjectEventModel ev, double x, double y) {

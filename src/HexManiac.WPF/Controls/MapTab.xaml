@@ -22,15 +22,21 @@
          <RowDefinition Height="Auto"/>
          <RowDefinition Height="*"/>
       </Grid.RowDefinitions>
-      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Name="BlockViewer" Panel.ZIndex="1">
-         <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
-            <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown"/>
-            <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
-               Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}"
-               Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}"
-               Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}"/>
-         </Canvas>
-      </ScrollViewer>
+      <DockPanel Grid.Column="0" Grid.RowSpan="2">
+         <Grid Width="{Binding Blocks.ScaledWidth}" Height="100" DockPanel.Dock="Top">
+            <local:AngleComboBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Width="50" Height="20"
+               ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
+         </Grid>
+         <ScrollViewer Name="BlockViewer" Panel.ZIndex="1">
+            <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
+               <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown"/>
+               <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
+                  Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}"
+                  Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}"
+                  Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}"/>
+            </Canvas>
+         </ScrollViewer>
+      </DockPanel>
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
                     SnapsToDevicePixels="True" ClipToBounds="True" Focusable="False"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">

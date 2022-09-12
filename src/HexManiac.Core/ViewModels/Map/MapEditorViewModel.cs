@@ -48,6 +48,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private int collisionIndex;
+      public int CollisionIndex { get => collisionIndex; set => Set(ref collisionIndex, value); }
+
+      public ObservableCollection<string> CollisionOptions { get; } = new();
+
       public double HighlightBlockX => (drawBlockIndex % BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
       public double HighlightBlockY => (drawBlockIndex / BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
       public double HighlightBlockSize => 16 * Blocks.SpriteScale + 2;
@@ -114,6 +119,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
          var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
          UpdatePrimaryMap(map);
+         for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {
@@ -256,7 +262,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void DrawMove(double x, double y) {
          var map = MapUnderCursor(x, y);
-         if (map != null) map.DrawBlock(history.CurrentChange, drawBlockIndex, x, y);
+         if (map != null) map.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
          Hover(x, y);
       }
 
@@ -281,9 +287,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void SelectDown(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map == null) return;
-         var index = map.GetBlock(x, y);
-         if (index >= 0) DrawBlockIndex = index;
-         AutoscrollBlocks.Raise(this);
+         var (blockIndex, collisionIndex) = map.GetBlock(x, y);
+         if (blockIndex >= 0) {
+            DrawBlockIndex = blockIndex;
+            AutoscrollBlocks.Raise(this);
+         }
+         if (collisionIndex >= 0) CollisionIndex = collisionIndex;
       }
 
       public void SelectMove(double x, double y) { }
