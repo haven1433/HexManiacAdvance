@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc
    /// </summary>
    public class MapEditorViewModel : ViewModelCore, ITabContent {
+      private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly Singletons singletons;
@@ -57,10 +58,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private StubCommand close, undo, redo;
 
-      public string Name => "Map";
+      public string Name => (primaryMap?.Name ?? "Map") + (history.HasDataChange ? "*" : string.Empty);
+      public string FullFileName => viewPort.FullFileName;
       public bool IsMetadataOnlyChange => false;
-      public ICommand Save => null;
-      public ICommand SaveAs => null;
+      public ICommand Save => viewPort.Save;
+      public ICommand SaveAs => viewPort.SaveAs;
       public ICommand ExportBackup => null;
       public ICommand Undo => StubCommand(ref undo,
          () => {
@@ -105,10 +107,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public MapEditorViewModel(IFileSystem fileSystem, IDataModel model, ChangeHistory<ModelDelta> history, Singletons singletons) {
-         (this.model, this.history, this.singletons) = (model, history, singletons);
+      public MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons) {
+         (this.viewPort, this.model, this.history, this.singletons) = (viewPort, viewPort.Model, viewPort.ChangeHistory, singletons);
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
+         history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
          var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
          UpdatePrimaryMap(map);
       }
@@ -124,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
             }
             NotifyPropertyChanged(nameof(Blocks));
+            NotifyPropertyChanged(nameof(Name));
          }
 
          // update the neighbor maps
