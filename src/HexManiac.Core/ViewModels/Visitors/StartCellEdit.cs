@@ -149,7 +149,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(ErrorPCS pcs, byte data) => Visit((PCS)null, data);
 
-      public void Visit(Ascii ascii, byte data) => Result = true;
+      public void Visit(Ascii ascii, byte data) {
+         if (Input == ' ' && ascii.Position == 0) Result = false;
+         else Result = true;
+      }
 
       public void Visit(Braille braille, byte data) => Result = true;
 

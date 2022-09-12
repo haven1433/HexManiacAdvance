@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
+   // TODO handle \n, \r, \t, and other unprintable characters
    public class AsciiRun : BaseRun, IStreamRun {
       public const char StreamDelimeter = '`';
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "asc" + AsciiRun.StreamDelimeter;
@@ -19,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public AsciiRun(IDataModel model, int start, int length, SortedSpan<int> pointerSources = null) : base(start, pointerSources) => (this.model, Length) = (model, length);
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         return new Ascii(Start, index - Start, (char)data[index]);
+         return new Ascii(Start, index - Start, ((char)data[index]).ToString());
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new AsciiRun(model, Start, Length, newPointerSources);

@@ -87,8 +87,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          throw new NotImplementedException();
       }
 
-      // not possible: all ascii edits are single-stroke
-      public void Visit(Ascii ascii, byte data) => throw new NotImplementedException();
+      // there are no invalid ascii characters
+      public void Visit(Ascii ascii, byte data) => Result = true;
 
       public void Visit(Braille braille, byte data) => throw new NotImplementedException();
 

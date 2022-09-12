@@ -292,9 +292,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    public class Ascii : IDataFormatStreamInstance {
       public int Source { get; }
       public int Position { get; }
-      public char ThisCharacter { get; }
+      public string ThisCharacter { get; }
 
-      public Ascii(int source, int position, char value) => (Source, Position, ThisCharacter) = (source, position, value);
+      public Ascii(int source, int position, string value) => (Source, Position, ThisCharacter) = (source, position, value);
 
       public bool Equals(IDataFormat other) {
          if (!(other is Ascii ascii)) return false;

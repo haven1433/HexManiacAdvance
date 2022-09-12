@@ -131,7 +131,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(ErrorPCS pcs, byte data) => VisitPCS(pcs);
 
       public void Visit(Ascii ascii, byte data) {
-         CompleteAsciiEdit(ascii);
+         // handle escape
+         if (CurrentText == "\\") {
+            Result = false;
+            return;
+         }
+
+         var text = CurrentText;
+         if (text.Length == 2) text = text.Substring(1);
+         var content = (byte)text[0];
+         CurrentChange.ChangeData(Model, memoryLocation, content);
+         if ((ascii.Position == 0 && (text == "^" || text == " ")) || text == "\\") text = "\\" + text;
+         NewCell = new HexElement(content, true, new Ascii(ascii.Source, ascii.Position, text));
+         NewDataIndex = memoryLocation + 1;
          Result = true;
       }
 
@@ -579,14 +591,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          } else {
             ErrorText = $"Could not parse {CurrentText} as an enum from the {segment.EnumName} array";
          }
-      }
-
-      private void CompleteAsciiEdit(Ascii asciiFormat) {
-         var content = (byte)CurrentText[0];
-
-         CurrentChange.ChangeData(Model, memoryLocation, content);
-         NewCell = new HexElement(content, true, new Ascii(asciiFormat.Source, asciiFormat.Position, CurrentText[0]));
-         NewDataIndex = memoryLocation + 1;
       }
 
       private void CompleteBrailleCharacterEdit(Braille brailleFormat) {
