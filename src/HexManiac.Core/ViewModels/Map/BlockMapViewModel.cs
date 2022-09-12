@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int[][,] tiles;
       private byte[][] blocks;
       private IReadOnlyList<IPixelViewModel> blockRenders;
-      private IReadOnlyList<ObjectEventModel> eventRenders;
+      private IReadOnlyList<IEventModel> eventRenders;
 
       #endregion
 
@@ -155,6 +155,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
       }
+
       private string _bld, _layout, _objects, _warps, _scripts, _signposts, _events, _connections, _header, _map;
       private void InitTableRef() {
          // TODO R/S/E layout format is different
@@ -252,7 +253,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public void UpdateEventLocation(ObjectEventModel ev, double x, double y) {
+      public void UpdateEventLocation(IEventModel ev, double x, double y) {
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
@@ -349,7 +350,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public ObjectEventModel EventUnderCursor(double x, double y) {
+      public IEventModel EventUnderCursor(double x, double y) {
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
@@ -663,7 +664,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void RefreshMapEvents() {
          if (eventRenders != null) return;
-         var list = new List<ObjectEventModel>();
+         var list = new List<IEventModel>();
          var events = GetEvents();
          foreach (var obj in events) {
             obj.Render(model);
@@ -700,7 +701,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // now draw the events on top
          foreach (var obj in eventRenders) {
             var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-            canvas.Draw(obj.ObjectRender, x, y);
+            canvas.Draw(obj.EventRender, x, y);
          }
 
          pixelData = canvas.PixelData;
@@ -786,13 +787,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
-      private IReadOnlyList<ObjectEventModel> GetEvents(ModelDelta token = null) {
+      private IReadOnlyList<IEventModel> GetEvents(ModelDelta token = null) {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          var mapBanks = new ModelTable(model, table.Start, token);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
          var events = new EventGroupModel(mapTable[0].GetSubTable("events")[0]);
-         return events.Objects;
+         var results = new List<IEventModel>();
+         results.AddRange(events.Objects);
+         results.AddRange(events.Warps);
+         results.AddRange(events.Scripts);
+         results.AddRange(events.Signposts);
+         return results;
       }
 
       private Border GetBorderThickness(ModelArrayElement layout = null) {
@@ -1032,8 +1038,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class EventGroupModel {
       private readonly ModelArrayElement events;
+
       public EventGroupModel(ModelArrayElement events) {
          this.events = events;
+
          var objectCount = events.GetValue("objectCount");
          var objects = events.GetSubTable("objects");
          var objectList = new List<ObjectEventModel>();
@@ -1041,11 +1049,55 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i]));
          }
          Objects = objectList;
+
+         var warpCount = events.GetValue("warpCount");
+         var warps = events.GetSubTable("warps");
+         var warpList = new List<WarpEventModel>();
+         if (warps != null) {
+            for (int i = 0; i < warpCount; i++) warpList.Add(new WarpEventModel(warps[i]));
+         }
+         Warps = warpList;
+
+         var scriptCount = events.GetValue("scriptCount");
+         var scripts = events.GetSubTable("scripts");
+         var scriptList = new List<ScriptEventModel>();
+         if (scripts != null) {
+            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventModel(scripts[i]));
+         }
+         Scripts = scriptList;
+
+         var signpostCount = events.GetValue("signpostCount");
+         var signposts = events.GetSubTable("signposts");
+         var signpostList = new List<SignpostEventModel>();
+         if (signposts != null) {
+            for (int i = 0; i < signpostCount; i++) signpostList.Add(new SignpostEventModel(signposts[i]));
+         }
+         Signposts = signpostList;
       }
+
       public IReadOnlyList<ObjectEventModel> Objects { get; }
+      public IReadOnlyList<WarpEventModel> Warps { get; }
+      public IReadOnlyList<ScriptEventModel> Scripts { get; }
+      public IReadOnlyList<SignpostEventModel> Signposts { get; }
+      /*
+       *  events<[objectCount. warpCount. scriptCount. signpostCount.
+            objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
+            warps<[x:500 y:500 elevation. warpID. map. bank.]/warps>
+            scripts<[x:500 y:500 elevation: trigger: index:: script<`xse`>]/scriptCount>
+            signposts<[x:500 y:500 elevation. kind. unused: arg::|h]/signposts>]1>
+       */
    }
 
-   public class ObjectEventModel {
+   public interface IEventModel {
+      int TopOffset { get; }
+      int LeftOffset { get; }
+      int X { get; set; }
+      int Y { get; set; }
+      IPixelViewModel EventRender { get; }
+      void Render(IDataModel model);
+   }
+
+   public class ObjectEventModel : IEventModel {
       private readonly ModelArrayElement objectEvent;
       public ObjectEventModel(ModelArrayElement objectEvent) => this.objectEvent = objectEvent;
       public int ObjectID => objectEvent.GetValue("id");
@@ -1067,11 +1119,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int ScriptAddress => objectEvent.GetAddress("scirpt");
       public int Flag => objectEvent.GetValue("flag");
 
-      public IPixelViewModel ObjectRender { get; private set; }
+      public IPixelViewModel EventRender { get; private set; }
       public void Render(IDataModel model) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
          if (Graphics >= owTable.Count) {
-            ObjectRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
+            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
             return;
          }
          var element = owTable[Graphics];
@@ -1080,13 +1132,87 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var graphicsAddress = sprites.GetAddress("sprite");
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          if (graphicsRun == null) {
-            ObjectRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
+            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
             return;
          }
-         ObjectRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+         EventRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
       }
-      public int TopOffset => 16 - ObjectRender.PixelHeight;
-      public int LeftOffset => (16 - ObjectRender.PixelWidth) / 2;
+      public int TopOffset => 16 - EventRender.PixelHeight;
+      public int LeftOffset => (16 - EventRender.PixelWidth) / 2;
+   }
+
+   public class WarpEventModel : IEventModel {
+      private readonly ModelArrayElement warpEvent;
+      public WarpEventModel(ModelArrayElement warpEvent) => this.warpEvent = warpEvent;
+
+      public int TopOffset => 0;
+      public int LeftOffset => 0;
+      public int X {
+         get => warpEvent.GetValue("x");
+         set => warpEvent.SetValue("x", value);
+      }
+      public int Y {
+         get => warpEvent.GetValue("y");
+         set => warpEvent.SetValue("y", value);
+      }
+
+      public IPixelViewModel EventRender { get; private set; }
+      public void Render(IDataModel model) {
+         EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
+      }
+
+      public static IPixelViewModel BuildEventRender(short color) {
+         var pixels = new short[256];
+         for (int x = 1; x < 15; x++) {
+            for (int y = 1; y < 15; y++) {
+               if (((x + y) & 1) != 0) continue;
+               pixels[y * 16 + x] = color;
+            }
+         }
+         return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, default), pixels, transparent: 0);
+      }
+   }
+
+   public class ScriptEventModel : IEventModel {
+      private readonly ModelArrayElement scriptEvent;
+      public ScriptEventModel(ModelArrayElement scriptEvent) => this.scriptEvent = scriptEvent;
+
+      public int TopOffset => 0;
+      public int LeftOffset => 0;
+      public int X {
+         get => scriptEvent.GetValue("x");
+         set => scriptEvent.SetValue("x", value);
+      }
+      public int Y {
+         get => scriptEvent.GetValue("y");
+         set => scriptEvent.SetValue("y", value);
+      }
+
+      public IPixelViewModel EventRender { get; private set; }
+      public void Render(IDataModel model) {
+         EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
+      }
+   }
+
+   public class SignpostEventModel : IEventModel {
+      private readonly ModelArrayElement signpostEvent;
+      public SignpostEventModel(ModelArrayElement signpostEvent) => this.signpostEvent = signpostEvent;
+
+      public int TopOffset => 0;
+      public int LeftOffset => 0;
+      public int X {
+         get => signpostEvent.GetValue("x");
+         set => signpostEvent.SetValue("x", value);
+      }
+      public int Y {
+         get => signpostEvent.GetValue("y");
+         set => signpostEvent.SetValue("y", value);
+      }
+
+      public IPixelViewModel EventRender { get; private set; }
+      public void Render(IDataModel model) {
+         EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
+      }
    }
 
    public enum MapDirection {

@@ -277,8 +277,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void DrawUp(double x, double y) => history.ChangeCompleted();
 
-      private ObjectEventModel interactionEvent;
-      private void EventDown(double x, double y, ObjectEventModel ev) {
+      private IEventModel interactionEvent;
+      private void EventDown(double x, double y, IEventModel ev) {
          interactionType = PrimaryInteractionType.Event;
          interactionEvent = ev;
       }
