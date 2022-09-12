@@ -49,7 +49,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private int collisionIndex;
-      public int CollisionIndex { get => collisionIndex; set => Set(ref collisionIndex, value); }
+      public int CollisionIndex {
+         get => collisionIndex;
+         set {
+            Set(ref collisionIndex, value, old => {
+               primaryMap.CollisionHighlight = value;
+            });
+         }
+      }
 
       public ObservableCollection<string> CollisionOptions { get; } = new();
 
@@ -127,10 +134,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (primaryMap != map) {
             if (primaryMap != null) {
                primaryMap.NeighborsChanged -= PrimaryMapNeighborsChanged;
+               primaryMap.CollisionHighlight = -1;
             }
             PrimaryMap = map;
             if (primaryMap != null) {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
+               primaryMap.CollisionHighlight = collisionIndex;
             }
             NotifyPropertyChanged(nameof(Blocks));
             NotifyPropertyChanged(nameof(Name));

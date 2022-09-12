@@ -85,6 +85,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region CollisionHighlight
+
+      private int collisionHighlight = -1;
+      public int CollisionHighlight {
+         get => collisionHighlight;
+         set {
+            Set(ref collisionHighlight, value, old => {
+               pixelData = null;
+               NotifyPropertyChanged(nameof(PixelData));
+            });
+         }
+      }
+
+      #endregion
+
       #region Cache
 
       private short[][] palettes;
@@ -230,7 +245,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          if (blockIndex >= 0 && blockIndex < blockRenders.Count) {
             var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
-            canvas.Draw(blockRenders[low], (xx + border.West) * 16, (yy + border.North) * 16);
+            (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
+            canvas.Draw(blockRenders[low], xx, yy);
+            if (collisionIndex == collisionHighlight) HighlightCollision(canvas.PixelData, xx, yy);
             NotifyPropertyChanged(nameof(PixelData));
          }
       }
@@ -673,8 +690,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   continue;
                }
                var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
+               var collision = data >> 10;
                data &= 0x3FF;
                canvas.Draw(blockRenders[data], x * 16, y * 16);
+               if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
             }
          }
 
@@ -685,6 +704,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          pixelData = canvas.PixelData;
+      }
+
+      private void HighlightCollision(short[] pixelData, int x, int y) {
+         void Transform(int xx, int yy) {
+            var p = (y + yy) * PixelWidth + x + xx;
+            var color = UncompressedPaletteColor.ToRGB(pixelData[p]);
+            color.r = (color.r - 8).LimitToRange(0, 31);
+            color.g = (color.g - 8).LimitToRange(0, 31);
+            color.b = (color.b - 8).LimitToRange(0, 31);
+            pixelData[p] = UncompressedPaletteColor.Pack(color.r, color.g, color.b);
+         }
+         for (int i = 0; i < 15; i++) {
+            Transform(i, 0);
+            Transform(15 - i, 15);
+            Transform(0, 15 - i);
+            Transform(15, i);
+         }
       }
 
       public const int BlocksPerRow = 8;
