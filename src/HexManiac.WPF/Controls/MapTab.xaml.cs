@@ -57,6 +57,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private MouseButton withinMapInteraction = MouseButton.XButton1; // track which button is being used. Set to XButton1 when not in use.
 
       private void ButtonDown(object sender, MouseButtonEventArgs e) {
+         if (e.ChangedButton == MouseButton.XButton1 && ViewModel.Back.CanExecute(null)) {
+            ViewModel.Back.Execute();
+            return;
+         }
+         if (e.ChangedButton == MouseButton.XButton2 && ViewModel.Forward.CanExecute(null)) {
+            ViewModel.Forward.Execute();
+            return;
+         }
          if (withinMapInteraction != MouseButton.XButton1) return;
          Focus();
          e.Handled = true;
