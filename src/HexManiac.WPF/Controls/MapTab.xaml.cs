@@ -66,7 +66,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          element.CaptureMouse();
          if (e.LeftButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Left;
-            vm.PrimaryDown(p.X, p.Y);
+            vm.PrimaryDown(p.X, p.Y, e.ClickCount);
          } else if (e.MiddleButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Middle;
             vm.DragDown(p.X, p.Y);

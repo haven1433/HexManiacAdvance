@@ -13,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc
    /// </summary>
    public class MapEditorViewModel : ViewModelCore, ITabContent {
+      private readonly IFileSystem fileSystem;
       private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
@@ -57,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private int collisionIndex;
+      private int collisionIndex = -1;
       public int CollisionIndex {
          get => collisionIndex;
          set {
@@ -77,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region ITabContent
 
-      private StubCommand close, undo, redo;
+      private StubCommand close, undo, redo, backCommand, forwardCommand;
 
       public string Name => (primaryMap?.Name ?? "Map") + (history.HasDataChange ? "*" : string.Empty);
       public string FullFileName => viewPort.FullFileName;
@@ -98,8 +99,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand SelectAll => null;
       public ICommand Goto => null;
       public ICommand ResetAlignment => null;
-      public ICommand Back => null;
-      public ICommand Forward => null;
+      public ICommand Back => StubCommand(ref backCommand, ExecuteBack, CanExecuteBack);
+      public ICommand Forward => StubCommand(ref forwardCommand, ExecuteForward, CanExecuteForward);
       public ICommand Close => StubCommand(ref close, () => Closed.Raise(this));
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
@@ -126,10 +127,48 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
+      private readonly List<int> forwardStack = new(), backStack = new();
+      private bool CanExecuteBack() => backStack.Count > 0;
+      private bool CanExecuteForward() => forwardStack.Count > 0;
+      private void ExecuteBack() {
+         if (backStack.Count == 0) return;
+         var previous = backStack[backStack.Count - 1];
+         backStack.RemoveAt(backStack.Count - 1);
+         if (primaryMap != null) forwardStack.Add(primaryMap.MapID);
+         if (forwardStack.Count == 1) forwardCommand.RaiseCanExecuteChanged();
+         if (backStack.Count == 0) backCommand.RaiseCanExecuteChanged();
+         NavigateTo(previous, trackChange: false);
+      }
+      private void ExecuteForward() {
+         if (forwardStack.Count == 0) return;
+         var next = forwardStack[forwardStack.Count - 1];
+         forwardStack.RemoveAt(forwardStack.Count - 1);
+         if (primaryMap != null) backStack.Add(primaryMap.MapID);
+         if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
+         if (forwardStack.Count == 0) forwardCommand.RaiseCanExecuteChanged();
+         NavigateTo(next, trackChange: false);
+      }
+      private void NavigateTo(int mapID, bool trackChange = true) => NavigateTo(mapID / 1000, mapID % 1000, trackChange);
+      private void NavigateTo(int bank, int map, bool trackChange = true) {
+         if (trackChange && primaryMap != null) {
+            backStack.Add(primaryMap.MapID);
+            if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
+            if (forwardStack.Count > 0) {
+               forwardStack.Clear();
+               forwardCommand.RaiseCanExecuteChanged();
+            }
+         }
+
+         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, bank, map) {
+            IncludeBorders = primaryMap?.IncludeBorders ?? true,
+            SpriteScale = primaryMap?.SpriteScale ?? .5,
+         });
+      }
+
       #endregion
 
       public MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons) {
-         (this.viewPort, this.model, this.history, this.singletons) = (viewPort, viewPort.Model, viewPort.ChangeHistory, singletons);
+         (this.viewPort, this.model, this.history, this.singletons, this.fileSystem) = (viewPort, viewPort.Model, viewPort.ChangeHistory, singletons, fileSystem);
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
@@ -247,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Primary Interaction (left-click)
 
       private PrimaryInteractionType interactionType;
-      public void PrimaryDown(double x, double y) {
+      public void PrimaryDown(double x, double y, int clickCount) {
          var map = MapUnderCursor(x, y);
          if (map == null) {
             interactionType = PrimaryInteractionType.None;
@@ -256,7 +295,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
-            EventDown(x, y, ev);
+            EventDown(x, y, ev, clickCount);
             return;
          } else {
             primaryMap.DeselectEvent();
@@ -274,6 +313,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void PrimaryUp(double x, double y) {
          if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventUp(x, y);
+         interactionType = PrimaryInteractionType.None;
       }
 
       private void DrawDown(double x, double y) {
@@ -287,14 +327,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Hover(x, y);
       }
 
-      private void DrawUp(double x, double y) => history.ChangeCompleted();
-
-      private void EventDown(double x, double y, IEventModel ev) {
-         interactionType = PrimaryInteractionType.Event;
-         SelectedEvent = ev;
+      private void DrawUp(double x, double y) {
+         history.ChangeCompleted();
+         interactionType = PrimaryInteractionType.None;
       }
 
-      private void EventMove(double x,double y) {
+      private void EventDown(double x, double y, IEventModel ev, int clickCount) {
+         SelectedEvent = ev;
+         if (SelectedEvent is WarpEventModel warp && clickCount == 2) {
+            NavigateTo(warp.Bank, warp.Map);
+         } else {
+            interactionType = PrimaryInteractionType.Event;
+            DrawBlockIndex = -1;
+            CollisionIndex = -1;
+         }
+      }
+
+      private void EventMove(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map != null) map.UpdateEventLocation(selectedEvent, x, y);
          Hover(x, y);
@@ -317,7 +366,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void SelectMove(double x, double y) { }
 
-      public void SelectUp(double x, double y) { }
+      public void SelectUp(double x, double y) {
+         interactionType = PrimaryInteractionType.None;
+      }
 
       public void Zoom(double x, double y, bool enlarge) {
          var map = MapUnderCursor(x, y);

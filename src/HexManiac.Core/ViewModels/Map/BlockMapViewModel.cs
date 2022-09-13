@@ -1212,6 +1212,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => warpEvent.SetValue("y", value);
       }
 
+      public int Elevation {
+         get => warpEvent.GetValue("elevation");
+         set => warpEvent.SetValue("elevation", value);
+      }
+
+      public int WarpID {
+         get => warpEvent.GetValue("warpID");
+         set => warpEvent.SetValue("warpID", value);
+      }
+
+      public int Map {
+         get => warpEvent.GetValue("map");
+         set => warpEvent.SetValue("map", value);
+      }
+
+      public int Bank {
+         get => warpEvent.GetValue("bank");
+         set => warpEvent.SetValue("bank", value);
+      }
+
       public IPixelViewModel EventRender { get; private set; }
       public void Render(IDataModel model) {
          EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
