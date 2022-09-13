@@ -38,6 +38,51 @@
             </Canvas>
          </ScrollViewer>
       </DockPanel>
+      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}"
+         Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
+         <ContentControl DataContext="{Binding SelectedEvent}" Content="{Binding}">
+            <ContentControl.Resources>
+               <DataTemplate DataType="{x:Type map:ObjectEventModel}">
+                  <Grid>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                     </Grid.ColumnDefinitions>
+                     <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                     </Grid.RowDefinitions>
+                     <!-- TODO show as dropdown -->
+                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Graphics}" />
+                     <TextBlock Grid.Row="1" Grid.Column="0" Text="(x, y):" />
+                     <local:AngleTextBox Grid.Row="1" Grid.Column="1" TextBinding="{Binding XY}" />
+                     <!-- TODO show as int textbox -->
+                     <TextBlock Grid.Row="2" Text="{Binding Elevation}" />
+                     <!-- TODO Show as text dropdown -->
+                     <TextBlock Grid.Row="3" Text="{Binding MoveType}" />
+                     <!-- TODO Show a w/h pair, in a single textbox -->
+                     <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding RangeX}" />
+                     <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding RangeY}" />
+                     <!-- TODO enum? -->
+                     <TextBlock Grid.Row="5" Text="{Binding TrainerType}" />
+                     <!-- TODO unsure -->
+                     <TextBlock Grid.Row="6" Text="{Binding TrainerRangeOrBerryID}" />
+                     <!-- TODO show in hex, button to follow pointer, ability to create new if null -->
+                     <TextBlock Grid.Row="7" Text="{Binding ScriptAddress}" />
+                     <!-- TODO show in hex -->
+                     <TextBlock Grid.Row="8" Text="{Binding Flag}" />
+                  </Grid>
+               </DataTemplate>
+            </ContentControl.Resources>
+         </ContentControl>
+      </ScrollViewer>
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
                     SnapsToDevicePixels="True" ClipToBounds="True" Focusable="False"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">

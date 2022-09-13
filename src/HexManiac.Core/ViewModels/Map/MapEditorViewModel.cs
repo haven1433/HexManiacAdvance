@@ -35,8 +35,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             selectedEvent = value;
             NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(ShowEventPanel));
          }
       }
+
+      public bool ShowEventPanel => selectedEvent != null;
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 

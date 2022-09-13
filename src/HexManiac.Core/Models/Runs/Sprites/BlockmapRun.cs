@@ -322,7 +322,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
                else tileData[yy * 8 + xx] = palettes[pal][tiles[tile][inX, inY]];
             }
          }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, 1, 1, default), tileData, palettes[pal][0]);
+         return new ReadonlyPixelViewModel(new SpriteFormat(4, 1, 1, default), tileData, index < 4 ? (short)-1 : palettes[pal][0]);
       }
    }
 }

@@ -1126,51 +1126,56 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       void Delete();
    }
 
-   public class ObjectEventModel : ViewModelCore, IEventModel {
-      private readonly ModelArrayElement objectEvent;
-      public ObjectEventModel(ModelArrayElement objectEvent) => this.objectEvent = objectEvent;
-      public int ObjectID => objectEvent.GetValue("id");
-      public int Graphics => objectEvent.GetValue("graphics");
+   public abstract class BaseEventModel : ViewModelCore, IEventModel {
+      protected readonly ModelArrayElement element;
+      private readonly string parentLengthField;
+
+      public virtual int TopOffset => 0;
+      public virtual int LeftOffset => 0;
+
+      #region X/Y
+
       public int X {
-         get => objectEvent.GetValue("x");
-         set => objectEvent.SetValue("x", value);
+         get => element.GetValue("x");
+         set {
+            element.SetValue("x", value);
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(XY));
+         }
       }
+
       public int Y {
-         get => objectEvent.GetValue("y");
-         set => objectEvent.SetValue("y", value);
-      }
-      public int Elevation => objectEvent.GetValue("elevation");
-      public int MoveType => objectEvent.GetValue("moveType");
-      public int RangeX => objectEvent.GetValue("range") & 0xF;
-      public int RangeY => objectEvent.GetValue("range") >> 4;
-      public int TrainerType => objectEvent.GetValue("trainerType");
-      public int TrainerRangeOrBerryID => objectEvent.GetValue("trainerRangeOrBerryID");
-      public int ScriptAddress => objectEvent.GetAddress("scirpt");
-      public int Flag => objectEvent.GetValue("flag");
-
-      public int TopOffset => 16 - EventRender.PixelHeight;
-      public int LeftOffset => (16 - EventRender.PixelWidth) / 2;
-      public IPixelViewModel EventRender { get; private set; }
-      public void Render(IDataModel model) {
-         var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
-         if (Graphics >= owTable.Count) {
-            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
-            return;
+         get => element.GetValue("y");
+         set {
+            element.SetValue("y", value);
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(XY));
          }
-         var element = owTable[Graphics];
-         var data = element.GetSubTable("data")[0];
-         var sprites = data.GetSubTable("sprites")[0];
-         var graphicsAddress = sprites.GetAddress("sprite");
-         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
-         if (graphicsRun == null) {
-            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
-            return;
-         }
-         EventRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
       }
-      public void Delete() => DeleteElement(objectEvent, "objectCount");
 
-      public static void DeleteElement(ModelArrayElement element, string parentCountField) {
+      public string XY {
+         get => $"({X}, {Y})";
+         set {
+            var parts = value.Split(new[] { ',', ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2) return;
+            if (parts[0].TryParseInt(out int x)) X = x;
+            if (parts[1].TryParseInt(out int y)) Y = y;
+            NotifyPropertyChanged(nameof(X));
+            NotifyPropertyChanged(nameof(Y));
+         }
+      }
+
+      #endregion
+
+      public IPixelViewModel EventRender { get; protected set; }
+
+      public BaseEventModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
+
+      public void Delete() => DeleteElement(parentLengthField);
+
+      public abstract void Render(IDataModel model);
+
+      protected void DeleteElement(string parentCountField) {
          var table = element.Table;
          var model = element.Model;
          var token = element.Token;
@@ -1195,108 +1200,97 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             model.ClearData(token, table.Start, table.Length);
          }
       }
-   }
 
-   public class WarpEventModel : ViewModelCore, IEventModel {
-      private readonly ModelArrayElement warpEvent;
-      public WarpEventModel(ModelArrayElement warpEvent) => this.warpEvent = warpEvent;
-
-      public int TopOffset => 0;
-      public int LeftOffset => 0;
-      public int X {
-         get => warpEvent.GetValue("x");
-         set => warpEvent.SetValue("x", value);
-      }
-      public int Y {
-         get => warpEvent.GetValue("y");
-         set => warpEvent.SetValue("y", value);
-      }
-
-      public int Elevation {
-         get => warpEvent.GetValue("elevation");
-         set => warpEvent.SetValue("elevation", value);
-      }
-
-      public int WarpID {
-         get => warpEvent.GetValue("warpID");
-         set => warpEvent.SetValue("warpID", value);
-      }
-
-      public int Map {
-         get => warpEvent.GetValue("map");
-         set => warpEvent.SetValue("map", value);
-      }
-
-      public int Bank {
-         get => warpEvent.GetValue("bank");
-         set => warpEvent.SetValue("bank", value);
-      }
-
-      public IPixelViewModel EventRender { get; private set; }
-      public void Render(IDataModel model) {
-         EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
-      }
-
-      public void Delete() => ObjectEventModel.DeleteElement(warpEvent, "warpCount");
-
-      public static IPixelViewModel BuildEventRender(short color) {
+      protected static IPixelViewModel BuildEventRender(short color) {
          var pixels = new short[256];
          for (int x = 1; x < 15; x++) {
             for (int y = 1; y < 15; y++) {
                if (((x + y) & 1) != 0) continue;
                pixels[y * 16 + x] = color;
+               y++;
             }
          }
          return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, default), pixels, transparent: 0);
       }
    }
 
-   public class ScriptEventModel : ViewModelCore, IEventModel {
-      private readonly ModelArrayElement scriptEvent;
-      public ScriptEventModel(ModelArrayElement scriptEvent) => this.scriptEvent = scriptEvent;
+   public class ObjectEventModel : BaseEventModel {
+      public ObjectEventModel(ModelArrayElement objectEvent) : base(objectEvent, "objectCount") { }
+      public int ObjectID => element.GetValue("id");
+      public int Graphics => element.GetValue("graphics");
+      public int Elevation => element.GetValue("elevation");
+      public int MoveType => element.GetValue("moveType");
+      public int RangeX => element.GetValue("range") & 0xF;
+      public int RangeY => element.GetValue("range") >> 4;
+      public int TrainerType => element.GetValue("trainerType");
+      public int TrainerRangeOrBerryID => element.GetValue("trainerRangeOrBerryID");
+      public int ScriptAddress => element.GetAddress("script");
+      public int Flag => element.GetValue("flag");
 
-      public int TopOffset => 0;
-      public int LeftOffset => 0;
-      public int X {
-         get => scriptEvent.GetValue("x");
-         set => scriptEvent.SetValue("x", value);
+      public override int TopOffset => 16 - EventRender.PixelHeight;
+      public override int LeftOffset => (16 - EventRender.PixelWidth) / 2;
+
+      public override void Render(IDataModel model) {
+         var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
+         if (Graphics >= owTable.Count) {
+            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
+            return;
+         }
+         var element = owTable[Graphics];
+         var data = element.GetSubTable("data")[0];
+         var sprites = data.GetSubTable("sprites")[0];
+         var graphicsAddress = sprites.GetAddress("sprite");
+         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
+         if (graphicsRun == null) {
+            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
+            return;
+         }
+         EventRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
       }
-      public int Y {
-         get => scriptEvent.GetValue("y");
-         set => scriptEvent.SetValue("y", value);
-      }
-
-      public IPixelViewModel EventRender { get; private set; }
-
-      public void Render(IDataModel model) {
-         EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
-      }
-
-      public void Delete() => ObjectEventModel.DeleteElement(scriptEvent, "scriptCount");
    }
 
-   public class SignpostEventModel : ViewModelCore, IEventModel {
-      private readonly ModelArrayElement signpostEvent;
-      public SignpostEventModel(ModelArrayElement signpostEvent) => this.signpostEvent = signpostEvent;
+   public class WarpEventModel : BaseEventModel {
+      public WarpEventModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
 
-      public int TopOffset => 0;
-      public int LeftOffset => 0;
-      public int X {
-         get => signpostEvent.GetValue("x");
-         set => signpostEvent.SetValue("x", value);
-      }
-      public int Y {
-         get => signpostEvent.GetValue("y");
-         set => signpostEvent.SetValue("y", value);
+      public int Elevation {
+         get => element.GetValue("elevation");
+         set => element.SetValue("elevation", value);
       }
 
-      public IPixelViewModel EventRender { get; private set; }
-
-      public void Render(IDataModel model) {
-         EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
+      public int WarpID {
+         get => element.GetValue("warpID");
+         set => element.SetValue("warpID", value);
       }
 
-      public void Delete() => ObjectEventModel.DeleteElement(signpostEvent, "signpostCount");
+      public int Map {
+         get => element.GetValue("map");
+         set => element.SetValue("map", value);
+      }
+
+      public int Bank {
+         get => element.GetValue("bank");
+         set => element.SetValue("bank", value);
+      }
+
+      public override void Render(IDataModel model) {
+         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
+      }
+   }
+
+   public class ScriptEventModel : BaseEventModel {
+      public ScriptEventModel(ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { }
+
+      public override void Render(IDataModel model) {
+         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
+      }
+   }
+
+   public class SignpostEventModel : BaseEventModel {
+      public SignpostEventModel(ModelArrayElement signpostEvent) : base(signpostEvent, "signpostCount") { }
+
+      public override void Render(IDataModel model) {
+         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
+      }
    }
 
    public enum MapDirection {
