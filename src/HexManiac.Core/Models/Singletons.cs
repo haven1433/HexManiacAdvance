@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
       private const string AnimationScriptReferenceFileName = "resources/animationScriptReference.txt";
+      private const string BattleAIScriptReferenceFileName = "resources/battleAIScriptReference.txt";
 
       public IMetadataInfo MetadataInfo { get; }
       public IReadOnlyDictionary<string, GameReferenceTables> GameReferenceTables { get; }
@@ -30,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<ScriptLine> ScriptLines { get; }
       public IReadOnlyList<ScriptLine> BattleScriptLines { get; }
       public IReadOnlyList<ScriptLine> AnimationScriptLines { get; }
+      public IReadOnlyList<ScriptLine> BattleAIScriptLines { get; }
       public IWorkDispatcher WorkDispatcher { get; }
       public int CopyLimit { get; }
 
@@ -41,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          ScriptLines = LoadScriptReference<XSEScriptLine>(ScriptReferenceFileName);
          BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
          AnimationScriptLines = LoadScriptReference<ASEScriptLine>(AnimationScriptReferenceFileName);
+         BattleAIScriptLines = LoadScriptReference<TSEScriptLine>(BattleAIScriptReferenceFileName);
          WorkDispatcher = dispatcher ?? InstantDispatch.Instance;
          CopyLimit = copyLimit;
       }

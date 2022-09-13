@@ -79,6 +79,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             strategy = new BseRunContentStrategy();
          } else if (format == ASERun.SharedFormatString) {
             strategy = new AseRunContentStrategy();
+         } else if (format == TSERun.SharedFormatString) {
+            strategy = new TseRunContentStrategy();
          } else if (format.StartsWith(OverworldSpriteListRun.SharedFormatString.Substring(0, OverworldSpriteListRun.SharedFormatString.Length - 1))) {
             strategy = new OverworldSpriteListContentStrategy(this, format);
          } else if (format == TrainerPokemonTeamRun.SharedFormatString) {
@@ -208,6 +210,37 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
          token.ChangeData(owner, destination, 8); // end
          return new ASERun(destination, SortedSpan.One(source));
+      }
+   }
+
+   public class TseRunContentStrategy : RunStrategy {
+      public override int LengthForNewRun(IDataModel model, int pointerAddress) => 1;
+
+      public override bool Matches(IFormattedRun run) => run is TSERun;
+
+      public override bool TryAddFormatAtDestination(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
+         var run = new TSERun(destination, new SortedSpan<int>(source));
+         if (run.Length < 1) return false;
+         if (!(token is NoDataChangeDeltaModel)) {
+            owner.ClearFormat(token, run.Start, run.Length);
+            owner.ObserveRunWritten(token, run);
+         }
+         return true;
+      }
+
+      // TODO
+      public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
+         run = new TSERun(dataIndex, run.PointerSources);
+         return ErrorInfo.NoError;
+      }
+
+      public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
+         run = new TSERun(run.Start, run.PointerSources);
+      }
+
+      public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
+         token.ChangeData(owner, destination, 8); // end
+         return new TSERun(destination, SortedSpan.One(source));
       }
    }
 }

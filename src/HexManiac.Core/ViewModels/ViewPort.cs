@@ -294,6 +294,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (run is XSERun) tools.CodeTool.Mode = CodeMode.Script;
                      if (run is BSERun) tools.CodeTool.Mode = CodeMode.BattleScript;
                      if (run is ASERun) tools.CodeTool.Mode = CodeMode.AnimationScript;
+                     if (run is TSERun) tools.CodeTool.Mode = CodeMode.TrainerAiScript;
                   } else {
                      // not a special run, so don't update tools
                   }

@@ -705,6 +705,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public override bool PointsToSpriteTemplate => LineCode.Count == 1 && LineCode[0] == 0x02;
    }
 
+   public class TSEScriptLine : ScriptLine {
+      public TSEScriptLine(string engineLine) : base(engineLine) { }
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x5A);
+      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0, 1, 2, 3, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32);
+   }
+
    public interface IScriptArg {
       ArgType Type { get; }
       string Name { get; }

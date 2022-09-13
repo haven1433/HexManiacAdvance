@@ -1,0 +1,94 @@
+﻿00 if_random_less_than percent., ptr<>
+01 if_random_greater_than percent. ptr<>
+02 if_random_equal ptr<>
+03 if_random_not_equal ptr<>
+04 score score.
+05 if_hp_less_than battler. percent. ptr<>
+06 if_hp_more_than battler. percent. ptr<>
+07 if_hp_equal battler. percent. ptr<>
+08 if_hp_not_equal battler. percent. ptr<>
+09 if_status battler. status:: ptr<>
+0a if_not_status battler. status:: ptr<>
+0b if_status2 battler. status:: ptr<>
+0c if_not_status2 battler. status:: ptr<>
+0d if_status3 battler. status:: ptr<>
+0e if_not_status3 battler. status:: ptr<>
+0f if_side_affecting battler. status:: ptr<>
+10 if_not_side_affecting battler. status:: ptr<>
+11 if_less_than value. ptr<>
+12 if_more_than value. ptr<>
+13 if_equal value. ptr<>
+14 if_not_equal value. ptr<>
+15 if_less_than_ptr value:: ptr<>
+16 if_more_than_ptr value:: ptr<>
+17 if_equal_ptr value:: ptr<>
+18 if_not_equal_ptr value:: ptr<>
+19 if_move move: ptr<>
+1a if_not_move move: ptr<>
+1b if_in_bytes list:: ptr<>
+1c if_not_in_bytes list:: ptr<>
+1d if_in_hwords list:: ptr<>
+1e if_not_in_hwords list:: ptr<>
+1f if_user_has_attacking_move ptr<>
+20 if_user_has_no_attacking_moves ptr<>
+21 get_turn_count
+22 get_type index.
+23 get_considered_move_power
+24 get_how_powerful_move_is
+25 get_last_used_move battler.
+26 if_equal_ type. ptr<>
+27 if_not_equal_ type. ptr<>
+28 if_would_go_first battler. ptr<>
+29 if_would_not_go_first battler. ptr<>
+2a ai_2a
+2b ai_2b
+2c count_alive_pokemon battler.
+2d get_considered_move
+2e get_considered_move_effect
+2f get_ability battler.
+30 get_highest_type_effectiveness
+31 if_type_effectiveness effectiveness. ptr<>
+32 ai_32
+33 ai_33
+34 if_status_in_party battler. status:: ptr<>
+35 if_status_not_in_party battler. status:: ptr<>
+36 get_weather
+37 if_effect byte. ptr<>
+38 if_not_effect byte. ptr<>
+39 if_stat_level_less_than battler. stat. level. ptr<>
+3a if_stat_level_more_than battler. stat. level. ptr<>
+3b if_stat_level_equal battler. stat. level. ptr<>
+3c if_stat_level_not_equal battler. stat. level. ptr<>
+3d if_can_faint ptr<>
+3e if_cant_faint ptr<>
+3f if_has_move battler. move: ptr<>
+40 if_doesnt_have_move battler. move: ptr<>
+41 if_has_move_with_effect battler. effect. ptr<>
+42 if_doesnt_have_move_with_effect battler. effect. ptr<>
+43 if_any_move_disabled_or_encored battler. byte. ptr<>
+44 if_curr_move_disabled_or_encored battler. ptr<>
+45 flee
+46 if_random_safari_flee ptr<>
+47 watch
+48 get_hold_effect battler.
+49 get_gender battler.
+4a is_first_turn_for battler.
+4b get_stockpile_count battler.
+4c is_double_battle
+4d get_used_held_item battler.
+4e get_move_type_from_result
+4f get_move_power_from_result
+50 get_move_effect_from_result
+51 get_protect_count battler.
+52 ai_52
+53 ai_53
+54 ai_54
+55 ai_55
+56 ai_56
+57 ai_57
+58 call ptr<>
+59 goto ptr<>
+5a end
+5b if_level_cond cond. ptr<>
+5c if_target_taunted ptr<>
+5d if_target_not_taunted ptr<>

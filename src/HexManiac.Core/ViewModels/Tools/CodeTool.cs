@@ -9,7 +9,7 @@ using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
-   public enum CodeMode { Thumb, Script, BattleScript, AnimationScript, Raw }
+   public enum CodeMode { Thumb, Script, BattleScript, AnimationScript, TrainerAiScript, Raw }
 
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
@@ -17,7 +17,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string content;
       private CodeMode mode;
       private readonly ThumbParser thumb;
-      private readonly ScriptParser script, battleScript, animationScript;
+      private readonly ScriptParser script, battleScript, animationScript, battleAIScript;
       private readonly IDataModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
@@ -27,7 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool IsReadOnly => Mode == CodeMode.Raw;
       public bool UseSingleContent => !UseMultiContent;
-      public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.AnimationScript);
+      public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.AnimationScript, CodeMode.TrainerAiScript);
 
       private bool showErrorText;
       public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
@@ -65,6 +65,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ScriptParser AnimationScriptParser => animationScript;
 
+      public ScriptParser BattleAIScriptParser => battleAIScript;
+
       public event EventHandler<(int originalLocation, int newLocation)> ModelDataMoved;
 
       private StubCommand isEventScript;
@@ -83,9 +85,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          script = new ScriptParser(singletons.ScriptLines, 0x02);
          battleScript = new ScriptParser(singletons.BattleScriptLines, 0x3D);
          animationScript = new ScriptParser(singletons.AnimationScriptLines, 0x08);
+         battleAIScript = new ScriptParser(singletons.BattleAIScriptLines, 0x5A);
          script.CompileError += ObserveCompileError;
          battleScript.CompileError += ObserveCompileError;
          animationScript.CompileError += ObserveCompileError;
+         battleAIScript.CompileError += ObserveCompileError;
          this.model = model;
          this.selection = selection;
          this.history = history;
@@ -122,6 +126,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                UpdateContents(start, battleScript);
             } else if (mode == CodeMode.AnimationScript) {
                UpdateContents(start, animationScript);
+            } else if (mode == CodeMode.TrainerAiScript) {
+               UpdateContents(start, battleAIScript);
             } else if (mode == CodeMode.Thumb) {
                TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
                CanRepointThumb = CalculateCanRepointThumb();
@@ -210,7 +216,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ScriptChanged(object viewModel, EventArgs e) {
-         var parser = mode == CodeMode.Script ? script : mode == CodeMode.BattleScript ? battleScript : animationScript;
+         var parser = mode switch {
+            CodeMode.Script => script,
+            CodeMode.BattleScript => battleScript,
+            CodeMode.AnimationScript => animationScript,
+            CodeMode.TrainerAiScript => battleAIScript,
+            _ => null,
+         };
          var body = (CodeBody)viewModel;
          var codeContent = body.Content;
 
@@ -223,8 +235,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                CompileScriptChanges<XSERun>(body, run, ref codeContent, parser, body == Contents[0]);
             } else if (mode == CodeMode.AnimationScript) {
                CompileScriptChanges<ASERun>(body, run, ref codeContent, parser, body == Contents[0]);
-            } else {
+            } else if (mode == CodeMode.BattleScript) {
                CompileScriptChanges<BSERun>(body, run, ref codeContent, parser, body == Contents[0]);
+            } else if (mode == CodeMode.TrainerAiScript) {
+               CompileScriptChanges<TSERun>(body, run, ref codeContent, parser, body == Contents[0]);
             }
 
             body.ContentChanged -= ScriptChanged;
@@ -247,6 +261,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (mode == CodeMode.Script) help = ScriptParser.GetHelp(line);
          else if (mode == CodeMode.BattleScript) BattleScriptParser.GetHelp(line);
          else if (mode == CodeMode.AnimationScript) AnimationScriptParser.GetHelp(line);
+         else if (mode == CodeMode.TrainerAiScript) BattleAIScriptParser.GetHelp(line);
          else throw new NotImplementedException();
          codeBody.HelpContent = help;
       }
@@ -289,6 +304,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (typeof(TSERun) == typeof(XSERun)) return (TSERun)(IScriptStartRun)new XSERun(start, sources);
          if (typeof(TSERun) == typeof(ASERun)) return (TSERun)(IScriptStartRun)new ASERun(start, sources);
          if (typeof(TSERun) == typeof(BSERun)) return (TSERun)(IScriptStartRun)new BSERun(start, sources);
+         if (typeof(TSERun) == typeof(Models.Runs.TSERun)) return (TSERun)(IScriptStartRun)new Models.Runs.TSERun(start, sources);
          throw new NotImplementedException();
       }
 
@@ -388,6 +404,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      model.ObserveAnchorWritten(history.CurrentChange, $"orphans.bse{orphan:X6}", new BSERun(orphan));
                   } else if (typeof(TSERun) == typeof(ASERun)) {
                      model.ObserveAnchorWritten(history.CurrentChange, $"orphans.ase{orphan:X6}", new ASERun(orphan));
+                  } else if (typeof(TSERun) == typeof(Models.Runs.TSERun)) {
+                     model.ObserveAnchorWritten(history.CurrentChange, $"orphans.tse{orphan:X6}", new Models.Runs.TSERun(orphan));
                   } else {
                      throw new NotImplementedException();
                   }
