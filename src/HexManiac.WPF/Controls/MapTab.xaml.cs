@@ -58,6 +58,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ButtonDown(object sender, MouseButtonEventArgs e) {
          if (withinMapInteraction != MouseButton.XButton1) return;
+         Focus();
+         e.Handled = true;
          var element = (FrameworkElement)sender;
          var vm = ViewModel;
          var p = GetCoordinates(element, e);
@@ -77,6 +79,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var element = (FrameworkElement)sender;
          var vm = ViewModel;
          var p = GetCoordinates(element, e);
+         e.Handled = true;
          if (withinMapInteraction == MouseButton.XButton1) {
             vm.Hover(p.X, p.Y);
             return;
@@ -91,6 +94,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void ButtonUp(object sender, MouseButtonEventArgs e) {
+         e.Handled = true;
          var element = (FrameworkElement)sender;
          element.ReleaseMouseCapture();
          if (withinMapInteraction == MouseButton.XButton1) return;

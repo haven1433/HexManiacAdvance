@@ -27,6 +27,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int TotalBlocks => 1024;
       private int PrimaryPalettes => 7;
 
+      private IEventModel selectedEvent;
+
       private static int MapSizeLimit => 0x2800; // (x+15)*(y+14) must be less that 0x2800 (5*2048). This can lead to limits like 113x66 or 497x6
       public static bool IsMapWithinSizeLimit(int width, int height) => (width / 16 + 15) * (height / 16 + 14) <= MapSizeLimit;
 
@@ -192,6 +194,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          RefreshMapSize();
       }
 
+      public void RedrawEvents() {
+         eventRenders = null;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
       public void Scale(double x, double y, bool enlarge) {
          var old = spriteScale;
 
@@ -264,6 +272,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (xx >= width || yy >= height) return;
          ev.X = xx;
          ev.Y = yy;
+         selectedEvent = ev;
          pixelData = null;
          NotifyPropertyChanged(nameof(PixelData));
       }
@@ -356,9 +365,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
          foreach (var e in GetEvents(tokenFactory())) {
-            if (e.X == tileX && e.Y == tileY) return e;
+            if (e.X == tileX && e.Y == tileY) {
+               if (selectedEvent == null || selectedEvent.X != e.X || selectedEvent.Y != e.Y) {
+                  selectedEvent = e;
+                  pixelData = null;
+                  NotifyPropertyChanged(nameof(PixelData));
+               }
+               return e;
+            }
          }
-         return null;
+         return selectedEvent = null;
+      }
+
+      public void DeselectEvent() {
+         if (selectedEvent == null) return;
+         selectedEvent = null;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       #region Work Methods
@@ -696,6 +719,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                canvas.Draw(blockRenders[data], x * 16, y * 16);
                if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
             }
+         }
+
+         // draw the box for the selected event
+         if (selectedEvent != null) {
+            canvas.DrawBox((selectedEvent.X + border.West) * 16, (selectedEvent.Y + border.North) * 16, 16, UncompressedPaletteColor.Pack(6, 6, 6));
          }
 
          // now draw the events on top
@@ -1088,16 +1116,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
        */
    }
 
-   public interface IEventModel {
+   public interface IEventModel : INotifyPropertyChanged {
       int TopOffset { get; }
       int LeftOffset { get; }
       int X { get; set; }
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
       void Render(IDataModel model);
+      void Delete();
    }
 
-   public class ObjectEventModel : IEventModel {
+   public class ObjectEventModel : ViewModelCore, IEventModel {
       private readonly ModelArrayElement objectEvent;
       public ObjectEventModel(ModelArrayElement objectEvent) => this.objectEvent = objectEvent;
       public int ObjectID => objectEvent.GetValue("id");
@@ -1119,6 +1148,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int ScriptAddress => objectEvent.GetAddress("scirpt");
       public int Flag => objectEvent.GetValue("flag");
 
+      public int TopOffset => 16 - EventRender.PixelHeight;
+      public int LeftOffset => (16 - EventRender.PixelWidth) / 2;
       public IPixelViewModel EventRender { get; private set; }
       public void Render(IDataModel model) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
@@ -1137,11 +1168,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          EventRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
       }
-      public int TopOffset => 16 - EventRender.PixelHeight;
-      public int LeftOffset => (16 - EventRender.PixelWidth) / 2;
+      public void Delete() => DeleteElement(objectEvent, "objectCount");
+
+      public static void DeleteElement(ModelArrayElement element, string parentCountField) {
+         var table = element.Table;
+         var model = element.Model;
+         var token = element.Token;
+         var offset = table.ConvertByteOffsetToArrayOffset(element.Start);
+         var editCount = table.ElementCount - offset.ElementIndex - 1;
+         for (int i = 0; i < editCount; i++) {
+            // TODO this edits pointers as well, we need to do pointer metadata update stuff
+            token.ChangeData(model, element.Start + i * element.Length, element.Length.Range(j => model[element.Start + i * element.Length + j]).ToList());
+         }
+         if (table.ElementCount > 1) {
+            var shorterTable = table.Append(token, -1);
+            model.ObserveRunWritten(token, shorterTable);
+         } else {
+            foreach (var source in table.PointerSources) {
+               model.ClearPointer(token, source, table.Start);
+               model.WritePointer(token, source, Pointer.NULL);
+               if(model.GetNextRun(source) is ITableRun parentTable) {
+                  var parent = new ModelArrayElement(model, parentTable.Start, 0, token, parentTable);
+                  parent.SetValue(parentCountField, 0);
+               }
+            }
+            model.ClearData(token, table.Start, table.Length);
+         }
+      }
    }
 
-   public class WarpEventModel : IEventModel {
+   public class WarpEventModel : ViewModelCore, IEventModel {
       private readonly ModelArrayElement warpEvent;
       public WarpEventModel(ModelArrayElement warpEvent) => this.warpEvent = warpEvent;
 
@@ -1161,6 +1217,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
       }
 
+      public void Delete() => ObjectEventModel.DeleteElement(warpEvent, "warpCount");
+
       public static IPixelViewModel BuildEventRender(short color) {
          var pixels = new short[256];
          for (int x = 1; x < 15; x++) {
@@ -1173,7 +1231,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public class ScriptEventModel : IEventModel {
+   public class ScriptEventModel : ViewModelCore, IEventModel {
       private readonly ModelArrayElement scriptEvent;
       public ScriptEventModel(ModelArrayElement scriptEvent) => this.scriptEvent = scriptEvent;
 
@@ -1189,12 +1247,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IPixelViewModel EventRender { get; private set; }
+
       public void Render(IDataModel model) {
          EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
       }
+
+      public void Delete() => ObjectEventModel.DeleteElement(scriptEvent, "scriptCount");
    }
 
-   public class SignpostEventModel : IEventModel {
+   public class SignpostEventModel : ViewModelCore, IEventModel {
       private readonly ModelArrayElement signpostEvent;
       public SignpostEventModel(ModelArrayElement signpostEvent) => this.signpostEvent = signpostEvent;
 
@@ -1210,9 +1271,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IPixelViewModel EventRender { get; private set; }
+
       public void Render(IDataModel model) {
          EventRender = WarpEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
       }
+
+      public void Delete() => ObjectEventModel.DeleteElement(signpostEvent, "signpostCount");
    }
 
    public enum MapDirection {

@@ -28,6 +28,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private IEventModel selectedEvent;
+      public IEventModel SelectedEvent {
+         get => selectedEvent;
+         set {
+            selectedEvent = value;
+            NotifyPropertyChanged();
+         }
+      }
+
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 
       public ObservableCollection<MapSlider> MapButtons { get; } = new();
@@ -249,6 +258,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (ev != null) {
             EventDown(x, y, ev);
             return;
+         } else {
+            primaryMap.DeselectEvent();
+            SelectedEvent = null;
          }
 
          DrawDown(x, y);
@@ -277,15 +289,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void DrawUp(double x, double y) => history.ChangeCompleted();
 
-      private IEventModel interactionEvent;
       private void EventDown(double x, double y, IEventModel ev) {
          interactionType = PrimaryInteractionType.Event;
-         interactionEvent = ev;
+         SelectedEvent = ev;
       }
 
       private void EventMove(double x,double y) {
          var map = MapUnderCursor(x, y);
-         if (map != null) map.UpdateEventLocation(interactionEvent, x, y);
+         if (map != null) map.UpdateEventLocation(selectedEvent, x, y);
          Hover(x, y);
       }
 
@@ -320,9 +331,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
       }
 
-      private StubCommand panCommand, zoomCommand;
+      private StubCommand panCommand, zoomCommand, deleteCommand;
       public ICommand PanCommand => StubCommand<MapDirection>(ref panCommand, Pan);
       public ICommand ZoomCommand => StubCommand<ZoomDirection>(ref zoomCommand, Zoom);
+      public ICommand DeleteCommand => StubCommand(ref deleteCommand, Delete);
 
       public void Pan(MapDirection direction) {
          int intX = 0, intY = 0;
@@ -335,6 +347,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map != null) UpdatePrimaryMap(map);
       }
 
+      public void Zoom(ZoomDirection direction) => Zoom(0, 0, direction == ZoomDirection.Enlarge);
+
+      public void Delete() {
+         if (selectedEvent == null) return;
+         selectedEvent.Delete();
+         selectedEvent = null;
+         primaryMap.DeselectEvent();
+         primaryMap.RedrawEvents();
+      }
+
       private void Pan(int intX, int intY) {
          foreach (var map in VisibleMaps) {
             map.LeftEdge += intX;
@@ -345,8 +367,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             button.AnchorPositionY += button.AnchorTopEdge ? intY : -intY;
          }
       }
-
-      public void Zoom(ZoomDirection direction) => Zoom(0, 0, direction == ZoomDirection.Enlarge);
 
       private BlockMapViewModel MapUnderCursor(double x, double y) {
          foreach (var map in VisibleMaps) {

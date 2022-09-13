@@ -61,6 +61,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Length => table.ElementLength;
       public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
       public ITableRun Table => table;
+      public IDataModel Model => model;
+      public ModelDelta Token => token;
 
       public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token, ITableRun table) {
          (this.model, arrayAddress, arrayIndex) = (model, address, index);

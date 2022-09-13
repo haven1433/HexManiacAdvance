@@ -6,21 +6,22 @@
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
              Focusable="True">
    <UserControl.InputBindings>
-      <KeyBinding Key="Left" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Left}"/>
-      <KeyBinding Key="Right" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Right}"/>
-      <KeyBinding Key="Up" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Up}"/>
-      <KeyBinding Key="Down" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Down}"/>
-      <KeyBinding Key="Add" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}"/>
-      <KeyBinding Key="Subtract" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Shrink}"/>
+      <KeyBinding Key="Left" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Left}" />
+      <KeyBinding Key="Right" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Right}" />
+      <KeyBinding Key="Up" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Up}" />
+      <KeyBinding Key="Down" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Down}" />
+      <KeyBinding Key="Add" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}" />
+      <KeyBinding Key="Subtract" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Shrink}" />
+      <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
    </UserControl.InputBindings>
    <Grid ClipToBounds="True">
       <Grid.ColumnDefinitions>
-         <ColumnDefinition Width="Auto"/>
-         <ColumnDefinition Width="*"/>
+         <ColumnDefinition Width="Auto" />
+         <ColumnDefinition Width="*" />
       </Grid.ColumnDefinitions>
       <Grid.RowDefinitions>
-         <RowDefinition Height="Auto"/>
-         <RowDefinition Height="*"/>
+         <RowDefinition Height="Auto" />
+         <RowDefinition Height="*" />
       </Grid.RowDefinitions>
       <DockPanel Grid.Column="0" Grid.RowSpan="2">
          <Grid Width="{Binding Blocks.ScaledWidth}" Height="100" DockPanel.Dock="Top">
@@ -29,11 +30,11 @@
          </Grid>
          <ScrollViewer Name="BlockViewer" Panel.ZIndex="1">
             <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
-               <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown"/>
+               <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown" />
                <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
                   Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}"
                   Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}"
-                  Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}"/>
+                  Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}" />
             </Canvas>
          </ScrollViewer>
       </DockPanel>

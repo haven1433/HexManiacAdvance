@@ -35,5 +35,14 @@
          }
          NotifyPropertyChanged(nameof(PixelData));
       }
+
+      public void DrawBox(int x, int y, int size, short color) {
+         for (int i = 0; i < size - 1; i++) {
+            PixelData[x + i + y * PixelWidth] = color;
+            PixelData[x + size - 1 - i + (y + size - 1) * PixelWidth] = color;
+            PixelData[x + (y + size - 1 - i) * PixelWidth] = color;
+            PixelData[x + size - 1 + (y + i) * PixelWidth] = color;
+         }
+      }
    }
 }
