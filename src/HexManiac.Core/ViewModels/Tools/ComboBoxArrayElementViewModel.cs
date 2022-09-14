@@ -35,7 +35,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public override bool DisplayAsText => false;
 
       private VisualComboOption(string text, int index) : base(text, index) { PixelData = new short[0]; }
-      public static ComboOption CreateFromSprite(string text, short[] pixelData, int width, int index) => new VisualComboOption(text, index) {
+      public static VisualComboOption CreateFromSprite(string text, short[] pixelData, int width, int index) => new VisualComboOption(text, index) {
          PixelData = pixelData,
          PixelWidth = width,
          PixelHeight = pixelData.Length / width,

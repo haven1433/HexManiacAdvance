@@ -7,6 +7,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Windows.Input;
@@ -27,7 +28,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int TotalBlocks => 1024;
       private int PrimaryPalettes => 7;
 
+      #region SelectedEvent
+
       private IEventModel selectedEvent;
+      public IEventModel SelectedEvent {
+         get => selectedEvent;
+         set {
+            var oldValue = selectedEvent;
+            selectedEvent = value;
+            HandleSelectedEventChanged(oldValue);
+         }
+      }
+
+      private void HandleSelectedEventChanged(IEventModel old) {
+         if (old == selectedEvent) return;
+         if (old != null) {
+            old.EventVisualUpdated -= RefreshFromEventChange;
+         }
+         if (selectedEvent != null) {
+            selectedEvent.EventVisualUpdated += RefreshFromEventChange;
+         }
+         RedrawEvents();
+      }
+
+      private void RefreshFromEventChange(object sender, EventArgs e) => RedrawEvents();
+
+      #endregion
 
       private static int MapSizeLimit => 0x2800; // (x+15)*(y+14) must be less that 0x2800 (5*2048). This can lead to limits like 113x66 or 497x6
       public static bool IsMapWithinSizeLimit(int width, int height) => (width / 16 + 15) * (height / 16 + 14) <= MapSizeLimit;
@@ -141,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public string Name => MapIDToText(MapID);
+      public string Name => MapIDToText(model, MapID);
 
       public event EventHandler NeighborsChanged;
 
@@ -203,8 +229,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Scale(double x, double y, bool enlarge) {
          var old = spriteScale;
 
-         if (enlarge && spriteScale < 10) spriteScale *= 2;
-         else if (!enlarge && spriteScale > .1) spriteScale /= 2;
+         if (enlarge && spriteScale < 10) {
+            if (spriteScale < 1) spriteScale *= 2;
+            else spriteScale += 1;
+         } else if (!enlarge && spriteScale > .1) {
+            if (spriteScale > 1) spriteScale -= 1;
+            else spriteScale /= 2;
+         }
 
          if (old != spriteScale) UpdateEdgesFromScale(old, x - leftEdge, y - topEdge);
          NotifyPropertyChanged(nameof(SpriteScale));
@@ -272,7 +303,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (xx >= width || yy >= height) return;
          ev.X = xx;
          ev.Y = yy;
-         selectedEvent = ev;
+         SelectedEvent = ev;
          pixelData = null;
          NotifyPropertyChanged(nameof(PixelData));
       }
@@ -367,19 +398,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var e in GetEvents(tokenFactory())) {
             if (e.X == tileX && e.Y == tileY) {
                if (selectedEvent == null || selectedEvent.X != e.X || selectedEvent.Y != e.Y) {
-                  selectedEvent = e;
+                  SelectedEvent = e;
                   pixelData = null;
                   NotifyPropertyChanged(nameof(PixelData));
                }
                return e;
             }
          }
-         return selectedEvent = null;
+         return SelectedEvent = null;
       }
 
       public void DeselectEvent() {
          if (selectedEvent == null) return;
-         selectedEvent = null;
+         SelectedEvent = null;
          pixelData = null;
          NotifyPropertyChanged(nameof(PixelData));
       }
@@ -463,7 +494,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var address = CreateNewMap(token, info.Size, info.Size);
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
 
-         var otherMap = new BlockMapViewModel(fileSystem, model, tokenFactory, newConnection.MapGroup, newConnection.MapNum);
+         var otherMap = new BlockMapViewModel(fileSystem, model, tokenFactory, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = new ConnectionInfo(info.Size, -info.Offset, info.OppositeDirection);
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -486,7 +517,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
             for (int map = 0; map < maps.Count; map++) {
-               var mapVM = new BlockMapViewModel(fileSystem, model, tokenFactory, group, map);
+               var mapVM = new BlockMapViewModel(fileSystem, model, tokenFactory, group, map) { allOverworldSprites = allOverworldSprites };
                var newInfo = mapVM.CanConnect(info.OppositeDirection);
                if (newInfo != null) options[mapVM.MapID] = newInfo;
             }
@@ -494,7 +525,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // select which map to add
          var keys = options.Keys.ToList();
-         var enumViewModel = new EnumViewModel(keys.Select(MapIDToText).ToArray());
+         var enumViewModel = new EnumViewModel(keys.Select(key => MapIDToText(model, key)).ToArray());
          var option = fileSystem.ShowOptions(
             "Pick a group",
             "Which map group do you want to add the new map to?",
@@ -509,7 +540,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         var otherMap = new BlockMapViewModel(fileSystem, model, tokenFactory, newConnection.MapGroup, newConnection.MapNum);
+         var otherMap = new BlockMapViewModel(fileSystem, model, tokenFactory, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = options[choice];
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -622,7 +653,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
-         var vm = new BlockMapViewModel(fileSystem, model, tokenFactory, connection.MapGroup, connection.MapNum) { IncludeBorders = IncludeBorders, SpriteScale = SpriteScale };
+         var vm = new BlockMapViewModel(fileSystem, model, tokenFactory, connection.MapGroup, connection.MapNum) {
+            IncludeBorders = IncludeBorders,
+            SpriteScale = SpriteScale,
+            allOverworldSprites = allOverworldSprites,
+         };
          var (n, _, _, w) = vm.GetBorderThickness();
          vm.TopEdge = TopEdge + (connection.Offset + border.North - n) * (int)(16 * SpriteScale);
          vm.LeftEdge = LeftEdge + (connection.Offset + border.West - w) * (int)(16 * SpriteScale);
@@ -815,13 +850,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
+      private IList<IPixelViewModel> allOverworldSprites;
+      public static IList<IPixelViewModel> RenderOWs(IDataModel model) {
+         var list = new List<IPixelViewModel>();
+         var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
+         var ows = new ModelTable(model, run.Start, null, run);
+         for (int i = 0; i < ows.Count; i++) {
+            list.Add(ObjectEventModel.Render(model, ows, i));
+         }
+         return list;
+      }
+
       private IReadOnlyList<IEventModel> GetEvents(ModelDelta token = null) {
+         if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          var mapBanks = new ModelTable(model, table.Start, token);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
-         var events = new EventGroupModel(mapTable[0].GetSubTable("events")[0]);
          var results = new List<IEventModel>();
+         var events = new EventGroupModel(mapTable[0].GetSubTable("events")[0], allOverworldSprites);
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);
@@ -861,12 +908,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < connections.Count; i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
-               var map = new BlockMapViewModel(fileSystem, model, tokenFactory, connections[i].MapGroup, connections[i].MapNum);
+               var map = new BlockMapViewModel(fileSystem, model, tokenFactory, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeWidth = map.pixelWidth / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
             } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
-               var map = new BlockMapViewModel(fileSystem, model, tokenFactory, connections[i].MapGroup, connections[i].MapNum);
+               var map = new BlockMapViewModel(fileSystem, model, tokenFactory, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeHeight = map.pixelHeight / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);
@@ -960,7 +1007,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return connectionStart;
       }
 
-      private string MapIDToText(int id) {
+      public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;
          var map = id % 1000;
          var offset = 0x58; // 88 maps names from Ruby
@@ -1067,14 +1114,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class EventGroupModel {
       private readonly ModelArrayElement events;
 
-      public EventGroupModel(ModelArrayElement events) {
+      public EventGroupModel(ModelArrayElement events, IList<IPixelViewModel> ows) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
          var objects = events.GetSubTable("objects");
          var objectList = new List<ObjectEventModel>();
          if (objects != null) {
-            for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i]));
+            for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i], ows));
          }
          Objects = objectList;
 
@@ -1117,16 +1164,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public interface IEventModel : INotifyPropertyChanged {
+      event EventHandler EventVisualUpdated;
       int TopOffset { get; }
       int LeftOffset { get; }
       int X { get; set; }
       int Y { get; set; }
+      int Elevation { get; set; }
       IPixelViewModel EventRender { get; }
       void Render(IDataModel model);
       void Delete();
    }
 
    public abstract class BaseEventModel : ViewModelCore, IEventModel {
+      // TODO text for event number / event count (1/4, 2/4, 3/4, 4/4, etc)
+      // TODO commands for switching selection to another event/group
+      public event EventHandler EventVisualUpdated;
+
       protected readonly ModelArrayElement element;
       private readonly string parentLengthField;
 
@@ -1140,7 +1193,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("x", value);
             NotifyPropertyChanged();
+            if (!ignoreUpdateXY) xy = null;
             NotifyPropertyChanged(nameof(XY));
+            RaiseEventVisualUpdated();
          }
       }
 
@@ -1149,20 +1204,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("y", value);
             NotifyPropertyChanged();
+            if (!ignoreUpdateXY) xy = null;
             NotifyPropertyChanged(nameof(XY));
+            RaiseEventVisualUpdated();
          }
       }
 
+      private bool ignoreUpdateXY;
+      private string xy;
       public string XY {
-         get => $"({X}, {Y})";
+         get {
+            if (xy == null) xy = $"({X}, {Y})";
+            return xy;
+         }
          set {
+            xy = value;
             var parts = value.Split(new[] { ',', ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length != 2) return;
+            ignoreUpdateXY = true;
             if (parts[0].TryParseInt(out int x)) X = x;
             if (parts[1].TryParseInt(out int y)) Y = y;
-            NotifyPropertyChanged(nameof(X));
-            NotifyPropertyChanged(nameof(Y));
+            ignoreUpdateXY = false;
          }
+      }
+
+      #endregion
+
+      #region Elevation
+
+      public int Elevation {
+         get => element.GetValue("elevation");
+         set => element.SetValue("elevation", value);
       }
 
       #endregion
@@ -1174,6 +1246,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Delete() => DeleteElement(parentLengthField);
 
       public abstract void Render(IDataModel model);
+
+      protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
       protected void DeleteElement(string parentCountField) {
          var table = element.Table;
@@ -1215,62 +1289,183 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ObjectEventModel : BaseEventModel {
-      public ObjectEventModel(ModelArrayElement objectEvent) : base(objectEvent, "objectCount") { }
-      public int ObjectID => element.GetValue("id");
-      public int Graphics => element.GetValue("graphics");
-      public int Elevation => element.GetValue("elevation");
-      public int MoveType => element.GetValue("moveType");
-      public int RangeX => element.GetValue("range") & 0xF;
-      public int RangeY => element.GetValue("range") >> 4;
-      public int TrainerType => element.GetValue("trainerType");
-      public int TrainerRangeOrBerryID => element.GetValue("trainerRangeOrBerryID");
-      public int ScriptAddress => element.GetAddress("script");
-      public int Flag => element.GetValue("flag");
+
+      public int ObjectID {
+         get => element.GetValue("id");
+         set => element.SetValue("id", value);
+      }
+
+      public int Graphics {
+         get => element.GetValue("graphics");
+         set {
+            element.SetValue("graphics", value);
+            RaiseEventVisualUpdated();
+         }
+      }
+
+      public int MoveType {
+         get => element.GetValue("moveType");
+         set => element.SetValue("moveType", value);
+      }
+
+      #region Range
+
+      public int RangeX {
+         get => element.GetValue("range") & 0xF;
+         set {
+            element.SetValue("range", (RangeY << 4) | value);
+            rangeXY = null;
+            NotifyPropertyChanged(nameof(RangeXY));
+         }
+      }
+
+      public int RangeY {
+         get => element.GetValue("range") >> 4;
+         set {
+            element.SetValue("range", (value << 4) | RangeX);
+            rangeXY = null;
+            NotifyPropertyChanged(nameof(RangeXY));
+         }
+      }
+
+      private string rangeXY;
+      public string RangeXY {
+         get {
+            if (rangeXY == null) rangeXY = $"({RangeX}, {RangeY})";
+            return rangeXY;
+         }
+         set {
+            rangeXY = value;
+            var parts = value.Split(new[] { ',', ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2) return;
+            if (parts[0].TryParseInt(out int x) && parts[1].TryParseInt(out int y)) element.SetValue("range", (y << 4) | x);
+            NotifyPropertyChanged(nameof(RangeX));
+            NotifyPropertyChanged(nameof(RangeY));
+         }
+      }
+
+      #endregion
+
+      public int TrainerType {
+         get => element.GetValue("trainerType");
+         set => element.SetValue("trainerType", value);
+      }
+
+      public int TrainerRangeOrBerryID {
+         get => element.GetValue("trainerRangeOrBerryID");
+         set => element.SetValue("trainerRangeOrBerryID", value);
+      }
+
+      public int ScriptAddress {
+         get => element.GetAddress("script");
+         set => element.SetAddress("script", value);
+      }
+
+      private string scriptAddressText;
+      public string ScriptAddressText {
+         get {
+            if (scriptAddressText == null) scriptAddressText = element.GetAddress("script").ToAddress();
+            return scriptAddressText;
+         }
+         set {
+            scriptAddressText = value;
+            element.SetAddress("script", value.TryParseHex(out int result) ? result : Pointer.NULL);
+         }
+      }
+
+      public int Flag {
+         get => element.GetValue("flag");
+         set => element.SetValue("flag", value);
+      }
+
+      public string FlagText {
+         get => element.GetValue("flag").ToString("X4");
+         set => element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
+      }
+
+      public ObservableCollection<VisualComboOption> Options { get; } = new();
+
+      public ObjectEventModel(ModelArrayElement objectEvent, IList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i));
+      }
 
       public override int TopOffset => 16 - EventRender.PixelHeight;
       public override int LeftOffset => (16 - EventRender.PixelWidth) / 2;
 
       public override void Render(IDataModel model) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
-         if (Graphics >= owTable.Count) {
-            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
-            return;
+         EventRender = Render(model, owTable, Graphics);
+      }
+
+      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, int index) {
+         if (index >= owTable.Count) {
+            return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
          }
-         var element = owTable[Graphics];
+         var element = owTable[index];
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites")[0];
          var graphicsAddress = sprites.GetAddress("sprite");
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          if (graphicsRun == null) {
-            EventRender = new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
-            return;
+            return new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
          }
-         EventRender = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+         return ReadonlyPixelViewModel.Create(model, graphicsRun, true);
       }
    }
 
    public class WarpEventModel : BaseEventModel {
       public WarpEventModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
 
-      public int Elevation {
-         get => element.GetValue("elevation");
-         set => element.SetValue("elevation", value);
-      }
-
       public int WarpID {
          get => element.GetValue("warpID");
          set => element.SetValue("warpID", value);
       }
 
-      public int Map {
-         get => element.GetValue("map");
-         set => element.SetValue("map", value);
-      }
+      #region Bank/Map
 
       public int Bank {
          get => element.GetValue("bank");
-         set => element.SetValue("bank", value);
+         set {
+            element.SetValue("bank", value);
+            NotifyPropertyChanged();
+            if (!ignoreUpdateBankMap) bankMap = null;
+            NotifyPropertyChanged(nameof(BankMap));
+            NotifyPropertyChanged(nameof(TargetMapName));
+         }
       }
+
+      public int Map {
+         get => element.GetValue("map");
+         set {
+            element.SetValue("map", value);
+            NotifyPropertyChanged();
+            if (!ignoreUpdateBankMap) bankMap = null;
+            NotifyPropertyChanged(nameof(BankMap));
+            NotifyPropertyChanged(nameof(TargetMapName));
+         }
+      }
+
+      private bool ignoreUpdateBankMap;
+      private string bankMap;
+      public string BankMap {
+         get {
+            if (bankMap == null) bankMap = $"({Bank}, {Map})";
+            return bankMap;
+         }
+         set {
+            bankMap = value;
+            var parts = value.Split(new[] { ',', ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2) return;
+            ignoreUpdateBankMap = true;
+            if (parts[0].TryParseInt(out int bank)) Bank = bank;
+            if (parts[1].TryParseInt(out int map)) Map = map;
+            ignoreUpdateBankMap = false;
+         }
+      }
+
+      public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank * 1000 + Map);
+
+      #endregion
 
       public override void Render(IDataModel model) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
@@ -1278,7 +1473,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ScriptEventModel : BaseEventModel {
+      // trigger: index:: script<`xse`>
       public ScriptEventModel(ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { }
+
+      public int Trigger {
+         get => element.GetValue("trigger");
+         set => element.SetValue("trigger", value);
+      }
+
+      public int Index {
+         get => element.GetValue("index");
+         set => element.SetValue("index", value);
+      }
+
+      public int ScriptAddress {
+         get => element.GetAddress("script");
+         set => element.SetAddress("script", value);
+      }
+
+      private string scriptAddressText;
+      public string ScriptAddressText {
+         get {
+            if (scriptAddressText == null) scriptAddressText = element.GetAddress("script").ToAddress();
+            return scriptAddressText;
+         }
+         set {
+            scriptAddressText = value;
+            element.SetAddress("script", value.TryParseHex(out int result) ? result : Pointer.NULL);
+         }
+      }
 
       public override void Render(IDataModel model) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
@@ -1286,7 +1509,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class SignpostEventModel : BaseEventModel {
+      // kind. arg::|h
+      // kind = 5/6/7 => arg is itemID: hiddenItemID. attr|t|quantity:::.|isUnderFoot.
+      // kind = other => arg is script<`xse`>
+
       public SignpostEventModel(ModelArrayElement signpostEvent) : base(signpostEvent, "signpostCount") { }
+
+      public int Kind {
+         get => element.GetValue("kind");
+         set => element.SetValue("kind", value);
+      }
+
+      public string Arg {
+         get => element.GetValue("arg").ToString("X8");
+         set => element.SetValue("arg", value.TryParseHex(out int result) ? result : 0);
+      }
 
       public override void Render(IDataModel model) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));

@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:res="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
+             xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
              Focusable="True">
    <UserControl.InputBindings>
@@ -23,12 +24,12 @@
          <RowDefinition Height="Auto" />
          <RowDefinition Height="*" />
       </Grid.RowDefinitions>
-      <DockPanel Grid.Column="0" Grid.RowSpan="2">
+      <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel">
          <Grid Width="{Binding Blocks.ScaledWidth}" Height="100" DockPanel.Dock="Top">
             <local:AngleComboBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Width="50" Height="20"
                ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
          </Grid>
-         <ScrollViewer Name="BlockViewer" Panel.ZIndex="1">
+         <ScrollViewer Name="BlockViewer">
             <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
                <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown" />
                <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
@@ -38,7 +39,8 @@
             </Canvas>
          </ScrollViewer>
       </DockPanel>
-      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}"
+      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1"
+         Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
          <ContentControl DataContext="{Binding SelectedEvent}" Content="{Binding}">
             <ContentControl.Resources>
@@ -49,35 +51,186 @@
                         <ColumnDefinition />
                      </Grid.ColumnDefinitions>
                      <Grid.RowDefinitions>
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
-                        <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
                         <RowDefinition />
                      </Grid.RowDefinitions>
-                     <!-- TODO show as dropdown -->
-                     <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Graphics}" />
-                     <TextBlock Grid.Row="1" Grid.Column="0" Text="(x, y):" />
-                     <local:AngleTextBox Grid.Row="1" Grid.Column="1" TextBinding="{Binding XY}" />
-                     <!-- TODO show as int textbox -->
-                     <TextBlock Grid.Row="2" Text="{Binding Elevation}" />
-                     <!-- TODO Show as text dropdown -->
-                     <TextBlock Grid.Row="3" Text="{Binding MoveType}" />
-                     <!-- TODO Show a w/h pair, in a single textbox -->
-                     <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding RangeX}" />
-                     <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding RangeY}" />
-                     <!-- TODO enum? -->
-                     <TextBlock Grid.Row="5" Text="{Binding TrainerType}" />
-                     <!-- TODO unsure -->
-                     <TextBlock Grid.Row="6" Text="{Binding TrainerRangeOrBerryID}" />
-                     <!-- TODO show in hex, button to follow pointer, ability to create new if null -->
-                     <TextBlock Grid.Row="7" Text="{Binding ScriptAddress}" />
-                     <!-- TODO show in hex -->
-                     <TextBlock Grid.Row="8" Text="{Binding Flag}" />
+
+                     <StackPanel>
+                        <local:AngleBorder Direction="Out">
+                           <TextBlock Text="ID:"/>
+                        </local:AngleBorder>
+                        <local:AngleTextBox Direction="Out" TextBinding="{Binding ObjectID}" />
+                     </StackPanel>
+                     
+                     <ComboBox Grid.Row="0" Grid.Column="1" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}">
+                        <ComboBox.Resources>
+                           <DataTemplate DataType="{x:Type tools:VisualComboOption}">
+                              <local:PixelImage />
+                           </DataTemplate>
+                        </ComboBox.Resources>
+                     </ComboBox>
+
+                     <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="(x, y):" />
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Elevation:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Elevation}" />
+
+                     <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Movement Type:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding MoveType, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Range:" />
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding RangeXY, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="5" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Trainer Type:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding TrainerType}" />
+
+                     <local:AngleBorder Grid.Row="6" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="TrainerRange / BerryID:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="6" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding TrainerRangeOrBerryID}" />
+
+                     <local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Script Address:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="8" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Flag:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding FlagText}" />
+                  </Grid>
+               </DataTemplate>
+               <DataTemplate DataType="{x:Type map:WarpEventModel}">
+                  <Grid>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                     </Grid.ColumnDefinitions>
+                     <Grid.RowDefinitions>
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition />
+                     </Grid.RowDefinitions>
+
+                     <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="(x, y):" />
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Elevation:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Elevation}" />
+
+                     <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="(bank, map):"/>
+                     </local:AngleBorder>
+                     <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Top">
+                        <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap}" />
+                        <TextBlock Text="{Binding TargetMapName}" />
+                     </StackPanel>
+
+                     <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Destination ID:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding WarpID}" />
+                  </Grid>
+               </DataTemplate>
+               <DataTemplate DataType="{x:Type map:ScriptEventModel}">
+                  <Grid>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                     </Grid.ColumnDefinitions>
+                     <Grid.RowDefinitions>
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition />
+                     </Grid.RowDefinitions>
+
+                     <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="(x, y):" />
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Elevation:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Elevation}" />
+
+                     <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Trigger:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Trigger}" />
+
+                     <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Index:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Index}" />
+
+                     <local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Script Address:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
+                  </Grid>
+               </DataTemplate>
+               <DataTemplate DataType="{x:Type map:SignpostEventModel}">
+                  <Grid>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                     </Grid.ColumnDefinitions>
+                     <Grid.RowDefinitions>
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition /> <RowDefinition />
+                        <RowDefinition />
+                     </Grid.RowDefinitions>
+
+                     <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="(x, y):" />
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
+
+                     <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Elevation:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Elevation}" />
+
+                     <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Kind:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Kind}" />
+
+                     <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Arg:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Arg}" />
+
+                     <!-- TODO break Arg into multiple pieces and show individual UI based on the value of Kind -->
+                     <!--<local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left">
+                        <TextBlock Text="Script Address:"/>
+                     </local:AngleBorder>
+                     <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />-->
                   </Grid>
                </DataTemplate>
             </ContentControl.Resources>
