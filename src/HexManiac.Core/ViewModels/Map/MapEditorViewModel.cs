@@ -185,11 +185,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (primaryMap != map) {
             if (primaryMap != null) {
                primaryMap.NeighborsChanged -= PrimaryMapNeighborsChanged;
+               primaryMap.PropertyChanged -= PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = -1;
             }
             PrimaryMap = map;
             if (primaryMap != null) {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
+               primaryMap.PropertyChanged += PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = collisionIndex;
             }
             NotifyPropertyChanged(nameof(Blocks));
@@ -230,6 +232,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void PrimaryMapNeighborsChanged(object? sender, EventArgs e) {
          UpdatePrimaryMap(primaryMap);
+      }
+
+      private void PrimaryMapPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         var map = (BlockMapViewModel)sender;
+         if (e.PropertyName == nameof(BlockMapViewModel.SelectedEvent)) {
+            if (map.SelectedEvent != selectedEvent) {
+               SelectedEvent = map.SelectedEvent;
+            }
+         }
       }
 
       private IEnumerable<BlockMapViewModel> GetMapNeighbors(BlockMapViewModel map, int recursionLevel) {

@@ -36,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             var oldValue = selectedEvent;
             selectedEvent = value;
+            NotifyPropertyChanged();
             HandleSelectedEventChanged(oldValue);
          }
       }
@@ -44,14 +45,65 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (old == selectedEvent) return;
          if (old != null) {
             old.EventVisualUpdated -= RefreshFromEventChange;
+            old.CycleEvent -= CycleActiveEvent;
          }
          if (selectedEvent != null) {
             selectedEvent.EventVisualUpdated += RefreshFromEventChange;
+            selectedEvent.CycleEvent += CycleActiveEvent;
          }
          RedrawEvents();
       }
 
       private void RefreshFromEventChange(object sender, EventArgs e) => RedrawEvents();
+
+      private void CycleActiveEvent(object sender, EventCycleDirection direction) {
+         // organize events into categories
+         var events = GetEvents(tokenFactory());
+         var categories = new List<List<IEventModel>> { new(), new(), new(), new() };
+         int selectionIndex = -1, selectedCategory = -1;
+         for (int i = 0; i < events.Count; i++) {
+            int currentCategory =
+               events[i] is ObjectEventModel ? 0 :
+               events[i] is WarpEventModel ? 1 :
+               events[i] is ScriptEventModel ? 2 :
+               events[i] is SignpostEventModel ? 3 :
+               -1;
+            categories[currentCategory].Add(events[i]);
+
+            if (events[i].Equals(selectedEvent)) {
+               selectionIndex = categories[currentCategory].Count - 1;
+               selectedCategory = currentCategory;
+            };
+         }
+
+         // remove unused categories
+         for (int i = 0; i < categories.Count; i++) {
+            if (categories[i].Count != 0) continue;
+            categories.RemoveAt(i);
+            if (selectedCategory > i) selectedCategory--;
+            i--;
+         }
+
+         // cycle
+         if (direction == EventCycleDirection.PreviousCategory) {
+            selectedCategory += categories.Count - 1;
+            selectionIndex = 0;
+         } else if (direction == EventCycleDirection.NextCategory) {
+            selectedCategory += 1;
+            selectionIndex = 0;
+         } else if (direction == EventCycleDirection.PreviousEvent) {
+            selectionIndex += categories[selectedCategory].Count - 1;
+         } else if (direction == EventCycleDirection.NextEvent) {
+            selectionIndex += 1;
+         } else {
+            throw new NotImplementedException();
+         }
+         selectedCategory %= categories.Count;
+         selectionIndex %= categories[selectedCategory].Count;
+
+         // update selection
+         SelectedEvent = categories[selectedCategory][selectionIndex];
+      }
 
       #endregion
 
@@ -1163,8 +1215,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
        */
    }
 
-   public interface IEventModel : INotifyPropertyChanged {
+   public interface IEventModel : IEquatable<IEventModel>, INotifyPropertyChanged {
       event EventHandler EventVisualUpdated;
+      public event EventHandler<EventCycleDirection> CycleEvent;
+      string EventType { get; }
+      string EventIndex { get; }
       int TopOffset { get; }
       int LeftOffset { get; }
       int X { get; set; }
@@ -1175,13 +1230,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       void Delete();
    }
 
-   public abstract class BaseEventModel : ViewModelCore, IEventModel {
-      // TODO text for event number / event count (1/4, 2/4, 3/4, 4/4, etc)
-      // TODO commands for switching selection to another event/group
+   public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory }
+
+   public abstract class BaseEventModel : ViewModelCore, IEventModel, IEquatable<IEventModel> {
       public event EventHandler EventVisualUpdated;
+      public event EventHandler<EventCycleDirection> CycleEvent;
+
+      private StubCommand cycleEventCommand;
+      public ICommand CycleEventCommand => StubCommand<EventCycleDirection>(ref cycleEventCommand, direction => {
+         CycleEvent?.Invoke(this, direction);
+      });
 
       protected readonly ModelArrayElement element;
       private readonly string parentLengthField;
+
+      public string EventType => GetType().Name.Replace("EventModel", string.Empty);
+      public string EventIndex {
+         get {
+            var eventIndex = (element.Start - element.Table.Start) / element.Table.ElementLength + 1;
+            return $"{eventIndex}/{element.Table.ElementCount}";
+         }
+      }
 
       public virtual int TopOffset => 0;
       public virtual int LeftOffset => 0;
@@ -1244,6 +1313,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public BaseEventModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
 
       public void Delete() => DeleteElement(parentLengthField);
+
+      public bool Equals(IEventModel other) {
+         if (other is not BaseEventModel bem) return false;
+         return bem.element.Start == element.Start;
+      }
 
       public abstract void Render(IDataModel model);
 
@@ -1473,7 +1547,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ScriptEventModel : BaseEventModel {
-      // trigger: index:: script<`xse`>
       public ScriptEventModel(ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { }
 
       public int Trigger {
