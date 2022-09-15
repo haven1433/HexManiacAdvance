@@ -128,22 +128,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var offset = table.ConvertByteOffsetToArrayOffset(element.Start);
          var editCount = table.ElementCount - offset.ElementIndex - 1;
          for (int i = 0; i < editCount; i++) {
-            // TODO this edits pointers as well, we need to do pointer metadata update stuff
-            token.ChangeData(model, element.Start + i * element.Length, element.Length.Range(j => model[element.Start + i * element.Length + j]).ToList());
+            int segmentOffset = 0;
+            for (int j = 0; j < table.ElementContent.Count; j++) {
+               var source = element.Start + (i + 1) * element.Length + segmentOffset;
+               var destination = source - element.Length;
+               var length = table.ElementContent[j].Length;
+               if (table.ElementContent[j].Type == ElementContentType.Pointer) {
+                  model.UpdateArrayPointer(token, table.ElementContent[j], table.ElementContent, offset.ElementIndex, destination, model.ReadPointer(source));
+               } else {
+                  model.WriteMultiByteValue(destination, length, token, model.ReadMultiByteValue(source, length));
+               }
+               segmentOffset += length;
+            }
          }
          if (table.ElementCount > 1) {
             var shorterTable = table.Append(token, -1);
             model.ObserveRunWritten(token, shorterTable);
          } else {
             foreach (var source in table.PointerSources) {
-               model.ClearPointer(token, source, table.Start);
-               model.WritePointer(token, source, Pointer.NULL);
+               model.UpdateArrayPointer(token, null, null, 0, source, Pointer.NULL);
                if (model.GetNextRun(source) is ITableRun parentTable) {
                   var parent = new ModelArrayElement(model, parentTable.Start, 0, token, parentTable);
                   parent.SetValue(parentCountField, 0);
                }
             }
-            model.ClearData(token, table.Start, table.Length);
+            model.ClearFormatAndData(token, table.Start, table.Length);
          }
       }
 

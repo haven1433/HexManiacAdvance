@@ -219,7 +219,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg.Type == ElementContentType.Pointer) {
-            model.WritePointer(token, valueAddress, value);
+            model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value);
          } else {
             throw new NotImplementedException();
          }

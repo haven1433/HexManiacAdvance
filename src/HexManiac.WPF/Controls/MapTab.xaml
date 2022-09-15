@@ -14,6 +14,7 @@
       <KeyBinding Key="Add" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}" />
       <KeyBinding Key="Subtract" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Shrink}" />
       <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
+      <KeyBinding Key="Backspace" Command="{Binding DeleteCommand}" />
    </UserControl.InputBindings>
    <Grid ClipToBounds="True">
       <Grid.ColumnDefinitions>
@@ -261,6 +262,73 @@
             </ContentControl>
          </DockPanel>
       </ScrollViewer>
+      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1"
+         Width="{Binding ActualWidth, ElementName=BlockPanel}"
+         Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
+         <Grid DataContext="{Binding PrimaryMap.Header}">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition />
+               <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+               <RowDefinition /> <RowDefinition />
+               <RowDefinition /> <RowDefinition />
+               <RowDefinition /> <RowDefinition />
+               <RowDefinition /> <RowDefinition />
+               <RowDefinition /> <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <local:AngleBorder Direction="Left" Grid.Row="0">
+               <TextBlock Text="Music:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="0" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Music}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="1">
+               <TextBlock Text="LayoutID:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="1" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding LayoutID}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="2">
+               <TextBlock Text="Region Section ID:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="2" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding RegionSectionID}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="3">
+               <TextBlock Text="Cave:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="3" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Cave}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="4">
+               <TextBlock Text="Weather:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="4" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Weather}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="5">
+               <TextBlock Text="MapType:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="5" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding MapType}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="6">
+               <TextBlock Text="AllowBiking:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="6" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding AllowBiking}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="7">
+               <TextBlock Text="Flags:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="7" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Flags}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="8">
+               <TextBlock Text="FloorNum:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="8" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding FloorNum}" />
+
+            <local:AngleBorder Direction="Left" Grid.Row="9">
+               <TextBlock Text="BattleType:" />
+            </local:AngleBorder>
+            <local:AngleTextBox Grid.Row="9" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding BattleType}" />
+         </Grid>
+      </ScrollViewer>
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
                     SnapsToDevicePixels="True" ClipToBounds="True" Focusable="False"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
@@ -344,8 +412,22 @@
       </Rectangle>
 
       <!-- Toolbar? -->
-      <StackPanel Grid.Column="1" DataContext="{Binding PrimaryMap}">
-         <TextBlock Text="{Binding Name}" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,1,1,5">
+         <StackPanel Margin="5">
+            <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}">
+               <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinPlus}" />
+            </Button>
+            <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Shrink}">
+               <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinMinus}" />
+            </Button>
+         </StackPanel>
+         <ToggleButton Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5" />
+         <TextBlock Text="{Binding PrimaryMap.Name}" Margin="5"/>
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Object}" ToolTip="Create New Object" />
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp" />
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Script}" ToolTip="Create New Script" />
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Signpost}" ToolTip="Create New Signpost" />
       </StackPanel>
+      <Rectangle Grid.Column="1" IsHitTestVisible="False" Fill="{DynamicResource Secondary}" Height="1" VerticalAlignment="Bottom" />
    </Grid>
 </UserControl>

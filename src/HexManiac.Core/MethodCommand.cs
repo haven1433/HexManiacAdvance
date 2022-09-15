@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -85,7 +86,7 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public void Execute(object parameter) {
-         var execute = Context.GetType().GetMethod(ExecuteName);
+         var execute = Context.GetType().GetMethods().Single(m => m.Name == ExecuteName && m.GetParameters().Length < 2);
          if (execute == null) return;
          object result;
          try {

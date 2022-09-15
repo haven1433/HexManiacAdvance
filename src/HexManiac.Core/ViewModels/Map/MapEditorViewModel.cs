@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using IronPython.Modules;
 using System;
@@ -29,6 +30,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private bool showHeaderPanel;
+      public bool ShowHeaderPanel {
+         get => showHeaderPanel;
+         set => Set(ref showHeaderPanel, value);
+      }
+
       private IEventModel selectedEvent;
       public IEventModel SelectedEvent {
          get => selectedEvent;
@@ -36,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             selectedEvent = value;
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(ShowEventPanel));
+            ShowHeaderPanel = false;
          }
       }
 
@@ -175,7 +183,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
-         var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true, SpriteScale = .5 };
+         var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
       }
@@ -316,6 +324,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             SelectedEvent = null;
          }
 
+         ShowHeaderPanel = false;
          DrawDown(x, y);
       }
 
@@ -363,13 +372,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Hover(x, y);
       }
 
-      private void EventUp(double x, double y) => history.ChangeCompleted();
+      private void EventUp(double x, double y) {
+         history.ChangeCompleted();
+         if (!withinEventCreationInteraction) return;
+         withinEventCreationInteraction = false;
+         UpdatePrimaryMap(primaryMap); // re-add neighbors
+      }
 
       #endregion
+
+      private bool withinEventCreationInteraction = false;
+      public void StartEventCreationInteraction(EventCreationType type) {
+         if (type == EventCreationType.Object) {
+            SelectedEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
+         } else if (type == EventCreationType.Warp) {
+            var desiredMap = (bank: 0, map: 0);
+            if (backStack.Count > 0) {
+               var last = backStack[backStack.Count - 1];
+               desiredMap = (bank: last / 1000, map: last % 1000);
+            }
+            SelectedEvent = primaryMap.CreateWarpEvent(desiredMap.bank, desiredMap.map);
+         } else if (type == EventCreationType.Script) {
+            SelectedEvent = primaryMap.CreateScriptEvent();
+         } else if (type == EventCreationType.Signpost) {
+            SelectedEvent = primaryMap.CreateSignpostEvent();
+         } else {
+            throw new NotImplementedException();
+         }
+         interactionType = PrimaryInteractionType.Event;
+         VisibleMaps.Clear();
+         VisibleMaps.Add(primaryMap);
+         MapButtons.Clear();
+         withinEventCreationInteraction = true;
+      }
 
       public void SelectDown(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map == null) return;
+         ShowHeaderPanel = false;
          var (blockIndex, collisionIndex) = map.GetBlock(x, y);
          if (blockIndex >= 0) {
             DrawBlockIndex = blockIndex;
@@ -417,7 +457,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Delete() {
          if (selectedEvent == null) return;
          selectedEvent.Delete();
-         selectedEvent = null;
+         SelectedEvent = null;
          primaryMap.DeselectEvent();
          primaryMap.RedrawEvents();
       }
@@ -495,6 +535,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
    }
+
+   public enum EventCreationType { Object, Warp, Script, Signpost }
 
    public enum PrimaryInteractionType { None, Draw, Event }
 }

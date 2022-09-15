@@ -172,5 +172,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       #endregion
+
+      #region Event Template Interaction
+
+      private void EventTemplateDown(object sender, MouseEventArgs e) {
+         var target = (EventCreationType)((FrameworkElement)sender).Tag;
+         withinMapInteraction = MouseButton.Left;
+         MapView.CaptureMouse();
+         ViewModel.StartEventCreationInteraction(target);
+         e.Handled = true;
+      }
+
+      #endregion
    }
 }

@@ -9,7 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
@@ -111,6 +113,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static bool IsMapWithinSizeLimit(int width, int height) => (width / 16 + 15) * (height / 16 + 14) <= MapSizeLimit;
 
       public int MapID => group * 1000 + map;
+
+      public MapHeaderViewModel Header { get; }
 
       #region IPixelViewModel
 
@@ -230,7 +234,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (this.group, this.map) = (group, map);
          Transparent = -1;
          InitTableRef();
-
+         Header = new(GetMapModel(), tokenFactory);
          RefreshMapSize();
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
@@ -665,6 +669,79 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newConnection;
       }
 
+      public ObjectEventModel CreateObjectEvent(int graphics, int scriptAddress) {
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var events = map.GetSubTable("events")[0];
+         var element = AddEvent(events, token, "objectCount", "objects");
+         var newEvent = new ObjectEventModel(element, allOverworldSprites) {
+            ObjectID = element.Table.ElementCount,
+            ScriptAddress = scriptAddress,
+            Graphics = graphics,
+            RangeX = 0,
+            RangeY = 0,
+            Elevation = 0,
+            Flag = 0,
+            MoveType = 0,
+            TrainerType = 0,
+            TrainerRangeOrBerryID = 0,
+         };
+         SelectedEvent = newEvent;
+         return newEvent;
+      }
+
+      public WarpEventModel CreateWarpEvent(int bank, int map) {
+         var token = tokenFactory();
+         var mapModel = GetMapModel(token);
+         var events = mapModel.GetSubTable("events")[0];
+         var element = AddEvent(events, token, "warpCount", "warps");
+         var newEvent = new WarpEventModel(element) { Bank = bank, Map = map, Elevation = 0, WarpID = 0 };
+         SelectedEvent = newEvent;
+         return newEvent;
+      }
+
+      public ScriptEventModel CreateScriptEvent() {
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var events = map.GetSubTable("events")[0];
+         var element = AddEvent(events, token, "scriptCount", "scripts");
+         var newEvent = new ScriptEventModel(element) { Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
+         SelectedEvent = newEvent;
+         return newEvent;
+      }
+
+      public SignpostEventModel CreateSignpostEvent() {
+         var token = tokenFactory();
+         var map = GetMapModel(token);
+         var events = map.GetSubTable("events")[0];
+         var element = AddEvent(events, token, "signpostCount", "signposts");
+         var newEvent = new SignpostEventModel(element) { Kind = 0, Arg = "0" };
+         SelectedEvent = newEvent;
+         return newEvent;
+      }
+
+      // TODO use this for connections as well, since the structure is the same
+      public static ModelArrayElement AddEvent(ModelArrayElement events, ModelDelta token, string countName, string fieldName) {
+         var model = events.Model;
+         var count = events.GetValue(countName);
+         var elementTable = events.GetSubTable(fieldName)?.Run;
+         if (count == 0 || elementTable == null) {
+            var segment = (ArrayRunPointerSegment)events.Table.ElementContent.Single(seg => seg.Name == fieldName);
+            var divider = segment.InnerFormat.LastIndexOf("/");
+            var newTableStart = model.FindFreeSpace(model.FreeSpaceStart, 24);
+            var childContent = segment.InnerFormat.Substring(0, divider);
+            childContent = childContent.Substring(1, childContent.Length - 2);
+            var lengthToken = segment.InnerFormat.Substring(divider);
+            var childSegments = ArrayRun.ParseSegments(childContent, model);
+            var parentStrategy = TableStreamRun.ParseEndStream(model, fieldName, lengthToken, childSegments, events.Table.ElementContent);
+            elementTable = new TableStreamRun(model, newTableStart, SortedSpan.One(events.Table.ElementContent.Until(seg => seg.Name == fieldName).Sum(seg => seg.Length) + events.Table.Start), segment.InnerFormat, childSegments, parentStrategy, 0);
+            events.SetAddress(fieldName, newTableStart);
+         }
+         var newRun = elementTable.Append(token, 1);
+         model.ObserveRunWritten(token, newRun);
+         return new ModelArrayElement(model, newRun.Start, newRun.ElementCount - 1, token, newRun);
+      }
+
       /// <summary>
       /// Inserts a new map using the existing borderblocks and block data.
       /// Creates event data with 0 events, creates connection data with 0 connections.
@@ -809,7 +886,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // draw the box for the selected event
-         if (selectedEvent != null) {
+         if (selectedEvent != null && selectedEvent.X >= 0 && selectedEvent.X < width && selectedEvent.Y >= 0 && SelectedEvent.Y < height) {
             canvas.DrawBox((selectedEvent.X + border.West) * 16, (selectedEvent.Y + border.North) * 16, 16, UncompressedPaletteColor.Pack(6, 6, 6));
          }
 
@@ -916,11 +993,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IReadOnlyList<IEventModel> GetEvents(ModelDelta token = null) {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
-         var mapBanks = new ModelTable(model, table.Start, token);
-         var bank = mapBanks[group].GetSubTable("maps");
-         var mapTable = bank[map].GetSubTable("map");
+         var map = GetMapModel(token);
          var results = new List<IEventModel>();
-         var events = new EventGroupModel(mapTable[0].GetSubTable("events")[0], allOverworldSprites);
+         var events = new EventGroupModel(map.GetSubTable("events")[0], allOverworldSprites);
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);
@@ -1130,6 +1205,68 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          MapDirection.Emerge => MapDirection.Dive,
          _ => throw new NotImplementedException(),
       };
+   }
+
+   public class MapHeaderViewModel : ViewModelCore, INotifyPropertyChanged {
+      private ModelArrayElement map;
+      private readonly Func<ModelDelta> tokenFactory;
+      // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
+
+      public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) => (map, tokenFactory) = (element, tokens);
+
+      public int Music { get => GetValue(); set => SetValue(value); }
+      public int LayoutID { get => GetValue(); set => SetValue(value); }
+      public int RegionSectionID { get => GetValue(); set => SetValue(value); }
+      public int Cave { get => GetValue(); set => SetValue(value); }
+      public int Weather { get => GetValue(); set => SetValue(value); }
+      public int MapType { get => GetValue(); set => SetValue(value); }
+      public int AllowBiking { get => GetValue(); set => SetValue(value); }
+      public int FloorNum { get => GetValue(); set => SetValue(value); }
+      public int BattleType { get => GetValue(); set => SetValue(value); }
+
+      #region Flags
+
+      public int Flags {
+         get => GetValue();
+         set {
+            SetValue(value);
+            NotifyPropertyChanged(nameof(AllowEscaping));
+            NotifyPropertyChanged(nameof(AllowRunning));
+            NotifyPropertyChanged(nameof(ShowMapName));
+         }
+      }
+
+      public bool AllowEscaping {
+         get => (Flags & 1) != 0;
+         set => Flags = (Flags & ~1) | (value ? 1 : 0);
+      }
+
+      public bool AllowRunning {
+         get => (Flags & 2) != 0;
+         set => Flags = (Flags & ~2) | (value ? 2 : 0);
+      }
+
+      public bool ShowMapName {
+         get => (Flags & 4) != 0;
+         set => Flags = (Flags & ~4) | (value ? 4 : 0);
+      }
+
+      #endregion
+
+      private int GetValue([CallerMemberName]string name = null) {
+         name = char.ToLower(name[0]) + name.Substring(1);
+         return map.GetValue(name);
+      }
+
+      // when we call SetValue, get the latest token
+      private void SetValue(int value, [CallerMemberName]string name = null) {
+         if (value == GetValue(name)) return;
+         map = new(map.Model, map.Table.Start, (map.Start - map.Table.Start) / map.Table.ElementCount, tokenFactory(), map.Table);
+         var originalName = name;
+         name = char.ToLower(name[0]) + name.Substring(1);
+         map.SetValue(name, value);
+         NotifyPropertyChanged(originalName);
+      }
    }
 
    public class ConnectionModel {

@@ -617,7 +617,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             byte prevData = prevIndex >= newRun.Start ? model[prevIndex] : default;
             token.ChangeData(model, newRun.Start + naturalLength + i, prevData);
          }
-         for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
+
+         for (int i = 0; i < -length; i++) {
+            var segmentOffset = 0;
+            for (int j = 0; j < run.ElementContent.Count; j++) {
+               var segment = run.ElementContent[j];
+               var source = run.Start + run.Length - (1 + i) * run.ElementLength + segmentOffset;
+               if (segment.Type == ElementContentType.Pointer) {
+                  model.ClearPointer(token, source, model.ReadPointer(source));
+               }
+               if (segment.Type == ElementContentType.PCS) {
+                  token.ChangeData(model, source, segment.Length.Range(k => (byte)0xFF).ToArray());
+               } else {
+                  model.WriteMultiByteValue(source, segment.Length, token, -1);
+               }
+               segmentOffset += segment.Length;
+            }
+         }
+
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
       }
 
