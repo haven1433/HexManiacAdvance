@@ -62,7 +62,6 @@
          </KeyBinding.CommandParameter>
       </KeyBinding>
 
-      <KeyBinding Key="M" Modifiers="Ctrl+Shift" Command="{hsv:Command ShowMap}" />
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, T}" Command="{Binding DisplayAsText}"/>
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, E}" Command="{Binding DisplayAsEventScript}"/>
       <KeyBinding Gesture="{hsv:MultiKeyGesture Ctrl+D, S}" Command="{Binding DisplayAsSprite}"/>
@@ -70,7 +69,6 @@
    </Window.InputBindings>
    <Window.CommandBindings>
       <CommandBinding Command="NavigateJournal" Executed="ExecuteAnimation"/>
-      <CommandBinding Command="{hsv:Command ShowMap}" Executed="DeveloperOpenMapEditor" />
    </Window.CommandBindings>
    <Grid Name="ContentPanel">
       <DockPanel>

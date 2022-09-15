@@ -41,6 +41,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AnchorPositionX = other.AnchorPositionX;
          AnchorPositionY = other.AnchorPositionY;
          Icon = other.Icon;
+         ContextItems.Clear();
+         foreach (var item in other.ContextItems) ContextItems.Add(item);
          return true;
       }
    }
@@ -50,8 +52,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ConnectionSlider : MapSlider {
-      private readonly Action notify;
-      private readonly ConnectionModel connection;
+      private Action notify;
+      private ConnectionModel connection;
 
       public ConnectionSlider(ConnectionModel connection, Action notify, int id, MapSliderIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          (this.notify, this.connection) = (notify, connection);
@@ -74,6 +76,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (other.connection.MapNum != connection.MapNum ||
             other.connection.MapGroup != connection.MapGroup) return false;
          if (!base.TryUpdate(other)) return false;
+         notify = other.notify;
+         connection = other.connection;
          return true;
       }
    }

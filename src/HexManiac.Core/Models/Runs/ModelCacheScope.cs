@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
       private readonly Dictionary<string, IReadOnlyList<string>> cachedBitOptions = new Dictionary<string, IReadOnlyList<string>>();
+      private IReadOnlyList<MapInfo> cachedMapInfo;
       private readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
 
       public IReadOnlyList<string> GetOptions(string table) {
@@ -77,6 +79,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          pixels = SpriteDecorator.BuildSprite(model, run);
          cachedImages[run.Start] = pixels;
          return pixels;
+      }
+
+      public IReadOnlyList<MapInfo> GetAllMaps() {
+         if (cachedMapInfo != null) return cachedMapInfo;
+         var results = new List<MapInfo>();
+         cachedMapInfo = results;
+         var bankTable = model.GetTable(HardcodeTablesModel.MapBankTable);
+         if (bankTable == null) return results;
+         var banks = new ModelTable(model, bankTable.Start, null, bankTable);
+         for (int i = 0; i < banks.Count; i++) {
+            var maps = banks[i].GetSubTable("maps");
+            for (int j = 0; j < maps.Count; j++) {
+               var mapText = "maps." + BlockMapViewModel.MapIDToText(model, i * 1000 + j);
+               results.Add(new(i, j, mapText));
+            }
+         }
+         return results;
       }
 
       private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
@@ -149,4 +168,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          results.Add(newResult);
       }
    }
+
+   public record MapInfo(int Group, int Map, string Name);
 }

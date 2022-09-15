@@ -128,7 +128,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand CopyAlignedAddress => StubCommand<IFileSystem>(ref copyAlignedAddress, ExecuteCopyAlignedAddress);
       public ICommand CopyAnchorReference => StubCommand<IFileSystem>(ref copyAnchorReference, ExecuteCopyAnchorReference);
 
-      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null);
+      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null, false);
       public GotoControlViewModel GotoViewModel {
          get => gotoViewModel;
          private set {
@@ -379,6 +379,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Theme Theme { get; }
 
       public IFileSystem FileSystem => fileSystem;
+      private IFileSystem FileSystemInDevMode => ShowDeveloperMenu ? FileSystem : null;
 
       private string infoMessage;
       public string InformationMessage {
@@ -594,7 +595,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ImplementCommands() {
          newCommand.CanExecute = CanAlwaysExecute;
-         newCommand.Execute = arg => Add(new ViewPort(string.Empty, new PokemonModel(new byte[0], singletons: Singletons), workDispatcher, Singletons, PythonTool));
+         newCommand.Execute = arg => {
+            var model = new PokemonModel(new byte[0], singletons: Singletons);
+            Add(new ViewPort(string.Empty, model, workDispatcher, Singletons, FileSystemInDevMode, PythonTool));
+         };
 
          open.CanExecute = CanAlwaysExecute;
          open.Execute = ExecuteOpen;
@@ -697,7 +701,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             IDataModel model = file.Name.ToLower().EndsWith(".gba") ?
                new HardcodeTablesModel(Singletons, file.Contents, metadata) :
                new PokemonModel(file.Contents, metadata, Singletons);
-            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, PythonTool);
+            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, FileSystemInDevMode, PythonTool);
             if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
                   fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
@@ -1167,7 +1171,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher) { ShowAll = !FocusOnGotoShortcuts };
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, showDevMenu) { ShowAll = !FocusOnGotoShortcuts };
          var collection = CreateGotoShortcuts(GotoViewModel);
          if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;

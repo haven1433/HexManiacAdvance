@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -47,6 +48,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          isText = new StubCommand();
 
       private readonly object threadlock = new();
+
+      private MapEditorViewModel mapper;
 
       public Singletons Singletons { get; }
 
@@ -204,9 +207,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
                      return;
                   }
+
+                  var maps = Model.GetMatchingMaps(str);
+                  if (maps.Count == 1 && mapper != null) {
+                     mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, Model, () => history.CurrentChange, maps[0].Group, maps[0].Map);
+                     RequestTabChange?.Invoke(this, mapper);
+                     return;
+                  }
                }
 
                selection.Goto.Execute(arg);
+
+               RequestTabChange?.Invoke(mapper, this);
             });
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
@@ -883,7 +895,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
          Singletons = singletons ?? new Singletons();
          PythonTool = pythonTool;
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
@@ -926,6 +938,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             dispatcher.DispatchWork(() => {
                RefreshBackingData();
                ValidateMatchedWords();
+               if (fs != null) mapper = new MapEditorViewModel(fs, this, singletons);
             });
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
@@ -1575,7 +1588,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, dispatcher, Singletons, PythonTool, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper.FileSystem, PythonTool, history);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, child);
       }

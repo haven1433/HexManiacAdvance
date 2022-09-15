@@ -1,18 +1,14 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
 
@@ -675,12 +671,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, token, "objectCount", "objects");
          var newEvent = new ObjectEventModel(element, allOverworldSprites) {
+            X = 0, Y = 0,
+            Elevation = 0,
             ObjectID = element.Table.ElementCount,
             ScriptAddress = scriptAddress,
             Graphics = graphics,
             RangeX = 0,
             RangeY = 0,
-            Elevation = 0,
             Flag = 0,
             MoveType = 0,
             TrainerType = 0,
@@ -695,7 +692,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapModel = GetMapModel(token);
          var events = mapModel.GetSubTable("events")[0];
          var element = AddEvent(events, token, "warpCount", "warps");
-         var newEvent = new WarpEventModel(element) { Bank = bank, Map = map, Elevation = 0, WarpID = 0 };
+         var newEvent = new WarpEventModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = 0 };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -705,7 +702,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel(token);
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, token, "scriptCount", "scripts");
-         var newEvent = new ScriptEventModel(element) { Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
+         var newEvent = new ScriptEventModel(element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -715,7 +712,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel(token);
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, token, "signpostCount", "signposts");
-         var newEvent = new SignpostEventModel(element) { Kind = 0, Arg = "0" };
+         var newEvent = new SignpostEventModel(element) { X = 0, Y = 0, Elevation = 0, Kind = 0, Arg = "0" };
          SelectedEvent = newEvent;
          return newEvent;
       }

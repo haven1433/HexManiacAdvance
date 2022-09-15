@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
-using IronPython.Modules;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,13 +19,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly Singletons singletons;
 
+      public IViewPort ViewPort => viewPort;
+      public IFileSystem FileSystem => fileSystem;
+
       private BlockMapViewModel primaryMap;
       public BlockMapViewModel PrimaryMap {
          get => primaryMap;
          set {
             if (primaryMap == value) return;
-            primaryMap = value;
-            NotifyPropertyChanged();
+            UpdatePrimaryMap(value);
          }
       }
 
@@ -183,6 +184,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
+
          var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
@@ -196,7 +198,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.PropertyChanged -= PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = -1;
             }
-            PrimaryMap = map;
+            primaryMap = map;
+            NotifyPropertyChanged(nameof(PrimaryMap));
             if (primaryMap != null) {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
                primaryMap.PropertyChanged += PrimaryMapPropertyChanged;

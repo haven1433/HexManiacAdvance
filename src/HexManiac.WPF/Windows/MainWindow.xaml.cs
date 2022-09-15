@@ -597,14 +597,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          tab.ConsiderReload(FileSystem);
       }
 
-      private void DeveloperOpenMapEditor(object sender, EventArgs e) {
-         if (!ViewModel.ShowDeveloperMenu) return;
-         if (ViewModel.SelectedTab is ViewPort viewPort) {
-            var newTab = new MapEditorViewModel(FileSystem, viewPort, ViewModel.Singletons);
-            ViewModel.Add(newTab);
-         }
-      }
-
       private static int Color(string name) {
          var color = ((SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name]).Color;
          return (color.A << 24) + (color.R << 16) + (color.G << 8) + color.B;

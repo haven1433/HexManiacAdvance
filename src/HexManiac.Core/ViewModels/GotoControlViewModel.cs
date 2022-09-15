@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
    public class GotoControlViewModel : ViewModelCore {
       private readonly IViewPort viewPort;
-      private bool withinTextChange = false;
+      private bool withinTextChange = false, devMode = false;
 
       #region NotifyProperties
 
@@ -75,7 +76,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
       public void RefreshOptions() {
-         var options = viewPort?.Model.GetExtendedAutocompleteOptions(text);
          UpdatePrefixSelectionsAfterTextChange();
       }
 
@@ -141,8 +141,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
-      public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher) {
+      public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher, bool devMode) {
          viewPort = (tabContent as IViewPort);
+         this.devMode = devMode;
+         if (tabContent is MapEditorViewModel mevm) viewPort = mevm.ViewPort;
          MoveAutoCompleteSelectionUp = new StubCommand {
             CanExecute = CanAlwaysExecute,
             Execute = arg => CompletionIndex--,
@@ -187,7 +189,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var previousSelections = GotoLabelSection.GetSectionSelections(PrefixSelections).ToArray();
          PrefixSelections.Clear();
          if (viewPort == null || viewPort.Model == null) return;
-         var section = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections);
+         var section = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
          PrefixSelections.Add(AddListeners(section));
          for (int i = 0; i < previousSelections.Length; i++) {
             if (PrefixSelections.Count <= i) break;
@@ -211,6 +213,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
+         var matchedMaps = viewPort.Model.GetMatchingMaps(currentSelection);
+         if (matchedMaps.Count == 1) {
+            viewPort?.Goto?.Execute(currentSelection);
+            ControlVisible = false;
+            ShowAutoCompleteOptions = false;
+            DeselectLastRow();
+            return;
+         }
+
          using (ModelCacheScope.CreateScope(viewPort.Model)) {
             address = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentSelection);
          }
@@ -225,7 +236,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // Deselect it.
             DeselectLastRow();
          } else {
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections);
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
             PrefixSelections.Add(AddListeners(newSection));
          }
          UpdateTooltips();
@@ -298,6 +309,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          return options;
       }
+
+      public static IList<MapInfo> GetMatchingMaps(this IDataModel model, string text) {
+         var allMaps = model.CurrentCacheScope.GetAllMaps();
+         var results = allMaps.Where(map => map.Name.MatchesPartial(text)).ToList();
+         return new List<MapInfo>();
+      }
    }
 
    public class GotoLabelSection : ViewModelCore {
@@ -314,11 +331,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var prefix = string.Join(".", previousSectionSelections);
          if (prefix.Length > 0) prefix += ".";
          var thisLevel = new HashSet<string>();
-         foreach (var option in allOptions.OrderBy(text => text)) {
+
+         // display order is alphabetically sorted non-numeric entries, followed by insert-order numeric entries
+         var noNumbers = new List<string>();
+         var hasNumbers = new List<string>();
+         foreach (var option in allOptions) {
+            if (option.Any(char.IsNumber)) hasNumbers.Add(option);
+            else noNumbers.Add(option);
+         }
+         foreach (var option in noNumbers.OrderBy(text => text).Concat(hasNumbers)) {
             if (option.StartsWith(prefix)) {
                thisLevel.Add(option.Substring(prefix.Length).Split(".")[0]);
             }
          }
+
          Tokens = GotoToken.Generate(thisLevel);
          var count = Tokens.Count;
          if (count > MaxCategories) {
@@ -362,15 +388,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections) {
+      public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections, bool devMode) {
          using (ModelCacheScope.CreateScope(model)) {
-            var allOptions = model.GetExtendedAutocompleteOptions(filter);
+            List<string> allOptions = model.GetExtendedAutocompleteOptions(filter)?.ToList() ?? new();
+            if (devMode) allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
             var selections = GetSectionSelections(previousSections).ToList();
 
-            var newSection = new GotoLabelSection(allOptions ?? new string[0], selections);
+            var newSection = new GotoLabelSection(allOptions, selections);
             if (newSection.Tokens.Count == 1) {
                newSection.Tokens[0].IsSelected = true;
-               var child = Build(model, filter, previousSections.Concat(new[] { newSection })); // recursion ftw
+               var child = Build(model, filter, previousSections.Concat(new[] { newSection }), devMode); // recursion ftw
                newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
             }
 
