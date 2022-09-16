@@ -938,7 +938,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             dispatcher.DispatchWork(() => {
                RefreshBackingData();
                ValidateMatchedWords();
-               if (fs != null) mapper = new MapEditorViewModel(fs, this, singletons);
+               if (fs != null) {
+                  if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, out mapper)) mapper = null;
+               }
             });
          }, TaskContinuationOptions.ExecuteSynchronously);
       }

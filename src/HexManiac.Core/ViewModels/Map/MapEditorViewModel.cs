@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
@@ -179,6 +180,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       #endregion
+
+      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, out MapEditorViewModel editor) {
+         editor = null;
+         var maps = viewPort.Model.GetTable(HardcodeTablesModel.MapBankTable);
+         if (maps == null) return false;
+         editor = new MapEditorViewModel(fileSystem, viewPort, singletons);
+         return true;
+      }
 
       public MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons) {
          (this.viewPort, this.model, this.history, this.singletons, this.fileSystem) = (viewPort, viewPort.Model, viewPort.ChangeHistory, singletons, fileSystem);

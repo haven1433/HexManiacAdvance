@@ -299,6 +299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public IReadOnlyList<BlockMapViewModel> GetNeighbors(MapDirection direction) {
          var list = new List<BlockMapViewModel>();
          var border = GetBorderThickness();
+         if (border == null) return list;
          foreach (var connection in GetConnections()) {
             if (connection.Direction != direction) continue;
             var vm = GetNeighbor(connection, border);
@@ -482,8 +483,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Connections
 
       public IEnumerable<MapSlider> GetMapSliders() {
-         var results = new List<MapSlider>();
          var connections = GetConnections();
+         if (connections == null) yield break;
          var border = GetBorderThickness();
          var tileSize = (int)(16 * spriteScale);
          int id = 0;
@@ -938,6 +939,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void RefreshMapSize() {
          var layout = GetLayout();
+         if (layout == null) return;
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          (pixelWidth, pixelHeight) = ((width + border.West + border.East) * 16, (height + border.North + border.South) * 16);
@@ -958,6 +960,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void FillMapPixelData() {
          var layout = GetLayout();
+         if (layout == null) return;
          if (blockRenders == null) RefreshBlockRenderCache(layout);
          if (borderBlock == null) RefreshBorderRender();
          if (eventRenders == null) RefreshMapEvents();
@@ -1050,6 +1053,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private ModelArrayElement GetMapModel(ModelDelta token = null) {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
+         if (table == null) return null;
          var mapBanks = new ModelTable(model, table.Start, token);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
@@ -1058,11 +1062,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private ModelArrayElement GetLayout(ModelArrayElement map = null, ModelDelta token = null) {
          if (map == null) map = GetMapModel(token);
+         if (map == null) return null;
          return map.GetSubTable("layout")[0];
       }
 
       private IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map = null, ModelDelta token = null) {
          if (map == null) map = GetMapModel(token);
+         if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
          var list = new List<ConnectionModel>();
          if (connectionsAndCountTable == null) return list;
@@ -1102,6 +1108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private Border GetBorderThickness(ModelArrayElement layout = null) {
          if (!includeBorders) return new(0, 0, 0, 0);
          var connections = GetConnections();
+         if (connections == null) return null;
          if (layout == null) layout = GetLayout();
          var width = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
          var height = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;

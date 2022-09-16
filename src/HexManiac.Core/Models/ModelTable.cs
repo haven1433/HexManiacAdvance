@@ -267,7 +267,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             var destination = model.ReadPointer(valueAddress);
             if (destination == Pointer.NULL) return null;
             var error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, out var childTable);
-            if (error.HasError) childTable = (ITableRun)model.GetNextRun(destination);
+            if (error.HasError) {
+               childTable = model.GetNextRun(destination) as ITableRun;
+            }
+            if (childTable == null) return null;
             return new ModelTable(model, destination, token, childTable);
          } else {
             throw new NotImplementedException();

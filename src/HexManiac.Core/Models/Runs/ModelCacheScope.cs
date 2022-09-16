@@ -90,6 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var banks = new ModelTable(model, bankTable.Start, null, bankTable);
          for (int i = 0; i < banks.Count; i++) {
             var maps = banks[i].GetSubTable("maps");
+            if (maps == null) return results;
             for (int j = 0; j < maps.Count; j++) {
                var mapText = "maps." + BlockMapViewModel.MapIDToText(model, i * 1000 + j);
                results.Add(new(i, j, mapText));
