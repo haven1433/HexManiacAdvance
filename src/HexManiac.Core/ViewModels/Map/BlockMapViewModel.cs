@@ -324,6 +324,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Scale(double x, double y, bool enlarge) {
+         (lastDrawX, lastDrawY) = (-1, -1);
          var old = spriteScale;
 
          if (enlarge && spriteScale < 10) {
@@ -338,10 +339,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(SpriteScale));
       }
 
+      #region Draw / Paint
+
       /// <summary>
       /// Gets the block index and collision index.
       /// </summary>
       public (int blockIndex, int collisionIndex) GetBlock(double x, double y) {
+         (lastDrawX, lastDrawY) = (-1, -1);
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
 
@@ -357,6 +361,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return (data & 0x3FF, data >> 10);
       }
 
+      private int lastDrawVal, lastDrawX, lastDrawY;
+
       /// <summary>
       /// If collisionIndex is not valid, it's ignored.
       /// If blockIndex is not valid, it's ignored.
@@ -370,6 +376,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
          if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         if (lastDrawX == xx && lastDrawY == yy) return;
          var start = layout.GetAddress("blockmap");
 
          var modelAddress = start + (yy * width + xx) * 2;
@@ -378,18 +385,58 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var low = data & 0x3FF;
          if (blockIndex >= 0 && blockIndex < blockRenders.Count) low = blockIndex;
          if (collisionIndex >= 0 && collisionIndex < 0x3F) high = collisionIndex;
+         lastDrawVal = model.ReadMultiByteValue(modelAddress, 2);
+         (lastDrawX, lastDrawY) = (xx, yy);
          model.WriteMultiByteValue(modelAddress, 2, token, (high << 10) | low);
 
          if (blockIndex >= 0 && blockIndex < blockRenders.Count) {
             var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
             (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
-            canvas.Draw(blockRenders[low], xx, yy);
+            canvas.Draw(blockRenders[blockIndex], xx, yy);
             if (collisionIndex == collisionHighlight) HighlightCollision(canvas.PixelData, xx, yy);
             NotifyPropertyChanged(nameof(PixelData));
          }
       }
 
+      public void PaintBlock(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
+         if (blockIndex == -1) return;
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         var start = layout.GetAddress("blockmap");
+
+         var size = new Point(width, height);
+         if (collisionIndex < 0) collisionIndex = lastDrawVal >> 10;
+         var change = new Point(lastDrawVal, (collisionIndex << 10) | blockIndex);
+         PaintBlock(token, new(xx - 1, yy), size, start, change);
+         PaintBlock(token, new(xx + 1, yy), size, start, change);
+         PaintBlock(token, new(xx, yy - 1), size, start, change);
+         PaintBlock(token, new(xx, yy + 1), size, start, change);
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
+      private void PaintBlock(ModelDelta token, Point p, Point size, int start, Point change) {
+         if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) return;
+         var address = start + (p.Y * size.X + p.X) * 2;
+         if (model.ReadMultiByteValue(address, 2) != change.X) return;
+         model.WriteMultiByteValue(address, 2, token, change.Y);
+         PaintBlock(token, p + new Point(-1, 0), size, start, change);
+         PaintBlock(token, p + new Point(1, 0), size, start, change);
+         PaintBlock(token, p + new Point(0, -1), size, start, change);
+         PaintBlock(token, p + new Point(0, 1), size, start, change);
+      }
+
+      #endregion
+
+      #region Events
+
       public void UpdateEventLocation(IEventModel ev, double x, double y) {
+         (lastDrawX, lastDrawY) = (-1, -1);
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
@@ -404,6 +451,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          pixelData = null;
          NotifyPropertyChanged(nameof(PixelData));
       }
+
+      public IEventModel EventUnderCursor(double x, double y) {
+         var layout = GetLayout();
+         var border = GetBorderThickness(layout);
+         var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
+         var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
+         foreach (var e in GetEvents(tokenFactory())) {
+            if (e.X == tileX && e.Y == tileY) {
+               if (selectedEvent == null || selectedEvent.X != e.X || selectedEvent.Y != e.Y) {
+                  SelectedEvent = e;
+                  pixelData = null;
+                  NotifyPropertyChanged(nameof(PixelData));
+               }
+               return e;
+            }
+         }
+         return SelectedEvent = null;
+      }
+
+      public void DeselectEvent() {
+         if (selectedEvent == null) return;
+         SelectedEvent = null;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+      }
+
+      #endregion
+
+      #region Connections
 
       public IEnumerable<MapSlider> GetMapSliders() {
          var results = new List<MapSlider>();
@@ -487,30 +563,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public IEventModel EventUnderCursor(double x, double y) {
-         var layout = GetLayout();
-         var border = GetBorderThickness(layout);
-         var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
-         var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
-         foreach (var e in GetEvents(tokenFactory())) {
-            if (e.X == tileX && e.Y == tileY) {
-               if (selectedEvent == null || selectedEvent.X != e.X || selectedEvent.Y != e.Y) {
-                  SelectedEvent = e;
-                  pixelData = null;
-                  NotifyPropertyChanged(nameof(PixelData));
-               }
-               return e;
-            }
-         }
-         return SelectedEvent = null;
-      }
-
-      public void DeselectEvent() {
-         if (selectedEvent == null) return;
-         SelectedEvent = null;
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
-      }
+      #endregion
 
       #region Work Methods
 

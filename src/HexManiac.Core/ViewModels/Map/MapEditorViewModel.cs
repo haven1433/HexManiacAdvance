@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -328,7 +329,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          ShowHeaderPanel = false;
-         DrawDown(x, y);
+         DrawDown(x, y, clickCount);
       }
 
       public void PrimaryMove(double x, double y) {
@@ -342,9 +343,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          interactionType = PrimaryInteractionType.None;
       }
 
-      private void DrawDown(double x, double y) {
+      private void DrawDown(double x, double y, int clickCount) {
          interactionType = PrimaryInteractionType.Draw;
-         DrawMove(x, y);
+         if (clickCount == 2) {
+            var map = MapUnderCursor(x, y);
+            if (map != null) map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+            Hover(x, y);
+         } else {
+            DrawMove(x, y);
+         }
       }
 
       private void DrawMove(double x, double y) {

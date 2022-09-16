@@ -104,19 +104,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ButtonUp(object sender, MouseButtonEventArgs e) {
          e.Handled = true;
          var element = (FrameworkElement)sender;
+         var previousInteraction = withinMapInteraction;
+         withinMapInteraction = MouseButton.XButton1;
          element.ReleaseMouseCapture();
-         if (withinMapInteraction == MouseButton.XButton1) return;
-         if (e.ChangedButton != withinMapInteraction) return;
+         if (previousInteraction == MouseButton.XButton1) return;
+         if (e.ChangedButton != previousInteraction) return;
          var vm = ViewModel;
          var p = GetCoordinates(element, e);
-         if (withinMapInteraction == MouseButton.Left) {
+         if (previousInteraction == MouseButton.Left) {
             vm.PrimaryUp(p.X, p.Y);
-         } else if (withinMapInteraction == MouseButton.Middle) {
+         } else if (previousInteraction == MouseButton.Middle) {
             vm.DragUp(p.X, p.Y);
-         } else if (withinMapInteraction == MouseButton.Right) {
+         } else if (previousInteraction == MouseButton.Right) {
             vm.SelectUp(p.X, p.Y);
          }
-         withinMapInteraction = MouseButton.XButton1;
       }
 
       private void Wheel(object sender, MouseWheelEventArgs e) {

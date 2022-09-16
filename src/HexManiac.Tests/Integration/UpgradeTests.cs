@@ -81,11 +81,13 @@ namespace HavenSoft.HexManiac.Tests {
                exemptFormat |= new[] { // legitimate format changes: same name, new format
                   "graphics.gamecorner.game.palette",
                   "scripts.specials.thumb",
+                  HardcodeTablesModel.WildTableName,
                }.Contains(namedAnchor.Name);
             }
             if (tomlName == "_0.3.0.toml" || tomlName == "_0.3.5.toml") {
                exemptFormat |= new[] { // legitimate format changes: same name, new format
                   "scripts.specials.thumb",
+                  HardcodeTablesModel.WildTableName,
                }.Contains(namedAnchor.Name);
             }
 

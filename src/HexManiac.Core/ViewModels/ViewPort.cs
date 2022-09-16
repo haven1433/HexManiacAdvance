@@ -1588,7 +1588,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper.FileSystem, PythonTool, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.FileSystem, PythonTool, history);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, child);
       }
