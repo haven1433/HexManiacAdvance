@@ -130,7 +130,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void BlocksDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          var mainModel = ViewModel;
-         var imageModel = (IPixelViewModel)element.DataContext;
          var p = e.GetPosition(element);
          p.X /= 16;
          p.Y /= 16;
