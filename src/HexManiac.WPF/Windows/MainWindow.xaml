@@ -644,7 +644,8 @@
                            </ItemsControl.ItemsPanel>
                            <ItemsControl.ItemTemplate>
                               <DataTemplate>
-                                 <Button FontWeight="Bold" Name="ShortcutButton" Command="{hsv:MethodCommand Goto}" BorderBrush="{DynamicResource Primary}">
+                                 <Button FontWeight="Bold" Name="ShortcutButton" Command="{hsv:MethodCommand Goto}" BorderBrush="{DynamicResource Primary}"
+                                         Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                     <Button.Style>
                                        <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                           <Setter Property="Width" Value="100"/>

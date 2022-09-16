@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   var maps = Model.GetMatchingMaps(str);
                   if (maps.Count == 1 && mapper != null) {
-                     mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, Model, () => history.CurrentChange, maps[0].Group, maps[0].Map);
+                     mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, this, maps[0].Group, maps[0].Map);
                      RequestTabChange?.Invoke(this, mapper);
                      return;
                   }

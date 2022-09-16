@@ -1171,7 +1171,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, showDevMenu) { ShowAll = !FocusOnGotoShortcuts };
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, showDevMenu) { ShowAll = !FocusOnGotoShortcuts, Text = GotoViewModel?.Text };
          var collection = CreateGotoShortcuts(GotoViewModel);
          if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;

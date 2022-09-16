@@ -239,6 +239,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          int segmentOffset = 0;
          int fieldIndex = 0;
          var changeAddresses = new List<int>();
+         var unwritten = ElementContent.Count.Range().ToList();
          for (int j = 0; j < ElementContent.Count; j++) {
             while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
             if (fieldIndex >= fields.Length) break;
@@ -248,6 +249,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             segmentOffset += ElementContent[j].Length;
             fieldIndex += 1;
+            unwritten.Remove(j);
+         }
+         segmentOffset = 0;
+         for (int j = 0; j < ElementContent.Count; j++) {
+            // write default value
+            var seg = ElementContent[j];
+            if (unwritten.Contains(j)) {
+               if (seg.Type == ElementContentType.Pointer) model.WriteMultiByteValue(Start + segmentOffset, 4, token, 0);
+               if (seg.Type == ElementContentType.Integer) model.WriteMultiByteValue(Start + segmentOffset, seg.Length, token, 0);
+            }
+            segmentOffset += seg.Length;
          }
          changedOffsets = changeAddresses;
          return this;

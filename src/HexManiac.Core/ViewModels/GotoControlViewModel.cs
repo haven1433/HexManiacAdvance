@@ -28,6 +28,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set => Set(ref smallMode, value);
       }
 
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
       public GotoShortcutViewModel(GotoControlViewModel parent, IViewPort viewPort, IPixelViewModel image, string anchor, string display) {
          viewModel = parent;
          this.viewPort = viewPort;
@@ -108,9 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }); }
 
       private void UpdateShortcutSize() {
-         if (shortcuts != null) {
-            foreach (var shortcut in shortcuts) shortcut.SmallMode = false; // showAll; // always small mode for the first test, see how that does.
-         }
+         foreach (var shortcut in shortcuts) shortcut.SmallMode = false;
       }
 
       private bool allowToggleShowAll = true;
@@ -129,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler MoveFocusToGoto;
 
-      private ObservableCollection<GotoShortcutViewModel> shortcuts;
+      private ObservableCollection<GotoShortcutViewModel> shortcuts = new();
       public ObservableCollection<GotoShortcutViewModel> Shortcuts {
          get => shortcuts;
          set {
@@ -198,6 +199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             matchingToken.IsSelected = true;
          }
          UpdateTooltips();
+         foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
       }
 
       private void UpdatePrefixSelectionsAfterSelectionMade() {
@@ -238,6 +240,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
             PrefixSelections.Add(AddListeners(newSection));
+            foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
          }
          UpdateTooltips();
       }
@@ -264,6 +267,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          section.ClearLowerRows += (sender, e) => {
             var index = PrefixSelections.IndexOf(sender);
             while (index >= 0 && PrefixSelections.Count > index + 1) PrefixSelections.RemoveAt(PrefixSelections.Count - 1);
+            foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
          };
          section.GenerateLowerRow += (sender, e) => {
             UpdatePrefixSelectionsAfterSelectionMade();

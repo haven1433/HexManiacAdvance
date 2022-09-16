@@ -422,6 +422,18 @@
             </Button>
          </StackPanel>
          <ToggleButton Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5" />
+         <Button Command="{Binding PrimaryMap.GotoWildData}" Margin="5" Width="100">
+            <Button.Style>
+               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                  <Setter Property="Content" Value="Show Wild Data" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding PrimaryMap.HasWildData}" Value="False">
+                        <Setter Property="Content" Value="Create Wild Data" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </Button.Style>
+         </Button>
          <TextBlock Text="{Binding PrimaryMap.Name}" Margin="5"/>
          <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Object}" ToolTip="Create New Object" />
          <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp" />

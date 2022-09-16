@@ -9,13 +9,14 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-
+using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
 
       private readonly IFileSystem fileSystem;
+      private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
       private readonly Func<ModelDelta> tokenFactory;
       private readonly int group, map;
@@ -221,12 +222,56 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string Name => MapIDToText(model, MapID);
 
+      #region Wild Data
+
+      private int wildDataIndex = int.MinValue;
+      public bool HasWildData {
+         get {
+            if (wildDataIndex != int.MinValue) return wildDataIndex != -1;
+            var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
+            var wildData = new ModelTable(model, wildTable.Start, null, wildTable);
+            for (int i = 0; i < wildData.Count; i++) {
+               var bank = wildData[i].GetValue("bank");
+               var map = wildData[i].GetValue("map");
+               var id = bank * 1000 + map;
+               if (id != MapID) continue;
+               wildDataIndex = i;
+               return true;
+            }
+            wildDataIndex = -1;
+            return false;
+         }
+      }
+
+      private StubCommand gotoWildData;
+      public ICommand GotoWildData => StubCommand(ref gotoWildData, () => {
+         var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
+         if (!HasWildData) {
+            var token = tokenFactory();
+            wildTable = model.RelocateForExpansion(token, wildTable, wildTable.Length + wildTable.ElementLength);
+            wildTable = wildTable.Append(token, 1);
+            model.ObserveRunWritten(token, wildTable);
+            var element = new ModelArrayElement(model, wildTable.Start, wildTable.ElementCount - 1, token, wildTable);
+            element.SetValue("bank", MapID / 1000);
+            element.SetValue("map", MapID % 1000);
+            element.SetAddress("grass", Pointer.NULL);
+            element.SetAddress("surf", Pointer.NULL);
+            element.SetAddress("tree", Pointer.NULL);
+            element.SetAddress("fish", Pointer.NULL);
+            wildDataIndex = wildTable.ElementCount - 1;
+         }
+         viewPort.Goto.Execute(wildTable.Start + wildTable.ElementLength * wildDataIndex);
+      }, () => model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.WildTableName) != Pointer.NULL);
+
+      #endregion
+
       public event EventHandler NeighborsChanged;
 
-      public BlockMapViewModel(IFileSystem fileSystem, IDataModel model, Func<ModelDelta> tokenFactory, int group, int map) {
+      public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, int group, int map) {
          this.fileSystem = fileSystem;
-         this.model = model;
-         this.tokenFactory = tokenFactory;
+         this.viewPort = viewPort;
+         this.model = viewPort.Model;
+         this.tokenFactory = () => viewPort.ChangeHistory.CurrentChange;
          (this.group, this.map) = (group, map);
          Transparent = -1;
          InitTableRef();
@@ -546,7 +591,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var address = CreateNewMap(token, info.Size, info.Size);
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
 
-         var otherMap = new BlockMapViewModel(fileSystem, model, tokenFactory, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, viewPort, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = new ConnectionInfo(info.Size, -info.Offset, info.OppositeDirection);
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -569,7 +614,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
             for (int map = 0; map < maps.Count; map++) {
-               var mapVM = new BlockMapViewModel(fileSystem, model, tokenFactory, group, map) { allOverworldSprites = allOverworldSprites };
+               var mapVM = new BlockMapViewModel(fileSystem, viewPort, group, map) { allOverworldSprites = allOverworldSprites };
                var newInfo = mapVM.CanConnect(info.OppositeDirection);
                if (newInfo != null) options[mapVM.MapID] = newInfo;
             }
@@ -592,7 +637,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         var otherMap = new BlockMapViewModel(fileSystem, model, tokenFactory, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, viewPort, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = options[choice];
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -670,6 +715,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel(token);
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, token, "objectCount", "objects");
+         if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var newEvent = new ObjectEventModel(element, allOverworldSprites) {
             X = 0, Y = 0,
             Elevation = 0,
@@ -779,7 +825,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
-         var vm = new BlockMapViewModel(fileSystem, model, tokenFactory, connection.MapGroup, connection.MapNum) {
+         var vm = new BlockMapViewModel(fileSystem, viewPort, connection.MapGroup, connection.MapNum) {
             IncludeBorders = IncludeBorders,
             SpriteScale = SpriteScale,
             allOverworldSprites = allOverworldSprites,
@@ -1032,12 +1078,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < connections.Count; i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
-               var map = new BlockMapViewModel(fileSystem, model, tokenFactory, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, viewPort, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeWidth = map.pixelWidth / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
             } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
-               var map = new BlockMapViewModel(fileSystem, model, tokenFactory, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, viewPort, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeHeight = map.pixelHeight / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);

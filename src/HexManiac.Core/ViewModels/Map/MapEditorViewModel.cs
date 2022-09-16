@@ -171,7 +171,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
-         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, bank, map) {
+         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, viewPort, bank, map) {
             IncludeBorders = primaryMap?.IncludeBorders ?? true,
             SpriteScale = primaryMap?.SpriteScale ?? .5,
          });
@@ -185,7 +185,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
 
-         var map = new BlockMapViewModel(fileSystem, model, () => history.CurrentChange, 3, 19) { IncludeBorders = true };
+         var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19) { IncludeBorders = true };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
       }
