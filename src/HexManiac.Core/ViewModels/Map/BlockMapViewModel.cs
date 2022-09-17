@@ -1292,7 +1292,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;
          var map = id % 1000;
-         var offset = 0x58; // 88 maps names from Ruby
+         var offset = model.IsFRLG() ? 0x58 : 0;
 
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
          var bank = mapBanks[group].GetSubTable("maps");

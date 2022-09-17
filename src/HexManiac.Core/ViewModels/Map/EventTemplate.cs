@@ -122,17 +122,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // part 4: the event
          objectEventModel.Graphics = graphics;
-         objectEventModel.ScriptAddress = scriptStart;
+         objectEventModel.Elevation = 3;
+         objectEventModel.MoveType = 9;
+         objectEventModel.RangeX = objectEventModel.RangeY = 1;
          objectEventModel.TrainerType = 1;
          objectEventModel.TrainerRangeOrBerryID = 5;
-         objectEventModel.RangeXY = "(1,1)";
-         objectEventModel.MoveType = 9;
+         objectEventModel.ScriptAddress = scriptStart;
          objectEventModel.Flag = 0;
-         objectEventModel.Elevation = 3;
       }
 
       // TODO create NPC
-      // TODO create item
+
+      public void CreateItem(ObjectEventModel objectEventModel, ModelDelta token, int item) {
+         var graphics = model.IsFRLG() ? 92 : 59;
+         //   copyvarifnotzero 0x8000 item:
+         //   copyvarifnotzero 0x8001 1
+         //   callstd 1
+         //   end
+         //                     item:
+         var script = "1A 00 80 00 00 1A 01 80 01 00 09 01 02".ToByteArray();
+         var address = model.FindFreeSpace(model.FreeSpaceStart, script.Length);
+         token.ChangeData(model, address, script);
+         model.WriteMultiByteValue(address + 3, 2, token, item);
+
+         var itemFlag = 0x21;
+         while (UsedFlags.Contains(itemFlag)) itemFlag++;
+         UsedFlags.Add(itemFlag);
+
+         objectEventModel.Graphics = graphics;
+         objectEventModel.Elevation = 3;
+         objectEventModel.MoveType = 8;
+         objectEventModel.RangeX = objectEventModel.RangeY = 1;
+         objectEventModel.TrainerType = objectEventModel.TrainerRangeOrBerryID = 0;
+         objectEventModel.ScriptAddress = address;
+         objectEventModel.Flag = itemFlag;
+      }
 
       private int WriteText(ModelDelta token, string text) {
          var bytes = model.TextConverter.Convert(text, out var _);

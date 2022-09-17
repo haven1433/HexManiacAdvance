@@ -84,6 +84,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return model.TextConverter.Convert(model, valueAddress, seg.Length).Trim('"');
          } else if (seg.Type == ElementContentType.Pointer) {
             valueAddress = model.ReadPointer(valueAddress);
+            if (valueAddress < 0 || valueAddress >= model.Count) return string.Empty;
             var length = PCSString.ReadString(model, valueAddress, true);
             return model.TextConverter.Convert(model, valueAddress, length).Trim('"');
          } else {
