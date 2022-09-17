@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly Singletons singletons;
+      private readonly EventTemplate templates;
 
       public IViewPort ViewPort => viewPort;
       public IFileSystem FileSystem => fileSystem;
@@ -202,6 +203,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
 
          var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19) { IncludeBorders = true };
+         templates = new(model, viewPort.Tools.CodeTool.ScriptParser);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
       }
@@ -433,7 +435,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool withinEventCreationInteraction = false;
       public void StartEventCreationInteraction(EventCreationType type) {
          if (type == EventCreationType.Object) {
-            SelectedEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
+            var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
+            SelectedEvent = objectEvent;
          } else if (type == EventCreationType.Warp) {
             var desiredMap = (bank: 0, map: 0);
             if (backStack.Count > 0) {

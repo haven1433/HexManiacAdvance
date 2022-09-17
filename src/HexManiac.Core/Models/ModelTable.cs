@@ -158,6 +158,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public int GetValue(int fieldIndex) {
+         var elementOffset = table.ElementContent.Take(fieldIndex).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent[fieldIndex];
+         if (seg.Type == ElementContentType.Integer) {
+            return model.ReadMultiByteValue(valueAddress, seg.Length);
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
       public int GetAddress(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
@@ -256,7 +267,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-         if (seg.Type == ElementContentType.Integer) {
+         if (seg.Type == ElementContentType.Integer || seg.Type == ElementContentType.BitArray) {
             model.WriteMultiByteValue(valueAddress, seg.Length, token, value);
          } else {
             throw new NotImplementedException();
