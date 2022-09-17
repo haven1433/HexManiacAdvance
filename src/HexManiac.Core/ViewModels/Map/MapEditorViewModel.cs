@@ -412,6 +412,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventModel warp && clickCount == 2) {
             NavigateTo(warp.Bank, warp.Map);
+         } else if (clickCount == 2 && SelectedEvent is ObjectEventModel obj) {
+            viewPort.Goto.Execute(obj.ScriptAddress);
+         } else if (clickCount == 2 && SelectedEvent is ScriptEventModel script) {
+            viewPort.Goto.Execute(script.ScriptAddress);
+         } else if (
+            clickCount == 2 &&
+            SelectedEvent is SignpostEventModel signpost &&
+            signpost.Arg.TryParseHex(out int address) &&
+            address >= -Pointer.NULL &&
+            address + Pointer.NULL < model.Count
+         ) {
+            viewPort.Goto.Execute(address + Pointer.NULL);
          } else {
             interactionType = PrimaryInteractionType.Event;
          }

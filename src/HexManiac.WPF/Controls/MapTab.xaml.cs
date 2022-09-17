@@ -85,6 +85,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ButtonMove(object sender, MouseEventArgs e) {
          var element = (FrameworkElement)sender;
          var vm = ViewModel;
+         if (vm == null) return;
          var p = GetCoordinates(element, e);
          e.Handled = true;
          if (withinMapInteraction == MouseButton.XButton1) {
@@ -109,6 +110,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (previousInteraction == MouseButton.XButton1) return;
          if (e.ChangedButton != previousInteraction) return;
          var vm = ViewModel;
+         if (vm == null) return;
          var p = GetCoordinates(element, e);
          if (previousInteraction == MouseButton.Left) {
             vm.PrimaryUp(p.X, p.Y);
