@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
+using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
@@ -188,6 +189,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private byte[][] blocks;
       private IReadOnlyList<IPixelViewModel> blockRenders;
       private IReadOnlyList<IEventModel> eventRenders;
+      public IReadOnlyList<IPixelViewModel> BlockRenders {
+         get {
+            if (blockRenders == null) RefreshBlockRenderCache();
+            return blockRenders;
+         }
+      }
 
       #endregion
 
@@ -395,6 +402,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
             canvas.Draw(blockRenders[blockIndex], xx, yy);
             if (collisionIndex == collisionHighlight) HighlightCollision(canvas.PixelData, xx, yy);
+            NotifyPropertyChanged(nameof(PixelData));
+         }
+      }
+
+      public void DrawBlocks(ModelDelta token, int[,]tiles, Point source, Point destination) {
+         while (Math.Abs(destination.X - source.X) % tiles.GetLength(0) != 0) destination -= new Point(1, 0);
+         while (Math.Abs(destination.Y - source.Y) % tiles.GetLength(1) != 0) destination -= new Point(0, 1);
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+         int changeCount = 0;
+         for (int x = 0; x < tiles.GetLength(0); x++) {
+            for (int y = 0; y < tiles.GetLength(1); y++) {
+               var address = start + ((destination.Y + y) * width + destination.X + x) * 2;
+               if (model.ReadMultiByteValue(address, 2) != tiles[x, y]) {
+                  model.WriteMultiByteValue(address, 2, token, tiles[x, y]);
+                  changeCount++;
+               }
+            }
+         }
+         if (changeCount > 0) {
+            pixelData = null;
             NotifyPropertyChanged(nameof(PixelData));
          }
       }
@@ -646,6 +676,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
 
          var otherMap = new BlockMapViewModel(fileSystem, viewPort, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
+         otherMap.UpdateLayoutID();
          info = new ConnectionInfo(info.Size, -info.Offset, info.OppositeDirection);
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -867,6 +898,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             model.WritePointer(token, source, Pointer.NULL);
          }
          model.ClearData(token, table.Start, table.Length);
+      }
+
+      private void UpdateLayoutID() {
+         // step 1: test if we need to update the layout id
+         var layoutTable = model.GetTable(HardcodeTablesModel.MapLayoutTable);
+         var map = GetMapModel();
+         var layoutID = map.GetValue("layoutID");
+         var addressFromMap = map.GetAddress("layout");
+         var addressFromTable = model.ReadPointer(layoutTable.Start + layoutTable.ElementLength * layoutID);
+         if (addressFromMap == addressFromTable) return;
+
+         var matches = layoutTable.ElementCount.Range().Where(i => model.ReadPointer(layoutTable.Start + layoutTable.ElementLength * i) == addressFromMap).ToList();
+         var token = tokenFactory();
+         if (matches.Count == 0) {
+            layoutTable = model.RelocateForExpansion(token, layoutTable, layoutTable.Length + 4);
+            layoutTable = layoutTable.Append(token, 1);
+            model.ObserveRunWritten(token, layoutTable);
+            model.UpdateArrayPointer(token, layoutTable.ElementContent[0], layoutTable.ElementContent, -1, layoutTable.Start + layoutTable.ElementLength * (layoutTable.ElementCount - 1), addressFromTable);
+            matches.Add(layoutTable.ElementCount - 1);
+         }
+         map.SetValue("layoutID", matches[0]);
       }
 
       #endregion
@@ -1105,7 +1157,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return results;
       }
 
-      private Border GetBorderThickness(ModelArrayElement layout = null) {
+      public Border GetBorderThickness(ModelArrayElement layout = null) {
          if (!includeBorders) return new(0, 0, 0, 0);
          var connections = GetConnections();
          if (connections == null) return null;

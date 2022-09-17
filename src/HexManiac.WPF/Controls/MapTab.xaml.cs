@@ -1,10 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core;
-using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -79,6 +77,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             withinMapInteraction = MouseButton.Middle;
             vm.DragDown(p.X, p.Y);
          } else if (e.RightButton == MouseButtonState.Pressed) {
+            withinMapInteraction = MouseButton.Right;
             vm.SelectDown(p.X, p.Y);
          }
       }

@@ -67,7 +67,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          var primary = blockModel1.ReadTiles();
          var secondary = blockModel2.ReadTiles();
          var result = new int[TotalTiles][,];
-         for (int i = 0; i < primaryTiles; i++) result[i] = primary[i];
+         for (int i = 0; i < primaryTiles && i < primary.Length; i++) result[i] = primary[i];
          for (int i = primaryTiles; i < TotalTiles && i < secondary.Length + primaryTiles; i++) result[i] = secondary[i - primaryTiles];
          return result;
       }
@@ -201,7 +201,9 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             primaryTiles = 640;
             primaryPalettes = 7;
          } else {
-            throw new NotImplementedException();
+            primaryBlocks = 512;
+            primaryTiles = 512;
+            primaryPalettes = 6;
          }
       }
 

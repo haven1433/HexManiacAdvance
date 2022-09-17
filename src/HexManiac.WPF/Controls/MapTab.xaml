@@ -13,6 +13,7 @@
       <KeyBinding Key="Down" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Down}" />
       <KeyBinding Key="Add" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}" />
       <KeyBinding Key="Subtract" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Shrink}" />
+      <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
       <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
       <KeyBinding Key="Backspace" Command="{Binding DeleteCommand}" />
    </UserControl.InputBindings>
@@ -25,10 +26,13 @@
          <RowDefinition Height="Auto" />
          <RowDefinition Height="*" />
       </Grid.RowDefinitions>
-      <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel">
+      <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
          <Grid Width="{Binding Blocks.ScaledWidth}" Height="100" DockPanel.Dock="Top">
             <local:AngleComboBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Width="50" Height="20"
                ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
+            <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Center">
+               <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
+            </Decorator>
          </Grid>
          <ScrollViewer Name="BlockViewer">
             <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
@@ -265,7 +269,7 @@
       <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1"
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
-         <Grid DataContext="{Binding PrimaryMap.Header}">
+         <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
             <Grid.ColumnDefinitions>
                <ColumnDefinition />
                <ColumnDefinition />
@@ -284,49 +288,44 @@
             <local:AngleTextBox Grid.Row="0" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Music}" />
 
             <local:AngleBorder Direction="Left" Grid.Row="1">
-               <TextBlock Text="LayoutID:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="1" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding LayoutID}" />
-
-            <local:AngleBorder Direction="Left" Grid.Row="2">
                <TextBlock Text="Region Section ID:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="2" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding RegionSectionID}" />
+            <local:AngleTextBox Grid.Row="1" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding RegionSectionID}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="3">
+            <local:AngleBorder Direction="Left" Grid.Row="2">
                <TextBlock Text="Cave:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="3" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Cave}" />
+            <local:AngleTextBox Grid.Row="2" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Cave}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="4">
+            <local:AngleBorder Direction="Left" Grid.Row="3">
                <TextBlock Text="Weather:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="4" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Weather}" />
+            <local:AngleTextBox Grid.Row="3" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Weather}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="5">
+            <local:AngleBorder Direction="Left" Grid.Row="4">
                <TextBlock Text="MapType:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="5" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding MapType}" />
+            <local:AngleTextBox Grid.Row="4" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding MapType}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="6">
+            <local:AngleBorder Direction="Left" Grid.Row="5">
                <TextBlock Text="AllowBiking:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="6" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding AllowBiking}" />
+            <local:AngleTextBox Grid.Row="5" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding AllowBiking}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="7">
+            <local:AngleBorder Direction="Left" Grid.Row="6">
                <TextBlock Text="Flags:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="7" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Flags}" />
+            <local:AngleTextBox Grid.Row="6" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Flags}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="8">
+            <local:AngleBorder Direction="Left" Grid.Row="7">
                <TextBlock Text="FloorNum:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="8" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding FloorNum}" />
+            <local:AngleTextBox Grid.Row="7" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding FloorNum}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="9">
+            <local:AngleBorder Direction="Left" Grid.Row="8">
                <TextBlock Text="BattleType:" />
             </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="9" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding BattleType}" />
+            <local:AngleTextBox Grid.Row="8" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding BattleType}" />
          </Grid>
       </ScrollViewer>
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
@@ -405,14 +404,14 @@
       </ItemsControl>
       <Rectangle Grid.Column="1" Grid.Row="1" Name="HighlightCursorRect" StrokeThickness="2" IsHitTestVisible="False" Margin="-2,-2,0,0"
          HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="{DynamicResource Backlight}"
-         Width="{Binding HighlightCursorSize, Mode=OneWay}" Height="{Binding HighlightCursorSize, Mode=OneWay}">
+         Width="{Binding HighlightCursorWidth, Mode=OneWay}" Height="{Binding HighlightCursorHeight, Mode=OneWay}">
          <Rectangle.RenderTransform>
             <TranslateTransform X="{Binding HighlightCursorX, Mode=OneWay}" Y="{Binding HighlightCursorY, Mode=OneWay}"/>
          </Rectangle.RenderTransform>
       </Rectangle>
 
       <!-- Toolbar? -->
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,1,1,5">
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5">
          <StackPanel Margin="5">
             <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}">
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinPlus}" />

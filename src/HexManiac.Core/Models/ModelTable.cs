@@ -36,6 +36,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public ModelTable(IDataModel model, ITableRun table, ModelDelta token = null) : this(model, table.Start, token, table) { }
+
       public ModelTable(IDataModel model, int address, ModelDelta token = null, ITableRun tableRun = null) {
          (this.model, arrayAddress) = (model, address);
          run = tableRun ?? model.GetNextRun(address) as ITableRun;
@@ -162,6 +164,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg.Type == ElementContentType.Pointer) {
             return model.ReadPointer(valueAddress);
+         } else if (seg.Type == ElementContentType.Integer && seg.Length == 4) {
+            return model.ReadPointer(valueAddress); // user wants a pointer, read it like a pointer
          } else {
             throw new NotImplementedException();
          }

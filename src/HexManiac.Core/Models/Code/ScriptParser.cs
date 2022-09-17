@@ -82,6 +82,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return length;
       }
 
+      public ScriptLine GetLine(IDataModel model, int address) => engine.GetMatchingLine(model, address);
+
       // TODO refactor to rely on CollectScripts rather than duplicate code
       public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address) where TSERun : IScriptStartRun {
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);

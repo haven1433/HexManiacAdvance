@@ -28,6 +28,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return model.GetNextRun(address) as ITableRun;
       }
 
+      public static ModelTable GetTableModel(this IDataModel model, string name, ModelDelta token = null) {
+         var table = model.GetTable(name);
+         if (table == null) return null;
+         return new ModelTable(model, table, token);
+      }
+
       /// <param name="byteOffset">Ranges from 0 to Model.Count</param>
       public static ArrayOffset ConvertByteOffsetToArrayOffset(this ITableRun self, int byteOffset) {
          var offset = byteOffset - self.Start;
