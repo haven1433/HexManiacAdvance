@@ -12,6 +12,7 @@ using System.Net;
 
 /*
  * There are 0x500 flags, followed by 0x300 trainer flags (0x500 to 0x7FF), then system flags (0x800 to 0x8FF). Not all the system flags are used.
+ * The system flags go from 0x860 to 0x95FF in Emerald, making room for more trainers, but still no more than 864 trainers (Emerald uses 856 by default).
  * The only restriction is that the first 0x20 flags are reset every time you enter a map.
  * That means that they can track things going on within a single map, but should not store information like "has an item been picked up".
  * Given the length of the trainer table, that means that trainers can be safely increase the table size by about 25 (FireRed).
