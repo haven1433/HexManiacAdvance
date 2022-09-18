@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -1186,10 +1187,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
-            if (destinationAddress == Pointer.NULL) continue; // skip this one
+            if (destinationAddress == Pointer.NULL) {
+               var count = model.GetMatchingMaps(model.GotoShortcuts[i].GotoAnchor).Count;
+               if (count != 1) continue;
+            }
             var spriteAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].ImageAnchor);
-            var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
-            var sprite = SpriteDecorator.BuildSprite(viewPort.Model, spriteRun, useTransparency: true);
+            var run = model.GetNextRun(spriteAddress) as BaseRun;
+            IPixelViewModel sprite;
+            if (run is ISpriteRun spriteRun) {
+               sprite = SpriteDecorator.BuildSprite(viewPort.Model, spriteRun, useTransparency: true);
+            } else if (run.CreateDataFormat(viewPort.Model, run.Start, true, 16) is SpriteDecorator decorator) {
+               sprite = decorator.Pixels;
+            } else {
+               continue;
+            }
             var anchor = model.GotoShortcuts[i].GotoAnchor;
             var text = model.GotoShortcuts[i].DisplayText;
             results.Add(new GotoShortcutViewModel(gotoViewModel, viewPort, sprite, anchor, text));

@@ -773,6 +773,11 @@ Name = '''Items'''
 Image = '''graphics.items.sprites/13/sprite/'''
 Destination = '''data.items.stats'''
 
+[[GotoShortcut]]
+Name = '''Maps'''
+Image = '''data.maps.banks/3/maps/0/map/0/layout/0/blockmap/'''
+Destination = '''maps.3-0 (PALLET TOWN)'''
+
 [[List]]
 Name = '''effectanimations'''
 0 = [
