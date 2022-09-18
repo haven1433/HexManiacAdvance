@@ -236,7 +236,7 @@ scripts.battle.ai.hpaware.discourage.when.self.low,      1DBF74, 1DBF04, 1DBF8C,
 scripts.battle.ai.hpaware.discourage.when.target.high,   1DBFC6, 1DBF56, 1DBFDE, 1DBF6E, 1DBB9E, 1DBB7A, 1DBC0E, 1DBBEA, 2DE1FA, [effect.moveeffectoptions]!FF
 scripts.battle.ai.hpaware.discourage.when.target.medium, 1DBFD5, 1DBF65, 1DBFED, 1DBF7D, 1DBBAD, 1DBB89, 1DBC1D, 1DBBF9, 2DE209, [effect.moveeffectoptions]!FF
 scripts.battle.ai.hpaware.discourage.when.target.low,    1DBFB7, 1DBF47, 1DBFCF, 1DBF5F, 1DBB8F, 1DBB6B, 1DBBFF, 1DBBDB, 2DE1EB, [effect.moveeffectoptions]!FF
-scripts.battle.ai.trainer,                               1DA01C, 1DA02C, 1DA034, 1D9FC4, 0C70B8, 0C708C, 0C70CC, 0C70A0, 2DBEF8, [ai<`tse`>]32
+scripts.battle.ai.trainer,                               1DA01C, 1DA02C, 1DA034, 1D9FC4, 0C70B8, 0C708C, 0C70CC, 0C70A0, 2DBEF8, [ai<`tse`>]traineraibits
 scripts.battle.animation.thumb,        37F4B8, 37F448, 37F4D0, 37F460, 3ADF5C, 3ADF3C, 3ADFCC, 3ADFAC, 525E98, [code<>]48
 scripts.newgame.setflags,              052F58, 052F58, 052F78, 052F78, 054B6C, 054B6C, 054B80, 054B80, 0845C8, `xse`
 scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0EB680, 0EB6BC, 0EB694, 16AE54, [item:data.items.stats count:]!00000000
