@@ -23,10 +23,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly int group, map;
 
       // TODO make these dynamic, right now this is only right for FireRed
-      private int PrimaryTiles => 640;
-      private int PrimaryBlocks => 640;
+      private int PrimaryTiles { get; } // 640
+      private int PrimaryBlocks { get; } // 640
       private int TotalBlocks => 1024;
-      private int PrimaryPalettes => 7;
+      private int PrimaryPalettes { get; } // 7
 
       #region SelectedEvent
 
@@ -284,6 +284,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          InitTableRef();
          Header = new(GetMapModel(), tokenFactory);
          RefreshMapSize();
+         PrimaryTiles = PrimaryBlocks = model.IsFRLG() ? 640 : 512;
+         PrimaryPalettes = model.IsFRLG() ? 7 : 6;
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
       }
@@ -1308,7 +1310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var names = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapNameTable).Start);
          var name = names[key].GetStringValue("name");
 
-         return $"{group}.{map} ({name})";
+         return $"{group}-{map} ({name})";
       }
 
       #endregion
