@@ -1,14 +1,18 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using Microsoft.Scripting.Runtime;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 // example for making a bug trainer: templates.CreateTrainer(objectEvent, history.CurrentChange, 20 /* bug catcher */, 30, 9, 6 /*bug*/, true);
 
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
-   public class EventTemplate {
+   public class EventTemplate : ViewModelCore {
       private readonly Random rnd = new();
       private readonly IDataModel model;
       private readonly ScriptParser parser;
@@ -45,15 +49,65 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public EventTemplate(IDataModel model, ScriptParser parser) => (this.model, this.parser) = (model, parser);
+      public EventTemplate(IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
+         (this.model, this.parser) = (model, parser);
+         RefreshLists(owGraphics);
+      }
+
+      public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
+         AvailableTemplateTypes.Clear();
+         AvailableTemplateTypes.Add(TemplateType.None);
+         AvailableTemplateTypes.Add(TemplateType.Trainer);
+         AvailableTemplateTypes.Add(TemplateType.Item);
+
+         GraphicsOptions.Clear();
+         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i));
+
+         TypeOptions.Clear();
+         foreach (var type in model.GetTableModel(HardcodeTablesModel.TypesTableName)) {
+            TypeOptions.Add(type.GetStringValue("name"));
+         }
+
+         ItemOptions.Clear();
+         foreach (var item in model.GetTableModel(HardcodeTablesModel.ItemsTableName)) {
+            ItemOptions.Add(item.GetStringValue("name"));
+         }
+      }
+
+      private TemplateType selectedTemplate;
+      public TemplateType SelectedTemplate {
+         get => selectedTemplate;
+         set => SetEnum(ref selectedTemplate, value);
+      }
+
+      public ObservableCollection<TemplateType> AvailableTemplateTypes { get; } = new();
+
+      public void ApplyTemplate(ObjectEventModel objectEventModel, ModelDelta token) {
+         if (selectedTemplate == TemplateType.Trainer) CreateTrainer(objectEventModel, token);
+         if (selectedTemplate == TemplateType.Item) CreateItem(objectEventModel, token);
+      }
+
+      #region Trainer
+
+      public ObservableCollection<VisualComboOption> GraphicsOptions { get; } = new();
+      public ObservableCollection<string> TypeOptions { get; } = new();
+
+      private int trainerGraphics, maxPokedex = 25, maxLevel = 9, preferredType = 6;
+      public int TrainerGraphics { get => trainerGraphics; set => Set(ref trainerGraphics, value); }
+      public int MaxPokedex { get => maxPokedex; set => Set(ref maxPokedex, value); }
+      public int MaxLevel { get => maxLevel; set => Set(ref maxLevel, value); }
+      public int PreferredType { get => preferredType; set => Set(ref preferredType, value); }
+
+      private bool useNationalDex;
+      public bool UseNationalDex { get => useNationalDex; set => Set(ref useNationalDex, value); }
 
       // TODO use all-caps name or mixed-caps name depending on other trainers in the table
       // TODO use reference file to get names and before/win/after text
-      public void CreateTrainer(ObjectEventModel objectEventModel, ModelDelta token, int graphics, int maxPokedex, int maxLevel, int preferredType, bool useNational) {
+      public void CreateTrainer(ObjectEventModel objectEventModel, ModelDelta token) {
          // part 1: the team
          var availablePokemon = new List<int>();
          var dexName = HardcodeTablesModel.RegionalDexTableName;
-         if (useNational) dexName = HardcodeTablesModel.NationalDexTableName;
+         if (useNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
          var pokedex = model.GetTableModel(dexName, token);
          var pokestats = model.GetTableModel(HardcodeTablesModel.PokemonStatsTable, token);
          for (int i = 1; i < pokedex.Count; i++) {
@@ -96,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          trainer.SetValue("ai", 0);
          trainer.SetValue("pokemonCount", teamSize);
          trainer.SetAddress("pokemon", teamStart);
-         if (!TrainerPreferences.TryGetValue(graphics, out var pref)) pref = new(0, 0, 0);
+         if (!TrainerPreferences.TryGetValue(trainerGraphics, out var pref)) pref = new(0, 0, 0);
          trainer.SetValue("class", pref.TrainerClass);
          trainer.SetValue("introMusicAndGender", pref.MusicAndGender);
          trainer.SetValue("sprite", pref.Sprite);
@@ -121,7 +175,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.WritePointer(token, scriptStart + 16, after);
 
          // part 4: the event
-         objectEventModel.Graphics = graphics;
+         objectEventModel.Graphics = trainerGraphics;
          objectEventModel.Elevation = 3;
          objectEventModel.MoveType = 9;
          objectEventModel.RangeX = objectEventModel.RangeY = 1;
@@ -131,9 +185,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventModel.Flag = 0;
       }
 
+      #endregion
+
       // TODO create NPC
 
-      public void CreateItem(ObjectEventModel objectEventModel, ModelDelta token, int item) {
+      #region Item
+
+      public ObservableCollection<string> ItemOptions { get; } = new();
+
+      private int itemID = 20;
+      public int ItemID { get => itemID; set => Set(ref itemID, value); }
+
+      public void CreateItem(ObjectEventModel objectEventModel, ModelDelta token) {
          var graphics = model.IsFRLG() ? 92 : 59;
          //   copyvarifnotzero 0x8000 item:
          //   copyvarifnotzero 0x8001 1
@@ -143,7 +206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var script = "1A 00 80 00 00 1A 01 80 01 00 09 01 02".ToByteArray();
          var address = model.FindFreeSpace(model.FreeSpaceStart, script.Length);
          token.ChangeData(model, address, script);
-         model.WriteMultiByteValue(address + 3, 2, token, item);
+         model.WriteMultiByteValue(address + 3, 2, token, itemID);
 
          var itemFlag = 0x21;
          while (UsedFlags.Contains(itemFlag)) itemFlag++;
@@ -158,13 +221,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventModel.Flag = itemFlag;
       }
 
+      #endregion
+
+      #region Helper Methods
+
       private int WriteText(ModelDelta token, string text) {
          var bytes = model.TextConverter.Convert(text, out var _);
          var start = model.FindFreeSpace(model.FreeSpaceStart, bytes.Count);
          token.ChangeData(model, start, bytes);
          return start;
       }
+
+      #endregion
    }
+
+   public enum TemplateType { None, Trainer, Item }
 }
 
 /*

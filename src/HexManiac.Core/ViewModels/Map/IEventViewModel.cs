@@ -266,7 +266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<VisualComboOption> Options { get; } = new();
 
-      public ObjectEventModel(ModelArrayElement objectEvent, IList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+      public ObjectEventModel(ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i));
       }
 

@@ -6,6 +6,9 @@
              xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
              Focusable="True">
+   <UserControl.Resources>
+      <local:EqualityToBooleanConverter x:Key="Equality" />
+   </UserControl.Resources>
    <UserControl.InputBindings>
       <KeyBinding Key="Left" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Left}" />
       <KeyBinding Key="Right" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Right}" />
@@ -44,7 +47,7 @@
             </Canvas>
          </ScrollViewer>
       </DockPanel>
-      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1"
+      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="EventPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
          <DockPanel>
@@ -266,7 +269,7 @@
             </ContentControl>
          </DockPanel>
       </ScrollViewer>
-      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1"
+      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="HeaderPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
          <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
@@ -412,7 +415,7 @@
 
       <!-- Toolbar? -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5">
-         <StackPanel Margin="5">
+         <StackPanel Margin="5,0">
             <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}">
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinPlus}" />
             </Button>
@@ -420,8 +423,8 @@
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinMinus}" />
             </Button>
          </StackPanel>
-         <ToggleButton Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5" />
-         <Button Command="{Binding PrimaryMap.GotoWildData}" Margin="5" Width="100">
+         <ToggleButton Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5,0" />
+         <Button Command="{Binding PrimaryMap.GotoWildData}" Margin="5,0" Width="100">
             <Button.Style>
                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                   <Setter Property="Content" Value="Show Wild Data" />
@@ -434,10 +437,111 @@
             </Button.Style>
          </Button>
          <TextBlock Text="{Binding PrimaryMap.Name}" Margin="5"/>
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Object}" ToolTip="Create New Object" />
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp" />
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Script}" ToolTip="Create New Script" />
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5" Tag="{x:Static map:EventCreationType.Signpost}" ToolTip="Create New Signpost" />
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Object}" ToolTip="Create New Object" />
+         <ToggleButton Padding="0" Width="12" Height="12" VerticalAlignment="Top" Name="ShowTemplateSettingsButton">
+            <Path Data="{res:Icon Settings}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+         </ToggleButton>
+         <Popup DataContext="{Binding Templates}" IsOpen="{Binding IsChecked, ElementName=ShowTemplateSettingsButton}" PlacementTarget="{Binding ElementName=ShowTemplateSettingsButton}" Width="235" Height="220" StaysOpen="False">
+            <Border BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Background="{DynamicResource Background}">
+               <Grid Margin="5">
+                  <Grid.ColumnDefinitions>
+                     <ColumnDefinition /> <ColumnDefinition />
+                  </Grid.ColumnDefinitions>
+                  <Grid.RowDefinitions>
+                     <RowDefinition Height="Auto" />
+                     <RowDefinition />
+                  </Grid.RowDefinitions>
+                  <StackPanel>
+                     <local:AngleBorder Direction="Left">
+                        <TextBlock Text="Template:"/>
+                     </local:AngleBorder>
+                     <Decorator>
+                        <Decorator.Style>
+                           <Style TargetType="Decorator">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding SelectedTemplate}" Value="Item">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Decorator.Style>
+                        <local:AngleBorder Direction="Left">
+                           <TextBlock Text="Item:"/>
+                        </local:AngleBorder>
+                     </Decorator>
+                  </StackPanel>
+                  <StackPanel Grid.Column="1">
+                     <local:AngleComboBox Direction="Out" ItemsSource="{Binding AvailableTemplateTypes}" SelectedItem="{Binding SelectedTemplate}" />
+                     <Decorator>
+                        <Decorator.Style>
+                           <Style TargetType="Decorator">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding SelectedTemplate}" Value="Item">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </Decorator.Style>
+                        <local:AngleComboBox Direction="Out" ItemsSource="{Binding ItemOptions}" SelectedIndex="{Binding ItemID}" />
+                     </Decorator>
+                  </StackPanel>
+                  <StackPanel Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0">
+                     <StackPanel.Style>
+                        <Style TargetType="StackPanel">
+                           <Setter Property="Visibility" Value="Collapsed" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding SelectedTemplate}" Value="Trainer">
+                                 <Setter Property="Visibility" Value="Visible" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </StackPanel.Style>
+                     <!-- This trainer prefers to use a level <15> <Bug> pokemon from first <50> pokemon in the <Regional> pokedex. -->
+                     <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="This trainer prefers to use" />
+                     </StackPanel>
+                     <StackPanel Orientation="Horizontal" Margin="0,5">
+                        <local:AngleBorder Direction="Left">
+                           <TextBlock Margin="0,0,2,0" Text="level" />
+                        </local:AngleBorder>
+                        <local:AngleTextBox Width="35" Direction="Out" TextBinding="{Binding MaxLevel}" />
+                        <local:AngleComboBox Width="75" ItemsSource="{Binding TypeOptions}" SelectedIndex="{Binding PreferredType}" Direction="Right" />
+                        <TextBlock Margin="2,0" Text="pokemon" />
+                     </StackPanel>
+                     <StackPanel Orientation="Horizontal">
+                        <TextBlock Margin="2,0" Text="from the first" />
+                        <local:AngleTextBox Width="35" Direction="Left" TextBinding="{Binding MaxPokedex}" />
+                        <local:AngleButton Width="60" Padding="0" Height="18" Direction="Out" IsChecked="{Binding UseNationalDex}">
+                           <local:AngleButton.Style>
+                              <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                                 <Setter Property="Content" Value="Regional" />
+                                 <Style.Triggers>
+                                    <DataTrigger Binding="{Binding UseNationalDex}" Value="True">
+                                       <Setter Property="Content" Value="National" />
+                                    </DataTrigger>
+                                 </Style.Triggers>
+                              </Style>
+                           </local:AngleButton.Style>
+                        </local:AngleButton>
+                        <TextBlock Margin="2,0" Text="pokemon." />
+                     </StackPanel>
+                     <Decorator Margin="5" HorizontalAlignment="Center">
+                        <Decorator.Resources>
+                           <DataTemplate DataType="{x:Type tools:VisualComboOption}">
+                              <local:PixelImage />
+                           </DataTemplate>
+                        </Decorator.Resources>
+                        <local:AngleComboBox Direction="Out" MinWidth="50" ItemsSource="{Binding GraphicsOptions}" SelectedIndex="{Binding TrainerGraphics}" />
+                     </Decorator>
+                  </StackPanel>
+               </Grid>
+            </Border>
+         </Popup>
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp" />
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}" ToolTip="Create New Script" />
+         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}" ToolTip="Create New Signpost" />
       </StackPanel>
       <Rectangle Grid.Column="1" IsHitTestVisible="False" Fill="{DynamicResource Secondary}" Height="1" VerticalAlignment="Bottom" />
    </Grid>

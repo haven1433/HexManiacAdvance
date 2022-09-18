@@ -61,6 +61,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<MapSlider> MapButtons { get; } = new();
 
+      public EventTemplate Templates => templates;
+
       #region Block Picker
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
@@ -203,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
 
          var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19) { IncludeBorders = true };
-         templates = new(model, viewPort.Tools.CodeTool.ScriptParser);
+         templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
       }
@@ -448,6 +450,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void StartEventCreationInteraction(EventCreationType type) {
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
+            templates.ApplyTemplate(objectEvent, history.CurrentChange);
             SelectedEvent = objectEvent;
          } else if (type == EventCreationType.Warp) {
             var desiredMap = (bank: 0, map: 0);

@@ -1133,8 +1133,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
-      private IList<IPixelViewModel> allOverworldSprites;
-      public static IList<IPixelViewModel> RenderOWs(IDataModel model) {
+      private IReadOnlyList<IPixelViewModel> allOverworldSprites;
+      public IReadOnlyList<IPixelViewModel> AllOverworldSprites {
+         get {
+            if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
+            return allOverworldSprites;
+         }
+      }
+      public static List<IPixelViewModel> RenderOWs(IDataModel model) {
          var list = new List<IPixelViewModel>();
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
          var ows = new ModelTable(model, run.Start, null, run);
@@ -1458,7 +1464,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class EventGroupModel {
       private readonly ModelArrayElement events;
 
-      public EventGroupModel(ModelArrayElement events, IList<IPixelViewModel> ows) {
+      public EventGroupModel(ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
