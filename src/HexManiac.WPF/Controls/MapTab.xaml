@@ -548,13 +548,13 @@
                </Grid>
             </Border>
          </Popup>
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp">
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Warp">
             <TextBlock Text="W" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
          </Border>
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}" ToolTip="Create New Script">
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Script">
             <TextBlock Text="Sc" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
          </Border>
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}" ToolTip="Create New Signpost">
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Signpost">
             <TextBlock Text="Sp" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
          </Border>
       </StackPanel>
