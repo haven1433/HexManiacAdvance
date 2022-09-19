@@ -45,6 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          EvolutionTableName = "data.pokemon.evolutions",
          TypeChartTableName = "data.pokemon.type.chart",
          ShinyPalettesTable = "graphics.pokemon.palettes.shiny",
+         TrainerSpritesName = "graphics.trainers.sprites.front",
          ItemImagesTableName = "graphics.items.sprites",
          LevelMovesTableName = "data.pokemon.moves.levelup",
          RegionalDexTableName = "data.pokedex.regional",

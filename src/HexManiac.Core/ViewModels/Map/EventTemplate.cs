@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using Microsoft.Scripting.Runtime;
@@ -94,13 +95,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObservableCollection<string> TypeOptions { get; } = new();
 
       private int trainerGraphics, maxPokedex = 25, maxLevel = 9, preferredType = 6;
-      public int TrainerGraphics { get => trainerGraphics; set => Set(ref trainerGraphics, value); }
+      public int TrainerGraphics {
+         get => trainerGraphics;
+         set {
+            Set(ref trainerGraphics, value, old => {
+               if (!TrainerPreferences.TryGetValue(trainerGraphics, out var pref)) pref = new(0, 0, 0);
+               var spriteAddress = model.GetTableModel(HardcodeTablesModel.TrainerSpritesName)[pref.Sprite].GetAddress("sprite");
+               var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+               TrainerSprite = ReadonlyPixelViewModel.Create(model, spriteRun, true);
+               NotifyPropertyChanged(nameof(TrainerSprite));
+            });
+         }
+      }
       public int MaxPokedex { get => maxPokedex; set => Set(ref maxPokedex, value); }
       public int MaxLevel { get => maxLevel; set => Set(ref maxLevel, value); }
       public int PreferredType { get => preferredType; set => Set(ref preferredType, value); }
 
       private bool useNationalDex;
       public bool UseNationalDex { get => useNationalDex; set => Set(ref useNationalDex, value); }
+
+      public IPixelViewModel TrainerSprite { get; private set; }
 
       // TODO use all-caps name or mixed-caps name depending on other trainers in the table
       // TODO use reference file to get names and before/win/after text

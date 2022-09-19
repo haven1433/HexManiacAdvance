@@ -506,13 +506,13 @@
                         <local:AngleBorder Direction="Left">
                            <TextBlock Margin="0,0,2,0" Text="level" />
                         </local:AngleBorder>
-                        <local:AngleTextBox Width="35" Direction="Out" TextBinding="{Binding MaxLevel}" />
+                        <local:AngleTextBox Width="35" Direction="Out" TextBinding="{Binding MaxLevel, UpdateSourceTrigger=PropertyChanged}" />
                         <local:AngleComboBox Width="75" ItemsSource="{Binding TypeOptions}" SelectedIndex="{Binding PreferredType}" Direction="Right" />
                         <TextBlock Margin="2,0" Text="pokemon" />
                      </StackPanel>
                      <StackPanel Orientation="Horizontal">
                         <TextBlock Margin="2,0" Text="from the first" />
-                        <local:AngleTextBox Width="35" Direction="Left" TextBinding="{Binding MaxPokedex}" />
+                        <local:AngleTextBox Width="35" Direction="Left" TextBinding="{Binding MaxPokedex, UpdateSourceTrigger=PropertyChanged}" />
                         <local:AngleButton Width="60" Padding="0" Height="18" Direction="Out" IsChecked="{Binding UseNationalDex}">
                            <local:AngleButton.Style>
                               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -533,8 +533,15 @@
                               <local:PixelImage />
                            </DataTemplate>
                         </Decorator.Resources>
-                        <local:AngleComboBox Direction="Out" MinWidth="50" ItemsSource="{Binding GraphicsOptions}" SelectedIndex="{Binding TrainerGraphics}" />
+                        <local:AngleComboBox Direction="Out" MinWidth="50" ItemsSource="{Binding GraphicsOptions}" SelectedIndex="{Binding TrainerGraphics}">
+                           <local:AngleComboBox.ItemsPanel>
+                              <ItemsPanelTemplate>
+                                 <WrapPanel MaxWidth="256" />
+                              </ItemsPanelTemplate>
+                           </local:AngleComboBox.ItemsPanel>
+                        </local:AngleComboBox>
                      </Decorator>
+                     <local:PixelImage DataContext="{Binding TrainerSprite}" TransparentBrush="{DynamicResource Background}" />
                   </StackPanel>
                </Grid>
             </Border>
