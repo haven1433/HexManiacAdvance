@@ -9,6 +9,7 @@ using Microsoft.Scripting.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 // example for making a bug trainer: templates.CreateTrainer(objectEvent, history.CurrentChange, 20 /* bug catcher */, 30, 9, 6 /*bug*/, true);
 
@@ -51,6 +52,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public IPixelViewModel ObjectTemplateImage { get; private set; }
+
       public EventTemplate(IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
          (this.model, this.parser) = (model, parser);
          RefreshLists(owGraphics);
@@ -74,12 +77,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var item in model.GetTableModel(HardcodeTablesModel.ItemsTableName)) {
             ItemOptions.Add(item.GetStringValue("name"));
          }
+
+         UpdateObjectTemplateImage();
       }
 
       private TemplateType selectedTemplate;
       public TemplateType SelectedTemplate {
          get => selectedTemplate;
-         set => SetEnum(ref selectedTemplate, value);
+         set => SetEnum(ref selectedTemplate, value, UpdateObjectTemplateImage);
       }
 
       public ObservableCollection<TemplateType> AvailableTemplateTypes { get; } = new();
@@ -104,6 +109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
                TrainerSprite = ReadonlyPixelViewModel.Create(model, spriteRun, true);
                NotifyPropertyChanged(nameof(TrainerSprite));
+               UpdateObjectTemplateImage();
             });
          }
       }
@@ -221,7 +227,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int ItemID { get => itemID; set => Set(ref itemID, value); }
 
       public void CreateItem(ObjectEventModel objectEventModel, ModelDelta token) {
-         var graphics = model.IsFRLG() ? 92 : 59;
          //   copyvarifnotzero 0x8000 item:
          //   copyvarifnotzero 0x8001 1
          //   callstd 1
@@ -236,7 +241,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          while (UsedFlags.Contains(itemFlag)) itemFlag++;
          UsedFlags.Add(itemFlag);
 
-         objectEventModel.Graphics = graphics;
+         objectEventModel.Graphics = ItemGraphics;
          objectEventModel.Elevation = 3;
          objectEventModel.MoveType = 8;
          objectEventModel.RangeX = objectEventModel.RangeY = 1;
@@ -247,6 +252,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
       }
 
+      private int ItemGraphics => model.IsFRLG() ? 92 : 59;
+
       #endregion
 
       #region Helper Methods
@@ -256,6 +263,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var start = model.FindFreeSpace(model.FreeSpaceStart, bytes.Count);
          token.ChangeData(model, start, bytes);
          return start;
+      }
+
+      private void UpdateObjectTemplateImage(TemplateType old = default) {
+         if (selectedTemplate == TemplateType.None) {
+            ObjectTemplateImage = GraphicsOptions[0];
+         } else if (selectedTemplate == TemplateType.Trainer) {
+            ObjectTemplateImage = GraphicsOptions[TrainerGraphics];
+         } else if (selectedTemplate == TemplateType.Item) {
+            ObjectTemplateImage = GraphicsOptions[ItemGraphics];
+         }
+         ObjectTemplateImage = new ReadonlyPixelViewModel(ObjectTemplateImage.PixelWidth, ObjectTemplateImage.PixelHeight, ObjectTemplateImage.PixelData, ObjectTemplateImage.PixelData[0]);
+         ObjectTemplateImage = ObjectTemplateImage.AutoCrop();
+         NotifyPropertyChanged(nameof(ObjectTemplateImage));
       }
 
       #endregion

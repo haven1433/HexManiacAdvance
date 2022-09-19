@@ -437,7 +437,9 @@
             </Button.Style>
          </Button>
          <TextBlock Text="{Binding PrimaryMap.Name}" Margin="5"/>
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Object}" ToolTip="Create New Object" />
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
+            <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>
+         </Border>
          <ToggleButton Padding="0" Width="12" Height="12" VerticalAlignment="Top" Name="ShowTemplateSettingsButton">
             <Path Data="{res:Icon Settings}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
          </ToggleButton>
@@ -546,9 +548,15 @@
                </Grid>
             </Border>
          </Popup>
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp" />
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}" ToolTip="Create New Script" />
-         <Rectangle Width="24" Height="24" StrokeThickness="1" Stroke="{DynamicResource Secondary}" Fill="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}" ToolTip="Create New Signpost" />
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Accent}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}" ToolTip="Create New Warp">
+            <TextBlock Text="W" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+         </Border>
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Stream2}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}" ToolTip="Create New Script">
+            <TextBlock Text="Sc" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+         </Border>
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}" ToolTip="Create New Signpost">
+            <TextBlock Text="Sp" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+         </Border>
       </StackPanel>
       <Rectangle Grid.Column="1" IsHitTestVisible="False" Fill="{DynamicResource Secondary}" Height="1" VerticalAlignment="Bottom" />
    </Grid>

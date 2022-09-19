@@ -433,7 +433,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void EventMove(double x, double y) {
          var map = MapUnderCursor(x, y);
-         if (map != null) map.UpdateEventLocation(selectedEvent, x, y);
+         if (map != null) {
+            CreateEventForCreationInteraction(eventCreationType);
+            map.UpdateEventLocation(selectedEvent, x, y);
+         }
          Hover(x, y);
       }
 
@@ -447,7 +450,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       private bool withinEventCreationInteraction = false;
+      private EventCreationType eventCreationType;
       public void StartEventCreationInteraction(EventCreationType type) {
+         interactionType = PrimaryInteractionType.Event;
+         VisibleMaps.Clear();
+         VisibleMaps.Add(primaryMap);
+         MapButtons.Clear();
+         eventCreationType = type;
+         withinEventCreationInteraction = true;
+      }
+
+      private void CreateEventForCreationInteraction(EventCreationType type) {
+         if (type == EventCreationType.None) return;
+         eventCreationType = EventCreationType.None;
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
             templates.ApplyTemplate(objectEvent, history.CurrentChange);
@@ -466,11 +481,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else {
             throw new NotImplementedException();
          }
-         interactionType = PrimaryInteractionType.Event;
-         VisibleMaps.Clear();
-         VisibleMaps.Add(primaryMap);
-         MapButtons.Clear();
-         withinEventCreationInteraction = true;
       }
 
       #region Selection (right-click)
@@ -746,7 +756,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public enum EventCreationType { Object, Warp, Script, Signpost }
+   public enum EventCreationType { None, Object, Warp, Script, Signpost }
 
    public enum PrimaryInteractionType { None, Draw, Event }
 

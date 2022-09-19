@@ -16,9 +16,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          (PixelWidth, PixelHeight, PixelData) = (sf.TileWidth * 8, sf.TileHeight * 8, data);
          Transparent = transparent;
       }
-      private ReadonlyPixelViewModel(int width, int height, short[] data) {
+
+      public ReadonlyPixelViewModel(int width, int height, short[] data, short transparent = -1) {
          (PixelWidth, PixelHeight, PixelData) = (width, height, data);
-         Transparent = -1;
+         Transparent = transparent;
       }
 
       public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, bool useTransparency = false) {
