@@ -170,6 +170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ObjectEventModel : BaseEventModel {
+      public int Start => element.Start;
 
       public int ObjectID {
          get => element.GetValue("id");

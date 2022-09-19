@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using Microsoft.Scripting.Runtime;
@@ -173,6 +174,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.WritePointer(token, scriptStart + 6, before);
          model.WritePointer(token, scriptStart + 10, win);
          model.WritePointer(token, scriptStart + 16, after);
+         model.ObserveRunWritten(token, new PointerRun(scriptStart + 6));
+         model.ObserveRunWritten(token, new PointerRun(scriptStart + 10));
+         model.ObserveRunWritten(token, new PointerRun(scriptStart + 16));
+         var factory = new PCSRunContentStrategy();
+         factory.TryAddFormatAtDestination(model, token, scriptStart + 6, before, default, default, default);
+         factory.TryAddFormatAtDestination(model, token, scriptStart + 10, win, default, default, default);
+         factory.TryAddFormatAtDestination(model, token, scriptStart + 16, after, default, default, default);
 
          // part 4: the event
          objectEventModel.Graphics = trainerGraphics;
@@ -183,6 +191,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventModel.TrainerRangeOrBerryID = 5;
          objectEventModel.ScriptAddress = scriptStart;
          objectEventModel.Flag = 0;
+
+         model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
       }
 
       #endregion
@@ -204,9 +214,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          //   end
          //                     item:
          var script = "1A 00 80 00 00 1A 01 80 01 00 09 01 02".ToByteArray();
-         var address = model.FindFreeSpace(model.FreeSpaceStart, script.Length);
-         token.ChangeData(model, address, script);
-         model.WriteMultiByteValue(address + 3, 2, token, itemID);
+         var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, script.Length);
+         token.ChangeData(model, scriptStart, script);
+         model.WriteMultiByteValue(scriptStart + 3, 2, token, itemID);
 
          var itemFlag = 0x21;
          while (UsedFlags.Contains(itemFlag)) itemFlag++;
@@ -217,8 +227,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventModel.MoveType = 8;
          objectEventModel.RangeX = objectEventModel.RangeY = 1;
          objectEventModel.TrainerType = objectEventModel.TrainerRangeOrBerryID = 0;
-         objectEventModel.ScriptAddress = address;
+         objectEventModel.ScriptAddress = scriptStart;
          objectEventModel.Flag = itemFlag;
+
+         model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
       }
 
       #endregion

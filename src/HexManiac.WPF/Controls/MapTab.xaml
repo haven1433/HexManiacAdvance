@@ -413,7 +413,7 @@
          </Rectangle.RenderTransform>
       </Rectangle>
 
-      <!-- Toolbar? -->
+      <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5">
          <StackPanel Margin="5,0">
             <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}">
