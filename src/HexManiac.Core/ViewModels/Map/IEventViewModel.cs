@@ -148,7 +148,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             foreach (var source in table.PointerSources) {
                model.UpdateArrayPointer(token, null, null, 0, source, Pointer.NULL);
                if (model.GetNextRun(source) is ITableRun parentTable) {
-                  var parent = new ModelArrayElement(model, parentTable.Start, 0, token, parentTable);
+                  var parent = new ModelArrayElement(model, parentTable.Start, 0, () => token, parentTable);
                   parent.SetValue(parentCountField, 0);
                }
             }
@@ -187,7 +187,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public int MoveType {
          get => element.GetValue("moveType");
-         set => element.SetValue("moveType", value);
+         set {
+            element.SetValue("moveType", value);
+            RaiseEventVisualUpdated();
+         }
       }
 
       #region Range
@@ -266,9 +269,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public ObservableCollection<VisualComboOption> Options { get; } = new();
+      public ObservableCollection<string> FacingOptions { get; } = new();
 
       public ObjectEventModel(ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i));
+         objectEvent.Model.TryGetList("FacingOptions", out var list);
+         foreach (var item in list) FacingOptions.Add(item);
       }
 
       public override int TopOffset => 16 - EventRender.PixelHeight;
@@ -276,22 +282,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public override void Render(IDataModel model) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
-         EventRender = Render(model, owTable, Graphics);
+         var facing = MoveType switch {
+            7 => 1,
+            9 => 2,
+            10 => 3,
+            _ => 0,
+         };
+         EventRender = Render(model, owTable, Graphics, facing);
+         NotifyPropertyChanged(nameof(EventRender));
       }
 
-      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, int index) {
+      /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
+      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, int index, int facing) {
          if (index >= owTable.Count) {
             return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
          }
          var element = owTable[index];
          var data = element.GetSubTable("data")[0];
-         var sprites = data.GetSubTable("sprites")[0];
-         var graphicsAddress = sprites.GetAddress("sprite");
+         var sprites = data.GetSubTable("sprites");
+         bool flip = facing == 3;
+         if (facing == 3) facing = 2;
+         if (facing >= sprites.Count) facing = 0;
+         var sprite = sprites[facing];
+         var graphicsAddress = sprite.GetAddress("sprite");
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          if (graphicsRun == null) {
             return new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
          }
-         return ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+         var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+         if (flip) ow = ow.ReflectX();
+         return ow;
       }
    }
 

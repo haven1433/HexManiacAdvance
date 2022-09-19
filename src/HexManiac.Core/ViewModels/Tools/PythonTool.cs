@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ModelTable this[string name] {
          get {
             if (Editor.SelectedTab is IViewPort viewPort && viewPort.Model is IDataModel model) {
-               return new ModelTable(model, model.GetAddressFromAnchor(new(), -1, name), viewPort.ChangeHistory.CurrentChange);
+               return new ModelTable(model, model.GetAddressFromAnchor(new(), -1, name), () => viewPort.ChangeHistory.CurrentChange);
             }
             return null;
          }

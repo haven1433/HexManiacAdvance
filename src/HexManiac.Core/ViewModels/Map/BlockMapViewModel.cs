@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void CycleActiveEvent(object sender, EventCycleDirection direction) {
          // organize events into categories
-         var events = GetEvents(tokenFactory());
+         var events = GetEvents();
          var categories = new List<List<IEventModel>> { new(), new(), new(), new() };
          int selectionIndex = -1, selectedCategory = -1;
          for (int i = 0; i < events.Count; i++) {
@@ -200,7 +200,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Borders
 
-      private bool includeBorders = false;
+      private bool includeBorders = true;
       public bool IncludeBorders {
          get => includeBorders;
          set => Set(ref includeBorders, value, IncludeBordersChanged);
@@ -258,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             wildTable = model.RelocateForExpansion(token, wildTable, wildTable.Length + wildTable.ElementLength);
             wildTable = wildTable.Append(token, 1);
             model.ObserveRunWritten(token, wildTable);
-            var element = new ModelArrayElement(model, wildTable.Start, wildTable.ElementCount - 1, token, wildTable);
+            var element = new ModelArrayElement(model, wildTable.Start, wildTable.ElementCount - 1, tokenFactory, wildTable);
             element.SetValue("bank", MapID / 1000);
             element.SetValue("map", MapID % 1000);
             element.SetAddress("grass", Pointer.NULL);
@@ -490,7 +490,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
-         foreach (var e in GetEvents(tokenFactory())) {
+         foreach (var e in GetEvents()) {
             if (e.X == tileX && e.Y == tileY) {
                if (selectedEvent == null || selectedEvent.X != e.X || selectedEvent.Y != e.Y) {
                   SelectedEvent = e;
@@ -603,7 +603,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void ResizeMapData(MapDirection direction, int amount) {
          if (amount == 0) return;
          var token = tokenFactory();
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var layout = GetLayout(map);
          var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
          if (run == null) return;
@@ -623,7 +623,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   }
                }
             }
-            foreach (var e in GetEvents(token)) {
+            foreach (var e in GetEvents()) {
                if (direction == MapDirection.Left) {
                   e.X += amount;
                } else if (direction == MapDirection.Up) {
@@ -637,7 +637,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void ConnectNewMap(object obj) {
          var token = tokenFactory();
-         var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, token);
+         var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          var enumViewModel = new EnumViewModel(mapBanks.Count.Range(i => i.ToString()).ToArray());
          var option = fileSystem.ShowOptions(
             "Pick a group",
@@ -647,12 +647,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (option == -1) return;
 
          var info = (ConnectionInfo)obj;
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var connectionsAndCount = map.GetSubTable("connections")[0];
          var connections = connectionsAndCount.GetSubTable("connections").Run;
          connections = model.RelocateForExpansion(token, connections, connections.Length + connections.ElementLength);
          connectionsAndCount.SetValue("count", connections.ElementCount + 1);
-         var table = new ModelTable(model, connections.Start, token, connections);
+         var table = new ModelTable(model, connections.Start, tokenFactory, connections);
          var newConnection = new ConnectionModel(table[connections.ElementCount]);
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
@@ -664,7 +664,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var newTable = model.RelocateForExpansion(token, mapBanks.Run, mapBanks.Run.Length + mapBanks.Run.ElementLength);
             newTable = newTable.Append(token, 1);
             model.ObserveRunWritten(token, newTable);
-            mapBanks = new ModelTable(model, newTable.Start, token, newTable);
+            mapBanks = new ModelTable(model, newTable.Start, tokenFactory, newTable);
             var tableStart = model.FindFreeSpace(model.FreeSpaceStart, 8);
             mapTable = new TableStreamRun(model, tableStart, SortedSpan.One(mapBanks[newConnection.MapGroup].Start), $"[map<{_map}1>]", null, new DynamicStreamStrategy(model, null), 0);
             model.UpdateArrayPointer(token, null, null, -1, mapBanks[newConnection.MapGroup].Start, tableStart);
@@ -696,7 +696,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // find available maps
          var options = new Dictionary<int, ConnectionInfo>();
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
-         var mapBanks = new ModelTable(model, table.Start, token);
+         var mapBanks = new ModelTable(model, table.Start, tokenFactory);
          for (int group = 0; group < mapBanks.Count; group++) {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
@@ -738,7 +738,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RemoveConnections(object obj) {
          var toRemove = (IReadOnlyList<int>)obj;
          var token = tokenFactory();
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var connections = GetConnections(map);
          for (int i = 0; i < toRemove.Count; i++) {
             for (int j = toRemove[i] - i + 1; j < connections.Count - i; j++) {
@@ -764,7 +764,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private ConnectionModel AddConnection(ConnectionInfo info) {
          var token = tokenFactory();
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var connectionsAndCountTable = map.GetSubTable("connections");
          if (connectionsAndCountTable == null) {
             var newConnectionsAndCountTable = CreateNewConnections(token);
@@ -790,7 +790,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          connections = connections.Append(token, 1);
          model.ObserveRunWritten(token, connections);
 
-         var table = new ModelTable(model, connections.Start, token, connections);
+         var table = new ModelTable(model, connections.Start, tokenFactory, connections);
          var newConnection = new ConnectionModel(table[count]);
          token.ChangeData(model, table[count].Start, new byte[12]);
          newConnection.Direction = info.Direction;
@@ -799,9 +799,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObjectEventModel CreateObjectEvent(int graphics, int scriptAddress) {
          var token = tokenFactory();
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
-         var element = AddEvent(events, token, "objectCount", "objects");
+         var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var newEvent = new ObjectEventModel(element, allOverworldSprites) {
             X = 0, Y = 0,
@@ -821,37 +821,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public WarpEventModel CreateWarpEvent(int bank, int map) {
-         var token = tokenFactory();
-         var mapModel = GetMapModel(token);
+         var mapModel = GetMapModel();
          var events = mapModel.GetSubTable("events")[0];
-         var element = AddEvent(events, token, "warpCount", "warps");
+         var element = AddEvent(events, tokenFactory, "warpCount", "warps");
          var newEvent = new WarpEventModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = 0 };
          SelectedEvent = newEvent;
          return newEvent;
       }
 
       public ScriptEventModel CreateScriptEvent() {
-         var token = tokenFactory();
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
-         var element = AddEvent(events, token, "scriptCount", "scripts");
+         var element = AddEvent(events, tokenFactory, "scriptCount", "scripts");
          var newEvent = new ScriptEventModel(element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
 
       public SignpostEventModel CreateSignpostEvent() {
-         var token = tokenFactory();
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
-         var element = AddEvent(events, token, "signpostCount", "signposts");
+         var element = AddEvent(events, tokenFactory, "signpostCount", "signposts");
          var newEvent = new SignpostEventModel(element) { X = 0, Y = 0, Elevation = 0, Kind = 0, Arg = "0" };
          SelectedEvent = newEvent;
          return newEvent;
       }
 
       // TODO use this for connections as well, since the structure is the same
-      public static ModelArrayElement AddEvent(ModelArrayElement events, ModelDelta token, string countName, string fieldName) {
+      public static ModelArrayElement AddEvent(ModelArrayElement events, Func<ModelDelta> tokenFactory, string countName, string fieldName) {
          var model = events.Model;
          var count = events.GetValue(countName);
          var elementTable = events.GetSubTable(fieldName)?.Run;
@@ -867,9 +864,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             elementTable = new TableStreamRun(model, newTableStart, SortedSpan.One(events.Table.ElementContent.Until(seg => seg.Name == fieldName).Sum(seg => seg.Length) + events.Table.Start), segment.InnerFormat, childSegments, parentStrategy, 0);
             events.SetAddress(fieldName, newTableStart);
          }
+         var token = tokenFactory();
          var newRun = elementTable.Append(token, 1);
          model.ObserveRunWritten(token, newRun);
-         return new ModelArrayElement(model, newRun.Start, newRun.ElementCount - 1, token, newRun);
+         return new ModelArrayElement(model, newRun.Start, newRun.ElementCount - 1, tokenFactory, newRun);
       }
 
       /// <summary>
@@ -1105,23 +1103,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BorderBlock = canvas;
       }
 
-      private ModelArrayElement GetMapModel(ModelDelta token = null) {
+      private ModelArrayElement GetMapModel() {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          if (table == null) return null;
-         var mapBanks = new ModelTable(model, table.Start, token);
+         var mapBanks = new ModelTable(model, table.Start, tokenFactory);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
          return mapTable[0];
       }
 
-      private ModelArrayElement GetLayout(ModelArrayElement map = null, ModelDelta token = null) {
-         if (map == null) map = GetMapModel(token);
+      private ModelArrayElement GetLayout(ModelArrayElement map = null) {
+         if (map == null) map = GetMapModel();
          if (map == null) return null;
          return map.GetSubTable("layout")[0];
       }
 
-      private IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map = null, ModelDelta token = null) {
-         if (map == null) map = GetMapModel(token);
+      private IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map = null) {
+         if (map == null) map = GetMapModel();
          if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
          var list = new List<ConnectionModel>();
@@ -1147,15 +1145,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
          var ows = new ModelTable(model, run.Start, null, run);
          for (int i = 0; i < ows.Count; i++) {
-            list.Add(ObjectEventModel.Render(model, ows, i));
+            list.Add(ObjectEventModel.Render(model, ows, i,0));
          }
          return list;
       }
 
-      private IReadOnlyList<IEventModel> GetEvents(ModelDelta token = null) {
+      private IReadOnlyList<IEventModel> GetEvents() {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         var table = model.GetTable(HardcodeTablesModel.MapBankTable);
-         var map = GetMapModel(token);
+         var map = GetMapModel();
          var results = new List<IEventModel>();
          var events = new EventGroupModel(map.GetSubTable("events")[0], allOverworldSprites);
          results.AddRange(events.Objects);
@@ -1424,7 +1421,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // when we call SetValue, get the latest token
       private void SetValue(int value, [CallerMemberName]string name = null) {
          if (value == GetValue(name)) return;
-         map = new(map.Model, map.Table.Start, (map.Start - map.Table.Start) / map.Table.ElementCount, tokenFactory(), map.Table);
+         map = new(map.Model, map.Table.Start, (map.Start - map.Table.Start) / map.Table.ElementCount, tokenFactory, map.Table);
          var originalName = name;
          name = char.ToLower(name[0]) + name.Substring(1);
          map.SetValue(name, value);

@@ -172,7 +172,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// <returns></returns>
       public static IList<ModelArrayElement> GetAllEvents(IDataModel model, string type) {
          var elements = new List<ModelArrayElement>();
-         var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable, new());
+         var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
          foreach (var bank in banks) {
             var maps = bank.GetSubTable("maps");
             foreach (var map in maps) {

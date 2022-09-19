@@ -28,10 +28,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return model.GetNextRun(address) as ITableRun;
       }
 
-      public static ModelTable GetTableModel(this IDataModel model, string name, ModelDelta token = null) {
+      public static ModelTable GetTableModel(this IDataModel model, string name, Func<ModelDelta> tokenFactory = null) {
          var table = model.GetTable(name);
          if (table == null) return null;
-         return new ModelTable(model, table, token);
+         return new ModelTable(model, table, tokenFactory);
       }
 
       /// <param name="byteOffset">Ranges from 0 to Model.Count</param>

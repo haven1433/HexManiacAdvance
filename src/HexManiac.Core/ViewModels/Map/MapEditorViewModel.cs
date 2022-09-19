@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
 
-         var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19) { IncludeBorders = true };
+         var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19);
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
@@ -555,8 +555,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private Point ToTilePosition(double x, double y) {
          (x, y) = ((x - primaryMap.LeftEdge) / primaryMap.SpriteScale / 16, (y - primaryMap.TopEdge) / primaryMap.SpriteScale / 16);
+         
          var borders = primaryMap.GetBorderThickness();
-         return new Point((int)x - borders.West, (int)y - borders.North);
+         return new Point((int)Math.Floor(x) - borders.West, (int)Math.Floor(y) - borders.North);
       }
 
       private (double,double) ToMapPosition(int x, int y) {

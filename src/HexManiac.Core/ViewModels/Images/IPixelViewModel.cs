@@ -29,5 +29,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          }
          return new ReadonlyPixelViewModel(image.PixelWidth, height, data, image.Transparent);
       }
+
+      public static IPixelViewModel ReflectX(this IPixelViewModel image) {
+         var data = new short[image.PixelWidth * image.PixelHeight];
+         for (int y = 0; y < image.PixelHeight; y++) {
+            for (int x = 0; x < image.PixelWidth; x++) {
+               var xx = image.PixelWidth - x - 1;
+               data[y * image.PixelWidth + x] = image.PixelData[y * image.PixelWidth + xx];
+            }
+         }
+         return new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, data, image.Transparent);
+      }
    }
 }

@@ -129,8 +129,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var availablePokemon = new List<int>();
          var dexName = HardcodeTablesModel.RegionalDexTableName;
          if (useNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
-         var pokedex = model.GetTableModel(dexName, token);
-         var pokestats = model.GetTableModel(HardcodeTablesModel.PokemonStatsTable, token);
+         var pokedex = model.GetTableModel(dexName, () => token);
+         var pokestats = model.GetTableModel(HardcodeTablesModel.PokemonStatsTable, () => token);
          for (int i = 1; i < pokedex.Count; i++) {
             if (pokedex[i - 1].GetValue(0) > maxPokedex) continue;
             if (MinLevel.TryGetValue(i, out var level) && level > maxLevel) continue;
@@ -158,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          while (UsedTrainerFlags.Contains(trainerFlag)) trainerFlag++;
          usedTrainerFlags.Add(trainerFlag);
 
-         var trainers = model.GetTableModel(HardcodeTablesModel.TrainerTableName, token);
+         var trainers = model.GetTableModel(HardcodeTablesModel.TrainerTableName, () => token);
          var trainer = trainers[trainerFlag];
          // structType. class. introMusicAndGender. sprite. name""12 item1: item2: item3: item4: doubleBattle:: ai:: pokemonCount:: pokemon<>
          trainer.SetValue("structType", 0);

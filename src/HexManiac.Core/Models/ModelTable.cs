@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class ModelTable : IReadOnlyList<ModelArrayElement> {
       private readonly IDataModel model;
       private readonly int arrayAddress;
-      private readonly ModelDelta token;
+      private readonly Func<ModelDelta> tokenFactory;
       private readonly ITableRun run;
 
       public int Count => run?.ElementCount ?? 0;
@@ -21,7 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public ModelArrayElement this[int value] {
          get {
-            return new ModelArrayElement(model, arrayAddress, value, token, run);
+            return new ModelArrayElement(model, arrayAddress, value, tokenFactory, run);
          }
       }
 
@@ -36,12 +36,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public ModelTable(IDataModel model, ITableRun table, ModelDelta token = null) : this(model, table.Start, token, table) { }
+      public ModelTable(IDataModel model, ITableRun table, Func<ModelDelta> tokenFactory = null) : this(model, table.Start, tokenFactory, table) { }
 
-      public ModelTable(IDataModel model, int address, ModelDelta token = null, ITableRun tableRun = null) {
+      public ModelTable(IDataModel model, int address, Func<ModelDelta> tokenFactory = null, ITableRun tableRun = null) {
          (this.model, arrayAddress) = (model, address);
          run = tableRun ?? model.GetNextRun(address) as ITableRun;
-         this.token = token ?? new();
+         this.tokenFactory = tokenFactory ?? (() => new NoDataChangeDeltaModel());
       }
 
       public IEnumerator<ModelArrayElement> GetEnumerator() {
@@ -57,19 +57,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly int arrayAddress;
       private readonly int arrayIndex;
       private readonly ITableRun table;
-      private readonly ModelDelta token;
+      private readonly Func<ModelDelta> tokenFactory;
 
       public int Start => table.Start + table.ElementLength * arrayIndex;
       public int Length => table.ElementLength;
       public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
       public ITableRun Table => table;
       public IDataModel Model => model;
-      public ModelDelta Token => token;
+      public ModelDelta Token => tokenFactory();
 
-      public ModelArrayElement(IDataModel model, int address, int index, ModelDelta token, ITableRun table) {
+      public ModelArrayElement(IDataModel model, int address, int index, Func<ModelDelta> tokenFactory, ITableRun table) {
          (this.model, arrayAddress, arrayIndex) = (model, address, index);
          this.table = table ?? (ITableRun)model.GetNextRun(arrayAddress);
-         this.token = token;
+         this.tokenFactory = tokenFactory;
       }
 
       public bool HasField(string name) => table.ElementContent.Any(field => field.Name == name);
@@ -203,7 +203,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (seg.Type == ElementContentType.Pointer) {
                var address = GetAddress(fieldName);
                if (model.GetNextRun(address) is ITableRun table1) {
-                  return new ModelTable(model, table1.Start, token);
+                  return new ModelTable(model, table1.Start, tokenFactory);
                }
                return address;
             }
@@ -224,7 +224,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
-            enumSeg.Write(null, model, token, valueAddress, ref value);
+            enumSeg.Write(null, model, tokenFactory(), valueAddress, ref value);
          } else {
             throw new NotImplementedException();
          }
@@ -245,6 +245,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         var token = tokenFactory();
          if (seg.Type == ElementContentType.PCS) {
             var bytes = model.TextConverter.Convert(value, out var _);
             while (bytes.Count > seg.Length) bytes.RemoveAt(bytes.Count - 1);
@@ -269,7 +270,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg.Type == ElementContentType.Integer || seg.Type == ElementContentType.BitArray) {
-            model.WriteMultiByteValue(valueAddress, seg.Length, token, value);
+            model.WriteMultiByteValue(valueAddress, seg.Length, tokenFactory(), value);
          } else {
             throw new NotImplementedException();
          }
@@ -287,7 +288,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                childTable = model.GetNextRun(destination) as ITableRun;
             }
             if (childTable == null) return null;
-            return new ModelTable(model, destination, token, childTable);
+            return new ModelTable(model, destination, tokenFactory, childTable);
          } else {
             throw new NotImplementedException();
          }
