@@ -1199,7 +1199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (run.CreateDataFormat(viewPort.Model, run.Start, true, 16) is SpriteDecorator decorator) {
                sprite = decorator.Pixels;
             } else {
-               continue;
+               sprite = null;
             }
             var anchor = model.GotoShortcuts[i].GotoAnchor;
             var text = model.GotoShortcuts[i].DisplayText;
