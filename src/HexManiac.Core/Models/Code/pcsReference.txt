@@ -75,6 +75,11 @@ CC_10 = 2 # play sound effects
 
 
 
+# macros
+
+[player]       FD 01
+[rival]        FD 06
+
 # macros for colors
 
 @!game(BPRE_BPGE)

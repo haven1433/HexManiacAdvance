@@ -80,6 +80,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart));
       }
 
+      [Fact]
+      public void AsciiFormat_ZeroLength_ConvertToLength1() {
+         ViewPort.Edit("^test`asc`0 ");
+         Assert.Equal(1, Model.GetNextRun(0).Length);
+      }
+
       // TODO 'copy' should work correctly when including escape characters, like a leading space, ^, or \
    }
 }
