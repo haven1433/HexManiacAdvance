@@ -311,6 +311,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       private static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, short[][] palettes) {
          var (pal, hFlip, vFlip, tile) = LzTilemapRun.ReadTileData(block, index, 2);
 
+         if (pal >= palettes.Length) return new ReadonlyPixelViewModel(8, 8, new short[64]);
+
          if (tiles.Length < tile) {
             return new ReadonlyPixelViewModel(new SpriteFormat(4, 1, 1, default), new short[64]);
          }
@@ -320,7 +322,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             for (int xx = 0; xx < 8; xx++) {
                var inX = hFlip ? 7 - xx : xx;
                var inY = vFlip ? 7 - yy : yy;
-               if (tiles[tile] == null || palettes[pal] == null) tileData[yy * 8 + xx] = 0;
+               if (tiles.Length <= tile || tiles[tile] == null || palettes.Length <= pal || palettes[pal] == null) tileData[yy * 8 + xx] = 0;
                else tileData[yy * 8 + xx] = palettes[pal][tiles[tile][inX, inY]];
             }
          }
