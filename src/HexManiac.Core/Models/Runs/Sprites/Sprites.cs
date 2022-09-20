@@ -222,7 +222,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                      if (indexTable.ElementContent.Count != 1) continue;
                      var indexTableName = model.GetAnchorFromAddress(-1, indexTable.Start);
                      foreach (var payloadTable in model.GetRelatedArrays(indexTable)) {
-                        if (payloadTable.ElementCount != indexTable.ElementCount) continue;
                         foreach (var segment in payloadTable.ElementContent) {
                            if (!(segment is ArrayRunPointerSegment pSegment)) continue;
                            var format = default(SpriteFormat);
@@ -231,7 +230,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                            if (format.BitsPerPixel == default) continue;
                            if (format.PaletteHint != indexTableName) continue;
                            var elementPartOffset = payloadTable.ElementContent.Until(content => content == segment).Sum(content => content.Length);
-                           for (int i = 0; i < indexTable.ElementCount; i++) {
+                           var checkLength = Math.Min(payloadTable.ElementCount, indexTable.ElementCount);
+                           for (int i = 0; i < checkLength; i++) {
                               var index = model.ReadMultiByteValue(indexTable.Start + indexTable.ElementLength * i, indexTable.ElementLength);
                               if (offset.ElementIndex != index) continue;
                               var elementOffset = payloadTable.ElementLength * i;

@@ -1302,6 +1302,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
          var bank = mapBanks[group].GetSubTable("maps");
          var mapTable = bank[map].GetSubTable("map");
+         if (!mapTable[0].HasField("regionSectionID")) return $"{group}-{map}";
          var key = mapTable[0].GetValue("regionSectionID") - offset;
 
          var names = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapNameTable).Start);
