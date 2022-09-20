@@ -109,16 +109,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (model.GetNextRun(itemAddress) is not ITableRun offsetTable) return;
          var segmentOffset = offsetTable.ConvertByteOffsetToArrayOffset(itemAddress);
 
-         if (offsetTable.ElementContent.Select(field => field.Name).Contains(segment.TargetFieldX)) {
-            var offset = offsetTable.ReadValue(model, segmentOffset.ElementIndex, segment.TargetFieldX);
+         var editPortionX = segment.TargetFieldX.Split('+', '-')[0];
+         if (offsetTable.ElementContent.Select(field => field.Name).Contains(editPortionX)) {
+            var offset = offsetTable.ReadValue(model, segmentOffset.ElementIndex, editPortionX);
             offset = (offset + x).LimitToRange(0, segment.BackgroundWidth);
-            offsetTable.WriteValue(offset, model, viewPort.ChangeHistory.CurrentChange, segmentOffset.ElementIndex, segment.TargetFieldX);
+            offsetTable.WriteValue(offset, model, viewPort.ChangeHistory.CurrentChange, segmentOffset.ElementIndex, editPortionX);
          }
 
-         if (offsetTable.ElementContent.Select(field => field.Name).Contains(segment.TargetFieldY)) {
-            var offset = offsetTable.ReadValue(model, segmentOffset.ElementIndex, segment.TargetFieldY);
+         var editPortionY = segment.TargetFieldY.Split('+', '-')[0];
+         if (offsetTable.ElementContent.Select(field => field.Name).Contains(editPortionY)) {
+            var offset = offsetTable.ReadValue(model, segmentOffset.ElementIndex, editPortionY);
             offset = (offset + y).LimitToRange(0, segment.BackgroundWidth);
-            offsetTable.WriteValue(offset, model, viewPort.ChangeHistory.CurrentChange, segmentOffset.ElementIndex, segment.TargetFieldY);
+            offsetTable.WriteValue(offset, model, viewPort.ChangeHistory.CurrentChange, segmentOffset.ElementIndex, editPortionY);
          }
 
          DataChanged?.Invoke(this, EventArgs.Empty);
