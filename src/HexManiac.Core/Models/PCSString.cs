@@ -108,7 +108,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static IReadOnlyDictionary<string, byte[]> GetTextMacrosFromReference(string[] reference, string gameCode) {
-         bool isInMacroSection = false;
+         bool isInMacroSection = true;
          var results = new Dictionary<string, byte[]>();
 
          for (int i = 0; i < reference.Length; i++) {
