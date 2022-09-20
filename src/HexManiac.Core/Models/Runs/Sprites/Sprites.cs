@@ -275,7 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchor);
             var anchorRun = model.GetNextRun(address);
             if (!(anchorRun is ISpriteRun spriteRun)) continue;
-            if (spriteRun is LzTilemapRun) continue; // don't count tilemaps
+            if (spriteRun is ITilemapRun) continue; // don't count tilemaps
             if (spriteRun.SpriteFormat.PaletteHint != name) continue;
             results.Add(spriteRun);
          }
@@ -309,7 +309,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             foreach (var anchor in model.Anchors) {
                var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, anchor);
                var anchorRun = model.GetNextRun(address);
-               if (!(anchorRun is LzTilemapRun tilemap)) continue;
+               if (!(anchorRun is ITilemapRun tilemap)) continue;
                if (tilemap.Format.MatchingTileset != tilesetName) continue;
                results.Add(tilemap);
             }
