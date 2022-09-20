@@ -127,6 +127,7 @@ namespace HavenSoft.HexManiac.Core {
             }
             patch.Add((byte)(sourceVal ^ destination[i]));
          }
+         if (writing) patch.Add(0);
 
          // footer
          patch.AddRange(BitConverter.GetBytes(CalcCRC32(source)));
