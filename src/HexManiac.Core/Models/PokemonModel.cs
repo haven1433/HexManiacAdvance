@@ -2410,8 +2410,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var index = BinarySearch(run.Start);
-         changeToken.RemoveRun(runs[index]);
-         RemoveIndex(index);
+         if (index > 0) {
+            changeToken.RemoveRun(runs[index]);
+            RemoveIndex(index);
+         }
          var newIndex = BinarySearch(newStart);
          InsertIndex(~newIndex, newRun);
          changeToken.AddRun(newRun);
