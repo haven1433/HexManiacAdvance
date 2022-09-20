@@ -489,10 +489,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var results = new List<(int, int)>(table.Search(model, basename, index));
             if (results.Count == 0) continue;
             var name = model.GetAnchorFromAddress(-1, table.Start);
-            var shortName = name;
-            if (shortName.StartsWith("data.")) shortName = shortName.Replace("data.", "...");
-            if (shortName.StartsWith("...poke")) shortName = shortName.Replace("...poke", "...");
-            AddUsageChild(new ButtonArrayElementViewModel(shortName, name, () => {
+            AddUsageChild(new ButtonArrayElementViewModel(name, name, () => {
                viewPort.OpenSearchResultsTab($"{elementName} within {name}", results);
             }));
          }
