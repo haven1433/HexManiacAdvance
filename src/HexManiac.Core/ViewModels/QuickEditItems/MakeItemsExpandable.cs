@@ -36,7 +36,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return !(run is WordRun);
       }
 
-      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
+      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPortInterface.Model;
          var gameCode = model.GetGameCode();
@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
 
-         return ErrorInfo.NoError;
+         return Task.FromResult(ErrorInfo.NoError);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

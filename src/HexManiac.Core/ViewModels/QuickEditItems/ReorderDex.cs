@@ -28,10 +28,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return dexOrder != null && pokenames != null && dexInfo != null && frontSprites != null && pokepalettes != null;
       }
 
-      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
+      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          viewPort.OpenDexReorderTab(dexTableName);
-         return ErrorInfo.NoError;
+         return Task.FromResult(ErrorInfo.NoError);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

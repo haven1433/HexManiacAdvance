@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return true;
       }
 
-      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
+      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (IEditableViewPort)viewPortInterface;
          var token = viewPort.ChangeHistory.CurrentChange;
 
@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          // TODO still need to update hall-of-fame data
 
-         return ErrorInfo.NoError;
+         return Task.FromResult(ErrorInfo.NoError);
       }
 
       private int UpdateConstants(IEditableViewPort viewPort, ModelDelta token) {

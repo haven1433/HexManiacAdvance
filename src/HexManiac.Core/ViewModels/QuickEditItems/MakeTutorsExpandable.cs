@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return true;
       }
 
-      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
+      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
          var token = new NoDataChangeDeltaModel();
@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          CanRunChanged?.Invoke(this, EventArgs.Empty);
 
-         return ErrorInfo.NoError;
+         return Task.FromResult(ErrorInfo.NoError);
       }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);

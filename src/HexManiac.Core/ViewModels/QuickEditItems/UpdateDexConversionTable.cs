@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return false;
       }
 
-      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
+      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
          var noChange = new NoDataChangeDeltaModel();
          var viewPort = (ViewPort)viewPortInterface;
          var model = viewPort.Model;
@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
          Run(model, token);
 
-         return ErrorInfo.NoError;
+         return Task.FromResult(ErrorInfo.NoError);
       }
 
       public static void Run(IDataModel model, ModelDelta token) {
