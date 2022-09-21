@@ -514,6 +514,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler Closed;
 
+      private GameReferenceTables RefTable => Singletons.GameReferenceTables.TryGetValue(Model.GetGameCode(), out var refTable) ? refTable : null;
+
       private void SaveExecuted(IFileSystem fileSystem) {
          if (history.IsSaved) return;
 
@@ -522,7 +524,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+         var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
          if (fileSystem.Save(new LoadedFile(FileName, Model.RawData))) {
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
             history.TagAsSaved();
@@ -534,7 +536,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var newName = fileSystem.RequestNewName(FileName, "Game Boy Advance", "gba");
          if (newName == null) return;
 
-         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+         var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
          if (fileSystem.Save(new LoadedFile(newName, Model.RawData))) {
             FileName = newName; // don't bother notifying, because tagging the history will cause a notify;
             fileSystem.SaveMetadata(FileName, metadata?.Serialize());
@@ -551,7 +553,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var exportID = Model.NextExportID;
          Model.NextExportID += 1;
-         var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+         var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
          var fileName = Path.GetFileNameWithoutExtension(FullFileName);
          fileName = fileName.Split("_backup")[0];
          var extension = Path.GetExtension(FullFileName);
@@ -567,7 +569,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void CloseExecuted(IFileSystem fileSystem) {
          if (!history.IsSaved) {
-            var metadata = Model.ExportMetadata(Singletons.MetadataInfo);
+            var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
             var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
             if (result == true) {
@@ -1243,7 +1245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             history.ChangeCompleted();
             history.ClearHistory();
             var destination = Patcher.ApplyIPSPatch(Model, file.Contents, new NoTrackChange());
-            if (destination >= 0) ReloadMetadata(Model.RawData, Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
+            if (destination >= 0) ReloadMetadata(Model.RawData, Model.ExportMetadata(RefTable, Singletons.MetadataInfo).Serialize());
             Goto.Execute(destination);
             return true;
          } else if (file.Name.ToLower().EndsWith(".ups")) {
@@ -1274,7 +1276,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
             if (destination >= 0) {
-               ReloadMetadata(Model.RawData, Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
+               ReloadMetadata(Model.RawData, Model.ExportMetadata(RefTable, Singletons.MetadataInfo).Serialize());
                Goto.Execute(destination);
                if (direction == Patcher.UpsPatchDirection.SourceToDestination) {
                   RaiseMessage("Applied UPS: source->destination patch.");

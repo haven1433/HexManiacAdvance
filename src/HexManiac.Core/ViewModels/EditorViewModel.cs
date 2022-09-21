@@ -705,7 +705,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, FileSystemInDevMode, PythonTool);
             if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
-                  fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(Singletons.MetadataInfo).Serialize());
+                  if (!Singletons.GameReferenceTables.TryGetValue(model.GetGameCode(), out var refTable)) refTable = null;
+                  fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(refTable, Singletons.MetadataInfo).Serialize());
                   Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
                }, TaskContinuationOptions.ExecuteSynchronously);
             }

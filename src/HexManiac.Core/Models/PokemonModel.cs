@@ -191,11 +191,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             foreach (var list in metadata.Lists) {
                lists[list.Name] = new ValidationList(list.Hash, list);
             }
+            var anchorHashes = new Dictionary<string, string>();
             foreach (var anchor in metadata.NamedAnchors) {
                // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
                // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
                using (ModelCacheScope.CreateScope(this)) {
                   ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+                  anchorHashes[anchor.Name] = anchor.Hash;
                }
             }
             foreach (var unmappedPointer in metadata.UnmappedPointers) {
@@ -243,7 +245,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var gameCode = this.GetGameCode();
                if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
                   var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
-                  UpdateRuns(tables, metadatas);
+                  UpdateRuns(tables, metadatas, anchorHashes);
                }
             } else {
                // didn't run an update. Now that all the constants are setup correctly, do a quick second pass through the anchors to look for any that failed the first time.
@@ -293,7 +295,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          groupsToRemove.ForEach(group => TableGroups.Remove(group));
       }
 
-      private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas) {
+      private void UpdateRuns(GameReferenceTables referenceTables, IEnumerable<StoredMetadata> metadatas, IReadOnlyDictionary<string, string> anchorHashes) {
          var noChange = new NoDataChangeDeltaModel();
 
          ClearNoEditTableGroups();
@@ -324,6 +326,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (!anchorForAddress.TryGetValue(destination, out var anchor)) continue;
             var existingRun = GetNextRun(destination);
             if (anchor == reference.Name && existingRun.Start == destination && existingRun.FormatString == reference.Format) continue;
+
+            // If the stored hash doesn't match the loaded format, then the user edited this table's format.
+            // Don't overwrite the user edits.
+            var formatHash = StoredList.GenerateHash(new[] { existingRun.FormatString });
+            var formatWithoutLengthHash = StoredList.GenerateHash(new[] { WithoutLength(existingRun.FormatString) });
+            if (!anchorHashes.TryGetValue(anchor, out var previousReferenceHash)) previousReferenceHash = string.Empty;
+            if (!string.IsNullOrEmpty(previousReferenceHash) && previousReferenceHash != formatHash && previousReferenceHash != formatWithoutLengthHash) continue;
+
             if (TryParseFormat(this, reference.Name, reference.Format, destination, out var replacementRun).HasError) continue;
             if (DoNotChangeFormatOnUpdate(existingRun.FormatString)) continue;
             // update this anchor
@@ -416,6 +426,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
          }
+      }
+
+      private static string WithoutLength(string format) {
+         var index = format.LastIndexOf("]");
+         if (index == -1) return format;
+         return format.Substring(0, index + 1);
       }
 
       /// <summary>
@@ -2082,7 +2098,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override StoredMetadata ExportMetadata(IMetadataInfo metadataInfo) {
+      public override StoredMetadata ExportMetadata(GameReferenceTables references, IMetadataInfo metadataInfo) {
          var anchors = new List<StoredAnchor>();
          foreach (var kvp in anchorForAddress) {
             var (address, name) = (kvp.Key, kvp.Value);
@@ -2090,7 +2106,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             var index = BinarySearch(address);
             if (index < 0) continue;
             var format = runs[index].FormatString;
-            anchors.Add(new StoredAnchor(address, name, format));
+
+            // We want to know the hash from the reference table,
+            // because we only want to update the table if the hash matches the format
+            var refTable = references == null ? null : references[name];
+            string hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : string.Empty;
+            anchors.Add(new StoredAnchor(address, name, format, hash));
          }
 
          var unmappedPointers = new List<StoredUnmappedPointer>();

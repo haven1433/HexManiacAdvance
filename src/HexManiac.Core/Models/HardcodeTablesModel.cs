@@ -133,6 +133,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   LeafGreen1_1,
                   "BPRF0", // french firered
                   "BPEF0", // french emerald
+                  "ABCD0", // for tests
                };
 
                foreach (var defaultMetadata in GetDefaultMetadatas(gameCode.PadRight(4).Substring(0, 4).ToLower(), gameCode.ToLower())) {

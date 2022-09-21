@@ -48,17 +48,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          CopyLimit = copyLimit;
       }
 
-      public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables, int copyLimit = 40000) {
-         MetadataInfo = metadataInfo;
-         GameReferenceTables = gameReferenceTables;
-         WorkDispatcher = InstantDispatch.Instance;
-         CopyLimit = copyLimit;
-      }
+      public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables, int copyLimit = 40000) : this(metadataInfo, gameReferenceTables, null, copyLimit) { }
 
       public Singletons(IMetadataInfo metadataInfo, IReadOnlyDictionary<string, GameReferenceTables> gameReferenceTables, IReadOnlyDictionary<string, GameReferenceConstants> gameRefereneceConstants, int copyLimit = 40000) {
          MetadataInfo = metadataInfo;
          GameReferenceTables = gameReferenceTables;
-         GameReferenceConstants = gameRefereneceConstants;
+         GameReferenceConstants = gameRefereneceConstants ?? new Dictionary<string, GameReferenceConstants>();
+         ThumbConditionalCodes = new ConditionCode[0];
+         ThumbInstructionTemplates = new IInstruction[0];
+         ScriptLines = new ScriptLine[0];
+         BattleScriptLines = new ScriptLine[0];
+         AnimationScriptLines = new ScriptLine[0];
+         BattleAIScriptLines = new ScriptLine[0];
          WorkDispatcher = InstantDispatch.Instance;
          CopyLimit = copyLimit;
       }

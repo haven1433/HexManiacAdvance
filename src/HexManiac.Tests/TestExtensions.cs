@@ -36,5 +36,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       public static T Single<T>(this ObservableCollection<IArrayElementViewModel> self) => (T)self.Single(item => item is T);
+
+      public static StoredMetadata ExportMetadata(this IDataModel model, IMetadataInfo info) => model.ExportMetadata(null, info);
    }
 }

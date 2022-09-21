@@ -453,13 +453,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Func<IMetadataInfo, StoredMetadata> ExportMetadata { get; set; }
+        public Func<GameReferenceTables, IMetadataInfo, StoredMetadata> ExportMetadata { get; set; }
         
-        StoredMetadata IDataModel.ExportMetadata(IMetadataInfo metadataInfo)
+        StoredMetadata IDataModel.ExportMetadata(GameReferenceTables references, IMetadataInfo metadataInfo)
         {
             if (this.ExportMetadata != null)
             {
-                return this.ExportMetadata(metadataInfo);
+                return this.ExportMetadata(references, metadataInfo);
             }
             else
             {

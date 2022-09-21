@@ -262,6 +262,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             lines.Add($"Name = '''{anchor.Name}'''");
             lines.Add($"Address = 0x{anchor.Address:X6}");
             lines.Add($"Format = '''{anchor.Format}'''");
+            lines.Add($"DefaultHash = '''{anchor.Hash:X8}'''");
             lines.Add(string.Empty);
          }
 
@@ -358,7 +359,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (currentItem == "[[NamedAnchors]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a NamedAnchor that didn't specify a name!");
             if (currentItemAddress == -1) throw new ArgumentOutOfRangeException("The Metadata file has a NamedAnchor that didn't specify an Address!");
-            anchors.Add(new StoredAnchor(currentItemAddress, currentItemName, currentItemFormat));
+            anchors.Add(new StoredAnchor(currentItemAddress, currentItemName, currentItemFormat, currentItemHash));
          }
 
          if (currentItem == "[[MatchedWords]]") {
@@ -434,17 +435,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public StoredUnmappedConstant(string name, int value) => (Name, Value) = (name, value);
    }
 
-   public class StoredAnchor {
-      public int Address { get; }
-      public string Name { get; }
-      public string Format { get; }
-
-      public StoredAnchor(int address, string name, string format) {
-         Address = address;
-         Name = name;
-         Format = format;
-      }
-   }
+   public record StoredAnchor(int Address, string Name, string Format, string Hash = null);
 
    public class StoredMatchedWord {
       public int Address { get; }

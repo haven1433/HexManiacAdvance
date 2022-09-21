@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor);
       string GetAnchorFromAddress(int requestSource, int destination);
       IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30);
-      StoredMetadata ExportMetadata(IMetadataInfo metadataInfo);
+      StoredMetadata ExportMetadata(GameReferenceTables references, IMetadataInfo metadataInfo);
       void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
       int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> startLocations);
 
@@ -315,7 +315,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public virtual IEnumerable<string> GetAutoCompleteByteNameOptions(string text) => new string[0];
 
-      public virtual StoredMetadata ExportMetadata(IMetadataInfo metadataInfo) => null;
+      public virtual StoredMetadata ExportMetadata(GameReferenceTables references, IMetadataInfo metadataInfo) => null;
 
       public virtual IReadOnlyList<TableGroup> GetTableGroups(string tableName) => null;
 

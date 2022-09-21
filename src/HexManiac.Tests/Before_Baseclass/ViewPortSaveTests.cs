@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -690,6 +691,91 @@ namespace HavenSoft.HexManiac.Tests {
          Model.LoadMetadata(new StoredMetadata(gotoShortcuts: new[] { shortcut2 }));
 
          Assert.Single(Model.GotoShortcuts);
+      }
+
+      [Fact]
+      public void TableWithOriginalFormat_LoadNewFormat_Updates() {
+         SetFullModel(0xFF);
+         SetGameCode("ABCD0");
+         var constants = new Dictionary<string, GameReferenceConstants>();
+         ViewPort.Edit("@100 <180> @180 01 00 02 00 10 00 20 00 ");
+
+         var refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[a: b:]2") });
+         var refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         var info = new StubMetadataInfo { VersionNumber = "0.1.0" };
+         IDataModel model = new HardcodeTablesModel(new Singletons(info, refForGame, constants), Model.RawData, new());
+         var metadata = model.ExportMetadata(refTables, info);
+
+         refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[x: y:]2") });
+         refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         info = new StubMetadataInfo { VersionNumber = "0.2.0" };
+         model = new PokemonModel(Model.RawData, metadata, new Singletons(info, refForGame, constants));
+
+         Assert.Equal("[x: y:]2", model.GetNextRun(0x180).FormatString);
+      }
+
+      [Fact]
+      public void TableWithOriginalNoLengthFormat_LoadNewNoLengthFormat_Updates() {
+         SetFullModel(0xFF);
+         SetGameCode("ABCD0");
+         var constants = new Dictionary<string, GameReferenceConstants>();
+         ViewPort.Edit("@100 <180> @180 01 00 02 00 10 00 20 00 ");
+
+         var refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[a:100 b:100]") });
+         var refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         var info = new StubMetadataInfo { VersionNumber = "0.1.0" };
+         IDataModel model = new HardcodeTablesModel(new Singletons(info, refForGame, constants), Model.RawData, new());
+         var metadata = model.ExportMetadata(refTables, info);
+
+         refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[x:100 y:100]") });
+         refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         info = new StubMetadataInfo { VersionNumber = "0.2.0" };
+         model = new PokemonModel(Model.RawData, metadata, new Singletons(info, refForGame, constants));
+
+         Assert.Equal("[x:100 y:100]2", model.GetNextRun(0x180).FormatString);
+      }
+
+      [Fact]
+      public void TableWithEditedFormat_LoadNewFormat_DoesNotUpdate() {
+         SetFullModel(0xFF);
+         SetGameCode("ABCD0");
+         var constants = new Dictionary<string, GameReferenceConstants>();
+         ViewPort.Edit("@100 <180> @180 01 00 02 00 10 00 20 00 ");
+
+         var refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[a: b:]2") });
+         var refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         var info = new StubMetadataInfo { VersionNumber = "0.1.0" };
+         var singletons = new Singletons(info, refForGame, constants);
+         IDataModel model = new HardcodeTablesModel(singletons, Model.RawData, new());
+         var viewPort = new ViewPort(default, model, Singletons.WorkDispatcher, singletons);
+         viewPort.Edit("@180 ^name[i: j:]2 ");
+         var metadata = model.ExportMetadata(refTables, info);
+
+         refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[x: y:]2") });
+         refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         info = new StubMetadataInfo { VersionNumber = "0.2.0" };
+         model = new PokemonModel(Model.RawData, metadata, new Singletons(info, refForGame, constants));
+
+         Assert.Equal("[i: j:]2", model.GetNextRun(0x180).FormatString);
+      }
+
+      [Theory]
+      [InlineData("")]
+      [InlineData(null)]
+      public void TableWithNoHash_LoadNewFormat_Updates(string defaultValue) {
+         SetFullModel(0xFF);
+         SetGameCode("ABCD0");
+         var constants = new Dictionary<string, GameReferenceConstants>();
+         ViewPort.Edit("@100 <180> @180 01 00 02 00 10 00 20 00 ");
+
+         var metadata = new StoredMetadata(new[] { new StoredAnchor(0x180, "name", "[i: j:]2", defaultValue) });
+
+         var refTables = new GameReferenceTables(new[] { new ReferenceTable("name", 0, 0x100, "[x: y:]2") });
+         var refForGame = new Dictionary<string, GameReferenceTables> { { "ABCD0", refTables } };
+         var info = new StubMetadataInfo { VersionNumber = "0.2.0" };
+         var model = new PokemonModel(Model.RawData, metadata, new Singletons(info, refForGame, constants));
+
+         Assert.Equal("[x: y:]2", model.GetNextRun(0x180).FormatString);
       }
    }
 }
