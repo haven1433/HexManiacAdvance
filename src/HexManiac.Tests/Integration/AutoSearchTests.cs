@@ -757,6 +757,40 @@ namespace HavenSoft.HexManiac.Tests {
          });
       }
 
+      // patch application process is fine
+      // patch creation process doesn't quite count sections correctly
+      [SkippableFact]
+      public void CreateIPSPatchFireRedToEmerald_ApplyPatchToFireRed_MatchesEmerald() {
+         var firered = PokemonGames.Skip(2).First()[0] as string;
+         var emerald = PokemonGames.Skip(4).First()[0] as string;
+         var modelF = fixture.LoadModelNoCache(firered);
+         var modelE = fixture.LoadModel(emerald);
+
+         var patch = Patcher.BuildIpsPatch(modelF.RawData, modelE.RawData);
+
+         Patcher.ApplyIPSPatch(modelF, patch, new NoTrackChange());
+
+         var changes = new HashSet<int>(modelF.Count.Range().Where(i => modelF[i] != modelE[i]));
+         Assert.Empty(changes);
+      }
+
+      [SkippableFact]
+      public void CreateUPSPatchFireRedToEmerald_ApplyPatchToFireRed_MatchesEmerald() {
+         var firered = PokemonGames.Skip(2).First()[0] as string;
+         var emerald = PokemonGames.Skip(4).First()[0] as string;
+         var modelF = fixture.LoadModelNoCache(firered);
+         var modelE = fixture.LoadModel(emerald);
+
+         var patch = Patcher.BuildUpsPatch(modelF.RawData, modelE.RawData);
+
+         var error = Patcher.ApplyUPSPatch(modelF, patch, () => new NoTrackChange(), false, out var direction);
+
+         var changes = new HashSet<int>(modelF.Count.Range().Where(i => modelF[i] != modelE[i]));
+         Assert.Empty(changes);
+         Assert.Equal(Patcher.UpsPatchDirection.SourceToDestination, direction);
+         Assert.InRange(error, 0, modelE.Count);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       // [SkippableTheory] // test removed until feature is complete.
       // [MemberData(nameof(PokemonGames))]

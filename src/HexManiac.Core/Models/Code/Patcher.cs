@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core {
             int j = i + 1;
             while (j < destination.Length && source[j] != destination[j] && j - i < 0xFFFF) j++;
             patch.AddRange(BuildChunk(destination, i, j - i));
+            if (source[j] != destination[j]) j -= 1; // need to re-check this byte, we exited due to the length limit
             i = j;
          }
 

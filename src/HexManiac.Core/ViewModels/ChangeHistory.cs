@@ -187,9 +187,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return stub;
       }
 
-      public void ClearHistory() {
+      public void ClearHistory(bool needsSave) {
          VerifyRevertNotInProgress();
-         if (!IsSaved) undoStackSizeAtSaveTag = -1;
+         if (!IsSaved || needsSave) undoStackSizeAtSaveTag = -1;
          undoStack.Clear();
          redoStack.Clear();
          currentChange = null;

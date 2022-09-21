@@ -777,5 +777,19 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal("[x: y:]2", model.GetNextRun(0x180).FormatString);
       }
+
+      [Fact]
+      public void Patch_Apply_CanSave() {
+         SetFullModel(0xFF);
+
+         var patch = new List<byte>();
+         patch.AddRange("PATCH".Select(c => (byte)c));
+         patch.AddRange(Patcher.BuildChunk(new byte[0x200], 0x100, 0x10)); // offset
+         patch.AddRange("EOF".Select(c => (byte)c));
+
+         ViewPort.TryImport(new LoadedFile("patch.ips", patch.ToArray()), default);
+
+         Assert.False(ViewPort.ChangeHistory.IsSaved);
+      }
    }
 }

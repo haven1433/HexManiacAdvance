@@ -1243,14 +1243,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return true;
          } else if (file.Name.ToLower().EndsWith(".ips")) {
             history.ChangeCompleted();
-            history.ClearHistory();
+            history.ClearHistory(needsSave: true);
             var destination = Patcher.ApplyIPSPatch(Model, file.Contents, new NoTrackChange());
             if (destination >= 0) ReloadMetadata(Model.RawData, Model.ExportMetadata(RefTable, Singletons.MetadataInfo).Serialize());
             Goto.Execute(destination);
             return true;
          } else if (file.Name.ToLower().EndsWith(".ups")) {
             history.ChangeCompleted();
-            history.ClearHistory();
             var destination = Patcher.ApplyUPSPatch(Model, file.Contents, () => new NoTrackChange(), ignoreChecksums: false, out var direction);
             scroll.DataLength = Model.Count;
             switch (destination) {
@@ -1275,6 +1274,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                case -7: RaiseError("Tried to write past the end of the result file! Patch was still applied."); break;
             }
 
+            history.ClearHistory(needsSave: true);
             if (destination >= 0) {
                ReloadMetadata(Model.RawData, Model.ExportMetadata(RefTable, Singletons.MetadataInfo).Serialize());
                Goto.Execute(destination);
