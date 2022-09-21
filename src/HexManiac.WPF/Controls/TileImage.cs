@@ -1,7 +1,9 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
@@ -181,11 +183,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          BindingOperations.SetBinding(transform, ScaleTransform.ScaleYProperty, new Binding(nameof(IPixelViewModel.SpriteScale)));
          LayoutTransform = transform;
       }
+
+      #region DataContext Changed
+
       private void UpdateDataContext(DependencyPropertyChangedEventArgs e) {
          if (e.OldValue is INotifyPropertyChanged oldValue) oldValue.PropertyChanged -= HandleDataContextPropertyChanged;
          if (e.NewValue is INotifyPropertyChanged newValue) newValue.PropertyChanged += HandleDataContextPropertyChanged;
          UpdateSource();
       }
+
       private void HandleDataContextPropertyChanged(object sender, PropertyChangedEventArgs e) {
          if (!e.PropertyName.IsAny(
             nameof(ViewModel.PixelWidth),
@@ -194,6 +200,23 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          )) return;
          UpdateSource();
       }
+
+      #endregion
+
+      public static WriteableBitmap WriteOnce(IPixelViewModel viewModel) {
+         var pixels = viewModel.PixelData;
+         if (pixels == null) return null;
+         var expectedLength = viewModel.PixelWidth * viewModel.PixelHeight;
+         if (pixels.Length < expectedLength || pixels.Length == 0) return null;
+         int stride = viewModel.PixelWidth * 2;
+         var format = PixelFormats.Bgr555;
+
+         var source = new WriteableBitmap(viewModel.PixelWidth, viewModel.PixelHeight, 96, 96, format, null);
+         var rect = new Int32Rect(0, 0, viewModel.PixelWidth, viewModel.PixelHeight);
+         source.WritePixels(rect, pixels, stride, 0);
+         return source;
+      }
+
       public void UpdateSource() {
          if (ViewModel == null) return;
          var pixels = ViewModel.PixelData;
@@ -230,20 +253,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          return pixels;
       }
 
-      public static WriteableBitmap WriteOnce(IPixelViewModel viewModel) {
-         var pixels = viewModel.PixelData;
-         if (pixels == null) return null;
-         var expectedLength = viewModel.PixelWidth * viewModel.PixelHeight;
-         if (pixels.Length < expectedLength || pixels.Length == 0) return null;
-         int stride = viewModel.PixelWidth * 2;
-         var format = PixelFormats.Bgr555;
-
-         var source = new WriteableBitmap(viewModel.PixelWidth, viewModel.PixelHeight, 96, 96, format, null);
-         var rect = new Int32Rect(0, 0, viewModel.PixelWidth, viewModel.PixelHeight);
-         source.WritePixels(rect, pixels, stride, 0);
-         return source;
-      }
-
       private void DrawDebugGrid(short[] pixels, int width) {
          for (int y = 0; y < pixels.Length; y += width * 8) {
             for (int x = 0; x < width; x += 2) pixels[y + x] = 0b_10000_10000_10000;
@@ -251,6 +260,29 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          for (int x = 0; x < width; x += 8) {
             for (int y = 0; y < pixels.Length; y += width * 2) pixels[y + x] = 0b_10000_10000_10000;
          }
+      }
+   }
+
+   public class GridDecorator : Decorator {
+      protected override void OnRender(DrawingContext surface) {
+         base.OnRender(surface);
+         if (DataContext is not IPixelViewModel vm) return;
+         if (vm.SpriteScale < 4) return;
+         var pen = new Pen(Brush(nameof(Theme.Secondary)), 1);
+         for (double x = 0; x < ActualWidth; x += 8 * vm.SpriteScale) {
+            surface.DrawLine(pen, new(x, 0), new(x, ActualHeight));
+         }
+         for (double y = 0; y < ActualHeight; y += 8 * vm.SpriteScale) {
+            surface.DrawLine(pen, new(0, y), new(ActualWidth, y));
+         }
+      }
+
+      private readonly Dictionary<string, SolidColorBrush> cachedBrushes = new();
+      private SolidColorBrush Brush(string name) {
+         if (name == null) return null;
+         if (cachedBrushes.TryGetValue(name, out var brush)) return brush;
+         cachedBrushes[name] = (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+         return cachedBrushes[name];
       }
    }
 }

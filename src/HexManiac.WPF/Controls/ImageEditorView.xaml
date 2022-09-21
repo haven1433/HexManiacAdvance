@@ -520,11 +520,12 @@
                   </ItemsControl.ItemTemplate>
                </ItemsControl>
             </Grid>
-            <local:SelectionRender x:Name="SelectionRender" Stretch="None">
-               <local:SelectionRender.RenderTransform>
+            <local:GridDecorator>
+               <local:GridDecorator.RenderTransform>
                   <TranslateTransform X="{Binding XOffset}" Y="{Binding YOffset}"/>
-               </local:SelectionRender.RenderTransform>
-            </local:SelectionRender>
+               </local:GridDecorator.RenderTransform>
+               <local:SelectionRender x:Name="SelectionRender" Stretch="None" />
+            </local:GridDecorator>
          </Canvas>
       </Grid>
    </DockPanel>
