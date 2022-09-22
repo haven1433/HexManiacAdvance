@@ -705,8 +705,10 @@
                               </TextBlock.Style>
                            </TextBlock>
                         </Grid>
-                        <hsg3hv:AngleButton Content="Best Match" VerticalAlignment="Stretch" Padding="4,0" Direction="Right"
-                           Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}" />
+                        <hsg3hv:AngleButton VerticalAlignment="Stretch" Padding="2,0" Direction="Right"
+                           Command="{Binding GotoViewModel.Goto}" Background="{DynamicResource Accent}" HorizontalContentAlignment="Center">
+                           <TextBlock Text="Best Match" MinWidth="60" />
+                        </hsg3hv:AngleButton>
                      </StackPanel>
                      <ItemsControl MinHeight="100" ItemsSource="{Binding GotoViewModel.PrefixSelections}">
                         <ItemsControl.ItemTemplate>
