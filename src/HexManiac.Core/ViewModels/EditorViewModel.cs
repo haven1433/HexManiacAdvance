@@ -380,7 +380,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public Theme Theme { get; }
 
       public IFileSystem FileSystem => fileSystem;
-      private IFileSystem FileSystemInDevMode => ShowDeveloperMenu ? FileSystem : null;
 
       private string infoMessage;
       public string InformationMessage {
@@ -598,7 +597,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          newCommand.CanExecute = CanAlwaysExecute;
          newCommand.Execute = arg => {
             var model = new PokemonModel(new byte[0], singletons: Singletons);
-            Add(new ViewPort(string.Empty, model, workDispatcher, Singletons, FileSystemInDevMode, PythonTool));
+            Add(new ViewPort(string.Empty, model, workDispatcher, Singletons, FileSystem, PythonTool));
          };
 
          open.CanExecute = CanAlwaysExecute;
@@ -702,7 +701,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             IDataModel model = file.Name.ToLower().EndsWith(".gba") ?
                new HardcodeTablesModel(Singletons, file.Contents, metadata) :
                new PokemonModel(file.Contents, metadata, Singletons);
-            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, FileSystemInDevMode, PythonTool);
+            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, FileSystem, PythonTool);
             if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
                   if (!Singletons.GameReferenceTables.TryGetValue(model.GetGameCode(), out var refTable)) refTable = null;

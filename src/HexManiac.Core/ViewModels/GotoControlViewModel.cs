@@ -314,10 +314,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return options;
       }
 
-      public static IList<MapInfo> GetMatchingMaps(this IDataModel model, string text) {
+      public static List<MapInfo> GetMatchingMaps(this IDataModel model, string text) {
          var allMaps = model.CurrentCacheScope.GetAllMaps();
          var results = allMaps.Where(map => map.Name.MatchesPartial(text)).ToList();
-         return new List<MapInfo>();
+
+         return //*
+            new() /*/ results //*/
+            ;
       }
    }
 
