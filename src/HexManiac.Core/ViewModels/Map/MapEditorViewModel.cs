@@ -382,11 +382,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       Point drawSource;
       private void DrawDown(double x, double y, int clickCount) {
          interactionType = PrimaryInteractionType.Draw;
+         var map = MapUnderCursor(x, y);
          if (clickCount == 2) {
-            var map = MapUnderCursor(x, y);
             if (map != null) map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
             Hover(x, y);
          } else {
+            PrimaryMap = map;
             drawSource = ToTilePosition(x, y);
             DrawMove(x, y);
          }
