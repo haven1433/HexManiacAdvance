@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<string> OnMessage { add => ForEach(child => child.OnMessage += value); remove => ForEach(child => child.OnMessage -= value); }
       public event EventHandler ClearMessage { add => ForEach(child => child.ClearMessage += value); remove => ForEach(child => child.ClearMessage -= value); }
       public event EventHandler Closed { add => ForEach(child => child.Closed += value); remove => ForEach(child => child.Closed -= value); }
-      public event EventHandler<ITabContent> RequestTabChange { add => ForEach(child => child.RequestTabChange += value); remove => ForEach(child => child.RequestTabChange -= value); }
+      public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange { add => ForEach(child => child.RequestTabChange += value); remove => ForEach(child => child.RequestTabChange -= value); }
       public event EventHandler<IDataModel> RequestCloseOtherViewports { add => ForEach(child => child.RequestCloseOtherViewports += value); remove => ForEach(child => child.RequestCloseOtherViewports -= value); }
       public event EventHandler<Action> RequestDelayedWork { add => ForEach(child => child.RequestDelayedWork += value); remove => ForEach(child => child.RequestDelayedWork -= value); }
       public event EventHandler RequestMenuClose { add => ForEach(child => child.RequestMenuClose += value); remove => ForEach(child => child.RequestMenuClose -= value); }

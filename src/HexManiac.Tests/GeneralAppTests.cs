@@ -309,7 +309,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Add(tab0);
          editor.Add(tab1);
 
-         tab1.RequestTabChange.Invoke(tab1, tab0); // tab 1 is requesting that the editor switch to tab 0
+         tab1.RequestTabChange.Invoke(tab1, new(tab0)); // tab 1 is requesting that the editor switch to tab 0
 
          Assert.Equal(0, editor.SelectedIndex);
       }
@@ -321,7 +321,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Add(tab0);
          editor.Add(tab1);
 
-         tab1.RequestTabChange.Invoke(tab0, tab0); // tab 0 is trying to force itself to be focused
+         tab1.RequestTabChange.Invoke(tab0, new(tab0)); // tab 0 is trying to force itself to be focused
 
          Assert.Equal(1, editor.SelectedIndex);
       }
@@ -459,7 +459,7 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Add(tab1);
          count = 0;
 
-         tab1.RequestTabChange?.Invoke(tab1, tab2);
+         tab1.RequestTabChange?.Invoke(tab1, new(tab2));
          editor.SelectedIndex = 0;
 
          Assert.Equal(1, count);
@@ -548,7 +548,7 @@ ApplicationVersion = '''0.1.0'''
       [Fact]
       public void Tab_Duplicate_Duplicated() {
          var tab = new StubTabContent { CanDuplicate = true };
-         tab.Duplicate = () => tab.RequestTabChange.Invoke(tab, new StubTabContent());
+         tab.Duplicate = () => tab.RequestTabChange.Invoke(tab, new(new StubTabContent()));
 
          editor.Add(tab);
          editor.DuplicateCurrentTab.Execute();

@@ -1324,12 +1324,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private void TabChangeRequested(object sender, ITabContent newTab) {
-         var isNewTabWithSameModel = !tabs.Contains(newTab) && sender is ViewPort oldViewPort && newTab is ViewPort newViewPort && oldViewPort.Model == newViewPort.Model;
+      private void TabChangeRequested(object sender, TabChangeRequestedEventArgs args) {
+         var isNewTabWithSameModel = !tabs.Contains(args.NewTab) && sender is ViewPort oldViewPort && args.NewTab is ViewPort newViewPort && oldViewPort.Model == newViewPort.Model;
          if (sender != SelectedTab && !isNewTabWithSameModel) return;
-         var index = tabs.IndexOf(newTab);
+         args.RequestAccepted = true;
+         var index = tabs.IndexOf(args.NewTab);
          if (index == -1) {
-            Add(newTab);
+            Add(args.NewTab);
          } else {
             SelectedIndex = index;
          }

@@ -1688,7 +1688,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Save.Execute(new StubFileSystem { Save = file => true });
          ViewPort = new ViewPort("Name", model, singletons.WorkDispatcher, singletons); // make a new ViewPort with a new history tracker
 
-         ViewPort.RequestTabChange += (sender, tab) => Editor = (ImageEditorViewModel)tab;
+         ViewPort.RequestTabChange += (sender, args) => Editor = (ImageEditorViewModel)args.NewTab;
          ViewPort.OpenImageEditorTab(0x800, 0, 0);
       }
 

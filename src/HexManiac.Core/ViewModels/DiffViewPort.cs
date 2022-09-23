@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<string> OnMessage;
       public event EventHandler ClearMessage;
       public event EventHandler Closed;
-      public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
       public event EventHandler<IDataModel> RequestCloseOtherViewports;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
@@ -168,13 +168,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ExpandSelection(int x, int y) {
          if (x < leftWidth) {
-            RequestTabChange(this, left[0].Parent);
+            RequestTabChange(this, new(left[0].Parent));
             var (childIndex, childLine) = ConvertLine(y);
             var child = left[childIndex];
             var targetAddress = child.DataOffset + child.Width * childLine;
             left[0].Parent.Goto.Execute(targetAddress + x);
          } else if (x > leftWidth + 1) {
-            RequestTabChange(this, right[0].Parent);
+            RequestTabChange(this, new(right[0].Parent));
             var (childIndex, childLine) = ConvertLine(y);
             var child = right[childIndex];
             var targetAddress = child.DataOffset + child.Width * childLine;

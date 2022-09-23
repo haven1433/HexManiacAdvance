@@ -315,8 +315,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public static List<MapInfo> GetMatchingMaps(this IDataModel model, string text) {
-         var allMaps = model.CurrentCacheScope.GetAllMaps();
-         var results = allMaps.Where(map => map.Name.MatchesPartial(text)).ToList();
+         var allMaps = model.CurrentCacheScope?.GetAllMaps();
+         var results = allMaps?.Where(map => map.Name.MatchesPartial(text)).ToList() ?? new();
 
          return //*
             new() /*/ results //*/
@@ -398,7 +398,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections, bool devMode) {
          using (ModelCacheScope.CreateScope(model)) {
             List<string> allOptions = model.GetExtendedAutocompleteOptions(filter)?.ToList() ?? new();
-            if (devMode) allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
+            allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
             var selections = GetSectionSelections(previousSections).ToList();
 
             var newSection = new GotoLabelSection(allOptions, selections);

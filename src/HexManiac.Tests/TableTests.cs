@@ -823,7 +823,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void TableWithLengthOffset_FindElementReferences_NewTabNameCorrect() {
          IViewPort newTab = null;
-         ViewPort.RequestTabChange += (sender, tab) => newTab = (IViewPort)tab;
+         ViewPort.RequestTabChange += (sender, tab) => newTab = (IViewPort)tab.NewTab;
          CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave", "erik", "fred", "greg", "hal");
          ViewPort.Edit("@00 ^table1[data:]names-1 @20 ^table2[value:names]4 dave carl erik dave ");
 

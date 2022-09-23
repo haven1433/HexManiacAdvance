@@ -14,7 +14,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class JumpInfo {
       public int ViewStart { get; }
       public int SelectionStart { get; }
-      public JumpInfo(int viewStart, int selectionStart) => (ViewStart, SelectionStart) = (viewStart, selectionStart);
+      public ITabContent Tab { get; }
+      public JumpInfo(int viewStart, int selectionStart, ITabContent tab = null) {
+         (ViewStart, SelectionStart) = (viewStart, selectionStart);
+         Tab = tab;
+      }
    }
 
    public class Selection : ViewModelCore {
@@ -122,6 +126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ScrollRegion Scroll { get; }
 
+      public event EventHandler<ITabContent> RequestTabChanged;
       public event EventHandler<string> OnError;
 
       /// <summary>
@@ -218,12 +223,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (backStack.Count == 0) return;
                var selectionPoint = Scroll.ViewPointToDataIndex(SelectionStart);
                if (selectionPoint < Scroll.DataIndex || selectionPoint > Scroll.DataIndex + Scroll.Width * Scroll.Height) selectionPoint = Scroll.DataIndex;
+               var backInfo = backStack.Pop();
+               if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
+               if (backInfo.Tab != null) {
+                  RequestTabChanged?.Invoke(this, backInfo.Tab);
+                  return;
+               }
                forwardStack.Push(new JumpInfo(Scroll.DataIndex, selectionPoint));
                if (forwardStack.Count == 1) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
-               var backInfo = backStack.Pop();
                GotoAddressHelper(backInfo.ViewStart);
                SelectionStart = Scroll.DataIndexToViewPoint(backInfo.SelectionStart);
-               if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
             },
          };
          forward = new StubCommand {
@@ -296,6 +305,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             backStack.Pop();
          }
       }
+
+      public void SetJumpBackTab(ITabContent tab) => backStack.Push(new JumpInfo(-1, -1, tab));
 
       public void SetJumpBackPoint(int address) {
          if (backStack.Count > 0) backStack.Pop();

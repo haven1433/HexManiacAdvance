@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<string> OnMessage;
       public event EventHandler ClearMessage;
       public event EventHandler Closed;
-      public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;

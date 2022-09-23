@@ -134,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<string> OnMessage;
       public event EventHandler ClearMessage;
       public event EventHandler Closed;
-      public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;
@@ -157,6 +157,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (backStack.Count == 0) return;
          var previous = backStack[backStack.Count - 1];
          backStack.RemoveAt(backStack.Count - 1);
+         if (previous == -1) {
+            RequestTabChange(this, new(viewPort));
+            return;
+         }
          if (primaryMap != null) forwardStack.Add(primaryMap.MapID);
          if (forwardStack.Count == 1) forwardCommand.RaiseCanExecuteChanged();
          if (backStack.Count == 0) backCommand.RaiseCanExecuteChanged();
@@ -208,6 +212,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
+      }
+
+      public void SwitchToViewPortOnNextBackNavigation() {
+         backStack.Add(-1);
+         if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
+         if (forwardStack.Count > 0) {
+            forwardStack.Clear();
+            forwardCommand.RaiseCanExecuteChanged();
+         }
+      }
+
+      public void AddBackNavigation(int id) {
+         backStack.Add(id);
+         if (forwardStack.Count > 0) {
+            forwardStack.Clear();
+            forwardCommand.RaiseCanExecuteChanged();
+         }
+         if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {

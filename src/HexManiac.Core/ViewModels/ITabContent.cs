@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<string> OnMessage;
       event EventHandler ClearMessage;
       event EventHandler Closed;
-      event EventHandler<ITabContent> RequestTabChange;
+      event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
       event EventHandler<Action> RequestDelayedWork;
       event EventHandler RequestMenuClose;
       event EventHandler<Direction> RequestDiff;
@@ -46,6 +46,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       void Refresh();
       bool TryImport(LoadedFile file, IFileSystem fileSystem);
+   }
+
+   public record TabChangeRequestedEventArgs(ITabContent NewTab) {
+      public bool RequestAccepted { get; set; }
    }
 
    public interface IRaiseMessageTab : ITabContent {

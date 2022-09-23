@@ -708,17 +708,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 Closed.remove(new EventHandler<System.EventArgs>(value));
             }
         }
-        public EventImplementation<ITabContent> RequestTabChange = new EventImplementation<ITabContent>();
+        public EventImplementation<TabChangeRequestedEventArgs> RequestTabChange = new EventImplementation<TabChangeRequestedEventArgs>();
         
-        event System.EventHandler<ITabContent> ITabContent.RequestTabChange
+        event System.EventHandler<TabChangeRequestedEventArgs> ITabContent.RequestTabChange
         {
             add
             {
-                RequestTabChange.add(new EventHandler<ITabContent>(value));
+                RequestTabChange.add(new EventHandler<TabChangeRequestedEventArgs>(value));
             }
             remove
             {
-                RequestTabChange.remove(new EventHandler<ITabContent>(value));
+                RequestTabChange.remove(new EventHandler<TabChangeRequestedEventArgs>(value));
             }
         }
         public EventImplementation<System.Action> RequestDelayedWork = new EventImplementation<System.Action>();

@@ -195,6 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // This needs to be synchronous to make it deterministic,
             // but needs to happen on the UI thread since it can update bound properties.
             dispatcher.BlockOnUIWork(() => {
+               TabChangeRequestedEventArgs args;
                if (arg is string str) {
                   var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
                   if (possibleMatches.Count == 1) str = possibleMatches[0];
@@ -210,15 +211,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   var maps = Model.GetMatchingMaps(str);
                   if (maps.Count == 1 && mapper != null && !str.TryParseHex(out _)) {
+                     var previousMap = mapper.PrimaryMap;
                      mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, this, maps[0].Group, maps[0].Map);
-                     RequestTabChange?.Invoke(this, mapper);
+                     args = new TabChangeRequestedEventArgs(mapper);
+                     RequestTabChange?.Invoke(this, args);
+                     if (args.RequestAccepted) {
+                        // We actually changed tabs. Tell the map editor that it may want to change back to this tab on a 'back'
+                        mapper.SwitchToViewPortOnNextBackNavigation();
+                     } else {
+                        // mapper tab was already requested
+                        // add the previous map as the back point for the mapper
+                        mapper.AddBackNavigation(previousMap.MapID);
+                     }
                      return;
                   }
                }
 
                selection.Goto.Execute(arg);
 
-               RequestTabChange?.Invoke(mapper, this);
+               args = new TabChangeRequestedEventArgs(this);
+               RequestTabChange?.Invoke(mapper, args);
+               if (args.RequestAccepted) selection.SetJumpBackTab(mapper);
             });
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
@@ -644,7 +657,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                Goto.Execute(firstResultStart);
                SelectionEnd = ConvertAddressToViewPoint(firstResultStart + firstResultLength - 1);
             } else if (changeCount > 1) {
-               RequestTabChange?.Invoke(this, resultsTab);
+               RequestTabChange?.Invoke(this, new(resultsTab));
             }
          } else if (otherTab is IEditableViewPort otherViewPort) {
             IDataModel modelA = Model, modelB = otherViewPort.Model;
@@ -673,7 +686,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (changeCount >= maxSegments) changeCountText += "+";
             RaiseMessage($"{changeCountText} changes found.");
             if (changeCount > 0) {
-               RequestTabChange?.Invoke(this, diffTab);
+               RequestTabChange?.Invoke(this, new(diffTab));
             }
          } else {
             throw new NotImplementedException();
@@ -886,7 +899,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler ClearMessage;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
       public event EventHandler<IDataModel> RequestCloseOtherViewports;
-      public event EventHandler<ITabContent> RequestTabChange;
+      public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
 #pragma warning restore 0067
@@ -915,6 +928,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
+         selection.RequestTabChanged += (sender, e) => RequestTabChange(this, new(e));
 
          if (this is not ChildViewPort) { // child viewports don't need tools
             tools = new ToolTray(Singletons, Model, selection, history, this);
@@ -1596,7 +1610,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void OpenInNewTab(int destination) {
          var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.FileSystem, PythonTool, history);
          child.selection.GotoAddress(destination);
-         RequestTabChange?.Invoke(this, child);
+         RequestTabChange?.Invoke(this, new(child));
       }
 
       private bool CreateNewData(int pointer) {
@@ -2252,7 +2266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          foreach (var source in run.PointerSources) newTab.Add(CreateChildView(source, source), source, source);
 
-         RequestTabChange(this, newTab);
+         RequestTabChange(this, new(newTab));
          RequestMenuClose?.Invoke(this, EventArgs.Empty);
       }
 
@@ -2272,12 +2286,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (gotoStart, gotoEnd) = gotoSelection[i];
             newTab.Add(CreateChildView(showStart, showEnd), gotoStart, gotoEnd);
          }
-         RequestTabChange(this, newTab);
+         RequestTabChange(this, new(newTab));
       }
 
       public void OpenDexReorderTab(string dexTableName) {
          var newTab = new DexReorderTab(Name, history, Model, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
-         RequestTabChange(this, newTab);
+         RequestTabChange(this, new(newTab));
       }
 
       public void OpenImageEditorTab(int address, int spritePage, int palettePage) {
@@ -2286,7 +2300,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                SpritePage = spritePage,
                PalettePage = palettePage,
             };
-            RequestTabChange(this, newTab);
+            RequestTabChange(this, new(newTab));
          } catch (ImageEditorViewModelCreationException e) {
             RaiseError(e.Message);
          }
