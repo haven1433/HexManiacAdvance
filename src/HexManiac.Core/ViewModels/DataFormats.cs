@@ -202,21 +202,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false) {
+      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
          if (sprite == null) return null;
          if (sprite is ITilemapRun tilemap) tilemap.FindMatchingTileset(model);
          var paletteRuns = sprite.FindRelatedPalettes(model);
          var paletteRun = paletteRuns.FirstOrDefault();
-         return BuildSprite(model, sprite, paletteRun, useTransparency);
+         return BuildSprite(model, sprite, paletteRun, useTransparency, scale);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false) {
+      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false, double scale = 1) {
          var pixels = sprite.GetPixels(model, 0, -1);
          if (pixels == null) return null;
          var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
          if (colors.Count == 16 && useTransparency) colors = SpriteTool.CreatePaletteWithUniqueTransparentColor(colors);
          var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
-         return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData, useTransparency ? colors[0] : (short)-1);
+         return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData, useTransparency ? colors[0] : (short)-1) { SpriteScale = scale };
       }
 
       public bool Equals(IDataFormat other) {

@@ -1,14 +1,9 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using IronPython.Compiler;
-using Microsoft.Scripting.Hosting;
 using System;
-using System.CodeDom;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Net;
 
 /*
  * There are 0x500 flags, followed by 0x300 trainer flags (0x500 to 0x7FF), then system flags (0x800 to 0x8FF). Not all the system flags are used.
@@ -144,6 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                int currentScriptLength = 0;
                while (currentScriptLength < ScriptLengthLimit) {
                   var line = parser.GetLine(model, address);
+                  if (line == null) break;
                   var length = line.CompiledByteLength(model, address);
                   if (filter.Contains(model[address])) yield return new(address, line);
                   if (line.PointsToNextScript) {

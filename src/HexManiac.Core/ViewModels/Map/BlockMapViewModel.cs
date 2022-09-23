@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -227,7 +228,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public string Name => MapIDToText(model, MapID);
+      #region Name
+
+      public string FullName => MapIDToText(model, MapID);
+      public string Name => $"({group}-{map})";
+
+      private ObservableCollection<string> availableNames;
+      public ObservableCollection<string> AvailableNames {
+         get {
+            if (availableNames != null) return availableNames;
+            availableNames = new();
+            foreach (var name in viewPort.Model.GetOptions(HardcodeTablesModel.MapNameTable)) {
+               availableNames.Add(name.Trim('"'));
+            }
+            return availableNames;
+         }
+      }
+
+      public int SelectedNameIndex {
+         get {
+            var offset = model.IsFRLG() ? 0x58 : 0;
+            var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
+            var maps = banks[group].GetSubTable("maps");
+            var self = maps[map].GetSubTable("map")[0];
+            if (!self.HasField("regionSectionID")) return -1;
+            return self.GetValue("regionSectionID") - offset;
+         }
+         set {
+            var offset = model.IsFRLG() ? 0x58 : 0;
+            var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable, tokenFactory);
+            var maps = banks[group].GetSubTable("maps");
+            var self = maps[map].GetSubTable("map")[0];
+            if (!self.HasField("regionSectionID")) return;
+            self.SetValue("regionSectionID", value + offset);
+            NotifyPropertyChanged(nameof(FullName));
+         }
+      }
+
+      #endregion
 
       #region Wild Data
 
@@ -804,7 +842,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         var newEvent = new ObjectEventModel(element, allOverworldSprites) {
+         var newEvent = new ObjectEventModel(GotoAddress, element, allOverworldSprites) {
             X = 0, Y = 0,
             Elevation = 0,
             ObjectID = element.Table.ElementCount,
@@ -835,7 +873,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "scriptCount", "scripts");
-         var newEvent = new ScriptEventModel(element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
+         var newEvent = new ScriptEventModel(GotoAddress, element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -1160,7 +1198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var map = GetMapModel();
          var results = new List<IEventModel>();
-         var events = new EventGroupModel(map.GetSubTable("events")[0], allOverworldSprites);
+         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites);
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);
@@ -1299,6 +1337,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, run);
          return connectionStart;
       }
+
+      private void GotoAddress(int address) => viewPort.Goto.Execute(address);
 
       public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;
@@ -1464,14 +1504,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class EventGroupModel {
       private readonly ModelArrayElement events;
 
-      public EventGroupModel(ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows) {
+      public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
          var objects = events.GetSubTable("objects");
          var objectList = new List<ObjectEventModel>();
          if (objects != null) {
-            for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(objects[i], ows));
+            for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(gotoAddress, objects[i], ows));
          }
          Objects = objectList;
 
@@ -1487,7 +1527,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var scripts = events.GetSubTable("scripts");
          var scriptList = new List<ScriptEventModel>();
          if (scripts != null) {
-            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventModel(scripts[i]));
+            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventModel(gotoAddress, scripts[i]));
          }
          Scripts = scriptList;
 

@@ -4,12 +4,15 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using IronPython.Runtime.Types;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using static IronPython.Modules.PythonWeakRef;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
@@ -41,6 +44,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       protected readonly ModelArrayElement element;
       private readonly string parentLengthField;
+
+      public ModelDelta Token => element.Token;
 
       public string EventType => GetType().Name.Replace("EventModel", string.Empty);
       public string EventIndex {
@@ -156,6 +161,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      protected string GetText(int pointer) {
+         if (pointer == Pointer.NULL) return null;
+         var address = element.Model.ReadPointer(pointer);
+         if (address < 0 || address >= element.Model.Count) return null;
+         var run = element.Model.GetNextRun(address);
+         if (run.Start != address) {
+            if (run.Start < address) return null;
+            var length = PCSString.ReadString(element.Model, address, true);
+            if (run.Start < address + length) return null;
+            // we can add a PCSRun here
+            run = new PCSRun(element.Model, address, length, SortedSpan.One(pointer));
+            if (element.Model.GetNextRun(pointer).Start >= pointer + 4) element.Model.ObserveRunWritten(element.Token, new PointerRun(pointer));
+            element.Model.ObserveRunWritten(element.Token, run);
+         }
+         if (run is not PCSRun pcs) {
+            var length = PCSString.ReadString(element.Model, address, true);
+            element.Model.ClearFormat(element.Token, address, length);
+            pcs = new PCSRun(element.Model, address, length, run.PointerSources);
+         }
+         return pcs.SerializeRun();
+      }
+
+      protected void SetText(int pointer, string text, [CallerMemberName] string propertyName = null) {
+         var address = element.Model.ReadPointer(pointer);
+         if (address < 0 || address >= element.Model.Count) return;
+         if (element.Model.GetNextRun(address) is not PCSRun pcs) return;
+         element.Model.ObserveRunWritten(element.Token, pcs.DeserializeRun(text, element.Token, out _));
+         NotifyPropertyChanged();
+      }
+
       protected static IPixelViewModel BuildEventRender(short color) {
          var pixels = new short[256];
          for (int x = 1; x < 15; x++) {
@@ -170,6 +205,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ObjectEventModel : BaseEventModel {
+      private readonly Action<int> gotoAddress;
+
       public int Start => element.Start;
 
       public int ObjectID {
@@ -246,6 +283,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => element.SetAddress("script", value);
       }
 
+      public void GotoScript() => gotoAddress(ScriptAddress);
+
       private string scriptAddressText;
       public string ScriptAddressText {
          get {
@@ -270,11 +309,179 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<VisualComboOption> Options { get; } = new();
       public ObservableCollection<string> FacingOptions { get; } = new();
+      public ObservableCollection<string> ClassOptions { get; } = new();
+      public ObservableCollection<string> ItemOptions { get; } = new();
 
-      public ObjectEventModel(ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+      #region Extended Properties
+
+      // For certain simple events (npcs, trainers, items, signposts),
+      // We can provide an enriched editing experience in the event panel.
+      // These are the 'show' properties for those controls.
+
+      public bool ShowItemContents => EventTemplate.GetItemAddress(element.Model, this) != Pointer.NULL;
+
+      public int ItemContents {
+         get {
+            var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
+            if (itemAddress == Pointer.NULL) return -1;
+            return element.Model.ReadMultiByteValue(itemAddress, 2);
+         }
+         set {
+            var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
+            if (itemAddress == Pointer.NULL) return;
+            element.Model.WriteMultiByteValue(itemAddress, 2, element.Token, value);
+            NotifyPropertyChanged();
+         }
+      }
+
+      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null;
+
+      public bool ShowNpcText => EventTemplate.GetNPCTextPointer(element.Model, this) != Pointer.NULL;
+
+      public string NpcText {
+         get => GetText(EventTemplate.GetNPCTextPointer(element.Model, this));
+         set => SetText(EventTemplate.GetNPCTextPointer(element.Model, this), value);
+      }
+
+      public int TrainerClass {
+         get {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return -1;
+            return element.Model[trainerContent.TrainerClassAddress];
+         }
+         set {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return;
+            element.Token.ChangeData(element.Model, trainerContent.TrainerClassAddress, (byte)value);
+         }
+      }
+
+      private IPixelViewModel trainerSprite;
+      public IPixelViewModel TrainerSprite {
+         get {
+            if (trainerSprite != null) return trainerSprite;
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return null;
+            var spriteIndex = element.Model[trainerContent.TrainerClassAddress + 2];
+            var spriteAddress = element.Model.GetTableModel(HardcodeTablesModel.TrainerSpritesName)[spriteIndex].GetAddress("sprite");
+            var spriteRun = element.Model.GetNextRun(spriteAddress) as ISpriteRun;
+            return trainerSprite = ReadonlyPixelViewModel.Create(element.Model, spriteRun, true, .5);
+         }
+      }
+
+      public string TrainerName {
+         get {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return null;
+            var text = element.Model.TextConverter.Convert(element.Model, trainerContent.TrainerNameAddress, 12);
+            return text.Trim('"');
+         }
+         set {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return;
+            var bytes = element.Model.TextConverter.Convert(value, out _);
+            while (bytes.Count > 12) {
+               bytes.RemoveAt(bytes.Count - 1);
+               bytes[bytes.Count - 1] = 0xFF;
+            }
+            while (bytes.Count < 12) bytes.Add(0);
+            element.Token.ChangeData(element.Model, trainerContent.TrainerNameAddress, bytes);
+            NotifyPropertyChanged();
+         }
+      }
+
+      public string TrainerBeforeText {
+         get {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return null;
+            return GetText(trainerContent.BeforeTextPointer);
+         }
+         set {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return;
+            SetText(trainerContent.BeforeTextPointer, value);
+         }
+      }
+
+      public string TrainerWinText {
+         get {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return null;
+            return GetText(trainerContent.WinTextPointer);
+         }
+         set {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return;
+            SetText(trainerContent.WinTextPointer, value);
+         }
+      }
+
+      public string TrainerAfterText {
+         get {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return null;
+            return GetText(trainerContent.AfterTextPointer);
+         }
+         set {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return;
+            SetText(trainerContent.AfterTextPointer, value);
+         }
+      }
+
+      private string teamText;
+      public string TrainerTeam {
+         get {
+            if (teamText != null) return teamText;
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return null;
+            var address = element.Model.ReadPointer(trainerContent.TeamPointer);
+            if (address < 0 || address >= element.Model.Count) return null;
+            if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return null;
+            if (run.Start != address) return null;
+            if (TeamVisualizations.Count == 0) UpdateTeamVisualizations(run);
+            return teamText = run.SerializeRun();
+         }
+         set {
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            if (trainerContent == null) return;
+            var address = element.Model.ReadPointer(trainerContent.TeamPointer);
+            if (address < 0 || address >= element.Model.Count) return;
+            if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return;
+            if (run.Start != address) return;
+            teamText = value;
+            var newRun = run.DeserializeRun(value, element.Token, false, false, out _);
+            element.Model.ObserveRunWritten(element.Token, newRun);
+            UpdateTeamVisualizations(newRun);
+            NotifyPropertyChanged();
+         }
+      }
+
+      public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
+
+      private void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
+         TeamVisualizations.Clear();
+         foreach (var vis in team.Visualizations) {
+            TeamVisualizations.Add(vis);
+         }
+      }
+
+      private StubCommand openTrainerData;
+      public ICommand OpenTrainerData => StubCommand(ref openTrainerData, () => {
+         var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+         if (trainerContent == null) return;
+         gotoAddress(trainerContent.TrainerClassAddress - 1);
+      });
+
+      #endregion
+
+      public ObjectEventModel(Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+         this.gotoAddress = gotoAddress;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i));
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);
+         foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
+         foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
       }
 
       public override int TopOffset => 16 - EventRender.PixelHeight;
@@ -380,7 +587,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ScriptEventModel : BaseEventModel {
-      public ScriptEventModel(ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { }
+      private readonly Action<int> gotoAddress;
+
+      public ScriptEventModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { this.gotoAddress = gotoAddress; }
 
       public int Trigger {
          get => element.GetValue("trigger");
@@ -397,7 +606,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => element.SetAddress("script", value);
       }
 
+      public void GotoScript() => gotoAddress(ScriptAddress);
+
       private string scriptAddressText;
+
       public string ScriptAddressText {
          get {
             if (scriptAddressText == null) scriptAddressText = element.GetAddress("script").ToAddress();
@@ -433,6 +645,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public override void Render(IDataModel model) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
+      }
+
+      public bool ShowSignpostText => EventTemplate.GetSignpostTextPointer(element.Model, this) != Pointer.NULL;
+
+      public string SignpostText {
+         get => GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
+         set => SetText(EventTemplate.GetSignpostTextPointer(element.Model, this), value);
       }
    }
 }

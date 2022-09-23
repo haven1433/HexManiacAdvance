@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public short[] PixelData { get; }
-      public double SpriteScale => 1;
+      public double SpriteScale { get; init; } = 1;
 
       public ReadonlyPixelViewModel(SpriteFormat sf, short[] data, short transparent = -1) {
          (PixelWidth, PixelHeight, PixelData) = (sf.TileWidth * 8, sf.TileHeight * 8, data);
@@ -22,8 +22,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          Transparent = transparent;
       }
 
-      public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, bool useTransparency = false) {
-         return SpriteDecorator.BuildSprite(model, sprite, useTransparency);
+      public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
+         return SpriteDecorator.BuildSprite(model, sprite, useTransparency, scale);
       }
 
       public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, IPaletteRun palette, bool useTransparency = false) {

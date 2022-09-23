@@ -55,6 +55,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private bool showTemplateSettings;
+      public bool ShowTemplateSettings { get => showTemplateSettings; set => Set(ref showTemplateSettings, value); }
+
       public bool ShowEventPanel => selectedEvent != null;
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
@@ -103,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private StubCommand close, undo, redo, backCommand, forwardCommand;
 
-      public string Name => (primaryMap?.Name ?? "Map") + (history.HasDataChange ? "*" : string.Empty);
+      public string Name => (primaryMap?.FullName ?? "Map") + (history.HasDataChange ? "*" : string.Empty);
       public string FullFileName => viewPort.FullFileName;
       public bool IsMetadataOnlyChange => false;
       public ICommand Save => viewPort.Save;
@@ -294,6 +297,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (map.SelectedEvent != selectedEvent) {
                SelectedEvent = map.SelectedEvent;
             }
+         } else if (e.PropertyName == nameof(BlockMapViewModel.FullName)) {
+            NotifyPropertyChanged(nameof(Name));
          }
       }
 
@@ -468,6 +473,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
          UpdatePrimaryMap(primaryMap); // re-add neighbors
+         if (eventCreationType != EventCreationType.None) {
+            // User clicked on the event creation button,
+            // but then didn't drag to anywhere.
+            // Open the popup.
+            ShowTemplateSettings = true;
+            eventCreationType = EventCreationType.None;
+         }
       }
 
       #endregion
@@ -494,13 +506,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var desiredMap = (bank: 0, map: 0);
             if (backStack.Count > 0) {
                var last = backStack[backStack.Count - 1];
-               desiredMap = (bank: last / 1000, map: last % 1000);
+               if (last >= 0) {
+                  desiredMap = (bank: last / 1000, map: last % 1000);
+               }
             }
             SelectedEvent = primaryMap.CreateWarpEvent(desiredMap.bank, desiredMap.map);
          } else if (type == EventCreationType.Script) {
             SelectedEvent = primaryMap.CreateScriptEvent();
          } else if (type == EventCreationType.Signpost) {
-            SelectedEvent = primaryMap.CreateSignpostEvent();
+            var signpost = primaryMap.CreateSignpostEvent();
+            templates.ApplyTemplate(signpost, history.CurrentChange);
+            SelectedEvent = signpost;
          } else {
             throw new NotImplementedException();
          }
