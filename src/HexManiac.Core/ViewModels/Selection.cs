@@ -324,8 +324,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Scroll.ScrollValue += Scroll.DataIndexToViewPoint(startAddress).Y;
 
          // then, scroll left/right as needed to align everything
-         while (Scroll.DataIndex < address) Scroll.Scroll.Execute(Direction.Right);
-         while (Scroll.DataIndex > address) Scroll.Scroll.Execute(Direction.Left);
+         var lastScroll = int.MinValue;
+         while (Scroll.DataIndex < address && Scroll.DataIndex != lastScroll) {
+            lastScroll = Scroll.DataIndex;
+            Scroll.Scroll.Execute(Direction.Right);
+         }
+         lastScroll = int.MinValue;
+         while (Scroll.DataIndex > address && Scroll.DataIndex != lastScroll) {
+            lastScroll = Scroll.DataIndex;
+            Scroll.Scroll.Execute(Direction.Left);
+         }
 
          // update the width
          if (autoAdjustDataWidth) PreferredWidth = preferredWidth;

@@ -1191,6 +1191,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void PasteRawBytes(string text) {
          text = text.Replace(" ", "").Replace("\n", "").Replace("\r", "");
          var index = Math.Min(ConvertViewPointToAddress(SelectionStart), ConvertViewPointToAddress(SelectionEnd));
+         Model.ExpandData(CurrentChange, index + text.Length / 2);
+         scroll.DataLength = Model.Count;
          for (int i = 0; i < text.Length / 2; i++) {
             var high = AllHexCharacters.IndexOf(text[i * 2]);
             var low = AllHexCharacters.IndexOf(text[i * 2 + 1]);
