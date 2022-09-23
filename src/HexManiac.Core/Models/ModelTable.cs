@@ -276,6 +276,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public void SetValue(int fieldIndex, int value) {
+         var elementOffset = table.ElementContent.Take(fieldIndex).Sum(segment => segment.Length);
+         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         var seg = table.ElementContent[fieldIndex];
+         if (seg.Type == ElementContentType.Integer || seg.Type == ElementContentType.BitArray) {
+            model.WriteMultiByteValue(valueAddress, seg.Length, tokenFactory(), value);
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
       public ModelTable GetSubTable(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;

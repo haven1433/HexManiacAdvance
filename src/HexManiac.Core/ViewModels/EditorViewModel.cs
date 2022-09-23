@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -609,9 +610,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             gotoViewModel.ControlVisible = true;
          };
 
-         runFile.CanExecute = arg => SelectedTab is IEditableViewPort viewPort && !viewPort.ChangeHistory.HasDataChange;
+         runFile.CanExecute = arg => {
+            var tab = SelectedTab;
+            if (tab is MapEditorViewModel mapper) tab = mapper.ViewPort;
+            return tab is IEditableViewPort viewPort && !viewPort.ChangeHistory.HasDataChange;
+         };
          runFile.Execute = arg => {
-            ((IFileSystem)arg).LaunchProcess(((ViewPort)SelectedTab).FullFileName);
+            var tab = SelectedTab;
+            if (tab is MapEditorViewModel mapper) tab = mapper.ViewPort;
+            ((IFileSystem)arg).LaunchProcess(((IEditableViewPort)tab).FullFileName);
          };
 
          ImplementFindCommands();

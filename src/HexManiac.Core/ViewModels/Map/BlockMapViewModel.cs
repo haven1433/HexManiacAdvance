@@ -526,29 +526,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var connection in connections) {
             void Notify() => NeighborsChanged.Raise(this);
             var map = GetNeighbor(connection, border);
+            var sourceMapInfo = (group, this.map);
 
             if (connection.Direction == MapDirection.Up) {
                connectionCount.up++;
-               yield return new ConnectionSlider(connection, Notify, id, LeftRight, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
-               yield return new ConnectionSlider(connection, Notify, id + 1, LeftRight, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, LeftRight, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, LeftRight, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
             }
 
             if (connection.Direction == MapDirection.Down) {
                connectionCount.down++;
-               yield return new ConnectionSlider(connection, Notify, id, LeftRight, right: map.LeftEdge, top: map.TopEdge + tileSize);
-               yield return new ConnectionSlider(connection, Notify, id + 1, LeftRight, left: map.RightEdge, top: map.TopEdge + tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, LeftRight, right: map.LeftEdge, top: map.TopEdge + tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, LeftRight, left: map.RightEdge, top: map.TopEdge + tileSize);
             }
 
             if (connection.Direction == MapDirection.Left) {
                connectionCount.left++;
-               yield return new ConnectionSlider(connection, Notify, id, UpDown, right: map.RightEdge - tileSize, bottom: map.TopEdge);
-               yield return new ConnectionSlider(connection, Notify, id + 1, UpDown, right: map.RightEdge - tileSize, top: map.BottomEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, UpDown, right: map.RightEdge - tileSize, bottom: map.TopEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, UpDown, right: map.RightEdge - tileSize, top: map.BottomEdge);
             }
 
             if (connection.Direction == MapDirection.Right) {
                connectionCount.right++;
-               yield return new ConnectionSlider(connection, Notify, id, UpDown, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
-               yield return new ConnectionSlider(connection, Notify, id + 1, UpDown, left: map.LeftEdge + tileSize, top: map.BottomEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, UpDown, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, UpDown, left: map.LeftEdge + tileSize, top: map.BottomEdge);
             }
 
             id += 2;
@@ -816,6 +817,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             TrainerType = 0,
             TrainerRangeOrBerryID = 0,
          };
+         newEvent.ClearUnused();
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -904,7 +906,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // step 1: test if we need to update the layout id
          var layoutTable = model.GetTable(HardcodeTablesModel.MapLayoutTable);
          var map = GetMapModel();
-         var layoutID = map.GetValue("layoutID");
+         var layoutID = map.GetValue("layoutID") - 1;
          var addressFromMap = map.GetAddress("layout");
          var addressFromTable = model.ReadPointer(layoutTable.Start + layoutTable.ElementLength * layoutID);
          if (addressFromMap == addressFromTable) return;
@@ -915,10 +917,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             layoutTable = model.RelocateForExpansion(token, layoutTable, layoutTable.Length + 4);
             layoutTable = layoutTable.Append(token, 1);
             model.ObserveRunWritten(token, layoutTable);
-            model.UpdateArrayPointer(token, layoutTable.ElementContent[0], layoutTable.ElementContent, -1, layoutTable.Start + layoutTable.ElementLength * (layoutTable.ElementCount - 1), addressFromTable);
+            model.UpdateArrayPointer(token, layoutTable.ElementContent[0], layoutTable.ElementContent, -1, layoutTable.Start + layoutTable.ElementLength * (layoutTable.ElementCount - 1), addressFromMap);
             matches.Add(layoutTable.ElementCount - 1);
          }
-         map.SetValue("layoutID", matches[0]);
+         map.SetValue("layoutID", matches[0] + 1);
       }
 
       #endregion
@@ -1103,7 +1105,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BorderBlock = canvas;
       }
 
-      private ModelArrayElement GetMapModel() {
+      private ModelArrayElement GetMapModel() => GetMapModel(model, group, map, tokenFactory);
+      public static ModelArrayElement GetMapModel(IDataModel model, int group, int map, Func<ModelDelta> tokenFactory){
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          if (table == null) return null;
          var mapBanks = new ModelTable(model, table.Start, tokenFactory);
@@ -1118,8 +1121,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return map.GetSubTable("layout")[0];
       }
 
-      private IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map = null) {
-         if (map == null) map = GetMapModel();
+      private IReadOnlyList<ConnectionModel> GetConnections() {
+         var map = GetMapModel(model, group, this.map, tokenFactory);
+         return GetConnections(map);
+      }
+      public static IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map) {
          if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
          var list = new List<ConnectionModel>();
@@ -1357,15 +1363,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public const string SingleConnectionLength = "/count";
       public static readonly string SingleConnectionFormat = $"[{SingleConnectionContent}]{SingleConnectionLength}";
       public static readonly string ConnectionTableContent = $"count:: connections<{SingleConnectionFormat}>";
-      public MapDirection OppositeDirection => Direction switch {
-         MapDirection.Up => MapDirection.Down,
-         MapDirection.Down => MapDirection.Up,
-         MapDirection.Left => MapDirection.Right,
-         MapDirection.Right => MapDirection.Left,
-         MapDirection.Dive => MapDirection.Emerge,
-         MapDirection.Emerge => MapDirection.Dive,
-         _ => throw new NotImplementedException(),
-      };
+      public MapDirection OppositeDirection => Direction.Reverse();
    }
 
    public class MapHeaderViewModel : ViewModelCore, INotifyPropertyChanged {
@@ -1432,6 +1430,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ConnectionModel {
       private readonly ModelArrayElement connection;
+      public IDataModel Model => connection.Model;
+      public Func<ModelDelta> Tokens => () => connection.Token;
       public ConnectionModel(ModelArrayElement connection) => this.connection = connection;
 
       public MapDirection Direction {
@@ -1521,6 +1521,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       Right = 4,
       Dive = 5,
       Emerge = 6,
+   }
+
+   public static class MapDirectionExtensions {
+      public static MapDirection Reverse(this MapDirection direction) => direction switch {
+         MapDirection.Up => MapDirection.Down,
+         MapDirection.Down => MapDirection.Up,
+         MapDirection.Left => MapDirection.Right,
+         MapDirection.Right => MapDirection.Left,
+         MapDirection.Dive => MapDirection.Emerge,
+         MapDirection.Emerge => MapDirection.Dive,
+         _ => throw new NotImplementedException(),
+      };
    }
 
    public enum ZoomDirection {

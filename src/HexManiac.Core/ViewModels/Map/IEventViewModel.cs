@@ -313,6 +313,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (flip) ow = ow.ReflectX();
          return ow;
       }
+
+      public void ClearUnused() {
+         element.SetValue(2, 0);
+         element.SetValue(12, 0);
+      }
    }
 
    public class WarpEventModel : BaseEventModel {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -53,18 +54,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ConnectionSlider : MapSlider {
       private Action notify;
-      private ConnectionModel connection;
+      private ConnectionModel connection, inverse;
 
-      public ConnectionSlider(ConnectionModel connection, Action notify, int id, MapSliderIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
+      public ConnectionSlider(ConnectionModel connection, (int group, int num) sourceMapInfo, Action notify, int id, MapSliderIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          (this.notify, this.connection) = (notify, connection);
+         var group = connection.MapGroup;
+         var index = connection.MapNum;
+
+         var direction = connection.Direction.Reverse();
+         var map = BlockMapViewModel.GetMapModel(connection.Model, group, index, connection.Tokens);
+         var neighbors = BlockMapViewModel.GetConnections(map);
+         inverse = neighbors.FirstOrDefault(c => c.MapGroup == sourceMapInfo.group && c.MapNum == sourceMapInfo.num && c.Direction == direction);
       }
 
       public override void Move(int x, int y) {
          if (Icon == MapSliderIcons.LeftRight) {
             connection.Offset += x;
+            if (inverse != null) inverse.Offset = -connection.Offset;
             if (x != 0) notify();
          } else if (Icon == MapSliderIcons.UpDown) {
             connection.Offset += y;
+            if (inverse != null) inverse.Offset = -connection.Offset;
             if (y != 0) notify();
          } else {
             throw new NotImplementedException();
