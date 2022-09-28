@@ -33,10 +33,29 @@
          <RowDefinition Height="*" />
       </Grid.RowDefinitions>
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
-         <Grid Width="{Binding Blocks.ScaledWidth}" Height="100" DockPanel.Dock="Top">
-            <local:AngleComboBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Width="50" Height="20"
-               ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
-            <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Center">
+         <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+               <RowDefinition Height="Auto"/>
+               <RowDefinition />
+            </Grid.RowDefinitions>
+            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,10,35"
+                  Content="Automatic Movement Permission" IsChecked="{Binding AutoUpdateCollision}" Grid.Row="1">
+               <CheckBox.ToolTip>
+                  <TextBlock>
+                     Update Movement Permission Selection based on Most Common Permission for selected block.
+                     <LineBreak/>
+                     For example, if you select a tree, it'll set the movement permission based on other trees.
+                  </TextBlock>
+               </CheckBox.ToolTip>
+            </CheckBox>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,10" Grid.Row="1">
+               <local:AngleBorder Direction="Left" VerticalAlignment="Stretch">
+                  <TextBlock Text="Movement Permissions:" Margin="2,0" Height="30"/>
+               </local:AngleBorder>
+               <local:AngleComboBox Direction="Out" Width="50" Height="20"
+                  ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
+            </StackPanel>
+            <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Top">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
             </Decorator>
          </Grid>
@@ -97,7 +116,7 @@
                            <local:AngleBorder Direction="Out">
                               <TextBlock Text="ID:"/>
                            </local:AngleBorder>
-                           <local:AngleTextBox Direction="Out" TextBinding="{Binding ObjectID}" />
+                           <local:AngleTextBox Direction="Out" TextBinding="{Binding ObjectID, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                      
                         <local:AngleComboBox Grid.Row="0" Grid.Column="1" Direction="Right" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}" Margin="0,2,2,2">
@@ -116,7 +135,7 @@
                         <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Elevation:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" Margin="0,2,2,2" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Elevation}" />
+                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" Margin="0,2,2,2" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding Elevation, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2">
                            <TextBlock Text="Movement Type:"/>
@@ -131,7 +150,7 @@
                         <local:AngleBorder Grid.Row="5" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Trainer Type:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding TrainerType}" />
+                        <local:AngleTextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding TrainerType, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="6" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock>
@@ -147,7 +166,7 @@
                               </TextBlock.Style>
                            </TextBlock>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="6" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding TrainerRangeOrBerryID}" />
+                        <local:AngleTextBox Grid.Row="6" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding TrainerRangeOrBerryID, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Script Address:"/>
@@ -161,7 +180,7 @@
                         <local:AngleBorder Grid.Row="8" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Flag:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText}" />
+                        <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
 
                         <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowTrainerContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
@@ -169,7 +188,7 @@
                                  <Setter Property="FontFamily" Value="Consolas" />
                                  <Setter Property="AcceptsReturn" Value="True" />
                                  <Setter Property="HorizontalAlignment" Value="Right" />
-                                 <Setter Property="Width" Value="236" />
+                                 <Setter Property="Width" Value="244" />
                               </Style>
                            </StackPanel.Resources>
                            <Grid>
@@ -205,7 +224,7 @@
                                     </ItemsControl.ItemTemplate>
                                  </ItemsControl>
                               </Viewbox>
-                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}" Name="TrainerTeamBox" Background="Transparent" CaretBrush="{DynamicResource Secondary}" />
+                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}" Name="TrainerTeamBox" Background="Transparent" Width="200" CaretBrush="{DynamicResource Secondary}" />
                            </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Edit More:" Margin="4,0"/>
@@ -232,7 +251,7 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Text:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="236" Text="{Binding NpcText}" />
+                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding NpcText}" />
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
@@ -258,20 +277,20 @@
                         <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Elevation:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation}" />
+                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="(bank, map):"/>
                         </local:AngleBorder>
                         <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2">
-                           <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap}" />
+                           <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap, UpdateSourceTrigger=PropertyChanged}" />
                            <TextBlock Text="{Binding TargetMapName}" />
                         </StackPanel>
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="Destination ID:"/>
+                           <TextBlock Text="Warp Number:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding WarpID}" />
+                        <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding WarpID, UpdateSourceTrigger=PropertyChanged}" />
                      </Grid>
                   </DataTemplate>
                   <DataTemplate DataType="{x:Type map:ScriptEventModel}">
@@ -296,17 +315,17 @@
                         <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Elevation:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation}" />
+                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Trigger:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Trigger}" />
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding TriggerHex, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Index:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Index}" />
+                        <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Index, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Script Address:"/>
@@ -355,7 +374,7 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Text:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="236" Text="{Binding SignpostText}" />
+                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding SignpostText}" />
                         </StackPanel>
 
                         <!-- TODO break Arg into multiple pieces and show individual UI based on the value of Kind -->

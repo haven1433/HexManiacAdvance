@@ -169,10 +169,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static IList<ModelArrayElement> GetAllEvents(IDataModel model, string type) {
          var elements = new List<ModelArrayElement>();
          var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
+         if (banks == null) return elements;
          foreach (var bank in banks) {
             var maps = bank.GetSubTable("maps");
+            if (maps == null) continue;
             foreach (var map in maps) {
                var events = map.GetSubTable("map")[0].GetSubTable("events")[0];
+               if (events == null) continue;
 
                // id. graphics. unused: x:500 y:500 elevation. moveType. range: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:
                var objects = events.GetSubTable(type);

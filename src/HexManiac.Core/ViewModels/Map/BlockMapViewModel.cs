@@ -23,7 +23,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Func<ModelDelta> tokenFactory;
       private readonly int group, map;
 
-      // TODO make these dynamic, right now this is only right for FireRed
       private int PrimaryTiles { get; } // 640
       private int PrimaryBlocks { get; } // 640
       private int TotalBlocks => 1024;
@@ -114,6 +113,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int MapID => group * 1000 + map;
 
       public MapHeaderViewModel Header { get; }
+
+      public bool IsValidMap => GetMapModel() != null;
 
       #region IPixelViewModel
 
@@ -530,11 +531,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
          foreach (var e in GetEvents()) {
             if (e.X == tileX && e.Y == tileY) {
-               if (selectedEvent == null || selectedEvent.X != e.X || selectedEvent.Y != e.Y) {
-                  SelectedEvent = e;
-                  pixelData = null;
-                  NotifyPropertyChanged(nameof(PixelData));
-               }
+               SelectedEvent = e;
+               pixelData = null;
+               NotifyPropertyChanged(nameof(PixelData));
                return e;
             }
          }
@@ -1149,7 +1148,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (table == null) return null;
          var mapBanks = new ModelTable(model, table.Start, tokenFactory);
          var bank = mapBanks[group].GetSubTable("maps");
+         if (bank == null) return null;
          var mapTable = bank[map].GetSubTable("map");
+         if (mapTable == null) return null;
          return mapTable[0];
       }
 
@@ -1347,7 +1348,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
          var bank = mapBanks[group].GetSubTable("maps");
-         var mapTable = bank[map].GetSubTable("map");
+         if (bank == null) return $"{group}-{map}";
+         var mapTable = bank[map]?.GetSubTable("map");
+         if (mapTable == null) return $"{group}-{map}";
          if (!mapTable[0].HasField("regionSectionID")) return $"{group}-{map}";
          var key = mapTable[0].GetValue("regionSectionID") - offset;
 

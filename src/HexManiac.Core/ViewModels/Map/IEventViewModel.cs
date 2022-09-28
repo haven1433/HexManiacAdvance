@@ -288,11 +288,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string scriptAddressText;
       public string ScriptAddressText {
          get {
-            if (scriptAddressText == null) scriptAddressText = element.GetAddress("script").ToAddress();
+            var value = element.GetAddress("script");
+            if (scriptAddressText == null) {
+               scriptAddressText = $"<{value.ToAddress()}>";
+               if (value == Pointer.NULL) scriptAddressText = "<null>";
+            }
             return scriptAddressText;
          }
          set {
             scriptAddressText = value;
+            value = value.Trim("<null>".ToCharArray());
             element.SetAddress("script", value.TryParseHex(out int result) ? result : Pointer.NULL);
          }
       }
@@ -531,8 +536,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public WarpEventModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
 
       public int WarpID {
-         get => element.GetValue("warpID");
-         set => element.SetValue("warpID", value);
+         get => element.GetValue("warpID") + 1;
+         set => element.SetValue("warpID", value - 1);
       }
 
       #region Bank/Map
@@ -594,6 +599,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int Trigger {
          get => element.GetValue("trigger");
          set => element.SetValue("trigger", value);
+      }
+
+      private string triggerHex;
+      public string TriggerHex {
+         get {
+            if (triggerHex != null) return triggerHex;
+            return triggerHex = Trigger.ToString("X4");
+         }
+         set {
+            triggerHex = value;
+            if (!value.TryParseHex(out int result)) return;
+            Trigger = result;
+         }
       }
 
       public int Index {

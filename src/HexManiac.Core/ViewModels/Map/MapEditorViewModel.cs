@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public IFileSystem FileSystem => fileSystem;
 
       private long blockset;
+      private int blockset1, blockset2;
       private BlockMapViewModel primaryMap;
       public BlockMapViewModel PrimaryMap {
          get => primaryMap;
@@ -66,6 +67,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public EventTemplate Templates => templates;
 
+      private int PrimaryTiles { get; }
+
       #region Block Picker
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
@@ -81,6 +84,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                NotifyPropertyChanged(nameof(HighlightBlockSize));
             });
          }
+      }
+
+      private bool autoUpdateCollision = true;
+      public bool AutoUpdateCollision {
+         get => autoUpdateCollision;
+         set => Set(ref autoUpdateCollision, value);
       }
 
       private int collisionIndex = -1;
@@ -211,6 +220,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
 
+         PrimaryTiles = model.IsFRLG() ? 640 : 512;
+
          var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19);
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
@@ -236,6 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {
+         if (!map.IsValidMap) return;
          blockset = UpdateBlockset(map.MapID);
          // update the primary map
          if (primaryMap != map) {
@@ -473,7 +485,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
          UpdatePrimaryMap(primaryMap); // re-add neighbors
-         if (eventCreationType != EventCreationType.None) {
+         if (eventCreationType == EventCreationType.Object) {
             // User clicked on the event creation button,
             // but then didn't drag to anywhere.
             // Open the popup.
@@ -618,7 +630,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void SelectBlock(int x, int y) {
          DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
-         CollisionIndex = GetPreferredCollision(DrawBlockIndex);
+         if (autoUpdateCollision) {
+            var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
+            if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
+         } else {
+            CollisionIndex = CollisionIndex.LimitToRange(0, 0x3F);
+         }
       }
 
       private StubCommand panCommand, zoomCommand, deleteCommand, cancelCommand;
@@ -730,27 +747,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      private Dictionary<long, int[]> preferredCollisions;
+      private Dictionary<long, int[]> preferredCollisionsPrimary;
+      private Dictionary<long, int[]> preferredCollisionsSecondary;
       private void CountCollisionForBlocks() {
-         preferredCollisions = new Dictionary<long, int[]>();
+         preferredCollisionsPrimary = new Dictionary<long, int[]>();
+         preferredCollisionsSecondary = new Dictionary<long, int[]>();
 
          // step 1: count the usages of each collision for each block in each blockset
          var banksTable = model.GetTable(HardcodeTablesModel.MapBankTable);
          var banks = new ModelTable(model, banksTable.Start, null, banksTable);
-         var blocksetHistogram = new Dictionary<long, Dictionary<int, int>[]>();
+         var blocksetHistogram1 = new Dictionary<long, Dictionary<int, int>[]>();
+         var blocksetHistogram2 = new Dictionary<long, Dictionary<int, int>[]>();
          foreach (var bank in banks) {
             var maps = bank.GetSubTable("maps");
+            if (maps == null) continue;
             foreach (var entry in maps) {
                var map = entry.GetSubTable("map")[0];
+               if (map == null) continue;
                var layout = map.GetSubTable("layout")[0];
+               if (layout == null) continue;
                // width:: height:: blockmap<> blockdata1<> blockdata2<>
-               long address1 = layout.GetAddress("blockdata1");
-               long address2 = layout.GetAddress("blockdata2");
-               var combined = (address1 << 7) | address2;
-               if (!blocksetHistogram.TryGetValue(combined, out var blocks)) {
-                  blocks = new Dictionary<int, int>[0x400];
-                  for (int i = 0; i < blocks.Length; i++) blocks[i] = new();
-                  blocksetHistogram[combined] = blocks;
+               var address1 = layout.GetAddress("blockdata1");
+               var address2 = layout.GetAddress("blockdata2");
+               if (!blocksetHistogram1.TryGetValue(address1, out var blocks1)) {
+                  blocks1 = new Dictionary<int, int>[0x400];
+                  for (int i = 0; i < blocks1.Length; i++) blocks1[i] = new();
+                  blocksetHistogram1[address1] = blocks1;
+               }
+               if (!blocksetHistogram2.TryGetValue(address2, out var blocks2)) {
+                  blocks2 = new Dictionary<int, int>[0x400];
+                  for (int i = 0; i < blocks2.Length; i++) blocks2[i] = new();
+                  blocksetHistogram2[address2] = blocks2;
                }
                var size = layout.GetValue("width") * layout.GetValue("height");
                var start = layout.GetAddress("blockmap");
@@ -758,15 +785,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var pair = model.ReadMultiByteValue(start + i * 2, 2);
                   var collision = pair >> 10;
                   var tile = pair & 0x3FF;
-                  if (!blocks[tile].TryGetValue(collision, out var value)) value = 0;
-                  blocks[tile][collision] = value + 1;
+                  var isPrimary = tile < PrimaryTiles;
+                  if (isPrimary) {
+                     if (!blocks1[tile].TryGetValue(collision, out var value)) value = 0;
+                     blocks1[tile][collision] = value + 1;
+                  } else {
+                     if (!blocks2[tile].TryGetValue(collision, out var value)) value = 0;
+                     blocks2[tile][collision] = value + 1;
+                  }
                }
             }
          }
 
          // step 2: remember the preferred collision for each block in each blockset
-         foreach (var blockset in blocksetHistogram.Keys) {
-            var histogram = blocksetHistogram[blockset];
+         foreach (var blockset in blocksetHistogram1.Keys) {
+            var histogram = blocksetHistogram1[blockset];
             var preference = new int[0x400];
             for (int i = 0; i < preference.Length; i++) {
                int mostUsedCollision = -1, useAmount = -1;
@@ -775,7 +808,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
                preference[i] = mostUsedCollision.LimitToRange(0, 0x3F);
             }
-            preferredCollisions[blockset] = preference;
+            preferredCollisionsPrimary[blockset] = preference;
+         }
+         foreach (var blockset in blocksetHistogram2.Keys) {
+            var histogram = blocksetHistogram2[blockset];
+            var preference = new int[0x400];
+            for (int i = 0; i < preference.Length; i++) {
+               int mostUsedCollision = -1, useAmount = -1;
+               foreach (var (tile, amount) in histogram[i]) {
+                  if (amount > useAmount) (mostUsedCollision, useAmount) = (tile, amount);
+               }
+               preference[i] = mostUsedCollision.LimitToRange(0, 0x3F);
+            }
+            preferredCollisionsSecondary[blockset] = preference;
          }
       }
 
@@ -783,16 +828,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var banksTable = model.GetTable(HardcodeTablesModel.MapBankTable);
          var banks = new ModelTable(model, banksTable.Start, null, banksTable);
          var layout = banks[mapID / 1000].GetSubTable("maps")[mapID % 1000].GetSubTable("map")[0].GetSubTable("layout")[0];
-         long address1 = layout.GetAddress("blockdata1");
-         long address2 = layout.GetAddress("blockdata2");
+         var address1 = layout.GetAddress("blockdata1");
+         var address2 = layout.GetAddress("blockdata2");
          var combined = (address1 << 7) | address2;
+         (blockset1, blockset2) = (address1, address2);
          return combined;
       }
 
       private int GetPreferredCollision(int tile) {
-         if (preferredCollisions == null) CountCollisionForBlocks();
-         if (!preferredCollisions.TryGetValue(blockset, out var preference)) return 0;
-         return preference[tile];
+         if (preferredCollisionsPrimary == null) CountCollisionForBlocks();
+         int[] preference;
+         if (tile < PrimaryTiles) {
+            if (preferredCollisionsPrimary.TryGetValue(blockset1, out preference)) return preference[tile];
+         } else {
+            if (preferredCollisionsSecondary.TryGetValue(blockset2, out preference)) return preference[tile];
+         }
+         return -1;
       }
    }
 
