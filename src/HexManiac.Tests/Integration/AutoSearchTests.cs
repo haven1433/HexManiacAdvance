@@ -791,6 +791,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.InRange(error, 0, modelE.Count);
       }
 
+      [SkippableFact]
+      public void FireRed_ApplyFairyPatch_TypeNamesTableMatchesExpectedFormat() {
+         var firered = fixture.LoadModelNoCache((string)PokemonGames.Skip(2).First()[0]);
+         var viewport = new ViewPort("FireRed.gba", firered, InstantDispatch.Instance, BaseViewModelTestClass.Singletons);
+         var errors = new List<string>();
+         viewport.OnError += (sender, e) => errors.Add(e);
+
+         var fairyTypeScript = File.ReadAllBytes("resources/Scripts/AddFairyType.hma");
+         viewport.TryImport(new("fairy.hma", fairyTypeScript), default);
+
+         Assert.Empty(errors);
+         var typeNames = firered.GetTableModel(HardcodeTablesModel.TypesTableName);
+         Assert.Equal(19, typeNames.Count);
+      }
+
       // this one actually changes the data, so I can't use the same shared model as everone else.
       // [SkippableTheory] // test removed until feature is complete.
       // [MemberData(nameof(PokemonGames))]

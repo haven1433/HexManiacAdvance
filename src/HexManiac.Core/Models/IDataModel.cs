@@ -672,7 +672,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var constants = model.GetMatchedWords(arrayRun.LengthFromAnchor);
          if (constants == null || constants.Count == 0) yield break;
          foreach (var array in model.Arrays) {
-            if (tableRun == array) continue;
+            if (tableRun == array || tableRun.Start == array.Start) continue;
             if (array.LengthFromAnchor != arrayRun.LengthFromAnchor) continue;
             yield return array;
          }
