@@ -47,6 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          }
 
          viewPort.Model.ExpandData(editableViewPort.ChangeHistory.CurrentChange, (int)(length - 1));
+         viewPort.Model.ClearFormat(editableViewPort.ChangeHistory.CurrentChange, (int)(length), (int)(editableViewPort.Model.Count - length));
          viewPort.Model.ContractData(editableViewPort.ChangeHistory.CurrentChange, (int)(length - 1));
          viewPort.Refresh();
 

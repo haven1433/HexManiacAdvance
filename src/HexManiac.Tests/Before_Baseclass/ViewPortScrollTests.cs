@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using System.Collections.Generic;
 using Xunit;
 
@@ -326,6 +327,20 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Undo.Execute();
 
          Assert.Equal(initialCount, Model.Count);
+      }
+
+      [Fact]
+      public void PointerToDataInSecondHalf_ContractFile_FormatsCleared() {
+         Model.ExpandData(new NoTrackChange(), 0x200000);
+         ViewPort.Edit("<180000>");
+         var tool = new ExpandRom(FileSystem);
+
+         FileSystem.RequestText = (title, content) => "100000";
+         var result = tool.Run(ViewPort).Result;
+
+         Assert.Equal(ErrorInfo.NoError, result);
+         Model.ResolveConflicts();
+         Assert.Equal(int.MaxValue, Model.GetNextRun(0x0).Start);
       }
    }
 }
