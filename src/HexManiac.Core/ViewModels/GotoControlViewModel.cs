@@ -289,16 +289,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (sanitizedText.EndsWith("~1")) sanitizedText = sanitizedText.Substring(0, text.Length - 2);
          var options = new List<string>(model?.GetAutoCompleteAnchorNameOptions(sanitizedText, int.MaxValue) ?? new string[0]);
          options.AddRange(model?.GetAutoCompleteByteNameOptions(sanitizedText) ?? new string[0]);
-         if (!sanitizedText.Contains("/") && sanitizedText.Length >= 3) {
-            options.AddRange((model?.GetAutoCompleteAnchorNameOptions("/" + sanitizedText) ?? new string[0]).Where(option => option.ToLower().Replace(" ", string.Empty).MatchesPartial(sanitizedText.ToLower())));
-         }
          text = text.ToLower();
-         var bestMatches = options.Where(option => option.ToLower().Contains(text));
-         options = bestMatches.Concat(options).Distinct().ToList();
-         if (textWithExtension.EndsWith("~1")) {
-            // user only wants the first token that matches, for example, TERRY but not TERRY~2
-            options = options.Where(option => !option.Contains("~") || option.Contains("~1")).ToList();
-         }
          for (int i = 1; i < text.Length; i++) {
             var isEndOfSection = i == text.Length - 1 || !char.IsLetter(text[i + 1]);
             var isY = "yY".Contains(text[i]);
@@ -310,6 +301,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   .Distinct();
                options.AddRange(pluralResults);
             }
+         }
+         if (!sanitizedText.Contains("/") && sanitizedText.Length >= 3) {
+            options.AddRange((model?.GetAutoCompleteAnchorNameOptions("/" + sanitizedText) ?? new string[0]).Where(option => option.ToLower().Replace(" ", string.Empty).MatchesPartial(sanitizedText.ToLower())));
+         }
+         var bestMatches = options.Where(option => option.ToLower().Contains(text));
+         options = bestMatches.Concat(options).Distinct().ToList();
+         if (textWithExtension.EndsWith("~1")) {
+            // user only wants the first token that matches, for example, TERRY but not TERRY~2
+            options = options.Where(option => !option.Contains("~") || option.Contains("~1")).ToList();
          }
          return options;
       }
