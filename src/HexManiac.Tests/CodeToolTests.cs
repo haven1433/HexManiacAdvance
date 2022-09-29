@@ -1,13 +1,16 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
+using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class CodeToolTests : BaseViewModelTestClass {
       private CodeTool Tool => ViewPort.Tools.CodeTool;
       private string EventScript {
+         get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
          set => Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
       }
 
@@ -98,6 +101,19 @@ namespace HavenSoft.HexManiac.Tests {
       public void HalfWordDirective_Compile_Supported() {
          var result = Tool.Parser.Compile(Model, 0, ".hword 10", ".hword 0x10");
          Assert.Equal(new byte[] { 10, 0, 0x10, 0 }, result);
+      }
+
+      [Fact]
+      public void CommandWithPointerToValidData_ChangePointerToUnknown_CreateNewCopyOfExistingData() {
+         Tool.Mode = CodeMode.Script;
+         EventScript = "loadpointer 0 <40>;{;test;};end";
+
+         EventScript = "loadpointer 0 <??????>;{;test;};end";
+
+         var run = (PCSRun)Model.GetNextRun(Model.ReadPointer(2));
+         Assert.NotEqual(0x40, run.Start);
+         Assert.Equal("test", run.SerializeRun());
+         Assert.Equal(2, EventScript.Count("{}".Contains));
       }
    }
 }

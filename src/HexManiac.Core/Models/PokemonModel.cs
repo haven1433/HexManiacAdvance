@@ -2397,7 +2397,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart) where T : IFormattedRun {
          // repoint
-         foreach (var source in run.PointerSources.ToList()) {
+         foreach (var source in run.PointerSources?.ToList() ?? new()) {
             // special update for pointers to this run that live within this run
             if (run.Start < source && source < run.Start + run.Length) {
                run = (T)run.RemoveSource(source);

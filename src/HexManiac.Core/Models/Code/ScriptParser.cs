@@ -276,8 +276,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      line = line.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      if (command.PointsToNextScript) {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
-                     } else {
+                     } else if (script.IndexOf("<??????>") != script.IndexOf($"<??????>{Environment.NewLine}{{{Environment.NewLine}")) {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>{Environment.NewLine}{{{Environment.NewLine}}}");
+                     } else {
+                        script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      }
                   }
                }
