@@ -187,7 +187,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             for (int j = 0; j < ElementContent.Count; j++) {
                var data = j < tokens.Count ? tokens[j] : string.Empty;
                if (j == ElementContent.Count - 1 && tokens.Count > ElementContent.Count) data += " " + " ".Join(tokens.Skip(j + 1));
-               if (ElementContent[j].Write(ElementContent, model, token, start + segmentOffset, ref data)) changedAddresses.Add(start + segmentOffset);
+               if (ElementContent[j].Write(ElementContent, model, token, start + segmentOffset, ref data)) {
+                  // don't allow deserialization to write a value that looks like an end code
+                  var storedValue = model.ReadMultiByteValue(start, ElementContent[j].Length);
+                  if (endStream is EndCodeStreamStrategy endCode &&
+                     j == 0 &&
+                     ElementContent[j].Length == endCode.ExtraLength &&
+                     storedValue == endCode.EndCode.ReadMultiByteValue(0, endCode.ExtraLength)) {
+                     model.WriteMultiByteValue(start + segmentOffset, ElementContent[j].Length, token, storedValue + 1);
+                  }
+                  changedAddresses.Add(start + segmentOffset);
+               }
                if (data.Length > 0) tokens.Insert(j + 1, data);
                segmentOffset += ElementContent[j].Length;
             }
@@ -566,13 +576,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
          var naturalLength = run.Length - EndCode.Count;
          var newRun = model.RelocateForExpansion(token, run, naturalLength + length * run.ElementLength + EndCode.Count);
+
+         // add new entries
          if (naturalLength == 0) {
             for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0);
          } else {
             for (int i = 0; i < run.ElementLength * length; i++) token.ChangeData(model, newRun.Start + naturalLength + i, model[newRun.Start + naturalLength + i - run.ElementLength]);
          }
+
+         // clear excess old entries
          for (int i = naturalLength + length * run.ElementLength; i < naturalLength; i++) if (model[newRun.Start + i] != 0xFF) token.ChangeData(model, newRun.Start + i, 0xFF);
+
+         // clear the old end code
+         for (int i = 0; i < EndCode.Count && length < 0; i++) token.ChangeData(model, newRun.Start + naturalLength + i, 0xFF);
+
+         // add the new end code
          for (int i = 0; i < EndCode.Count; i++) token.ChangeData(model, newRun.Start + naturalLength + length * run.ElementLength + i, EndCode[i]);
+
          return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this, run.ElementCount + length);
       }
    }

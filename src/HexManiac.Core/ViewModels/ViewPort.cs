@@ -2965,8 +2965,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {
          scroll.DataLength = Model.Count;
-         if (scroll.DataIndex <= locations.originalLocation && locations.originalLocation < scroll.ViewPointToDataIndex(new Point(Width - 1, Height - 1))) {
-            // data was moved from onscreen: follow it
+         var start = ConvertViewPointToAddress(SelectionStart);
+         var end = ConvertViewPointToAddress(SelectionEnd);
+         if (start - 1 <= locations.originalLocation && locations.originalLocation < end + 1) {
+            // data was moved from in-selection: follow it
             int offset = locations.originalLocation - scroll.DataIndex;
             selection.GotoAddress(locations.newLocation - offset);
          }

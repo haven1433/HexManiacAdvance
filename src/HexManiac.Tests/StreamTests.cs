@@ -568,5 +568,16 @@ namespace HavenSoft.HexManiac.Tests {
          string text = FileSystem.CopyText;
          Assert.Equal(text.IndexOf("[]"), text.LastIndexOf("[]"));
       }
+
+      [Fact]
+      public void StreamWithEndToken_AppendNegative_DataCleared() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("01 02 03 04 C0 @00 ^table[data.]!C0 ");
+
+         var run = (ITableRun)Model.GetNextRun(0);
+         run.Append(Token, -1);
+
+         Assert.Equal(0xFF, Model[4]);
+      }
    }
 }

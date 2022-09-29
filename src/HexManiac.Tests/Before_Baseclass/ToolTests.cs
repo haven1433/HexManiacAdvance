@@ -73,7 +73,7 @@ namespace HavenSoft.HexManiac.Tests {
          SetFullModel(0xFF);
          var (model, viewPort) = (Model, ViewPort);
          viewPort.Edit("^bob\"\" \"Some Text\" 00 <000100>");
-         viewPort.Tools.StringTool.Address = 0;
+         viewPort.Goto.Execute(0);
 
          viewPort.Tools.StringTool.Content = "Some More Text";
          Assert.NotEqual(0, int.Parse(viewPort.Headers[0], NumberStyles.HexNumber));
