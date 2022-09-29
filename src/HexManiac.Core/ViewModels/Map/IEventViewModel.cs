@@ -512,6 +512,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var element = owTable[index];
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites");
+         if (sprites == null) return new ReadonlyPixelViewModel(16, 16);
          bool flip = facing == 3;
          if (facing == 3) facing = 2;
          if (facing >= sprites.Count) facing = 0;
@@ -519,7 +520,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var graphicsAddress = sprite.GetAddress("sprite");
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          if (graphicsRun == null) {
-            return new ReadonlyPixelViewModel(new SpriteFormat(4, 16, 16, null), new short[256], 0);
+            return new ReadonlyPixelViewModel(16, 16);
          }
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
          if (flip) ow = ow.ReflectX();

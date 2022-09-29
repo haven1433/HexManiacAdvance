@@ -17,8 +17,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          Transparent = transparent;
       }
 
-      public ReadonlyPixelViewModel(int width, int height, short[] data, short transparent = -1) {
+      public ReadonlyPixelViewModel(int width, int height, short[] data = null, short transparent = -1) {
          (PixelWidth, PixelHeight, PixelData) = (width, height, data);
+         if (data == null) PixelData = new short[width * height];
          Transparent = transparent;
       }
 
