@@ -1272,6 +1272,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             var previousRun = existingRun;
             existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
+            var hasAnchor = anchorForAddress.TryGetValue(existingRun.Start, out string existingAnchor);
             UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
             if (existingRun != null) {
                if (segment == null) {
@@ -1289,7 +1290,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                      // it could point to something interesting. Do a full observe. Start by clearing out any existing formats in that area.
                      ClearFormat(changeToken, existingRun.Start, existingRun.Length);
                   }
-                  ObserveRunWritten(changeToken, existingRun);
+                  if (hasAnchor) {
+                     ObserveAnchorWritten(changeToken, existingAnchor, existingRun);
+                  } else {
+                     ObserveRunWritten(changeToken, existingRun);
+                  }
                }
             }
          }

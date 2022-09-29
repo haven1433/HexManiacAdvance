@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
+using Xunit.Sdk;
 
 namespace HavenSoft.HexManiac.Tests {
    public class TableTests : BaseViewModelTestClass {
@@ -1161,6 +1162,20 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Paste.Execute();
 
          Assert.Equal(4, Model.ReadMultiByteValue(12, 4));
+      }
+
+      [Fact]
+      public void PaletteTablePointingToNamedAnchor_AppendAndRepoint_KeepDestinationsAndNames() {
+         ViewPort.Edit("^table[ptr<`ucp4`>]2 <008> <028> @28 ^child.name @table/1 ");
+
+         ViewPort.Tools.TableTool.Append.Execute();
+
+         var table = Model.GetTableModel("table");
+         Assert.Equal(3, table.Count);
+         Assert.Equal(0x28, table[1].GetAddress("ptr"));
+         Assert.Equal(0x28, table[2].GetAddress("ptr"));
+         Assert.Equal(0x28, Model.GetAddressFromAnchor(Token, -1, "child.name"));
+         Assert.Equal(new[] { table.Run.Start + 4, table.Run.Start + 8 }, Model.GetNextRun(0x28).PointerSources);
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
