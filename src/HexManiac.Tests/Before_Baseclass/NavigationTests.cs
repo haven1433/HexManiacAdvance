@@ -445,6 +445,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, test.ViewPort.DataOffset);
       }
 
+      [Fact]
+      public void AnchorWithPluralNamePart_GotoSinglularVersion_Works() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("@100 ^test.abilities.text @00 ");
+
+         test.ViewPort.Goto.Execute("ability.tex");
+
+         Assert.Empty(test.Errors);
+         Assert.Equal(0x100, test.ViewPort.DataOffset);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = Enumerable.Repeat((byte)0xFF, 0x200).ToArray();
          model = new PokemonModel(data);
