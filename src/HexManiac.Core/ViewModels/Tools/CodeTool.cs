@@ -101,7 +101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
       }
 
-      public void DataForCurrentRunChanged() { }
+      public void DataForCurrentRunChanged() => UpdateContent();
 
       public void UpdateContent() {
          if (ignoreContentUpdates) return;

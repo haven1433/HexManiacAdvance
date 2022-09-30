@@ -131,6 +131,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          StringTool.DataForCurrentRunChanged();
          TableTool.DataForCurrentRunChanged();
          SpriteTool.DataForCurrentRunChanged();
+         CodeTool.DataForCurrentRunChanged();
       }
 
       public IEnumerator<IToolViewModel> GetEnumerator() => tools.GetEnumerator();
