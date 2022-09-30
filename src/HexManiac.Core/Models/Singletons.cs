@@ -199,6 +199,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var index = -1;
          for (int i = 0; i < Count; i++) {
             var currentDistance = Math.Abs(this[i].Address - address);
+            if (currentDistance == 0) continue;
             if (currentDistance > distance) continue;
             distance = currentDistance;
             index = i;

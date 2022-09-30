@@ -756,7 +756,7 @@ graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 data.text.menu.pokemon.battle,                                 , , , , 032C38, 032C38, 032C4C, 032C4C,       , ""
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
-data.text.menu.itemStorage,                  ,       ,       ,       ,       ,       ,       ,       , 16B210, [text<""> thumb<>]4
+data.text.menu.itemStorage,            139FAC, 139FAC, 139FCC, 139FCC, 0EBA84, 0EBA5C, 0EBA98, 0EBA70, 16B210, [text<""> thumb<>]
 
 sound.fanfares,                        074E64, 074E68, 074E84, 074E88,                            ,,,,       , [songID:          duration:]12
 sound.fanfares,                                                   ,,,, 071C08, 071C08, 071C1C, 071C1C,       , [songID:songnames duration:]14
