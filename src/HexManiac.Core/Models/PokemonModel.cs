@@ -965,7 +965,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          arrayRun = runs[index] as ITableRun;
-         return arrayRun != null && runs[index].Start + runs[index].Length == dataIndex;
+         if (arrayRun is TableStreamRun tStream && tStream.ElementCount * tStream.ElementLength != tStream.Length) return false;
+         return arrayRun != null && arrayRun.Start + arrayRun.Length == dataIndex;
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {

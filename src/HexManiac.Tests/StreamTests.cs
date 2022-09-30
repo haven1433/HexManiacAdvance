@@ -579,5 +579,16 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(0xFF, Model[4]);
       }
+
+      [Fact]
+      public void TableStreamWithEndToken_AppendAfterCloseToken_Noop() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("FE @00 ^table[data.]!FE +13 +15 +17 ");
+
+         ViewPort.Edit("@04 +");
+
+         var table = Model.GetTableModel("table");
+         Assert.Equal(3, table.Count);
+      }
    }
 }
