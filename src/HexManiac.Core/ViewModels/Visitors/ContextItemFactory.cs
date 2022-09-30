@@ -141,6 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Anchor anchor, byte data) {
          var name = string.IsNullOrEmpty(anchor.Name) ? "Anchor " + ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart).ToString("X6") : anchor.Name;
+         name = name.Replace("_", "__");
 
          var group = new ContextItemGroup(name);
 
