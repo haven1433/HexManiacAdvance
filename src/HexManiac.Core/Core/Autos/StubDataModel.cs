@@ -300,13 +300,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Func<ModelDelta, System.Int32[], Runs.SortedSpan<int>> SearchForPointersToAnchor { get; set; }
+        public Func<ModelDelta, bool, System.Int32[], Runs.SortedSpan<int>> SearchForPointersToAnchor { get; set; }
         
-        Runs.SortedSpan<int> IDataModel.SearchForPointersToAnchor(ModelDelta changeToken, System.Int32[] addresses)
+        Runs.SortedSpan<int> IDataModel.SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, System.Int32[] addresses)
         {
             if (this.SearchForPointersToAnchor != null)
             {
-                return this.SearchForPointersToAnchor(changeToken, addresses);
+                return this.SearchForPointersToAnchor(changeToken, ignoreNoInfoPointers, addresses);
             }
             else
             {

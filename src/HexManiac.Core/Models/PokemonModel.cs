@@ -1598,8 +1598,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
          foreach (var result in searchResults) {
-            var run = ConsiderAsTextStream(this, result, futureChange);
+            var run = ConsiderAsTextStream(result, futureChange);
             if (run != null) {
+               ClearFormat(futureChange(), run.Start, run.Length);
                ObserveAnchorWritten(futureChange(), string.Empty, run);
                resultsRecognizedAsTextRuns++;
             }
@@ -1616,20 +1617,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          var run = new PLMRun(model, address);
          if (run.Length < 2) return false;
          if (address + run.Length > nextRun.Start && nextRun.Start != address) return false;
-         var pointers = model.SearchForPointersToAnchor(currentChange, address);  // this is slow and change the metadata. Only do it if we're sure we want the new PLMRun
+         var pointers = model.SearchForPointersToAnchor(currentChange, false, address);  // this is slow and change the metadata. Only do it if we're sure we want the new PLMRun
          if (pointers.Count == 0) return false;
          model.ObserveAnchorWritten(currentChange, string.Empty, run.MergeAnchor(pointers));
          return true;
       }
 
-      public static PCSRun ConsiderAsTextStream(IDataModel model, int address, Func<ModelDelta> futureCurrentChange) {
+      public PCSRun ConsiderAsTextStream(int address, Func<ModelDelta> futureCurrentChange) {
+         var model = this;
          var nextRun = model.GetNextRun(address);
          if (nextRun.Start < address) return null;
          if (nextRun.Start == address && !(nextRun is NoInfoRun)) return null;
          var length = PCSString.ReadString(model, address, true);
          if (length < 1) return null;
+         while (nextRun.Start < address + length && nextRun.Start != address && nextRun is NoInfoRun || nextRun is PCSRun) {
+            nextRun = GetNextRun(nextRun.Start + nextRun.Length);
+         }
          if (address + length > nextRun.Start && nextRun.Start != address) return null;
-         var pointers = model.SearchForPointersToAnchor(futureCurrentChange(), address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
+         ClearPointerCache();
+         var pointers = SearchForPointersToAnchor(futureCurrentChange(), true, address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
          if (pointers.Count == 0) return null;
          return new PCSRun(model, address, length, pointers);
       }
@@ -2168,7 +2174,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <summary>
       /// This method might be called in parallel with the same changeToken
       /// </summary>
-      public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) {
+      public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses) {
          if (sourcesForDestinations != null) return SpanFromCache(changeToken, addresses);
 
          var lockObj = new object();
@@ -2185,7 +2191,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (data[i] != 0x08 && data[i] != 0x09) continue;
                var destination = ReadPointer(i - 3);
                if (!addresses.Contains(destination)) continue;
-               if (TryMakePointerAtAddress(changeToken, i - 3, out var newRun)) {
+               if (TryMakePointerAtAddress(changeToken, i - 3, ignoreNoInfoPointers, out var newRun)) {
                   lock (lockObj) {
                      results = results.Add1(i - 3);
                      if (newRun != null) runsToAdd.Add(newRun);
@@ -2195,9 +2201,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          });
 
          foreach (var newRun in runsToAdd) {
-            var index = ~BinarySearch(newRun.Start);
-            runs.Insert(index, newRun);
-            changeToken.AddRun(newRun);
+            if (ignoreNoInfoPointers) {
+               ClearFormat(changeToken, newRun.Start, newRun.Length);
+               ObserveRunWritten(changeToken, newRun);
+            } else {
+               var index = ~BinarySearch(newRun.Start);
+               runs.Insert(index, newRun);
+               changeToken.AddRun(newRun);
+            }
          }
          return results;
       }
@@ -2210,7 +2221,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // remove sources that are already in use in other ways
          for (int i = 0; i < results.Count; i++) {
-            if (!TryMakePointerAtAddress(token, results[i], out var newRun)) {
+            if (!TryMakePointerAtAddress(token, results[i], false, out var newRun)) {
                results = results.Remove1(results[i]);
                i -= 1;
             } else if (newRun != null) {
@@ -2231,7 +2242,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// This method can be called from a parellel context, so it doesn't make any changes to the runs collection.
       /// Instead, it returns a new pointer run if one needs to be added.
       /// </summary>
-      private bool TryMakePointerAtAddress(ModelDelta changeToken, int address, out PointerRun runToAdd) {
+      private bool TryMakePointerAtAddress(ModelDelta changeToken, int address, bool ignoreNoInfoPointers, out PointerRun runToAdd) {
          // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
          runToAdd = null;
          lock (runs) {
@@ -2249,12 +2260,26 @@ namespace HavenSoft.HexManiac.Core.Models {
                return false;
             }
             index = ~index;
+            if (ignoreNoInfoPointers) {
+               while (index < runs.Count && runs[index] is PointerRun && GetNextRun(ReadPointer(runs[index].Start)) is NoInfoRun) {
+                  // this pointer might be a false pointer, we can ignore it for now
+                  index += 1;
+               }
+            }
             if (index < runs.Count && runs[index].Start <= address + 3) return false; // can't add a pointer run if an existing run starts during the new one
 
-            // can't add a pointer run if the new one starts during an existing one
-            if (index > 0 && runs[index - 1].Start + runs[index - 1].Length > address) {
+            index -= 1; // looking at the previous run, not the next run
+            if (ignoreNoInfoPointers) {
+               while (index >= 0 && runs[index] is PointerRun && GetNextRun(ReadPointer(runs[index].Start)) is NoInfoRun) {
+                  // this pointer might be a false pointer, we can ignore it for now
+                  index -= 1;
+               }
+            }
+
+            // can't add a pointer run if the new one starts during an existing run
+            if (index >= 0 && runs[index].Start + runs[index].Length > address) {
                // ah, but if that run is an array and there's already a pointer here...
-               if (runs[index - 1] is ArrayRun array) {
+               if (runs[index] is ArrayRun array) {
                   var offsets = array.ConvertByteOffsetToArrayOffset(address + 3);
                   // should this check that offsets.SegmentOffset == 0?
                   if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
@@ -2357,7 +2382,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
             // no pointer was waiting for this anchor to be created
             // but the user thinks there's something pointing here
-            if (seekPointers) return SearchForPointersToAnchor(changeToken, location);
+            if (seekPointers) return SearchForPointersToAnchor(changeToken, false, location);
             return SortedSpan<int>.None;
          }
 

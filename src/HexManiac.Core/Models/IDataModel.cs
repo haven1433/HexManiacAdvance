@@ -90,7 +90,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ExpandData(ModelDelta changeToken, int minimumLength);
       void ContractData(ModelDelta changeToken, int maximumLength);
 
-      SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
+      SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses);
       bool WritePointer(ModelDelta changeToken, int address, int pointerDestination);
       bool WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract int FindFreeSpace(int start, int length);
 
-      public abstract SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses);
+      public abstract SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses);
 
       public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int index, int fullValue);
 
@@ -858,7 +858,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void ClearPointer(ModelDelta currentChange, int source, int destination) => throw new NotImplementedException();
 
-      public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, params int[] addresses) => throw new NotImplementedException();
+      public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses) => throw new NotImplementedException();
 
       public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination) {
          WritePointer(changeToken, address, destination);

@@ -969,7 +969,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var destinations = new int[ElementCount - 1];
          for (int i = 1; i < ElementCount; i++) destinations[i - 1] = Start + ElementLength * i;
 
-         var sources = owner.SearchForPointersToAnchor(changeToken, destinations);
+         var sources = owner.SearchForPointersToAnchor(changeToken, false, destinations);
 
          var results = new List<SortedSpan<int>> {
             PointerSources ?? SortedSpan<int>.None

@@ -721,6 +721,42 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains(nameof(ViewPort.Tools.StringTool.Content), view.PropertyNotifications);
       }
 
+      [Fact]
+      public void FalsePointer_FindText_Works() {
+         ViewPort.Edit("<100> 01 00 08 "); // looks like a pointer 0->100, but is actually a pointer 3->108
+         Token.ChangeData(Model, 0x108, PCSString.Convert("Some Content"));
+
+         ViewPort.Goto.Execute(0x108);
+         ViewPort.Shortcuts.DisplayAsText.Execute();
+
+         Assert.Equal(3, Model.GetNextRun(0).Start);
+         Assert.IsType<PCSRun>(Model.GetNextRun(0x108));
+      }
+
+      [Fact]
+      public void FalseRuns_FindText_Works() {
+         Token.ChangeData(Model, 0x109, PCSString.Convert("Some Content"));
+         ViewPort.Edit("<10E> 00 09 01 00 08");
+
+         ViewPort.Goto.Execute(0x109);
+         ViewPort.Shortcuts.DisplayAsText.Execute();
+
+         Assert.Equal(5, Model.GetNextRun(0).Start);
+         Assert.Equal(13, Model.GetNextRun(0x109).Length);
+      }
+
+      [Fact]
+      public void TextPointerInTable_FormatText_TableStillExists() {
+         ViewPort.Edit("^table[ptr<>]4 ");
+         ViewPort.Edit("<100> <108> <090> <080> ");
+         Token.ChangeData(Model, 0x108, PCSString.Convert("Some Content"));
+
+         ViewPort.Goto.Execute(0x108);
+         ViewPort.Shortcuts.DisplayAsText.Execute();
+
+         Assert.IsAssignableFrom<ITableRun>(Model.GetNextRun(0));
+      }
+
       private void HackTextConverter(string game) {
          var converter = new PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
