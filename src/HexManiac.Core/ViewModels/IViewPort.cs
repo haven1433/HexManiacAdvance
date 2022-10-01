@@ -25,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       bool AutoAdjustDataWidth { get; set; }
       bool StretchData { get; set; }
       bool AllowMultipleElementsPerLine { get; set; }
+      bool Base10Length { get; set; }
 
       bool UseCustomHeaders { get; set; }
       int MinimumScroll { get; }

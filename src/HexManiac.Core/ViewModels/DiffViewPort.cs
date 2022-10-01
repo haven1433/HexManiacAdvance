@@ -115,6 +115,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool HasTools => false;
 
+      public bool Base10Length { get; set; }
+
       public ChangeHistory<ModelDelta> ChangeHistory { get; }
 
       public IToolTrayViewModel Tools => null;

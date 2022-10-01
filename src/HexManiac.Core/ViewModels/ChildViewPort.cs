@@ -84,6 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool StretchData { get => this[0].StretchData; set => ForEach(child => child.StretchData = value); }
       public bool AllowMultipleElementsPerLine { get => this[0].AllowMultipleElementsPerLine; set => ForEach(child => child.AllowMultipleElementsPerLine = value); }
       public bool UseCustomHeaders { get => this[0].UseCustomHeaders; set => ForEach(child => child.UseCustomHeaders = value); }
+      public bool Base10Length { get => this[0].Base10Length; set => ForEach(child => child.Base10Length = value); }
 
       public int MinimumScroll => this[0].MinimumScroll;
 

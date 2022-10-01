@@ -105,6 +105,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand Forward { get; } = new StubCommand();
       public ICommand Close => close;
       public bool CanDuplicate => false;
+      public bool Base10Length { get; set; }
       public void Duplicate() { }
 
       public bool UpdateInProgress => false;

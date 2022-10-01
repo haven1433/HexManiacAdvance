@@ -375,6 +375,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool TutorialsAcknowledged { get => tutorialsAcknowledged; set => Set(ref tutorialsAcknowledged, value); }
       public bool NewVersionAcknowledged { get => newVersionAcknowledged; set => Set(ref newVersionAcknowledged, value); }
 
+      private bool base10Length;
+      public bool Base10Length { get => base10Length; set => Set(ref base10Length, value); }
+
       private StubCommand launchScriptsLocation;
       public ICommand LaunchScriptsLocation => StubCommand(ref launchScriptsLocation, () => fileSystem.LaunchProcess("resources/scripts"));
 
@@ -547,6 +550,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          IsNewVersionAvailable = metadata.Contains("IsNewVersionAvailable = True");
          AllowMultipleElementsPerLine = !metadata.Contains("AllowMultipleElementsPerLine = False");
          TutorialsAcknowledged = metadata.Contains("AcknowledgeTutorials = True");
+         Base10Length = metadata.Contains("Base10Length = True");
          var lastUpdateCheckLine = metadata.FirstOrDefault(line => line.StartsWith("LastUpdateCheck = "));
          if (lastUpdateCheckLine != null && DateTime.TryParse(lastUpdateCheckLine.Split('=').Last().Trim(), out var lastUpdateCheck)) LastUpdateCheck = lastUpdateCheck;
          var zoomLine = metadata.FirstOrDefault(line => line.StartsWith("ZoomLevel ="));
@@ -587,6 +591,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"IsNewVersionAvailable = {IsNewVersionAvailable}",
             $"LastUpdateCheck = {LastUpdateCheck}",
             $"AcknowledgeTutorials = {TutorialsAcknowledged}",
+            $"Base10Length = {Base10Length}",
             SerializeRecentFiles(),
             string.Empty
          };
@@ -780,6 +785,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }), TaskContinuationOptions.ExecuteSynchronously);
             }
             viewModel.UseCustomHeaders = useTableEntryHeaders;
+            viewModel.Base10Length = base10Length;
             if (viewModel is IEditableViewPort evp) evp.AllowSingleTableMode = AllowSingleTableMode;
             viewModel.AutoAdjustDataWidth = AutoAdjustDataWidth;
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
@@ -1242,10 +1248,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (e.PropertyName == nameof(IViewPort.AutoAdjustDataWidth)) AutoAdjustDataWidth = viewPort2.AutoAdjustDataWidth;
             if (e.PropertyName == nameof(IViewPort.StretchData)) StretchData = viewPort2.StretchData;
             if (e.PropertyName == nameof(IViewPort.AllowMultipleElementsPerLine)) AllowMultipleElementsPerLine = viewPort2.AllowMultipleElementsPerLine;
+            if (e.PropertyName == nameof(IViewPort.Base10Length)) Base10Length = viewPort2.Base10Length;
             foreach (var tab in this) {
                if (tab == viewPort2) continue;
                if (!(tab is IViewPort viewPort3)) continue;
-               var syncedProperties = new[] { nameof(IViewPort.Height), nameof(IViewPort.AutoAdjustDataWidth), nameof(StretchData), nameof(AllowMultipleElementsPerLine) };
+               var syncedProperties = new[] { nameof(IViewPort.Height), nameof(IViewPort.AutoAdjustDataWidth), nameof(StretchData), nameof(AllowMultipleElementsPerLine), nameof(Base10Length) };
                if (!e.PropertyName.IsAny(syncedProperties)) continue; // filter to only the properties wo care about so we don't Remove/Add Content Listeners unless we need to.
                RemoveContentListeners(tab);
                if (e.PropertyName == nameof(IViewPort.Height)) {
@@ -1258,6 +1265,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   viewPort3.StretchData = StretchData;
                } else if (e.PropertyName == nameof(IViewPort.AllowMultipleElementsPerLine)) {
                   viewPort3.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
+               } else if (e.PropertyName == nameof(IViewPort.Base10Length)) {
+                  viewPort3.Base10Length = Base10Length;
                }
                AddContentListeners(tab);
             }

@@ -364,7 +364,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool base10SelectionLength;
       public bool Base10SelectionLength {
          get => base10SelectionLength;
-         set => Set(ref base10SelectionLength, value, arg => UpdateSelectedAddress());
+         set => Set(ref base10SelectionLength, value, arg => {
+            UpdateSelectedAddress();
+            NotifyPropertyChanged(nameof(Base10Length));
+         });
+      }
+      public bool Base10Length {
+         get => base10SelectionLength;
+         set => Base10SelectionLength = value;
       }
 
       public string SelectedElementName => selectedElementName;

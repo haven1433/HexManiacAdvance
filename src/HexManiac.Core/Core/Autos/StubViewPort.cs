@@ -322,7 +322,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels
             }
         }
         public PropertyImplementation<string> SelectedAddress = new PropertyImplementation<string>();
-        
+
+        bool IViewPort.Base10Length {
+           get => Base10Length.get();
+           set => Base10Length.set(value);
+        }
+
+        public PropertyImplementation<bool> Base10Length = new PropertyImplementation<bool>();
+
         string IViewPort.SelectedAddress
         {
             get
