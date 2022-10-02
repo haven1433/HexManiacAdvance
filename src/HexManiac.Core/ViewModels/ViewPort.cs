@@ -2226,22 +2226,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ConsiderReload(IFileSystem fileSystem) {
          if (!history.IsSaved) return; // don't overwrite local changes
 
-         try {
-            var file = fileSystem.LoadFile(FileName);
-            if (file == null) return; // asked to load the file, but the file wasn't found... carry on
-            var metadata = fileSystem.MetadataFor(FileName);
-            ReloadMetadata(file.Contents, metadata);
-         } catch (IOException) {
-            // something happened when we tried to load the file
-            // try again soon.
-            RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
-         } catch (InvalidOperationException) {
-            // failed to compare runs
-            // try again soon.
-            RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
-         }
+         void action() {
+            try {
+               var file = fileSystem.LoadFile(FileName);
+               if (file == null) return; // asked to load the file, but the file wasn't found... carry on
+               var metadata = fileSystem.MetadataFor(FileName);
+               ReloadMetadata(file.Contents, metadata);
+            } catch (IOException) {
+               // something happened when we tried to load the file
+               // try again soon.
+               RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
+            } catch (InvalidOperationException) {
+               // failed to compare runs
+               // try again soon.
+               RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
+            }
+         };
 
-         return;
+         if (fileSystem is IWorkDispatcher dispatcher) {
+            dispatcher.BlockOnUIWork(action);
+         } else {
+            action();
+         }
       }
 
       public void ReloadMetadata(byte[] data, string[] metadata) {

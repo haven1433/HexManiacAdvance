@@ -32,7 +32,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void SetIndex(RunPath index, IFormattedRun run) => runs[index] = run;
 
-      private void InsertIndex(RunPath index, IFormattedRun existingRun) => runs.Insert(index, existingRun);
+      private void InsertIndex(RunPath index, IFormattedRun existingRun) {
+         lock (threadlock) {
+            runs.Insert(index, existingRun);
+         }
+      }
 
       private void RemoveIndex(RunPath index) => runs.RemoveAt(index);
 
@@ -40,8 +44,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       // otherwise, return a number such that ~index would be inserted into the list at the correct index
       // so ~index - 1 is the previous run, and ~index is the next run
       private RunPath BinarySearch(int start) {
-         var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
-         return index;
+         lock (threadlock) {
+            var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+            return index;
+         }
       }
 
       private RunPath BinarySearchNext(int start) {
@@ -175,6 +181,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       protected void Initialize(StoredMetadata metadata) {
+         lock (threadlock)
          {
             var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
             var destinationForSource = new SortedList<int, int>();
@@ -256,8 +263,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
 
-            if (GetType() == typeof(PokemonModel)) ResolveConflicts();
          }
+         if (GetType() == typeof(PokemonModel)) ResolveConflicts();
       }
 
       private void RemoveMatchedWordsThatDoNotMatch(ModelDelta token) {
@@ -532,132 +539,134 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       [Conditional("DEBUG")]
       public void ResolveConflicts() {
-         for (int i = 0; i < runs.Count; i++) {
-            if (!anchorForAddress.TryGetValue(runs[i].Start, out var pointerSourceName)) pointerSourceName = string.Empty;
-            else pointerSourceName = " (" + pointerSourceName + ")";
+         lock (threadlock) {
+            for (int i = 0; i < runs.Count; i++) {
+               if (!anchorForAddress.TryGetValue(runs[i].Start, out var pointerSourceName)) pointerSourceName = string.Empty;
+               else pointerSourceName = " (" + pointerSourceName + ")";
 
-            // for every pointer run, make sure that the thing it points to knows about it
-            if (runs[i] is PointerRun pointerRun) {
-               var destination = ReadPointer(pointerRun.Start);
-               var run = GetNextRun(destination);
-               if (destination < 0 || destination >= Count) {
-                  // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
-               } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
-                  var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
-                  Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
-                  if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
-               } else if (run.Start != destination) {
-                  Debug.Fail($"Pointer at {pointerRun.Start:X6} expected a run at {destination:X6} but the next run was at {run.Start:X6}.");
-               } else if (run != NoInfoRun.NullRun) {
-                  Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start), $"Expected run at {run.Start:X6} to know about pointer at {pointerRun.Start:X6}, but it did not.");
-               }
-            }
-
-            // for every TPTRun, make sure something points to it
-            if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
-
-            // for ever NoInfoRun, something points to it
-            if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
-               Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, $"{runs[i].Start:X6}: Unnamed NoInfoRuns must have something pointing to them!");
-            }
-
-            // for every run with sources, make sure the pointer at that source actually points to it
-            if (runs[i].PointerSources != null) {
-               foreach (var source in runs[i].PointerSources) {
-                  var run = GetNextRun(source);
-                  if (run is PointerRun) {
-                     Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
-                     Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName}");
-                  } else if (run is ITableRun) {
-                     Debug.Assert(run.Start <= source, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but found a table at {run.Start:X6}.");
-                     var destination = ReadPointer(source);
-                     Debug.Assert(destination == runs[i].Start, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but that source points to {destination:X6}.");
-                  } else {
-                     Debug.Fail($"Pointer at {source:X6} must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)} (pointing to {runs[i].Start:X6})");
+               // for every pointer run, make sure that the thing it points to knows about it
+               if (runs[i] is PointerRun pointerRun) {
+                  var destination = ReadPointer(pointerRun.Start);
+                  var run = GetNextRun(destination);
+                  if (destination < 0 || destination >= Count) {
+                     // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
+                  } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
+                     var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
+                     Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
+                     if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
+                  } else if (run.Start != destination) {
+                     Debug.Fail($"Pointer at {pointerRun.Start:X6} expected a run at {destination:X6} but the next run was at {run.Start:X6}.");
+                  } else if (run != NoInfoRun.NullRun) {
+                     Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start), $"Expected run at {run.Start:X6} to know about pointer at {pointerRun.Start:X6}, but it did not.");
                   }
                }
-            }
-            if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers) {
-               for (int j = 0; j < arrayRun2.ElementCount; j++) {
-                  foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
+
+               // for every TPTRun, make sure something points to it
+               if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
+
+               // for ever NoInfoRun, something points to it
+               if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
+                  Debug.Assert(runs[i].PointerSources == null || runs[i].PointerSources.Count > 0, $"{runs[i].Start:X6}: Unnamed NoInfoRuns must have something pointing to them!");
+               }
+
+               // for every run with sources, make sure the pointer at that source actually points to it
+               if (runs[i].PointerSources != null) {
+                  foreach (var source in runs[i].PointerSources) {
                      var run = GetNextRun(source);
                      if (run is PointerRun) {
-                        Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} index {j} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
-                        Debug.Assert(ReadPointer(source) == runs[i].Start + arrayRun2.ElementLength * j, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName} index {j}");
+                        Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
+                        Debug.Assert(ReadPointer(source) == runs[i].Start, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName}");
                      } else if (run is ITableRun) {
-                        Debug.Assert(ReadPointer(source) == runs[i].Start + arrayRun2.ElementLength * j, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName} index {j}");
+                        Debug.Assert(run.Start <= source, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but found a table at {run.Start:X6}.");
+                        var destination = ReadPointer(source);
+                        Debug.Assert(destination == runs[i].Start, $"The run at {runs[i].Start:X6} expects a pointer at {source:X6}, but that source points to {destination:X6}.");
                      } else {
-                        Debug.Fail($"Pointer at {source:X6} must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");
+                        Debug.Fail($"Pointer at {source:X6} must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)} (pointing to {runs[i].Start:X6})");
                      }
                   }
                }
-            }
-
-            // for every table, make sure the things it points to know about the table
-            if (runs[i] is ITableRun tableRun) {
-               int elementOffset = 0;
-               foreach (var segment in tableRun.ElementContent) {
-                  if (segment.Type != ElementContentType.Pointer) { elementOffset += segment.Length; continue; }
-                  for (int j = 0; j < tableRun.ElementCount; j++) {
-                     var start = tableRun.Start + elementOffset + tableRun.ElementLength * j;
-                     var destination = ReadPointer(start);
-                     var run = GetNextRun(destination);
-                     if (destination < 0 || destination >= Count) {
-                        // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
-                     } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
-                        var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
-                        if (offsets.SegmentOffset == 0) {
-                           Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
-                           if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
+               if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers) {
+                  for (int j = 0; j < arrayRun2.ElementCount; j++) {
+                     foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
+                        var run = GetNextRun(source);
+                        if (run is PointerRun) {
+                           Debug.Assert(run.Start == source, $"{runs[i].Start:X6}{pointerSourceName} index {j} expects a pointer at {source:X6}, but the next pointer was found at {run.Start:X6}.");
+                           Debug.Assert(ReadPointer(source) == runs[i].Start + arrayRun2.ElementLength * j, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName} index {j}");
+                        } else if (run is ITableRun) {
+                           Debug.Assert(ReadPointer(source) == runs[i].Start + arrayRun2.ElementLength * j, $"Expected {source:X6} to point to {runs[i].Start:X6}{pointerSourceName} index {j}");
                         } else {
-                           // pointer points into an element (not the beginning). This is an error, but is not a metadata inconsistency.
-                        }
-                     } else if (run is ITableRun && run.Start < destination) {
-                        // exception: tables are allowed to have pointers that point randomly into other runs.
-                        // such a thing is a data error in the ROM, but is not a metadata inconsistency.
-                     } else if (run.Start != destination) {
-                        // for tables, the invalidly point into a run. Such is an error in the data, but is allowed for the metadata.
-                     } else {
-                        if (run.PointerSources != null) {
-                           Debug.Assert(run.PointerSources.Contains(start), $"Expected {run.Start:X6} to know about pointer {start:X6} (within table {tableRun.Start:X6}), but it did not.");
-                        } else {
-                           Debug.Fail("This run is referenced by a table, but doesn't know about the table that points to it.");
+                           Debug.Fail($"Pointer at {source:X6} must be a {nameof(PointerRun)} or live within an {nameof(ITableRun)}");
                         }
                      }
                   }
-                  elementOffset += segment.Length;
                }
-            }
 
-            if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
-            var debugRunStart1 = runs[i].Start.ToString("X6");
-            var debugRunStart2 = runs[i + 1].Start.ToString("X6");
-            Debug.Fail($"Conflict: there's a run that ends after the next run starts! {debugRunStart1}{pointerSourceName} and {debugRunStart2}");
-         }
-
-         // For every table with a matched-length, verify that the length is as expected.
-         // (The child array length must still be at least 1.)
-         var token = new NoDataChangeDeltaModel();
-         foreach (var array in Arrays) {
-            if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
-            var parentName = array.LengthFromAnchor;
-            var childName = GetAnchorFromAddress(-1, array.Start);
-            if (matchedWords.TryGetValue(parentName, out var set)) {
-               foreach (var wordAddress in set) {
-                  if (GetNextRun(wordAddress) is WordRun word) {
-                     var expectedElementCount = (this.ReadMultiByteValue(word.Start, word.Length) - word.ValueOffset) / word.MultOffset;
-                     Debug.Assert(array.ElementCount == expectedElementCount, $"Expected {childName} to have {expectedElementCount} elements because of {parentName}, but it had {array.ElementCount} elements instead!");
-                  } else {
-                     Debug.Fail("Expected a constant at " + wordAddress.ToAddress() + " but didn't find one!");
+               // for every table, make sure the things it points to know about the table
+               if (runs[i] is ITableRun tableRun) {
+                  int elementOffset = 0;
+                  foreach (var segment in tableRun.ElementContent) {
+                     if (segment.Type != ElementContentType.Pointer) { elementOffset += segment.Length; continue; }
+                     for (int j = 0; j < tableRun.ElementCount; j++) {
+                        var start = tableRun.Start + elementOffset + tableRun.ElementLength * j;
+                        var destination = ReadPointer(start);
+                        var run = GetNextRun(destination);
+                        if (destination < 0 || destination >= Count) {
+                           // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
+                        } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
+                           var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
+                           if (offsets.SegmentOffset == 0) {
+                              Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
+                              if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
+                           } else {
+                              // pointer points into an element (not the beginning). This is an error, but is not a metadata inconsistency.
+                           }
+                        } else if (run is ITableRun && run.Start < destination) {
+                           // exception: tables are allowed to have pointers that point randomly into other runs.
+                           // such a thing is a data error in the ROM, but is not a metadata inconsistency.
+                        } else if (run.Start != destination) {
+                           // for tables, the invalidly point into a run. Such is an error in the data, but is allowed for the metadata.
+                        } else {
+                           if (run.PointerSources != null) {
+                              Debug.Assert(run.PointerSources.Contains(start), $"Expected {run.Start:X6} to know about pointer {start:X6} (within table {tableRun.Start:X6}), but it did not.");
+                           } else {
+                              Debug.Fail("This run is referenced by a table, but doesn't know about the table that points to it.");
+                           }
+                        }
+                     }
+                     elementOffset += segment.Length;
                   }
                }
+
+               if (i == runs.Count - 1 || runs[i].Start + runs[i].Length <= runs[i + 1].Start) continue;
+               var debugRunStart1 = runs[i].Start.ToString("X6");
+               var debugRunStart2 = runs[i + 1].Start.ToString("X6");
+               Debug.Fail($"Conflict: there's a run that ends after the next run starts! {debugRunStart1}{pointerSourceName} and {debugRunStart2}");
             }
-            if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
-            if (array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin + parent.ElementCount > 0) {
-               var expectedChildLength = parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin;
-               Debug.Assert(expectedChildLength == array.ElementCount, $"Expected table {childName} to be {expectedChildLength} elements based on {parentName}, but it was {array.ElementCount} elements instead.");
-            } else {
-               Debug.Assert(array.ElementCount == 1);
+
+            // For every table with a matched-length, verify that the length is as expected.
+            // (The child array length must still be at least 1.)
+            var token = new NoDataChangeDeltaModel();
+            foreach (var array in Arrays) {
+               if (string.IsNullOrEmpty(array.LengthFromAnchor)) continue;
+               var parentName = array.LengthFromAnchor;
+               var childName = GetAnchorFromAddress(-1, array.Start);
+               if (matchedWords.TryGetValue(parentName, out var set)) {
+                  foreach (var wordAddress in set) {
+                     if (GetNextRun(wordAddress) is WordRun word) {
+                        var expectedElementCount = (this.ReadMultiByteValue(word.Start, word.Length) - word.ValueOffset) / word.MultOffset;
+                        Debug.Assert(array.ElementCount == expectedElementCount, $"Expected {childName} to have {expectedElementCount} elements because of {parentName}, but it had {array.ElementCount} elements instead!");
+                     } else {
+                        Debug.Fail("Expected a constant at " + wordAddress.ToAddress() + " but didn't find one!");
+                     }
+                  }
+               }
+               if (!(GetNextRun(GetAddressFromAnchor(token, -1, array.LengthFromAnchor)) is ITableRun parent)) continue;
+               if (array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin + parent.ElementCount > 0) {
+                  var expectedChildLength = parent.ElementCount + array.ParentOffset.BeginningMargin + array.ParentOffset.EndMargin;
+                  Debug.Assert(expectedChildLength == array.ElementCount, $"Expected table {childName} to be {expectedChildLength} elements based on {parentName}, but it was {array.ElementCount} elements instead.");
+               } else {
+                  Debug.Assert(array.ElementCount == 1);
+               }
             }
          }
       }
@@ -789,7 +798,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override bool TryGetUnmappedConstant(string name, out int value) => unmappedConstants.TryGetValue(name.ToLower(), out value);
 
       public override int GetAddressFromAnchor(ModelDelta changeToken, int requestSource, string anchor) {
-
          var nameparts = anchor.Split('/');
          anchor = nameparts.First();
 
@@ -890,7 +898,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return string.Empty;
       }
 
-      private readonly object threadlock = new object();
+      private readonly object threadlock = new object(); // use threadlock when reading/writing to the runs collection, to make sure that the collection doesn't change while being searched.
       public override IFormattedRun GetNextRun(int dataIndex) {
          if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
          lock (threadlock) {
@@ -912,10 +920,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override IFormattedRun GetNextAnchor(int dataIndex) {
-         foreach (var run in RunsStartingFrom(dataIndex)) {
-            if (run.Start < dataIndex) continue;
-            if (run.PointerSources == null) continue;
-            return run;
+         lock (threadlock) {
+            foreach (var run in RunsStartingFrom(dataIndex)) {
+               if (run.Start < dataIndex) continue;
+               if (run.PointerSources == null) continue;
+               return run;
+            }
          }
          return NoInfoRun.NullRun;
       }
@@ -950,23 +960,25 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override bool IsAtEndOfArray(int dataIndex, out ITableRun arrayRun) {
-         var index = BinarySearch(dataIndex);
-         if (index >= 0 && runs[index].Length == 0) {
+         lock (threadlock) {
+            var index = BinarySearch(dataIndex);
+            if (index >= 0 && runs[index].Length == 0) {
+               arrayRun = runs[index] as ITableRun;
+               return arrayRun != null;
+            }
+
+            if (index < 0) index = ~index;
+            index -= 1;
+
+            if (index < 0) {
+               arrayRun = null;
+               return false;
+            }
+
             arrayRun = runs[index] as ITableRun;
-            return arrayRun != null;
+            if (arrayRun is TableStreamRun tStream && tStream.ElementCount * tStream.ElementLength != tStream.Length) return false;
+            return arrayRun != null && arrayRun.Start + arrayRun.Length == dataIndex;
          }
-
-         if (index < 0) index = ~index;
-         index -= 1;
-
-         if (index < 0) {
-            arrayRun = null;
-            return false;
-         }
-
-         arrayRun = runs[index] as ITableRun;
-         if (arrayRun is TableStreamRun tStream && tStream.ElementCount * tStream.ElementLength != tStream.Length) return false;
-         return arrayRun != null && arrayRun.Start + arrayRun.Length == dataIndex;
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
@@ -1471,22 +1483,24 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var kvp in unmappedConstantsToAdd) unmappedConstants[kvp.Key] = kvp.Value;
 
-         foreach (var kvp in runsToRemove) {
-            var index = BinarySearch(kvp.Key);
-            if (index >= 0) runs.RemoveAt(index);
-         }
+         lock (threadlock) {
+            foreach (var kvp in runsToRemove) {
+               var index = BinarySearch(kvp.Key);
+               if (index >= 0) runs.RemoveAt(index);
+            }
 
-         foreach (var kvp in runsToAdd) {
-            var index = BinarySearch(kvp.Key);
-            if (index >= 0) {
-               SetIndex(index, kvp.Value);
-            } else {
-               index = ~index;
-               Debug.Assert(kvp.Value != null);
-               if (index < runs.Count) {
-                  InsertIndex(index, kvp.Value);
+            foreach (var kvp in runsToAdd) {
+               var index = BinarySearch(kvp.Key);
+               if (index >= 0) {
+                  SetIndex(index, kvp.Value);
                } else {
-                  runs.Add(kvp.Value);
+                  index = ~index;
+                  Debug.Assert(kvp.Value != null);
+                  if (index < runs.Count) {
+                     InsertIndex(index, kvp.Value);
+                  } else {
+                     runs.Add(kvp.Value);
+                  }
                }
             }
          }
@@ -1518,40 +1532,44 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
          minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          var runIndex = 0;
-         while (start < RawData.Length - minimumLength) {
-            // catch the currentRun up to where we are
-            while (runIndex < runs.Count && runs[runIndex].Start < start) runIndex++;
-            var currentRun = runIndex < runs.Count ? runs[runIndex] : NoInfoRun.NullRun;
+         lock (threadlock) {
+            while (start < RawData.Length - minimumLength) {
+               // catch the currentRun up to where we are
+               while (runIndex < runs.Count && runs[runIndex].Start < start) runIndex++;
+               var currentRun = runIndex < runs.Count ? runs[runIndex] : NoInfoRun.NullRun;
 
-            // if the space we want intersects the current run, then skip past the current run
-            if (start + minimumLength > currentRun.Start) {
-               start = currentRun.Start + currentRun.Length + FreeSpaceBuffer;
-               var modulo = start % 4;
-               if (modulo != 0) start += 4 - modulo;
-               continue;
+               // if the space we want intersects the current run, then skip past the current run
+               if (start + minimumLength > currentRun.Start) {
+                  start = currentRun.Start + currentRun.Length + FreeSpaceBuffer;
+                  var modulo = start % 4;
+                  if (modulo != 0) start += 4 - modulo;
+                  continue;
+               }
+
+               // if the space we want already has some data in it that we don't have a run for, skip it
+               var lastConflictingData = -1;
+               for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
+               if (lastConflictingData != -1) {
+                  start = lastConflictingData + Math.Max(4, FreeSpaceBuffer);
+                  var modulo = start % 4;
+                  if (modulo != 0) start += 4 - modulo;
+                  continue;
+               }
+
+               // found a good spot!
+               // move the run
+               FreeSpaceStart = start;
+               return start;
             }
-
-            // if the space we want already has some data in it that we don't have a run for, skip it
-            var lastConflictingData = -1;
-            for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
-            if (lastConflictingData != -1) {
-               start = lastConflictingData + Math.Max(4, FreeSpaceBuffer);
-               var modulo = start % 4;
-               if (modulo != 0) start += 4 - modulo;
-               continue;
-            }
-
-            // found a good spot!
-            // move the run
-            FreeSpaceStart = start;
-            return start;
          }
 
          return -1;
       }
 
       public override void ClearAnchor(ModelDelta changeToken, int start, int length) {
-         ClearFormat(changeToken, start, length, keepInitialAnchorPointers: false, alsoClearData: false);
+         lock (threadlock) {
+            ClearFormat(changeToken, start, length, keepInitialAnchorPointers: false, alsoClearData: false);
+         }
       }
 
       public override void ClearFormat(ModelDelta changeToken, int originalStart, int length) {
@@ -1562,21 +1580,25 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void ClearFormatAndAnchors(ModelDelta changeToken, int originalStart, int length) {
-         ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: false);
+         lock (threadlock) {
+            ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: false);
+         }
       }
 
       public override void ClearData(ModelDelta changeToken, int start, int length) {
-         var run = GetNextRun(start);
-         if (run.Start <= start && run is IAppendToBuilderRun builder) {
-            Debug.Assert(run.Start + run.Length >= start + length, "Cannot clear data (without format) across runs.");
-            builder.Clear(this, changeToken, start, length);
-         } else {
-            base.ClearData(changeToken, start, length);
+         lock (threadlock) {
+            var run = GetNextRun(start);
+            if (run.Start <= start && run is IAppendToBuilderRun builder) {
+               Debug.Assert(run.Start + run.Length >= start + length, "Cannot clear data (without format) across runs.");
+               builder.Clear(this, changeToken, start, length);
+            } else {
+               base.ClearData(changeToken, start, length);
+            }
          }
       }
 
       public override void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length) {
-         using (ModelCacheScope.CreateScope(this)) {
+         lock (threadlock) {
             ClearFormat(changeToken, originalStart, length, keepInitialAnchorPointers: false, alsoClearData: true);
          }
       }
@@ -1597,15 +1619,16 @@ namespace HavenSoft.HexManiac.Core.Models {
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
       public override int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> searchResults) {
          int resultsRecognizedAsTextRuns = 0;
-         foreach (var result in searchResults) {
-            var run = ConsiderAsTextStream(result, futureChange);
-            if (run != null) {
-               ClearFormat(futureChange(), run.Start, run.Length);
-               ObserveAnchorWritten(futureChange(), string.Empty, run);
-               resultsRecognizedAsTextRuns++;
+         lock (threadlock) {
+            foreach (var result in searchResults) {
+               var run = ConsiderAsTextStream(result, futureChange);
+               if (run != null) {
+                  ClearFormat(futureChange(), run.Start, run.Length);
+                  ObserveAnchorWritten(futureChange(), string.Empty, run);
+                  resultsRecognizedAsTextRuns++;
+               }
             }
          }
-
          return resultsRecognizedAsTextRuns;
       }
 
@@ -1624,42 +1647,46 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public PCSRun ConsiderAsTextStream(int address, Func<ModelDelta> futureCurrentChange) {
-         var model = this;
-         var nextRun = model.GetNextRun(address);
-         if (nextRun.Start < address) return null;
-         if (nextRun.Start == address && !(nextRun is NoInfoRun)) return null;
-         var length = PCSString.ReadString(model, address, true);
-         if (length < 1) return null;
-         while (nextRun.Start < address + length && nextRun.Start != address && nextRun is NoInfoRun || nextRun is PCSRun) {
-            nextRun = GetNextRun(nextRun.Start + nextRun.Length);
+         lock (threadlock) {
+            var model = this;
+            var nextRun = model.GetNextRun(address);
+            if (nextRun.Start < address) return null;
+            if (nextRun.Start == address && !(nextRun is NoInfoRun)) return null;
+            var length = PCSString.ReadString(model, address, true);
+            if (length < 1) return null;
+            while (nextRun.Start < address + length && nextRun.Start != address && nextRun is NoInfoRun || nextRun is PCSRun) {
+               nextRun = GetNextRun(nextRun.Start + nextRun.Length);
+            }
+            if (address + length > nextRun.Start && nextRun.Start != address) return null;
+            ClearPointerCache();
+            var pointers = SearchForPointersToAnchor(futureCurrentChange(), true, address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
+            if (pointers.Count == 0) return null;
+            return new PCSRun(model, address, length, pointers);
          }
-         if (address + length > nextRun.Start && nextRun.Start != address) return null;
-         ClearPointerCache();
-         var pointers = SearchForPointersToAnchor(futureCurrentChange(), true, address); // this is slow and change the metadata. Only do it if we're sure we want the new PCSRun
-         if (pointers.Count == 0) return null;
-         return new PCSRun(model, address, length, pointers);
       }
 
       /// <summary>
       /// Removes a pointer from the list of sources
       /// </summary>
       public override void ClearPointer(ModelDelta currentChange, int source, int destination) {
-         var index = BinarySearch(destination);
-         if (index < 0) return; // nothing to remove at the destination
-         currentChange.RemoveRun(runs[index]);
+         lock (threadlock) {
+            var index = BinarySearch(destination);
+            if (index < 0) return; // nothing to remove at the destination
+            currentChange.RemoveRun(runs[index]);
 
-         var newRun = runs[index].RemoveSource(source);
-         if (newRun is NoInfoRun && newRun.PointerSources.Count == 0) {
-            // run carries no info, just remove it
-            RemoveIndex(index);
-         } else if (newRun is PointerRun && newRun.PointerSources.Count == 0) {
-            // run carries no pointer info: remove the anchor
-            SetIndex(index, new PointerRun(newRun.Start));
-            if (newRun is OffsetPointerRun opr) SetIndex(index, new OffsetPointerRun(newRun.Start, opr.Offset));
-            currentChange.AddRun(runs[index]);
-         } else {
-            SetIndex(index, newRun);
-            currentChange.AddRun(newRun);
+            var newRun = runs[index].RemoveSource(source);
+            if (newRun is NoInfoRun && newRun.PointerSources.Count == 0) {
+               // run carries no info, just remove it
+               RemoveIndex(index);
+            } else if (newRun is PointerRun && newRun.PointerSources.Count == 0) {
+               // run carries no pointer info: remove the anchor
+               SetIndex(index, new PointerRun(newRun.Start));
+               if (newRun is OffsetPointerRun opr) SetIndex(index, new OffsetPointerRun(newRun.Start, opr.Offset));
+               currentChange.AddRun(runs[index]);
+            } else {
+               SetIndex(index, newRun);
+               currentChange.AddRun(newRun);
+            }
          }
       }
 
@@ -1868,16 +1895,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int source, int destination) {
-         ClearPointerFormat(segment, null, 0, changeToken, source);
-         if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
-         AddPointerToAnchor(segment, segments, parentIndex, changeToken, source);
+         lock (threadlock) {
+            ClearPointerFormat(segment, null, 0, changeToken, source);
+            if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
+            AddPointerToAnchor(segment, segments, parentIndex, changeToken, source);
+         }
       }
 
       public override string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false) {
          var text = new StringBuilder();
          var run = GetNextRun(start);
 
-         using (ModelCacheScope.CreateScope(this)) {
+         lock (threadlock) {
             while (length > 0) {
                run = GetNextRun(start);
                if (run.Start > start) {
@@ -1992,17 +2021,19 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void Load(byte[] newData, StoredMetadata metadata) {
-         base.Load(newData, metadata);
-         unmappedNameToSources.Clear();
-         sourceToUnmappedName.Clear();
-         addressForAnchor.Clear();
-         anchorForAddress.Clear();
-         runs.Clear();
-         lists.Clear();
-         pointerOffsets.Clear();
-         unmappedConstants.Clear();
-         TableGroups.Clear();
-         matchedWords.Clear();
+         lock (threadlock) {
+            base.Load(newData, metadata);
+            unmappedNameToSources.Clear();
+            sourceToUnmappedName.Clear();
+            addressForAnchor.Clear();
+            anchorForAddress.Clear();
+            runs.Clear();
+            lists.Clear();
+            pointerOffsets.Clear();
+            unmappedConstants.Clear();
+            TableGroups.Clear();
+            matchedWords.Clear();
+         }
          InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
             BuildDestinationToSourceCache(newData);
             Initialize(metadata);
@@ -2200,14 +2231,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          });
 
-         foreach (var newRun in runsToAdd) {
-            if (ignoreNoInfoPointers) {
-               ClearFormat(changeToken, newRun.Start, newRun.Length);
-               ObserveRunWritten(changeToken, newRun);
-            } else {
-               var index = ~BinarySearch(newRun.Start);
-               runs.Insert(index, newRun);
-               changeToken.AddRun(newRun);
+         lock (threadlock) {
+            foreach (var newRun in runsToAdd) {
+               if (ignoreNoInfoPointers) {
+                  ClearFormat(changeToken, newRun.Start, newRun.Length);
+                  ObserveRunWritten(changeToken, newRun);
+               } else {
+                  var index = ~BinarySearch(newRun.Start);
+                  runs.Insert(index, newRun);
+                  changeToken.AddRun(newRun);
+               }
             }
          }
          return results;
@@ -2245,7 +2278,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private bool TryMakePointerAtAddress(ModelDelta changeToken, int address, bool ignoreNoInfoPointers, out PointerRun runToAdd) {
          // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
          runToAdd = null;
-         lock (runs) {
+         lock (threadlock) {
             var index = BinarySearch(address);
             if (index >= 0) {
                if (runs[index] is PointerRun) return true;
