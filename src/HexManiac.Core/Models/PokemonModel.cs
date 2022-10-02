@@ -181,7 +181,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       protected void Initialize(StoredMetadata metadata) {
-         lock (threadlock)
          {
             var pointersForDestination = new Dictionary<int, SortedSpan<int>>();
             var destinationForSource = new SortedList<int, int>();
@@ -219,16 +218,18 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (word.Address + word.Length >= Count) continue;
                if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
                matchedWords[word.Name].Add(word.Address);
-               var index = BinarySearch(word.Address);
-               WordRun newRun;
-               if (index > 0) {
-                  newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
-               } else {
-                  newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note);
+               lock (threadlock) {
+                  var index = BinarySearch(word.Address);
+                  WordRun newRun;
+                  if (index > 0) {
+                     newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note, runs[index].PointerSources);
+                  } else {
+                     newRun = new WordRun(word.Address, word.Name, word.Length, word.AddOffset, word.MultOffset, word.Note);
+                  }
+                  ClearFormat(noChange, word.Address, word.Length);
+                  ObserveRunWritten(noChange, newRun);
+                  CompleteCellEdit.UpdateAllWords(this, newRun, noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
                }
-               ClearFormat(noChange, word.Address, word.Length);
-               ObserveRunWritten(noChange, newRun);
-               CompleteCellEdit.UpdateAllWords(this, newRun, noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
             }
             RemoveMatchedWordsThatDoNotMatch(noChange);
             foreach (var offsetPointer in metadata.OffsetPointers) {
@@ -482,28 +483,30 @@ namespace HavenSoft.HexManiac.Core.Models {
          var moreDestinations = destinations.MoveNext();
          var moreSources = sources.MoveNext();
 
-         while (moreDestinations && moreSources) {
-            if (destinations.Current < sources.Current) {
+         lock (threadlock) {
+            while (moreDestinations && moreSources) {
+               if (destinations.Current < sources.Current) {
+                  runs.Add(new NoInfoRun(destinations.Current, pointersForDestination[destinations.Current]));
+                  moreDestinations = destinations.MoveNext();
+               } else if (sources.Current < destinations.Current) {
+                  runs.Add(new PointerRun(sources.Current));
+                  moreSources = sources.MoveNext();
+               } else {
+                  runs.Add(new PointerRun(sources.Current, pointersForDestination[destinations.Current]));
+                  moreDestinations = destinations.MoveNext();
+                  moreSources = sources.MoveNext();
+               }
+            }
+
+            while (moreDestinations) {
                runs.Add(new NoInfoRun(destinations.Current, pointersForDestination[destinations.Current]));
                moreDestinations = destinations.MoveNext();
-            } else if (sources.Current < destinations.Current) {
+            }
+
+            while (moreSources) {
                runs.Add(new PointerRun(sources.Current));
                moreSources = sources.MoveNext();
-            } else {
-               runs.Add(new PointerRun(sources.Current, pointersForDestination[destinations.Current]));
-               moreDestinations = destinations.MoveNext();
-               moreSources = sources.MoveNext();
             }
-         }
-
-         while (moreDestinations) {
-            runs.Add(new NoInfoRun(destinations.Current, pointersForDestination[destinations.Current]));
-            moreDestinations = destinations.MoveNext();
-         }
-
-         while (moreSources) {
-            runs.Add(new PointerRun(sources.Current));
-            moreSources = sources.MoveNext();
          }
       }
 
