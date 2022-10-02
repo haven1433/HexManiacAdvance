@@ -709,7 +709,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (allowLoadingMetadata) {
                metadataText = fileSystem.MetadataFor(file.Name) ?? new string[0];
             }
-            var metadata = new StoredMetadata(metadataText);
+            StoredMetadata metadata;
+            try {
+               metadata = new StoredMetadata(metadataText);
+            } catch (ArgumentNullException nullEx) {
+               ErrorMessage = nullEx.Message;
+               return;
+            } catch (ArgumentOutOfRangeException rangeEx) {
+               ErrorMessage = rangeEx.Message;
+               return;
+            }
             IDataModel model = file.Name.ToLower().EndsWith(".gba") ?
                new HardcodeTablesModel(Singletons, file.Contents, metadata) :
                new PokemonModel(file.Contents, metadata, Singletons);

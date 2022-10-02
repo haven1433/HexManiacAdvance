@@ -163,8 +163,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                currentItemNote = cleanLine.Split("'''")[1];
             } else if (cleanLine.StartsWith("Image = '''")) {
                currentItemImage = cleanLine.Split("'''")[1];
-            } else if (cleanLine.StartsWith("Destination = '''")) {
-               currentItemDestination = cleanLine.Split("'''")[1];
+            } else if (cleanLine.StartsWith("Destination =")) {
+               currentItemDestination = cleanLine.Split("=")[1].Trim('\'', ' ');
             }
 
             if (cleanLine.StartsWith("ApplicationVersion = '''")) {
@@ -378,26 +378,26 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          if (currentItem == "[[List]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify a name!");
-            if (currentItemChildren == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify any children!");
+            if (currentItemChildren == null) throw new ArgumentNullException($"List {currentItemName} didn't specify any children!");
             lists.Add(new StoredList(currentItemName, currentItemChildren, currentItemHash));
          }
 
          if (currentItem == "[[UnmappedConstant]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has an unmapped constant that didn't specify a name!");
-            if (currentItemValue == -1) throw new ArgumentNullException("The Metadata file has an unmapped constant that didn't specify a value!");
+            if (currentItemValue == -1) throw new ArgumentNullException($"Unmapped Constant {currentItemName} didn't specify a value!");
             unmappedConstants.Add(new StoredUnmappedConstant(currentItemName, currentItemValue));
          }
 
          if (currentItem == "[[GotoShortcut]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify a Name!");
-            if (currentItemImage == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify an Image!");
-            if (currentItemDestination == null) throw new ArgumentNullException("The Metadata file has a Goto Shortcut that didn't specify a Destination!");
+            if (currentItemImage == null) throw new ArgumentNullException($"Goto Shortcut {currentItemName} didn't specify an Image!");
+            if (currentItemDestination == null) throw new ArgumentNullException($"Goto Shortcut {currentItemName} didn't specify a Destination!");
             gotoShortcuts.Add(new StoredGotoShortcut(currentItemName, currentItemImage, currentItemDestination));
          }
 
          if (currentItem == "[[TableGroup]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a TableGroup that didn't specify a name!");
-            if (currentItemChildren == null) throw new ArgumentNullException("The Metadat file has a TableGroup that didn't specify any children!");
+            if (currentItemChildren == null) throw new ArgumentNullException($"TableGroup {currentItemName} didn't specify any children!");
             tableGroups.Add(new(currentItemName, currentItemChildren, currentItemHash));
          }
 
