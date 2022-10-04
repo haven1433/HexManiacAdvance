@@ -251,7 +251,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
             var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
             if (start > end) (start, end) = (end, start);
-            UpdateContents(start, parser, body.Address, end - start + 1);
+            if (start == body.Address) length = end - start + 1;
+            UpdateContents(start, parser, body.Address, length);
          }
       }
 

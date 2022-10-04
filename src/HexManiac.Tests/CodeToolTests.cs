@@ -2,6 +2,8 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using Xunit;
@@ -12,6 +14,17 @@ namespace HavenSoft.HexManiac.Tests {
       private string EventScript {
          get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
          set => Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
+      }
+      private string GetContent(int index) => Tool.Contents[index].Content;
+      private void SetContent(int index, string content) => Tool.Contents[index].Content = content.Replace(";", Environment.NewLine);
+
+      private void AddScriptFormat(int index) {
+         ViewPort.Goto.Execute(index);
+         var point = ViewPort.ConvertAddressToViewPoint(index);
+         var contextItems = new ContextItemFactory(ViewPort);
+         ViewPort[point].Format.Visit(contextItems, 0xFF);
+         var group = (ContextItemGroup)contextItems.Results.Single(result => result.Text.StartsWith("Create New"));
+         group.Single(item => item.Text.StartsWith("Event Script")).Command.Execute();
       }
 
       public CodeToolTests() => SetFullModel(0xFF);
@@ -114,6 +127,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0x40, run.Start);
          Assert.Equal("test", run.SerializeRun());
          Assert.Equal(2, EventScript.Count("{}".Contains));
+      }
+
+      [Fact]
+      public void OutOfOrderJumps_EditBottomScript_ScriptCountRemainsSame() {
+         Tool.Mode = CodeMode.Script;
+         AddScriptFormat(0);
+         EventScript = "if2 = <028>; if2 = <018>; if2 = <020>; end";
+         ViewPort.Edit("@018 02 @020 02 @028 02 @000 ");
+         ViewPort.ExpandSelection(0, 0);
+
+         SetContent(2, GetContent(2) + " ");
+
+         Assert.Equal(4, Tool.Contents.Count);
       }
    }
 }
