@@ -634,10 +634,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public TableStreamRun Append(TableStreamRun run, ModelDelta token, int length) {
          var parentIndex = GetParentIndex(run.PointerSources);
-         var parent = model.GetNextRun(parentIndex) as ITableRun;
-         if (parent == null) return run;
-         var segmentIndex = GetSegmentIndex(parent.ElementContent, parentFieldForLength);
-         if (segmentIndex == -1) return run;
+         var parent = parentIndex >= 0 ? model.GetNextRun(parentIndex) as ITableRun : null;
+         var segmentIndex = GetSegmentIndex(parent?.ElementContent, parentFieldForLength);
 
          UpdateParents(token, parent, segmentIndex, run.ElementCount + length, run.PointerSources);
 
@@ -667,7 +665,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
 
-         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this);
+         return new TableStreamRun(model, newRun.Start, run.PointerSources, run.FormatString, run.ElementContent, this, (newRun.ElementCount + length).LimitToRange(1, int.MaxValue));
       }
 
       public TableStreamRun UpdateFromParentStream(TableStreamRun run, ModelDelta token, int parentSegmentIndex) {
@@ -728,6 +726,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private void UpdateParents(ModelDelta token, ITableRun parent, int segmentIndex, int newValue, IReadOnlyList<int> pointerSources) {
+         if (parent == null || segmentIndex == -1) return;
          var segmentOffset = parent.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
          var segmentLength = parent.ElementContent[segmentIndex].Length;
          foreach (var source in pointerSources) {

@@ -590,5 +590,39 @@ namespace HavenSoft.HexManiac.Tests {
          var table = Model.GetTableModel("table");
          Assert.Equal(3, table.Count);
       }
+
+      [Fact]
+      public void ParentLengthStreamWithNoParent_Append_StillWorks() {
+         ViewPort.Edit("^table[content<> unused::]/count <100> 0 ");
+
+         ViewPort.Edit("+<180> 0 ");
+
+         var table = Model.GetTableModel("table");
+         Assert.Equal(2, table.Count);
+      }
+
+      [Fact]
+      public void TableOfPointers_PointerToTextInTable_NoAsserts() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 ^stats[name\"\"8 a:: b::]8 \"0123\" 0 0 \"adam\" 0 0 \"bob\" 0 0 \"carl\" 0 0 \"dave\" 0 0 \"eric\" 0 0 ");
+
+         ViewPort.Edit("@000 <null> <null> <null> <null> @000 ^table[pointer<\"\">]4 <080> <stats/2> <090> <060> ");
+
+         Assert.Empty(Errors);
+         Model.ResolveConflicts();
+      }
+
+      [Fact]
+      public void TableOfPointers_PointerToTextInTableFromTableTool_NoAsserts() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 ^stats[name\"\"8 a:: b::]8 \"0123\" 0 0 \"adam\" 0 0 \"bob\" 0 0 \"carl\" 0 0 \"dave\" 0 0 \"eric\" 0 0 ");
+
+         ViewPort.Edit("@000 <null> <null> <null> <null> @000 ^table[pointer<\"\">]4 @008 ");
+         var field = ViewPort.Tools.TableTool.Children.OfType<FieldArrayElementViewModel>().Single(field => field.Name == "pointer");
+         field.Content = "<120>";
+
+         Assert.Empty(Errors);
+         Model.ResolveConflicts();
+      }
    }
 }

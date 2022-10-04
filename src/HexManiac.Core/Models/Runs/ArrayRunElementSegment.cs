@@ -638,8 +638,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          if (destination == Pointer.NULL) return true;
-         var run = owner.GetNextAnchor(destination);
-         if (run.Start < destination) return false;
+         var run = owner.GetNextRun(destination);
+         if (run.Start < destination && run is not ITableRun) return false;
          if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
             if (destination < 0 || destination >= owner.Count) return false;
@@ -651,7 +651,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (strategy.Matches(run)) return true;
 
             // special test: the format of the data is wrong?
-            return strategy.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex);
+            if (run is ITableRun) {
+               // just see if we _could_ add it
+               return !strategy.TryParseData(owner, string.Empty, destination, ref run).HasError;
+            } else {
+               return strategy.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex);
+            }
          }
       }
 
