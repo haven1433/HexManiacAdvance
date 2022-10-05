@@ -67,8 +67,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       }
 
       private int InsertCallback(IViewPort viewPort, string callbackName, int tableAddress) {
-         var mod = 0x1E4684; // BPRE0
-         var appendTilesetAnimToBuffer = 0x06FF04; // BPRE0
+         var gamecode = viewPort.Model.GetGameCode();
+         var mod = gamecode switch {
+            "BRPE0" => 0x1E4684,
+            _ => throw new NotImplementedException(),
+         };
+         var appendTilesetAnimToBuffer = gamecode switch {
+            "BPRE0" => 0x06FF04,
+            _ => throw new NotImplementedException(),
+         };
 
          var model = viewPort.Model;
          var token = viewPort.ChangeHistory.CurrentChange;
@@ -141,6 +148,7 @@ long_branch:
       }
 
       private int InsertInit(IViewPort viewPort, string initName, int tableAddress, int callbackAddress) {
+         // TODO verify that these are the same in every game
          var sPrimaryTilesetAnimCounter = 0x03000FAE;
          var sPrimaryTilesetAnimCounterMax = 0x03000FB0;
          var sPrimaryTilesetAnimCallback = 0x03000FB8;
