@@ -111,7 +111,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (arg.Type != ArgType.Pointer) {
                      // there may've previously been a pointer here: the code has changed!
                      // when clearing args, we actually _do_ want to clear any anchors that point to them.
-                     model.ClearFormat(token, address + length, arg.Length(model, address + length));
+                     var start = address + length;
+                     var argLength = arg.Length(model, start);
+                     if (model.GetNextRun(start) is ITableRun tableRun && tableRun.Start == start && tableRun.Length == argLength) {
+                        // no need to clear
+                     } else {
+                        model.ClearFormat(token, start, argLength);
+                     }
                   } else {
                      var destination = model.ReadPointer(address + length);
                      if (destination >= 0 && destination < model.Count) {
