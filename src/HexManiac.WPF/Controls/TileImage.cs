@@ -145,6 +145,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
    public class PixelImage : Image {
       private IPixelViewModel ViewModel => DataContext as IPixelViewModel;
+      private WriteableBitmap maskSource;
 
       private bool showDebugGrid;
       public bool ShowDebugGrid {
@@ -154,6 +155,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             UpdateSource();
          }
       }
+
+      #region UseTrueTransparency
+
+      public static readonly DependencyProperty UseTrueTransparencyProperty = DependencyProperty.Register(nameof(UseTrueTransparency), typeof(bool), typeof(PixelImage), new FrameworkPropertyMetadata(false, UseTrueTransparencyChanged));
+
+      public bool UseTrueTransparency {
+         get { return (bool)GetValue(UseTrueTransparencyProperty); }
+         set { SetValue(UseTrueTransparencyProperty, value); }
+      }
+
+      private static void UseTrueTransparencyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (PixelImage)d;
+         self.OnUseTrueTransparencyChanged(e);
+      }
+
+      protected virtual void OnUseTrueTransparencyChanged(DependencyPropertyChangedEventArgs e) => UpdateSource();
+
+      #endregion
 
       #region TransparentBrush
 
@@ -220,8 +239,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public void UpdateSource() {
          if (ViewModel == null) return;
          var pixels = ViewModel.PixelData;
-         pixels = ConvertTransparentPixels(pixels);
          if (pixels == null) return;
+         if (!UseTrueTransparency) {
+            pixels = ConvertTransparentPixels(pixels);
+            OpacityMask = null;
+         } else if (ViewModel.Transparent != -1) {
+            OpacityMask = new VisualBrush(CreateOpacityMask());
+         } else {
+            OpacityMask = null;
+         }
          var expectedLength = ViewModel.PixelWidth * ViewModel.PixelHeight;
          if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }
          int stride = ViewModel.PixelWidth * 2;
@@ -238,6 +264,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var source = (WriteableBitmap)Source;
          var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
          source.WritePixels(rect, pixels, stride, 0);
+      }
+
+      private Image CreateOpacityMask() {
+         if (ViewModel.Transparent == -1) return null;
+         if (maskSource == null || maskSource.PixelWidth != ViewModel.PixelWidth || maskSource.PixelHeight != ViewModel.PixelHeight) {
+            maskSource = new WriteableBitmap(ViewModel.PixelWidth, ViewModel.PixelHeight, 96, 96, PixelFormats.Bgra32, null);
+         }
+         var pixels = new int[ViewModel.PixelWidth * ViewModel.PixelHeight];
+         for (int y = 0; y < ViewModel.PixelHeight; y++) {
+            for (int x = 0; x < ViewModel.PixelWidth; x++) {
+               var i = y * ViewModel.PixelWidth + x;
+               pixels[i] = ViewModel.PixelData[i] == ViewModel.Transparent ? 0 : -1;
+            }
+         }
+         var rect = new Int32Rect(0, 0, ViewModel.PixelWidth, ViewModel.PixelHeight);
+         int stride = ViewModel.PixelWidth * 4;
+         maskSource.WritePixels(rect, pixels, stride, 0);
+         return new Image { Source = maskSource };
       }
 
       private short[] ConvertTransparentPixels(short[] pixels) {

@@ -240,8 +240,24 @@
                            <Border.ToolTip>
                               <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
                                  <TextBlock TextAlignment="Left">
-                                 Select the last element of the table <LineBreak/>
-                                 and press this to extend the table.
+                                    Select the last element of the table <LineBreak />
+                                    and press this to extend the table.
+                                    <LineBreak /> <LineBreak />
+                                    <Bold Foreground="{DynamicResource Error}"> Warning: </Bold> Not all tables can be <LineBreak />
+                                    expanded without side effects. <LineBreak />
+                                    Many tables, such as <LineBreak />
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource Secondary}"/> items
+                                    <Ellipse Margin="50,0,0,0" Width="10" Height="10" Fill="{DynamicResource Secondary}"/> moves <LineBreak />
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource Secondary}"/> types
+                                    <Ellipse Margin="50.5,0,0,0" Width="10" Height="10" Fill="{DynamicResource Secondary}"/> pokemon <LineBreak />
+                                    <Ellipse Width="10" Height="10" Fill="{DynamicResource Secondary}"/> trainers <LineBreak />
+                                    have hard-coded limiters in binary data. <LineBreak />
+                                    Expanding will glitch your game <LineBreak />
+                                    unless you apply additional changes to <LineBreak />
+                                    recognize the expanded data.
+                                    <LineBreak /> <LineBreak />
+                                    Always <Run Foreground="{DynamicResource Accent}"> create a backup </Run> before doing <LineBreak />
+                                    anything you are unsure about.
                                  </TextBlock>
                               </ToolTip>
                            </Border.ToolTip>

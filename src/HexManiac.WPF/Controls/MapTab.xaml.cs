@@ -39,7 +39,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void AutoscrollBlocks(object sender, EventArgs e) {
          var scrollRange = BlockViewer.ExtentHeight - BlockViewer.ViewportHeight;
-         var scrollPercent = ((ViewModel.DrawBlockIndex - 8) / 1008.0).LimitToRange(0, 1);
+         var blockHeight = (ViewModel.Blocks.PixelHeight / 16.0) * 8 - 16;
+         var scrollPercent = ((ViewModel.DrawBlockIndex - 8) / blockHeight).LimitToRange(0, 1);
          BlockViewer.ScrollToVerticalOffset(scrollRange * scrollPercent);
       }
 

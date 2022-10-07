@@ -189,6 +189,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private short[][] palettes;
       private int[][,] tiles;
       private byte[][] blocks;
+      private byte[][] blockAttributes;
       private IReadOnlyList<IPixelViewModel> blockRenders;
       private IReadOnlyList<IEventModel> eventRenders;
       public IReadOnlyList<IPixelViewModel> BlockRenders {
@@ -312,6 +313,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       public event EventHandler NeighborsChanged;
+
+      private BlockEditor blockEditor;
+      public BlockEditor BlockEditor {
+         get {
+            if (blockEditor == null) {
+               var layout = GetLayout();
+               var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+               var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+               if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
+               if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
+               if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
+               if (blockAttributes == null) RefreshBlockAttributeCache(layout, blockModel1, blockModel2);
+               blockEditor = new BlockEditor(palettes, tiles, blocks, blockAttributes);
+            }
+            return blockEditor;
+         }
+      }
 
       public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, int group, int map) {
          this.fileSystem = fileSystem;
@@ -438,13 +456,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (lastDrawX, lastDrawY) = (xx, yy);
          model.WriteMultiByteValue(modelAddress, 2, token, (high << 10) | low);
 
-         if (blockIndex >= 0 && blockIndex < blockRenders.Count) {
-            var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
-            (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
-            canvas.Draw(blockRenders[blockIndex], xx, yy);
-            if (collisionIndex == collisionHighlight) HighlightCollision(canvas.PixelData, xx, yy);
-            NotifyPropertyChanged(nameof(PixelData));
-         }
+         var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
+         bool updateBlock = blockIndex >= 0 && blockIndex < blockRenders.Count;
+         bool updateHighlight = collisionIndex == collisionHighlight && collisionHighlight != -1;
+         (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
+         if (updateBlock) canvas.Draw(blockRenders[blockIndex], xx, yy);
+         if (updateHighlight) HighlightCollision(pixelData, xx, yy);
+         if (updateBlock || updateHighlight) NotifyPropertyChanged(nameof(PixelData));
       }
 
       public void DrawBlocks(ModelDelta token, int[,]tiles, Point source, Point destination) {
@@ -1015,6 +1033,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blocks = BlockmapRun.ReadBlocks(blockModel1, blockModel2);
       }
 
+      private void RefreshBlockAttributeCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
+         if (blockModel1 == null || blockModel2 == null) {
+            if (layout == null) layout = GetLayout();
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+         }
+         blockAttributes = BlockmapRun.ReadBlockAttributes(blockModel1, blockModel2);
+      }
+
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blocks == null || tiles == null || palettes == null) {
             if (layout == null) layout = GetLayout();
@@ -1111,11 +1138,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          if (blockRenders == null) RefreshBlockRenderCache(layout);
 
-         var blockHeight = TotalBlocks / BlocksPerRow;
+         var blockHeight = (int)Math.Ceiling((double)blockRenders.Count / BlocksPerRow);
          var canvas = new CanvasPixelViewModel(BlocksPerRow * 16, blockHeight * 16) { SpriteScale = 2 };
 
          for (int y = 0; y < blockHeight; y++) {
             for (int x = 0; x < BlocksPerRow; x++) {
+               if (blockRenders.Count <= y * BlocksPerRow + x) break;
                canvas.Draw(blockRenders[y * BlocksPerRow + x], x * 16, y * 16);
             }
          }

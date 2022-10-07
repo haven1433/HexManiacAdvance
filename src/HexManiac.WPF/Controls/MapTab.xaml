@@ -35,7 +35,7 @@
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
-               <RowDefinition Height="Auto"/>
+               <RowDefinition Height="Auto" MinHeight="96"/>
                <RowDefinition />
             </Grid.RowDefinitions>
             <CheckBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,10,35"
@@ -57,6 +57,9 @@
             </StackPanel>
             <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Top">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
+            </Decorator>
+            <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,0,10,0">
+               <local:SelectedBlockEditor DataContext="{Binding PrimaryMap.BlockEditor}"/>
             </Decorator>
          </Grid>
          <ScrollViewer Name="BlockViewer">

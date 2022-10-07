@@ -79,6 +79,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             Set(ref drawBlockIndex, value, old => {
                DrawMultipleTiles = false;
+               BlockEditorVisible = true;
+               PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
                NotifyPropertyChanged(nameof(HighlightBlockX));
                NotifyPropertyChanged(nameof(HighlightBlockY));
                NotifyPropertyChanged(nameof(HighlightBlockSize));
@@ -541,6 +543,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool drawMultipleTiles;
       public bool DrawMultipleTiles { get => drawMultipleTiles; private set => Set(ref drawMultipleTiles, value); }
 
+      private bool blockEditorVisible;
+      public bool BlockEditorVisible { get => blockEditorVisible; private set => Set(ref blockEditorVisible, value); }
+
       private IPixelViewModel multiTileDrawRender;
       public IPixelViewModel MultiTileDrawRender {
          get => multiTileDrawRender;
@@ -587,6 +592,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var height = Math.Abs(selectDownPosition.Y - selectMovePosition.Y) + 1;
          if (width == 1 && height == 1) {
             DrawMultipleTiles = false;
+            BlockEditorVisible = true;
             return;
          }
 
@@ -602,6 +608,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          MultiTileDrawRender = canvas;
          DrawMultipleTiles = true;
+         BlockEditorVisible = false;
       }
 
       private Point ToTilePosition(double x, double y) {
@@ -633,8 +640,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (autoUpdateCollision) {
             var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
             if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
-         } else {
-            CollisionIndex = CollisionIndex.LimitToRange(0, 0x3F);
          }
       }
 
@@ -668,6 +673,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Cancel() {
          SelectedEvent = null;
          DrawMultipleTiles = false;
+         BlockEditorVisible = false;
          tilesToDraw = null;
          DrawBlockIndex = -1;
          CollisionIndex = -1;

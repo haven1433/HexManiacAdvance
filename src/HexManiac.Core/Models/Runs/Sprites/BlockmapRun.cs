@@ -7,6 +7,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks.Dataflow;
 
 /*
  layout<[
@@ -75,7 +76,21 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public static byte[][] ReadBlocks(BlocksetModel blockModel1, BlocksetModel blockModel2) {
          var primary = blockModel1.ReadBlocks();
          var secondary = blockModel2.ReadBlocks();
-         return primary.Concat(secondary).ToArray();
+         var result = new List<byte[]>();
+         for (int i = 0; i < primary.Length; i++) result.Add(primary[i]);
+         while (result.Count < blockModel1.PrimaryBlocks) result.Add(new byte[16]);
+         for (int i = 0; i < secondary.Length; i++) result.Add(secondary[i]);
+         return result.ToArray();
+      }
+
+      public static byte[][] ReadBlockAttributes(BlocksetModel blockModel1, BlocksetModel blockModel2) {
+         var primary = blockModel1.ReadBlockAttributes();
+         var secondary = blockModel2.ReadBlockAttributes();
+         var result = new List<byte[]>();
+         for (int i = 0; i < primary.Length; i++) result.Add(primary[i]);
+         while (result.Count < blockModel1.PrimaryBlocks) result.Add(new byte[blockModel1.BytesPerAttribute]);
+         for (int i = 0; i < secondary.Length; i++) result.Add(secondary[i]);
+         return result.ToArray();
       }
 
       public static IReadOnlyList<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, int[][,] tiles, short[][] palettes) {
@@ -191,19 +206,26 @@ namespace HexManiac.Core.Models.Runs.Sprites {
    public class BlocksetModel {
       private readonly IDataModel model;
       private readonly int address;
-      private readonly int primaryBlocks, primaryTiles, primaryPalettes;
+      private readonly int primaryBlocks, primaryTiles, primaryPalettes, attributeOffset;
+
+      public int PrimaryBlocks => primaryBlocks;
+      public int BytesPerAttribute { get; }
 
       public BlocksetModel(IDataModel model, int address) {
          this.model = model;
          this.address = address;
-         if (new[] { "BPRE", "BPGE" }.Contains(model.GetGameCode().Substring(0, 4))) {
+         if (model.IsFRLG()) {
             primaryBlocks = 640;
             primaryTiles = 640;
             primaryPalettes = 7;
+            attributeOffset = 20;
+            BytesPerAttribute = 4;
          } else {
             primaryBlocks = 512;
             primaryTiles = 512;
             primaryPalettes = 6;
+            attributeOffset = 16;
+            BytesPerAttribute = 2;
          }
       }
 
@@ -229,6 +251,10 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             list.Add(tile);
          }
          return list.ToArray();
+      }
+
+      public void WriteTiles(int[][,] tiles, ModelDelta token) {
+         throw new NotImplementedException();
       }
 
       private int[][,] ReadUncompressedTiles() {
@@ -261,19 +287,49 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
+      public void WritePalettes(short[][]palettes, ModelDelta token) {
+
+      }
+
       public byte[][] ReadBlocks() {
          int blockCount = primaryBlocks;
          // each block is 16 bytes
          int start = ReadPointer(12);
          if (IsSecondary) blockCount = 1024 - blockCount;
+         var attributeStart = ReadPointer(attributeOffset);
+         EstimateBlockCount(ref blockCount, start, attributeStart);
          var data = new byte[blockCount][];
          for (int i = 0; i < blockCount; i++) {
             data[i] = new byte[16];
-            for (int j = 0; j < 16; j++) {
-               data[i][j] = model[start + i * 16 + j];
+            for (int j = 0; j < data[i].Length; j++) {
+               data[i][j] = model[start + i * data[i].Length + j];
             }
          }
          return data;
+      }
+
+      public void WriteBlocks(byte[][] blocks, ModelDelta token) {
+
+      }
+
+      public byte[][] ReadBlockAttributes() {
+         int blockCount = primaryBlocks;
+         int start = ReadPointer(12);
+         if (IsSecondary) blockCount = 1024 - blockCount;
+         var attributeStart = ReadPointer(attributeOffset);
+         EstimateBlockCount(ref blockCount, start, attributeStart);
+         var data = new byte[blockCount][];
+         for (int i = 0; i < blockCount; i++) {
+            data[i] = new byte[BytesPerAttribute];
+            for (int j = 0; j < data[i].Length; j++) {
+               data[i][j] = model[attributeStart + i * data[i].Length + j];
+            }
+         }
+         return data;
+      }
+
+      public void WriteBlockAttributes(byte[][] attributes, ModelDelta token) {
+
       }
 
       public static IPixelViewModel RenderBlock(byte[] block, int[][,] tiles, short[][] palettes) {
@@ -308,7 +364,18 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return canvas;
       }
 
-      private static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, short[][] palettes) {
+      private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart) {
+         var blockLength = 0x10;
+         IFormattedRun run;
+         for (run = model.GetNextRun(blockStart + 1); run.Start < attributeStart; run = model.GetNextRun(run.Start + run.Length)) {
+            if (run is NoInfoRun || run is PointerRun) continue;
+            break;
+         }
+         blockCount = Math.Min(blockCount, (run.Start - blockStart) / blockLength);
+         if (blockCount < 1) blockCount = 1;
+      }
+
+      public static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, short[][] palettes, double scale = 1) {
          var (pal, hFlip, vFlip, tile) = LzTilemapRun.ReadTileData(block, index, 2);
 
          if (pal >= palettes.Length) return new ReadonlyPixelViewModel(8, 8, new short[64]);
@@ -326,7 +393,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
                else tileData[yy * 8 + xx] = palettes[pal][tiles[tile][inX, inY]];
             }
          }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, 1, 1, default), tileData, index < 4 ? (short)-1 : palettes[pal][0]);
+         return new ReadonlyPixelViewModel(8, 8, tileData, index < 4 ? (short)-1 : palettes[pal][0]) { SpriteScale = scale };
       }
    }
 }
