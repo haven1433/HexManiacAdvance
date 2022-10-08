@@ -14,6 +14,6 @@
                AcceptsReturn="True" PreviewKeyDown="PythonTextKeyDown" PreviewMouseWheel="ChangeInputTextSize" />
       <local:AngleButton HorizontalAlignment="Right" Margin="10,0" Grid.Row="1" Content="Run" Direction="Out" Height="24" Command="{hmar:MethodCommand RunPython}"/>
       <TextBox Grid.Row="2" Margin="5" Text="{Binding ResultText}" FontFamily="Consolas" VerticalScrollBarVisibility="Visible"
-               IsReadOnly="True" BorderThickness="0" Background="{DynamicResource Background}" />
+               IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="{DynamicResource Background}" />
    </Grid>
 </UserControl>

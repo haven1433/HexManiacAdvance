@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public class ModelTable : IReadOnlyList<ModelArrayElement> {
@@ -155,7 +156,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (seg.Type == ElementContentType.Integer) {
             return model.ReadMultiByteValue(valueAddress, seg.Length);
          } else {
-            throw new NotImplementedException();
+            return model.ReadMultiByteValue(valueAddress, seg.Length.LimitToRange(0, 3));
          }
       }
 
@@ -310,7 +311,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override bool TryGetMember(GetMemberBinder binder, out object? result) {
          result = null;
          var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == binder.Name);
-         if (seg == null) return base.TryGetMember(binder, out result);
+         if (seg == null) {
+            throw new ArgumentException($"Couldn't find a member named {binder.Name}. Available members include: {", ".Join(table.ElementContent.Select(s => s.Name))}");
+         }
          result = this[seg.Name];
          return true;
       }
@@ -320,6 +323,18 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (seg == null) return base.TrySetMember(binder, value);
          this[seg.Name] = value;
          return true;
+      }
+
+      public override string ToString() {
+         var result = new StringBuilder("{ ");
+         bool first = true;
+         foreach (var seg in table.ElementContent) {
+            if (!first) result.Append(", ");
+            first = false;
+            result.Append(seg.Name + ": " + this[seg.Name]);
+         }
+         result.Append(" }");
+         return result.ToString();
       }
 
       #endregion
