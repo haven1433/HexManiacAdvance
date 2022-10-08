@@ -1,9 +1,11 @@
-﻿namespace HavenSoft.HexManiac.Core.ViewModels.Images {
+﻿using System;
+
+namespace HavenSoft.HexManiac.Core.ViewModels.Images {
    public class CanvasPixelViewModel : ViewModelCore, IPixelViewModel {
       public short Transparent => -1;
       public int PixelWidth { get; }
       public int PixelHeight { get; }
-      public short[] PixelData { get; }
+      public short[] PixelData { get; private set; }
 
       private double spriteScale = 1;
       public double SpriteScale {
@@ -20,6 +22,12 @@
       public CanvasPixelViewModel(int width, int height, short[] data = null) {
          (PixelWidth, PixelHeight) = (width, height);
          PixelData = data ?? new short[width * height];
+      }
+
+      public void Fill(short[] pixelData) {
+         if (pixelData.Length != PixelData.Length) throw new NotSupportedException($"Need {PixelData.Length} pixels to fill, but was given {pixelData.Length} pixels.");
+         PixelData = pixelData;
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       public void Draw(IPixelViewModel foreground, int x, int y) {

@@ -139,11 +139,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzTilesetRun(new TilesetFormat(format.BitsPerPixel, TilesetFormat.Tiles, TilesetFormat.MaxTiles, format.PaletteHint), Model, Start, PointerSources);
 
-      public ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
+      ITilesetRun ITilesetRun.SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => SetPixels(model, token, tiles);
+      public LzTilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
          return SetPixels(this, model, token, tiles, (start, sources) => new LzTilesetRun(TilesetFormat, model, start, sources));
       }
 
-      public static ITilesetRun SetPixels(ITilesetRun run, IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles, Func<int, SortedSpan<int>, ITilesetRun> construct) {
+      public static T SetPixels<T>(T run, IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles, Func<int, SortedSpan<int>, T> construct) where T : ITilesetRun {
          var tileSize = 8 * run.TilesetFormat.BitsPerPixel;
          var data = new byte[tiles.Count * tileSize];
 

@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
@@ -316,21 +317,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class BlockEditor : ViewModelCore {
-      // TODO ability to swap background/foreground layer positions
-      // TODO changing attributes/flip should write to the model and update the loaded maps
       private readonly short[][] palettes;
       private readonly int[][,] tiles;
       private readonly byte[][] blocks;
       private readonly byte[][] blockAttributes;
       private readonly IDictionary<IPixelViewModel, int> indexForTileImage;
-      private readonly IList<IPixelViewModel> images;
+      private readonly CanvasPixelViewModel[] images;
 
-      private int hoverTile, selectedTile;
+      private int hoverTile;
 
-      private bool topLayerInside;
-      public bool TopLayerInside {
-         get => topLayerInside;
-         set => Set(ref topLayerInside, value, arg => EnterTile(images[hoverTile]));
+      private int layerMode;
+      public int LayerMode {
+         get => layerMode;
+         set => Set(ref layerMode, value, arg => EnterTile(images[hoverTile]));
       }
 
       private int blockIndex = 0;
@@ -339,13 +338,57 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => Set(ref blockIndex, value, UpdateBlockUI);
       }
 
-      public BlockEditor(short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
+      private static readonly List<((int, int), (int, int))> bottomLayerTogether, topLayerTogether, twoSets;
+      static BlockEditor() {
+         int p0 = 0, p1 = 24, p2 = 48, p3 = 72, p4 = 96, shortD = 8;
+         bottomLayerTogether = new() {
+            ((p1 - shortD, p1), (p1, p1 - shortD)),
+            ((p3         , p1), (p2, p1 - shortD)),
+            ((p1 - shortD, p2), (p1, p3         )),
+            ((p3         , p2), (p2, p3         )),
+            ((p1         , p0), (p0, p1         )),
+            ((p3 - shortD, p0), (p3, p1         )),
+            ((p1         , p3), (p0, p3 - shortD)),
+            ((p3 - shortD, p3), (p3, p3 - shortD)),
+         };
+         topLayerTogether = new() {
+            ((p1         , p0), (p0, p1         )),
+            ((p3 - shortD, p0), (p3, p1         )),
+            ((p1         , p3), (p0, p3 - shortD)),
+            ((p3 - shortD, p3), (p3, p3 - shortD)),
+            ((p1 - shortD, p1), (p1, p1 - shortD)),
+            ((p3         , p1), (p2, p1 - shortD)),
+            ((p1 - shortD, p2), (p1, p3         )),
+            ((p3         , p2), (p2, p3         )),
+         };
+         twoSets = new() {
+            ((p2 - shortD, p2), (p2, p2 - shortD)),
+            ((p4         , p2), (p3, p2 - shortD)),
+            ((p2 - shortD, p3), (p2, p4         )),
+            ((p4         , p3), (p3, p4         )),
+            ((p0 - shortD, p0), (p0, p0 - shortD)),
+            ((p2         , p0), (p1, p0 - shortD)),
+            ((p0 - shortD, p1), (p0, p2         )),
+            ((p2         , p1), (p1, p2         )),
+         };
+      }
+
+      public event EventHandler<byte[][]> BlocksChanged;
+      public event EventHandler<byte[][]> BlockAttributesChanged;
+
+      private IPixelViewModel tileRender;
+      public IPixelViewModel TileRender => tileRender;
+
+      public BlockEditor(IDataModel listSource, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
          this.palettes = palettes;
          this.tiles = tiles;
          this.blocks = blocks;
          this.blockAttributes = blockAttributes;
-         images = new IPixelViewModel[8];
+         images = new CanvasPixelViewModel[8];
          indexForTileImage = new Dictionary<IPixelViewModel, int>();
+         if (listSource.TryGetList("MapAttributeBehaviors", out var list)) {
+            foreach (var item in list) BehaviorOptions.Add(item);
+         }
       }
 
       public IPixelViewModel LeftTopBack => images[0];
@@ -356,6 +399,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public IPixelViewModel RightTopFront => images[5];
       public IPixelViewModel LeftBottomFront => images[6];
       public IPixelViewModel RightBottomFront => images[7];
+
+      private static readonly string[] imageNames = "LeftTopBack,RightTopBack,LeftBottomBack,RightBottomBack,LeftTopFront,RightTopFront,LeftBottomFront,RightBottomFront".Split(",");
 
       #region FlipV / FlipH
 
@@ -373,16 +418,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (pal, hFlip, vFlip, tile) = LzTilemapRun.ReadTileData(blocks[blockIndex], hoverTile, 2);
          hFlip = !hFlip;
          LzTilemapRun.WriteTileData(blocks[blockIndex], hoverTile, pal, hFlip, vFlip, tile);
-         blocks[blockIndex] = null;
-         UpdateBlockUI();
+         var newImage = BlocksetModel.Read(blocks[blockIndex], hoverTile, tiles, palettes);
+         images[hoverTile].Fill(newImage.PixelData);
+         BlocksChanged?.Invoke(this, blocks);
       }
 
       public void FlipV() {
          var (pal, hFlip, vFlip, tile) = LzTilemapRun.ReadTileData(blocks[blockIndex], hoverTile, 2);
          vFlip = !vFlip;
          LzTilemapRun.WriteTileData(blocks[blockIndex], hoverTile, pal, hFlip, vFlip, tile);
-         blocks[blockIndex] = null;
-         UpdateBlockUI();
+         var newImage = BlocksetModel.Read(blocks[blockIndex], hoverTile, tiles, palettes);
+         images[hoverTile].Fill(newImage.PixelData);
+         BlocksChanged?.Invoke(this, blocks);
       }
 
       #endregion
@@ -390,33 +437,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void EnterTile(IPixelViewModel tile) {
          FlipVVisible = true;
          FlipHVisible = true;
-         int p0 = 0, p1 = 24, p2 = 48, p3 = 72, shortD = 8;
-         var bottomLayerTogether = new Dictionary<IPixelViewModel, ((int, int),(int,int))> {
-            { LeftTopBack,      ((p1 - shortD, p1), (p1, p1 - shortD)) },
-            { LeftTopFront,     ((p1         , p0), (p0, p1         )) },
-            { RightTopBack,     ((p3         , p1), (p2, p1 - shortD)) },
-            { RightTopFront,    ((p3 - shortD, p0), (p3, p1         )) },
-            { LeftBottomBack,   ((p1 - shortD, p2), (p1, p3         )) },
-            { LeftBottomFront,  ((p1         , p3), (p0, p3 - shortD)) },
-            { RightBottomBack,  ((p3         , p2), (p2, p3         )) },
-            { RightBottomFront, ((p3 - shortD, p3), (p3, p3 - shortD)) },
-         };
-         var topLayerTogether = new Dictionary<IPixelViewModel, ((int, int), (int, int))> {
-            { LeftTopFront,     ((p1 - shortD, p1), (p1, p1 - shortD)) },
-            { LeftTopBack,      ((p1         , p0), (p0, p1         )) },
-            { RightTopFront,    ((p3         , p1), (p2, p1 - shortD)) },
-            { RightTopBack,     ((p3 - shortD, p0), (p3, p1         )) },
-            { LeftBottomFront,  ((p1 - shortD, p2), (p1, p3         )) },
-            { LeftBottomBack,   ((p1         , p3), (p0, p3 - shortD)) },
-            { RightBottomFront, ((p3         , p2), (p2, p3         )) },
-            { RightBottomBack,  ((p3 - shortD, p3), (p3, p3 - shortD)) },
-         };
-         ((FlipVLeft, FlipVTop), (FlipHLeft, FlipHTop)) = topLayerInside ? topLayerTogether[tile] : bottomLayerTogether[tile];
+         var index = indexForTileImage[tile];
+         ((FlipVLeft, FlipVTop), (FlipHLeft, FlipHTop)) = layerMode == 0 ? twoSets[index] : layerMode == 1 ? bottomLayerTogether[index] : topLayerTogether[index];
          hoverTile = indexForTileImage[tile];
       }
 
-      public void SelectTile(IPixelViewModel tile) {
-         selectedTile = indexForTileImage[tile];
+      public void DrawOnTile(IPixelViewModel tile) {
+         if (!showTiles) return;
+         var index = indexForTileImage[tile];
+         // TODO edit this part of the block
+      }
+
+      public void GetSelectionFromTile(IPixelViewModel tile) {
+         ShowTiles = true;
+         var index = indexForTileImage[tile];
+         // TODO update our tile/palette/flip selection from this part of the block
       }
 
       public void ExitTiles() {
@@ -427,12 +462,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Attribute UI
 
       private int behavior, layer, terrain, encounter;
-      public int Behavior { get => behavior; set => Set(ref behavior, value, arg => SaveAttributes()); }
-      public int Layer { get => layer; set => Set(ref layer, value, arg => SaveAttributes()); }
-      public int Terrain { get => terrain; set => Set(ref terrain, value, arg => SaveAttributes()); }
-      public int Encounter { get => encounter; set => Set(ref encounter, value, arg => SaveAttributes()); }
+      public int Behavior { get => behavior; set => Set(ref behavior, value, SaveAttributes); }
+      public int Layer { get => layer; set => Set(ref layer, value, SaveAttributes); }
+      public int Terrain { get => terrain; set => Set(ref terrain, value, SaveAttributes); }
+      public int Encounter { get => encounter; set => Set(ref encounter, value, SaveAttributes); }
 
-      public ObservableCollection<string> BehaviorOptions { get; } = new(); // TODO
+      public ObservableCollection<string> BehaviorOptions { get; } = new();
       public ObservableCollection<string> LayerOptions { get; } = new() { "Normal", "Covered", "Split", };
       public ObservableCollection<string> TerrainOptions { get; } = new() { "Normal", "Grass", "Water" };
       public ObservableCollection<string> EncounterOptions { get; } = new() { "Normal", "Grass", "Water" };
@@ -451,7 +486,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          new List<string> { nameof(Behavior), nameof(Layer), nameof(Terrain), nameof(Encounter) }.ForEach(NotifyPropertyChanged);
       }
 
-      private void SaveAttributes() {
+      private void SaveAttributes(int arg = default) {
          var attributes = TileAttribute.Create(blockAttributes[blockIndex]);
          attributes.Behavior = behavior;
          attributes.Layer = layer;
@@ -460,6 +495,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             fr.Encounter = encounter;
          }
          blockAttributes[blockIndex] = attributes.Serialize();
+         BlockAttributesChanged?.Invoke(this, blockAttributes);
       }
 
       #endregion
@@ -471,27 +507,72 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void UpdateBlockUI() {
          if (blockIndex == -1) return;
+
          for (int i = 0; i < 8; i++) {
-            if (images[i] == null) images[i] = BlocksetModel.Read(blocks[blockIndex], i, tiles, palettes, 3);
+            if (images[i] == null) {
+               var image = BlocksetModel.Read(blocks[blockIndex], i, tiles, palettes);
+               images[i] = new CanvasPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData) { SpriteScale = 3 };
+               indexForTileImage[images[i]] = i;
+               NotifyPropertyChanged(imageNames[i]);
+            }
          }
 
          indexForTileImage.Clear();
          for (int i = 0; i < 8; i++) indexForTileImage[images[i]] = i;
 
-         foreach (var property in new[] {
-            nameof(LeftTopBack),
-            nameof(LeftTopFront),
-            nameof(RightTopBack),
-            nameof(RightTopFront),
-            nameof(LeftBottomBack),
-            nameof(LeftBottomFront),
-            nameof(RightBottomBack),
-            nameof(RightBottomFront),
-         }) {
-            NotifyPropertyChanged(property);
-         }
-
          UpdateAttributeUI();
       }
+
+      #region Tile UI
+
+      private bool showTiles;
+      public bool ShowTiles {
+         get => showTiles;
+         set => Set(ref showTiles, value, arg => {
+            if (showTiles && tileRender == null) UpdateTileRender(drawPalette);
+         });
+      }
+
+      private int drawTile, drawPalette;
+      private bool drawFlipV, drawFlipH;
+      public int TileSelectionX {
+         get => (drawTile % 16) * 8;
+         set {
+            var (x, y) = (drawTile % 16, drawTile / 16);
+            x = value / 8;
+            drawTile = y * 16 + x;
+            NotifyPropertyChanged();
+         }
+      }
+      public int TileSelectionY {
+         get => (drawTile / 16) * 8;
+         set {
+            var (x, y) = (drawTile % 16, drawTile / 16);
+            y = value / 8;
+            drawTile = y * 16 + x;
+            NotifyPropertyChanged();
+         }
+      }
+      public int PaletteSelection {
+         get => drawPalette;
+         set => Set(ref drawPalette, value, arg => UpdateTileRender(drawPalette));
+      }
+
+      private void UpdateTileRender(int paletteIndex) {
+         var render = new CanvasPixelViewModel(8 * 16, 8 * 16 * 4, new short[8 * 8 * 1024]) { SpriteScale = 3 };
+         // TODO only render as man rows as we need based on the number if tiles: later tiles may be null if unusused. Probably should make the tiles array shorter rather than ending in nulls
+         var palette = palettes[paletteIndex];
+         for (int y = 0; y < 64; y++) {
+            for (int x = 0; x < 16; x++) {
+               var tile = new ReadonlyPixelViewModel(8, 8, SpriteTool.Render(tiles[y * 16 + x], palette, 0, 0), palette[0]);
+               if (tile == null || tile.PixelData.Length == 0) break;
+               render.Draw(tile, x * 8, y * 8);
+            }
+         }
+         tileRender = render;
+         NotifyPropertyChanged(nameof(TileRender));
+      }
+
+      #endregion
    }
 }

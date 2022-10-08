@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int PixelWidth { get => pixelWidth; private set => Set(ref pixelWidth, value); }
       public int PixelHeight { get => pixelHeight; private set => Set(ref pixelHeight, value); }
 
-      private short[] pixelData;
+      private short[] pixelData; // picture of the map
       public short[] PixelData {
          get {
             if (pixelData == null) FillMapPixelData();
@@ -159,7 +159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Visual Blocks
 
-      private IPixelViewModel blockPixels;
+      private IPixelViewModel blockPixels; // all the available blocks together in one big image
       public IPixelViewModel BlockPixels {
          get {
             if (blockPixels == null) FillBlockPixelData();
@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int[][,] tiles;
       private byte[][] blocks;
       private byte[][] blockAttributes;
-      private IReadOnlyList<IPixelViewModel> blockRenders;
+      private IReadOnlyList<IPixelViewModel> blockRenders; // one image per block
       private IReadOnlyList<IEventModel> eventRenders;
       public IReadOnlyList<IPixelViewModel> BlockRenders {
          get {
@@ -325,7 +325,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
                if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
                if (blockAttributes == null) RefreshBlockAttributeCache(layout, blockModel1, blockModel2);
-               blockEditor = new BlockEditor(palettes, tiles, blocks, blockAttributes);
+               blockEditor = new BlockEditor(model, palettes, tiles, blocks, blockAttributes);
+               blockEditor.BlocksChanged += HandleBlocksChanged;
+               blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
             }
             return blockEditor;
          }
@@ -338,7 +340,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.tokenFactory = () => viewPort.ChangeHistory.CurrentChange;
          (this.group, this.map) = (group, map);
          Transparent = -1;
-         InitTableRef();
+         InitTableRef(!model.IsFRLG());
          Header = new(GetMapModel(), tokenFactory);
          RefreshMapSize();
          PrimaryTiles = PrimaryBlocks = model.IsFRLG() ? 640 : 512;
@@ -348,10 +350,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private string _bld, _layout, _objects, _warps, _scripts, _signposts, _events, _connections, _header, _map;
-      private void InitTableRef() {
-         // TODO R/S/E layout format is different
+      private void InitTableRef(bool isRSE) {
          _bld = $"[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1";
+         if (isRSE) _bld = $"[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1";
          _layout = $"[width:: height:: borderblock<> blockmap<`blm`> blockdata1<{_bld}> blockdata2<{_bld}> borderwidth. borderheight. unused:]1";
+         if (isRSE) _layout = $"[width:: height:: borderblock<> blockmap<`blm`> blockdata1<{_bld}> blockdata2<{_bld}>]1";
          _objects = "[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount";
          _warps = "[x:500 y:500 elevation. warpID. map. bank.]/warps";
          _scripts = "[x:500 y:500 elevation: trigger: index:: script<`xse`>]/scriptCount";
@@ -1368,6 +1371,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void GotoAddress(int address) => viewPort.Goto.Execute(address);
+
+      private void HandleBlocksChanged(object sender, byte[][] blocks) {
+         var layout = GetLayout();
+         var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+         var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+         BlockmapRun.WriteBlocks(tokenFactory(), blockModel1, blockModel2, blocks);
+         this.blocks = null;
+         blockRenders = null;
+         blockPixels = null;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(BlockPixels));
+         NotifyPropertyChanged(nameof(PixelData));
+         NotifyPropertyChanged(nameof(BlockRenders));
+      }
+
+      private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {
+         var layout = GetLayout();
+         var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
+         var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+         BlockmapRun.WriteBlockAttributes(tokenFactory(), blockModel1, blockModel2, attributes);
+      }
 
       public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;

@@ -35,7 +35,7 @@
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
-               <RowDefinition Height="Auto" MinHeight="96"/>
+               <RowDefinition Height="Auto" MinHeight="112"/>
                <RowDefinition />
             </Grid.RowDefinitions>
             <CheckBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,10,35"
@@ -534,6 +534,15 @@
             <TranslateTransform X="{Binding HighlightCursorX, Mode=OneWay}" Y="{Binding HighlightCursorY, Mode=OneWay}"/>
          </Rectangle.RenderTransform>
       </Rectangle>
+
+      <!-- Tile Panel -->
+      <DockPanel DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" Name="TilePanel" HorizontalAlignment="Left"
+            Background="{DynamicResource Background}" Visibility="{Binding ShowTiles, Converter={StaticResource BoolToVisibility}}" Width="400">
+         <ScrollViewer Name="TileViewer">
+            <local:PixelImage DataContext="{Binding TileRender}" MouseDown="TilesDown" />
+            <!-- TODO selection rectangle, getting offset from TileSelectionX/TileSelectionY -->
+         </ScrollViewer>
+      </DockPanel>
 
       <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5" Panel.ZIndex="2">

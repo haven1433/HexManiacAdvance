@@ -313,6 +313,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          } else if (e.PropertyName == nameof(BlockMapViewModel.FullName)) {
             NotifyPropertyChanged(nameof(Name));
+         } else if (e.PropertyName == nameof(BlockMapViewModel.BlockPixels)) {
+            NotifyPropertyChanged(nameof(Blocks));
          }
       }
 

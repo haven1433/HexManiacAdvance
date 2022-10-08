@@ -5,6 +5,7 @@
              xmlns:res="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
              >
    <Grid>
+      <!-- TODO add button for showing tiles -->
       <Grid.ColumnDefinitions>
          <ColumnDefinition />
          <ColumnDefinition Width="Auto" />
@@ -21,7 +22,7 @@
             <RowDefinition />
          </Grid.RowDefinitions>
          <local:AngleBorder Direction="Left" Content="Behavior:" />
-         <local:AngleTextBox Direction="Out" Grid.Column="1" TextBinding="{Binding Behavior, UpdateSourceTrigger=PropertyChanged}" Margin="2" />
+         <local:AngleComboBox Direction="Out" Grid.Column="1" SelectedIndex="{Binding Behavior}" ItemsSource="{Binding BehaviorOptions}" Margin="2" />
          <local:AngleBorder Direction="Left" Content="Layer:" Grid.Row="1" />
          <local:AngleComboBox Direction="Out" Grid.Row="1" Grid.Column="1" SelectedIndex="{Binding Layer}" ItemsSource="{Binding LayerOptions}" Margin="2" />
          <local:AngleBorder Direction="Left" Content="Terrain:" Grid.Row="2" />
@@ -29,41 +30,123 @@
          <local:AngleBorder Direction="Left" Content="Encounter:" Grid.Row="3" />
          <local:AngleComboBox Direction="Out" Grid.Row="3" Grid.Column="1" SelectedIndex="{Binding Encounter}" ItemsSource="{Binding EncounterOptions}" Margin="2" />
       </Grid>
-      <Canvas Grid.Column="1" Width="96" Height="96" Background="{DynamicResource Background}" MouseLeave="MouseExitTiles">
-         <Canvas.Resources>
-            <Style TargetType="{x:Type local:PixelImage}">
-               <Setter Property="UseTrueTransparency" Value="True" />
-            </Style>
-            <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-               <Setter Property="BorderBrush" Value="Transparent" />
-               <Setter Property="BorderThickness" Value="1" />
-               <Setter Property="Background" Value="Transparent" />
-               <Setter Property="Width" Value="8" />
-               <Setter Property="Height" Value="8" />
-               <Setter Property="Padding" Value="0" />
-            </Style>
-            <Style TargetType="Path">
-               <Setter Property="Fill" Value="{DynamicResource Secondary}" />
-               <Setter Property="Stretch" Value="Fill" />
-            </Style>
-         </Canvas.Resources>
+      <ContentControl Grid.Column="1" Width="112" Height="112" MouseLeave="MouseExitTiles" MouseWheel="WheelOverImage">
+         <ContentControl.Template>
+            <ControlTemplate TargetType="ContentControl">
+               <Canvas Width="96" Height="96" Margin="8" ClipToBounds="False" Background="{DynamicResource Background}">
+                  <Canvas.Resources>
+                     <Style TargetType="{x:Type local:PixelImage}">
+                        <Setter Property="UseTrueTransparency" Value="True" />
+                     </Style>
+                     <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                        <Setter Property="BorderBrush" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Width" Value="8" />
+                        <Setter Property="Height" Value="8" />
+                        <Setter Property="Padding" Value="0" />
+                     </Style>
+                     <Style TargetType="Path">
+                        <Setter Property="Fill" Value="{DynamicResource Secondary}" />
+                        <Setter Property="Stretch" Value="Fill" />
+                     </Style>
+                  </Canvas.Resources>
 
-         <Button Width="24" Canvas.Left="{Binding FlipHLeft}" Canvas.Top="{Binding FlipHTop}" Command="{res:MethodCommand FlipH}" Visibility="{Binding FlipHVisible, Converter={StaticResource BoolToVisibility}}">
-            <Path Data="{res:Icon ArrowsLeftRight}" />
-         </Button>
-         <Button Height="24" Canvas.Left="{Binding FlipVLeft}" Canvas.Top="{Binding FlipVTop}" Command="{res:MethodCommand FlipV}" Visibility="{Binding FlipVVisible, Converter={StaticResource BoolToVisibility}}">
-            <Path Data="{res:Icon ArrowsUpDown}" />
-         </Button>
+                  <Button Width="24" Canvas.Left="{Binding FlipHLeft}" Canvas.Top="{Binding FlipHTop}" Command="{res:MethodCommand FlipH}" Visibility="{Binding FlipHVisible, Converter={StaticResource BoolToVisibility}}">
+                     <Path Data="{res:Icon ArrowsLeftRight}" />
+                  </Button>
+                  <Button Height="24" Canvas.Left="{Binding FlipVLeft}" Canvas.Top="{Binding FlipVTop}" Command="{res:MethodCommand FlipV}" Visibility="{Binding FlipVVisible, Converter={StaticResource BoolToVisibility}}">
+                     <Path Data="{res:Icon ArrowsUpDown}" />
+                  </Button>
 
-         <!-- TODO animate when TopLayerInside changes -->
-         <local:PixelImage DataContext="{Binding LeftTopBack}" Canvas.Top="24" Canvas.Left="24" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding LeftTopFront}" Canvas.Top="0" Canvas.Left="0" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding RightTopBack}" Canvas.Top="24" Canvas.Left="48" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding RightTopFront}" Canvas.Top="0" Canvas.Left="72" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding LeftBottomBack}" Canvas.Top="48" Canvas.Left="24" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding LeftBottomFront}" Canvas.Top="72" Canvas.Left="0" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding RightBottomBack}" Canvas.Top="48" Canvas.Left="48" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-         <local:PixelImage DataContext="{Binding RightBottomFront}" Canvas.Top="72" Canvas.Left="72" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" />
-      </Canvas>
+                  <local:PixelImage x:Name="LeftTopBack"      DataContext="{Binding LeftTopBack}"      Canvas.Top="48" Canvas.Left="48" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="LeftTopFront"     DataContext="{Binding LeftTopFront}"     Canvas.Top="0"  Canvas.Left="0"  MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="RightTopBack"     DataContext="{Binding RightTopBack}"     Canvas.Top="48" Canvas.Left="72" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="RightTopFront"    DataContext="{Binding RightTopFront}"    Canvas.Top="0"  Canvas.Left="24" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="LeftBottomBack"   DataContext="{Binding LeftBottomBack}"   Canvas.Top="72" Canvas.Left="48" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="LeftBottomFront"  DataContext="{Binding LeftBottomFront}"  Canvas.Top="24" Canvas.Left="0"  MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="RightBottomBack"  DataContext="{Binding RightBottomBack}"  Canvas.Top="72" Canvas.Left="72" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+                  <local:PixelImage x:Name="RightBottomFront" DataContext="{Binding RightBottomFront}" Canvas.Top="24" Canvas.Left="24" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+               </Canvas>
+               <ControlTemplate.Resources>
+                  <Storyboard x:Key="AnimateToSplitView">
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopBack"      Storyboard.TargetProperty="(Canvas.Top)"  To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopBack"      Storyboard.TargetProperty="(Canvas.Left)" To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopFront"     Storyboard.TargetProperty="(Canvas.Top)"  To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopFront"     Storyboard.TargetProperty="(Canvas.Left)" To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopBack"     Storyboard.TargetProperty="(Canvas.Top)"  To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopBack"     Storyboard.TargetProperty="(Canvas.Left)" To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopFront"    Storyboard.TargetProperty="(Canvas.Top)"  To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopFront"    Storyboard.TargetProperty="(Canvas.Left)" To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomBack"   Storyboard.TargetProperty="(Canvas.Top)"  To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomBack"   Storyboard.TargetProperty="(Canvas.Left)" To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomFront"  Storyboard.TargetProperty="(Canvas.Top)"  To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomFront"  Storyboard.TargetProperty="(Canvas.Left)" To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomBack"  Storyboard.TargetProperty="(Canvas.Top)"  To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomBack"  Storyboard.TargetProperty="(Canvas.Left)" To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Top)"  To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Left)" To="24" />
+                  </Storyboard>
+                  <Storyboard x:Key="AnimateToBackView">
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopBack"      Storyboard.TargetProperty="(Canvas.Top)"  To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopBack"      Storyboard.TargetProperty="(Canvas.Left)" To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopFront"     Storyboard.TargetProperty="(Canvas.Top)"  To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopFront"     Storyboard.TargetProperty="(Canvas.Left)" To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopBack"     Storyboard.TargetProperty="(Canvas.Top)"  To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopBack"     Storyboard.TargetProperty="(Canvas.Left)" To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopFront"    Storyboard.TargetProperty="(Canvas.Top)"  To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopFront"    Storyboard.TargetProperty="(Canvas.Left)" To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomBack"   Storyboard.TargetProperty="(Canvas.Top)"  To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomBack"   Storyboard.TargetProperty="(Canvas.Left)" To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomFront"  Storyboard.TargetProperty="(Canvas.Top)"  To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomFront"  Storyboard.TargetProperty="(Canvas.Left)" To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomBack"  Storyboard.TargetProperty="(Canvas.Top)"  To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomBack"  Storyboard.TargetProperty="(Canvas.Left)" To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Top)"  To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Left)" To="72" />
+                  </Storyboard>
+                  <Storyboard x:Key="AnimateToFrontView">
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopBack"      Storyboard.TargetProperty="(Canvas.Top)"  To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopBack"      Storyboard.TargetProperty="(Canvas.Left)" To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopFront"     Storyboard.TargetProperty="(Canvas.Top)"  To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftTopFront"     Storyboard.TargetProperty="(Canvas.Left)" To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopBack"     Storyboard.TargetProperty="(Canvas.Top)"  To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopBack"     Storyboard.TargetProperty="(Canvas.Left)" To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopFront"    Storyboard.TargetProperty="(Canvas.Top)"  To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightTopFront"    Storyboard.TargetProperty="(Canvas.Left)" To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomBack"   Storyboard.TargetProperty="(Canvas.Top)"  To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomBack"   Storyboard.TargetProperty="(Canvas.Left)" To="0"  />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomFront"  Storyboard.TargetProperty="(Canvas.Top)"  To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="LeftBottomFront"  Storyboard.TargetProperty="(Canvas.Left)" To="24" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomBack"  Storyboard.TargetProperty="(Canvas.Top)"  To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomBack"  Storyboard.TargetProperty="(Canvas.Left)" To="72" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Top)"  To="48" />
+                     <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Left)" To="48" />
+                  </Storyboard>
+               </ControlTemplate.Resources>
+               <ControlTemplate.Triggers>
+                  <DataTrigger Binding="{Binding LayerMode}" Value="0">
+                     <DataTrigger.EnterActions>
+                        <BeginStoryboard Name="AnimateToSplitView" Storyboard="{StaticResource AnimateToSplitView}" />
+                        <RemoveStoryboard BeginStoryboardName="AnimateToFrontView" />
+                     </DataTrigger.EnterActions>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding LayerMode}" Value="1">
+                     <DataTrigger.EnterActions>
+                        <BeginStoryboard Name="AnimateToBackView" Storyboard="{StaticResource AnimateToBackView}" />
+                        <RemoveStoryboard BeginStoryboardName="AnimateToSplitView" />
+                     </DataTrigger.EnterActions>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding LayerMode}" Value="2">
+                     <DataTrigger.EnterActions>
+                        <BeginStoryboard Name="AnimateToFrontView" Storyboard="{StaticResource AnimateToFrontView}" />
+                        <RemoveStoryboard BeginStoryboardName="AnimateToBackView" />
+                     </DataTrigger.EnterActions>
+                  </DataTrigger>
+               </ControlTemplate.Triggers>
+            </ControlTemplate>
+         </ContentControl.Template>
+      </ContentControl>
+
    </Grid>
 </UserControl>
