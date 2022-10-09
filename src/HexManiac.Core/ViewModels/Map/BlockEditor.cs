@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
@@ -335,7 +336,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int blockIndex = 0;
       public int BlockIndex {
          get => blockIndex;
-         set => Set(ref blockIndex, value, UpdateBlockUI);
+         set => Set(ref blockIndex, value.LimitToRange(0, blocks.Length - 1), UpdateBlockUI);
       }
 
       private static readonly List<((int, int), (int, int))> bottomLayerTogether, topLayerTogether, twoSets;
@@ -389,6 +390,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (listSource.TryGetList("MapAttributeBehaviors", out var list)) {
             foreach (var item in list) BehaviorOptions.Add(item);
          }
+         foreach (var palette in palettes) Palettes.Add(new ReadonlyPaletteCollection(palette));
       }
 
       public IPixelViewModel LeftTopBack => images[0];
@@ -443,15 +445,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DrawOnTile(IPixelViewModel tile) {
-         if (!showTiles) return;
+         if (!showTiles) {
+            ShowTiles = true;
+            return;
+         }
          var index = indexForTileImage[tile];
-         // TODO edit this part of the block
+         LzTilemapRun.WriteTileData(blocks[blockIndex], index, drawPalette, drawFlipH, drawFlipV, drawTile);
+         var newImage = BlocksetModel.Read(blocks[blockIndex], index, tiles, palettes);
+         images[hoverTile].Fill(newImage.PixelData);
+         BlocksChanged?.Invoke(this, blocks);
       }
 
-      public void GetSelectionFromTile(IPixelViewModel tile) {
+      public void GetSelectionFromTile(IPixelViewModel tileImage) {
          ShowTiles = true;
-         var index = indexForTileImage[tile];
-         // TODO update our tile/palette/flip selection from this part of the block
+         var index = indexForTileImage[tileImage];
+         var (pal, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(blocks[blockIndex], index, 2);
+         drawTile = tileIndex;
+         drawFlipV = vFlip;
+         drawFlipH = hFlip;
+         drawPalette = pal;
+         NotifyPropertiesChanged(nameof(TileSelectionX), nameof(TileSelectionY), nameof(PaletteSelection));
       }
 
       public void ExitTiles() {
@@ -525,6 +538,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Tile UI
 
+      const int TilesPerRow = 16, PixelPerTile = 24;
+
       private bool showTiles;
       public bool ShowTiles {
          get => showTiles;
@@ -533,24 +548,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          });
       }
 
+      public void HideTiles() => ShowTiles = false;
+
       private int drawTile, drawPalette;
       private bool drawFlipV, drawFlipH;
       public int TileSelectionX {
-         get => (drawTile % 16) * 8;
+         get => (drawTile % TilesPerRow) * PixelPerTile;
          set {
-            var (x, y) = (drawTile % 16, drawTile / 16);
-            x = value / 8;
-            drawTile = y * 16 + x;
+            var (x, y) = (drawTile % TilesPerRow, drawTile / TilesPerRow);
+            x = value / PixelPerTile;
+            drawTile = y * TilesPerRow + x;
+            if (drawTile >= tiles.Length) drawTile = tiles.Length - 1;
             NotifyPropertyChanged();
+            drawFlipH = drawFlipV = false;
          }
       }
       public int TileSelectionY {
-         get => (drawTile / 16) * 8;
+         get => (drawTile / TilesPerRow) * PixelPerTile;
          set {
-            var (x, y) = (drawTile % 16, drawTile / 16);
-            y = value / 8;
-            drawTile = y * 16 + x;
+            var (x, y) = (drawTile % TilesPerRow, drawTile / TilesPerRow);
+            y = value / PixelPerTile;
+            drawTile = y * TilesPerRow + x;
+            if (drawTile >= tiles.Length) {
+               drawTile = tiles.Length - 1;
+               NotifyPropertiesChanged(nameof(TileSelectionX));
+            }
             NotifyPropertyChanged();
+            drawFlipH = drawFlipV = false;
          }
       }
       public int PaletteSelection {
@@ -558,9 +582,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => Set(ref drawPalette, value, arg => UpdateTileRender(drawPalette));
       }
 
+      public ObservableCollection<ReadonlyPaletteCollection> Palettes { get; } = new();
+
       private void UpdateTileRender(int paletteIndex) {
-         var render = new CanvasPixelViewModel(8 * 16, 8 * 16 * 4, new short[8 * 8 * 1024]) { SpriteScale = 3 };
-         // TODO only render as man rows as we need based on the number if tiles: later tiles may be null if unusused. Probably should make the tiles array shorter rather than ending in nulls
+         var tileLines = (tiles.Length + TilesPerRow - 1) / TilesPerRow;
+         var pixelData = new short[8 * 8 * TilesPerRow * tileLines];
+         for (int i = 0; i < pixelData.Length; i++) pixelData[i] = short.MinValue;
+         var render = new CanvasPixelViewModel(8 * 16, 8 * 16 * 4, pixelData) { SpriteScale = 3, Transparent = short.MinValue };
          var palette = palettes[paletteIndex];
          for (int y = 0; y < 64; y++) {
             for (int x = 0; x < 16; x++) {

@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                DrawMultipleTiles = false;
                BlockEditorVisible = true;
                PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
+               drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
                NotifyPropertyChanged(nameof(HighlightBlockX));
                NotifyPropertyChanged(nameof(HighlightBlockY));
                NotifyPropertyChanged(nameof(HighlightBlockSize));
@@ -259,6 +260,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.CollisionHighlight = -1;
             }
             primaryMap = map;
+            primaryMap.BlockEditor.BlockIndex = drawBlockIndex;
             NotifyPropertyChanged(nameof(PrimaryMap));
             if (primaryMap != null) {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
@@ -368,6 +370,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DragDown(double x, double y) {
+         PrimaryMap.BlockEditor.ShowTiles = false;
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
 
@@ -392,6 +395,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private PrimaryInteractionType interactionType;
       public void PrimaryDown(double x, double y, int clickCount) {
+         PrimaryMap.BlockEditor.ShowTiles = false;
          var map = MapUnderCursor(x, y);
          if (map == null) {
             interactionType = PrimaryInteractionType.None;
@@ -558,6 +562,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void SelectDown(double x, double y) {
+         PrimaryMap.BlockEditor.ShowTiles = false;
          var map = MapUnderCursor(x, y);
          if (map == null) return;
          PrimaryMap = map;

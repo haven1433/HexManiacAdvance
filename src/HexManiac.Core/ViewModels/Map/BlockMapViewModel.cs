@@ -385,6 +385,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = null;
          eventRenders = null;
          RefreshMapSize();
+         if (blockEditor != null) {
+            var selection = blockEditor.BlockIndex;
+            blockEditor = null;
+            NotifyPropertyChanged(nameof(BlockEditor));
+            BlockEditor.BlockIndex = selection;
+         }
+         NotifyPropertyChanged(nameof(BlockRenders));
+         NotifyPropertyChanged(nameof(BlockPixels));
       }
 
       public void RedrawEvents() {

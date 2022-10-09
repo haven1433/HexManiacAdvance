@@ -140,8 +140,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void TilesDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
-         var vm = (BlockEditor)element.DataContext;
-         // TODO set vm.TileSelectionX and vm.TileSelectionY
+         var vm = ViewModel.PrimaryMap.BlockEditor;
+         var p = e.GetPosition(element);
+         vm.TileSelectionY = (int)(p.Y * vm.TileRender.SpriteScale);
+         vm.TileSelectionX = (int)(p.X * vm.TileRender.SpriteScale);
       }
 
       private Point GetCoordinates(FrameworkElement element, MouseEventArgs e) {

@@ -2,7 +2,7 @@
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Images {
    public class CanvasPixelViewModel : ViewModelCore, IPixelViewModel {
-      public short Transparent => -1;
+      public short Transparent { get; init; } = -1;
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public short[] PixelData { get; private set; }

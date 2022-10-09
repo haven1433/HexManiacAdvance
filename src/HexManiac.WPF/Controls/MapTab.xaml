@@ -5,6 +5,7 @@
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
+             xmlns:images="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Images;assembly=HexManiac.Core"
              Focusable="True">
    <UserControl.Resources>
       <local:EqualityToBooleanConverter x:Key="Equality" />
@@ -536,13 +537,27 @@
       </Rectangle>
 
       <!-- Tile Panel -->
-      <DockPanel DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" Name="TilePanel" HorizontalAlignment="Left"
-            Background="{DynamicResource Background}" Visibility="{Binding ShowTiles, Converter={StaticResource BoolToVisibility}}" Width="400">
-         <ScrollViewer Name="TileViewer">
-            <local:PixelImage DataContext="{Binding TileRender}" MouseDown="TilesDown" />
-            <!-- TODO selection rectangle, getting offset from TileSelectionX/TileSelectionY -->
-         </ScrollViewer>
-      </DockPanel>
+      <Border DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
+              BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
+              Background="{DynamicResource Background}" Visibility="{Binding ShowTiles, Converter={StaticResource BoolToVisibility}}">
+         <DockPanel Name="TilePanel" Width="400">
+            <Button Command="{res:MethodCommand HideTiles}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
+               <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+            </Button>
+            <ComboBox DockPanel.Dock="Top" HorizontalAlignment="Center" ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
+            <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
+               <Grid HorizontalAlignment="Left">
+                  <local:PixelImage x:Name="TileImage" DataContext="{Binding TileRender}" MouseDown="TilesDown" TransparentBrush="{DynamicResource Background}" />
+                  <Rectangle Name="TileSelectionRect" StrokeThickness="1" Opacity=".5" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top"
+                        Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}" IsHitTestVisible="False">
+                     <Rectangle.RenderTransform>
+                        <TranslateTransform X="{Binding TileSelectionX}" Y="{Binding TileSelectionY}" />
+                     </Rectangle.RenderTransform>
+                  </Rectangle>
+               </Grid>
+            </ScrollViewer>
+         </DockPanel>
+      </Border>
 
       <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5" Panel.ZIndex="2">

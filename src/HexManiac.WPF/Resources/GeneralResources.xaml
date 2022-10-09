@@ -1,7 +1,9 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:hsc="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
-                    xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources">
+                    xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
+                    xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
+                    xmlns:images="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Images;assembly=HexManiac.Core">
    <hsc:BooleanToVisibilityConverter x:Key="BoolToVisibility" />
    <hsc:PaletteColorConverter x:Key="PaletteColorConverter"/>
    <hsc:TilePaletteHueConverter x:Key="TilePaletteHueConverter"/>
@@ -964,4 +966,26 @@
          </Setter.Value>
       </Setter>
    </Style>
+
+   <!-- Data Templates -->
+   <DataTemplate DataType="{x:Type tools:ReadonlyPaletteCollection}">
+      <ItemsControl SnapsToDevicePixels="True" ItemsSource="{Binding Colors}">
+         <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+               <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}" HorizontalAlignment="Center"/>
+            </ItemsPanelTemplate>
+         </ItemsControl.ItemsPanel>
+         <ItemsControl.ItemTemplate>
+            <DataTemplate>
+               <Rectangle Margin="1" Fill="{Binding Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
+            </DataTemplate>
+         </ItemsControl.ItemTemplate>
+      </ItemsControl>
+   </DataTemplate>
+   <DataTemplate DataType="{x:Type images:ReadonlyPixelViewModel}">
+      <hsc:PixelImage />
+   </DataTemplate>
+   <DataTemplate DataType="{x:Type images:CanvasPixelViewModel}">
+      <hsc:PixelImage />
+   </DataTemplate>
 </ResourceDictionary>

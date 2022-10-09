@@ -67,6 +67,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          PropertyChanged.Notify(this, oldValue, propertyName);
       }
 
+      protected void NotifyPropertiesChanged(params string[] propertyNames) {
+         foreach (var name in propertyNames) NotifyPropertyChanged(name);
+      }
+
       protected void NotifyPropertyChanged(PropertyChangedEventArgs args) {
          Debug.Assert(GetType().GetProperty(args.PropertyName) != null, $"Expected {args.PropertyName} to be a property on type {GetType().Name}!");
          PropertyChanged.Notify(this, args);
