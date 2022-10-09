@@ -313,6 +313,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       public event EventHandler NeighborsChanged;
+      public event EventHandler AutoscrollTiles;
 
       private BlockEditor blockEditor;
       public BlockEditor BlockEditor {
@@ -328,6 +329,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                blockEditor = new BlockEditor(model, palettes, tiles, blocks, blockAttributes);
                blockEditor.BlocksChanged += HandleBlocksChanged;
                blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
+               BlockEditor.AutoscrollTiles += HandleAutoscrollTiles;
             }
             return blockEditor;
          }
@@ -387,6 +389,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          RefreshMapSize();
          if (blockEditor != null) {
             var selection = blockEditor.BlockIndex;
+            blockEditor.BlocksChanged -= HandleBlocksChanged;
+            blockEditor.BlockAttributesChanged -= HandleBlockAttributesChanged;
+            BlockEditor.AutoscrollTiles -= HandleAutoscrollTiles;
             blockEditor = null;
             NotifyPropertyChanged(nameof(BlockEditor));
             BlockEditor.BlockIndex = selection;
@@ -1400,6 +1405,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          BlockmapRun.WriteBlockAttributes(tokenFactory(), blockModel1, blockModel2, attributes);
       }
+
+      private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);
 
       public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;

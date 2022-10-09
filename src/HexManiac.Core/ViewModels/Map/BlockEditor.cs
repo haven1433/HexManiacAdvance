@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Linq;
+using System.Windows;
 
 /*
       #define MB_NORMAL 0x00
@@ -374,6 +375,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          };
       }
 
+      public event EventHandler AutoscrollTiles;
       public event EventHandler<byte[][]> BlocksChanged;
       public event EventHandler<byte[][]> BlockAttributesChanged;
 
@@ -445,10 +447,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DrawOnTile(IPixelViewModel tile) {
-         if (!showTiles) {
-            ShowTiles = true;
-            return;
-         }
+         if (!showTiles) return;
          var index = indexForTileImage[tile];
          LzTilemapRun.WriteTileData(blocks[blockIndex], index, drawPalette, drawFlipH, drawFlipV, drawTile);
          var newImage = BlocksetModel.Read(blocks[blockIndex], index, tiles, palettes);
@@ -465,6 +464,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          drawFlipH = hFlip;
          drawPalette = pal;
          NotifyPropertiesChanged(nameof(TileSelectionX), nameof(TileSelectionY), nameof(PaletteSelection));
+         AutoscrollTiles.Raise(this);
+         AnimateTileSelection();
       }
 
       public void ExitTiles() {
@@ -549,6 +550,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void HideTiles() => ShowTiles = false;
+
+      // hack: a DataTrigger can watch this property and start an animation whenever this property changes.
+      //       the value doesn't matter, just the change
+      private bool tileSelectionToggle;
+      public bool TileSelectionToggle { get => tileSelectionToggle; set => Set(ref tileSelectionToggle, value); }
+      private void AnimateTileSelection() => TileSelectionToggle = !TileSelectionToggle;
 
       private int drawTile, drawPalette;
       private bool drawFlipV, drawFlipH;

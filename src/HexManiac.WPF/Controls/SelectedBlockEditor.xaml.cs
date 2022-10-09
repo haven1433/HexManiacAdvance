@@ -1,12 +1,15 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using System;
 using System.Windows;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class SelectedBlockEditor {
       private BlockEditor ViewModel => (BlockEditor)DataContext;
-      public SelectedBlockEditor() => InitializeComponent();
+      public SelectedBlockEditor() {
+         InitializeComponent();
+      }
 
       private void WheelOverImage(object sender, MouseWheelEventArgs e) {
          ViewModel.LayerMode = (ViewModel.LayerMode + 1) % 3;

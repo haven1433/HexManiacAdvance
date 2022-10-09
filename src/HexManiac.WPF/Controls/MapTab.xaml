@@ -37,9 +37,9 @@
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
                <RowDefinition Height="Auto" MinHeight="112"/>
-               <RowDefinition />
+               <RowDefinition Height="75"/>
             </Grid.RowDefinitions>
-            <CheckBox HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10,10,10,35"
+            <CheckBox HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,10,10,35"
                   Content="Automatic Movement Permission" IsChecked="{Binding AutoUpdateCollision}" Grid.Row="1">
                <CheckBox.ToolTip>
                   <TextBlock>
@@ -49,13 +49,17 @@
                   </TextBlock>
                </CheckBox.ToolTip>
             </CheckBox>
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="5,10" Grid.Row="1">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,10" Grid.Row="1">
                <local:AngleBorder Direction="Left" VerticalAlignment="Stretch">
                   <TextBlock Text="Movement Permissions:" Margin="2,0" Height="30"/>
                </local:AngleBorder>
                <local:AngleComboBox Direction="Out" Width="50" Height="20"
                   ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
+            <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,35,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
+               <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Tiles"
+                   Direction="Right" Padding="2,0" IsChecked="{Binding ShowTiles}" />
+            </Decorator>
             <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Top">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
             </Decorator>
@@ -539,8 +543,8 @@
       <!-- Tile Panel -->
       <Border DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
-              Background="{DynamicResource Background}" Visibility="{Binding ShowTiles, Converter={StaticResource BoolToVisibility}}">
-         <DockPanel Name="TilePanel" Width="400">
+              Background="{DynamicResource Background}">
+         <DockPanel Name="TilePanel" Width="400" HorizontalAlignment="Right">
             <Button Command="{res:MethodCommand HideTiles}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
             </Button>
@@ -548,15 +552,67 @@
             <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
                <Grid HorizontalAlignment="Left">
                   <local:PixelImage x:Name="TileImage" DataContext="{Binding TileRender}" MouseDown="TilesDown" TransparentBrush="{DynamicResource Background}" />
-                  <Rectangle Name="TileSelectionRect" StrokeThickness="1" Opacity=".5" Width="24" Height="24" HorizontalAlignment="Left" VerticalAlignment="Top"
-                        Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}" IsHitTestVisible="False">
-                     <Rectangle.RenderTransform>
-                        <TranslateTransform X="{Binding TileSelectionX}" Y="{Binding TileSelectionY}" />
-                     </Rectangle.RenderTransform>
-                  </Rectangle>
+                  <ContentControl HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
+                     <ContentControl.Template>
+                        <ControlTemplate>
+                           <Rectangle StrokeThickness="1" Opacity=".5" Width="24" Height="24" RenderTransformOrigin=".5,.5"
+                              Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}">
+                              <Rectangle.RenderTransform>
+                                 <TransformGroup>
+                                    <ScaleTransform x:Name="SelectionScale" />
+                                    <TranslateTransform X="{Binding TileSelectionX}" Y="{Binding TileSelectionY}" />
+                                 </TransformGroup>
+                              </Rectangle.RenderTransform>
+                           </Rectangle>
+                           <ControlTemplate.Triggers>
+                              <DataTrigger Binding="{Binding TileSelectionToggle}" Value="True">
+                                 <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                       <Storyboard>
+                                          <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleX" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                          <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleY" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                       </Storyboard>
+                                    </BeginStoryboard>
+                                 </DataTrigger.EnterActions>
+                                 <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                       <Storyboard>
+                                          <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleX" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                          <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleY" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                       </Storyboard>
+                                    </BeginStoryboard>
+                                 </DataTrigger.ExitActions>
+                              </DataTrigger>
+                           </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                     </ContentControl.Template>
+                  </ContentControl>
                </Grid>
             </ScrollViewer>
          </DockPanel>
+         <Border.Style>
+            <Style TargetType="Border">
+               <Setter Property="Width" Value="0" />
+               <Style.Triggers>
+                  <DataTrigger Binding="{Binding ShowTiles}" Value="True">
+                     <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.3" Storyboard.TargetProperty="Width" To="402" />
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </DataTrigger.EnterActions>
+                     <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.3" Storyboard.TargetProperty="Width" To="0" />
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </DataTrigger.ExitActions>
+                  </DataTrigger>
+               </Style.Triggers>
+            </Style>
+         </Border.Style>
       </Border>
 
       <!-- Toolbar -->

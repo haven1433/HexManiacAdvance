@@ -209,6 +209,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      public event EventHandler AutoscrollTiles;
+
+      #region Constructor
+
       public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, out MapEditorViewModel editor) {
          editor = null;
          var maps = viewPort.Model.GetTable(HardcodeTablesModel.MapBankTable);
@@ -230,6 +234,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
       }
+
+      #endregion
 
       public void SwitchToViewPortOnNextBackNavigation() {
          backStack.Add(-1);
@@ -258,6 +264,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.NeighborsChanged -= PrimaryMapNeighborsChanged;
                primaryMap.PropertyChanged -= PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = -1;
+               primaryMap.AutoscrollTiles -= HandleAutoscrollTiles;
             }
             primaryMap = map;
             primaryMap.BlockEditor.BlockIndex = drawBlockIndex;
@@ -266,6 +273,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.NeighborsChanged += PrimaryMapNeighborsChanged;
                primaryMap.PropertyChanged += PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = collisionIndex;
+               primaryMap.AutoscrollTiles += HandleAutoscrollTiles;
             }
             NotifyPropertyChanged(nameof(Blocks));
             NotifyPropertyChanged(nameof(Name));
@@ -847,6 +855,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (blockset1, blockset2) = (address1, address2);
          return combined;
       }
+
+      private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);
 
       private int GetPreferredCollision(int tile) {
          if (preferredCollisionsPrimary == null) CountCollisionForBlocks();

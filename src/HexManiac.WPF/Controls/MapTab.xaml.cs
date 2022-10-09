@@ -25,11 +25,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (oldContext != null) {
             oldContext.PropertyChanged -= HandleContextPropertyChanged;
             oldContext.AutoscrollBlocks -= AutoscrollBlocks;
+            oldContext.AutoscrollTiles -= AutoscrollTiles;
          }
          var newContext = e.NewValue as MapEditorViewModel;
          if (newContext != null) {
             newContext.PropertyChanged += HandleContextPropertyChanged;
             newContext.AutoscrollBlocks += AutoscrollBlocks;
+            newContext.AutoscrollTiles += AutoscrollTiles;
          }
       }
 
@@ -42,6 +44,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var blockHeight = (ViewModel.Blocks.PixelHeight / 16.0) * 8 - 16;
          var scrollPercent = ((ViewModel.DrawBlockIndex - 8) / blockHeight).LimitToRange(0, 1);
          BlockViewer.ScrollToVerticalOffset(scrollRange * scrollPercent);
+      }
+
+      private void AutoscrollTiles(object sender, EventArgs e) {
+         var scrollRange = TileViewer.ExtentHeight - TileViewer.ViewportHeight;
+         var tileHeight = ViewModel.PrimaryMap.BlockEditor.TileRender.PixelHeight * 3 - 24;
+         var scrollPercent = (ViewModel.PrimaryMap.BlockEditor.TileSelectionY / (double)tileHeight).LimitToRange(0, 1);
+         TileViewer.ScrollToVerticalOffset(scrollRange * scrollPercent);
       }
 
       protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo) {
