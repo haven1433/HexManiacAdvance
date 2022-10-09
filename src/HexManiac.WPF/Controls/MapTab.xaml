@@ -545,9 +545,9 @@
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
               Background="{DynamicResource Background}">
          <DockPanel Name="TilePanel" Width="400" HorizontalAlignment="Right">
-            <Button Command="{res:MethodCommand HideTiles}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
+            <ToggleButton IsChecked="{Binding ShowTiles}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
-            </Button>
+            </ToggleButton>
             <ComboBox DockPanel.Dock="Top" HorizontalAlignment="Center" ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
             <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
                <Grid HorizontalAlignment="Left">

@@ -319,6 +319,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class BlockEditor : ViewModelCore {
+      private readonly ChangeHistory<ModelDelta> history;
       private readonly short[][] palettes;
       private readonly int[][,] tiles;
       private readonly byte[][] blocks;
@@ -382,7 +383,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IPixelViewModel tileRender;
       public IPixelViewModel TileRender => tileRender;
 
-      public BlockEditor(IDataModel listSource, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
+      public BlockEditor(ChangeHistory<ModelDelta> history, IDataModel listSource, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
+         this.history = history;
          this.palettes = palettes;
          this.tiles = tiles;
          this.blocks = blocks;
@@ -460,12 +462,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var index = indexForTileImage[tileImage];
          var (pal, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(blocks[blockIndex], index, 2);
          drawTile = tileIndex;
-         drawFlipV = vFlip;
-         drawFlipH = hFlip;
-         drawPalette = pal;
-         NotifyPropertiesChanged(nameof(TileSelectionX), nameof(TileSelectionY), nameof(PaletteSelection));
+         (drawFlipV, drawFlipH) = (vFlip, hFlip);
+         PaletteSelection = pal;
+         NotifyPropertiesChanged(nameof(TileSelectionX), nameof(TileSelectionY));
          AutoscrollTiles.Raise(this);
          AnimateTileSelection();
+         history.ChangeCompleted();
       }
 
       public void ExitTiles() {
@@ -582,6 +584,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
             NotifyPropertyChanged();
             drawFlipH = drawFlipV = false;
+            history.ChangeCompleted();
          }
       }
       public int PaletteSelection {

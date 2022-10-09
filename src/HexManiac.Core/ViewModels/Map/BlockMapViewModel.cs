@@ -326,7 +326,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
                if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
                if (blockAttributes == null) RefreshBlockAttributeCache(layout, blockModel1, blockModel2);
-               blockEditor = new BlockEditor(model, palettes, tiles, blocks, blockAttributes);
+               blockEditor = new BlockEditor(viewPort.ChangeHistory, model, palettes, tiles, blocks, blockAttributes);
                blockEditor.BlocksChanged += HandleBlocksChanged;
                blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
                BlockEditor.AutoscrollTiles += HandleAutoscrollTiles;
@@ -388,13 +388,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          eventRenders = null;
          RefreshMapSize();
          if (blockEditor != null) {
+            var oldShowTiles = blockEditor.ShowTiles;
             var selection = blockEditor.BlockIndex;
             blockEditor.BlocksChanged -= HandleBlocksChanged;
             blockEditor.BlockAttributesChanged -= HandleBlockAttributesChanged;
             BlockEditor.AutoscrollTiles -= HandleAutoscrollTiles;
+            var oldBlockEditor = blockEditor;
             blockEditor = null;
-            NotifyPropertyChanged(nameof(BlockEditor));
             BlockEditor.BlockIndex = selection;
+            BlockEditor.ShowTiles = oldShowTiles;
+            oldBlockEditor.ShowTiles = false;
+            NotifyPropertyChanged(nameof(BlockEditor));
          }
          NotifyPropertyChanged(nameof(BlockRenders));
          NotifyPropertyChanged(nameof(BlockPixels));
