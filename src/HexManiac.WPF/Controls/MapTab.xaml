@@ -548,7 +548,10 @@
             <ToggleButton IsChecked="{Binding ShowTiles}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
             </ToggleButton>
-            <ComboBox DockPanel.Dock="Top" HorizontalAlignment="Center" ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
+            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4">
+               <local:PixelImage DataContext="{Binding DrawTileRender}" Margin="0,0,50,0" TransparentBrush="{DynamicResource Background}" />
+               <ComboBox ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
+            </StackPanel>
             <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
                <Grid HorizontalAlignment="Left">
                   <local:PixelImage x:Name="TileImage" DataContext="{Binding TileRender}" MouseDown="TilesDown" TransparentBrush="{DynamicResource Background}" />

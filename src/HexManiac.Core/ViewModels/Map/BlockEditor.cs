@@ -383,6 +383,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IPixelViewModel tileRender;
       public IPixelViewModel TileRender => tileRender;
 
+      private IPixelViewModel drawTileRender;
+      public IPixelViewModel DrawTileRender => drawTileRender;
+
       public BlockEditor(ChangeHistory<ModelDelta> history, IDataModel listSource, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
          this.history = history;
          this.palettes = palettes;
@@ -468,6 +471,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AutoscrollTiles.Raise(this);
          AnimateTileSelection();
          history.ChangeCompleted();
+         UpdateDrawTileRender();
       }
 
       public void ExitTiles() {
@@ -570,6 +574,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (drawTile >= tiles.Length) drawTile = tiles.Length - 1;
             NotifyPropertyChanged();
             drawFlipH = drawFlipV = false;
+            UpdateDrawTileRender();
          }
       }
       public int TileSelectionY {
@@ -585,6 +590,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
             drawFlipH = drawFlipV = false;
             history.ChangeCompleted();
+            UpdateDrawTileRender();
          }
       }
       public int PaletteSelection {
@@ -609,6 +615,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          tileRender = render;
          NotifyPropertyChanged(nameof(TileRender));
+         UpdateDrawTileRender();
+      }
+
+      private void UpdateDrawTileRender() {
+         var palette = palettes[drawPalette];
+         drawTileRender = new CanvasPixelViewModel(8, 8, SpriteTool.Render(tiles[drawTile], palette, 0, 0)) { Transparent = palette[0], SpriteScale = 4 };
+         NotifyPropertiesChanged(nameof(DrawTileRender));
       }
 
       #endregion
