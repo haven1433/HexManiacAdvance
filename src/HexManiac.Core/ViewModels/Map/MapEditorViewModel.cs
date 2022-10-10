@@ -474,6 +474,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void DrawUp(double x, double y) {
          history.ChangeCompleted();
          interactionType = PrimaryInteractionType.None;
+         primaryMap.RedrawEvents(); // editing blocks in a map can draw over events, we need to redraw events now that we have new blocks
       }
 
       private void EventDown(double x, double y, IEventModel ev, int clickCount) {
