@@ -143,8 +143,7 @@
                   <MenuItem Header="Cu_t" Command="{Binding Cut}" InputGestureText="Ctrl+X"/>
                   <MenuItem Header="_Copy" Command="{Binding Copy}" InputGestureText="Ctrl+C"/>
                   <MenuItem Header="D_eep Copy" Command="{Binding DeepCopy}" InputGestureText="Ctrl+Shift+C"/>
-                  <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V"/>
-                  <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+B"/>
+                  <MenuItem Header="_Paste / Replace" Command="{Binding Paste}" InputGestureText="Ctrl+V or Ctrl+B"/>
                   <MenuItem Header="_Delete" Command="{Binding Delete}" InputGestureText="Del"/>
                   <MenuItem Header="_Select All" Command="{Binding SelectAll}" InputGestureText="Ctrl+A"/>
                   <Separator />
