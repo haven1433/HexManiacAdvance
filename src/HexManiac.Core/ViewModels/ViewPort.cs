@@ -200,13 +200,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
                   if (possibleMatches.Count == 1) str = possibleMatches[0];
                   else if (possibleMatches.Count > 1 && possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
-                  var words = Model.GetMatchedWords(str).Where(word => Model.GetNextRun(word).Length < 3).ToList();
-                  if (words.Count == 1) {
-                     selection.Goto.Execute(words[0]);
-                     return;
-                  } else if (words.Count > 1) {
-                     OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
-                     return;
+
+                  if (Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, str) == Pointer.NULL) {
+                     var words = Model.GetMatchedWords(str).ToList();
+                     if (words.Count == 1) {
+                        selection.Goto.Execute(words[0]);
+                        return;
+                     } else if (words.Count > 1) {
+                        OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
+                        return;
+                     }
                   }
 
                   var maps = Model.GetMatchingMaps(str);

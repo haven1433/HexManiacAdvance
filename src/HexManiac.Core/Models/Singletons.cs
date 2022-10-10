@@ -245,6 +245,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (line[0] == '.') Length = 1;
          else if (line[0] == ':') Length = 2;
          else throw new NotImplementedException();
+         if (line[1] == ':') {
+            Length = 4;
+            parts = line.Substring(2).Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         }
 
          // Name/Offset
          if (parts[0].Contains("-")) {
