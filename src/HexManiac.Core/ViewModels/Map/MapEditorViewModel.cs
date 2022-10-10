@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -108,9 +107,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<string> CollisionOptions { get; } = new();
 
+      public bool BlockSelectionToggle { get; private set; }
       public double HighlightBlockX => (drawBlockIndex % BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
       public double HighlightBlockY => (drawBlockIndex / BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
       public double HighlightBlockSize => 16 * Blocks.SpriteScale + 2;
+
+      private void AnimateBlockSelection() {
+         BlockSelectionToggle = !BlockSelectionToggle;
+         NotifyPropertyChanged(nameof(BlockSelectionToggle));
+      }
 
       #endregion
 
@@ -130,7 +135,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Refresh();
          },
          () => history.Undo.CanExecute(default));
-      public ICommand Redo => StubCommand(ref redo, () => history.Redo.Execute(), () => history.Redo.CanExecute(default));
+      public ICommand Redo => StubCommand(ref redo,
+         () => {
+            history.Redo.Execute();
+            Refresh();
+         },
+         () => history.Redo.CanExecute(default));
       public ICommand Copy => null;
       public ICommand DeepCopy => null;
       public ICommand Clear => null;
@@ -583,6 +593,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          if (collisionIndex >= 0) CollisionIndex = collisionIndex;
          selectDownPosition = ToTilePosition(x, y);
+         UpdateHover(selectDownPosition.X, selectDownPosition.Y, 1, 1);
       }
 
       public void SelectMove(double x, double y) {
@@ -608,11 +619,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (width == 1 && height == 1) {
             DrawMultipleTiles = false;
             BlockEditorVisible = true;
+            AnimateBlockSelection();
+            UpdateHover(left, top, width, height);
             return;
          }
 
          tilesToDraw = new int[width, height];
-         var canvas = new CanvasPixelViewModel(width * 16, height * 16);
+         var scale = (width < 4 && height < 4) ? 2 : 1;
+         var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
          for (int xx = 0; xx < width; xx++) {
             for (int yy = 0; yy < height; yy++) {
                var (tX, tY) = ToMapPosition(left + xx, top + yy);
@@ -624,6 +638,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          MultiTileDrawRender = canvas;
          DrawMultipleTiles = true;
          BlockEditorVisible = false;
+         UpdateHover(left, top, width, height);
       }
 
       private Point ToTilePosition(double x, double y) {
@@ -693,6 +708,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          DrawBlockIndex = -1;
          CollisionIndex = -1;
          ShowHeaderPanel = false;
+         HighlightCursorX -= (HighlightCursorWidth - (16 * primaryMap.SpriteScale + 4)) / 2;
+         HighlightCursorY -= (HighlightCursorHeight - (16 * primaryMap.SpriteScale + 4)) / 2;
+         HighlightCursorWidth = 16 * primaryMap.SpriteScale + 4;
+         HighlightCursorHeight = 16 * primaryMap.SpriteScale + 4;
       }
 
       private void Pan(int intX, int intY) {

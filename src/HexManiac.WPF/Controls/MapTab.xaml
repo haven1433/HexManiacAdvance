@@ -60,7 +60,7 @@
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Tiles"
                    Direction="Right" Padding="2,0" IsChecked="{Binding ShowTiles}" />
             </Decorator>
-            <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Top">
+            <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Center">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
             </Decorator>
             <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,0,10,0">
@@ -70,10 +70,38 @@
          <ScrollViewer Name="BlockViewer">
             <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
                <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown" />
-               <Rectangle Name="BlockSelectionRect" Margin="-1,-1,0,0" StrokeThickness="1" Opacity=".5" 
-                  Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}"
-                  Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}"
-                  Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}" />
+               <ContentControl IsHitTestVisible="False" Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}" Margin="-1,-1,0,0">
+                  <ContentControl.Template>
+                     <ControlTemplate>
+                        <Rectangle StrokeThickness="1" Opacity=".5" Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}" RenderTransformOrigin=".5,.5"
+                              Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}">
+                           <Rectangle.RenderTransform>
+                              <ScaleTransform x:Name="SelectionScale" />
+                           </Rectangle.RenderTransform>
+                        </Rectangle>
+                        <ControlTemplate.Triggers>
+                           <DataTrigger Binding="{Binding BlockSelectionToggle}" Value="True">
+                              <DataTrigger.EnterActions>
+                                 <BeginStoryboard>
+                                    <Storyboard>
+                                       <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleX" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                       <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleY" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                    </Storyboard>
+                                 </BeginStoryboard>
+                              </DataTrigger.EnterActions>
+                              <DataTrigger.ExitActions>
+                                 <BeginStoryboard>
+                                    <Storyboard>
+                                       <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleX" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                       <DoubleAnimation Storyboard.TargetName="SelectionScale" Storyboard.TargetProperty="ScaleY" From="3" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                                    </Storyboard>
+                                 </BeginStoryboard>
+                              </DataTrigger.ExitActions>
+                           </DataTrigger>
+                        </ControlTemplate.Triggers>
+                     </ControlTemplate>
+                  </ContentControl.Template>
+               </ContentControl>
             </Canvas>
          </ScrollViewer>
       </DockPanel>
