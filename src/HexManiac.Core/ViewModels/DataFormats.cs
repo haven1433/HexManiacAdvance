@@ -198,6 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          var blocks = BlockmapRun.ReadBlocks(blocks1, blocks2);
          var tiles = BlockmapRun.ReadTiles(blocks1, blocks2, run.PrimaryTiles);
          var pals = BlockmapRun.ReadPalettes(blocks1, blocks2, run.PrimaryPalettes);
+         if (tiles == null || pals == null) return null;
          var renders = BlockmapRun.CalculateBlockRenders(blocks, tiles, pals);
          return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }

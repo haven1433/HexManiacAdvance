@@ -32,14 +32,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             "If you choose a length shorter than the current length, the file will be truncated.",
             "Enter a number of bytes (hexadecimal) or megabytes (decimal)."
          }));
-         if (text == null) return Task.FromResult(ErrorInfo.NoError);
+         if (string.IsNullOrEmpty(text)) return Task.FromResult(ErrorInfo.NoError);
 
          if (!uint.TryParse(text, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var length)) {
             return Task.FromResult(new ErrorInfo($"{text} is not a valid hex length"));
          }
          if (length < 1) length = 1;
          if (length < 0x100000) {
-            if (!uint.TryParse(text, out length)) Task.FromResult(new ErrorInfo($"The file must be at least 0x100_000 bytes long."));
+            if (!uint.TryParse(text, out length)) return Task.FromResult(new ErrorInfo($"The file must be at least 0x100_000 bytes long."));
             length *= 1024 * 1024; // assume the number is in decimal MBs
          }
          if (length > 0x2000000) {

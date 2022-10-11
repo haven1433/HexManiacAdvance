@@ -206,6 +206,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             // use FileShare ReadWrite so we can write the file while another program is holding it.
             using (var stream = new FileStream(file.Name, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite)) {
                stream.Write(file.Contents, 0, file.Contents.Length);
+               stream.SetLength(file.Contents.Length);
             }
          } catch (Exception) {
             ShowCustomMessageBox("Could not save. The file might be ReadOnly or in use by another application.", showYesNoCancel: false);

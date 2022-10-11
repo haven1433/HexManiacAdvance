@@ -59,6 +59,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public static short[][] ReadPalettes(BlocksetModel blockModel1, BlocksetModel blockModel2, int primaryPalettes) {
          var primary = blockModel1.ReadPalettes();
          var secondary = blockModel2.ReadPalettes();
+         if (primary == null || secondary == null) return null;
          var result = new short[TotalPalettes][];
          for (int i = 0; i < primaryPalettes; i++) result[i] = primary[i];
          for (int i = primaryPalettes; i < TotalPalettes; i++) result[i] = secondary[i];
@@ -80,6 +81,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public static int[][,] ReadTiles(BlocksetModel blockModel1, BlocksetModel blockModel2, int primaryTiles) {
          var primary = blockModel1.ReadTiles();
          var secondary = blockModel2.ReadTiles();
+         if (primary == null || secondary == null) return null;
          var result = new int[TotalTiles][,];
          for (int i = 0; i < primaryTiles && i < primary.Length; i++) result[i] = primary[i];
          for (int i = primaryTiles; i < TotalTiles && i < secondary.Length + primaryTiles; i++) result[i] = secondary[i - primaryTiles];
@@ -279,6 +281,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public int[][,] ReadTiles() {
          if (!IsCompressed) return ReadUncompressedTiles();
          int start = ReadPointer(4);
+         if (start < 0 || start > model.Count) return null;
          var run = new LzTilesetRun(new TilesetFormat(4, null), model, start);
          var fullData = run.GetPixels(model, 0, 1);
          var list = new List<int[,]>();
@@ -340,6 +343,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       // TODO verify that there are always 16 palettes to read, even though we won't use them all
       public short[][] ReadPalettes() {
          int start = ReadPointer(8);
+         if (start < 0 || start >= model.Count) return null;
          var data = new short[16][];
          for (int i = 0; i < 16; i++) {
             data[i] = new short[16];
