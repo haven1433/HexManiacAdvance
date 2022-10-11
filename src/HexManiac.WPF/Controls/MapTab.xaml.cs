@@ -162,6 +162,16 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region Border Interaction
+
+      private void BorderDown(object sender, MouseButtonEventArgs e) {
+
+      }
+
+      // TODO mouse move (for drag) and mouse up (for undo history)
+
+      #endregion
+
       #region Shifter Interaction
 
       private bool withinShiftInteraction;

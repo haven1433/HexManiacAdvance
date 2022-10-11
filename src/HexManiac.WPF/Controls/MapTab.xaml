@@ -646,6 +646,42 @@
          </Border.Style>
       </Border>
 
+      <!-- Border Panel-->
+      <Border DataContext="{Binding PrimaryMap.BorderEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
+              BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
+              Background="{DynamicResource Background}">
+         <DockPanel Width="400" HorizontalAlignment="Right">
+            <ToggleButton IsChecked="{Binding ShowBorderPanel}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
+               <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+            </ToggleButton>
+            <!-- TODO Width / Height controls (FR/LG only) -->
+            <local:PixelImage x:Name="BorderImage" DataContext="{Binding BorderRender}" MouseDown="BorderDown" HorizontalAlignment="Center" VerticalAlignment="Center" />
+         </DockPanel>
+         <Border.Style>
+            <Style TargetType="Border">
+               <Setter Property="Width" Value="0" />
+               <Style.Triggers>
+                  <DataTrigger Binding="{Binding ShowBorderPanel}" Value="True">
+                     <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.3" Storyboard.TargetProperty="Width" To="402" />
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </DataTrigger.EnterActions>
+                     <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.3" Storyboard.TargetProperty="Width" To="0" />
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </DataTrigger.ExitActions>
+                  </DataTrigger>
+               </Style.Triggers>
+            </Style>
+         </Border.Style>
+      </Border>
+
       <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5" Panel.ZIndex="2">
          <StackPanel Margin="5,0">
@@ -657,7 +693,7 @@
             </Button>
          </StackPanel>
          <local:AngleButton Direction="Left" Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5,0,0,0" />
-         <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Margin="0,0,5,0" Width="110">
+         <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Width="110">
             <TextBlock>
                <TextBlock.Style>
                   <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -671,6 +707,7 @@
                </TextBlock.Style>
             </TextBlock>
          </local:AngleButton>
+         <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" IsChecked="{Binding ShowBorderPanel}" Margin="0,0,5,0" />
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
             <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>
          </Border>

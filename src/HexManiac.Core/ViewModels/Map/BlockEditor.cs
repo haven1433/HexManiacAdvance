@@ -318,6 +318,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
+   public class BorderEditor : ViewModelCore {
+      private readonly ChangeHistory<ModelDelta> changeHistory;
+      private readonly IDataModel model;
+
+      public event EventHandler BorderChanged;
+
+      private bool showBorder;
+      public bool ShowBorderPanel { get => showBorder; set => Set(ref showBorder, value); }
+
+      public BorderEditor(ChangeHistory<ModelDelta> changeHistory, IDataModel model) {
+         this.changeHistory = changeHistory;
+         this.model = model;
+      }
+   }
+
    public class BlockEditor : ViewModelCore {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly short[][] palettes;

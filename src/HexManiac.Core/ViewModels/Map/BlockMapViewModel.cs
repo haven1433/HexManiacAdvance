@@ -314,6 +314,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler NeighborsChanged;
       public event EventHandler AutoscrollTiles;
+      public event EventHandler HideSidePanels;
 
       private BlockEditor blockEditor;
       public BlockEditor BlockEditor {
@@ -329,9 +330,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                blockEditor = new BlockEditor(viewPort.ChangeHistory, model, palettes, tiles, blocks, blockAttributes);
                blockEditor.BlocksChanged += HandleBlocksChanged;
                blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
-               BlockEditor.AutoscrollTiles += HandleAutoscrollTiles;
+               blockEditor.AutoscrollTiles += HandleAutoscrollTiles;
+               blockEditor.Bind(nameof(blockEditor.ShowTiles), (editor, args) => BorderEditor.ShowBorderPanel &= !editor.ShowTiles);
             }
             return blockEditor;
+         }
+      }
+
+      private BorderEditor borderEditor;
+      public BorderEditor BorderEditor {
+         get {
+            if (borderEditor == null) {
+               borderEditor = new BorderEditor(viewPort.ChangeHistory, model);
+               borderEditor.BorderChanged += HandleBorderChanged;
+               borderEditor.Bind(nameof(borderEditor.ShowBorderPanel), (editor, args) => {
+                  BlockEditor.ShowTiles &= !editor.ShowBorderPanel;
+                  HideSidePanels.Raise(this);
+               });
+            }
+            return borderEditor;
          }
       }
 
@@ -399,6 +416,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             BlockEditor.ShowTiles = oldShowTiles;
             oldBlockEditor.ShowTiles = false;
             NotifyPropertyChanged(nameof(BlockEditor));
+         }
+         if (borderEditor != null) {
+            var oldShowBorder = borderEditor.ShowBorderPanel;
+            borderEditor.BorderChanged -= HandleBorderChanged;
+            var oldBorderEditor = borderEditor;
+            borderEditor = null;
+            BorderEditor.ShowBorderPanel = oldShowBorder;
+            oldBorderEditor.ShowBorderPanel = false;
+            NotifyPropertyChanged(nameof(BorderEditor));
          }
          NotifyPropertyChanged(nameof(BlockRenders));
          NotifyPropertyChanged(nameof(BlockPixels));
@@ -1398,9 +1424,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockRenders = null;
          blockPixels = null;
          pixelData = null;
-         NotifyPropertyChanged(nameof(BlockPixels));
-         NotifyPropertyChanged(nameof(PixelData));
-         NotifyPropertyChanged(nameof(BlockRenders));
+         NotifyPropertiesChanged(nameof(BlockPixels), nameof(PixelData), nameof(BlockRenders));
+      }
+
+      private void HandleBorderChanged(object sender, EventArgs e) {
+         // TODO
+         blocks = null;
+         blockRenders = null;
+         blockPixels = null;
+         pixelData = null;
+         borderBlock = null;
+         NotifyPropertiesChanged(nameof(BlockPixels), nameof(PixelData), nameof(BlockRenders), nameof(BorderBlock));
       }
 
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {

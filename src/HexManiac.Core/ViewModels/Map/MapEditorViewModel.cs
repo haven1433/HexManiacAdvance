@@ -278,6 +278,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.PropertyChanged -= PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = -1;
                primaryMap.AutoscrollTiles -= HandleAutoscrollTiles;
+               primaryMap.HideSidePanels -= HandleHideSidePanels;
             }
             primaryMap = map;
             primaryMap.BlockEditor.BlockIndex = drawBlockIndex;
@@ -287,6 +288,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.PropertyChanged += PrimaryMapPropertyChanged;
                primaryMap.CollisionHighlight = collisionIndex;
                primaryMap.AutoscrollTiles += HandleAutoscrollTiles;
+               primaryMap.HideSidePanels += HandleHideSidePanels;
             }
             NotifyPropertyChanged(nameof(Blocks));
             NotifyPropertyChanged(nameof(Name));
@@ -394,6 +396,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void DragDown(double x, double y) {
          PrimaryMap.BlockEditor.ShowTiles = false;
+         PrimaryMap.BorderEditor.ShowBorderPanel = false;
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
 
@@ -419,6 +422,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private PrimaryInteractionType interactionType;
       public void PrimaryDown(double x, double y, int clickCount) {
          PrimaryMap.BlockEditor.ShowTiles = false;
+         PrimaryMap.BorderEditor.ShowBorderPanel = false;
          var map = MapUnderCursor(x, y);
          if (map == null) {
             interactionType = PrimaryInteractionType.None;
@@ -587,6 +591,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void SelectDown(double x, double y) {
          PrimaryMap.BlockEditor.ShowTiles = false;
+         PrimaryMap.BorderEditor.ShowBorderPanel = false;
          var map = MapUnderCursor(x, y);
          if (map == null) return;
          PrimaryMap = map;
@@ -883,6 +888,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);
+
+      private void HandleHideSidePanels(object sender, EventArgs e) => SelectedEvent = null;
 
       private int GetPreferredCollision(int tile) {
          if (preferredCollisionsPrimary == null) CountCollisionForBlocks();
