@@ -261,8 +261,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                var checkCharacter = PCS[i];
                if (input.Length < index + checkCharacter.Length) continue;
                var checkInput = input.Substring(index, checkCharacter.Length);
-               if (checkCharacter.StartsWith("\\")) {
-                  // escape sequences don't care about case
+               if (checkCharacter.StartsWith("\\") && !PCS.Any(pcs => pcs != null && pcs.StartsWith(checkInput))) {
+               // if (checkCharacter.StartsWith("\\")) {
+                  // escape sequences don't care about case (if no sequences seem to match the current case)
                   checkCharacter = checkCharacter.ToUpper();
                   checkInput = checkInput.ToUpper();
                }

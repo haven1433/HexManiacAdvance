@@ -1178,6 +1178,45 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(new[] { table.Run.Start + 4, table.Run.Start + 8 }, Model.GetNextRun(0x28).PointerSources);
       }
 
+      [Fact]
+      public void TableWithInnerPointers_CheckInnerAnchor_PointersPointToThis() {
+         ViewPort.Edit("<100> <100> <108> <108> ");
+         ArrayRun.TryParse(Model, "^[a. b. c. d.]4", 0x100, null, out var table);
+
+         Model.ObserveAnchorWritten(Token, "table", table);
+         var array = (ArrayRun)Model.GetNextRun(table.Start);
+
+         var sources = array.PointerSourcesForInnerElements[2];
+         Assert.Equal(new[] { 0x8, 0xC }, sources.ToArray());
+      }
+
+      [Fact]
+      public void TableWithInnerPointers_ContextItemGotoOptions_TargetsPointToThis() {
+         ViewPort.Edit("<100> <100> <108> <108> ");
+         ArrayRun.TryParse(Model, "^[a. b. c. d.]4", 0x100, null, out var table);
+         Model.ObserveAnchorWritten(Token, "table", table);
+
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(0x108);
+         var menu = new ContextItemFactory(ViewPort);
+         ViewPort[ViewPort.SelectionStart].Format.Visit(menu, ViewPort[ViewPort.SelectionStart].Value);
+
+         var group = (ContextItemGroup)menu.Results[0];
+         Assert.Equal(new[] { "000008", "00000C" }, new[] { group[1].Text, group[2].Text });
+      }
+
+      [Fact]
+      public void ExpandPointerTable_EditLastPointer_PointerSourcesUpdated() {
+         SetFullModel(0xFF);
+         CreateTextTableWithInnerPointers("names", 0x100, "adam", "bob", "charles", "dave", "eric", "fred");
+         ViewPort.Edit("@000 <null> @000 ^table[ptr<\"\">]1 <names/3>");
+
+         ViewPort.Edit("+ <names/4>");
+
+         var run = (ArrayRun)Model.GetNextRun(0x100);
+         Assert.Equal(new[] { 0x0 }, run.PointerSourcesForInnerElements[3].ToArray());
+         Assert.Equal(new[] { 0x4 }, run.PointerSourcesForInnerElements[4].ToArray());
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

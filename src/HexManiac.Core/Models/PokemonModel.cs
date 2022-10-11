@@ -43,11 +43,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       // if an existing run starts exactly at start, return that index
       // otherwise, return a number such that ~index would be inserted into the list at the correct index
       // so ~index - 1 is the previous run, and ~index is the next run
+      // 
+      // Note that this method might be called from multiple threads at the same time!
+      // The caller is in charge of using locking to make sure the collection isn't edited while this is searching.
       private RunPath BinarySearch(int start) {
-         lock (threadlock) {
-            var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
-            return index;
-         }
+         var index = ((List<IFormattedRun>)runs).BinarySearch(new CompareFormattedRun(start), FormattedRunComparer.Instance);
+         return index;
       }
 
       private RunPath BinarySearchNext(int start) {
@@ -253,7 +254,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                var gameCode = this.GetGameCode();
                if (singletons.GameReferenceTables.TryGetValue(gameCode, out var tables)) {
                   var metadatas = GetDefaultMetadatas(gameCode.Substring(0, 4), gameCode);
-                  UpdateRuns(tables, metadatas, anchorHashes);
+                  lock (threadlock) {
+                     UpdateRuns(tables, metadatas, anchorHashes);
+                  }
                }
             } else {
                // didn't run an update. Now that all the constants are setup correctly, do a quick second pass through the anchors to look for any that failed the first time.
@@ -513,30 +516,35 @@ namespace HavenSoft.HexManiac.Core.Models {
       private void WriteSpriteRuns(Dictionary<int, SortedSpan<int>> pointersForDestination) {
          var noDataChange = new NoDataChangeDeltaModel();
          foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
-            var existingRun = GetNextRun(destination);
-            if (!(existingRun is NoInfoRun)) continue;
-            var protoRun = new LZRun(this, destination);
-            if (protoRun.Length < 5) continue;
-            if (protoRun.DecompressedLength < 32 || protoRun.DecompressedLength % 32 != 0) continue;
-            if (GetNextRun(destination + 1).Start < destination + protoRun.Length) continue;
-            if (protoRun.DecompressedLength == 32) {
-               ObserveRunWritten(noDataChange, new LzPaletteRun(new PaletteFormat(4, 1), this, destination, pointersForDestination[destination]));
-            } else {
-               var tiles = protoRun.DecompressedLength / 32;
-               var sqrt = (int)Math.Sqrt(tiles);
-               var spriteFormat = new SpriteFormat(4, sqrt, sqrt, null);
-               ObserveRunWritten(noDataChange, new LzSpriteRun(spriteFormat, this, destination, pointersForDestination[destination]));
+            lock (threadlock) {
+               var existingRun = GetNextRun(destination);
+               if (!(existingRun is NoInfoRun)) continue;
+               var protoRun = new LZRun(this, destination);
+               if (protoRun.Length < 5) continue;
+               if (protoRun.DecompressedLength < 32 || protoRun.DecompressedLength % 32 != 0) continue;
+               if (GetNextRun(destination + 1).Start < destination + protoRun.Length) continue;
+               if (protoRun.DecompressedLength == 32) {
+                  ObserveRunWritten(noDataChange, new LzPaletteRun(new PaletteFormat(4, 1), this, destination, pointersForDestination[destination]));
+               } else {
+                  var tiles = protoRun.DecompressedLength / 32;
+                  var sqrt = (int)Math.Sqrt(tiles);
+                  var spriteFormat = new SpriteFormat(4, sqrt, sqrt, null);
+                  ObserveRunWritten(noDataChange, new LzSpriteRun(spriteFormat, this, destination, pointersForDestination[destination]));
+               }
             }
          }
       }
 
       private void WriteStringRuns(Dictionary<int, SortedSpan<int>> pointersForDestination) {
          var noDataChange = new NoDataChangeDeltaModel();
-         foreach (var destination in pointersForDestination.Keys.OrderBy(i => i)) {
+         var keys = pointersForDestination.Keys.OrderBy(i => i).ToList();
+         foreach (var destination in keys) {
             var length = PCSString.ReadString(RawData, destination, false);
             if (length < 2) continue;
-            if (GetNextRun(destination + 1).Start < destination + length) continue;
-            ObserveRunWritten(noDataChange, new PCSRun(this, destination, length, pointersForDestination[destination]));
+            lock (threadlock) {
+               if (GetNextRun(destination + 1).Start < destination + length) continue;
+               ObserveRunWritten(noDataChange, new PCSRun(this, destination, length, pointersForDestination[destination]));
+            }
          }
       }
 
@@ -909,6 +917,16 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (index >= runs.Count) return NoInfoRun.NullRun;
             return runs[index];
          }
+      }
+
+      /// <summary>
+      /// Only call this version if we're in a situation where we know the collection can't be changed by another thread because we're already in a threadlock scope
+      /// </summary>
+      private IFormattedRun GetNextRunUnthreaded(int dataIndex) {
+         if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
+         var index = GetIndexForNextRun(dataIndex);
+         if (index >= runs.Count) return NoInfoRun.NullRun;
+         return runs[index];
       }
 
       private int GetIndexForNextRun(int address) {
@@ -1522,11 +1540,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (CanSafelyUse(run.Start + currentLength, run.Start + minimumLength)) return run;
 
          var freeSpace = FindFreeSpace(0x100, minimumLength);
-         if (freeSpace >= 0) {
-            return MoveRun(changeToken, run, currentLength, freeSpace);
-         } else {
-            ExpandData(changeToken, RawData.Length + minimumLength);
-            return MoveRun(changeToken, run, currentLength, RawData.Length - minimumLength - 1);
+         lock (threadlock) {
+            if (freeSpace >= 0) {
+               return MoveRun(changeToken, run, currentLength, freeSpace);
+            } else {
+               ExpandData(changeToken, RawData.Length + minimumLength);
+               return MoveRun(changeToken, run, currentLength, RawData.Length - minimumLength - 1);
+            }
          }
       }
 
@@ -1674,7 +1694,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ClearPointer(ModelDelta currentChange, int source, int destination) {
          lock (threadlock) {
             var index = BinarySearch(destination);
-            if (index < 0) return; // nothing to remove at the destination
+            if (index < 0) {
+               index = ~index - 1;
+               // nothing to remove at the destination, unless this is an inner-anchor for a table that supports pointers
+               if (index <= 0) return;
+               if (runs[index] is not ArrayRun array || !array.SupportsInnerPointers) return;
+               var newArray = array.RemoveInnerSource(source);
+               currentChange.RemoveRun(array);
+               currentChange.AddRun(newArray);
+               SetIndex(index, newArray);
+               return;
+            }
+
             currentChange.RemoveRun(runs[index]);
 
             var newRun = runs[index].RemoveSource(source);
@@ -2146,18 +2177,20 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override StoredMetadata ExportMetadata(GameReferenceTables references, IMetadataInfo metadataInfo) {
          var anchors = new List<StoredAnchor>();
-         foreach (var kvp in anchorForAddress) {
-            var (address, name) = (kvp.Key, kvp.Value);
-            if (name.StartsWith("misc.temp.")) continue; // don't persist miscilaneous temp anchors
-            var index = BinarySearch(address);
-            if (index < 0) continue;
-            var format = runs[index].FormatString;
+         lock (threadlock) {
+            foreach (var kvp in anchorForAddress) {
+               var (address, name) = (kvp.Key, kvp.Value);
+               if (name.StartsWith("misc.temp.")) continue; // don't persist miscilaneous temp anchors
+               var index = BinarySearch(address);
+               if (index < 0) continue;
+               var format = runs[index].FormatString;
 
-            // We want to know the hash from the reference table,
-            // because we only want to update the table if the hash matches the format
-            var refTable = references == null ? null : references[name];
-            string hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : string.Empty;
-            anchors.Add(new StoredAnchor(address, name, format, hash));
+               // We want to know the hash from the reference table,
+               // because we only want to update the table if the hash matches the format
+               var refTable = references == null ? null : references[name];
+               string hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : string.Empty;
+               anchors.Add(new StoredAnchor(address, name, format, hash));
+            }
          }
 
          var unmappedPointers = new List<StoredUnmappedPointer>();
@@ -2209,7 +2242,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// This method might be called in parallel with the same changeToken
       /// </summary>
       public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses) {
-         if (sourcesForDestinations != null) return SpanFromCache(changeToken, addresses);
+         lock (threadlock) {
+            if (sourcesForDestinations != null) return SpanFromCache(changeToken, addresses);
+         }
 
          var lockObj = new object();
          var results = SortedSpan<int>.None;
@@ -2217,22 +2252,24 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var chunkLength = 0x10000;
          var groups = (int)Math.Ceiling((double)RawData.Length / chunkLength);
-         Parallel.For(0, groups, group => {
-            var data = RawData;
-            var chunkEnd = chunkLength * (group + 1);
-            chunkEnd = Math.Min(chunkEnd, data.Length);
-            for (int i = chunkLength * group + 3; i < chunkEnd; i++) {
-               if (data[i] != 0x08 && data[i] != 0x09) continue;
-               var destination = ReadPointer(i - 3);
-               if (!addresses.Contains(destination)) continue;
-               if (TryMakePointerAtAddress(changeToken, i - 3, ignoreNoInfoPointers, out var newRun)) {
-                  lock (lockObj) {
-                     results = results.Add1(i - 3);
-                     if (newRun != null) runsToAdd.Add(newRun);
+         lock (threadlock) { // we need to know that `runs` won't be modified during TryMakePointerAtAddress
+            Parallel.For(0, groups, group => {
+               var data = RawData;
+               var chunkEnd = chunkLength * (group + 1);
+               chunkEnd = Math.Min(chunkEnd, data.Length);
+               for (int i = chunkLength * group + 3; i < chunkEnd; i++) {
+                  if (data[i] != 0x08 && data[i] != 0x09) continue;
+                  var destination = ReadPointer(i - 3);
+                  if (!addresses.Contains(destination)) continue;
+                  if (TryMakePointerAtAddress(changeToken, i - 3, ignoreNoInfoPointers, out var newRun)) {
+                     lock (lockObj) {
+                        results = results.Add1(i - 3);
+                        if (newRun != null) runsToAdd.Add(newRun);
+                     }
                   }
                }
-            }
-         });
+            });
+         }
 
          lock (threadlock) {
             foreach (var newRun in runsToAdd) {
@@ -2277,54 +2314,57 @@ namespace HavenSoft.HexManiac.Core.Models {
       ///
       /// This method can be called from a parellel context, so it doesn't make any changes to the runs collection.
       /// Instead, it returns a new pointer run if one needs to be added.
+      ///
+      /// The read-only nature of the method means taht it shouln't lock and can be called in parallel,
+      /// but the caller is in charge of making sure the run collection doesn't change while this is working.
       /// </summary>
       private bool TryMakePointerAtAddress(ModelDelta changeToken, int address, bool ignoreNoInfoPointers, out PointerRun runToAdd) {
          // I have to lock this whole block, because I need to know that 'index' remains consistent until I can call runs.Insert
          runToAdd = null;
-         lock (threadlock) {
-            var index = BinarySearch(address);
-            if (index >= 0) {
-               if (runs[index] is PointerRun) return true;
-               if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) return true;
-               if (runs[index] is NoInfoRun) {
-                  var pointerRun = new PointerRun(address, runs[index].PointerSources);
-                  changeToken.RemoveRun(runs[index]);
-                  changeToken.AddRun(pointerRun);
-                  runs[index] = pointerRun;
-                  return true;
-               }
-               return false;
-            }
-            index = ~index;
-            if (ignoreNoInfoPointers) {
-               while (index < runs.Count && runs[index] is PointerRun && GetNextRun(ReadPointer(runs[index].Start)) is NoInfoRun) {
-                  // this pointer might be a false pointer, we can ignore it for now
-                  index += 1;
-               }
-            }
-            if (index < runs.Count && runs[index].Start <= address + 3) return false; // can't add a pointer run if an existing run starts during the new one
 
-            index -= 1; // looking at the previous run, not the next run
-            if (ignoreNoInfoPointers) {
-               while (index >= 0 && runs[index] is PointerRun && GetNextRun(ReadPointer(runs[index].Start)) is NoInfoRun) {
-                  // this pointer might be a false pointer, we can ignore it for now
-                  index -= 1;
-               }
+         var index = BinarySearch(address);
+         if (index >= 0) {
+            if (runs[index] is PointerRun) return true;
+            if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) return true;
+            if (runs[index] is NoInfoRun) {
+               var pointerRun = new PointerRun(address, runs[index].PointerSources);
+               changeToken.RemoveRun(runs[index]);
+               changeToken.AddRun(pointerRun);
+               runs[index] = pointerRun;
+               return true;
             }
-
-            // can't add a pointer run if the new one starts during an existing run
-            if (index >= 0 && runs[index].Start + runs[index].Length > address) {
-               // ah, but if that run is an array and there's already a pointer here...
-               if (runs[index] is ArrayRun array) {
-                  var offsets = array.ConvertByteOffsetToArrayOffset(address + 3);
-                  // should this check that offsets.SegmentOffset == 0?
-                  if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
-                     return true;
-                  }
-               }
-               return false;
+            return false;
+         }
+         index = ~index;
+         if (ignoreNoInfoPointers) {
+            while (index < runs.Count && runs[index] is PointerRun && GetNextRunUnthreaded(ReadPointer(runs[index].Start)) is NoInfoRun) {
+               // this pointer might be a false pointer, we can ignore it for now
+               index += 1;
             }
          }
+         if (index < runs.Count && runs[index].Start <= address + 3) return false; // can't add a pointer run if an existing run starts during the new one
+
+         index -= 1; // looking at the previous run, not the next run
+         if (ignoreNoInfoPointers) {
+            while (index >= 0 && runs[index] is PointerRun && GetNextRunUnthreaded(ReadPointer(runs[index].Start)) is NoInfoRun) {
+               // this pointer might be a false pointer, we can ignore it for now
+               index -= 1;
+            }
+         }
+
+         // can't add a pointer run if the new one starts during an existing run
+         if (index >= 0 && runs[index].Start + runs[index].Length > address) {
+            // ah, but if that run is an array and there's already a pointer here...
+            if (runs[index] is ArrayRun array) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(address + 3);
+               // should this check that offsets.SegmentOffset == 0?
+               if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+                  return true;
+               }
+            }
+            return false;
+         }
+
          runToAdd = new PointerRun(address);
 
          return true;

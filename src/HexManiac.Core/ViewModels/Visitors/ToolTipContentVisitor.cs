@@ -45,9 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun, int preferredPaletteStart = -1, int preferredSpritePage = 0) {
          if (destination != destinationRun.Start) return null;
-         if (destinationRun is PCSRun pcs) {
-            return model.TextConverter.Convert(model, pcs.Start, pcs.Length);
-         } else if (destinationRun is ISpriteRun sprite) {
+         if (destinationRun is ISpriteRun sprite) {
             if (sprite is LzTilemapRun tilemap) tilemap.FindMatchingTileset(model);
             var paletteRuns = sprite.FindRelatedPalettes(model, source);
             var paletteRun = paletteRuns.FirstOrDefault();

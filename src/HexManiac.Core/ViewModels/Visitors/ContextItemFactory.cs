@@ -166,7 +166,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public IEnumerable<ContextItem> GetAnchorSourceItems(int address) {
-         var sources = ViewPort.Model.GetNextRun(address).PointerSources;
+         var run = ViewPort.Model.GetNextRun(address);
+         var sources = run.PointerSources;
+         if (run is ArrayRun array && array.SupportsInnerPointers && address != run.Start) {
+            var index = (address - run.Start) / array.ElementLength;
+            sources = array.PointerSourcesForInnerElements[index];
+         }
          if (sources == null || sources.Count == 0) {
             yield return new ContextItem("(Nothing points to this.)", null);
             yield break;

@@ -223,12 +223,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Constructor
 
+      public bool IsValidState { get; private set; }
+
       public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, out MapEditorViewModel editor) {
          editor = null;
          var maps = viewPort.Model.GetTable(HardcodeTablesModel.MapBankTable);
          if (maps == null) return false;
          editor = new MapEditorViewModel(fileSystem, viewPort, singletons);
-         return true;
+         return editor.IsValidState;
       }
 
       public MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons) {
@@ -268,6 +270,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void UpdatePrimaryMap(BlockMapViewModel map) {
          if (!map.IsValidMap) return;
          blockset = UpdateBlockset(map.MapID);
+         if (blockset == Pointer.NULL) return;
          // update the primary map
          if (primaryMap != map) {
             if (primaryMap != null) {
@@ -319,6 +322,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          for (int i = MapButtons.Count; i < newButtons.Count; i++) MapButtons.Add(newButtons[i]);
          while (MapButtons.Count > newButtons.Count) MapButtons.RemoveAt(MapButtons.Count - 1);
+
+         IsValidState = true;
       }
 
       private void PrimaryMapNeighborsChanged(object? sender, EventArgs e) {
@@ -871,6 +876,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = banks[mapID / 1000].GetSubTable("maps")[mapID % 1000].GetSubTable("map")[0].GetSubTable("layout")[0];
          var address1 = layout.GetAddress("blockdata1");
          var address2 = layout.GetAddress("blockdata2");
+         if (address1 == Pointer.NULL || address2 == Pointer.NULL) return Pointer.NULL;
          var combined = (address1 << 7) | address2;
          (blockset1, blockset2) = (address1, address2);
          return combined;

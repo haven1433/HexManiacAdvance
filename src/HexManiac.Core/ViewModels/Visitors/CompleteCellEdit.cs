@@ -822,7 +822,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          var byteValue = escaped != null ?
             byte.Parse(CurrentText, NumberStyles.HexNumber) :
-            (byte)0x100.Range().First(i => PCSString.PCS[i] == editText);
+            (byte)0x100.Range().FirstOrDefault(i => PCSString.PCS[i] == editText);
 
          var position = originalFormat is IDataFormatStreamInstance pcs ? pcs.Position : escaped.Position;
          HandleLastCharacterChange(memoryLocation, editText, run, position, byteValue);

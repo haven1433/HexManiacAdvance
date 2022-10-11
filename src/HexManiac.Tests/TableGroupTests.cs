@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Tests {
             generalInfo: New.EarliestVersionInfo
          );
 
-         var model = New.PokemonModel(Model.RawData, metadata, Singletons);
+         var model = New.PokemonModel(Model.RawData, metadata);
 
          var groups = model.ExportMetadata(Singletons.MetadataInfo).TableGroups;
          Assert.NotEmpty(groups);
@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void Groups_UpdateVersion_NoDuplicates() {
          // calculate 'default' TableGroups
          SetGameCode(HardcodeTablesModel.FireRed);
-         var model = New.HardcodeTablesModel(Singletons, Model.RawData);
+         var model = New.HardcodeTablesModel(Model.RawData);
          var metadata = model.ExportMetadata(Singletons.MetadataInfo);
          var tableGroups = metadata.TableGroups;
 
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Tests {
          metadata = new StoredMetadata(
             tableGroups: tableGroups,
             generalInfo: New.EarliestVersionInfo);
-         model = New.PokemonModel(model.RawData, metadata, Singletons);
+         model = New.PokemonModel(model.RawData, metadata);
 
          var newGroups = model.ExportMetadata(Singletons.MetadataInfo).TableGroups;
          Assert.Equal(tableGroups.Count, newGroups.Count);
@@ -131,7 +131,7 @@ namespace HavenSoft.HexManiac.Tests {
             generalInfo: New.EarliestVersionInfo
          );
 
-         var model = New.PokemonModel(Model.RawData, metadata, Singletons);
+         var model = New.PokemonModel(Model.RawData, metadata);
          var groups = model.ExportMetadata(Singletons.MetadataInfo).TableGroups;
 
          var group = groups.Single(group => group.GroupName == "custom");

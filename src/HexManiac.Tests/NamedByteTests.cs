@@ -160,7 +160,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void MatchedWordOutOfRange_InitMetadata_IgnoreMatchedWord() {
          var metadata = new StoredMetadata(matchedWords: new[] { new StoredMatchedWord(0x300, "name", 2, 0, 1, default) });
 
-         var model = New.PokemonModel(Data, metadata, Singletons);
+         var model = New.PokemonModel(Data, metadata);
 
          Assert.Empty(model.GetMatchedWords("name"));
       }

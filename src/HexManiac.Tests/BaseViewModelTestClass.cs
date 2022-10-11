@@ -14,6 +14,7 @@ namespace HavenSoft.HexManiac.Tests {
    /// </summary>
    public class BaseViewModelTestClass {
 
+      public New New { get; }
       public static Singletons Singletons { get; } = new Singletons();
       public ViewPort ViewPort { get; }
       public PokemonModel Model { get; }
@@ -25,6 +26,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       public BaseViewModelTestClass() : this(0x200) { }
       public BaseViewModelTestClass(int modelLength) {
+         New = new New(FileSystem, Singletons);
          Data = new byte[modelLength];
          Model = new PokemonModel(Data, singletons: Singletons);
          ViewPort = new ViewPort("file.txt", Model, InstantDispatch.Instance, Singletons) { Width = 0x10, Height = 0x10 };

@@ -50,6 +50,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly object threadlock = new();
 
       private MapEditorViewModel mapper;
+      public bool HasValidMapper => mapper?.IsValidState ?? false;
 
       public Singletons Singletons { get; }
 
@@ -141,7 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (e.PropertyName == nameof(Width) || e.PropertyName == nameof(Height) || e.PropertyName == nameof(scroll.AllowSingleTableMode)) {
-            dispatcher.DispatchWork(RefreshBackingData);
+            dispatcher.BlockOnUIWork(RefreshBackingData);
          }
 
          if (e.PropertyName == nameof(Width)) {
@@ -151,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (e.PropertyName == nameof(scroll.MinimumScroll)) NotifyPropertyChanged(nameof(MinimumScroll));
          if (e.PropertyName == nameof(scroll.MaximumScroll)) NotifyPropertyChanged(nameof(MaximumScroll));
          if (e.PropertyName == nameof(scroll.AllowSingleTableMode)) NotifyPropertyChanged(nameof(AllowSingleTableMode));
-         if (e.PropertyName == nameof(scroll.DataLength)) dispatcher.DispatchWork(RefreshBackingData);
+         if (e.PropertyName == nameof(scroll.DataLength)) dispatcher.BlockOnUIWork(RefreshBackingData);
       }
 
       #endregion

@@ -174,7 +174,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int GetAddress(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
-         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
+         if (seg == null) return Pointer.NULL;
          if (seg.Type == ElementContentType.Pointer) {
             return model.ReadPointer(valueAddress);
          } else if (seg.Type == ElementContentType.Integer && seg.Length == 4) {
@@ -226,6 +227,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
             enumSeg.Write(null, model, tokenFactory(), valueAddress, ref value);
+            table.NotifyChildren(Model, tokenFactory(), arrayIndex, table.ElementContent.IndexOf(seg));
          } else {
             throw new NotImplementedException();
          }
@@ -272,6 +274,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg.Type == ElementContentType.Integer || seg.Type == ElementContentType.BitArray) {
             model.WriteMultiByteValue(valueAddress, seg.Length, tokenFactory(), value);
+            table.NotifyChildren(Model, tokenFactory(), arrayIndex, table.ElementContent.IndexOf(seg));
          } else {
             throw new NotImplementedException();
          }
@@ -302,7 +305,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (childTable == null) return null;
             return new ModelTable(model, destination, tokenFactory, childTable);
          } else {
-            throw new NotImplementedException();
+            return null; // format didn't match expected, give up
          }
       }
 

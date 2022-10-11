@@ -190,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var previousSelections = GotoLabelSection.GetSectionSelections(PrefixSelections).ToArray();
          PrefixSelections.Clear();
          if (viewPort == null || viewPort.Model == null) return;
-         var section = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
+         var section = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
          PrefixSelections.Add(AddListeners(section));
          for (int i = 0; i < previousSelections.Length; i++) {
             if (PrefixSelections.Count <= i) break;
@@ -395,16 +395,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections, bool devMode) {
+      public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections, bool includeMatchingMaps) {
          using (ModelCacheScope.CreateScope(model)) {
             List<string> allOptions = model.GetExtendedAutocompleteOptions(filter)?.ToList() ?? new();
-            allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
+            if (includeMatchingMaps) {
+               allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
+            }
             var selections = GetSectionSelections(previousSections).ToList();
 
             var newSection = new GotoLabelSection(allOptions, selections);
             if (newSection.Tokens.Count == 1) {
                newSection.Tokens[0].IsSelected = true;
-               var child = Build(model, filter, previousSections.Concat(new[] { newSection }), devMode); // recursion ftw
+               var child = Build(model, filter, previousSections.Concat(new[] { newSection }), includeMatchingMaps); // recursion ftw
                newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
             }
 

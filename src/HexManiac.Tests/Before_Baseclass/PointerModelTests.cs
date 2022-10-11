@@ -890,7 +890,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void OffsetPointerOutOfRange_InitMetadata_NoOffsetPointer() {
          var metadata = new StoredMetadata(offsetPointers: new[] { new StoredOffsetPointer(0x300, 1) });
 
-         var model = New.PokemonModel(Data, metadata, Singletons);
+         var model = New.PokemonModel(Data, metadata);
 
          Assert.Equal(int.MaxValue, model.GetNextRun(0).Start);
       }
