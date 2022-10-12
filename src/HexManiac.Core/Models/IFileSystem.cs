@@ -107,6 +107,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       void SaveImage(short[] image, int width, string fileName = null);
 
+      /// <summary>
+      /// Shows the user a dialog so they can create a file.
+      /// Saves an indexed image with no more than 16 colors.
+      /// </summary>
+      void SaveImage(int[,] image, IReadOnlyList<short> palette, string fileName = null);
+
       int ShowOptions(string title, string prompt, IReadOnlyList<IReadOnlyList<object>> additionalDetails, params VisualOption[] options);
 
       string RequestText(string title, string prompt);

@@ -69,11 +69,11 @@
          </Grid>
          <ScrollViewer Name="BlockViewer">
             <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
-               <local:PixelImage DataContext="{Binding Blocks}" MouseLeftButtonDown="BlocksDown" />
+               <local:PixelImage DataContext="{Binding Blocks}" MouseDown="BlocksDown" MouseMove="BlocksMove" MouseUp="BlocksUp" />
                <ContentControl IsHitTestVisible="False" Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}" Margin="-1,-1,0,0">
                   <ContentControl.Template>
                      <ControlTemplate>
-                        <Rectangle StrokeThickness="1" Opacity=".5" Width="{Binding HighlightBlockSize}" Height="{Binding HighlightBlockSize}" RenderTransformOrigin=".5,.5"
+                        <Rectangle StrokeThickness="1" Opacity=".5" Width="{Binding HighlightBlockWidth}" Height="{Binding HighlightBlockHeight}" RenderTransformOrigin=".5,.5"
                               Stroke="{DynamicResource Background}" Fill="{DynamicResource Primary}">
                            <Rectangle.RenderTransform>
                               <ScaleTransform x:Name="SelectionScale" />
@@ -654,8 +654,22 @@
             <ToggleButton IsChecked="{Binding ShowBorderPanel}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
             </ToggleButton>
-            <!-- TODO Width / Height controls (FR/LG only) -->
-            <local:PixelImage x:Name="BorderImage" DataContext="{Binding BorderRender}" MouseDown="BorderDown" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            <Grid Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
+               <Grid.RowDefinitions>
+                  <RowDefinition />
+                  <RowDefinition />
+               </Grid.RowDefinitions>
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition />
+                  <ColumnDefinition />
+               </Grid.ColumnDefinitions>
+               <local:AngleBorder Content="Width:" Direction="Out" Margin="0,0,0,5" />
+               <local:AngleTextBox TextBinding="{Binding Width, UpdateSourceTrigger=PropertyChanged}" Grid.Column="1" Direction="Right" Margin="0,0,0,5" />
+               <local:AngleBorder Content="Height:" Direction="Out" Grid.Row="1" />
+               <local:AngleTextBox TextBinding="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Direction="Right" />
+            </Grid>
+            <local:PixelImage x:Name="BorderImage" DataContext="{Binding BorderRender}" HorizontalAlignment="Center" VerticalAlignment="Center"
+               MouseLeftButtonDown="BorderDown" MouseRightButtonDown="BorderSelect" MouseMove="BorderMove" MouseUp="BorderUp" />
          </DockPanel>
          <Border.Style>
             <Style TargetType="Border">

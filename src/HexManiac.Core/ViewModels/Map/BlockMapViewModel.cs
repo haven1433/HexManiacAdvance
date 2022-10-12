@@ -28,6 +28,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int TotalBlocks => 1024;
       private int PrimaryPalettes { get; } // 7
 
+      public IEditableViewPort ViewPort => viewPort;
+
       #region SelectedEvent
 
       private IEventModel selectedEvent;
@@ -190,11 +192,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int[][,] tiles;
       private byte[][] blocks;
       private byte[][] blockAttributes;
-      private IReadOnlyList<IPixelViewModel> blockRenders; // one image per block
+      private readonly List<IPixelViewModel> blockRenders = new(); // one image per block
       private IReadOnlyList<IEventModel> eventRenders;
       public IReadOnlyList<IPixelViewModel> BlockRenders {
          get {
-            if (blockRenders == null) RefreshBlockRenderCache();
+            if (blockRenders.Count == 0) RefreshBlockRenderCache();
             return blockRenders;
          }
       }
@@ -341,7 +343,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public BorderEditor BorderEditor {
          get {
             if (borderEditor == null) {
-               borderEditor = new BorderEditor(viewPort.ChangeHistory, model);
+               borderEditor = new BorderEditor(this);
                borderEditor.BorderChanged += HandleBorderChanged;
                borderEditor.Bind(nameof(borderEditor.ShowBorderPanel), (editor, args) => {
                   BlockEditor.ShowTiles &= !editor.ShowBorderPanel;
@@ -400,7 +402,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          palettes = null;
          tiles = null;
          blocks = null;
-         blockRenders = null;
+         blockRenders.Clear();
          blockPixels = null;
          eventRenders = null;
          RefreshMapSize();
@@ -1098,7 +1100,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
          if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
 
-         this.blockRenders = BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes);
+         blockRenders.Clear();
+         blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes));
       }
 
       private void RefreshMapSize() {
@@ -1125,7 +1128,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void FillMapPixelData() {
          var layout = GetLayout();
          if (layout == null) return;
-         if (blockRenders == null) RefreshBlockRenderCache(layout);
+         if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
          if (borderBlock == null) RefreshBorderRender();
          if (eventRenders == null) RefreshMapEvents();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
@@ -1182,7 +1185,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public const int BlocksPerRow = 8;
       private void FillBlockPixelData() {
          var layout = GetLayout();
-         if (blockRenders == null) RefreshBlockRenderCache(layout);
+         if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
 
          var blockHeight = (int)Math.Ceiling((double)blockRenders.Count / BlocksPerRow);
          var canvas = new CanvasPixelViewModel(BlocksPerRow * 16, blockHeight * 16) { SpriteScale = 2 };
@@ -1199,7 +1202,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void RefreshBorderRender(ModelArrayElement layout = null) {
          if (layout == null) layout = GetLayout();
-         if (blockRenders == null) RefreshBlockRenderCache(layout);
+         if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
          var width = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
          var height = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
 
@@ -1228,7 +1231,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return mapTable[0];
       }
 
-      private ModelArrayElement GetLayout(ModelArrayElement map = null) {
+      public ModelArrayElement GetLayout(ModelArrayElement map = null) {
          if (map == null) map = GetMapModel();
          if (map == null) return null;
          return map.GetSubTable("layout")[0];
@@ -1421,16 +1424,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          BlockmapRun.WriteBlocks(tokenFactory(), blockModel1, blockModel2, blocks);
          this.blocks = null;
-         blockRenders = null;
+         blockRenders.Clear();
          blockPixels = null;
          pixelData = null;
          NotifyPropertiesChanged(nameof(BlockPixels), nameof(PixelData), nameof(BlockRenders));
       }
 
       private void HandleBorderChanged(object sender, EventArgs e) {
-         // TODO
          blocks = null;
-         blockRenders = null;
+         blockRenders.Clear();
          blockPixels = null;
          pixelData = null;
          borderBlock = null;

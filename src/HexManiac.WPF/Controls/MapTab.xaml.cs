@@ -140,11 +140,34 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void BlocksDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
+         if (element.IsMouseCaptured) return;
+         element.CaptureMouse();
          var mainModel = ViewModel;
          var p = e.GetPosition(element);
          p.X /= 16;
          p.Y /= 16;
          mainModel.SelectBlock((int)p.X, (int)p.Y);
+      }
+
+      private void BlocksMove(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
+         var mainModel = ViewModel;
+         var p = e.GetPosition(element);
+         p.X /= 16;
+         p.Y /= 16;
+         mainModel.DragBlock((int)p.X, (int)p.Y);
+      }
+
+      private void BlocksUp(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
+         element.ReleaseMouseCapture();
+         var mainModel = ViewModel;
+         var p = e.GetPosition(element);
+         p.X /= 16;
+         p.Y /= 16;
+         mainModel.ReleaseBlock((int)p.X, (int)p.Y);
       }
 
       private void TilesDown(object sender, MouseButtonEventArgs e) {
@@ -164,11 +187,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #region Border Interaction
 
-      private void BorderDown(object sender, MouseButtonEventArgs e) {
+      private void BorderDown(object sender, MouseButtonEventArgs e) => BorderMove(sender, e);
 
+      private void BorderSelect(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         element.CaptureMouse();
+         var p = e.GetPosition(element);
+         ViewModel.ReadBorderBlock(p.X, p.Y);
       }
 
-      // TODO mouse move (for drag) and mouse up (for undo history)
+      private void BorderMove(object sender, MouseEventArgs e) {
+         if (e.LeftButton == MouseButtonState.Pressed) {
+            var element = (FrameworkElement)sender;
+            var p = e.GetPosition(element);
+            ViewModel.DrawBorder(p.X, p.Y);
+         }
+      }
+
+      private void BorderUp(object sender, MouseButtonEventArgs e) {
+         var element = (FrameworkElement)sender;
+         element.ReleaseMouseCapture();
+         ViewModel.CompleteBorderDraw();
+      }
 
       #endregion
 

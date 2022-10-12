@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private StubCommand importImage, exportImage, exportImages, exportAllImages;
 
-      public bool CanExportMany => (Pages > 1 && ExportPair.CanExecute(default)) || CanExecuteExportAllImages(default);
+      public bool CanExportMany => Pages > 1 && ExportPair.CanExecute(default);
       public bool CanExportAll => CanExecuteExportAllImages(default);
       public bool CanExportManyOrAll => CanExportMany || CanExportAll;
       public ICommand ImportPair => StubCommand<IFileSystem>(ref importImage, ExecuteImportImage, CanExecuteImportImage);
@@ -115,12 +115,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var palettes = sRun.FindRelatedPalettes(Model, start, format.PaletteHint).ToList();
                var palette = palettes.FirstOrDefault();
                if (palettes.Count > 1 && palettes.Count > CurrentPalette) palette = palettes[CurrentPalette];
-               var pixels = ReadonlyPixelViewModel.Create(Model, sRun, palette);
                var name = run.ElementNames.Count > i ? run.ElementNames[i] : string.Empty;
                foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
                name = $"{folder}/{tableName}_{i}_{name}.png";
                if (!fs.Exists(name)) {
-                  fs.SaveImage(pixels.PixelData, pixels.PixelWidth, name);
+                  bool simpleImage = false;
+                  var imagePixels = sRun.GetPixels(Model, 0, -1);
+                  if (imagePixels != null) {
+                     var colors = palette?.AllColors(Model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sRun.SpriteFormat.BitsPerPixel));
+                     if (colors.Count == 16) {
+                        simpleImage = true;
+                        fs.SaveImage(imagePixels, colors, name);
+                     }
+                  }
+                  if (!simpleImage) {
+                     var pixels = ReadonlyPixelViewModel.Create(Model, sRun, palette);
+                     fs.SaveImage(pixels.PixelData, pixels.PixelWidth, name);
+                  }
                } else {
                   ErrorText = $"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}Another image with that named exists.";
                }
@@ -189,6 +200,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          RunFormat = that.RunFormat;
          UpdateAvailablePalettes(that.Start);
          Start = other.Start;
+         Pages = that.Pages;
          NotifyPropertyChanged(nameof(CanExportMany));
          NotifyPropertyChanged(nameof(CanExportAll));
          NotifyPropertyChanged(nameof(CanExportManyOrAll));

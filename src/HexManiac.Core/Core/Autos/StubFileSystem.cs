@@ -175,7 +175,10 @@ namespace HavenSoft.HexManiac.Core.Models
                 this.SaveImage(image, width, fileName);
             }
         }
-        
+
+        public Action<int[,],IReadOnlyList<short>,string> SaveIndexedImage { get; set; }
+        void IFileSystem.SaveImage(int[,] image, IReadOnlyList<short> palette, string fileName) => this.SaveIndexedImage?.Invoke(image, palette, fileName);
+
         public Func<string, string, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<object>>, VisualOption[], int> ShowOptions { get; set; }
         
         int IFileSystem.ShowOptions(string title, string prompt, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<object>> additionalDetails, VisualOption[] options)

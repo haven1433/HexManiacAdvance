@@ -352,20 +352,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
+         // get the palette (or palettes, if the number of palettes matches the number of pages like in castform)
          var run = model.GetNextRun(spriteAddress) as ISpriteRun;
          var renderPalette = GetRenderPalette(run);
+         bool useMultiplePalette = false;
+         if (run != null && run.SpriteFormat.BitsPerPixel == 4 && model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
+            var multiPalette = palRun.AllColors(model);
+            if (multiPalette.Count == 16 * spritePages) {
+               useMultiplePalette = true;
+               renderPalette = multiPalette;
+            }
+         }
+
          for (int i = 0; i < spritePages; i++) {
             var (xPageOffset, yPageOffset) = choice == 0 ? (i * PixelWidth, 0) : (0, i * PixelHeight);
             var pagePixels = run.GetPixels(model, i, -1);
+            int palOffset = useMultiplePalette ? i * 16 : 0;
             for (int x = 0; x < PixelWidth; x++) {
                for (int y = 0; y < PixelHeight; y++) {
-                  manyPixels[xPageOffset + x, yPageOffset + y] = pagePixels[x, y];
+                  manyPixels[xPageOffset + x, yPageOffset + y] = pagePixels[x, y] + palOffset;
                }
             }
          }
 
-         var rendered = Render(manyPixels, renderPalette, paletteFormat.InitialBlankPages, spritePage);
-         fs.SaveImage(rendered, manyPixels.GetLength(0));
+         if (renderPalette.Count == 16) {
+            fs.SaveImage(manyPixels, renderPalette);
+         } else {
+            var rendered = Render(manyPixels, renderPalette, paletteFormat.InitialBlankPages, spritePage);
+            fs.SaveImage(rendered, manyPixels.GetLength(0));
+         }
       }
 
       #endregion
@@ -1492,7 +1507,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ExportSpriteAndPalette(IFileSystem fileSystem) {
-         fileSystem.SaveImage(PixelData, PixelWidth);
+         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (spriteRun != null && paletteRun != null && spriteRun.SpriteFormat.BitsPerPixel == 4 && paletteRun.AllColors(model).Count == 16) {
+            var pixels = spriteRun.GetPixels(model, SpritePage, -1);
+            var palette = paletteRun.GetPalette(model, PalettePage);
+            fileSystem.SaveImage(pixels, palette);
+         } else {
+            fileSystem.SaveImage(PixelData, PixelWidth);
+         }
       }
    }
 

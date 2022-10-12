@@ -156,6 +156,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static NoInfoRun Proxy(IFormattedRun run) => new NoInfoRun(run.Start, run.PointerSources);
    }
 
+   /// <summary>
+   /// We need a run with a length, but it's not actually going to be added to the model
+   /// </summary>
+   public class FakeRun : BaseRun {
+      private int length;
+      public override int Length => length;
+      public override string FormatString => throw new NotImplementedException();
+      public FakeRun(int start, int length, SortedSpan<int> sources = null) : base(start, sources) => this.length = length;
+      public override IDataFormat CreateDataFormat(IDataModel data, int index) => throw new NotImplementedException();
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new FakeRun(Start, length, newPointerSources);
+   }
+
    public static class SortedSpan {
       public static SortedSpan<T> One<T>(T element) where T : IComparable<T> => new SortedSpan<T>(element);
    }

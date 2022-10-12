@@ -81,9 +81,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                BlockEditorVisible = true;
                PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
                drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
-               NotifyPropertyChanged(nameof(HighlightBlockX));
-               NotifyPropertyChanged(nameof(HighlightBlockY));
-               NotifyPropertyChanged(nameof(HighlightBlockSize));
+               selectionFromBlock = false;
+               NotifyPropertiesChanged(nameof(HighlightBlockX), nameof(HighlightBlockY), nameof(HighlightBlockWidth), nameof(HighlightBlockHeight));
             });
          }
       }
@@ -110,7 +109,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool BlockSelectionToggle { get; private set; }
       public double HighlightBlockX => (drawBlockIndex % BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
       public double HighlightBlockY => (drawBlockIndex / BlockMapViewModel.BlocksPerRow) * Blocks.SpriteScale * 16;
-      public double HighlightBlockSize => 16 * Blocks.SpriteScale + 2;
+      public double HighlightBlockWidth => 16 * Blocks.SpriteScale * (selectionFromBlock ? tilesToDraw.GetLength(0) : 1) + 2;
+      public double HighlightBlockHeight => 16 * Blocks.SpriteScale * (selectionFromBlock ? tilesToDraw.GetLength(1) : 1) + 2;
 
       private void AnimateBlockSelection() {
          BlockSelectionToggle = !BlockSelectionToggle;
@@ -649,6 +649,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          MultiTileDrawRender = canvas;
          DrawMultipleTiles = true;
          BlockEditorVisible = false;
+         PrimaryMap.BlockEditor.ShowTiles = false;
          UpdateHover(left, top, width, height);
       }
 
@@ -674,14 +675,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          map.Scale(x, y, enlarge);
          map.IncludeBorders = map.SpriteScale <= 1;
          UpdatePrimaryMap(map);
-      }
-
-      public void SelectBlock(int x, int y) {
-         DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
-         if (autoUpdateCollision) {
-            var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
-            if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
-         }
       }
 
       private StubCommand panCommand, zoomCommand, deleteCommand, cancelCommand;
@@ -749,6 +742,67 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Blocks Interection
+
+      private bool selectionFromBlock = false;
+      private Point blockInteractionStart;
+
+      public void SelectBlock(int x, int y) {
+         while (y * BlockMapViewModel.BlocksPerRow + x > PrimaryMap.BlockRenders.Count) y -= 1;
+         blockInteractionStart = new(x, y);
+         DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
+         if (autoUpdateCollision) {
+            var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
+            if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
+         }
+      }
+
+      public void DragBlock(int x, int y) {
+         selectionFromBlock = true;
+         while (y * BlockMapViewModel.BlocksPerRow + x > PrimaryMap.BlockRenders.Count) y -= 1;
+         var (xx, right) = (x, blockInteractionStart.X);
+         if (xx > right) (xx, right) = (right, xx);
+         var (yy, bottom) = (y, blockInteractionStart.Y);
+         if (yy > bottom) (yy, bottom) = (bottom, yy);
+         if (bottom * BlockMapViewModel.BlocksPerRow + right > PrimaryMap.BlockRenders.Count) return;
+         var (width, height) = (right - xx + 1, bottom - yy + 1);
+         tilesToDraw = new int[width, height];
+         for (int dx = 0; dx < width; dx++) {
+            for (int dy = 0; dy < height; dy++) {
+               tilesToDraw[dx, dy] = (yy + dy) * BlockMapViewModel.BlocksPerRow + xx + dx;
+               int preferredCollision = Math.Max(collisionIndex, 0);
+               if (autoUpdateCollision) preferredCollision = GetPreferredCollision(tilesToDraw[dx, dy]);
+               tilesToDraw[dx, dy] |= preferredCollision << 10;
+            }
+         }
+         drawBlockIndex = yy * BlockMapViewModel.BlocksPerRow + xx;
+         NotifyPropertiesChanged(nameof(HighlightBlockX), nameof(HighlightBlockY), nameof(HighlightBlockWidth), nameof(HighlightBlockHeight));
+         DrawMultipleTiles = true;
+      }
+
+      public void ReleaseBlock(int x, int y) {
+         var (xx, right) = (x, blockInteractionStart.X);
+         if (xx > right) (xx, right) = (right, xx);
+         var (yy, bottom) = (y, blockInteractionStart.Y);
+         if (yy > bottom) (yy, bottom) = (bottom, yy);
+         if (bottom * BlockMapViewModel.BlocksPerRow + right > PrimaryMap.BlockRenders.Count) return;
+         var (width, height) = (right - xx + 1, bottom - yy + 1);
+         if (width == 1 && height == 1) return;
+         var scale = (width < 4 && height < 4) ? 2 : 1;
+         var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
+         for (x = 0; x < width; x++) {
+            for (y = 0; y < height; y++) {
+               canvas.Draw(primaryMap.BlockRenders[tilesToDraw[x, y] & 0x3FF], x * 16, y * 16);
+            }
+         }
+         PrimaryMap.BlockEditor.ShowTiles = false;
+         MultiTileDrawRender = canvas;
+         DrawMultipleTiles = true;
+         BlockEditorVisible = false;
+      }
+
+      #endregion
+
       #region ShiftInteraction
 
       private MapSlider shiftButton;
@@ -794,6 +848,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (left <= x && x < right && top <= y && y < bottom) return button;
          }
          return null;
+      }
+
+      #endregion
+
+      #region Border Interaction
+
+      public void DrawBorder(double x, double y) {
+         if (!PrimaryMap.BorderEditor.ShowBorderPanel) return;
+         if (DrawMultipleTiles) {
+            if (tilesToDraw != null) PrimaryMap.BorderEditor.Draw(tilesToDraw, x, y);
+         } else {
+            if (drawBlockIndex != -1) PrimaryMap.BorderEditor.Draw(DrawBlockIndex, x, y);
+         }
+      }
+
+      public void CompleteBorderDraw() => PrimaryMap.ViewPort.ChangeHistory.ChangeCompleted();
+
+      public void ReadBorderBlock(double x, double y) {
+         DrawBlockIndex = PrimaryMap.BorderEditor.GetBlock(x, y);
       }
 
       #endregion

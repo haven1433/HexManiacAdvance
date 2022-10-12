@@ -742,17 +742,16 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@00 ^pal`lzp4` @40 ^sprite`lzs4x1x1|pal`");
          ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.SpriteTool);
 
-         short[] imageData = null;
-         int width = 0;
+         int[,] imageData = null;
          var fs = new StubFileSystem {
             ShowOptions = (title, text, details, options) => 0,
-            SaveImage = (img, wdth, n) => (imageData, width) = (img, wdth),
+            SaveIndexedImage = (pixels, palette, name) => imageData = pixels,
          };
 
          ViewPort.Tools.SpriteTool.ExportMany.Execute(fs);
 
-         Assert.Equal(8 * 2, width);
-         Assert.Equal(8 * 8 * 2, imageData.Length);
+         Assert.Equal(8 * 2, imageData.GetLength(0));
+         Assert.Equal(8, imageData.GetLength(1));
       }
 
       [Fact]
@@ -762,17 +761,16 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@00 ^pal`lzp4` @40 ^sprite`lzs4x1x1|pal`");
          ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.SpriteTool);
 
-         short[] imageData = null;
-         int width = 0;
+         int[,] imageData = null;
          var fs = new StubFileSystem {
             ShowOptions = (title, text, details, options) => 1,
-            SaveImage = (img, wdth, n) => (imageData, width) = (img, wdth),
+            SaveIndexedImage = (pixels, palette, name) => imageData = pixels,
          };
 
          ViewPort.Tools.SpriteTool.ExportMany.Execute(fs);
 
-         Assert.Equal(8, width);
-         Assert.Equal(8 * 8 * 2, imageData.Length);
+         Assert.Equal(8, imageData.GetLength(0));
+         Assert.Equal(8 * 2, imageData.GetLength(1));
       }
 
       [Fact]

@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Windows;
+using HexManiac.WPF.Resources;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -523,6 +524,17 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          using (var fileStream = File.Create(fileName)) {
             encoder.Save(fileStream);
          }
+      }
+
+      public void SaveImage(int[,] image, IReadOnlyList<short> palette, string fileName = null) {
+         if (fileName == null) {
+            var dialog = new SaveFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
+            var result = dialog.ShowDialog();
+            if (result != true) return;
+            fileName = dialog.FileName;
+         }
+
+         IndexedPng.Save(fileName, image, palette);
       }
 
       private static BitmapFrame EncodeImage(short[] image, int width) {

@@ -136,12 +136,10 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          blockModel2.WriteBlockAttributes(secondary.ToArray(), token);
       }
 
-      public static IReadOnlyList<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, int[][,] tiles, short[][] palettes) {
-         var renders = new List<IPixelViewModel>();
+      public static IEnumerable<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, int[][,] tiles, short[][] palettes) {
          for (int i = 0; i < blocks.Length; i++) {
-            renders.Add(BlocksetModel.RenderBlock(blocks[i], tiles, palettes));
+            yield return BlocksetModel.RenderBlock(blocks[i], tiles, palettes);
          }
-         return renders;
       }
 
       public static CanvasPixelViewModel RenderMap(IReadOnlyList<byte> model, int start, int width, int height, IReadOnlyList<IPixelViewModel> blocks) {
