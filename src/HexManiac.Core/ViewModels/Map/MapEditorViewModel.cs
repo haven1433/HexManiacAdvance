@@ -610,6 +610,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void SelectMove(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map != primaryMap) return;
+         if (x < map.LeftEdge || x > map.LeftEdge + map.PixelWidth * map.SpriteScale) return;
+         if (y < map.TopEdge || y > map.TopEdge + map.PixelHeight * map.SpriteScale) return;
          var selectMovePosition = ToTilePosition(x, y);
          var left = Math.Min(selectDownPosition.X, selectMovePosition.X);
          var top = Math.Min(selectDownPosition.Y, selectMovePosition.Y);
@@ -622,6 +624,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          interactionType = PrimaryInteractionType.None;
          var map = MapUnderCursor(x, y);
          if (map != primaryMap) return;
+         if (x < map.LeftEdge || x > map.LeftEdge + map.PixelWidth * map.SpriteScale) return;
+         if (y < map.TopEdge || y > map.TopEdge + map.PixelHeight * map.SpriteScale) return;
          var selectMovePosition = ToTilePosition(x, y);
          var left = Math.Min(selectDownPosition.X, selectMovePosition.X);
          var top = Math.Min(selectDownPosition.Y, selectMovePosition.Y);
@@ -660,7 +664,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return new Point((int)Math.Floor(x) - borders.West, (int)Math.Floor(y) - borders.North);
       }
 
-      private (double,double) ToMapPosition(int x, int y) {
+      private (double, double) ToMapPosition(int x, int y) {
          var borders = primaryMap.GetBorderThickness();
          var pX = (x + borders.West) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
          var pY = (y + borders.North) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
@@ -730,14 +734,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel MapUnderCursor(double x, double y) {
+         BlockMapViewModel closestMap = null;
+         double closestDistance = int.MaxValue;
          foreach (var map in VisibleMaps) {
-            if (map.LeftEdge < x && x < map.LeftEdge + map.PixelWidth * map.SpriteScale) {
-               if (map.TopEdge < y && y < map.TopEdge + map.PixelHeight * map.SpriteScale) {
-                  return map;
-               }
-            }
+            var dx = x.LimitToRange(map.LeftEdge, map.LeftEdge + map.PixelWidth * map.SpriteScale);
+            var dy = y.LimitToRange(map.TopEdge, map.TopEdge + map.PixelHeight * map.SpriteScale);
+            var distance = (x - dx) * (x - dx) + (y - dy) * (y - dy);
+            if (distance == 0) return map;
+            if (distance > closestDistance) continue;
+            closestDistance = distance;
+            closestMap = map;
          }
-         return null;
+         return closestMap;
       }
 
       #endregion

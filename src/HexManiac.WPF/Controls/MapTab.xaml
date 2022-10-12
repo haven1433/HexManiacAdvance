@@ -708,6 +708,21 @@
          </StackPanel>
          <local:AngleButton Direction="Left" Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5,0,0,0" />
          <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Width="110">
+            <local:AngleButton.Style>
+               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding PrimaryMap.HasWildData}" Value="True">
+                        <Setter Property="ToolTip">
+                           <Setter.Value>
+                              <ToolTip Width="200">
+                                 <TextBlock TextWrapping="Wrap" Text="{Binding PrimaryMap.WildText}" />
+                              </ToolTip>
+                           </Setter.Value>
+                        </Setter>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </local:AngleButton.Style>
             <TextBlock>
                <TextBlock.Style>
                   <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">

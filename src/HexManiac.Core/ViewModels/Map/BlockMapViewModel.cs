@@ -10,6 +10,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
 using static IronPython.Modules._ast;
@@ -292,6 +293,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string wildText;
+      public string WildText {
+         get {
+            if (wildText != null) return wildText;
+            var wild = model.GetTableModel(HardcodeTablesModel.WildTableName);
+            // grass<[rate:: list<>]1> surf<[rate:: list<>]1> tree<[rate:: list<>]1> fish<[rate:: list<>]1>
+            var text = new StringBuilder();
+            if (wildDataIndex < 0) return text.ToString();
+            BuildWildTooltip(text, wild[wildDataIndex], "grass");
+            text.AppendLine();
+            BuildWildTooltip(text, wild[wildDataIndex], "surf");
+            text.AppendLine();
+            BuildWildTooltip(text, wild[wildDataIndex], "tree");
+            text.AppendLine();
+            BuildWildTooltip(text, wild[wildDataIndex], "fish");
+            return text.ToString();
+         }
+      }
+      private static void BuildWildTooltip(StringBuilder text, ModelArrayElement wild, string type) {
+         // list<[low. high. species:]n>
+         var terrain = wild.GetSubTable(type);
+         if (terrain == null) return;
+         var list = terrain[0].GetSubTable("list");
+         if (list == null) return;
+         text.Append(type);
+         text.Append(": ");
+         text.AppendJoin(", ", list.Select(element => element.GetEnumValue("species")).Distinct());
+      }
+
       private StubCommand gotoWildData;
       public ICommand GotoWildData => StubCommand(ref gotoWildData, () => {
          var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
@@ -523,6 +553,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          int changeCount = 0;
          for (int x = 0; x < tiles.GetLength(0); x++) {
             for (int y = 0; y < tiles.GetLength(1); y++) {
+               if (destination.X + x < 0 || destination.Y + y < 0 || destination.X + x >= width || destination.Y + y >= height) continue;
                var address = start + ((destination.Y + y) * width + destination.X + x) * 2;
                if (model.ReadMultiByteValue(address, 2) != tiles[x, y]) {
                   model.WriteMultiByteValue(address, 2, token, tiles[x, y]);
