@@ -384,6 +384,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private MapRepointer mapRepointer;
+      public MapRepointer MapRepointer => mapRepointer;
+
       public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, int group, int map) {
          this.fileSystem = fileSystem;
          this.viewPort = viewPort;
@@ -398,6 +401,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryPalettes = model.IsFRLG() ? 7 : 6;
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
+
+         mapRepointer = new MapRepointer();
       }
 
       private string _bld, _layout, _objects, _warps, _scripts, _signposts, _events, _connections, _header, _map;
@@ -1503,8 +1508,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /*
          ruby:    data.maps.banks,                       layout<[
                                                             width:: height:: borderblock<[border:|h]4> blockmap<`blm`>
-                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
-                                                            blockdata2<>]1>
+                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
+                                                            blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
                                                          events<[e1 e2 e3 e4 ee1<> ee2<> ee3<> ee4<>]1>
                                                          mapscripts<[type. pointer<>]!00>
                                                          connections<>
@@ -1513,8 +1518,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          firered: data.maps.banks,                       layout<[
                                                             width:: height:: borderblock<>
                                                             blockmap<`blm`>
-                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
-                                                            blockdata2<>
+                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
+                                                            blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
                                                             borderwidth. borderheight. unused:]1>
                                                          events<[objectCount. warpCount. scriptCount. signpostCount.
                                                             objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
@@ -1525,7 +1530,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                                                          connections<[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]>
                                                          music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
 
-         emerald: data.maps.banks,                       layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<`lzt4`> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1> blockdata2<>]1>
+         emerald: data.maps.banks,                       layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`>
+                                                            blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
+                                                            blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1>
                                                          events<[objects. warps. scripts. signposts.
                                                             objectP<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objects>
                                                             warpP<[x:500 y:500 elevation. warpID. map. bank.]/warps>

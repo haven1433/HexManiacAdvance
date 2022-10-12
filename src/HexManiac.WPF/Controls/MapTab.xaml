@@ -33,14 +33,16 @@
          <RowDefinition Height="Auto" />
          <RowDefinition Height="*" />
       </Grid.RowDefinitions>
+
+      <!-- Block Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
                <RowDefinition Height="Auto" MinHeight="112"/>
                <RowDefinition Height="75"/>
             </Grid.RowDefinitions>
-            <CheckBox HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,10,10,35"
-                  Content="Automatic Movement Permission" IsChecked="{Binding AutoUpdateCollision}" Grid.Row="1">
+            <CheckBox HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="5,10,10,35" Grid.Row="1"
+                  Content="Automatic Movement Permission" IsChecked="{Binding AutoUpdateCollision}">
                <CheckBox.ToolTip>
                   <TextBlock>
                      Update Movement Permission Selection based on Most Common Permission for selected block.
@@ -60,6 +62,73 @@
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Tiles"
                    Direction="Right" Padding="2,0" IsChecked="{Binding ShowTiles}" />
             </Decorator>
+            <Grid Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,55">
+               <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" Visibility="Collapsed" />
+               <Popup Width="300" Height="320" IsOpen="{Binding IsChecked, ElementName=DataOperations}" StaysOpen="False">
+                  <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
+                     <Grid>
+                        <Grid.RowDefinitions>
+                           <RowDefinition /> <RowDefinition /> <RowDefinition />
+                           <RowDefinition /> <RowDefinition /> <RowDefinition />
+                           <RowDefinition /> <RowDefinition /> <RowDefinition />
+                           <RowDefinition />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                           <ColumnDefinition /> <ColumnDefinition /> <ColumnDefinition /> <ColumnDefinition /> <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.Resources>
+                           <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                              <Setter Property="Margin" Value="2,4" />
+                              <Setter Property="Padding" Value="0" />
+                              <Setter Property="Height" Value="27" />
+                           </Style>
+                           <Style TargetType="local:AngleBorder" BasedOn="{StaticResource {x:Type local:AngleBorder}}">
+                              <Setter Property="VerticalAlignment" Value="Center" />
+                              <Setter Property="Margin" Value="0,4,0,0" />
+                              <Setter Property="HorizontalContentAlignment" Value="Center" />
+                           </Style>
+                        </Grid.Resources>
+                        <!-- Fork Layout -->
+                        <local:AngleButton Content="Repoint Layout" Direction="Out" Grid.ColumnSpan="5" Width="200" />
+                        <!-- Fork Border Block -->
+                        <local:AngleButton Content="Repoint Border Block" Direction="Out" Grid.Row="1" Grid.ColumnSpan="5" Width="200" />
+                        <!-- Fork Blockmap -->
+                        <local:AngleButton Content="Repoint Blockmap" Direction="Out" Grid.Row="2" Grid.ColumnSpan="5" Width="200" />
+                        <!-- Primary / Secondary lables -->
+                        <local:AngleBorder Content="Primary" Direction="Left" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" />
+                        <local:AngleBorder Content="Secondary" Direction="Right" Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" />
+                        <!-- Fork Primary Blockset -->
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" />
+                        <local:AngleBorder Content="Blockset" Direction="Out" Grid.Row="4" Grid.Column="2" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" />
+                        <!-- Expand Primary Blocks/Attributes -->
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="5" Grid.Column="0" />
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="5" Grid.Column="1" />
+                        <local:AngleBorder Content="Blocks" Direction="Out" Grid.Row="5" Grid.Column="2" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="5" Grid.Column="3" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="5" Grid.Column="4" />
+                        <!-- Tileset -->
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="6" Grid.Column="0" />
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="6" Grid.Column="1" />
+                        <local:AngleBorder Content="Tileset" Direction="Out" Grid.Row="6" Grid.Column="2" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="6" Grid.Column="3" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="6" Grid.Column="4" />
+                        <!-- Palette -->
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="7" Grid.Column="0" />
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="7" Grid.Column="1" />
+                        <local:AngleBorder Content="Palette" Direction="Out" Grid.Row="7" Grid.Column="2" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="7" Grid.Column="3" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="7" Grid.Column="4" />
+                        <!-- Create Primary Animations -->
+                        <local:AngleButton Content="Create" Direction="Left" Grid.Row="8" Grid.Column="0" />
+                        <local:AngleBorder Content="Animation" Direction="Out" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="3" />
+                        <local:AngleButton Content="Create" Direction="Right" Grid.Row="8" Grid.Column="4" />
+                        <!-- Duplicate Map (Using Same Layout) -->
+                        <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.ColumnSpan="5" Width="200" />
+                     </Grid>
+                  </Border>
+               </Popup>
+            </Grid>
             <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Center">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
             </Decorator>
@@ -105,6 +174,8 @@
             </Canvas>
          </ScrollViewer>
       </DockPanel>
+
+      <!-- Event Panel -->
       <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="EventPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
@@ -424,6 +495,8 @@
             </ContentControl>
          </DockPanel>
       </ScrollViewer>
+
+      <!-- Header Panel -->
       <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="HeaderPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
@@ -486,6 +559,8 @@
             <local:AngleTextBox Grid.Row="8" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding BattleType}" />
          </Grid>
       </ScrollViewer>
+
+      <!-- Main View -->
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
                     SnapsToDevicePixels="True" ClipToBounds="True" Focusable="False"
                     MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
