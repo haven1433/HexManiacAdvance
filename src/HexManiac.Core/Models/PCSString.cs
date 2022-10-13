@@ -37,6 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string TextReferenceFileName = "resources/pcsReference.txt";
 
       public static IReadOnlyList<string> PCS;
+      public static IReadOnlySet<string> ValidInProgressEscapes;
       public static IReadOnlyList<byte> Newlines;
       public static IReadOnlyDictionary<byte, byte> ControlCodeLengths;
       public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> TextMacros;
@@ -57,6 +58,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             ControlCodeLengths = GetDefaultControlCodeLengths();
             TextMacros = new Dictionary<string, IReadOnlyDictionary<string, byte[]>>();
          }
+
+         ValidInProgressEscapes = new HashSet<string>(PCS
+            .Where(c => c != null && c.StartsWith("\\"))
+            .SelectMany(c => (c.Length - 1).Range(i => c.Substring(0, i + 1))));
 
          Newlines = new byte[] { 0xFA, 0xFB, 0xFE };
       }
@@ -261,8 +266,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var checkCharacter = PCS[i];
                if (input.Length < index + checkCharacter.Length) continue;
                var checkInput = input.Substring(index, checkCharacter.Length);
-               if (checkCharacter.StartsWith("\\") && !PCS.Any(pcs => pcs != null && pcs.StartsWith(checkInput))) {
-               // if (checkCharacter.StartsWith("\\")) {
+               if (checkCharacter.StartsWith("\\") && !ValidInProgressEscapes.Contains(checkInput)) {
                   // escape sequences don't care about case (if no sequences seem to match the current case)
                   checkCharacter = checkCharacter.ToUpper();
                   checkInput = checkInput.ToUpper();
