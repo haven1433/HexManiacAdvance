@@ -216,7 +216,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          var matchedMaps = viewPort.Model.GetMatchingMaps(currentSelection);
-         if (matchedMaps.Count == 1) {
+         if (matchedMaps.Count == 1 || matchedMaps.Any(map => map.Name == currentSelection)) {
             viewPort?.Goto?.Execute(currentSelection);
             ControlVisible = false;
             ShowAutoCompleteOptions = false;

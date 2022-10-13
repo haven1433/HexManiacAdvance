@@ -13,11 +13,10 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
-using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
-
+      private readonly Format format;
       private readonly IFileSystem fileSystem;
       private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
@@ -387,38 +386,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private MapRepointer mapRepointer;
       public MapRepointer MapRepointer => mapRepointer;
 
-      public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, int group, int map) {
+      public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Format format, int group, int map) {
+         this.format = format;
          this.fileSystem = fileSystem;
          this.viewPort = viewPort;
          this.model = viewPort.Model;
          this.tokenFactory = () => viewPort.ChangeHistory.CurrentChange;
          (this.group, this.map) = (group, map);
          Transparent = -1;
-         InitTableRef(!model.IsFRLG());
-         Header = new(GetMapModel(), tokenFactory);
+         var mapModel = GetMapModel();
+         Header = new(mapModel, tokenFactory);
          RefreshMapSize();
          PrimaryTiles = PrimaryBlocks = model.IsFRLG() ? 640 : 512;
          PrimaryPalettes = model.IsFRLG() ? 7 : 6;
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
 
-         mapRepointer = new MapRepointer();
-      }
-
-      private string _bld, _layout, _objects, _warps, _scripts, _signposts, _events, _connections, _header, _map;
-      private void InitTableRef(bool isRSE) {
-         _bld = $"[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1";
-         if (isRSE) _bld = $"[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> attributes<> animation<>]1";
-         _layout = $"[width:: height:: borderblock<> blockmap<`blm`> blockdata1<{_bld}> blockdata2<{_bld}> borderwidth. borderheight. unused:]1";
-         if (isRSE) _layout = $"[width:: height:: borderblock<> blockmap<`blm`> blockdata1<{_bld}> blockdata2<{_bld}>]1";
-         _objects = "[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount";
-         _warps = "[x:500 y:500 elevation. warpID. map. bank.]/warps";
-         _scripts = "[x:500 y:500 elevation: trigger: index:: script<`xse`>]/scriptCount";
-         _signposts = "[x:500 y:500 elevation. kind. unused: arg::|h]/signposts";
-         _events = $"[objectCount. warpCount. scriptCount. signpostCount. objects<{_objects}> warps<{_warps}> scripts<{_scripts}> signposts<{_signposts}>]1";
-         _connections = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
-         _header = "music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";
-         _map = $"[layout<{_layout}> events<{_events}> mapscripts<[type. pointer<>]!00> connections<{_connections}> {_header}]";
+         mapRepointer = new MapRepointer(format, fileSystem, model, viewPort.ChangeHistory, MapID);
       }
 
       public IReadOnlyList<BlockMapViewModel> GetNeighbors(MapDirection direction) {
@@ -778,12 +762,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void ConnectNewMap(object obj) {
          var token = tokenFactory();
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
-         var enumViewModel = new EnumViewModel(mapBanks.Count.Range(i => i.ToString()).ToArray());
-         var option = fileSystem.ShowOptions(
-            "Pick a group",
-            "Which map group do you want to add the new map to?",
-            new[] { new[] { enumViewModel } },
-            new VisualOption { Index = 1, Option = "OK", ShortDescription = "Insert New Map" });
+         var option = MapRepointer.GetMapBankForNewMap("Which map group do you want to add the new map to?");
          if (option == -1) return;
 
          var info = (ConnectionInfo)obj;
@@ -797,27 +776,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
 
-         newConnection.MapGroup = enumViewModel.Choice;
+         newConnection.MapGroup = option;
 
-         ITableRun mapTable;
-         if (mapBanks.Count == newConnection.MapGroup) {
-            var newTable = model.RelocateForExpansion(token, mapBanks.Run, mapBanks.Run.Length + mapBanks.Run.ElementLength);
-            newTable = newTable.Append(token, 1);
-            model.ObserveRunWritten(token, newTable);
-            mapBanks = new ModelTable(model, newTable.Start, tokenFactory, newTable);
-            var tableStart = model.FindFreeSpace(model.FreeSpaceStart, 8);
-            mapTable = new TableStreamRun(model, tableStart, SortedSpan.One(mapBanks[newConnection.MapGroup].Start), $"[map<{_map}1>]", null, new DynamicStreamStrategy(model, null), 0);
-            model.UpdateArrayPointer(token, null, null, -1, mapBanks[newConnection.MapGroup].Start, tableStart);
-         } else {
-            mapTable = mapBanks[newConnection.MapGroup].GetSubTable("maps").Run;
-         }
-         newConnection.MapNum = mapTable.ElementCount;
-         mapTable = mapTable.Append(token, 1);
-         model.ObserveRunWritten(token, mapTable);
-         var address = CreateNewMap(token, info.Size, info.Size);
+         var mapTable = MapRepointer.AddNewMapToBank(option);
+
+         newConnection.MapNum = mapTable.ElementCount - 1;
+         var address = MapRepointer.CreateNewMap(token);
+         var layoutStart = MapRepointer.CreateNewLayout(token);
+         WritePointerAndSource(token, layoutStart + 12, MapRepointer.CreateNewBlockMap(token, info.Size, info.Size));
+         WritePointerAndSource(token, address + 0, layoutStart);
+
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
 
-         var otherMap = new BlockMapViewModel(fileSystem, viewPort, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          otherMap.UpdateLayoutID();
          info = new ConnectionInfo(info.Size, -info.Offset, info.OppositeDirection);
          newConnection = otherMap.AddConnection(info);
@@ -841,7 +812,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
             for (int map = 0; map < maps.Count; map++) {
-               var mapVM = new BlockMapViewModel(fileSystem, viewPort, group, map) { allOverworldSprites = allOverworldSprites };
+               var mapVM = new BlockMapViewModel(fileSystem, viewPort, format, group, map) { allOverworldSprites = allOverworldSprites };
                var newInfo = mapVM.CanConnect(info.OppositeDirection);
                if (newInfo != null) options[mapVM.MapID] = newInfo;
             }
@@ -850,11 +821,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // select which map to add
          var keys = options.Keys.ToList();
          var enumViewModel = new EnumViewModel(keys.Select(key => MapIDToText(model, key)).ToArray());
+
          var option = fileSystem.ShowOptions(
             "Pick a group",
-            "Which map group do you want to add the new map to?",
+            "Which map do you want to connect to?",
             new[] { new[] { enumViewModel } },
-            new VisualOption { Index = 1, Option = "OK", ShortDescription = "Insert New Map" });
+            new VisualOption { Index = 1, Option = "OK", ShortDescription = "Connect Existing Map" });
          if (option == -1) return;
          var choice = keys[enumViewModel.Choice];
 
@@ -864,7 +836,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         var otherMap = new BlockMapViewModel(fileSystem, viewPort, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = options[choice];
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -907,7 +879,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var connectionsAndCountTable = map.GetSubTable("connections");
          if (connectionsAndCountTable == null) {
-            var newConnectionsAndCountTable = CreateNewConnections(token);
+            var newConnectionsAndCountTable = MapRepointer.CreateNewConnections(token);
             model.UpdateArrayPointer(token, null, null, -1, map.Start + 12, newConnectionsAndCountTable);
             connectionsAndCountTable = map.GetSubTable("connections");
          }
@@ -1011,28 +983,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return new ModelArrayElement(model, newRun.Start, newRun.ElementCount - 1, tokenFactory, newRun);
       }
 
-      /// <summary>
-      /// Inserts a new map using the existing borderblocks and block data.
-      /// Creates event data with 0 events, creates connection data with 0 connections.
-      /// Copies all the flags from the current map
-      /// </summary>
-      private int CreateNewMap(ModelDelta token, int width, int height) {
-         var currentMap = GetMapModel();
-         var mapStart = model.FindFreeSpace(model.FreeSpaceStart, 28);
-         // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags. floorNum. battleType.
-         for (int i = 16; i < 28; i++) token.ChangeData(model, mapStart + i, model[currentMap.Start + i]);
-
-         WritePointerAndSource(token, mapStart + 0, CreateNewLayout(token, width, height));
-         WritePointerAndSource(token, mapStart + 4, CreateNewEvents(token));
-         WritePointerAndSource(token, mapStart + 8, CreateNewMapScripts(token));
-         WritePointerAndSource(token, mapStart + 12, CreateNewConnections(token));
-
-         var table = new TableStreamRun(model, mapStart, SortedSpan<int>.None, _map, null, new FixedLengthStreamStrategy(1));
-         model.ObserveRunWritten(token, table);
-
-         return mapStart;
-      }
-
       private void Erase(ITableRun table, ModelDelta token) {
          foreach (var source in table.PointerSources) {
             model.ClearPointer(token, source, table.Start);
@@ -1072,7 +1022,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
-         var vm = new BlockMapViewModel(fileSystem, viewPort, connection.MapGroup, connection.MapNum) {
+         var vm = new BlockMapViewModel(fileSystem, viewPort, format, connection.MapGroup, connection.MapNum) {
             IncludeBorders = IncludeBorders,
             SpriteScale = SpriteScale,
             allOverworldSprites = allOverworldSprites,
@@ -1090,8 +1040,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RefreshPaletteCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
             if (layout == null) layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
 
          palettes = BlockmapRun.ReadPalettes(blockModel1, blockModel2, PrimaryPalettes);
@@ -1129,8 +1079,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blocks == null || tiles == null || palettes == null) {
             if (layout == null) layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
          if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
          if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
@@ -1353,12 +1303,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < connections.Count; i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
-               var map = new BlockMapViewModel(fileSystem, viewPort, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeWidth = map.pixelWidth / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
             } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
-               var map = new BlockMapViewModel(fileSystem, viewPort, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeHeight = map.pixelHeight / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);
@@ -1402,54 +1352,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return null;
       }
 
-      private int CreateNewLayout(ModelDelta token, int width, int height) {
-         // width:: height:: borderblock<> blockmap<`blm`> blockdata1<> blockdata2<> borderwidth. borderheight. unused:
-        var myLayout = GetLayout();
-         var blockmapLength = width * height * 2;
-         var blockmapStart = model.FindFreeSpace(model.FreeSpaceStart, blockmapLength + 28);
-         var layoutStart = blockmapStart + blockmapLength;
-         token.ChangeData(model, blockmapStart, new byte[blockmapLength]);
-
-         model.WriteValue(token, layoutStart + 0, width);
-         model.WriteValue(token, layoutStart + 4, height);
-         WritePointerAndSource(token, layoutStart + 8, myLayout.GetAddress("borderblock"));
-         WritePointerAndSource(token, layoutStart + 12, blockmapStart);
-         WritePointerAndSource(token, layoutStart + 16, myLayout.GetAddress("blockdata1"));
-         WritePointerAndSource(token, layoutStart + 20, myLayout.GetAddress("blockdata2"));
-         if (myLayout.HasField("borderwidth")) {
-            model.WriteValue(token, layoutStart + 24, myLayout.GetValue("borderwidth"));
-            model.WriteValue(token, layoutStart + 25, myLayout.GetValue("borderwidth"));
-            model.WriteMultiByteValue(layoutStart + 26, 2, token, 0);
-         }
-         return layoutStart;
-      }
-
       private void WritePointerAndSource(ModelDelta token, int source, int destination) {
          model.WritePointer(token, source, destination);
          model.ObserveRunWritten(token, NoInfoRun.FromPointer(model, source));
-      }
-
-      private int CreateNewEvents(ModelDelta token) {
-         // objectCount. warpCount. scriptCount. signpostCount. objects<> warps<> scripts<> signposts<>
-         var eventStart = model.FindFreeSpace(model.FreeSpaceStart, 20);
-         token.ChangeData(model, eventStart, new byte[20]);
-         return eventStart;
-      }
-
-      private int CreateNewMapScripts(ModelDelta token) {
-         // mapscripts<[type. pointer<>]!00>
-         var eventStart = model.FindFreeSpace(model.FreeSpaceStart, 4);
-         token.ChangeData(model, eventStart, new byte[] { 0, 0xFF, 0xFF, 0xFF });
-         return eventStart;
-      }
-
-      private int CreateNewConnections(ModelDelta token) {
-         // count:: connections<>
-         var connectionStart = model.FindFreeSpace(model.FreeSpaceStart, 8);
-         token.ChangeData(model, connectionStart, new byte[8]);
-         var run = new TableStreamRun(model, connectionStart, SortedSpan<int>.None, $"[{ConnectionInfo.ConnectionTableContent}]", null, new FixedLengthStreamStrategy(1));
-         model.ObserveRunWritten(token, run);
-         return connectionStart;
       }
 
       private void GotoAddress(int address) => viewPort.Goto.Execute(address);
@@ -1545,6 +1450,56 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public record Border(int North, int East, int South, int West);
+
+   public class Format {
+      public static string Layout => "layout";
+      public static string Warps => "warps";
+      public static string Objects => "objects";
+      public static string Connections => "connections";
+      public static string Scripts => "scripts";
+      public static string Signposts => "signposts";
+      public static string ObjectCount => "objectCount";
+      public static string WarpCount => "warpCount";
+      public static string ScriptCount => "scriptCount";
+      public static string SignpostCount => "signpostCount";
+      public static string BorderBlock => "borderblock";
+      public static string BlockMap => "blockmap";
+      public static string PrimaryBlockset => "blockdata1";
+      public static string SecondaryBlockset => "blockdata2";
+      public static string Tileset => "tileset";
+      public static string BlockAttributes => "attributes";
+      public static string Blocks => "block";
+      public static string TileAnimationRoutine => "animation";
+      public static string Palette => "pal";
+      public static string BorderWidth => "borderwidth";
+      public static string BorderHeight => "borderheight";
+
+      public string BlockDataFormat { get; }
+      public string LayoutFormat { get; }
+      public string ObjectsFormat { get; }
+      public string WarpsFormat { get; }
+      public string ScriptsFormat { get; }
+      public string SignpostsFormat { get; }
+      public string EventsFormat { get; }
+      public string ConnectionsFormat { get; }
+      public string HeaderFormat { get; }
+      public string MapFormat { get; }
+
+      public Format(bool isRSE) {
+         BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {TileAnimationRoutine}<> {BlockAttributes}<>]1";
+         if (isRSE) BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {BlockAttributes}<> {TileAnimationRoutine}<>]1";
+         LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}> {BorderWidth}. {BorderHeight}. unused:]1";
+         if (isRSE) LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {PrimaryBlockset}<{BlockDataFormat}>]1";
+         ObjectsFormat = $"[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/{ObjectCount}";
+         WarpsFormat = $"[x:500 y:500 elevation. warpID. map. bank.]/{WarpCount}";
+         ScriptsFormat = $"[x:500 y:500 elevation: trigger: index:: script<`xse`>]/{ScriptCount}";
+         SignpostsFormat = $"[x:500 y:500 elevation. kind. unused: arg::|h]/{SignpostCount}";
+         EventsFormat = $"[{ObjectCount}. {WarpCount}. {ScriptCount}. {SignpostCount}. {Objects}<{ObjectsFormat}> {Warps}<{WarpsFormat}> {Scripts}<{ScriptsFormat}> {Signposts}<{SignpostsFormat}>]1";
+         ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
+         HeaderFormat = "music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";
+         MapFormat = $"[{Layout}<{LayoutFormat}> events<{EventsFormat}> mapscripts<[type. pointer<>]!00> {Connections}<{ConnectionsFormat}> {HeaderFormat}]";
+      }
+   }
 
    public record ConnectionInfo(int Size, int Offset, MapDirection Direction) {
       public const string SingleConnectionContent = "direction:: offset:: mapGroup. mapNum. unused:";

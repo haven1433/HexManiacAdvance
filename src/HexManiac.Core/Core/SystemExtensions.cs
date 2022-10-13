@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core {
       public static void RaiseCanExecuteChanged(this StubCommand self) => self?.CanExecuteChanged.Invoke(self, EventArgs.Empty);
 
       public static void Raise(this EventHandler handler, object source) => handler?.Invoke(source, EventArgs.Empty);
+      public static void Raise<T>(this EventHandler<T> handler, object source, T args) => handler?.Invoke(source, args);
 
       public static T LimitToRange<T>(this T value, T lower, T upper) where T : IComparable<T> {
          if (upper.CompareTo(lower) < 0) throw new ArgumentException($"upper value {upper} is less than lower value {lower}");

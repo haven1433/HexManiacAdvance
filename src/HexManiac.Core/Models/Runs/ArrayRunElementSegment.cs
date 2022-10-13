@@ -639,8 +639,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public bool DestinationDataMatchesPointerFormat(IDataModel owner, ModelDelta token, int source, int destination, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
          if (destination == Pointer.NULL) return true;
          var run = owner.GetNextRun(destination);
-         if (run.Start < destination && run is not ITableRun) return false;
-         if (run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
+         bool possibleFalseRun = false;
+         if (run.Start < destination && run is not ITableRun) {
+            if (run is PCSRun || run is PointerRun) possibleFalseRun = true; // this could have been added automatically and is blocking the correct interpretation of the data
+            else return false;
+         }
+         if ((run.Start < destination && possibleFalseRun) || run.Start > destination || (run.Start == destination && (run is NoInfoRun || run is PointerRun))) {
             // hard case: no format found, so check the data
             if (destination < 0 || destination >= owner.Count) return false;
             return Factory.GetStrategy(InnerFormat)?.TryAddFormatAtDestination(owner, token, source, destination, Name, sourceSegments, parentIndex) ?? false;

@@ -449,7 +449,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return canvas;
       }
 
-      private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart) {
+      private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart) => EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
+      public static void EstimateBlockCount(IDataModel model, ref int blockCount, int blockStart, int attributeStart) {
          var blockLength = 0x10;
          IFormattedRun run;
          for (run = model.GetNextRun(blockStart + 1); run.Start < attributeStart; run = model.GetNextRun(run.Start + run.Length)) {

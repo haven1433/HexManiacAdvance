@@ -14,6 +14,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc
    /// </summary>
    public class MapEditorViewModel : ViewModelCore, ITabContent {
+      private readonly Format format;
       private readonly IFileSystem fileSystem;
       private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
@@ -23,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IViewPort ViewPort => viewPort;
       public IFileSystem FileSystem => fileSystem;
+      public Format Format => format;
 
       private long blockset;
       private int blockset1, blockset2;
@@ -211,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
-         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, viewPort, bank, map) {
+         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, viewPort, format, bank, map) {
             IncludeBorders = primaryMap?.IncludeBorders ?? true,
             SpriteScale = primaryMap?.SpriteScale ?? .5,
          });
@@ -239,9 +241,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
 
-         PrimaryTiles = model.IsFRLG() ? 640 : 512;
+         var isFRLG = model.IsFRLG();
+         PrimaryTiles = isFRLG ? 640 : 512;
+         this.format = new Format(!isFRLG);
 
-         var map = new BlockMapViewModel(fileSystem, viewPort, 3, 19);
+         var map = new BlockMapViewModel(fileSystem, viewPort, format, 3, 19);
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
