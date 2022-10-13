@@ -2367,7 +2367,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Goto.Execute(addressText);
          Debug.Assert(scroll.DataIndex == address - address % 16);
          var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, address);
-         Model.ClearFormat(CurrentChange, address, length - 1);
+
+         // clear format in a way that won't remove inner-anchors, since some scripts point into other scripts
+         for (var run = Model.GetNextRun(address); run.Start < address + length; run = Model.GetNextRun(run.Start + run.Length)) {
+            Model.ClearFormat(CurrentChange, address, 1);
+         }
 
          using (ModelCacheScope.CreateScope(Model)) {
             tools.CodeTool.ScriptParser.FormatScript<XSERun>(CurrentChange, Model, address);

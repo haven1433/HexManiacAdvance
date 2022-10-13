@@ -141,5 +141,30 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(4, Tool.Contents.Count);
       }
+
+      [Fact]
+      public void ScriptWithInnerAnchor_AddScriptFormat_AnchorKept() {
+         Tool.Mode = CodeMode.Script;
+         EventScript = "lock;faceplayer;end";
+         ViewPort.Edit("@010 <001>");
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.Edit("^`xse`");
+
+         Assert.IsType<PointerRun>(Model.GetNextRun(0x10));
+      }
+
+      [Fact]
+      public void ScriptWithInnerAnchor_AddPointerAtThatLocation_AnchorRemoved() {
+         Tool.Mode = CodeMode.Script;
+         EventScript = "lock;if1 = <100>;end";
+         ViewPort.Edit("@010 <005>"); // points into the pointer
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.Edit("^`xse`");
+
+         Assert.IsType<PointerRun>(Model.GetNextRun(5));
+         Model.ResolveConflicts();
+      }
    }
 }
