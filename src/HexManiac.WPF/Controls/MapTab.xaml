@@ -63,8 +63,8 @@
                    Direction="Right" Padding="2,0" IsChecked="{Binding ShowTiles}" />
             </Decorator>
             <Grid Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,55">
-               <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" Visibility="Collapsed" />
-               <Popup Width="300" Height="320" IsOpen="{Binding IsChecked, ElementName=DataOperations}" StaysOpen="False">
+               <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" />
+               <Popup DataContext="{Binding PrimaryMap.MapRepointer}" Width="300" Height="320" IsOpen="{Binding IsChecked, ElementName=DataOperations}" StaysOpen="False">
                   <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
                      <Grid>
                         <Grid.RowDefinitions>
@@ -88,43 +88,64 @@
                               <Setter Property="HorizontalContentAlignment" Value="Center" />
                            </Style>
                         </Grid.Resources>
-                        <!-- Fork Layout -->
-                        <local:AngleButton Content="Repoint Layout" Direction="Out" Grid.ColumnSpan="5" Width="200" />
-                        <!-- Fork Border Block -->
-                        <local:AngleButton Content="Repoint Border Block" Direction="Out" Grid.Row="1" Grid.ColumnSpan="5" Width="200" />
-                        <!-- Fork Blockmap -->
-                        <local:AngleButton Content="Repoint Blockmap" Direction="Out" Grid.Row="2" Grid.ColumnSpan="5" Width="200" />
+                        <!-- Repoint Layout -->
+                        <local:AngleButton Content="Repoint Layout" Direction="Out" Grid.ColumnSpan="5" Width="200"
+                                           ToolTip="{Binding RepointLayoutText}" Command="{Binding RepointLayout}" /> 
+                        <!-- Repoint Border Block -->
+                        <local:AngleButton Content="Repoint Border Block" Direction="Out" Grid.Row="1" Grid.ColumnSpan="5" Width="200"
+                                           ToolTip="{Binding RepointBorderText}" Command="{Binding RepointBorderBlock}" />
+                        <!-- Repoint Blockmap -->
+                        <local:AngleButton Content="Repoint Blockmap" Direction="Out" Grid.Row="2" Grid.ColumnSpan="5" Width="200"
+                                           ToolTip="{Binding RepointBlockMap}" Command="{Binding RepointBlockMap}" />
                         <!-- Primary / Secondary lables -->
                         <local:AngleBorder Content="Primary" Direction="Left" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" />
                         <local:AngleBorder Content="Secondary" Direction="Right" Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" />
-                        <!-- Fork Primary Blockset -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2" />
+                        <!-- Repoint Primary Blockset -->
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                                           ToolTip="{Binding RepointPrimaryBlocksetText}" Command="{Binding RepointPrimaryBlockset}" />
                         <local:AngleBorder Content="Blockset" Direction="Out" Grid.Row="4" Grid.Column="2" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2"
+                                           ToolTip="{Binding RepointSecondaryBlocksetText}" Command="{Binding RepointSecondaryBlockset}" />
                         <!-- Expand Primary Blocks/Attributes -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="5" Grid.Column="0" />
-                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="5" Grid.Column="1" />
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="5" Grid.Column="0"
+                                           ToolTip="{Binding RepointPrimaryBlocksText}" Command="{Binding RepointPrimaryBlocks}" />
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="5" Grid.Column="1"
+                                           ToolTip="{Binding ExpandPrimaryBlocksText}" Command="{Binding ExpandPrimaryBlocks}" />
                         <local:AngleBorder Content="Blocks" Direction="Out" Grid.Row="5" Grid.Column="2" />
-                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="5" Grid.Column="3" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="5" Grid.Column="4" />
+
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="5" Grid.Column="3"
+                                           ToolTip="{Binding ExpandSecondaryBlocksText}" Command="{Binding ExpandSecondaryBlocks}" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="5" Grid.Column="4"
+                                           ToolTip="{Binding RepointSecondaryBlocksText}" Command="{Binding RepointSecondaryBlocks}" />
                         <!-- Tileset -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="6" Grid.Column="0" />
-                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="6" Grid.Column="1" />
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="6" Grid.Column="0"
+                                           ToolTip="{Binding RepointPrimaryTilesetText}" Command="{Binding RepointPrimaryTileset}" />
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="6" Grid.Column="1"
+                                           ToolTip="{Binding ExpandPrimaryTilesetText}" Command="{Binding ExpandPrimaryTileset}" />
                         <local:AngleBorder Content="Tileset" Direction="Out" Grid.Row="6" Grid.Column="2" />
-                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="6" Grid.Column="3" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="6" Grid.Column="4" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="6" Grid.Column="3"
+                                           ToolTip="{Binding ExpandSecondaryTilesetText}" Command="{Binding ExpandSecondaryTileset}" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="6" Grid.Column="4"
+                                           ToolTip="{Binding RepointSecondaryTilesetText}" Command="{Binding RepointSecondaryTileset}" />
                         <!-- Palette -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="7" Grid.Column="0" />
-                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="7" Grid.Column="1" />
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="7" Grid.Column="0"
+                                           ToolTip="{Binding RepointPrimaryPaletteText}" Command="{Binding RepointPrimaryPalette}" />
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="7" Grid.Column="1"
+                                           ToolTip="{Binding ExpandPrimaryPaletteText}" Command="{Binding ExpandPrimaryPalette}" />
                         <local:AngleBorder Content="Palette" Direction="Out" Grid.Row="7" Grid.Column="2" />
-                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="7" Grid.Column="3" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="7" Grid.Column="4" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="7" Grid.Column="3"
+                                           ToolTip="{Binding ExpandSecondaryPaletteText}" Command="{Binding ExpandSecondaryPalette}" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="7" Grid.Column="4"
+                                           ToolTip="{Binding RepointSecondaryPaletteText}" Command="{Binding RepointSecondaryPalette}" />
                         <!-- Create Primary Animations -->
-                        <local:AngleButton Content="Create" Direction="Left" Grid.Row="8" Grid.Column="0" />
+                        <local:AngleButton Content="Create" Direction="Left" Grid.Row="8" Grid.Column="0"
+                                           ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreatePrimaryTilesetAnimations}" />
                         <local:AngleBorder Content="Animation" Direction="Out" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="3" />
-                        <local:AngleButton Content="Create" Direction="Right" Grid.Row="8" Grid.Column="4" />
+                        <local:AngleButton Content="Create" Direction="Right" Grid.Row="8" Grid.Column="4"
+                                           ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreateSecondaryTilesetAnimations}" />
                         <!-- Duplicate Map (Using Same Layout) -->
-                        <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.ColumnSpan="5" Width="200" />
+                        <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.ColumnSpan="5" Width="200"
+                                           ToolTip="{Binding DupliacteMapText}" Command="{Binding DuplicateMap}" />
                      </Grid>
                   </Border>
                </Popup>

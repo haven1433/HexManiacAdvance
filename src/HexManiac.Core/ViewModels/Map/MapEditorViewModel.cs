@@ -283,6 +283,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.CollisionHighlight = -1;
                primaryMap.AutoscrollTiles -= HandleAutoscrollTiles;
                primaryMap.HideSidePanels -= HandleHideSidePanels;
+               primaryMap.RequestChangeMap -= HandleMapChangeRequest;
             }
             primaryMap = map;
             primaryMap.BlockEditor.BlockIndex = drawBlockIndex;
@@ -293,9 +294,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.CollisionHighlight = collisionIndex;
                primaryMap.AutoscrollTiles += HandleAutoscrollTiles;
                primaryMap.HideSidePanels += HandleHideSidePanels;
+               primaryMap.RequestChangeMap += HandleMapChangeRequest;
             }
-            NotifyPropertyChanged(nameof(Blocks));
-            NotifyPropertyChanged(nameof(Name));
+            selectedEvent = null;
+            NotifyPropertiesChanged(nameof(Blocks), nameof(Name), nameof(ShowEventPanel));
          }
 
          // update the neighbor maps
@@ -963,9 +965,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private long UpdateBlockset(int mapID) {
          var banksTable = model.GetTable(HardcodeTablesModel.MapBankTable);
          var banks = new ModelTable(model, banksTable.Start, null, banksTable);
-         var layout = banks[mapID / 1000].GetSubTable("maps")[mapID % 1000].GetSubTable("map")[0].GetSubTable("layout")[0];
-         var address1 = layout.GetAddress("blockdata1");
-         var address2 = layout.GetAddress("blockdata2");
+         var layout = banks[mapID / 1000].GetSubTable("maps")[mapID % 1000].GetSubTable("map")[0].GetSubTable(Format.Layout)[0];
+         var address1 = layout.GetAddress(Format.PrimaryBlockset);
+         var address2 = layout.GetAddress(Format.SecondaryBlockset);
          if (address1 == Pointer.NULL || address2 == Pointer.NULL) return Pointer.NULL;
          var combined = (address1 << 7) | address2;
          (blockset1, blockset2) = (address1, address2);
@@ -975,6 +977,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);
 
       private void HandleHideSidePanels(object sender, EventArgs e) => SelectedEvent = null;
+
+      private void HandleMapChangeRequest(object sender, ChangeMapEventArgs e) {
+         NavigateTo(e.Bank, e.Map);
+      }
 
       private int GetPreferredCollision(int tile) {
          if (preferredCollisionsPrimary == null) CountCollisionForBlocks();

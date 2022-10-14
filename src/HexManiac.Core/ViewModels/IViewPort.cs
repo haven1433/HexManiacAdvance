@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       IReadOnlyList<IContextItem> GetContextMenuItems(Point point, IFileSystem fileSystem);
    }
 
-   public interface IEditableViewPort : IViewPort {
+   public interface IEditableViewPort : IViewPort, IRaiseMessageTab {
       bool AllowSingleTableMode { get; set; }
       bool IsFocused { get; set; }
       Point SelectionStart { get; }

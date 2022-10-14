@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
@@ -8,6 +9,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public record ChangeMapEventArgs(int Bank, int Map);
+   public record DataMovedEventArgs(string Type, int Address);
 
    public class MapRepointer : ViewModelCore {
 
@@ -64,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public event EventHandler DataMoved;
+      public event EventHandler<DataMovedEventArgs> DataMoved;
       public event EventHandler<ChangeMapEventArgs> ChangeMap;
 
       public MapRepointer(Format format, IFileSystem fileSystem, IDataModel model, ChangeHistory<ModelDelta> history, int mapID) {
@@ -75,15 +77,55 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.mapID = mapID;
       }
 
+      public void Refresh() {
+         foreach (var command in new[] {
+            repointLayout,
+            repointBorderBlock,
+            repointBlockMap,
+            repointPrimaryBlockset,
+            repointSecondaryBlockset,
+            repointPrimaryTileset,
+            repointSecondaryTileset,
+            expandPrimaryTileset,
+            expandSecondaryTileset,
+            repointPrimaryBlocks,
+            repointSecondaryBlocks,
+            expandPrimaryBlocks,
+            expandSecondaryBlocks,
+            repointPrimaryPalette,
+            repointSecondaryPalette,
+            expandPrimaryPalette,
+            expandSecondaryPalette,
+            createPrimaryTilesetAnimations,
+            createSecondaryTilesetAnimations,
+            duplicateMap,
+         }) {
+            command.RaiseCanExecuteChanged();
+         }
+      }
+
       #region General
 
+      public string RepointLayoutText {
+         get {
+            var map = GetMapModel();
+            if (map == null) return string.Empty;
+            var layoutStart = map.GetAddress(Format.Layout);
+            if (layoutStart < 0 || layoutStart >= model.Count) return string.Empty;
+            var layoutRun = model.GetNextRun(layoutStart);
+            if (layoutRun.PointerSources == null) return string.Empty;
+            return $"This layout is used by {layoutRun.PointerSources.Count - 1} maps.";
+         }
+      }
+
+      // expect that a layout is used once in the layout table, and then by some number of maps
       private bool CanRepointLayout() {
          var map = GetMapModel();
          if (map == null) return false;
          var layoutStart = map.GetAddress(Format.Layout);
          if (layoutStart < 0 || layoutStart >= model.Count) return false;
          var layoutRun = model.GetNextRun(layoutStart);
-         return layoutRun.PointerSources != null && layoutRun.PointerSources.Count > 1;
+         return layoutRun.PointerSources != null && layoutRun.PointerSources.Count > 2;
       }
 
       private void ExecuteRepointLayout() {
@@ -92,15 +134,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layoutRun = model.GetNextRun(layoutStart);
          var newDataStart = DuplicateData(layoutRun.Start, layoutRun.Length);
          map.SetAddress(Format.Layout, newDataStart);
-         DataMoved.Raise(this);
+         DataMoved.Raise(this, new("Layout", newDataStart));
          repointLayout.RaiseCanExecuteChanged();
          repointBorderBlock.RaiseCanExecuteChanged();
          repointBlockMap.RaiseCanExecuteChanged();
          repointPrimaryBlockset.RaiseCanExecuteChanged();
          repointSecondaryBlockset.RaiseCanExecuteChanged();
+         // TODO we just made a new layout, we need to add it to the layout table
       }
 
-      private bool CanRepointBorderBlock() => CanRepointLayoutMember(Format.BorderBlock);
+      public string RepointBorderText => $"This border is used by {CountLayoutMemberSources(Format.BorderBlock)} layouts.";
+
+      private bool CanRepointBorderBlock() => CountLayoutMemberSources(Format.BorderBlock) > 1;
 
       private void ExecuteRepointBorderBlock() {
          var layout = GetLayout();
@@ -111,7 +156,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ExecuteRepointLayoutMember(Format.BorderBlock, count * 2, repointBorderBlock);
       }
 
-      private bool CanRepointBlockMap() => CanRepointLayoutMember(Format.BlockMap);
+      public string RepointBlockMapText => $"This BlockMap is used by {CountLayoutMemberSources(Format.BlockMap)} layouts.";
+
+      private bool CanRepointBlockMap() => CountLayoutMemberSources(Format.BlockMap) > 1;
 
       private void ExecuteRepointBlockMap() {
          var layout = GetLayout();
@@ -119,7 +166,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ExecuteRepointLayoutMember(Format.BlockMap, width * height * 2, repointBlockMap);
       }
 
-      private bool CanRepointPrimaryBlockset() => CanRepointLayoutMember(Format.PrimaryBlockset);
+      public string RepointPrimaryBlocksetText => $"This primary blockset is used by {CountLayoutMemberSources(Format.PrimaryBlockset)} layouts.";
+
+      private bool CanRepointPrimaryBlockset() => CountLayoutMemberSources(Format.PrimaryBlockset) > 1;
 
       private void ExecuteRepointPrimaryBlockset() {
          ExecuteRepointLayoutMember(Format.PrimaryBlockset, 6 * 4,
@@ -129,7 +178,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             expandPrimaryPalette, createPrimaryTilesetAnimations);
       }
 
-      private bool CanRepointSecondaryBlockset() => CanRepointLayoutMember(Format.SecondaryBlockset);
+      public string RepointSecondaryBlocksetText => $"This secondary blockset is used by {CountLayoutMemberSources(Format.SecondaryBlockset)} layouts.";
+
+      private bool CanRepointSecondaryBlockset() => CountLayoutMemberSources(Format.SecondaryBlockset) > 1;
 
       private void ExecuteRepointSecondaryBlockset() {
          ExecuteRepointLayoutMember(Format.SecondaryBlockset, 6 * 4,
@@ -138,6 +189,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             expandSecondaryBlocks, expandSecondaryTileset,
             expandSecondaryPalette, createSecondaryTilesetAnimations);
       }
+
+      public string DuplicateMapText => "Create a new map with no connections or events, but the same layout.";
 
       private bool CanDuplicateMap() {
          return true;
@@ -153,19 +206,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          repointLayout.RaiseCanExecuteChanged();
       }
 
-      private bool CanRepointLayoutMember(string member) {
+      private int CountLayoutMemberSources(string member) {
          var layout = GetLayout();
-         if (layout == null) return false;
+         if (layout == null) return 0;
          var start = layout.GetAddress(member);
          var run = model.GetNextRun(start);
-         return run.PointerSources != null && run.PointerSources.Count > 1;
+         return run.PointerSources == null ? 0 : run.PointerSources.Count;
       }
 
       private void ExecuteRepointLayoutMember(string member, int length, params StubCommand[] commands) {
          var layout = GetLayout();
          var start = DuplicateData(layout.GetAddress(member), length);
          layout.SetAddress(member, start);
-         DataMoved.Raise(this);
+         DataMoved.Raise(this, new(char.ToUpper(member[0]) + member.Substring(1), start));
          foreach (var command in commands) command.RaiseCanExecuteChanged();
       }
 
@@ -173,24 +226,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Blocks / Tilesets / Palettes
 
-      private bool CanRepointPrimaryBlocks() => CanRepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks);
+      public string RepointPrimaryBlocksText => $"These primary blocks are used by {CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Blocks)} blocksets.";
+
+      private bool CanRepointPrimaryBlocks() => CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Blocks) > 1;
 
       private void ExecuteRepointPrimaryBlocks() {
          var layout = GetLayout();
          var attributeSize = model.IsFRLG() ? 2 : 1;
          var (blockCount, _) = EstimateBlockCount(layout, true);
-         ExecuteRepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks, blockCount * 16);
-         ExecuteRepointBlocksetMember(Format.PrimaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointPrimaryBlocks);
+         RepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks, blockCount * 16);
+         RepointBlocksetMember(Format.PrimaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointPrimaryBlocks);
       }
 
-      private bool CanRepointSecondaryBlocks() => CanRepointBlocksetMember(Format.SecondaryBlockset, Format.Blocks);
+      public string RepointSecondaryBlocksText => $"These secondary blocks are used by {CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Blocks)} blocksets.";
+
+      private bool CanRepointSecondaryBlocks() => CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Blocks) > 1;
 
       private void ExecuteRepointSecondaryBlocks() {
          var layout = GetLayout();
          var attributeSize = model.IsFRLG() ? 2 : 1;
          var (blockCount, _) = EstimateBlockCount(layout, false);
-         ExecuteRepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks, blockCount * 16);
-         ExecuteRepointBlocksetMember(Format.PrimaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointPrimaryBlocks);
+         RepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks, blockCount * 16);
+         RepointBlocksetMember(Format.PrimaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointPrimaryBlocks);
+      }
+
+      public string ExpandPrimaryBlocksText {
+         get {
+            var (currentCount, maxCount) = EstimateBlockCount(GetLayout(), true);
+            return $"This primary blockset contains {currentCount} of {maxCount} blocks.";
+         }
       }
 
       private bool CanExpandPrimaryBlocks() {
@@ -200,8 +264,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ExecuteExpandPrimaryBlocks() {
-         ExecuteExpandBlocks(true);
+         ExpandBlocks(true);
          expandPrimaryBlocks.RaiseCanExecuteChanged();
+      }
+
+      public string ExpandSecondaryBlocksText {
+         get {
+            var (currentCount, maxCount) = EstimateBlockCount(GetLayout(), false);
+            return $"This secondary blockset contains {currentCount} of {maxCount} blocks.";
+         }
       }
 
       private bool CanExpandSecondaryBlocks() {
@@ -211,11 +282,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ExecuteExpandSecondaryBlocks() {
-         ExecuteExpandBlocks(false);
+         ExpandBlocks(false);
          expandPrimaryBlocks.RaiseCanExecuteChanged();
       }
 
-      private void ExecuteExpandBlocks(bool primary) {
+      private void ExpandBlocks(bool primary) {
          // expand blocks and attributes
          // neither have any formatting, so here's the plan:
          var token = history.CurrentChange;
@@ -235,7 +306,170 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Paste(blockStart, blockData, maxBlockCount * 16);
          Paste(attributeStart, attributeData, maxBlockCount * attributeSize);
 
-         DataMoved.Raise(this);
+         DataMoved.Raise(this, new("Block", blockStart));
+      }
+
+      private (int currentCount, int maxCount) EstimateBlockCount(ModelArrayElement layout, bool primary) {
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var blockCount = model.IsFRLG() ? 640 : 512;
+         if (!primary) blockCount = 1024 - blockCount;
+         var maxBlockCount = blockCount;
+         var blockStart = blockset.GetAddress(Format.Blocks);
+         var attributeStart = blockset.GetAddress(Format.BlockAttributes);
+         BlocksetModel.EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
+         return (blockCount, maxBlockCount);
+      }
+
+      public string RepointPrimaryTilesetText {
+         get {
+            var count = CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Tileset);
+            return $"These primary tiles are used by {count} blocksets.";
+         }
+      }
+
+      private bool CanRepointPrimaryTileset() => CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Tileset) > 1;
+
+      private void ExecuteRepointPrimaryTileset() => RepointTileset(Format.PrimaryBlockset, repointPrimaryTileset);
+
+      public string RepointSecondaryTilesetText {
+         get {
+            var count = CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Tileset);
+            return $"These secondary tiles are used by {count} blocksets.";
+         }
+      }
+
+      private bool CanRepointSecondaryTileset() => CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Tileset) > 1;
+
+      private void ExecuteRepointSecondaryTileset() => RepointTileset(Format.PrimaryBlockset, repointSecondaryTileset);
+
+      private void RepointTileset(string blocksetName, StubCommand command) {
+         var maxTileCount = model.IsFRLG() ? 640 : 512;
+         if (blocksetName == Format.SecondaryBlockset) maxTileCount = 1024 - maxTileCount;
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var isCompressed = blockset.GetValue("isCompressed") != 0;
+         if (isCompressed) {
+            var address = blockset.GetAddress(Format.Tileset);
+            var run = new LZRun(model, address);
+            RepointBlocksetMember(blocksetName, Format.Tileset, run.Length, command);
+         } else {
+            var address = blockset.GetAddress(Format.Tileset);
+            BlocksetModel.EstimateTileCount(model, ref maxTileCount, address);
+            RepointBlocksetMember(blocksetName, Format.Tileset, maxTileCount * 32, command);
+         }
+      }
+
+      public string ExpandPrimaryTilesetText {
+         get {
+            var (currentCount, maxCount) = EstimateTileCount(GetLayout().GetSubTable(Format.PrimaryBlockset)[0]);
+            return $"This primary blockset contains {currentCount} of {maxCount} tiles.";
+         }
+      }
+
+      private bool CanExpandPrimaryTileset() => CanExpandTileset(Format.PrimaryBlockset);
+
+      private void ExecuteExpandPrimaryTileset() => ExpandTileset(Format.PrimaryBlockset);
+
+      public string ExpandSecondaryTilesetText {
+         get {
+            var (currentCount, maxCount) = EstimateTileCount(GetLayout().GetSubTable(Format.SecondaryBlockset)[0]);
+            return $"This secondary blockset contains {currentCount} of {maxCount} tiles.";
+         }
+      }
+
+      private bool CanExpandSecondaryTileset() => CanExpandTileset(Format.SecondaryBlockset);
+
+      private void ExecuteExpandSecondaryTileset() => ExpandTileset(Format.SecondaryBlockset);
+
+      private bool CanExpandTileset(string blocksetName) {
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var (currentTiles, maxTiles) = EstimateTileCount(blockset);
+         return currentTiles < maxTiles;
+      }
+
+      private void ExpandTileset(string blocksetName) {
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var (currentTiles, maxTiles) = EstimateTileCount(blockset);
+         var start = blockset.GetAddress(Format.Tileset);
+         if (blockset.GetValue("isCompressed") != 0) {
+            var run = new LZRun(model, start);
+            var compressedData = Cut(start, run.Length);
+            var decompressedData = LZRun.Decompress(compressedData, 0);
+            var newData = new byte[maxTiles * 0x20];
+            Array.Copy(decompressedData, newData, decompressedData.Length);
+            var newCompressedData = LZRun.Compress(newData).ToArray();
+            var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), newCompressedData.Length);
+            Paste(newRun.Start, newCompressedData, newCompressedData.Length);
+         } else {
+            var data = Cut(start, currentTiles * 0x20);
+            var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), maxTiles * 0x20);
+            Paste(newRun.Start, data, maxTiles * 0x20);
+         }
+      }
+
+      private (int, int) EstimateTileCount(ModelArrayElement blockset) {
+         int maxTiles = model.IsFRLG() ? 640 : 512;
+         if (blockset.GetValue("isSecondary") != 0) maxTiles = 1024 - maxTiles;
+         int currentTiles = maxTiles;
+         var tilesetAddress = blockset.GetAddress(Format.Tileset);
+         if (blockset.GetValue("isCompressed") != 0) {
+            BlocksetModel.EstimateTileCount(model, ref currentTiles, tilesetAddress);
+         } else {
+            var run = new LZRun(model, tilesetAddress);
+            currentTiles = run.DecompressedLength / 0x20;
+         }
+         return (currentTiles, maxTiles);
+      }
+
+      public string RepointPrimaryPalettesText => $"These primary palettes are used by {CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Palette)} blocksets.";
+
+      private bool CanRepointPrimaryPalette() => CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Palette) > 1;
+
+      private void ExecuteRepointPrimaryPalette() {
+         RepointBlocksetMember(Format.PrimaryBlockset, Format.Palette, 0x200, repointPrimaryPalette);
+      }
+
+      public string RepointSecondaryPalettesText => $"These secondary palettes are used by {CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Palette)} blocksets.";
+
+      private bool CanRepointSecondaryPalette() => CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Palette) > 1;
+
+      private void ExecuteRepointSecondaryPalette() {
+         RepointBlocksetMember(Format.SecondaryBlockset, Format.Palette, 0x200, repointSecondaryPalette);
+      }
+
+      public string ExpandPrimaryPaletteText => string.Empty;
+
+      private bool CanExpandPrimaryPalette() => false;
+
+      private void ExecuteExpandPrimaryPalette() => throw new NotImplementedException();
+
+      public string ExpandSecondaryPaletteText => string.Empty;
+
+      private bool CanExpandSecondaryPalette() => false;
+
+      private void ExecuteExpandSecondaryPalette() => throw new NotImplementedException();
+
+
+      private int CountBlocksetMemberSources(string blocksetName, string member) {
+         var layout = GetLayout();
+         if (layout == null) return 0;
+         var blockset = layout.GetSubTable(blocksetName);
+         if (blockset == null) return 0;
+         var start = blockset[0].GetAddress(member);
+         var run = model.GetNextRun(start);
+         return run.PointerSources == null ? 0 : run.PointerSources.Count;
+      }
+
+      private void RepointBlocksetMember(string blocksetName, string member, int length, params StubCommand[] commands) {
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var start = DuplicateData(blockset.GetAddress(member), length);
+         blockset.SetAddress(member, start);
+         DataMoved.Raise(this, new(char.ToUpper(member[0]) + member.Substring(1), start));
+         foreach (var command in commands) command.RaiseCanExecuteChanged();
       }
 
       private byte[] Cut(int start, int length) {
@@ -254,112 +488,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = data.Length; i < length; i++) token.ChangeData(model, start + i, 0);
       }
 
-      private (int, int) EstimateBlockCount(ModelArrayElement layout, bool primary) {
-         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
-         var blockset = layout.GetSubTable(blocksetName)[0];
-         var blockCount = model.IsFRLG() ? 640 : 512;
-         if (!primary) blockCount = 1024 - blockCount;
-         var maxBlockCount = blockCount;
-         var blockStart = blockset.GetAddress(Format.Blocks);
-         var attributeStart = blockset.GetAddress(Format.BlockAttributes);
-         BlocksetModel.EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
-         return (blockCount, maxBlockCount);
-      }
-
-
-      private bool CanRepointPrimaryTileset() => CanRepointBlocksetMember(Format.PrimaryBlockset, Format.Tileset);
-
-      private void ExecuteRepointPrimaryTileset() => ExecuteRepointTileset(Format.PrimaryBlockset);
-      private void ExecuteRepointTileset(string blocksetName) {
-         var maxTileCount = model.IsFRLG() ? 640 : 512;
-         if (blocksetName == Format.SecondaryBlockset) maxTileCount = 1024 - maxTileCount;
-         var layout = GetLayout();
-         var blockset = layout.GetSubTable(blocksetName)[0];
-         var isCompressed = blockset.GetValue("isCompressed") != 0;
-         if (isCompressed) RepointCompressedTileset(blocksetName, maxTileCount);
-         else RepointUncompressedTileset(blocksetName, maxTileCount);
-      }
-
-      private bool CanRepointSecondaryTileset() => CanRepointBlocksetMember(Format.SecondaryBlockset, Format.Tileset);
-
-      private void ExecuteRepointSecondaryTileset() => ExecuteRepointTileset(Format.PrimaryBlockset);
-
-      private bool CanExpandPrimaryTileset() {
-         return false;
-      }
-
-      private void ExecuteExpandPrimaryTileset() {
-         // example uncompressed: emerald bank 25 map 0 -> primary tileset starts at 37AA48 and is 0x8000 bytes. 0x20 bytes is one tile, so that's 0x400 tiles, but the limit should be 0x200?
-         // secondary tileset starts at 36B9DF and appears to be only 0xA60 bytes (0x53 tiles) long
-      }
-
-      private bool CanExpandSecondaryTileset() {
-         return false;
-      }
-
-      private void ExecuteExpandSecondaryTileset() {
-
-      }
-
-      private void RepointCompressedTileset(string blocksetName, int maxTileCount) {
-         throw new NotImplementedException();
-      }
-
-      private void RepointUncompressedTileset(string blocksetName, int maxTileCount) {
-         throw new NotImplementedException();
-      }
-
-      private bool CanRepointPrimaryPalette() => CanRepointBlocksetMember(Format.PrimaryBlockset, Format.Palette);
-
-      private void ExecuteRepointPrimaryPalette() {
-         ExecuteRepointBlocksetMember(Format.PrimaryBlockset, Format.Palette, 32, repointPrimaryPalette);
-      }
-
-      private bool CanRepointSecondaryPalette() => CanRepointBlocksetMember(Format.SecondaryBlockset, Format.Palette);
-
-      private void ExecuteRepointSecondaryPalette() {
-         ExecuteRepointBlocksetMember(Format.SecondaryBlockset, Format.Palette, 32, repointSecondaryPalette);
-      }
-
-      private bool CanExpandPrimaryPalette() {
-         return false;
-      }
-
-      private void ExecuteExpandPrimaryPalette() {
-
-      }
-
-      private bool CanExpandSecondaryPalette() {
-         return false;
-      }
-
-      private void ExecuteExpandSecondaryPalette() {
-
-      }
-
-
-      private bool CanRepointBlocksetMember(string blocksetName, string member) {
-         var layout = GetLayout();
-         if (layout == null) return false;
-         var blockset = layout.GetSubTable(blocksetName);
-         if (blockset == null) return false;
-         var start = blockset[0].GetAddress(member);
-         var run = model.GetNextRun(start);
-         return run.PointerSources != null && run.PointerSources.Count > 1;
-      }
-
-      private void ExecuteRepointBlocksetMember(string blocksetName, string member, int length, params StubCommand[] commands) {
-         var layout = GetLayout();
-         var blockset = layout.GetSubTable(blocksetName)[0];
-         var start = DuplicateData(blockset.GetAddress(member), length);
-         blockset.SetAddress(member, start);
-         DataMoved.Raise(this);
-         foreach (var command in commands) command.RaiseCanExecuteChanged();
-      }
-
       #endregion
 
       #region Animations
+
+      public string CreatePrimaryTilesetAnimationsText => string.Empty;
 
       private bool CanCreatePrimaryTilesetAnimations() {
          // we should be able to run the utility to create a tileset animation unless we already have
@@ -370,6 +503,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // TODO grab the code from the utility and use that here
          throw new NotImplementedException();
       }
+
+      public string CreateSecondaryTilesetAnimationsText => string.Empty;
 
       private bool CanCreateSecondaryTilesetAnimations() {
          // we should be able to run the utility to create a tileset animation unless we already have
@@ -433,6 +568,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags. floorNum. battleType.
          for (int i = 16; i < 28; i++) token.ChangeData(model, mapStart + i, model[currentMap.Start + i]);
 
+         WritePointerAndSource(token, mapStart + 0, model.ReadPointer(currentMap.Start));
          WritePointerAndSource(token, mapStart + 4, CreateNewEvents(token));
          WritePointerAndSource(token, mapStart + 8, CreateNewMapScripts(token));
          WritePointerAndSource(token, mapStart + 12, CreateNewConnections(token));

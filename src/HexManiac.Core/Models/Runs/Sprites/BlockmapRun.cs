@@ -310,6 +310,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          var list = new List<int[,]>();
          var start = ReadPointer(4);
          var tileCount = !IsSecondary ? primaryTiles : 1024 - primaryTiles;
+         EstimateTileCount(ref tileCount, start);
          for (int i = 0; i < tileCount; i++) {
             var tile = new int[8, 8];
             for(int y = 0; y < 8; y++) {
@@ -459,6 +460,26 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
          blockCount = Math.Min(blockCount, (run.Start - blockStart) / blockLength);
          if (blockCount < 1) blockCount = 1;
+      }
+
+      private void EstimateTileCount(ref int tileCount, int tileStart) => EstimateTileCount(model, ref tileCount, tileStart);
+      public static void EstimateTileCount(IDataModel model, ref int tileCount, int tileStart) {
+         // each tile is 32 bytes
+         int tileLength = 0x20;
+         IFormattedRun run;
+         for (run = model.GetNextRun(tileStart + 1); run.Start < tileStart + tileCount * tileLength; run = model.GetNextRun(run.Start + run.Length)) {
+            if (run is PointerRun) continue;
+            if (run is NoInfoRun) {
+               if ((run.Start - tileStart) % 0x20 == 0) {
+                  // might be a real anchor to unprocessed data, like another tileset
+               } else {
+                  continue;
+               }
+            }
+            break;
+         }
+         tileCount = Math.Min(tileCount, (run.Start - tileStart) / tileLength);
+         if (tileCount < 1) tileCount = 1;
       }
 
       public static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, short[][] palettes) {

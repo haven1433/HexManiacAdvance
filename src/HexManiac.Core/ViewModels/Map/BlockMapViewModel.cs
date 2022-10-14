@@ -346,6 +346,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler NeighborsChanged;
       public event EventHandler AutoscrollTiles;
       public event EventHandler HideSidePanels;
+      public event EventHandler<ChangeMapEventArgs> RequestChangeMap;
 
       private BlockEditor blockEditor;
       public BlockEditor BlockEditor {
@@ -386,6 +387,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private MapRepointer mapRepointer;
       public MapRepointer MapRepointer => mapRepointer;
 
+      private MapScriptCollection mapScriptCollection;
+      public MapScriptCollection MapScriptCollection {
+         get {
+            if (mapScriptCollection.Unloaded) mapScriptCollection.Load(GetMapModel().GetAddress("mapscripts"));
+            return mapScriptCollection;
+         }
+      }
+
       public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Format format, int group, int map) {
          this.format = format;
          this.fileSystem = fileSystem;
@@ -402,7 +411,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
 
+         mapScriptCollection = new(viewPort);
+         mapScriptCollection.NewMapScriptsCreated += (sender, e) => GetMapModel().SetAddress("mapscripts", e.Address);
+
          mapRepointer = new MapRepointer(format, fileSystem, model, viewPort.ChangeHistory, MapID);
+         mapRepointer.ChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
+         mapRepointer.DataMoved += (sender, e) => {
+            ClearCaches();
+            viewPort.RaiseMessage($"{e.Type} data was moved to {e.Address:X6}.");
+            if (e.Type == "Layout") UpdateLayoutID();
+         };
       }
 
       public IReadOnlyList<BlockMapViewModel> GetNeighbors(MapDirection direction) {

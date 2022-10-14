@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
    /// A range of visible data that should be displayed.
    /// </summary>
-   public class ViewPort : ViewModelCore, IEditableViewPort, IRaiseMessageTab {
+   public class ViewPort : ViewModelCore, IEditableViewPort {
       public const string AllHexCharacters = "0123456789ABCDEFabcdef";
       public const char GotoMarker = '@';
       public const char DirectiveMarker = '.'; // for things like .thumb, .align, etc. Directives always start with a single dot and contain no further dots until they contain a space.
@@ -214,6 +214,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
 
                   var maps = Model.GetMatchingMaps(str);
+                  if (maps.Count > 1) maps = maps.Where(map => map.Name == str).ToList();
                   if (maps.Count == 1 && mapper != null && !str.TryParseHex(out _)) {
                      var previousMap = mapper.PrimaryMap;
                      mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, this, mapper.Format, maps[0].Group, maps[0].Map);
