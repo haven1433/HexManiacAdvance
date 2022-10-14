@@ -432,9 +432,9 @@ graphics.menu.statusscreen.tilemap4,    ,,,, ,,,, 1BFFB8, `lzm4x32x20|graphics.m
 graphics.townmap.pokenav.zoom.tilemaps, ,,,, ,,,, 1CCD68, [id: part: tilemap<`lzm4x10x10|graphics.townmap.pokenav.zoom.tileset`>]pokenavTowns
 
 // from AGSMG
-graphics.moves.substitute.sprite.front, ,,,, 0350F4,,,, 05E834, `lzs4x8x8|graphics.moves.substitute.palette`
-graphics.moves.substitute.palette,      ,,,, 03514C,,,, 05E88C, `lzp4`
-graphics.moves.substitute.sprite.back,  ,,,, 035144,,,, 05E810, `lzs4x8x8|graphics.moves.substitute.palette`
+graphics.moves.substitute.sprite.front, 0323A4, 0323A4, 0323A4, 0323A4, 0350F4, 0350F4, 035108, 035108, 05E834, `lzs4x8x8|graphics.moves.substitute.palette`
+graphics.moves.substitute.palette,      0323FC, 0323FC, 0323FC, 0323FC, 03514C, 03514C, 035160, 035160, 05E88C, `lzp4`
+graphics.moves.substitute.sprite.back,  0323F4, 0323F4, 0323F4, 0323F4, 035144, 035144, 035158, 035158, 05E810, `lzs4x8x8|graphics.moves.substitute.palette`
 graphics.moves.tmcase.sprite,           ,,,, 463218, 462C38, 463278, 462CA8, , `lzs4x4x4|graphics.moves.tmcase.palette`
 graphics.moves.tmcase.palette,          ,,,, 1338F8, 1338D0, 133970, 133948, , `lzp4`
 graphics.moves.tmcase.palette2,         ,,,, 1338FC, 1338D4, 133974, 13394C, , `lzp4`
