@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -38,9 +40,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void AddScript() {
-         // TODO repointing work, possibly updating the `start` of any children
-         // TODO write '1' for the new script type
-         // TODO write an address for the new script
+         var token = viewPort.ChangeHistory.CurrentChange;
+         var model = viewPort.Model;
+         var run = model.GetNextRun(address) as ITableRun;
+         if (run == null) return;
+         run = model.RelocateForExpansion(token, run, run.Length + 5);
+         run = run.Append(token, 1);
+         address = run.Start;
+         var newScript = model.FindFreeSpace(model.FreeSpaceStart, 1);
+         token.ChangeData(model, newScript, 0x02); // `end`
+         token.ChangeData(model, run.Start + run.Length - 6, 1); // script-type 1
+         model.UpdateArrayPointer(token, default, default, default, run.Start + run.Length - 5, newScript);
+         model.ObserveRunWritten(token, run);
          Scripts.Add(new(viewPort, address + Scripts.Count * 5));
          AddDeleteHandler(Scripts.Count - 1);
       }
@@ -99,21 +110,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             // TODO update the model
             if ((arg == 2 || arg == 4) && (scriptType != 2 && scriptType != 4)) {
                // if the old type is 2 or 4 and the new type is not, delete the content and replace it with a new 1-byte script `end` (02)
+               throw new NotImplementedException();
             } else if ((scriptType == 2 || scriptType == 4) && (arg != 2 && arg != 4)) {
                // if the new type is 2 or 4 and the old type is not, move the current script to be the first SubScript of the new table
+               throw new NotImplementedException();
             }
-            throw new NotImplementedException();
+            viewPort.ChangeHistory.CurrentChange.ChangeData(viewPort.Model, start, (byte)scriptType);
          });
       }
 
       public string Address { get => displayAddress; set => Set(ref displayAddress, value, arg => {
-         if (displayAddress.TryParseHex(out var result)) address = result;
-         // TODO update model
-         throw new NotImplementedException();
+         if (displayAddress.TryParseHex(out var result)) {
+            address = result;
+            viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, default, start + 1, address);
+         }
       }); }
 
       public void AddSubScript() {
-         // TODO repointing work
+         var model = viewPort.Model;
+         var token = viewPort.ChangeHistory.CurrentChange;
+         // no table. Clear format.
+         var start = model.ReadPointer(address);
+         model.ClearFormat(token, start, SubScripts.Count * 8);
+         var data = model.Cut(token, start, SubScripts.Count * 8);
+         var run = model.RelocateForExpansion(token, model.GetNextRun(address), data.Length + 8);
+         model.Paste(token, run.Start, data, data.Length + 8);
+         // add the new element
+         var newScriptStart = model.FindFreeSpace(model.FreeSpaceStart, 1);
+         token.ChangeData(model, newScriptStart, 0x02);
+         model.WriteMultiByteValue(run.Start + data.Length, 4, token, 0);
+         model.WritePointer(token, run.Start + data.Length + 4, newScriptStart);
+
+         // TODO add all the formatting
+         for (int i = 0; i < SubScripts.Count + 1; i++) {
+            throw new NotImplementedException();
+         }
+
+         address = run.Start;
+         displayAddress = $"<{address:X6}>";
+         NotifyPropertyChanged(nameof(Address));
+         NotifyPropertyChanged(nameof(Address));
          var newStart = viewPort.Model.ReadPointer(address) + 8 * SubScripts.Count;
          SubScripts.Append(new MapSubScriptViewModel(viewPort, newStart));
       }
