@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var model = viewPort.Model;
          while (model[address] != 0) {
             Scripts.Add(new(viewPort, address));
+            AddDeleteHandler(Scripts.Count - 1);
             address += 5;
          }
          NotifyPropertyChanged(nameof(CollectionExists));
@@ -41,6 +42,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // TODO write '1' for the new script type
          // TODO write an address for the new script
          Scripts.Add(new(viewPort, address + Scripts.Count * 5));
+         AddDeleteHandler(Scripts.Count - 1);
       }
 
       private void AddDeleteHandler(int index) {
@@ -64,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool HasSubScripts => scriptType == 2 || scriptType == 4;
 
+      public ObservableCollection<string> ScriptOptions { get; } = new();
       public ObservableCollection<MapSubScriptViewModel> SubScripts { get; } = new();
 
       public MapScriptViewModel(IEditableViewPort viewPort, int start) {
@@ -81,7 +84,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                destination += 8;
             }
          }
-         throw new NotImplementedException();
+         ScriptOptions.Add("Load");
+         ScriptOptions.Add("Per-Frame (Table)");
+         ScriptOptions.Add("Transition");
+         ScriptOptions.Add("Warp into Map (Table)");
+         ScriptOptions.Add("Resume");
+         ScriptOptions.Add("Dive Warp");
+         ScriptOptions.Add("Return to Field");
       }
 
       public int ScriptTypeIndex {
@@ -132,13 +141,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler DeleteMe;
 
       public MapSubScriptViewModel(IEditableViewPort viewPort, int start) {
-         this.viewPort = viewPort;
-         this.start = viewPort.Model.ReadMultiByteValue(start, 2);
-         this.variable = viewPort.Model.ReadMultiByteValue(start + 2, 2);
+         (this.viewPort, this.start) = (viewPort, start);
+         this.variable = viewPort.Model.ReadMultiByteValue(start, 2);
+         this.val = viewPort.Model.ReadMultiByteValue(start + 2, 2);
          this.address = viewPort.Model.ReadPointer(start + 4);
 
          variableText = variable.ToString("X4");
-         valueText = Value.ToString();
+         valueText = val.ToString();
          addressText = $"<{address:X6}>";
       }
 

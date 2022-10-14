@@ -81,6 +81,7 @@
                               <Setter Property="Margin" Value="2,4" />
                               <Setter Property="Padding" Value="0" />
                               <Setter Property="Height" Value="27" />
+                              <Setter Property="ToolTipService.InitialShowDelay" Value="200" />
                            </Style>
                            <Style TargetType="local:AngleBorder" BasedOn="{StaticResource {x:Type local:AngleBorder}}">
                               <Setter Property="VerticalAlignment" Value="Center" />
@@ -145,7 +146,7 @@
                                            ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreateSecondaryTilesetAnimations}" />
                         <!-- Duplicate Map (Using Same Layout) -->
                         <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.ColumnSpan="5" Width="200"
-                                           ToolTip="{Binding DupliacteMapText}" Command="{Binding DuplicateMap}" />
+                                           ToolTip="{Binding DuplicateMapText}" Command="{Binding DuplicateMap}" />
                      </Grid>
                   </Border>
                </Popup>
@@ -521,64 +522,107 @@
       <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="HeaderPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
-         <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
-            <Grid.ColumnDefinitions>
-               <ColumnDefinition />
-               <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-               <RowDefinition /> <RowDefinition />
-               <RowDefinition /> <RowDefinition />
-               <RowDefinition /> <RowDefinition />
-               <RowDefinition /> <RowDefinition />
-               <RowDefinition /> <RowDefinition />
-            </Grid.RowDefinitions>
+         <StackPanel>
+            <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
+               <Grid.ColumnDefinitions>
+                  <ColumnDefinition />
+                  <ColumnDefinition />
+               </Grid.ColumnDefinitions>
+               <Grid.RowDefinitions>
+                  <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition />
+               </Grid.RowDefinitions>
+               <Grid.Resources>
+                  <Style TargetType="local:AngleBorder" BasedOn="{StaticResource {x:Type local:AngleBorder}}">
+                     <Setter Property="Direction" Value="Left" />
+                     <Setter Property="Margin" Value="1,2,0,2" />
+                  </Style>
+                  <Style TargetType="local:AngleTextBox" BasedOn="{StaticResource {x:Type local:AngleTextBox}}">
+                     <Setter Property="Direction" Value="Out" />
+                     <Setter Property="Grid.Column" Value="1" />
+                     <Setter Property="HorizontalAlignment" Value="Stretch" />
+                     <Setter Property="Margin" Value="0,2,4,2" />
+                  </Style>
+               </Grid.Resources>
+               <local:AngleBorder  Grid.Row="0" Content="Music:" />
+               <local:AngleTextBox Grid.Row="0" TextBinding="{Binding Music, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="0">
-               <TextBlock Text="Music:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="0" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Music}" />
+               <local:AngleBorder  Grid.Row="1" Content="Region Section ID:" />
+               <local:AngleTextBox Grid.Row="1" TextBinding="{Binding RegionSectionID, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="1">
-               <TextBlock Text="Region Section ID:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="1" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding RegionSectionID}" />
+               <local:AngleBorder  Grid.Row="2" Content="Cave:" />
+               <local:AngleTextBox Grid.Row="2" TextBinding="{Binding Cave, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="2">
-               <TextBlock Text="Cave:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="2" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Cave}" />
+               <local:AngleBorder  Grid.Row="3" Content="Weather:" />
+               <local:AngleTextBox Grid.Row="3" TextBinding="{Binding Weather, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="3">
-               <TextBlock Text="Weather:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="3" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Weather}" />
+               <local:AngleBorder  Grid.Row="4" Content="MapType:" />
+               <local:AngleTextBox Grid.Row="4" TextBinding="{Binding MapType, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="4">
-               <TextBlock Text="MapType:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="4" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding MapType}" />
+               <local:AngleBorder  Grid.Row="5" Content="AllowBiking:" />
+               <local:AngleTextBox Grid.Row="5" TextBinding="{Binding AllowBiking, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="5">
-               <TextBlock Text="AllowBiking:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="5" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding AllowBiking}" />
+               <local:AngleBorder  Grid.Row="6" Content="Flags:" />
+               <local:AngleTextBox Grid.Row="6" TextBinding="{Binding Flags, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="6">
-               <TextBlock Text="Flags:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="6" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding Flags}" />
+               <local:AngleBorder  Grid.Row="7" Content="FloorNum:" />
+               <local:AngleTextBox Grid.Row="7" TextBinding="{Binding FloorNum, UpdateSourceTrigger=PropertyChanged}" />
 
-            <local:AngleBorder Direction="Left" Grid.Row="7">
-               <TextBlock Text="FloorNum:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="7" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding FloorNum}" />
-
-            <local:AngleBorder Direction="Left" Grid.Row="8">
-               <TextBlock Text="BattleType:" />
-            </local:AngleBorder>
-            <local:AngleTextBox Grid.Row="8" Grid.Column="1" Direction="Out" HorizontalAlignment="Stretch" TextBinding="{Binding BattleType}" />
-         </Grid>
+               <local:AngleBorder  Grid.Row="8" Content="BattleType:" />
+               <local:AngleTextBox Grid.Row="8" TextBinding="{Binding BattleType, UpdateSourceTrigger=PropertyChanged}" />
+            </Grid>
+            <local:AngleBorder Direction="Out" Content="Map Scripts:" Margin="8,8,8,2" />
+            <ItemsControl ItemsSource="{Binding PrimaryMap.MapScriptCollection.Scripts}">
+               <ItemsControl.ItemTemplate>
+                  <DataTemplate>
+                     <StackPanel>
+                        <DockPanel Margin="2">
+                           <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
+                              <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20"/>
+                           </local:AngleButton>
+                           <local:AngleButton Command="{res:MethodCommand Goto}" DockPanel.Dock="Right" Direction="Right" Padding="0" Width="20" Height="18">
+                              <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
+                           </local:AngleButton>
+                           <local:AngleComboBox SelectedIndex="{Binding ScriptTypeIndex}" ItemsSource="{Binding ScriptOptions}" Direction="Out" DockPanel.Dock="Left" Width="140" Height="18" />
+                           <local:AngleTextBox Direction="Right" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+                        </DockPanel>
+                        <ItemsControl Visibility="{Binding HasSubScripts, Converter={StaticResource BoolToVisibility}}" ItemsSource="{Binding SubScripts}">
+                           <ItemsControl.ItemTemplate>
+                              <DataTemplate>
+                                 <StackPanel Margin="8,2">
+                                    <!-- Do I need multiple lines for this? -->
+                                    <!-- One line for Delete, Address, Goto -->
+                                    <!-- One line for variable/value pair -->
+                                    <DockPanel>
+                                       <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
+                                          <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20" />
+                                       </local:AngleButton>
+                                       <local:AngleButton Command="{res:MethodCommand Goto}" DockPanel.Dock="Right" Direction="Right" Padding="0" Width="20" Height="18">
+                                          <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
+                                       </local:AngleButton>
+                                       <local:AngleBorder Direction="Left" Content="Address:" Padding="2,0" />
+                                       <local:AngleTextBox Direction="Out" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+                                    </DockPanel>
+                                    <UniformGrid Columns="4">
+                                       <local:AngleBorder Direction="Out" Content="Variable:" />
+                                       <local:AngleTextBox Direction="Right" TextBinding="{Binding Variable, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" />
+                                       <local:AngleBorder Direction="Out" Content="Value:" Margin="2,0,0,0" />
+                                       <local:AngleTextBox Direction="Right" TextBinding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                                    </UniformGrid>
+                                 </StackPanel>
+                              </DataTemplate>
+                           </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <local:AngleButton Margin="8,2" Visibility="{Binding HasSubScripts, Converter={StaticResource BoolToVisibility}}" Command="{res:MethodCommand AddSubScript}" Direction="Out" Content="Add Table Script" />
+                     </StackPanel>
+                  </DataTemplate>
+               </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <local:AngleButton Content="Add New Script" Direction="Out" Margin="2" />
+         </StackPanel>
       </ScrollViewer>
 
       <!-- Main View -->
