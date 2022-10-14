@@ -827,6 +827,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, null);
+
+      public static byte[] Cut(this IDataModel model, ModelDelta token, int start, int length) {
+         var result = new byte[length];
+
+         for (int i = 0; i < length; i++) {
+            result[i] = model[start + i];
+            token.ChangeData(model, start + i, 0xFF);
+         }
+         return result;
+      }
+
+      public static void Paste(this IDataModel model, ModelDelta token, int start, byte[] data, int length) {
+         token.ChangeData(model, start, data);
+         for (int i = data.Length; i < length; i++) token.ChangeData(model, start + i, 0);
+      }
    }
 
    public class BasicModel : BaseModel {

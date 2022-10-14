@@ -472,21 +472,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var command in commands) command.RaiseCanExecuteChanged();
       }
 
-      private byte[] Cut(int start, int length) {
-         var result = new byte[length];
-         var token = history.CurrentChange;
-         for (int i = 0; i < length; i++) {
-            result[i] = model[start + i];
-            token.ChangeData(model, start + i, 0xFF);
-         }
-         return result;
-      }
+      private byte[] Cut(int start, int length) => model.Cut(history.CurrentChange, start, length);
 
-      private void Paste(int start, byte[] data, int length) {
-         var token = history.CurrentChange;
-         token.ChangeData(model, start, data);
-         for (int i = data.Length; i < length; i++) token.ChangeData(model, start + i, 0);
-      }
+      private void Paste(int start, byte[] data, int length) => model.Paste(history.CurrentChange, start, data, length);
 
       #endregion
 
