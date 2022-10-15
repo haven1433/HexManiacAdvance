@@ -167,7 +167,11 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public void BlockOnUIWork(Action action) {
-         dispatcher.Invoke(action, DispatcherPriority.Normal);
+         if (Thread.CurrentThread == dispatcher.Thread) {
+            action();
+         } else {
+            dispatcher.Invoke(action, DispatcherPriority.Normal);
+         }
       }
 
       public Task DispatchWork(Action action) {
