@@ -659,6 +659,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var connections = GetConnections();
          if (connections == null) yield break;
          var border = GetBorderThickness();
+         if (border == null) yield break;
          var tileSize = (int)(16 * spriteScale);
          int id = 0;
 
