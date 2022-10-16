@@ -302,6 +302,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             Foreground = Brush(nameof(Theme.Primary)),
             Title = Application.Current.MainWindow.Title,
             SizeToContent = SizeToContent.WidthAndHeight,
+            MaxWidth = 620,
             WindowStyle = WindowStyle.ToolWindow,
             Content = new StackPanel {
                Orientation = Orientation.Vertical,
