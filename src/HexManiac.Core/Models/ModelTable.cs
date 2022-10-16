@@ -210,6 +210,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                return address;
             }
             if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
+            if (seg is ArrayRunTupleSegment tuple) {
+               return new ModelTupleElement(model, table, arrayIndex, tuple, tokenFactory);
+            }
             return GetValue(fieldName);
          }
          set {
@@ -332,6 +335,76 @@ namespace HavenSoft.HexManiac.Core.Models {
          var result = new StringBuilder("{ ");
          bool first = true;
          foreach (var seg in table.ElementContent) {
+            if (!first) result.Append(", ");
+            first = false;
+            result.Append(seg.Name + ": " + this[seg.Name]);
+         }
+         result.Append(" }");
+         return result.ToString();
+      }
+
+      #endregion
+   }
+
+   public class ModelTupleElement : DynamicObject {
+      private readonly IDataModel model;
+      private readonly ITableRun table;
+      private readonly int arrayIndex;
+      private readonly ArrayRunTupleSegment tuple;
+      private readonly Func<ModelDelta> tokenFactory;
+
+      public ModelTupleElement(IDataModel model, ITableRun table, int arrayIndex, ArrayRunTupleSegment tuple, Func<ModelDelta> tokenFactory) {
+         this.model = model;
+         this.table = table;
+         this.arrayIndex = arrayIndex;
+         this.tuple = tuple;
+         this.tokenFactory = tokenFactory;
+      }
+
+      public object this[string fieldName] {
+         get => GetValue(fieldName);
+         set => SetValue(fieldName, (int)value);
+      }
+
+      public int GetValue(string fieldName) {
+         var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
+         var start = table.Start + table.ElementLength * arrayIndex;
+         start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
+         var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
+         return tup.Read(model, start, bitOffset);
+      }
+
+      public void SetValue(string fieldName, int value) {
+         var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
+         var start = table.Start + table.ElementLength * arrayIndex;
+         start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
+         var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
+         tup.Write(model, tokenFactory(), start, bitOffset, value);
+      }
+
+      #region DynamicObject
+
+      public override bool TryGetMember(GetMemberBinder binder, out object? result) {
+         result = null;
+         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == binder.Name);
+         if (seg == null) {
+            throw new ArgumentException($"Couldn't find a member named {binder.Name}. Available members include: {", ".Join(table.ElementContent.Select(s => s.Name))}");
+         }
+         result = this[seg.Name];
+         return true;
+      }
+
+      public override bool TrySetMember(SetMemberBinder binder, object? value) {
+         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == binder.Name);
+         if (seg == null) return base.TrySetMember(binder, value);
+         this[seg.Name] = value;
+         return true;
+      }
+
+      public override string ToString() {
+         var result = new StringBuilder("{ ");
+         bool first = true;
+         foreach (var seg in tuple.Elements) {
             if (!first) result.Append(", ");
             first = false;
             result.Append(seg.Name + ": " + this[seg.Name]);

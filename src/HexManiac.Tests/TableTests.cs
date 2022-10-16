@@ -7,10 +7,8 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
-using Xunit.Sdk;
 
 namespace HavenSoft.HexManiac.Tests {
    public class TableTests : BaseViewModelTestClass {
@@ -1215,6 +1213,48 @@ namespace HavenSoft.HexManiac.Tests {
          var run = (ArrayRun)Model.GetNextRun(0x100);
          Assert.Equal(new[] { 0x0 }, run.PointerSourcesForInnerElements[3].ToArray());
          Assert.Equal(new[] { 0x4 }, run.PointerSourcesForInnerElements[4].ToArray());
+      }
+
+      [Fact]
+      public void ChildTableLengthOne_ChangeLengthToZeroInParent_ReplaceChildPointerWithNull() {
+         SetFullModel(0xFF);
+         Model.FreeSpaceBuffer = 0;
+         ViewPort.Edit("@100 02 00 @000 01 00 00 00 00 01 00 08 @000 ^parent[count:: child<[a. b.]/count>]1 ");
+
+         ViewPort.Edit("@000 0 ");
+
+         Assert.Equal(-1, Model.ReadMultiByteValue(0x100, 4));
+         Assert.Equal(int.MaxValue, Model.GetNextRun(0x100).Start);
+         Assert.Empty(Errors);
+         Assert.Equal(0, Model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0, Model.ReadMultiByteValue(4, 4));
+      }
+
+      [Fact]
+      public void ChildTableLengthZero_ChangeLengthToOneInParent_AddNewDataForChild() {
+         SetFullModel(0xFF);
+         Model.FreeSpaceBuffer = 0;
+         ViewPort.Edit("@000 00 00 00 00 <null> @000 ^parent[count:: child<[a. b.]/count>]1 ");
+
+         ViewPort.Edit("@000 1 ");
+
+         var child = (ITableRun)Model.GetNextRun(0x8);
+         Assert.Equal(2, child.Length);
+         Assert.Equal(1, Model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0, Model.ReadMultiByteValue(child.Start, 2));
+      }
+
+      [Fact]
+      public void ChildPointerNull_CreateChildData_ParentCountChanges() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@000 00 00 00 00 <null> @000 ^parent[count:: child<[a. b.]/count>]1 ");
+
+         ViewPort.Edit("@004 @{ ");
+
+         var child = (ITableRun)Model.GetNextRun(0x10);
+         Assert.Equal(2, child.Length);
+         Assert.Equal(1, Model.ReadMultiByteValue(0, 4));
+         Assert.Equal(0, Model.ReadMultiByteValue(child.Start, 2));
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {

@@ -680,7 +680,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var newElementCount = model.ReadMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, parent.ElementContent[segmentIndex].Length);
 
          var newRun = run;
-         if (newElementCount != newRun.ElementCount) {
+         if (newElementCount == 0) {
+            model.ClearFormatAndData(token, run.Start, run.Length);
+            model.UpdateArrayPointer(token, parent.ElementContent[offsets.SegmentIndex], parent.ElementContent, offsets.ElementIndex, parentAddress, Pointer.NULL);
+            newRun = null;
+         } else if (newElementCount != newRun.ElementCount) {
             var endOfCurrentRun = run.Start + run.Length;
             var nextRunMinimumStart = newRun.Start + newRun.ElementLength * newElementCount;
             if (

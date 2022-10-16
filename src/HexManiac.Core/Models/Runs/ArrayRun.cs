@@ -167,10 +167,35 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var pointerSource = self.Start + elementIndex * self.ElementLength + offset;
                var destination = model.ReadPointer(pointerSource);
                var run = model.GetNextRun(destination);
+               if (destination == Pointer.NULL) {
+                  // if the entry that was edited was my length, we want to make new data
+                  if (
+                     pointerSegment.InnerFormat.EndsWith("/" + self.ElementContent[segmentIndex].Name)
+                  ||
+                     (pointerSegment.InnerFormat == TrainerPokemonTeamRun.SharedFormatString && self.ElementContent[segmentIndex].Name == "pokemonCount")
+                  ) {
+                     var length = model.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).LengthForNewRun(model, pointerSource);
+                     if (length > 0) {
+                        var insert = model.FindFreeSpace(0, length);
+                        if (insert == -1) {
+                           insert = model.Count;
+                           model.ExpandData(token, model.Count + length);
+                        }
+                        pointerSegment.WriteNewFormat(model, token, pointerSource, insert, self.ElementContent);
+                        destination = insert;
+                        run = model.GetNextRun(destination);
+                     }
+                  }
+               }
+
                if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
                   var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource, new HashSet<int>()); // we don't care about the changes that come back from here
-                  model.ObserveRunWritten(token, newRun);
-                  if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+                  if (newRun != null) {
+                     model.ObserveRunWritten(token, newRun);
+                     if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+                  } else {
+                     info = new ErrorInfo($"Team was automatically deleted. Data set to null.", isWarningLevel: true);
+                  }
                } else if (run.Start == destination && run is OverworldSpriteListRun oslRun) {
                   var newRun = oslRun.UpdateFromParent(token, segmentIndex, pointerSource, out bool spritesMoved);
                   model.ObserveRunWritten(token, newRun);
@@ -178,8 +203,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (spritesMoved) info = new ErrorInfo($"Overworld sprites were automatically moved after resize. Pointers were updated.", isWarningLevel: true);
                } else if (run.Start == destination && run is TableStreamRun tableStreamRun) {
                   var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex);
-                  model.ObserveRunWritten(token, newRun);
-                  if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+                  if (newRun != null) {
+                     model.ObserveRunWritten(token, newRun);
+                     if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+                  } else {
+                     info = new ErrorInfo($"Stream was automatically deleted. Data set to null.", isWarningLevel: true);
+                  }
                } else if (run.Start == destination && run is MapAnimationTilesRun matRun) {
                   var newRun = matRun.UpdateFromParent(token, segmentIndex, pointerSource, out bool childrenMoved);
                   model.ObserveRunWritten(token, newRun);

@@ -1646,6 +1646,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             scroll.DataLength = Model.Count;
          }
          pointerSegment.WriteNewFormat(Model, CurrentChange, pointer, insert, tableRun.ElementContent);
+         if (Model.GetNextRun(insert) is ITableRun newTable) newTable.Append(CurrentChange, 0); // append 0 to force-update the parent count field
+
          RaiseMessage($"New data added at {insert:X6}");
          RefreshBackingData();
          return true;

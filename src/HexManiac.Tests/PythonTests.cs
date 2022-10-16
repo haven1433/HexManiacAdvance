@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Collections.Generic;
 using Xunit;
@@ -34,6 +35,24 @@ namespace HavenSoft.HexManiac.Tests {
 
          var table = (ITableRun)Model.GetNextRun(0x100);
          Assert.Equal(3, table.ElementCount);
+      }
+
+      [Fact]
+      public void TableWithTuple_AccessValueInPython_RightValue() {
+         ViewPort.Edit("^elements[a:|t|x::|y::|z:: b:]2 (0 4 0) ");
+
+         var result = Execute("table['elements'][0].a.y").Trim();
+
+         Assert.Equal("4", result);
+      }
+
+      [Fact]
+      public void TableWithTuple_SetValueInPython_RightValue() {
+         ViewPort.Edit("^elements[a:|t|x::|y::|z:: b:]2 (0 4 0) ");
+
+         Execute("table['elements'][0].a.y = 7").Trim();
+
+         Assert.Equal(0x0070, Model.ReadMultiByteValue(0, 2));
       }
    }
 }

@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using Mono.Unix.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -514,9 +515,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var newStructType = model[pointerSource - TrainerFormat_PointerOffset];
          var newElementCount = model[pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
-         newElementCount = Math.Max(newElementCount, (byte)1);
 
          var newRun = this;
+         if (newElementCount == 0) {
+            var offsets = sourceTable.ConvertByteOffsetToArrayOffset(pointerSource);
+            model.ClearFormatAndData(token, newRun.Start, newRun.Length);
+            model.UpdateArrayPointer(token, sourceTable.ElementContent[offsets.SegmentIndex], sourceTable.ElementContent, offsets.ElementIndex, pointerSource, Pointer.NULL);
+            return null;
+         }
          if (newElementCount != ElementCount) newRun = (TrainerPokemonTeamRun)newRun.Append(token, newElementCount - ElementCount);
          if (newStructType != StructType) {
             var data = new TeamData(model, newRun.Start, StructType, newElementCount);
