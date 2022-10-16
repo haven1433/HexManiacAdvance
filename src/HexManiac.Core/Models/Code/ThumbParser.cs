@@ -782,6 +782,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   for (int index = 0; index < instructionParts.Count; index++) {
                      var instruction = instructionParts[index];
                      if (instruction.Name != name) continue;
+                     if (registerValues.ContainsKey(index) && registerValues[index] != value) return false;
                      registerValues[index] = value;
                   }
                }

@@ -42,6 +42,7 @@ nv=1111  @    never
 0001100 rm rn rd    |     add   rd, rn, rm    @ rd = rn + rm
 0001101 rm rn rd    |     sub   rd, rn, rm    @ rd = rn - rm
 0001110000 rn rd    |     mov   rd, rn        @ rd = rn
+00110 rd #          |     add   rd, rd, #     @ rd += # (alais)
 0001110 # rn rd     |     add   rd, rn, #     @ rd = rn + #
 0001111 # rn rd     |     sub   rd, rn, #     @ rd = rn - #
 00100 rd #          |     mov   rd, #         @ rd = #

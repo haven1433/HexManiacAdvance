@@ -15,6 +15,9 @@ namespace HavenSoft.HexManiac.Tests {
          get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
          set => Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
       }
+      private string ThumbScript {
+         set => Tool.Content = value.Replace(";", Environment.NewLine);
+      }
       private string GetContent(int index) => Tool.Contents[index].Content;
       private void SetContent(int index, string content) => Tool.Contents[index].Content = content.Replace(";", Environment.NewLine);
 
@@ -165,6 +168,12 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.IsType<PointerRun>(Model.GetNextRun(5));
          Model.ResolveConflicts();
+      }
+
+      [Fact]
+      public void AddWithTwoSameRegisters_AddWithOneRegister_SameCode() {
+         ThumbScript = "add r3,r3,#6; add r3, #6";
+         Assert.Equal(Model.ReadMultiByteValue(0, 2), Model.ReadMultiByteValue(2, 2));
       }
    }
 }

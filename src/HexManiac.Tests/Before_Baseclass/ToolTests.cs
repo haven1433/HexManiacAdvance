@@ -375,6 +375,8 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("add   r0, r1, r2", 0b0001100_010_001_000)]
       [InlineData("add   r0, r1",     0b0001100_001_000_000)]
       [InlineData("add   r8, r0",     0b1000100_1_0_000_000)]
+      [InlineData("add   r0, r1, #4", 0b0001110_100_001_000)]
+      [InlineData("add   r2, r2, #4", 0b00110_010_00000100)]
       [InlineData("lsl   r1, r2, #4", 0b00000_00100_010_001)]
       [InlineData("lsl   r1, #4",     0b00000_00100_001_001)]
       [InlineData("bls   <000120>", 0b1101_1001_00001110)]
