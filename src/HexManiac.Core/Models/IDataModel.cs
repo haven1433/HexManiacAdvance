@@ -149,7 +149,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public int FreeSpaceStart { get; set; }
 
-      public int FreeSpaceBuffer { get; set; } = 0x100;
+      public int FreeSpaceBuffer { get; set; } = 0x40;
 
       public int NextExportID { get; set; }
 

@@ -464,7 +464,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          interactionType = PrimaryInteractionType.Draw;
          var map = MapUnderCursor(x, y);
          if (clickCount == 2) {
-            if (map != null) map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+            if (drawBlockIndex < 0 && collisionIndex < 0) {
+               // nothing to paint
+               interactionType = PrimaryInteractionType.None;
+            } else {
+               if (map != null) map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+            }
             Hover(x, y);
          } else {
             PrimaryMap = map;
@@ -480,7 +485,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var tilePosition = ToTilePosition(x, y);
                map.DrawBlocks(history.CurrentChange, tilesToDraw, drawSource, tilePosition);
             } else {
-               map.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+               if (drawBlockIndex < 0 && collisionIndex < 0) {
+                  interactionType = PrimaryInteractionType.None;
+               } else {
+                  map.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+               }
             }
          }
          Hover(x, y);

@@ -1078,6 +1078,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   // a different tab has the same model and is selected
                   // we'll get results from that tab instead.
                } else {
+                  viewPort.Model?.InitializationWorkload.Wait();
                   results.AddRange(viewPort.Find(search, MatchExactCase).Select(offset => (viewPort, offset.start, offset.end)));
                   searchedModels.Add(viewPort.Model);
                }

@@ -758,6 +758,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (Math.Abs(displayHeight * spritePages - height) < Math.Abs(displayHeight - height)) displayHeight *= spritePages;
             viewPort.RaiseError($"The imported width/height ({width}/{height}) doesn't match the image ({displayWidth}/{displayHeight})!");
          }
+         viewPort.Refresh(); // need to refresh in case the model resized during the import
       }
 
       private short[][] SplitHorizontally(short[] image, int width, int count) {

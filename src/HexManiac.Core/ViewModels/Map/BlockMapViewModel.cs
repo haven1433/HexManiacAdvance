@@ -597,6 +597,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void PaintBlock(ModelDelta token, Point p, Point size, int start, Point change) {
+         if (change.X == change.Y) return;
          if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) return;
          var address = start + (p.Y * size.X + p.X) * 2;
          if (model.ReadMultiByteValue(address, 2) != change.X) return;
@@ -1151,7 +1152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
                var collision = data >> 10;
                data &= 0x3FF;
-               canvas.Draw(blockRenders[data], x * 16, y * 16);
+               if (blockRenders.Count > data) canvas.Draw(blockRenders[data], x * 16, y * 16);
                if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
             }
          }

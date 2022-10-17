@@ -1069,7 +1069,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@03 +");
 
          Assert.Single(Messages);
-         Assert.InRange(ViewPort.DataOffset, 0x80, 0x200);
+         Assert.InRange(ViewPort.DataOffset, 0x10, 0x200);
       }
 
       [Fact]

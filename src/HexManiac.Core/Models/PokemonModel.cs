@@ -1553,16 +1553,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override int FindFreeSpace(int start, int minimumLength) {
          if (FreeSpaceStart != 0) start = FreeSpaceStart;
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
-         minimumLength += 0x140; // make sure there's plenty of room after, so that we're not in the middle of some other data set
-         var runIndex = 0;
+         minimumLength += 0x40; // make sure there's plenty of room after, so that we're not in the middle of some other data set
          lock (threadlock) {
             while (start < RawData.Length - minimumLength) {
                // catch the currentRun up to where we are
-               while (runIndex < runs.Count && runs[runIndex].Start < start) runIndex++;
-               var currentRun = runIndex < runs.Count ? runs[runIndex] : NoInfoRun.NullRun;
-
-               // if the space we want intersects the current run, then skip past the current run
-               if (start + minimumLength > currentRun.Start) {
+               var currentRun = GetNextRun(start);
+               if (currentRun.Start <= start + minimumLength) {
                   start = currentRun.Start + currentRun.Length + FreeSpaceBuffer;
                   var modulo = start % 4;
                   if (modulo != 0) start += 4 - modulo;
@@ -1571,7 +1567,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                // if the space we want already has some data in it that we don't have a run for, skip it
                var lastConflictingData = -1;
-               for (int i = start; i < start + minimumLength; i++) if (RawData[i] != 0xFF) lastConflictingData = i;
+               for (int i = start + minimumLength - 1; i >= start; i--) {
+                  if (RawData[i] != 0xFF) {
+                     lastConflictingData = i;
+                     break;
+                  }
+               }
                if (lastConflictingData != -1) {
                   start = lastConflictingData + Math.Max(4, FreeSpaceBuffer);
                   var modulo = start % 4;
