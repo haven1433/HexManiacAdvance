@@ -1257,6 +1257,28 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0, Model.ReadMultiByteValue(child.Start, 2));
       }
 
+      [Fact]
+      public void DataBeforeChildTable_ChangeChildLengthToNegative_DataNotDeleted() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@0FE 01 02 03 04 @000 <100> 02 00 00 00 @000 ^parent[child<[data.]/count> count::]1 ");
+
+         ViewPort.Edit("@004 -1 ");
+
+         Assert.Equal(new byte[] { 0x01, 0x02, 0xFF, 0xFF }, 4.Range(i => Model[0xFE + i]).ToArray());
+      }
+
+      [Fact]
+      public void ChildTable_UnreasonablyLargeLength_LimitLength() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@0FE 01 02 03 04 @000 <100> 02 00 00 00 @000 ^parent[child<[data.]/count> count::]1 ");
+
+         ViewPort.Edit("@004 2000 ");
+
+         var address = Model.ReadPointer(0);
+         var run = (ITableRun)Model.GetNextRun(address);
+         Assert.Equal(1000, run.ElementCount);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

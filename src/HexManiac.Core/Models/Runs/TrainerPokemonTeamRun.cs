@@ -514,7 +514,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (parentSegmentChange != 0 && sourceTable.ElementContent[parentSegmentChange].Name != "pokemonCount") return this;
 
          var newStructType = model[pointerSource - TrainerFormat_PointerOffset];
-         var newElementCount = model[pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+         var newElementCount = model.ReadMultiByteValue(pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset, 4);
+         newElementCount.LimitToRange(0, 100);
 
          var newRun = this;
          if (newElementCount == 0) {

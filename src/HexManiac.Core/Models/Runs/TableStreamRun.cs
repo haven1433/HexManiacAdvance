@@ -678,6 +678,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var offsets = parent.ConvertByteOffsetToArrayOffset(parentAddress);
 
          var newElementCount = model.ReadMultiByteValue(parent.Start + offsets.ElementIndex * parent.ElementLength + segmentOffset, parent.ElementContent[segmentIndex].Length);
+         newElementCount = newElementCount.LimitToRange(0, 1000);
 
          var newRun = run;
          if (newElementCount == 0) {
