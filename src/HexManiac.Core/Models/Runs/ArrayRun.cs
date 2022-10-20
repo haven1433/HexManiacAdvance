@@ -155,6 +155,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          foreach (var segment in self.ElementContent) {
             if (segment is ArrayRunEnumSegment enumSegment && enumSegment.EnumName == anchorName) return true;
             if (segment is ArrayRunTupleSegment tupleSegment && tupleSegment.DependsOn(anchorName)) return true;
+            if (segment is ArrayRunRecordSegment recordSegment && recordSegment.DependsOn(anchorName)) return true;
          }
          return false;
       }
@@ -326,6 +327,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static IEnumerable<(int, int)> Search(this ITableRun self, IDataModel model, string baseName, int index) {
          int segmentOffset = 0;
          for (int i = 0; i < self.ElementContent.Count; i++) {
+            if (self.ElementContent[i] is ArrayRunRecordSegment recordSeg) {
+               for (int j = 0; j < self.ElementCount; j++) {
+                  var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
+                  if (recordSeg.CreateConcrete(model, segmentStart) is not ArrayRunEnumSegment enumSeg || enumSeg.EnumName != baseName) continue;
+                  if (model.ReadMultiByteValue(segmentStart, recordSeg.Length) != index) continue;
+                  yield return (segmentStart, segmentStart + recordSeg.Length - 1);
+               }
+            }
             if (self.ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
                for (int j = 0; j < self.ElementCount; j++) {
                   var segmentStart = self.Start + j * self.ElementLength + segmentOffset;

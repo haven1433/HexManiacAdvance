@@ -183,12 +183,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return pcs.SerializeRun();
       }
 
-      protected void SetText(int pointer, string text, [CallerMemberName] string propertyName = null) {
+      protected int SetText(int pointer, string text, [CallerMemberName] string propertyName = null) {
          var address = element.Model.ReadPointer(pointer);
-         if (address < 0 || address >= element.Model.Count) return;
-         if (element.Model.GetNextRun(address) is not PCSRun pcs) return;
-         element.Model.ObserveRunWritten(element.Token, pcs.DeserializeRun(text, element.Token, out _));
-         NotifyPropertyChanged();
+         if (address < 0 || address >= element.Model.Count) return -1;
+         if (element.Model.GetNextRun(address) is not PCSRun pcs) return -1;
+         var newRun = pcs.DeserializeRun(text, element.Token, out _);
+         element.Model.ObserveRunWritten(element.Token, newRun);
+         NotifyPropertyChanged(propertyName);
+         return newRun.Start != pcs.Start ? newRun.Start : -1;
       }
 
       protected static IPixelViewModel BuildEventRender(short color) {
@@ -206,6 +208,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ObjectEventModel : BaseEventModel {
       private readonly Action<int> gotoAddress;
+
+      public event EventHandler<DataMovedEventArgs> DataMoved;
 
       public int Start => element.Start;
 
@@ -345,7 +349,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string NpcText {
          get => GetText(EventTemplate.GetNPCTextPointer(element.Model, this));
-         set => SetText(EventTemplate.GetNPCTextPointer(element.Model, this), value);
+         set {
+            var newStart = SetText(EventTemplate.GetNPCTextPointer(element.Model, this), value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
       }
 
       public int TrainerClass {
@@ -404,7 +411,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
-            SetText(trainerContent.BeforeTextPointer, value);
+            var newStart = SetText(trainerContent.BeforeTextPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
@@ -417,7 +425,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
-            SetText(trainerContent.WinTextPointer, value);
+            var newStart = SetText(trainerContent.WinTextPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
@@ -430,7 +439,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
-            SetText(trainerContent.AfterTextPointer, value);
+            var newStart = SetText(trainerContent.AfterTextPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
@@ -457,6 +467,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             teamText = value;
             var newRun = run.DeserializeRun(value, element.Token, false, false, out _);
             element.Model.ObserveRunWritten(element.Token, newRun);
+            if (newRun.Start != run.Start) DataMoved.Raise(this, new("Trainer Team", newRun.Start));
             UpdateTeamVisualizations(newRun);
             NotifyPropertyChanged();
          }
@@ -650,6 +661,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // kind = 5/6/7 => arg is itemID: hiddenItemID. attr|t|quantity:::.|isUnderFoot.
       // kind = other => arg is script<`xse`>
 
+      public event EventHandler<DataMovedEventArgs> DataMoved;
+
       public SignpostEventModel(ModelArrayElement signpostEvent) : base(signpostEvent, "signpostCount") { }
 
       public int Kind {
@@ -670,7 +683,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string SignpostText {
          get => GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
-         set => SetText(EventTemplate.GetSignpostTextPointer(element.Model, this), value);
+         set {
+            var newAddress = SetText(EventTemplate.GetSignpostTextPointer(element.Model, this), value);
+            if (newAddress >= 0) DataMoved.Raise(this, new("Text", newAddress));
+         }
       }
    }
 }

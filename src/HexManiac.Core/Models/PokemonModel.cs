@@ -2056,8 +2056,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void Load(byte[] newData, StoredMetadata metadata) {
+         base.Load(newData, metadata);
          lock (threadlock) {
-            base.Load(newData, metadata);
             unmappedNameToSources.Clear();
             sourceToUnmappedName.Clear();
             addressForAnchor.Clear();

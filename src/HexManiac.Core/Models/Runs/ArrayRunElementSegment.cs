@@ -373,6 +373,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!EnumForValue.TryGetValue(matchFieldValue, out var enumName)) return defaultConcrete;
          return new ArrayRunEnumSegment(Name, Length, enumName);
       }
+
+      public bool DependsOn(string anchorName) => EnumForValue.Values.Contains(anchorName);
    }
 
    public class ArrayRunHexSegment : ArrayRunElementSegment {

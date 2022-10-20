@@ -583,10 +583,22 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          });
 
          var source = BitmapSource.Create(imageWidth, imageHeight, 96, 96, PixelFormats.Bgra32, null, imageData, imageWidth * 4);
+         var image = new Image { Source = source, Width = imageWidth * .9 };
+         image.ToolTip = new ToolTip { Placement = System.Windows.Controls.Primitives.PlacementMode.Relative };
+         image.MouseMove += (sender, e) => {
+            var element = (FrameworkElement)sender;
+            var p = e.GetPosition(element);
+            var row = (int)(p.Y / (BlockSize + 1) / .9);
+            var col = (int)(p.X / (BlockSize + 1) / .9);
+            var tip = (ToolTip)image.ToolTip;
+            tip.Content = $"{row:X1}{col:X1}0000";
+            tip.HorizontalOffset = p.X + 10;
+            tip.VerticalOffset = p.Y + 10;
+         };
          var window = new Window {
             Title = tab.Name,
             Background = (Brush)Application.Current.Resources.MergedDictionaries[0][nameof(Theme.Background)],
-            Content = new Image { Source = source, Width = imageWidth * .9 },
+            Content = image,
             SizeToContent = SizeToContent.WidthAndHeight,
          };
          window.Show();

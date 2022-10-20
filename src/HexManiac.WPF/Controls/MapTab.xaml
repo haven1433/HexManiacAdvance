@@ -6,6 +6,7 @@
              xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
              xmlns:images="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Images;assembly=HexManiac.Core"
+             xmlns:models="clr-namespace:HavenSoft.HexManiac.Core.Models;assembly=HexManiac.Core"
              Focusable="True">
    <UserControl.Resources>
       <local:EqualityToBooleanConverter x:Key="Equality" />
@@ -331,15 +332,15 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Before Battle:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerBeforeText}" />
+                           <TextBox Text="{Binding TrainerBeforeText, UpdateSourceTrigger=PropertyChanged}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="When You Win:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerWinText}" />
+                           <TextBox Text="{Binding TrainerWinText, UpdateSourceTrigger=PropertyChanged}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="After Battle:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerAfterText}" />
+                           <TextBox Text="{Binding TrainerAfterText, UpdateSourceTrigger=PropertyChanged}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Team:" Margin="4,0"/>
                            </local:AngleBorder>
@@ -380,7 +381,7 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Text:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding NpcText}" />
+                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding NpcText, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
@@ -503,7 +504,7 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Text:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding SignpostText}" />
+                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding SignpostText, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
 
                         <!-- TODO break Arg into multiple pieces and show individual UI based on the value of Kind -->
@@ -523,6 +524,7 @@
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
          <StackPanel>
+            <local:AngleButton  Direction="Out" Margin="5" Content="View Table in Data Tab" DataContext="{Binding PrimaryMap}" Command="{res:MethodCommand GotoData}" />
             <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
                <Grid.ColumnDefinitions>
                   <ColumnDefinition />
@@ -580,6 +582,21 @@
                   <DataTemplate>
                      <StackPanel>
                         <DockPanel Margin="2">
+                           <DockPanel.Resources>
+                              <DataTemplate DataType="{x:Type models:VisualOption}">
+                                 <TextBlock Text="{Binding Option}">
+                                    <TextBlock.ToolTip>
+                                       <TextBlock>
+                                          <Bold>
+                                             <Run Text="{Binding ShortDescription}" />
+                                          </Bold>
+                                          <LineBreak /> <LineBreak />
+                                          <Run Text="{Binding Description}" />
+                                       </TextBlock>
+                                    </TextBlock.ToolTip>
+                                    </TextBlock>
+                              </DataTemplate>
+                           </DockPanel.Resources>
                            <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
                               <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20"/>
                            </local:AngleButton>
@@ -606,8 +623,8 @@
                                        <local:AngleBorder Direction="Left" Content="Address:" Padding="2,0" />
                                        <local:AngleTextBox Direction="Out" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
                                     </DockPanel>
-                                    <UniformGrid Columns="4">
-                                       <local:AngleBorder Direction="Out" Content="Variable:" />
+                                    <UniformGrid Columns="4" Margin="20,0">
+                                       <local:AngleBorder Direction="Out" Content="Var:" />
                                        <local:AngleTextBox Direction="Right" TextBinding="{Binding Variable, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" />
                                        <local:AngleBorder Direction="Out" Content="Value:" Margin="2,0,0,0" />
                                        <local:AngleTextBox Direction="Right" TextBinding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
@@ -621,7 +638,7 @@
                   </DataTemplate>
                </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <local:AngleButton Content="Add New Script" Direction="Out" Margin="2" />
+            <local:AngleButton DataContext="{Binding PrimaryMap.MapScriptCollection}" Content="Add New Script" Direction="Out" Margin="2" Command="{res:MethodCommand AddScript}" />
          </StackPanel>
       </ScrollViewer>
 
@@ -707,6 +724,7 @@
             <TranslateTransform X="{Binding HighlightCursorX, Mode=OneWay}" Y="{Binding HighlightCursorY, Mode=OneWay}"/>
          </Rectangle.RenderTransform>
       </Rectangle>
+      <TextBlock Width="100" Text="{Binding HoverPoint}" Background="{DynamicResource Background}" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
 
       <!-- Tile Panel -->
       <Border DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"

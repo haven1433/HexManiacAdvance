@@ -690,7 +690,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
 
 
-            if (SelectedTab is ViewPort viewPort && viewPort.IsFocused) viewPort.Edit(copyText);
+            if (SelectedTab is ViewPort viewPort) viewPort.Edit(copyText);
          };
       }
 

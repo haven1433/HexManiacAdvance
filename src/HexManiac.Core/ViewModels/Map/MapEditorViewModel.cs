@@ -70,6 +70,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private int PrimaryTiles { get; }
 
+      private string hoverPoint;
+      public string HoverPoint { get => hoverPoint; set => Set(ref hoverPoint, value); }
+
       #region Block Picker
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
@@ -389,6 +392,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (map == null) return;
             var p = ToTilePosition(x, y);
             UpdateHover(p.X, p.Y, 1, 1);
+            HoverPoint = $"({p.X}, {p.Y})";
          }
       }
 
@@ -565,6 +569,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
             templates.ApplyTemplate(objectEvent, history.CurrentChange);
             SelectedEvent = objectEvent;
+            if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
          } else if (type == EventCreationType.Warp) {
             var desiredMap = (bank: 0, map: 0);
             if (backStack.Count > 0) {
@@ -580,6 +585,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var signpost = primaryMap.CreateSignpostEvent();
             templates.ApplyTemplate(signpost, history.CurrentChange);
             SelectedEvent = signpost;
+            // TODO primaryMap.InformCreate if we created a script
          } else {
             throw new NotImplementedException();
          }

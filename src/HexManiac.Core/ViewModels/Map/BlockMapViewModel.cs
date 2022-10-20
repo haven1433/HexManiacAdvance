@@ -326,6 +326,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
          if (!HasWildData) {
             var token = tokenFactory();
+            var originalStart = wildTable.Start;
             wildTable = model.RelocateForExpansion(token, wildTable, wildTable.Length + wildTable.ElementLength);
             wildTable = wildTable.Append(token, 1);
             model.ObserveRunWritten(token, wildTable);
@@ -337,6 +338,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetAddress("tree", Pointer.NULL);
             element.SetAddress("fish", Pointer.NULL);
             wildDataIndex = wildTable.ElementCount - 1;
+            if (wildTable.Start != originalStart) InformRepoint(new("Wild", wildTable.Start));
          }
          viewPort.Goto.Execute(wildTable.Start + wildTable.ElementLength * wildDataIndex);
       }, () => model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.WildTableName) != Pointer.NULL);
@@ -390,7 +392,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private MapScriptCollection mapScriptCollection;
       public MapScriptCollection MapScriptCollection {
          get {
-            if (mapScriptCollection.Unloaded) mapScriptCollection.Load(GetMapModel().GetAddress("mapscripts"));
+            if (mapScriptCollection.Unloaded) {
+               var map = GetMapModel();
+               mapScriptCollection.Load(map);
+            }
             return mapScriptCollection;
          }
       }
@@ -418,9 +423,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          mapRepointer.ChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
          mapRepointer.DataMoved += (sender, e) => {
             ClearCaches();
-            viewPort.RaiseMessage($"{e.Type} data was moved to {e.Address:X6}.");
+            InformRepoint(e);
             if (e.Type == "Layout") UpdateLayoutID();
          };
+      }
+
+      public void InformRepoint(DataMovedEventArgs e) {
+         viewPort.RaiseMessage($"{e.Type} data was moved to {e.Address:X6}.");
+      }
+
+      public void InformCreate(DataMovedEventArgs e) {
+         viewPort.RaiseMessage($"{e.Type} data was created at {e.Address:X6}.");
       }
 
       public IReadOnlyList<BlockMapViewModel> GetNeighbors(MapDirection direction) {
@@ -433,6 +446,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             list.Add(vm);
          }
          return list;
+      }
+
+      public void GotoData() {
+         var map = GetMapModel();
+         viewPort.Goto.Execute(map.Start);
       }
 
       public void ClearCaches() {
@@ -550,7 +568,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (updateBlock || updateHighlight) NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public void DrawBlocks(ModelDelta token, int[,]tiles, Point source, Point destination) {
+      public void DrawBlocks(ModelDelta token, int[,] tiles, Point source, Point destination) {
          while (Math.Abs(destination.X - source.X) % tiles.GetLength(0) != 0) destination -= new Point(1, 0);
          while (Math.Abs(destination.Y - source.Y) % tiles.GetLength(1) != 0) destination -= new Point(0, 1);
 
@@ -752,7 +770,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
          if (run == null) return;
 
-         if (run.TryChangeSize(tokenFactory, direction, amount) != null) {
+         var newRun = run.TryChangeSize(tokenFactory, direction, amount);
+         if (newRun != null) {
             var tileSize = (int)(16 * spriteScale);
             if (direction == MapDirection.Left) LeftEdge -= amount * tileSize;
             if (direction == MapDirection.Up) TopEdge -= amount * tileSize;
@@ -776,6 +795,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
             RefreshMapSize();
             NeighborsChanged.Raise(this);
+            if (newRun.Start != run.Start) InformRepoint(new("Map", newRun.Start));
          }
       }
 
@@ -789,7 +809,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var connectionsAndCount = map.GetSubTable("connections")[0];
          var connections = connectionsAndCount.GetSubTable("connections").Run;
+         var originalConnectionStart = connections.Start;
          connections = model.RelocateForExpansion(token, connections, connections.Length + connections.ElementLength);
+         if (connections.Start != originalConnectionStart) InformRepoint(new("Connections", connections.Start));
          connectionsAndCount.SetValue("count", connections.ElementCount + 1);
          var table = new ModelTable(model, connections.Start, tokenFactory, connections);
          var newConnection = new ConnectionModel(table[connections.ElementCount]);
@@ -915,6 +937,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var parentStrategy = TableStreamRun.ParseEndStream(model, "connections", lengthToken, childSegments, connectionsAndCountTable.Run.ElementContent);
             connections = new TableStreamRun(model, newConnectionTableStart, SortedSpan.One(connectionsAndCount.Start + 4), $"[{childContent}]{lengthToken}", childSegments, parentStrategy, 0);
             connectionsAndCount.SetAddress("connections", newConnectionTableStart);
+            InformCreate(new("Connection", newConnectionTableStart));
          } else {
             connections = connectionsAndCount.GetSubTable("connections").Run;
          }
@@ -981,7 +1004,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       // TODO use this for connections as well, since the structure is the same
-      public static ModelArrayElement AddEvent(ModelArrayElement events, Func<ModelDelta> tokenFactory, string countName, string fieldName) {
+      public ModelArrayElement AddEvent(ModelArrayElement events, Func<ModelDelta> tokenFactory, string countName, string fieldName) {
          var model = events.Model;
          var count = events.GetValue(countName);
          var elementTable = events.GetSubTable(fieldName)?.Run;
@@ -1000,6 +1023,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var token = tokenFactory();
          var newRun = elementTable.Append(token, 1);
          model.ObserveRunWritten(token, newRun);
+         if (newRun.Start != elementTable.Start) InformRepoint(new(fieldName, newRun.Start));
          return new ModelArrayElement(model, newRun.Start, newRun.ElementCount - 1, tokenFactory, newRun);
       }
 
@@ -1023,10 +1047,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var matches = layoutTable.ElementCount.Range().Where(i => model.ReadPointer(layoutTable.Start + layoutTable.ElementLength * i) == addressFromMap).ToList();
          var token = tokenFactory();
          if (matches.Count == 0) {
+            var originalLayoutTableStart = layoutTable.Start;
             layoutTable = model.RelocateForExpansion(token, layoutTable, layoutTable.Length + 4);
             layoutTable = layoutTable.Append(token, 1);
             model.ObserveRunWritten(token, layoutTable);
             model.UpdateArrayPointer(token, layoutTable.ElementContent[0], layoutTable.ElementContent, -1, layoutTable.Start + layoutTable.ElementLength * (layoutTable.ElementCount - 1), addressFromMap);
+            if (originalLayoutTableStart != layoutTable.Start) InformRepoint(new("Layout Table", layoutTable.Start));
             matches.Add(layoutTable.ElementCount - 1);
          }
          map.SetValue("layoutID", matches[0] + 1);
@@ -1226,7 +1252,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private ModelArrayElement GetMapModel() => GetMapModel(model, group, map, tokenFactory);
-      public static ModelArrayElement GetMapModel(IDataModel model, int group, int map, Func<ModelDelta> tokenFactory){
+      public static ModelArrayElement GetMapModel(IDataModel model, int group, int map, Func<ModelDelta> tokenFactory) {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          if (table == null) return null;
          var mapBanks = new ModelTable(model, table.Start, tokenFactory);
@@ -1273,7 +1299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
          var ows = new ModelTable(model, run.Start, null, run);
          for (int i = 0; i < ows.Count; i++) {
-            list.Add(ObjectEventModel.Render(model, ows, i,0));
+            list.Add(ObjectEventModel.Render(model, ows, i, 0));
          }
          return list;
       }
@@ -1283,6 +1309,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var results = new List<IEventModel>();
          var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites);
+         events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);
@@ -1408,6 +1435,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);
+
+      private void HandleEventDataMoved(object sender, DataMovedEventArgs e) => InformRepoint(e);
 
       public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;
@@ -1627,6 +1656,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class EventGroupModel {
       private readonly ModelArrayElement events;
 
+      public event EventHandler<DataMovedEventArgs> DataMoved;
+
       public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows) {
          this.events = events;
 
@@ -1634,7 +1665,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var objects = events.GetSubTable("objects");
          var objectList = new List<ObjectEventModel>();
          if (objects != null) {
-            for (int i = 0; i < objectCount; i++) objectList.Add(new ObjectEventModel(gotoAddress, objects[i], ows));
+            for (int i = 0; i < objectCount; i++) {
+               var newEvent = new ObjectEventModel(gotoAddress, objects[i], ows);
+               newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
+               objectList.Add(newEvent);
+            }
          }
          Objects = objectList;
 
@@ -1658,7 +1693,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var signposts = events.GetSubTable("signposts");
          var signpostList = new List<SignpostEventModel>();
          if (signposts != null) {
-            for (int i = 0; i < signpostCount; i++) signpostList.Add(new SignpostEventModel(signposts[i]));
+            for (int i = 0; i < signpostCount; i++) {
+               var newEvent = new SignpostEventModel(signposts[i]);
+               newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
+               signpostList.Add(newEvent);
+            }
          }
          Signposts = signpostList;
       }

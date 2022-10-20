@@ -1279,6 +1279,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1000, run.ElementCount);
       }
 
+      [Fact]
+      public void SwitchType_DependsOn_UsedEnum() {
+         CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
+
+         ViewPort.Edit("@000 ^table[arg: info:|s=arg(4=names)]2 4 )");
+
+         var table = Model.GetTable("table");
+         Assert.True(table.DependsOn("names"));
+         Assert.Single(table.Search(Model, "names", 0));
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
