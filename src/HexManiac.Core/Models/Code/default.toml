@@ -111,6 +111,21 @@ Name = '''Intro'''
 ]
 
 [[List]]
+Name = '''maptypes'''
+0 = [
+   '''none''',
+   '''town''',
+   '''city''',
+   '''route''',
+   '''underground''',
+   '''underwater''',
+   '''ocean_route''',
+   '''unknown''',
+   '''indoor''',
+   '''secret_base''',
+]
+
+[[List]]
 Name = '''egggroups'''
 0 = [
    '''None''',

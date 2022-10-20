@@ -1563,7 +1563,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Func<ModelDelta> tokenFactory;
       // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
 
-      public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) => (map, tokenFactory) = (element, tokens);
+      public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) {
+         (map, tokenFactory) = (element, tokens);
+         if (element.Model.TryGetList("songnames", out var songnames)) {
+            foreach (var name in songnames) MusicOptions.Add(name);
+         }
+         if (element.Model.TryGetList("maptypes", out var mapTypes)) {
+            foreach (var name in mapTypes) MapTypeOptions.Add(name);
+         }
+      }
 
       public int Music { get => GetValue(); set => SetValue(value); }
       public int LayoutID { get => GetValue(); set => SetValue(value); }
@@ -1574,6 +1582,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int AllowBiking { get => GetValue(); set => SetValue(value); }
       public int FloorNum { get => GetValue(); set => SetValue(value); }
       public int BattleType { get => GetValue(); set => SetValue(value); }
+
+      public bool HasMusicOptions => MusicOptions.Count > 0;
+      public ObservableCollection<string> MusicOptions { get; } = new();
+
+      public bool HasMapTypeOptions => MapTypeOptions.Count > 0;
+      public ObservableCollection<string> MapTypeOptions { get; } = new();
 
       #region Flags
 

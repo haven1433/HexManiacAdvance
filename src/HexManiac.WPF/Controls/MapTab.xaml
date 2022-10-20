@@ -539,18 +539,20 @@
                </Grid.RowDefinitions>
                <Grid.Resources>
                   <Style TargetType="local:AngleBorder" BasedOn="{StaticResource {x:Type local:AngleBorder}}">
-                     <Setter Property="Direction" Value="Left" />
+                     <Setter Property="Direction" Value="Out" />
                      <Setter Property="Margin" Value="1,2,0,2" />
                   </Style>
                   <Style TargetType="local:AngleTextBox" BasedOn="{StaticResource {x:Type local:AngleTextBox}}">
-                     <Setter Property="Direction" Value="Out" />
+                     <Setter Property="Direction" Value="Right" />
                      <Setter Property="Grid.Column" Value="1" />
                      <Setter Property="HorizontalAlignment" Value="Stretch" />
                      <Setter Property="Margin" Value="0,2,4,2" />
                   </Style>
                </Grid.Resources>
-               <local:AngleBorder  Grid.Row="0" Content="Music:" />
-               <local:AngleTextBox Grid.Row="0" TextBinding="{Binding Music, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="0" Content="Music:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="0" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
+                                    ItemsSource="{Binding MusicOptions}" SelectedIndex="{Binding Music}"
+                                    Visibility="{Binding HasMusicOptions, Converter={StaticResource BoolToVisibility}}" />
 
                <local:AngleBorder  Grid.Row="1" Content="Region Section ID:" />
                <local:AngleTextBox Grid.Row="1" TextBinding="{Binding RegionSectionID, UpdateSourceTrigger=PropertyChanged}" />
@@ -561,8 +563,10 @@
                <local:AngleBorder  Grid.Row="3" Content="Weather:" />
                <local:AngleTextBox Grid.Row="3" TextBinding="{Binding Weather, UpdateSourceTrigger=PropertyChanged}" />
 
-               <local:AngleBorder  Grid.Row="4" Content="MapType:" />
-               <local:AngleTextBox Grid.Row="4" TextBinding="{Binding MapType, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="4" Content="MapType:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="4" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
+                                    ItemsSource="{Binding MapTypeOptions}" SelectedIndex="{Binding MapType}"
+                                    Visibility="{Binding HasMapTypeOptions, Converter={StaticResource BoolToVisibility}}" />
 
                <local:AngleBorder  Grid.Row="5" Content="AllowBiking:" />
                <local:AngleTextBox Grid.Row="5" TextBinding="{Binding AllowBiking, UpdateSourceTrigger=PropertyChanged}" />

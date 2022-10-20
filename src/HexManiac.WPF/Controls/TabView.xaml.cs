@@ -145,7 +145,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (tools == null || tools.StringTool == null) return;
          var tool = tools.StringTool;
 
-         var linesBeforeSelection = StringToolTextBox.Text.Substring(0, StringToolTextBox.SelectionStart).Split(Environment.NewLine).Length - 1;
+         var linesBeforeSelection = StringToolTextBox.Text.Substring(0, Math.Min(StringToolTextBox.Text.Length, StringToolTextBox.SelectionStart)).Split(Environment.NewLine).Length - 1;
          var totalLines = StringToolTextBox.Text.Split(Environment.NewLine).Length;
          var verticalOffset = StringToolTextBox.VerticalOffset;
          var lineHeight = StringToolTextBox.ExtentHeight / totalLines;
