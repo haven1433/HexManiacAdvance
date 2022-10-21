@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -149,6 +150,17 @@ namespace HavenSoft.HexManiac.Tests {
             var originalOffsetPointer = metadata1.OffsetPointers.Single(pointer => pointer.Address == offsetPointer.Address);
             Assert.Equal(originalOffsetPointer.Offset, offsetPointer.Offset);
          }
+      }
+
+      [Fact]
+      public void TupleFormat_UpgradeExportImport_TupleFormat() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.Edit("^table[data:|t|a:.|b:.|c:.|d:.]1 ");
+
+         var table = (ArrayRun)test.Model.GetTable("table");
+         var dup = table.Duplicate(0, SortedSpan.One(0x100), table.ElementContent);
+
+         Assert.Equal(table.FormatString, dup.FormatString);
       }
    }
 }

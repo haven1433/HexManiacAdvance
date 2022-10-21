@@ -407,6 +407,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayRunTupleSegment : ArrayRunHexSegment {
+      public override string SerializeFormat {
+         get {
+            var format = base.SerializeFormat;
+            format = format.Substring(0, format.Length - ArrayRun.HexFormatString.Length);
+            return format + "|t" + string.Empty.Join(Elements.Select(e => e.Format));
+         }
+      }
       public IReadOnlyList<TupleSegment> Elements { get; }
       public int VisibleElementCount => Elements.Count - Elements.Count(e => string.IsNullOrEmpty(e.Name));
       public ArrayRunTupleSegment(string name, string contract, int length) : base(name, length) {
@@ -530,6 +537,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class TupleSegment {
       public string Name { get; }
       public string SourceName { get; }
+      public string Format {
+         get {
+            var format = new StringBuilder("|");
+            format.Append(Name);
+            for (var remainingWidth = BitWidth; remainingWidth > 2; remainingWidth -= 2) format.Append(":");
+            if (BitWidth % 2 == 1) format.Append('.');
+            if (!string.IsNullOrEmpty(SourceName)) format.Append(SourceName);
+            return format.ToString();
+         }
+      }
       public int BitWidth { get; }
       public TupleSegment(string name, int width, string sourceName = null) => (Name, BitWidth, SourceName) = (name, width, sourceName);
       public int Read(IDataModel model, int start, int bitOffset) {
