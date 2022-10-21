@@ -1618,7 +1618,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) {
          (map, tokenFactory) = (element, tokens);
          if (element.Model.TryGetList("songnames", out var songnames)) {
-            foreach (var name in songnames) MusicOptions.Add(name);
+            for (int i = 0; i < songnames.Count; i++) {
+               var name = songnames[i] ?? $"song_{i}";
+               MusicOptions.Add(name);
+            }
          }
          if (element.Model.TryGetList("maptypes", out var mapTypes)) {
             foreach (var name in mapTypes) MapTypeOptions.Add(name);
