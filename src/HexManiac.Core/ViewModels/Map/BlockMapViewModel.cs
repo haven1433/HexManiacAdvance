@@ -1506,8 +1506,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (!mapTable[0].HasField("regionSectionID")) return $"{group}-{map}";
          var key = mapTable[0].GetValue("regionSectionID") - offset;
 
-         var names = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapNameTable).Start);
-         var name = names[key].GetStringValue("name");
+         var names = model.GetTableModel(HardcodeTablesModel.MapNameTable);
+         var name = names == null ? string.Empty : names[key].GetStringValue("name");
          name = SanitizeName(name);
 
          return $"{group}-{map} ({name})";

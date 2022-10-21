@@ -51,6 +51,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             break;
          }
 
+         ElementCount = Math.Min(ElementCount, 1000);
          var segments = Initialize();
          ElementContent = segments;
          ElementLength = ElementContent.Sum(segment => segment.Length);

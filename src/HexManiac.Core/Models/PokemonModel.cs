@@ -1003,7 +1003,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveRunWritten(ModelDelta changeToken, IFormattedRun run) {
-         Debug.Assert(run.Length > 0); // writing a run of length zero is stupid.
+         Debug.Assert(run.Length > 0, $"Writing metadata run length 0 at {run.Start:X6}"); // writing a run of length zero is stupid.
          lock (threadlock) {
             if (run is ArrayRun array) {
                // update any words who's name matches this array's name
