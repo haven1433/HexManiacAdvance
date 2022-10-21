@@ -244,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (availableNames != null) return availableNames;
             availableNames = new();
             foreach (var name in viewPort.Model.GetOptions(HardcodeTablesModel.MapNameTable)) {
-               availableNames.Add(name.Trim('"'));
+               availableNames.Add(SanitizeName(name.Trim('"')));
             }
             return availableNames;
          }
@@ -268,6 +268,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             self.SetValue("regionSectionID", value + offset);
             NotifyPropertyChanged(nameof(FullName));
          }
+      }
+
+      public static string SanitizeName(string name) {
+         return name.Replace("\\CC0000", " ");
       }
 
       #endregion
@@ -1504,6 +1508,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var names = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapNameTable).Start);
          var name = names[key].GetStringValue("name");
+         name = SanitizeName(name);
 
          return $"{group}-{map} ({name})";
       }
