@@ -115,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Render(IDataModel model) {
-         EventRender = BaseEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 31));
+         EventRender = BaseEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 15, 0));
       }
    }
 

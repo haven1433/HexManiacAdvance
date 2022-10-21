@@ -586,6 +586,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             templates.ApplyTemplate(signpost, history.CurrentChange);
             SelectedEvent = signpost;
             // TODO primaryMap.InformCreate if we created a script
+         } else if (type == EventCreationType.Fly) {
+            var flySpot = primaryMap.CreateFlyEvent();
+            if (flySpot != null) {
+               SelectedEvent = flySpot;
+            }
          } else {
             throw new NotImplementedException();
          }
@@ -1009,7 +1014,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public enum EventCreationType { None, Object, Warp, Script, Signpost }
+   public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 
    public enum PrimaryInteractionType { None, Draw, Event }
 

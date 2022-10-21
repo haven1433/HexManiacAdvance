@@ -332,8 +332,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             wildTable = wildTable.Append(token, 1);
             model.ObserveRunWritten(token, wildTable);
             var element = new ModelArrayElement(model, wildTable.Start, wildTable.ElementCount - 1, tokenFactory, wildTable);
-            element.SetValue("bank", MapID / 1000);
-            element.SetValue("map", MapID % 1000);
+            element.SetValue("bank", group);
+            element.SetValue("map", map);
             element.SetAddress("grass", Pointer.NULL);
             element.SetAddress("surf", Pointer.NULL);
             element.SetAddress("tree", Pointer.NULL);
@@ -491,7 +491,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void RedrawEvents() {
          eventRenders = null;
          pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         NotifyPropertiesChanged(nameof(PixelData), nameof(CanCreateFlyEvent));
       }
 
       public void Scale(double x, double y, bool enlarge) {
@@ -1004,6 +1004,55 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newEvent;
       }
 
+      public bool CanCreateFlyEvent {
+         get {
+            var map = GetMapModel();
+            var region = map.GetValue(Format.RegionSection);
+            if (model.IsFRLG()) region -= 88;
+            var connections = model.GetTableModel(HardcodeTablesModel.FlyConnections);
+            if (region < 0 || region >= connections.Count) return false;
+            return connections[region].GetValue("flight") == 0;
+         }
+      }
+
+      public FlyEventModel CreateFlyEvent() {
+         var map = GetMapModel();
+         var region = map.GetValue(Format.RegionSection);
+         if (model.IsFRLG()) region -= 88;
+         var connections = model.GetTableModel(HardcodeTablesModel.FlyConnections, tokenFactory);
+         if (region < 0 || region >= connections.Count) return null;
+         var flight = connections[region].GetValue("flight");
+         if (flight != 0) return null;
+         var spawns = model.GetTableModel(HardcodeTablesModel.FlySpawns, tokenFactory);
+
+         // hunt for an available spawn location
+         var emptySpawn = -1;
+         for (int i = 0; i < spawns.Count; i++) {
+            if (spawns[i].GetValue("x") == 0 && spawns[i].GetValue("y") == 0 && spawns[i].GetValue("bank") == 0 && spawns[i].GetValue("map") == 0) {
+               emptySpawn = i;
+               break;
+            }
+         }
+
+         // if there were no empty entries in the table, add a new one
+         if (emptySpawn == -1) {
+            var newSpawns = spawns.Run.Append(tokenFactory(), 1);
+            if (newSpawns.Start != spawns.Run.Start) InformRepoint(new("Fly Spawns", newSpawns.Start));
+            spawns = new ModelTable(model, newSpawns, tokenFactory);
+            emptySpawn = spawns.Count - 1;
+         }
+
+         // update the connections and spawn table
+         connections[region].SetValue("flight", emptySpawn + 1);
+         connections[region].SetValue("bank", group);
+         connections[region].SetValue("map", this.map);
+         spawns[emptySpawn].SetValue("bank", group);
+         spawns[emptySpawn].SetValue("map", this.map);
+
+         NotifyPropertyChanged(nameof(CanCreateFlyEvent));
+         return new FlyEventModel(model, group, this.map, tokenFactory);
+      }
+
       // TODO use this for connections as well, since the structure is the same
       public ModelArrayElement AddEvent(ModelArrayElement events, Func<ModelDelta> tokenFactory, string countName, string fieldName) {
          var model = events.Model;
@@ -1309,7 +1358,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var map = GetMapModel();
          var results = new List<IEventModel>();
-         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, MapID);
+         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
          events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
@@ -1682,7 +1731,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, int mapID) {
+      public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, int bank, int map) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -1725,8 +1774,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          Signposts = signpostList;
 
-         var (bankVal, mapVal) = (mapID / 1000, mapID % 1000);
-         var flyEvent = new FlyEventModel(events.Model, bankVal, mapVal, () => events.Token);
+         var flyEvent = new FlyEventModel(events.Model, bank, map, () => events.Token);
          if (flyEvent.Valid) {
             FlyEvent = flyEvent;
          }
