@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HavenSoft.AutoImplement.Delegation;
 
 // this file was created by AutoImplement
-namespace System.Collections.Generic
-{
-    public class StubComparer<T> : IComparer<T>
+namespace System.Collections.Generic {
+   public class StubComparer<T> : IComparer<T>
     {
         public Func<T, T, int> Compare { get; set; }
         
