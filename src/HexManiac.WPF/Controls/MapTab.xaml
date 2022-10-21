@@ -514,6 +514,30 @@
                         <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />-->
                      </Grid>
                   </DataTemplate>
+                  <DataTemplate DataType="{x:Type map:FlyEventModel}">
+                     <Grid VerticalAlignment="Top">
+                        <Grid.ColumnDefinitions>
+                           <ColumnDefinition />
+                           <ColumnDefinition />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                           <RowDefinition />
+                        </Grid.RowDefinitions>
+
+                        <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
+                           <TextBlock Text="(x, y):" />
+                        </local:AngleBorder>
+                        <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
+                     </Grid>
+                  </DataTemplate>
                </ContentControl.Resources>
             </ContentControl>
          </DockPanel>
@@ -531,7 +555,6 @@
                   <ColumnDefinition />
                </Grid.ColumnDefinitions>
                <Grid.RowDefinitions>
-                  <RowDefinition /> <RowDefinition />
                   <RowDefinition /> <RowDefinition />
                   <RowDefinition /> <RowDefinition />
                   <RowDefinition /> <RowDefinition />
@@ -554,31 +577,28 @@
                                     ItemsSource="{Binding MusicOptions}" SelectedIndex="{Binding Music}"
                                     Visibility="{Binding HasMusicOptions, Converter={StaticResource BoolToVisibility}}" />
 
-               <local:AngleBorder  Grid.Row="1" Content="Region Section ID:" />
-               <local:AngleTextBox Grid.Row="1" TextBinding="{Binding RegionSectionID, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="1" Content="Cave:" />
+               <local:AngleTextBox Grid.Row="1" TextBinding="{Binding Cave, UpdateSourceTrigger=PropertyChanged}" />
 
-               <local:AngleBorder  Grid.Row="2" Content="Cave:" />
-               <local:AngleTextBox Grid.Row="2" TextBinding="{Binding Cave, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="2" Content="Weather:" />
+               <local:AngleTextBox Grid.Row="2" TextBinding="{Binding Weather, UpdateSourceTrigger=PropertyChanged}" />
 
-               <local:AngleBorder  Grid.Row="3" Content="Weather:" />
-               <local:AngleTextBox Grid.Row="3" TextBinding="{Binding Weather, UpdateSourceTrigger=PropertyChanged}" />
-
-               <local:AngleBorder  Grid.Row="4" Content="MapType:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="4" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
+               <local:AngleBorder  Grid.Row="3" Content="MapType:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="3" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
                                     ItemsSource="{Binding MapTypeOptions}" SelectedIndex="{Binding MapType}"
                                     Visibility="{Binding HasMapTypeOptions, Converter={StaticResource BoolToVisibility}}" />
 
-               <local:AngleBorder  Grid.Row="5" Content="AllowBiking:" />
-               <local:AngleTextBox Grid.Row="5" TextBinding="{Binding AllowBiking, UpdateSourceTrigger=PropertyChanged}" />
+               <CheckBox Grid.Row="4" Grid.Column="0" Content="Allow Running"  IsChecked="{Binding AllowRunning}" Margin="4,2" />
+               <CheckBox Grid.Row="4" Grid.Column="1" Content="Show Map Name"  IsChecked="{Binding ShowMapName}" Margin="4,2" />
 
-               <local:AngleBorder  Grid.Row="6" Content="Flags:" />
-               <local:AngleTextBox Grid.Row="6" TextBinding="{Binding Flags, UpdateSourceTrigger=PropertyChanged}" />
+               <CheckBox Grid.Row="5" Grid.Column="0" Content="Allow Biking"   IsChecked="{Binding AllowBiking}" Margin="4,2" Visibility="{Binding ShowAllowBikingField, Converter={StaticResource BoolToVisibility}}" />
+               <CheckBox Grid.Row="5" Grid.Column="1" Content="Allow Escaping" IsChecked="{Binding AllowEscaping}" Margin="4,2" />
 
-               <local:AngleBorder  Grid.Row="7" Content="FloorNum:" />
-               <local:AngleTextBox Grid.Row="7" TextBinding="{Binding FloorNum, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="6" Content="BattleType:" />
+               <local:AngleTextBox Grid.Row="6" TextBinding="{Binding BattleType, UpdateSourceTrigger=PropertyChanged}" />
 
-               <local:AngleBorder  Grid.Row="8" Content="BattleType:" />
-               <local:AngleTextBox Grid.Row="8" TextBinding="{Binding BattleType, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="7" Content="FloorNum:" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
+               <local:AngleTextBox Grid.Row="7" TextBinding="{Binding FloorNum, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
             </Grid>
             <local:AngleBorder Direction="Out" Content="Map Scripts:" Margin="8,8,8,2" />
             <ItemsControl ItemsSource="{Binding PrimaryMap.MapScriptCollection.Scripts}">

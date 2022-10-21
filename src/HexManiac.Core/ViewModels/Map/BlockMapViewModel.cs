@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void CycleActiveEvent(object sender, EventCycleDirection direction) {
          // organize events into categories
          var events = GetEvents();
-         var categories = new List<List<IEventModel>> { new(), new(), new(), new() };
+         var categories = new List<List<IEventModel>> { new(), new(), new(), new(), new() };
          int selectionIndex = -1, selectedCategory = -1;
          for (int i = 0; i < events.Count; i++) {
             int currentCategory =
@@ -69,6 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                events[i] is WarpEventModel ? 1 :
                events[i] is ScriptEventModel ? 2 :
                events[i] is SignpostEventModel ? 3 :
+               events[i] is FlyEventModel ? 4 :
                -1;
             categories[currentCategory].Add(events[i]);
 
@@ -1308,12 +1309,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var map = GetMapModel();
          var results = new List<IEventModel>();
-         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites);
+         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, MapID);
          events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);
          results.AddRange(events.Signposts);
+         if (events.FlyEvent != null) results.Add(events.FlyEvent);
          return results;
       }
 
@@ -1501,6 +1503,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public record Border(int North, int East, int South, int West);
 
    public class Format {
+      public static string RegionSection => "regionSectionID";
       public static string Layout => "layout";
       public static string Warps => "warps";
       public static string Objects => "objects";
@@ -1573,15 +1576,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      // flags.|t|allowBiking.|allowEscaping.|allowRunning.|showMapName.
       public int Music { get => GetValue(); set => SetValue(value); }
       public int LayoutID { get => GetValue(); set => SetValue(value); }
       public int RegionSectionID { get => GetValue(); set => SetValue(value); }
       public int Cave { get => GetValue(); set => SetValue(value); }
       public int Weather { get => GetValue(); set => SetValue(value); }
       public int MapType { get => GetValue(); set => SetValue(value); }
-      public int AllowBiking { get => GetValue(); set => SetValue(value); }
+      public bool AllowBiking { get => GetBool(); set => SetBool(value); }
+      public bool AllowEscaping { get => GetBool(); set => SetBool(value); }
+      public bool AllowRunning { get => GetBool(); set => SetBool(value); }
+      public bool ShowMapName { get => GetBool(); set => SetBool(value); }
       public int FloorNum { get => GetValue(); set => SetValue(value); }
       public int BattleType { get => GetValue(); set => SetValue(value); }
+
+      public bool ShowFloorNumField => map.HasField("floorNum");                // FR/LG only
+      public bool ShowAllowBikingField => map.HasField("allowBiking") || (map.HasField("flags") && map.GetTuple("flags").HasField("allowBiking"));       // not for R/S
 
       public bool HasMusicOptions => MusicOptions.Count > 0;
       public ObservableCollection<string> MusicOptions { get; } = new();
@@ -1589,37 +1599,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool HasMapTypeOptions => MapTypeOptions.Count > 0;
       public ObservableCollection<string> MapTypeOptions { get; } = new();
 
-      #region Flags
-
-      public int Flags {
-         get => GetValue();
-         set {
-            SetValue(value);
-            NotifyPropertyChanged(nameof(AllowEscaping));
-            NotifyPropertyChanged(nameof(AllowRunning));
-            NotifyPropertyChanged(nameof(ShowMapName));
-         }
-      }
-
-      public bool AllowEscaping {
-         get => (Flags & 1) != 0;
-         set => Flags = (Flags & ~1) | (value ? 1 : 0);
-      }
-
-      public bool AllowRunning {
-         get => (Flags & 2) != 0;
-         set => Flags = (Flags & ~2) | (value ? 2 : 0);
-      }
-
-      public bool ShowMapName {
-         get => (Flags & 4) != 0;
-         set => Flags = (Flags & ~4) | (value ? 4 : 0);
-      }
-
-      #endregion
-
       private int GetValue([CallerMemberName]string name = null) {
          name = char.ToLower(name[0]) + name.Substring(1);
+         if (!map.HasField(name)) return -1;
          return map.GetValue(name);
       }
 
@@ -1631,6 +1613,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          name = char.ToLower(name[0]) + name.Substring(1);
          map.SetValue(name, value);
          NotifyPropertyChanged(originalName);
+      }
+
+      private bool GetBool([CallerMemberName]string name = null) {
+         name = char.ToLower(name[0]) + name.Substring(1);
+         if (map.HasField(name)) {
+            return map.GetValue(name) != 0;
+         } else if (map.HasField("flags")) {
+            var tuple = map.GetTuple("flags");
+            if (!tuple.HasField(name)) return false;
+            return tuple.GetValue(name) != 0;
+         }
+
+         return false;
+      }
+
+      private void SetBool(bool value, [CallerMemberName]string name = null) {
+         var originalName = name;
+         name = char.ToLower(name[0]) + name.Substring(1);
+         if (map.HasField(name)) {
+            map.SetValue(name, value ? 1 : 0);
+            NotifyPropertyChanged(originalName);
+         } else if (map.HasField("flags")) {
+            var tuple = map.GetTuple("flags");
+            if (tuple.HasField(name)) {
+               tuple.SetValue(name, value ? 1 : 0);
+               NotifyPropertyChanged(originalName);
+            }
+         }
       }
    }
 
@@ -1672,7 +1682,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows) {
+      public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, int mapID) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -1714,12 +1724,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
          Signposts = signpostList;
+
+         var (bankVal, mapVal) = (mapID / 1000, mapID % 1000);
+         var flyEvent = new FlyEventModel(events.Model, bankVal, mapVal, () => events.Token);
+         if (flyEvent.Valid) {
+            FlyEvent = flyEvent;
+         }
       }
 
       public IReadOnlyList<ObjectEventModel> Objects { get; }
       public IReadOnlyList<WarpEventModel> Warps { get; }
       public IReadOnlyList<ScriptEventModel> Scripts { get; }
       public IReadOnlyList<SignpostEventModel> Signposts { get; }
+      public FlyEventModel FlyEvent { get; }
+
       /*
        *  events<[objectCount. warpCount. scriptCount. signpostCount.
             objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>

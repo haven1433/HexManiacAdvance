@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
-using IronPython.Runtime.Types;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,26 +11,113 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using static IronPython.Modules.PythonWeakRef;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public interface IEventModel : IEquatable<IEventModel>, INotifyPropertyChanged {
       event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
+      public ICommand CycleEventCommand { get; }
       string EventType { get; }
       string EventIndex { get; }
       int TopOffset { get; }
       int LeftOffset { get; }
       int X { get; set; }
       int Y { get; set; }
-      int Elevation { get; set; }
       IPixelViewModel EventRender { get; }
       void Render(IDataModel model);
       void Delete();
    }
 
    public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory }
+
+   public class FlyEventModel : ViewModelCore, IEventModel {
+      private readonly ModelArrayElement flySpot;
+      private readonly ModelArrayElement connectionEntry;
+
+      public string EventType => "Fly";
+
+      public string EventIndex => "1/1";
+
+      public virtual int TopOffset => 0;
+      public virtual int LeftOffset => 0;
+
+      public int X {
+         get => !Valid ? -1 : flySpot.GetValue("x");
+         set {
+            if (!Valid) return;
+            flySpot.SetValue("x", value);
+            NotifyPropertyChanged();
+         }
+      }
+      public int Y {
+         get => !Valid ? -1 : flySpot.GetValue("y");
+         set {
+            if (!Valid) return;
+            flySpot.SetValue("y", value);
+            NotifyPropertyChanged();
+         }
+      }
+
+      public IPixelViewModel EventRender { get; private set; }
+
+      public bool Valid { get; }
+
+      private StubCommand cycleEventCommand;
+      public ICommand CycleEventCommand => StubCommand<EventCycleDirection>(ref cycleEventCommand, direction => {
+         CycleEvent.Raise(this, direction);
+      });
+
+      public event EventHandler EventVisualUpdated;
+      public event EventHandler<EventCycleDirection> CycleEvent;
+
+      public FlyEventModel(IDataModel model, int bank, int map, Func<ModelDelta> tokenFactory) {
+         // get the region from the map
+         var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable, tokenFactory);
+         if (banks == null) return;
+         var maps = banks[bank].GetSubTable("maps");
+         if (maps == null) return;
+         var table = maps[map].GetSubTable("map");
+         if (table == null) return;
+         var region = table[0].GetValue(Format.RegionSection);
+         if (model.IsFRLG()) region -= 88;
+         if (region < 0) return;
+         var flyIndexTable = model.GetTableModel(HardcodeTablesModel.FlyConnections, tokenFactory);
+         if (flyIndexTable == null) return;
+         if (region >= flyIndexTable.Count) return;
+         connectionEntry = flyIndexTable[region];
+         if (flyIndexTable[region].GetValue("bank") != bank) return;
+         if (flyIndexTable[region].GetValue("map") != map) return;
+         var flyIndex = flyIndexTable[region].GetValue("flight") - 1;
+         if (flyIndex < 0) return;
+         var flyTable = model.GetTableModel(HardcodeTablesModel.FlySpawns, tokenFactory);
+         if (flyTable == null) return;
+         if (flyIndex >= flyTable.Count) return;
+         flySpot = flyTable[flyIndex];
+         if (flySpot.GetValue("bank") != bank) return;
+         if (flySpot.GetValue("map") != map) return;
+         Valid = true;
+      }
+
+      public void Delete() {
+         if (!Valid) return;
+         // set the connection table's index to 0
+         connectionEntry.SetValue("flight", 0);
+         flySpot.SetValue("bank", 0);
+         flySpot.SetValue("map", 0);
+         flySpot.SetValue("x", 0);
+         flySpot.SetValue("y", 0);
+      }
+
+      public bool Equals(IEventModel? other) {
+         if (other is not FlyEventModel fly) return false;
+         return X == fly.X && Y == fly.Y && flySpot.Start == fly.flySpot.Start;
+      }
+
+      public void Render(IDataModel model) {
+         EventRender = BaseEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 31));
+      }
+   }
 
    public abstract class BaseEventModel : ViewModelCore, IEventModel, IEquatable<IEventModel> {
       public event EventHandler EventVisualUpdated;
@@ -193,7 +279,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newRun.Start != pcs.Start ? newRun.Start : -1;
       }
 
-      protected static IPixelViewModel BuildEventRender(short color) {
+      public static IPixelViewModel BuildEventRender(short color) {
          var pixels = new short[256];
          for (int x = 1; x < 15; x++) {
             for (int y = 1; y < 15; y++) {

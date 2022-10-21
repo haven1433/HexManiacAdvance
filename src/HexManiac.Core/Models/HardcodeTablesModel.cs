@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class HardcodeTablesModel : PokemonModel {
       public const string
+         FlySpawns = "data.maps.fly.spawn",
          MapNameTable = "data.maps.names",
          MapBankTable = "data.maps.banks",
          WildTableName = "data.pokemon.wild",
@@ -25,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          MapLayoutTable = "data.maps.layouts",
          TypesTableName = "data.pokemon.type.names",
          MoveNamesTable = "data.pokemon.moves.names",
+         FlyConnections = "data.maps.fly.connections",
          PokeIconsTable = "graphics.pokemon.icons.sprites",
          DexInfoTableName = "data.pokedex.stats",
          PokemonNameTable = "data.pokemon.names",

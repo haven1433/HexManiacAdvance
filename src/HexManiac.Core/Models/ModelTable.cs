@@ -198,6 +198,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public ModelTupleElement GetTuple(string fieldName) {
+         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         return new ModelTupleElement(model, table, arrayIndex, (ArrayRunTupleSegment)seg, tokenFactory);
+      }
+
       public object this[string fieldName] {
          get {
             var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
@@ -365,6 +370,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          get => GetValue(fieldName);
          set => SetValue(fieldName, (int)value);
       }
+
+      public bool HasField(string name) => tuple.Elements.Any(field => field.Name == name);
 
       public int GetValue(string fieldName) {
          var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
