@@ -112,6 +112,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var offset = spriteTable?.ConvertByteOffsetToArrayOffset(primarySource) ?? new ArrayOffset(-1, -1, -1, -1);
          if (primarySource < 0) offset = new ArrayOffset(-1, -1, -1, -1);
 
+         // if the current hint is a palette table and a matched value (like id=1104) and the spriteTable is a single-element table,
+         // we need to check for a field with a name that matches the hint field and possibly update
+         if (hint != null && hint.Contains(":") && hint.Contains("=") && spriteTable?.ElementCount == 1) {
+            var hintField = hint.Split(":")[1].Split("=")[0];
+            hintField = spriteTable.ElementContent.Select(seg => seg.Name).FirstOrDefault(seg => seg.Contains(hintField));
+            if (hintField != null) {
+               var table = new ModelTable(model, spriteTable);
+               var hintValue = table[0].GetValue(hintField);
+               hint = hint.Split("=")[0] + $"={hintValue:X4}";
+            }
+         }
+
          if (!string.IsNullOrEmpty(hint)) {
             var address = model.GetAddressFromAnchor(noChange, -1, hint);
             var run = model.GetNextRun(address);

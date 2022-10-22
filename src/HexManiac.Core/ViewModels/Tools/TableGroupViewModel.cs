@@ -123,6 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          IStreamArrayElementViewModel streamElement = null;
          if (streamRun == null || streamRun is IStreamRun || streamRun is ITableRun) streamElement = new TextStreamElementViewModel(viewPort, item.Name, itemAddress, pointerSegment.InnerFormat);
+         var parentStart = parent is StreamElementViewModel streamParent ? streamParent.Start : -1;
          if (streamRun is ISpriteRun spriteRun) streamElement = new SpriteElementViewModel(viewPort, item.Name, spriteRun.FormatString, spriteRun.SpriteFormat, itemAddress);
          if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, item.Name, paletteRun.FormatString, paletteRun.PaletteFormat, itemAddress);
          if (streamRun is TrainerPokemonTeamRun tptRun) streamElement = new TrainerPokemonTeamElementViewModel(viewPort, tptRun, item.Name, itemAddress);
@@ -136,6 +137,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             IStreamArrayElementViewModel newStream = null;
 
             if (run == null || run is IStreamRun) newStream = new TextStreamElementViewModel(viewPort, item.Name, streamAddress, pointerSegment.InnerFormat);
+            var parentStart = parent is StreamElementViewModel streamParent ? streamParent.Start : -1;
             if (run is ISpriteRun spriteRun1) newStream = new SpriteElementViewModel(viewPort, item.Name, spriteRun1.FormatString, spriteRun1.SpriteFormat, streamAddress);
             if (run is IPaletteRun paletteRun1) newStream = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, item.Name, paletteRun1.FormatString, paletteRun1.PaletteFormat, streamAddress);
 

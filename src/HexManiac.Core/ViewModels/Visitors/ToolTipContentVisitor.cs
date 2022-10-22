@@ -32,9 +32,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (runSpecificContent != null) {
             // special case: add images for pointers to OWs
             if (destinationRun is ITableRun table && table.ElementCount == 1 && table.ElementContent.Any(seg => seg.Name == "sprites")) {
-               if (model.GetNextRun(table.ReadPointer(model, 0, "sprites")) is OverworldSpriteListRun osl) {
+               var source = table.Start + table.ElementContent.Until(seg => seg.Name == "sprites").Sum(seg => seg.Length);
+               if (model.GetNextRun(model.ReadPointer(source)) is OverworldSpriteListRun osl) {
                   if (model.GetNextRun(osl.ReadPointer(model, 0, 0)) is ISpriteRun spriteRun) {
-                     var image = ReadonlyPixelViewModel.Create(model, spriteRun, true);
+                     var pals = spriteRun.FindRelatedPalettes(model, source);
+                     var image = ReadonlyPixelViewModel.Create(model, spriteRun, pals.FirstOrDefault(), true);
                      Content.Add(image);
                   }
                }
