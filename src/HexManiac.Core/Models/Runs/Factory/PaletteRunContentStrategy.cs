@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// <summary>
@@ -27,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new PaletteRun(run.Start, paletteFormat, run.PointerSources);
-         if (runAttempt.Length > 0) {
+         if (runAttempt.Length > 0 && !run.PointerSources.Any(source => runAttempt.Start <= source && source < runAttempt.Start + runAttempt.Length)) {
             run = runAttempt.MergeAnchor(run.PointerSources);
             model.ClearFormat(token, run.Start, run.Length);
          }

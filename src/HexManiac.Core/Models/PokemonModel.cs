@@ -1289,6 +1289,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
             UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
             if (newRun != null) {
+               if (newRun.Start < start && newRun.Start + newRun.Length > start) {
+                  // the new run conflicts with the pointer that points to it
+                  // don't add the new run
+                  newRun = new NoInfoRun(newRun.Start, newRun.PointerSources);
+               }
                var existingRun = GetNextRun(newRun.Start);
                if (existingRun.Start == newRun.Start) newRun = newRun.MergeAnchor(existingRun.PointerSources);
                ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
