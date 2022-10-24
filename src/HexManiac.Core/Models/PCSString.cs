@@ -45,6 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static readonly byte DynamicEscape = 0xF7;
       public static readonly byte FunctionEscape = 0xFC;
       public static readonly byte ButtonEscape = 0xF8;
+      public static readonly byte SpecialCharacterEscape = 0xF9;
       public static readonly byte Escape = 0xFD;
 
       static PCSString() {
@@ -121,7 +122,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (!isInMacroSection) continue;
             if (!reference[i].StartsWith("[")) continue;
             var endOfMacro = reference[i].IndexOf("]");
-            var bytes = reference[i].Substring(endOfMacro + 1).Trim().ToByteArray();
+            var bytes = reference[i].Substring(endOfMacro + 1).Split("#")[0].Trim().ToByteArray();
             var name = reference[i].Substring(0, endOfMacro + 1);
             results.Add(name, bytes);
          }
@@ -219,7 +220,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             if (length == 1) break;
 
-            if ((currentByte == Escape || currentByte == DynamicEscape || currentByte == ButtonEscape) && i < length - 1) {
+            if ((currentByte == Escape || currentByte == DynamicEscape || currentByte == ButtonEscape || currentByte == SpecialCharacterEscape) && i < length - 1) {
                result.Append(data[startIndex + i + 1].ToString("X2"));
                i++;
             }
@@ -274,7 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (checkInput != checkCharacter) continue;
                result.Add((byte)i);
                index += PCS[i].Length - 1;
-               if ((i == Escape || i == DynamicEscape || i == ButtonEscape) && input.Length > index + 2) {
+               if ((i == Escape || i == DynamicEscape || i == ButtonEscape || i == SpecialCharacterEscape) && input.Length > index + 2) {
                   if (byte.TryParse(input.Substring(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
                      result.Add(parsed);
                   }
@@ -332,6 +333,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (data[start + length] == Escape) length++;               // escape character, skip the next byte
             else if (data[start + length] == DynamicEscape) length++;
             else if (data[start + length] == ButtonEscape) length++;
+            else if (data[start + length] == SpecialCharacterEscape) length++;
             else if (data[start + length] == FunctionEscape) {
                length += GetLengthForControlCode(data[start + length + 1]);
             }
@@ -359,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static bool IsEscaped(IReadOnlyList<byte> data, int index) {
          if (index == 0) return false;
-         if (data[index - 1].IsAny(Escape, DynamicEscape, ButtonEscape, FunctionEscape)) return true;
+         if (data[index - 1].IsAny(Escape, DynamicEscape, ButtonEscape, SpecialCharacterEscape, FunctionEscape)) return true;
          if (index == 1) return false;
          for (int codeDist = 2; codeDist <= 4; codeDist++) {
             if (index >= codeDist && data[index - codeDist] == FunctionEscape && GetLengthForControlCode(data[index - codeDist + 1]) >= codeDist) return true;

@@ -79,6 +79,82 @@ CC_10 = 2 # play sound effects
 
 [player]       FD 01
 [rival]        FD 06
+[pause]        FC 09  # pause until a button is pressed
+[wait_sound]   FC 0A  # wait for sound effect to finish
+[pause_music]  FC 17
+[resume_music] FC 18
+
+[up]                     F9 00
+[down]                   F9 01
+[left]                   F9 02
+[right]                  F9 03
+[plus]                   F9 04
+[LV]                     F9 05
+[PP]                     F9 06
+[ID]                     F9 07
+[No]                     F9 08
+[_]                      F9 09
+[1]                      F9 0A
+[2]                      F9 0B
+[3]                      F9 0C
+[4]                      F9 0D
+[5]                      F9 0E
+[6]                      F9 0F
+[7]                      F9 10
+[8]                      F9 11
+[9]                      F9 12
+[left_parenthesis]       F9 13
+[right_parenthesis]      F9 14
+[super_effective]        F9 15
+[not_very_effective]     F9 16
+[not_effective]          F9 17
+[down_bar]               F9 D0
+[vertical_bar]           F9 D1
+[up_bar]                 F9 D2
+[tilde]                  F9 D3
+[left_parenthesis_bold]  F9 D4
+[right_parenthesis_bold] F9 D5
+[subset_of]              F9 D6
+[greater_than_short]     F9 D7
+[left_eye]               F9 D8
+[right_eye]              F9 D9
+[commercial_at]          F9 DA
+[semicolon]              F9 DB
+[bold_plus_1]            F9 DC
+[bold_minus]             F9 DD
+[bold_equals]            F9 DE
+[dazed]                  F9 DF
+[tongue]                 F9 E0
+[delta]                  F9 E1
+[acute]                  F9 E2
+[grave]                  F9 E3
+[circle]                 F9 E4
+[triangle]               F9 E5
+[square]                 F9 E6
+[heart]                  F9 E7
+[moon]                   F9 E8
+[eighth_note]            F9 E9
+[half_circle]            F9 EA
+[thunderbolt]            F9 EB
+[leaf]                   F9 EC
+[fire]                   F9 ED
+[teardrop]               F9 EE
+[left_wing]              F9 EF
+[right_wing]             F9 F0
+[rose]                   F9 F1
+[unknown_F2]             F9 F2
+[unknown_F3]             F9 F3
+[frustration_mark]       F9 F4
+[sad]                    F9 F5
+[happy]                  F9 F6
+[angry]                  F9 F7
+[excited]                F9 F8
+[joyful]                 F9 F9
+[maliciously_happy]      F9 FA
+[upset]                  F9 FB
+[straight_face]          F9 FC
+[surprised]              F9 FD
+[outraged]               F9 FE
 
 # macros for colors
 
