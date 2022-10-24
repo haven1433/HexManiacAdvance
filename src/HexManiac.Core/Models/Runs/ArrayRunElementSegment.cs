@@ -136,7 +136,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                      if (oldRun.PointerSources.Count == 0 && model.GetAnchorFromAddress(-1, oldRun.Start) == string.Empty) model.ClearFormat(token, oldDestination, 1);
                   }
                   var changed = model.WritePointer(token, start, address);
-                  model.ObserveRunWritten(token, new NoInfoRun(address, new SortedSpan<int>(start)));
+                  var existingRun = model.GetNextRun(address);
+                  if (existingRun.Start < address) {
+                     // can't actually add a NoInfoRun here
+                  } else {
+                     model.ObserveRunWritten(token, new NoInfoRun(address, new SortedSpan<int>(start)));
+                  }
                   return changed;
                }
             default:

@@ -1018,15 +1018,15 @@ namespace HavenSoft.HexManiac.Core.Models {
             IFormattedRun existingRun = null;
             if (index < 0) {
                index = ~index;
-               if (runs.Count == index || (runs[index].Start >= run.Start + run.Length && (index == 0 || runs[index - 1].Start + runs[index - 1].Length <= run.Start))) {
+
+               // check for conflict with previous run / next run
+               if (index > 0 && run.Start < runs[index - 1].Start + runs[index - 1].Length) {
+                  Debug.Fail($"Trying to add a run at {run.Start:X6} which overlaps a run at {runs[index - 1].Start:X6}");
+               } else if (index < runs.Count && runs[index].Start < run.Start + run.Length) {
+                  Debug.Fail($"Trying to add a run at {run.Start:X6} which overlaps a run at {runs[index].Start:X6}");
+               } else {
                   runs.Insert(index, run);
                   changeToken.AddRun(run);
-               } else {
-                  // there's a conflict: the new run was written in a space already being used, but not where another run starts
-                  // I'll need to do something here eventually... but for now, just error
-                  // the right thing to do is probably to erase the existing format in favor of the new thing the user just tried to add.
-                  // if the existing format was an anchor, clear all the pointers that pointed to it, since the writer is declaring that that address is not a valid anchor.
-                  Debug.Fail($"Trying to add a run at {run.Start:X6} which overlaps a run at {runs[index].Start:X6}");
                }
             } else {
                // replace / merge with existing

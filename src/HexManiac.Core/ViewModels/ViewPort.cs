@@ -90,6 +90,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler PreviewScrollChanged;
 
+      public int DataStart => scroll.DataStart;
+
+      public int DataLength => scroll.DataLength - scroll.DataStart;
+
       public int Width {
          get => scroll.Width;
          set {
@@ -1252,8 +1256,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          scroll.DataLength = Model.Count;
          var selectionStart = ConvertViewPointToAddress(SelectionStart);
          if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
-         RefreshBackingData();
          scroll.UpdateHeaders();
+         if (Model.GetNextRun(selectionStart) is ITableRun table) scroll.SetTableMode(table.Start, table.Length);
+         RefreshBackingData();
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));

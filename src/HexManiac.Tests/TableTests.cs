@@ -1290,6 +1290,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(table.Search(Model, "names", 0));
       }
 
+      [Fact]
+      public void PointersToTextTable_ChangeToPointToMiddleOfText_NoErrorsRedPointer() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("<null> <null> <null> @000 ^table[ptr<\"\">]3 <100> @100 Content ");
+
+         ViewPort.Edit("@004 <102>"); // points to middle of existing content
+
+         ViewPort.Goto.Execute(0);
+         var pFormat = (Pointer)ViewPort[4, 0].Format;
+         Assert.True(pFormat.HasError); // points to the middle of existing content = error pointer
+         Assert.Equal(0x100, Model.GetNextRun(0x102).Start); // text run still starts at 0x100
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

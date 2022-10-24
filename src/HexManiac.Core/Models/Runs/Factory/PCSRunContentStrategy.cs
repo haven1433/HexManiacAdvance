@@ -15,7 +15,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
          // our token will be a no-change token if we're in the middle of exploring the data.
          // If so, don't actually add the run. It's enough to know that we _can_ add the run.
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
+         if (token is not NoDataChangeDeltaModel) {
+            var existingRun = owner.GetNextRun(destination);
+
+            // don't add a format if it would conflict with an existing format
+            if (existingRun.Start < destination) return false;
+            if (existingRun.Start > destination && existingRun.Start < destination + length) return false;
+            owner.ObserveRunWritten(token, new PCSRun(owner, destination, length));
+         }
 
          // even if we didn't add the format, we're _capable_ of adding it... so return true
          return true;

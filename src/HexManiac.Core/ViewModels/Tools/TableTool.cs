@@ -222,8 +222,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      }
                   } else {
                      append.RaiseCanExecuteChanged();
-                     viewPort.Refresh();
                   }
+                  viewPort.Refresh();
                   RequestMenuClose?.Invoke(this, EventArgs.Empty);
                   if (model is PokemonModel pModel) pModel.ResolveConflicts();
                }

@@ -342,5 +342,20 @@ namespace HavenSoft.HexManiac.Tests {
          Model.ResolveConflicts();
          Assert.Equal(int.MaxValue, Model.GetNextRun(0x0).Start);
       }
+
+      [Fact]
+      public void SingleTableFocus_ExpandTableStreamWithoutRepoint_SeeFullStream() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@100 00 00 11 11 22 22 @100 ^table[a. b.]!FFFF @000 ");
+         ViewPort.AllowSingleTableMode = true;
+         ViewPort.Goto.Execute("table");
+
+         Assert.Equal(8, ViewPort.DataLength);
+
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(0x104);
+         ViewPort.Tools.TableTool.Append.Execute();
+
+         Assert.Equal(10, ViewPort.DataLength);
+      }
    }
 }
