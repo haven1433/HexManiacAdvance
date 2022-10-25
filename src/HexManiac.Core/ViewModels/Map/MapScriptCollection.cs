@@ -158,13 +158,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          });
       }
 
+      // create one-use NoDataChangeDeltaModel tokens rather than using tokens from CurrentChange
+      // we don't really care for these to be part of undo/redo
       private void Load() {
          var model = viewPort.Model;
          SubScripts.Clear();
+         var token = new NoDataChangeDeltaModel();
          if (scriptType != 2 && scriptType != 4) {
             // we're pointing at an XSERun
             if (model.GetNextRun(address).Start >= address) {
-               model.ObserveRunWritten(viewPort.ChangeHistory.CurrentChange, new XSERun(address));
+               model.ObserveRunWritten(token, new XSERun(address));
             }
          } else {
             var destination = address;
@@ -177,8 +180,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                destination += 8;
             }
             if (!ArrayRun.TryParse(model, "[variable:|h value: pointer<`xse`>]!0000", address, SortedSpan.One(start + 1), out var run).HasError) {
-               model.ClearFormat(viewPort.ChangeHistory.CurrentChange, run.Start, run.Length);
-               model.ObserveRunWritten(viewPort.ChangeHistory.CurrentChange, run);
+               model.ClearFormat(token, run.Start, run.Length);
+               model.ObserveRunWritten(token, run);
             }
          }
       }
