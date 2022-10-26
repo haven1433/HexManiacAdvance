@@ -336,7 +336,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   i++;
                   continue;
                }
-               if (characterIndex > 0) lines[i] = lines[i].Substring(0, characterIndex - 2) + ' ' + lines[i].Substring(commentStart + 2);
+               if (characterIndex > 0) lines[i] = lines[i].Substring(0, characterIndex - 2) + ' ' + lines[i].Substring(characterIndex + commentStart + 2);
                else lines[i] = lines[i].Substring(commentStart + 2);
                insideComment = false;
                characterIndex = 0;
