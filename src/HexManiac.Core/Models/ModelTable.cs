@@ -248,7 +248,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (seg.Type == ElementContentType.Pointer) {
             model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value);
          } else {
-            throw new NotImplementedException();
+            // it's not a pointer so don't update any formats to think that this points to them
+            // bet we should still update the value.
+            model.WritePointer(Token, valueAddress, value);
          }
       }
 

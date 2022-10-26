@@ -199,21 +199,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public class AddressFieldStratgy : IFieldArrayElementViewModelStrategy {
-      public static AddressFieldStratgy Instance { get; } = new AddressFieldStratgy();
+   public class AddressFieldStrategy : IFieldArrayElementViewModelStrategy {
+      public static AddressFieldStrategy Instance { get; } = new AddressFieldStrategy();
       public ElementContentViewModelType Type => ElementContentViewModelType.Address;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
-         var content = viewModel.Content.Trim();
-         if (content.StartsWith(PointerRun.PointerStart.ToString())) content = content.Substring(1);
-         if (content.EndsWith(PointerRun.PointerEnd.ToString())) content = content.Substring(0, content.Length - 1);
+         var content = viewModel.Content;
 
          var start = viewModel.Start;
          var change = viewModel.ViewPort.CurrentChange;
          var model = viewModel.Model;
 
-         if (!int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out var address)) {
-            address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
+         if (!TryParse(content, out int address)) {
+            address = viewModel.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
             if (address == Pointer.NULL && content != "null") {
                viewModel.ErrorText = "Address should be hexidecimal or an anchor.";
                return;
@@ -234,8 +232,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          var value = viewModel.Model.ReadPointer(viewModel.Start);
-         var text = value.ToString("X6");
-         if (value == Pointer.NULL) text = "null";
+         return ConvertAddressToText(value);
+      }
+
+      public static bool TryParse(string content, out int value) {
+         content = content.Trim(PointerRun.PointerStart, PointerRun.PointerEnd, ' ');
+
+         if (!content.TryParseHex(out value)) {
+            value = Pointer.NULL;
+            if (content.ToLower() != "null") return false;
+         }
+
+         return true;
+      }
+
+      public static string ConvertAddressToText(int address) {
+         var text = address.ToString("X6");
+         if (address == Pointer.NULL) text = "null";
          return $"{PointerRun.PointerStart}{text}{PointerRun.PointerEnd}";
       }
    }

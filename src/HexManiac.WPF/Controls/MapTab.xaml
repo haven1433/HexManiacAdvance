@@ -477,41 +477,59 @@
                         <Grid.RowDefinitions>
                            <RowDefinition /> <RowDefinition />
                            <RowDefinition /> <RowDefinition />
-                           <RowDefinition /> <RowDefinition Height="Auto" />
+                           <RowDefinition /> <RowDefinition />
+                           <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="(x, y):" />
-                        </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleBorder Grid.Row="0" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="(x, y):" />
+                        <local:AngleTextBox Grid.Row="0" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right" TextBinding="{Binding XY, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="Elevation:"/>
-                        </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation}" />
+                        <local:AngleBorder Grid.Row="1" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="Elevation:" />
+                        <local:AngleTextBox Grid.Row="1" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right" TextBinding="{Binding Elevation, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="Kind:"/>
-                        </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Kind}" />
+                        <local:AngleBorder Grid.Row="2" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2" Content="Kind:" />
+                        <local:AngleComboBox Grid.Row="2" Grid.Column="1" Direction="Out" Margin="0,2,2,2" ItemsSource="{Binding KindOptions}" SelectedIndex="{Binding Kind}" />
 
-                        <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="Arg:"/>
-                        </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Arg}" />
+                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="Secret Base ID:"
+                           Visibility="{Binding ShowArg, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Left"
+                           TextBinding="{Binding ArgText, UpdateSourceTrigger=PropertyChanged}"
+                           Visibility="{Binding ShowArg, Converter={StaticResource BoolToVisibility}}" />
 
-                        <StackPanel Margin="2,12" Grid.Row="5" Grid.ColumnSpan="2" Visibility="{Binding ShowSignpostText, Converter={StaticResource BoolToVisibility}}">
-                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
-                              <TextBlock Text="Text:" Margin="4,0"/>
-                           </local:AngleBorder>
+                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="Script:"
+                           Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right"
+                           TextBinding="{Binding PointerText, UpdateSourceTrigger=PropertyChanged}"
+                           Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
+
+                        <StackPanel Margin="2,12" Grid.Row="4" Grid.RowSpan="4" Grid.ColumnSpan="2" Visibility="{Binding ShowSignpostText, Converter={StaticResource BoolToVisibility}}">
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Text" />
                            <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding SignpostText, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
 
-                        <!-- TODO break Arg into multiple pieces and show individual UI based on the value of Kind -->
-                        <!--<local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left">
-                           <TextBlock Text="Script Address:"/>
-                        </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />-->
+                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2" Content="Item:"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleComboBox Grid.Row="3" Grid.Column="1" Margin="0,2,2,2" Direction="Out" ItemsSource="{Binding ItemOptions}" SelectedIndex="{Binding ItemID}"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+
+                        <!-- Hidden Item ID -->
+                        <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Right" Margin="2,2,0,2" Content="Hidden Item ID:"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right"
+                           TextBinding="{Binding HiddenItemID, UpdateSourceTrigger=PropertyChanged}"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+
+                        <!-- Quantity -->
+                        <local:AngleBorder Grid.Row="5" VerticalAlignment="Top" Direction="Right" Margin="2,2,0,2" Content="Quantity:"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleTextBox Grid.Row="5" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right"
+                           TextBinding="{Binding Quantity, UpdateSourceTrigger=PropertyChanged}"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+
+                        <!-- IsUnderfoot -->
+                        <CheckBox Grid.Row="6" Grid.ColumnSpan="2" HorizontalAlignment="Center" Content="Is Beneath Player"
+                           IsChecked="{Binding IsUnderFoot}"
+                           Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
                      </Grid>
                   </DataTemplate>
                   <DataTemplate DataType="{x:Type map:FlyEventModel}">

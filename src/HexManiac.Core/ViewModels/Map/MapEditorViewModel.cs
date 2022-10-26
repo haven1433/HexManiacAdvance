@@ -516,11 +516,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else if (
             clickCount == 2 &&
             SelectedEvent is SignpostEventModel signpost &&
-            signpost.Arg.TryParseHex(out int address) &&
-            address >= -Pointer.NULL &&
-            address + Pointer.NULL < model.Count
+            signpost.ShowPointer &&
+            signpost.Pointer >= 0 &&
+            signpost.Pointer < model.Count
          ) {
-            viewPort.Goto.Execute(address + Pointer.NULL);
+            viewPort.Goto.Execute(signpost.Pointer);
          } else {
             interactionType = PrimaryInteractionType.Event;
          }

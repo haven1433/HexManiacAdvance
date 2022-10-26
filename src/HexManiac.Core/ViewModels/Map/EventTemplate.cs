@@ -377,15 +377,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // this XSE run has no pointer source, because the signpost Arg isn't always a pointer.
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan<int>.None));
 
-         signpost.Arg = (scriptStart + 0x08000000).ToString("X8");
+         signpost.Pointer = scriptStart;
       }
 
       public int GetSignpostTextPointer(IEventModel eventModel) => GetSignpostTextPointer(model, eventModel);
       public static int GetSignpostTextPointer(IDataModel model, IEventModel eventModel) {
          if (eventModel is not SignpostEventModel signpost) return Pointer.NULL;
-         if (signpost.Kind != 0) return Pointer.NULL;
-         if (!signpost.Arg.TryParseHex(out int address)) return Pointer.NULL;
-         address -= 0x08000000;
+         if (!signpost.ShowPointer) return Pointer.NULL;
+         int address = signpost.Pointer;
          var expectedValues = new Dictionary<int, byte> {
             { 0, 0x0F },
             { 1, 0x00 },
@@ -394,6 +393,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             { 8, 0x02 },
          };
          foreach (var (k, v) in expectedValues) {
+            if (address + k < 0 || address + k >= model.Count) return Pointer.NULL;
             if (model[address + k] != v) return Pointer.NULL;
          }
          return address + 2;

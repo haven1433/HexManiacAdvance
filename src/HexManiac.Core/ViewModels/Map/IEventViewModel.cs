@@ -744,28 +744,147 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class SignpostEventModel : BaseEventModel {
       // kind. arg::|h
+      // kind = 0/1/2/3/4 => arg is a pointer to an XSE script
       // kind = 5/6/7 => arg is itemID: hiddenItemID. attr|t|quantity:::.|isUnderFoot.
-      // kind = other => arg is script<`xse`>
+      // kind = 8 => arg is secret base ID, just a 4-byte hex number
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public SignpostEventModel(ModelArrayElement signpostEvent) : base(signpostEvent, "signpostCount") { }
+      public SignpostEventModel(ModelArrayElement signpostEvent) : base(signpostEvent, "signpostCount") {
+         new List<string> {
+            "Facing Any",
+            "Facing North",
+            "Facing South",
+            "Facing East",
+            "Facing West",
+            "Hidden Item (unused 1)",
+            "Hidden Item (unused 2)",
+            "Hidden Item",
+            "Secret Base",
+         }.ForEach(KindOptions.Add);
+
+         foreach (var item in signpostEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) {
+            ItemOptions.Add(item);
+         }
+      }
+
+      public ObservableCollection<string> KindOptions { get; } = new();
 
       public int Kind {
          get => element.GetValue("kind");
-         set => element.SetValue("kind", value);
+         set {
+            var old = element.GetValue("kind");
+            element.SetValue("kind", value);
+            var wasPointer = old < 5;
+            var isPointer = value < 5;
+            NotifyPropertiesChanged(nameof(ShowArg), nameof(ShowPointer), nameof(ShowHiddenItemProperties));
+            if (ShowHiddenItemProperties) NotifyPropertyChanged(nameof(ItemID));
+            if (wasPointer == isPointer) return;
+            element.SetValue("arg", 0);
+            argText = null;
+            pointerText = null;
+            NotifyPropertiesChanged(nameof(ArgText), nameof(PointerText), nameof(ShowSignpostText), nameof(ItemID));
+         }
       }
 
-      public string Arg {
-         get => element.GetValue("arg").ToString("X8");
-         set => element.SetValue("arg", value.TryParseHex(out int result) ? result : 0);
+      public bool ShowArg => Kind == 8;
+
+      string argText;
+      public string ArgText {
+         get {
+            if (argText != null) return argText;
+            argText = element.GetValue("arg").ToString("X8");
+            return argText;
+         }
+         set {
+            argText = value;
+            if (value.TryParseHex(out int result)) element.SetValue("arg", result);
+         }
       }
+
+      #region Show as Pointer
+
+      public bool ShowPointer => Kind < 5;
+
+      public int Pointer {
+         get => element.GetAddress("arg");
+         set {
+            element.SetAddress("arg", value);
+            pointerText = argText = null;
+            NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText));
+         }
+      }
+
+      private string pointerText;
+      public string PointerText {
+         get {
+            if (pointerText != null) return pointerText;
+            var address = element.GetValue("arg") + DataFormats.Pointer.NULL;
+            pointerText = AddressFieldStrategy.ConvertAddressToText(address);
+            return pointerText;
+         }
+         set {
+            pointerText = value;
+            if (AddressFieldStrategy.TryParse(pointerText, out var address)) {
+               element.SetValue("arg", address - DataFormats.Pointer.NULL);
+               NotifyPropertyChanged(nameof(PointerText));
+            }
+         }
+      }
+
+      #endregion
+
+      #region Item Properties
+
+      public bool ShowHiddenItemProperties => Kind >= 5 && Kind <= 7;
+
+      // itemID: hiddenItemID. attr|t|quantity:::.|isUnderFoot.
+      // arg is at offset '8' of the element
+
+      public ObservableCollection<string> ItemOptions { get; } = new();
+
+      public int ItemID {
+         get => element.Model.ReadMultiByteValue(element.Start + 8, 2);
+         set {
+            element.Model.WriteMultiByteValue(element.Start + 8, 2, element.Token, value);
+            NotifyPropertyChanged(nameof(ItemID));
+         }
+      }
+
+      public byte HiddenItemID {
+         get => element.Model[element.Start + 10];
+         set => element.Token.ChangeData(element.Model, element.Start + 10, value);
+      }
+
+      public byte Quantity {
+         get => (byte)(element.Model[element.Start + 11] & 0x7F);
+         set {
+            var newValue = (byte)((int)value).LimitToRange(0, 0x7F);
+            var previous = element.Model[element.Start + 11];
+            newValue |= (byte)(previous & 0x80);
+            Token.ChangeData(element.Model, element.Start + 11, newValue);
+            NotifyPropertyChanged(nameof(Quantity));
+         }
+      }
+
+      public bool IsUnderFoot {
+         get => element.Model[element.Start + 11] >= 0x80;
+         set {
+            byte newValue = value ? (byte)0x80 : (byte)0;
+            var previous = element.Model[element.Start + 11];
+            newValue |= (byte)(previous & 0x7F);
+            Token.ChangeData(element.Model, element.Start + 11, newValue);
+            NotifyPropertyChanged(nameof(IsUnderFoot));
+         }
+      }
+
+      #endregion
 
       public override void Render(IDataModel model) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
       }
 
-      public bool ShowSignpostText => EventTemplate.GetSignpostTextPointer(element.Model, this) != Pointer.NULL;
+      public bool ShowSignpostText => EventTemplate.GetSignpostTextPointer(element.Model, this) != DataFormats.Pointer.NULL;
 
       public string SignpostText {
          get => GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
