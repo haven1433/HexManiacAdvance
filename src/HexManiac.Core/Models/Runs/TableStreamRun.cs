@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (model.GetUnmappedSourcesToAnchor(fieldName).Count > 0) {
             // we're pasting this format and something else is expecting it. Don't expect the content to match yet.
-            return tableStream.ElementCount > 0; 
+            return tableStream.ElementCount > 0 || tableStream.endStream is EndCodeStreamStrategy; 
          }
 
          // if the first 90% matches, we don't need to check the last 10%

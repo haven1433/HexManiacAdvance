@@ -1303,6 +1303,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x100, Model.GetNextRun(0x102).Start); // text run still starts at 0x100
       }
 
+      [Fact]
+      public void PointerToMissingName_AddTableStreamAnchorWithThatName_Works() {
+         SetFullModel(0xFF);
+
+         ViewPort.Edit("@100 <table.name> @000 @!put(0000) ^table.name[item:]!0000 ");
+
+         Assert.Empty(Errors);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
