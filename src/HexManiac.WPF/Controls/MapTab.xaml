@@ -498,9 +498,14 @@
 
                         <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="Script:"
                            Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
-                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right"
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,24,2" Direction="Right"
                            TextBinding="{Binding PointerText, UpdateSourceTrigger=PropertyChanged}"
                            Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleButton Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GotoScript}"
+                           Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}"
+                           Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
 
                         <StackPanel Margin="2,12" Grid.Row="4" Grid.RowSpan="4" Grid.ColumnSpan="2" Visibility="{Binding ShowSignpostText, Converter={StaticResource BoolToVisibility}}">
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Text" />

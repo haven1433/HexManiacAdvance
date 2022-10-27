@@ -1003,7 +1003,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "signpostCount", "signposts");
-         var newEvent = new SignpostEventModel(element) { X = 0, Y = 0, Elevation = 0, Kind = 0, Pointer = Pointer.NULL };
+         var newEvent = new SignpostEventModel(element, GotoAddress) { X = 0, Y = 0, Elevation = 0, Kind = 0, Pointer = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -1775,7 +1775,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var signpostList = new List<SignpostEventModel>();
          if (signposts != null) {
             for (int i = 0; i < signpostCount; i++) {
-               var newEvent = new SignpostEventModel(signposts[i]);
+               var newEvent = new SignpostEventModel(signposts[i], gotoAddress);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                signpostList.Add(newEvent);
             }

@@ -747,10 +747,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // kind = 0/1/2/3/4 => arg is a pointer to an XSE script
       // kind = 5/6/7 => arg is itemID: hiddenItemID. attr|t|quantity:::.|isUnderFoot.
       // kind = 8 => arg is secret base ID, just a 4-byte hex number
+      // hidden item IDs are just flags starting at 0x3E8 (1000).
+
+      private readonly Action<int> gotoAddress;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public SignpostEventModel(ModelArrayElement signpostEvent) : base(signpostEvent, "signpostCount") {
+      public SignpostEventModel(ModelArrayElement signpostEvent, Action<int> gotoAddress) : base(signpostEvent, "signpostCount") {
          new List<string> {
             "Facing Any",
             "Facing North",
@@ -766,6 +769,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var item in signpostEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) {
             ItemOptions.Add(item);
          }
+
+         SetDestinationFormat();
+
+         this.gotoAddress = gotoAddress;
+      }
+
+      public void SetDestinationFormat() {
+         if (!ShowPointer) return;
+         var destinationRun = new XSERun(Pointer, SortedSpan<int>.None);
+         var existingRun = element.Model.GetNextRun(destinationRun.Start);
+         if (existingRun.Start <= destinationRun.Start) return; // don't erase existing runs for this
+         element.Model.ObserveRunWritten(element.Token, destinationRun);
+      }
+
+      public void ClearDestinationFormat() {
+         if (!ShowPointer) return;
+         var destination = Pointer;
+         var run = element.Model.GetNextRun(Pointer);
+         if (run.Start != destination || (run.PointerSources != null && run.PointerSources.Count > 0)) return;
+         element.Model.ClearFormat(element.Token, destination, 1);
       }
 
       public ObservableCollection<string> KindOptions { get; } = new();
@@ -773,17 +796,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int Kind {
          get => element.GetValue("kind");
          set {
+            ClearDestinationFormat();
             var old = element.GetValue("kind");
             element.SetValue("kind", value);
             var wasPointer = old < 5;
             var isPointer = value < 5;
             NotifyPropertiesChanged(nameof(ShowArg), nameof(ShowPointer), nameof(ShowHiddenItemProperties));
             if (ShowHiddenItemProperties) NotifyPropertyChanged(nameof(ItemID));
+            SetDestinationFormat();
             if (wasPointer == isPointer) return;
             element.SetValue("arg", 0);
             argText = null;
             pointerText = null;
-            NotifyPropertiesChanged(nameof(ArgText), nameof(PointerText), nameof(ShowSignpostText), nameof(ItemID));
+            NotifyPropertiesChanged(nameof(ArgText), nameof(PointerText), nameof(ShowSignpostText), nameof(ItemID), nameof(HiddenItemID), nameof(Quantity), nameof(CanGotoScript));
          }
       }
 
@@ -809,9 +834,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int Pointer {
          get => element.GetAddress("arg");
          set {
+            ClearDestinationFormat();
             element.SetAddress("arg", value);
             pointerText = argText = null;
-            NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText));
+            NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText), nameof(CanGotoScript));
+            SetDestinationFormat();
          }
       }
 
@@ -826,11 +853,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             pointerText = value;
             if (AddressFieldStrategy.TryParse(pointerText, out var address)) {
+               ClearDestinationFormat();
                element.SetValue("arg", address - DataFormats.Pointer.NULL);
-               NotifyPropertyChanged(nameof(PointerText));
+               SetDestinationFormat();
+               NotifyPropertyChanged(nameof(PointerText), nameof(CanGotoScript));
             }
          }
       }
+
+      public bool CanGotoScript => 0 <= Pointer && Pointer < element.Model.Count;
+      public void GotoScript() => gotoAddress(Pointer);
 
       #endregion
 
