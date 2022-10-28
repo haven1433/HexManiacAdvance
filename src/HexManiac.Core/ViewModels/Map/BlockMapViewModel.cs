@@ -522,79 +522,52 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
          if (option == -1) return null;
          var token = tokenFactory();
-         var myLayout = GetLayout();
+         MapModel thisMap = new(GetMapModel());
 
          // give me this block
-         var (width, height) = (myLayout.GetValue("width"), myLayout.GetValue("height"));
-         var start = myLayout.GetAddress("blockmap");
-         var modelAddress = start + (warp.Y * width + warp.X) * 2;
-         var data = model.ReadMultiByteValue(modelAddress, 2);
-         int blockIndex = data & 0x3FF;
+         var blockIndex = thisMap.Blocks[warp.X, warp.Y].Tile;
 
          // give me all maps that use this blockset
-         var borderBlockAddress = myLayout.GetAddress(Format.BorderBlock);
-         var primaryBlocksetAddress = myLayout.GetAddress(Format.PrimaryBlockset);
-         var secondaryBlocksetAddress = myLayout.GetAddress(Format.SecondaryBlockset);
+         var borderBlockAddress = thisMap.Layout.BorderBlockAddress;
+         var primaryBlocksetAddress = thisMap.Layout.PrimaryBlockset.Start;
+         var secondaryBlocksetAddress = thisMap.Layout.SecondaryBlockset.Start;
 
-         var maps = new List<ModelArrayElement>();
-         foreach (var bank in model.GetTableModel(HardcodeTablesModel.MapBankTable)) {
-            if (bank == null) continue;
-            foreach (var mapList in bank.GetSubTable("maps")) {
-               if (mapList == null) continue;
-               var mapTable = mapList.GetSubTable("map");
-               if (mapTable == null) continue;
-               var map = mapTable[0];
-               var layoutTable = map.GetSubTable(Format.Layout);
-               if (layoutTable == null) continue;
-               var layout = layoutTable[0];
-               var primary = layout.GetAddress(Format.PrimaryBlockset);
-               var secondary = layout.GetAddress(Format.SecondaryBlockset);
-               if (primary != primaryBlocksetAddress && blockIndex < PrimaryBlocks) continue;
-               if (secondary != secondaryBlocksetAddress && blockIndex >= PrimaryBlocks) continue;
-               maps.Add(map);
-            }
+         var maps = new List<MapModel>();
+         foreach (var map in GetAllMaps()) {
+            if (map.Layout.PrimaryBlockset.Start != primaryBlocksetAddress && blockIndex < PrimaryBlocks) continue;
+            if (map.Layout.SecondaryBlockset.Start != secondaryBlocksetAddress && blockIndex >= PrimaryBlocks) continue;
+            maps.Add(map);
          }
 
          // give me all warps in those maps (except for this warp itself)
          // give me all warps that are on this tile
-         var warps = new List<ModelArrayElement>();
+         var warps = new List<WarpEventModel>();
          foreach (var map in maps) {
-            var layoutTable = map.GetSubTable("layout");
-            if (layoutTable == null) continue;
-            var blockmapStart = layoutTable[0].GetAddress(Format.BlockMap);
-            var candidateWidth = layoutTable[0].GetValue("width");
-            var eventTable = map.GetSubTable(Format.Events);
-            if (eventTable == null) continue;
-            var warpTable = eventTable[0].GetSubTable(Format.Warps);
-            if (warpTable == null) continue;
-            foreach (var w in warpTable) {
-               if (w.Start == warp.Element.Start) continue;
-               var p = new Point(w.GetValue("x"), w.GetValue("y"));
-               var warpBlockIndex = model.ReadMultiByteValue(blockmapStart + (p.Y * width + p.X) * 2, 2) & 0x3FF;
-               if (warpBlockIndex != blockIndex) continue;
+            var layout = map.Layout;
+            foreach (var w in map.Events.Warps) {
+               if (w.Element.Start == warp.Element.Start) continue;
+               if (map.Blocks[w.X, w.Y].Tile != blockIndex) continue;
                warps.Add(w);
             }
          }
 
-
          // give me maps that those warp to
          // give me all the primary/secondary blocksets for those maps
          // give me all the borders for those maps
+         // var prototypes = new HashSet<LayoutPrototype> { new(primaryBlocksetAddress, secondaryBlocksetAddress, borderBlockAddress) };
          var primaryBlocksets = new Dictionary<int, int> { { primaryBlocksetAddress, 0 } };
          var secondaryBlocksets = new Dictionary<int, int> { { secondaryBlocksetAddress, 0 } };
          var borders = new Dictionary<int, int> { { borderBlockAddress, 0 } };
          foreach (var w in warps) {
-            var (targetBank, targetMap) = (w.GetValue("bank"), w.GetValue("map"));
-            var m = GetMapModel(model, targetBank, targetMap, tokenFactory);
-            var targetLayout = GetLayout(m);
-            var primary = targetLayout.GetAddress(Format.PrimaryBlockset);
-            var secondary = targetLayout.GetAddress(Format.SecondaryBlockset);
-            var border = targetLayout.GetAddress(Format.BorderBlock);
-            if (!primaryBlocksets.ContainsKey(primary)) primaryBlocksets[primary] = 0;
-            if (!secondaryBlocksets.ContainsKey(secondary)) secondaryBlocksets[secondary] = 0;
+            var m = w.TargetMap;
+            if (m == null) continue;
+            var (primary, secondary, border) = (m.Layout.PrimaryBlockset, m.Layout.SecondaryBlockset, m.Layout.BorderBlockAddress);
+            if (primary == null || secondary == null || border == Pointer.NULL) continue;
+            if (!primaryBlocksets.ContainsKey(primary.Start)) primaryBlocksets[primary.Start] = 0;
+            if (!secondaryBlocksets.ContainsKey(secondary.Start)) secondaryBlocksets[secondary.Start] = 0;
             if (!borders.ContainsKey(border)) borders[border] = 0;
-            primaryBlocksets[primary]++;
-            secondaryBlocksets[secondary]++;
+            primaryBlocksets[primary.Start]++;
+            secondaryBlocksets[secondary.Start]++;
             borders[border]++;
          }
 
@@ -880,7 +853,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Work Methods
 
-      private IEnumerable<MapModel> AllMaps() {
+      private IEnumerable<MapModel> GetAllMaps() {
          foreach (var bank in model.GetTableModel(HardcodeTablesModel.MapBankTable)) {
             if (bank == null) continue;
             foreach (var mapList in bank.GetSubTable("maps")) {

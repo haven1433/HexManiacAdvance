@@ -1,29 +1,85 @@
-﻿using System.Collections.Generic;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Map {
+
+   public record AllMapsModel(ModelTable Table) {
+      public static AllMapsModel Create(IDataModel model, Func<ModelDelta> tokenFactory) => new(model.GetTableModel("data.maps.banks", tokenFactory));
+      public MapBankModel? this[int index] {
+         get {
+            var bank = Table[index].GetSubTable("maps");
+            if (bank == null) return null;
+            return new MapBankModel(bank);
+         }
+      }
+      public int Count => Table.Count;
+   }
+
+   public record MapBankModel(ModelTable Table) {
+      public MapModel? this[int index] {
+         get {
+            var table = Table[index].GetSubTable("map");
+            if (table == null) return null;
+            return new MapModel(table[0]);
+         }
+      }
+      public int Count => Table.Count;
+   }
+
    public record MapModel(ModelArrayElement Element) {
-      public LayoutModel Layout => Element.TryGetSubTable(Format.Layout, out var table) ? new(table[0]) : null;
-      public EventGroupModel Events => Element.TryGetSubTable(Format.Events, out var table) ? new(table[0]) : null;
+      public LayoutModel Layout => Element.TryGetSubTable(Format.Layout, out var table) ? new(table[0]) : new(null);
+      public EventGroupModel Events => Element.TryGetSubTable(Format.Events, out var table) ? new(table[0]) : new(null);
+      public BlockCells Blocks {
+         get {
+            var layout = Layout;
+            if (layout == null) return null;
+            return layout.BlockMap;
+         }
+      }
    }
 
-   public record LayoutModel(ModelArrayElement Element) {
-      public int Width => Element.GetValue("width");
-      public int Height => Element.GetValue("height");
-      public ModelArrayElement PrimaryBlockset => Element.TryGetSubTable(Format.PrimaryBlockset, out var table) ? table[0] : null;
-      public ModelArrayElement SecondaryBlockset => Element.TryGetSubTable(Format.SecondaryBlockset, out var table) ? table[0] : null;
+   public record LayoutPrototype(int PrimaryBlockset, int SecondaryBlockset, int BorderBlock);
+
+   public record BlockCells(IDataModel Model, int Start, int Width, int Height) {
+      public BlockCell this[int x, int y] {
+         get {
+            var data = Model.ReadMultiByteValue(Start + (y * Width + x) * 2, 2);
+            return new(data & 0x3FF, data >> 10);
+         }
+      }
    }
 
-   public record EventGroupModel(ModelArrayElement Element) {
+   public record BlockCell(int Tile, int Collision);
+
+   public record LayoutModel(ModelArrayElement? Element) {
+      public int Width => Element?.GetValue("width") ?? -1;
+      public int Height => Element?.GetValue("height") ?? -1;
+      public ModelArrayElement PrimaryBlockset => Element?.TryGetSubTable(Format.PrimaryBlockset, out var table) ?? false ? table[0] : null;
+      public ModelArrayElement SecondaryBlockset => Element?.TryGetSubTable(Format.SecondaryBlockset, out var table) ?? false ? table[0] : null;
+      public int BorderBlockAddress => Element?.GetAddress(Format.BorderBlock) ?? Pointer.NULL;
+      public BlockCells BlockMap {
+         get {
+            var start = Element?.GetAddress(Format.BlockMap) ?? Pointer.NULL;
+            return new(Element.Model, start, Width, Height);
+         }
+      }
+   }
+
+   public record EventGroupModel(ModelArrayElement? Element) {
       public List<ObjectEventModel> Objects {
          get {
-            if (!Element.TryGetSubTable(Format.Objects, out var objects)) return null;
+            if (Element == null) return new List<ObjectEventModel>();
+            if (!Element.TryGetSubTable(Format.Objects, out var objects)) return new List<ObjectEventModel>();
             return objects.Select(obj => new ObjectEventModel(obj)).ToList();
          }
       }
       public List<WarpEventModel> Warps {
          get {
-            if (!Element.TryGetSubTable(Format.Warps, out var warps)) return null;
+            if (Element == null) return new List<WarpEventModel>();
+            if (!Element.TryGetSubTable(Format.Warps, out var warps)) return new List<WarpEventModel>();
             return warps.Select(obj => new WarpEventModel(obj)).ToList();
          }
       }
@@ -40,7 +96,17 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    }
 
    public record WarpEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
-
+      public MapModel? TargetMap {
+         get {
+            var banks = AllMapsModel.Create(Element.Model, () => Element.Token);
+            var bank = banks[Bank];
+            if (bank == null) return null;
+            return bank[Map];
+         }
+      }
+      public int WarpID => Element.GetValue("warpID");
+      public int Bank => Element.GetValue("bank");
+      public int Map => Element.GetValue("map");
    }
 
    public class Format {
