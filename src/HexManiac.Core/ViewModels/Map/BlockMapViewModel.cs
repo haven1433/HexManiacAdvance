@@ -595,7 +595,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (!borders.ContainsKey(border)) borders[border] = 0;
             primaryBlocksets[primary]++;
             secondaryBlocksets[secondary]++;
-            borders[border] = 0;
+            borders[border]++;
          }
 
          // use the most frequent primary/secondary blockset and border blocks
