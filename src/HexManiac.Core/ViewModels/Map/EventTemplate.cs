@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<TemplateType> AvailableTemplateTypes { get; } = new();
 
-      public void ApplyTemplate(ObjectEventModel objectEventModel, ModelDelta token) {
+      public void ApplyTemplate(ObjectEventViewModel objectEventModel, ModelDelta token) {
          if (selectedTemplate == TemplateType.Trainer) CreateTrainer(objectEventModel, token);
          if (selectedTemplate == TemplateType.Npc) CreateNPC(objectEventModel, token);
          if (selectedTemplate == TemplateType.Item) CreateItem(objectEventModel, token);
@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       // TODO use all-caps name or mixed-caps name depending on other trainers in the table
       // TODO use reference file to get names and before/win/after text
-      public void CreateTrainer(ObjectEventModel objectEventModel, ModelDelta token) {
+      public void CreateTrainer(ObjectEventViewModel objectEventModel, ModelDelta token) {
          // part 1: the team
          var availablePokemon = new List<int>();
          var dexName = HardcodeTablesModel.RegionalDexTableName;
@@ -216,9 +216,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
       }
 
-      public TrainerEventContent GetTrainerContent(IEventModel eventModel) => GetTrainerContent(model, eventModel);
-      public static TrainerEventContent GetTrainerContent(IDataModel model, IEventModel eventModel) {
-         if (eventModel is not ObjectEventModel objectModel) return null;
+      public TrainerEventContent GetTrainerContent(IEventViewModel eventModel) => GetTrainerContent(model, eventModel);
+      public static TrainerEventContent GetTrainerContent(IDataModel model, IEventViewModel eventModel) {
+         if (eventModel is not ObjectEventViewModel objectModel) return null;
          var address = objectModel.ScriptAddress;
          if (address < 0) return null;
          // 5C 00 trainerFlag: 00 00 <before> <win> 0F 00 <after> 09 06 02
@@ -255,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region NPC
 
-      public void CreateNPC(ObjectEventModel eventModel, ModelDelta token) {
+      public void CreateNPC(ObjectEventViewModel eventModel, ModelDelta token) {
          // loadpointer 0 <text>; callstd 2; end; text="I'm an NPC!"
          // 0F 00 <text> 09 02 02 "I'm an NPC!"
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 24);
@@ -277,9 +277,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(eventModel.Start + 16)));
       }
 
-      public int GetNPCTextPointer(IEventModel eventModel) => GetNPCTextPointer(model, eventModel);
-      public static int GetNPCTextPointer(IDataModel model, IEventModel eventModel) {
-         if (eventModel is not ObjectEventModel objectModel) return Pointer.NULL;
+      public int GetNPCTextPointer(IEventViewModel eventModel) => GetNPCTextPointer(model, eventModel);
+      public static int GetNPCTextPointer(IDataModel model, IEventViewModel eventModel) {
+         if (eventModel is not ObjectEventViewModel objectModel) return Pointer.NULL;
          var address = objectModel.ScriptAddress;
          if (address < 0) return Pointer.NULL;
          var expectedValues = new Dictionary<int, byte> {
@@ -304,7 +304,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int itemID = 20;
       public int ItemID { get => itemID; set => Set(ref itemID, value); }
 
-      public void CreateItem(ObjectEventModel objectEventModel, ModelDelta token) {
+      public void CreateItem(ObjectEventViewModel objectEventModel, ModelDelta token) {
          //   copyvarifnotzero 0x8000 item:
          //   copyvarifnotzero 0x8001 1
          //   callstd 1
@@ -330,9 +330,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
       }
 
-      public int GetItemAddress(IEventModel eventModel) => GetItemAddress(model, eventModel);
-      public static int GetItemAddress(IDataModel model, IEventModel eventModel) {
-         if (eventModel is not ObjectEventModel objectModel) return Pointer.NULL;
+      public int GetItemAddress(IEventViewModel eventModel) => GetItemAddress(model, eventModel);
+      public static int GetItemAddress(IDataModel model, IEventViewModel eventModel) {
+         if (eventModel is not ObjectEventViewModel objectModel) return Pointer.NULL;
          var address = objectModel.ScriptAddress;
          if (address < 0) return Pointer.NULL;
          // 1A 00 80 item: 1A 01 80 01 00 09 01 02
@@ -361,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Signpost
 
-      public void ApplyTemplate(SignpostEventModel signpost, ModelDelta token) {
+      public void ApplyTemplate(SignpostEventViewModel signpost, ModelDelta token) {
          signpost.Elevation = 0;
          signpost.Kind = 0;
 
@@ -380,9 +380,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          signpost.Pointer = scriptStart;
       }
 
-      public int GetSignpostTextPointer(IEventModel eventModel) => GetSignpostTextPointer(model, eventModel);
-      public static int GetSignpostTextPointer(IDataModel model, IEventModel eventModel) {
-         if (eventModel is not SignpostEventModel signpost) return Pointer.NULL;
+      public int GetSignpostTextPointer(IEventViewModel eventModel) => GetSignpostTextPointer(model, eventModel);
+      public static int GetSignpostTextPointer(IDataModel model, IEventViewModel eventModel) {
+         if (eventModel is not SignpostEventViewModel signpost) return Pointer.NULL;
          if (!signpost.ShowPointer) return Pointer.NULL;
          int address = signpost.Pointer;
          var expectedValues = new Dictionary<int, byte> {

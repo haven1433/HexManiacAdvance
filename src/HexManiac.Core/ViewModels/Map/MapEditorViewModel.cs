@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -43,8 +44,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => Set(ref showHeaderPanel, value);
       }
 
-      private IEventModel selectedEvent;
-      public IEventModel SelectedEvent {
+      private IEventViewModel selectedEvent;
+      public IEventViewModel SelectedEvent {
          get => selectedEvent;
          set {
             if (selectedEvent == value) return;
@@ -505,17 +506,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          primaryMap.RedrawEvents(); // editing blocks in a map can draw over events, we need to redraw events now that we have new blocks
       }
 
-      private void EventDown(double x, double y, IEventModel ev, int clickCount) {
+      private void EventDown(double x, double y, IEventViewModel ev, int clickCount) {
          SelectedEvent = ev;
-         if (SelectedEvent is WarpEventModel warp && clickCount == 2) {
+         if (SelectedEvent is WarpEventViewModel warp && clickCount == 2) {
             NavigateTo(warp.Bank, warp.Map);
-         } else if (clickCount == 2 && SelectedEvent is ObjectEventModel obj) {
+         } else if (clickCount == 2 && SelectedEvent is ObjectEventViewModel obj) {
             viewPort.Goto.Execute(obj.ScriptAddress);
-         } else if (clickCount == 2 && SelectedEvent is ScriptEventModel script) {
+         } else if (clickCount == 2 && SelectedEvent is ScriptEventViewModel script) {
             viewPort.Goto.Execute(script.ScriptAddress);
          } else if (
             clickCount == 2 &&
-            SelectedEvent is SignpostEventModel signpost &&
+            SelectedEvent is SignpostEventViewModel signpost &&
             signpost.ShowPointer &&
             signpost.Pointer >= 0 &&
             signpost.Pointer < model.Count
@@ -615,22 +616,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public void SelectDown(double x, double y) {
+      public SelectionInteractionResult SelectDown(double x, double y) {
          PrimaryMap.BlockEditor.ShowTiles = false;
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          var map = MapUnderCursor(x, y);
-         if (map == null) return;
+         if (map == null) return SelectionInteractionResult.None;
          PrimaryMap = map;
          ShowHeaderPanel = false;
          var (blockIndex, collisionIndex) = map.GetBlock(x, y);
          SelectedEvent = null;
+         selectDownPosition = ToTilePosition(x, y);
+         UpdateHover(selectDownPosition.X, selectDownPosition.Y, 1, 1);
+         var ev = map.EventUnderCursor(x, y);
+         if (ev is WarpEventViewModel warp) {
+            interactionType = PrimaryInteractionType.None;
+            warpContext = warp;
+            return SelectionInteractionResult.ShowWarpMenu;
+         }
          if (blockIndex >= 0) {
             DrawBlockIndex = blockIndex;
             AutoscrollBlocks.Raise(this);
          }
          if (collisionIndex >= 0) CollisionIndex = collisionIndex;
-         selectDownPosition = ToTilePosition(x, y);
-         UpdateHover(selectDownPosition.X, selectDownPosition.Y, 1, 1);
+         return SelectionInteractionResult.None;
       }
 
       public void SelectMove(double x, double y) {
@@ -695,6 +703,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var pX = (x + borders.West) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
          var pY = (y + borders.North) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
          return (pX, pY);
+      }
+
+      #endregion
+
+      #region Creating a new map for a warp
+
+      private WarpEventViewModel warpContext;
+      public void CreateMapForWarp() {
+         BlockMapViewModel newMap = primaryMap.CreateMapForWarp(warpContext);
+         if (newMap == null) return;
+         NavigateTo(newMap.MapID);
       }
 
       #endregion
@@ -1013,6 +1032,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return -1;
       }
    }
+
+   public enum SelectionInteractionResult { None, ShowWarpMenu }
 
    public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 

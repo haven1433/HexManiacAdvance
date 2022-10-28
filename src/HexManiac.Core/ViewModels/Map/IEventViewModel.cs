@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -14,7 +15,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
-   public interface IEventModel : IEquatable<IEventModel>, INotifyPropertyChanged {
+   public interface IEventViewModel : IEquatable<IEventViewModel>, INotifyPropertyChanged {
       event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
       public ICommand CycleEventCommand { get; }
@@ -31,7 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory }
 
-   public class FlyEventModel : ViewModelCore, IEventModel {
+   public class FlyEventViewModel : ViewModelCore, IEventViewModel {
       private readonly ModelArrayElement flySpot;
       private readonly ModelArrayElement connectionEntry;
 
@@ -71,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
 
-      public FlyEventModel(IDataModel model, int bank, int map, Func<ModelDelta> tokenFactory) {
+      public FlyEventViewModel(IDataModel model, int bank, int map, Func<ModelDelta> tokenFactory) {
          // get the region from the map
          var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable, tokenFactory);
          if (banks == null) return;
@@ -109,17 +110,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          flySpot.SetValue("y", 0);
       }
 
-      public bool Equals(IEventModel? other) {
-         if (other is not FlyEventModel fly) return false;
+      public bool Equals(IEventViewModel? other) {
+         if (other is not FlyEventViewModel fly) return false;
          return X == fly.X && Y == fly.Y && flySpot.Start == fly.flySpot.Start;
       }
 
       public void Render(IDataModel model) {
-         EventRender = BaseEventModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 31, 0));
+         EventRender = BaseEventViewModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 31, 0));
       }
    }
 
-   public abstract class BaseEventModel : ViewModelCore, IEventModel, IEquatable<IEventModel> {
+   public abstract class BaseEventViewModel : ViewModelCore, IEventViewModel, IEquatable<IEventViewModel> {
       public event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
 
@@ -131,6 +132,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       protected readonly ModelArrayElement element;
       private readonly string parentLengthField;
 
+      public ModelArrayElement Element => element;
       public ModelDelta Token => element.Token;
 
       public string EventType => GetType().Name.Replace("EventModel", string.Empty);
@@ -199,12 +201,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel EventRender { get; protected set; }
 
-      public BaseEventModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
+      public BaseEventViewModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
 
       public void Delete() => DeleteElement(parentLengthField);
 
-      public bool Equals(IEventModel other) {
-         if (other is not BaseEventModel bem) return false;
+      public virtual bool Equals(IEventViewModel other) {
+         if (other is not BaseEventViewModel bem) return false;
          return bem.element.Start == element.Start;
       }
 
@@ -292,7 +294,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public class ObjectEventModel : BaseEventModel {
+   public class ObjectEventViewModel : BaseEventViewModel {
       private readonly Action<int> gotoAddress;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
@@ -577,7 +579,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public ObjectEventModel(Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+      public ObjectEventViewModel(Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
          this.gotoAddress = gotoAddress;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i));
          objectEvent.Model.TryGetList("FacingOptions", out var list);
@@ -630,8 +632,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public class WarpEventModel : BaseEventModel {
-      public WarpEventModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
+   public class WarpEventViewModel : BaseEventViewModel {
+      public WarpEventViewModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
 
       public int WarpID {
          get => element.GetValue("warpID") + 1;
@@ -689,10 +691,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public class ScriptEventModel : BaseEventModel {
+   public class ScriptEventViewModel : BaseEventViewModel {
       private readonly Action<int> gotoAddress;
 
-      public ScriptEventModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { this.gotoAddress = gotoAddress; }
+      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { this.gotoAddress = gotoAddress; }
 
       public int Trigger {
          get => element.GetValue("trigger");
@@ -742,7 +744,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public class SignpostEventModel : BaseEventModel {
+   public class SignpostEventViewModel : BaseEventViewModel {
       // kind. arg::|h
       // kind = 0/1/2/3/4 => arg is a pointer to an XSE script
       // kind = 5/6/7 => arg is itemID: hiddenItemID. attr|t|quantity:::.|isUnderFoot.
@@ -753,7 +755,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public SignpostEventModel(ModelArrayElement signpostEvent, Action<int> gotoAddress) : base(signpostEvent, "signpostCount") {
+      public SignpostEventViewModel(ModelArrayElement signpostEvent, Action<int> gotoAddress) : base(signpostEvent, "signpostCount") {
          new List<string> {
             "Facing Any",
             "Facing North",

@@ -440,6 +440,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       public void EnterTile(IPixelViewModel tile) {
+         
          FlipVVisible = true;
          FlipHVisible = true;
          var index = indexForTileImage[tile];

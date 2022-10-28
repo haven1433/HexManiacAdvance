@@ -3,8 +3,10 @@ using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Xml.Linq;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class MapTab {
@@ -88,7 +90,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             vm.DragDown(p.X, p.Y);
          } else if (e.RightButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Right;
-            vm.SelectDown(p.X, p.Y);
+            var result = vm.SelectDown(p.X, p.Y);
+            if (result == SelectionInteractionResult.ShowWarpMenu) {
+               withinMapInteraction = MouseButton.XButton1;
+               ShowWarpCreation(element, e);
+            }
          }
       }
 
@@ -181,6 +187,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private Point GetCoordinates(FrameworkElement element, MouseEventArgs e) {
          var p = e.GetPosition(element);
          return new(p.X - element.ActualWidth / 2, p.Y - element.ActualHeight / 2);
+      }
+
+      private void ShowWarpCreation(FrameworkElement element, MouseEventArgs e) {
+         element.ContextMenu.IsEnabled = true;
+         element.ContextMenu.IsOpen = true;
+      }
+
+      private void DisableMenuOnClose(object sender, ContextMenuEventArgs e) {
+         var menu = (ContextMenu)sender;
+         menu.IsEnabled = false;
+      }
+
+      private void CreateMapForWarpClicked(object sender, RoutedEventArgs e) {
+         ViewModel.CreateMapForWarp();
       }
 
       #endregion

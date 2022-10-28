@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -197,7 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ExecuteDuplicateMap() {
-         var option = GetMapBankForNewMap("Duplicate map into which group?");
+         var option = GetMapBankForNewMap("Duplicate map into which bank?");
          if (option == -1) return;
          var table = AddNewMapToBank(option);
          var newMapStart = CreateNewMap(history.CurrentChange);

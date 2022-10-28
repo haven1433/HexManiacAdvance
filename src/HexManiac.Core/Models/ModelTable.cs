@@ -301,6 +301,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public bool TryGetSubTable(string fieldName, out ModelTable table) {
+         table = GetSubTable(fieldName);
+         return table != null;
+      }
+
       public ModelTable GetSubTable(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;

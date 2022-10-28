@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -32,8 +33,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region SelectedEvent
 
-      private IEventModel selectedEvent;
-      public IEventModel SelectedEvent {
+      private IEventViewModel selectedEvent;
+      public IEventViewModel SelectedEvent {
          get => selectedEvent;
          set {
             var oldValue = selectedEvent;
@@ -43,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void HandleSelectedEventChanged(IEventModel old) {
+      private void HandleSelectedEventChanged(IEventViewModel old) {
          if (old == selectedEvent) return;
          if (old != null) {
             old.EventVisualUpdated -= RefreshFromEventChange;
@@ -61,15 +62,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void CycleActiveEvent(object sender, EventCycleDirection direction) {
          // organize events into categories
          var events = GetEvents();
-         var categories = new List<List<IEventModel>> { new(), new(), new(), new(), new() };
+         var categories = new List<List<IEventViewModel>> { new(), new(), new(), new(), new() };
          int selectionIndex = -1, selectedCategory = -1;
          for (int i = 0; i < events.Count; i++) {
             int currentCategory =
-               events[i] is ObjectEventModel ? 0 :
-               events[i] is WarpEventModel ? 1 :
-               events[i] is ScriptEventModel ? 2 :
-               events[i] is SignpostEventModel ? 3 :
-               events[i] is FlyEventModel ? 4 :
+               events[i] is ObjectEventViewModel ? 0 :
+               events[i] is WarpEventViewModel ? 1 :
+               events[i] is ScriptEventViewModel ? 2 :
+               events[i] is SignpostEventViewModel ? 3 :
+               events[i] is FlyEventViewModel ? 4 :
                -1;
             categories[currentCategory].Add(events[i]);
 
@@ -194,7 +195,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private byte[][] blocks;
       private byte[][] blockAttributes;
       private readonly List<IPixelViewModel> blockRenders = new(); // one image per block
-      private IReadOnlyList<IEventModel> eventRenders;
+      private IReadOnlyList<IEventViewModel> eventRenders;
       public IReadOnlyList<IPixelViewModel> BlockRenders {
          get {
             if (blockRenders.Count == 0) RefreshBlockRenderCache();
@@ -514,6 +515,118 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(SpriteScale));
       }
 
+      // check for other warps on this same tile and see what primary/secondary blockset is expected for the new map.
+      // if no reasonable tileset is found, just use the current map's blocksets
+      public BlockMapViewModel CreateMapForWarp(WarpEventViewModel warp) {
+         // what bank should the new map go in?
+         var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
+         if (option == -1) return null;
+         var token = tokenFactory();
+         var myLayout = GetLayout();
+
+         // give me this block
+         var (width, height) = (myLayout.GetValue("width"), myLayout.GetValue("height"));
+         var start = myLayout.GetAddress("blockmap");
+         var modelAddress = start + (warp.Y * width + warp.X) * 2;
+         var data = model.ReadMultiByteValue(modelAddress, 2);
+         int blockIndex = data & 0x3FF;
+
+         // give me all maps that use this blockset
+         var borderBlockAddress = myLayout.GetAddress(Format.BorderBlock);
+         var primaryBlocksetAddress = myLayout.GetAddress(Format.PrimaryBlockset);
+         var secondaryBlocksetAddress = myLayout.GetAddress(Format.SecondaryBlockset);
+
+         var maps = new List<ModelArrayElement>();
+         foreach (var bank in model.GetTableModel(HardcodeTablesModel.MapBankTable)) {
+            if (bank == null) continue;
+            foreach (var mapList in bank.GetSubTable("maps")) {
+               if (mapList == null) continue;
+               var mapTable = mapList.GetSubTable("map");
+               if (mapTable == null) continue;
+               var map = mapTable[0];
+               var layoutTable = map.GetSubTable(Format.Layout);
+               if (layoutTable == null) continue;
+               var layout = layoutTable[0];
+               var primary = layout.GetAddress(Format.PrimaryBlockset);
+               var secondary = layout.GetAddress(Format.SecondaryBlockset);
+               if (primary != primaryBlocksetAddress && blockIndex < PrimaryBlocks) continue;
+               if (secondary != secondaryBlocksetAddress && blockIndex >= PrimaryBlocks) continue;
+               maps.Add(map);
+            }
+         }
+
+         // give me all warps in those maps (except for this warp itself)
+         // give me all warps that are on this tile
+         var warps = new List<ModelArrayElement>();
+         foreach (var map in maps) {
+            var layoutTable = map.GetSubTable("layout");
+            if (layoutTable == null) continue;
+            var blockmapStart = layoutTable[0].GetAddress(Format.BlockMap);
+            var candidateWidth = layoutTable[0].GetValue("width");
+            var eventTable = map.GetSubTable(Format.Events);
+            if (eventTable == null) continue;
+            var warpTable = eventTable[0].GetSubTable(Format.Warps);
+            if (warpTable == null) continue;
+            foreach (var w in warpTable) {
+               if (w.Start == warp.Element.Start) continue;
+               var p = new Point(w.GetValue("x"), w.GetValue("y"));
+               var warpBlockIndex = model.ReadMultiByteValue(blockmapStart + (p.Y * width + p.X) * 2, 2) & 0x3FF;
+               if (warpBlockIndex != blockIndex) continue;
+               warps.Add(w);
+            }
+         }
+
+
+         // give me maps that those warp to
+         // give me all the primary/secondary blocksets for those maps
+         // give me all the borders for those maps
+         var primaryBlocksets = new Dictionary<int, int> { { primaryBlocksetAddress, 0 } };
+         var secondaryBlocksets = new Dictionary<int, int> { { secondaryBlocksetAddress, 0 } };
+         var borders = new Dictionary<int, int> { { borderBlockAddress, 0 } };
+         foreach (var w in warps) {
+            var (targetBank, targetMap) = (w.GetValue("bank"), w.GetValue("map"));
+            var m = GetMapModel(model, targetBank, targetMap, tokenFactory);
+            var targetLayout = GetLayout(m);
+            var primary = targetLayout.GetAddress(Format.PrimaryBlockset);
+            var secondary = targetLayout.GetAddress(Format.SecondaryBlockset);
+            var border = targetLayout.GetAddress(Format.BorderBlock);
+            if (!primaryBlocksets.ContainsKey(primary)) primaryBlocksets[primary] = 0;
+            if (!secondaryBlocksets.ContainsKey(secondary)) secondaryBlocksets[secondary] = 0;
+            if (!borders.ContainsKey(border)) borders[border] = 0;
+            primaryBlocksets[primary]++;
+            secondaryBlocksets[secondary]++;
+            borders[border] = 0;
+         }
+
+         // use the most frequent primary/secondary blockset and border blocks
+         var bestPrimaryCount = primaryBlocksets.Values.Max();
+         primaryBlocksetAddress = primaryBlocksets.Keys.First(key => primaryBlocksets[key] == bestPrimaryCount);
+         var bestSecondaryCount = secondaryBlocksets.Values.Max();
+         secondaryBlocksetAddress = secondaryBlocksets.Keys.First(key => secondaryBlocksets[key] == bestSecondaryCount);
+         var bestBorderCount = borders.Values.Max();
+         borderBlockAddress = borders.Keys.First(key => borders[key] == bestBorderCount);
+
+         // create a new 9x9 map
+         var newMap = CreateNewMap(token, option, 9, 9);
+         var newLayout = newMap.GetLayout();
+         newLayout.SetAddress(Format.BorderBlock, borderBlockAddress);
+         newLayout.SetAddress(Format.PrimaryBlockset, primaryBlocksetAddress);
+         newLayout.SetAddress(Format.SecondaryBlockset, secondaryBlocksetAddress);
+
+         // TODO fill with 'background' tile?
+
+         // TODO fill the border
+
+         // place reverse warp at bottom heading back
+         (warp.Bank, warp.Map, warp.WarpID) = (newMap.group, newMap.map, 1);
+         var returnWarp = newMap.CreateWarpEvent(group, map);
+         returnWarp.WarpID = GetEvents().Where(e => e is WarpEventViewModel).Until(e => e.Equals(warp)).Count();
+         (returnWarp.X, returnWarp.Y) = (4, 8);
+
+         // TODO figure out which tiles should be in the 3x2 section around the warp
+         return newMap;
+      }
+
       #region Draw / Paint
 
       /// <summary>
@@ -635,7 +748,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Events
 
-      public void UpdateEventLocation(IEventModel ev, double x, double y) {
+      public void UpdateEventLocation(IEventViewModel ev, double x, double y) {
          (lastDrawX, lastDrawY) = (-1, -1);
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
@@ -652,7 +765,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public IEventModel EventUnderCursor(double x, double y) {
+      public IEventViewModel EventUnderCursor(double x, double y) {
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
@@ -767,6 +880,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Work Methods
 
+      private IEnumerable<MapModel> AllMaps() {
+         foreach (var bank in model.GetTableModel(HardcodeTablesModel.MapBankTable)) {
+            if (bank == null) continue;
+            foreach (var mapList in bank.GetSubTable("maps")) {
+               if (mapList == null) continue;
+               var mapTable = mapList.GetSubTable("map");
+               if (mapTable == null) continue;
+               var map = mapTable[0];
+               yield return new(map);
+            }
+         }
+      }
+
       private void ResizeMapData(MapDirection direction, int amount) {
          if (amount == 0) return;
          var token = tokenFactory();
@@ -807,7 +933,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void ConnectNewMap(object obj) {
          var token = tokenFactory();
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
-         var option = MapRepointer.GetMapBankForNewMap("Which map group do you want to add the new map to?");
+         var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
          if (option == -1) return;
 
          var info = (ConnectionInfo)obj;
@@ -823,20 +949,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
 
-         newConnection.MapGroup = option;
+         var otherMap = CreateNewMap(token, option, info.Size, info.Size);
 
-         var mapTable = MapRepointer.AddNewMapToBank(option);
-
-         newConnection.MapNum = mapTable.ElementCount - 1;
-         var address = MapRepointer.CreateNewMap(token);
-         var layoutStart = MapRepointer.CreateNewLayout(token);
-         WritePointerAndSource(token, layoutStart + 12, MapRepointer.CreateNewBlockMap(token, info.Size, info.Size));
-         WritePointerAndSource(token, address + 0, layoutStart);
-
-         model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
-
-         var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
-         otherMap.UpdateLayoutID();
+         newConnection.MapGroup = otherMap.group;
+         newConnection.MapNum = otherMap.map;
          info = new ConnectionInfo(info.Size, -info.Offset, info.OppositeDirection);
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -845,6 +961,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          RefreshMapSize();
          NeighborsChanged.Raise(this);
+      }
+
+      private BlockMapViewModel CreateNewMap(ModelDelta token, int bank, int width, int height) {
+         var mapTable = MapRepointer.AddNewMapToBank(bank);
+         var address = MapRepointer.CreateNewMap(token);
+         var layoutStart = MapRepointer.CreateNewLayout(token);
+
+         // update width / height
+         model.WriteValue(token, layoutStart + 0, width);
+         model.WriteValue(token, layoutStart + 4, height);
+
+         // TODO update border block (layoutStart + 8)
+
+         // update blockmap (layoutStart + 12)
+         WritePointerAndSource(token, layoutStart + 12, MapRepointer.CreateNewBlockMap(token, width, height));
+
+         // TODO update primary blockset (layoutStart + 16)
+         // TODO update primary blockset (layoutStart + 20)
+
+         WritePointerAndSource(token, address + 0, layoutStart);
+         model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
+         var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, bank, mapTable.ElementCount - 1) { allOverworldSprites = allOverworldSprites };
+         otherMap.UpdateLayoutID();
+         return otherMap;
       }
 
       private void ConnectExistingMap(object obj) {
@@ -957,13 +1097,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newConnection;
       }
 
-      public ObjectEventModel CreateObjectEvent(int graphics, int scriptAddress) {
+      public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
          var token = tokenFactory();
          var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         var newEvent = new ObjectEventModel(GotoAddress, element, allOverworldSprites) {
+         var newEvent = new ObjectEventViewModel(GotoAddress, element, allOverworldSprites) {
             X = 0, Y = 0,
             Elevation = 0,
             ObjectID = element.Table.ElementCount,
@@ -981,29 +1121,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newEvent;
       }
 
-      public WarpEventModel CreateWarpEvent(int bank, int map) {
+      public WarpEventViewModel CreateWarpEvent(int bank, int map) {
          var mapModel = GetMapModel();
          var events = mapModel.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "warpCount", "warps");
-         var newEvent = new WarpEventModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = 0 };
+         var newEvent = new WarpEventViewModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = 0 };
          SelectedEvent = newEvent;
          return newEvent;
       }
 
-      public ScriptEventModel CreateScriptEvent() {
+      public ScriptEventViewModel CreateScriptEvent() {
          var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "scriptCount", "scripts");
-         var newEvent = new ScriptEventModel(GotoAddress, element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
+         var newEvent = new ScriptEventViewModel(GotoAddress, element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
 
-      public SignpostEventModel CreateSignpostEvent() {
+      public SignpostEventViewModel CreateSignpostEvent() {
          var map = GetMapModel();
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "signpostCount", "signposts");
-         var newEvent = new SignpostEventModel(element, GotoAddress) { X = 0, Y = 0, Elevation = 0, Kind = 0, Pointer = Pointer.NULL };
+         var newEvent = new SignpostEventViewModel(element, GotoAddress) { X = 0, Y = 0, Elevation = 0, Kind = 0, Pointer = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -1019,7 +1159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public FlyEventModel CreateFlyEvent() {
+      public FlyEventViewModel CreateFlyEvent() {
          var map = GetMapModel();
          var region = map.GetValue(Format.RegionSection);
          if (model.IsFRLG()) region -= 88;
@@ -1054,7 +1194,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          spawns[emptySpawn].SetValue("map", this.map);
 
          NotifyPropertyChanged(nameof(CanCreateFlyEvent));
-         return new FlyEventModel(model, group, this.map, tokenFactory);
+         return new FlyEventViewModel(model, group, this.map, tokenFactory);
       }
 
       // TODO use this for connections as well, since the structure is the same
@@ -1202,7 +1342,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void RefreshMapEvents() {
          if (eventRenders != null) return;
-         var list = new List<IEventModel>();
+         var list = new List<IEventViewModel>();
          var events = GetEvents();
          foreach (var obj in events) {
             obj.Render(model);
@@ -1353,15 +1493,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
          var ows = new ModelTable(model, run.Start, null, run);
          for (int i = 0; i < ows.Count; i++) {
-            list.Add(ObjectEventModel.Render(model, ows, i, 0));
+            list.Add(ObjectEventViewModel.Render(model, ows, i, 0));
          }
          return list;
       }
 
-      private IReadOnlyList<IEventModel> GetEvents() {
+      private IReadOnlyList<IEventViewModel> GetEvents() {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var map = GetMapModel();
-         var results = new List<IEventModel>();
+         var results = new List<IEventViewModel>();
          var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
          events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
@@ -1556,57 +1696,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public record Border(int North, int East, int South, int West);
 
-   public class Format {
-      public static string RegionSection => "regionSectionID";
-      public static string Layout => "layout";
-      public static string Warps => "warps";
-      public static string Objects => "objects";
-      public static string Connections => "connections";
-      public static string Scripts => "scripts";
-      public static string Signposts => "signposts";
-      public static string ObjectCount => "objectCount";
-      public static string WarpCount => "warpCount";
-      public static string ScriptCount => "scriptCount";
-      public static string SignpostCount => "signpostCount";
-      public static string BorderBlock => "borderblock";
-      public static string BlockMap => "blockmap";
-      public static string PrimaryBlockset => "blockdata1";
-      public static string SecondaryBlockset => "blockdata2";
-      public static string Tileset => "tileset";
-      public static string BlockAttributes => "attributes";
-      public static string Blocks => "block";
-      public static string TileAnimationRoutine => "animation";
-      public static string Palette => "pal";
-      public static string BorderWidth => "borderwidth";
-      public static string BorderHeight => "borderheight";
-
-      public string BlockDataFormat { get; }
-      public string LayoutFormat { get; }
-      public string ObjectsFormat { get; }
-      public string WarpsFormat { get; }
-      public string ScriptsFormat { get; }
-      public string SignpostsFormat { get; }
-      public string EventsFormat { get; }
-      public string ConnectionsFormat { get; }
-      public string HeaderFormat { get; }
-      public string MapFormat { get; }
-
-      public Format(bool isRSE) {
-         BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {TileAnimationRoutine}<> {BlockAttributes}<>]1";
-         if (isRSE) BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {BlockAttributes}<> {TileAnimationRoutine}<>]1";
-         LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}> {BorderWidth}. {BorderHeight}. unused:]1";
-         if (isRSE) LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {PrimaryBlockset}<{BlockDataFormat}>]1";
-         ObjectsFormat = $"[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/{ObjectCount}";
-         WarpsFormat = $"[x:500 y:500 elevation. warpID. map. bank.]/{WarpCount}";
-         ScriptsFormat = $"[x:500 y:500 elevation: trigger: index:: script<`xse`>]/{ScriptCount}";
-         SignpostsFormat = $"[x:500 y:500 elevation. kind. unused: arg::|h]/{SignpostCount}";
-         EventsFormat = $"[{ObjectCount}. {WarpCount}. {ScriptCount}. {SignpostCount}. {Objects}<{ObjectsFormat}> {Warps}<{WarpsFormat}> {Scripts}<{ScriptsFormat}> {Signposts}<{SignpostsFormat}>]1";
-         ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
-         HeaderFormat = "music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";
-         MapFormat = $"[{Layout}<{LayoutFormat}> events<{EventsFormat}> mapscripts<[type. pointer<>]!00> {Connections}<{ConnectionsFormat}> {HeaderFormat}]";
-      }
-   }
-
    public record ConnectionInfo(int Size, int Offset, MapDirection Direction) {
       public const string SingleConnectionContent = "direction:: offset:: mapGroup. mapNum. unused:";
       public const string SingleConnectionLength = "/count";
@@ -1744,10 +1833,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var objectCount = events.GetValue("objectCount");
          var objects = events.GetSubTable("objects");
-         var objectList = new List<ObjectEventModel>();
+         var objectList = new List<ObjectEventViewModel>();
          if (objects != null) {
             for (int i = 0; i < objectCount; i++) {
-               var newEvent = new ObjectEventModel(gotoAddress, objects[i], ows);
+               var newEvent = new ObjectEventViewModel(gotoAddress, objects[i], ows);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                objectList.Add(newEvent);
             }
@@ -1756,43 +1845,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var warpCount = events.GetValue("warpCount");
          var warps = events.GetSubTable("warps");
-         var warpList = new List<WarpEventModel>();
+         var warpList = new List<WarpEventViewModel>();
          if (warps != null) {
-            for (int i = 0; i < warpCount; i++) warpList.Add(new WarpEventModel(warps[i]));
+            for (int i = 0; i < warpCount; i++) warpList.Add(new WarpEventViewModel(warps[i]));
          }
          Warps = warpList;
 
          var scriptCount = events.GetValue("scriptCount");
          var scripts = events.GetSubTable("scripts");
-         var scriptList = new List<ScriptEventModel>();
+         var scriptList = new List<ScriptEventViewModel>();
          if (scripts != null) {
-            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventModel(gotoAddress, scripts[i]));
+            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventViewModel(gotoAddress, scripts[i]));
          }
          Scripts = scriptList;
 
          var signpostCount = events.GetValue("signpostCount");
          var signposts = events.GetSubTable("signposts");
-         var signpostList = new List<SignpostEventModel>();
+         var signpostList = new List<SignpostEventViewModel>();
          if (signposts != null) {
             for (int i = 0; i < signpostCount; i++) {
-               var newEvent = new SignpostEventModel(signposts[i], gotoAddress);
+               var newEvent = new SignpostEventViewModel(signposts[i], gotoAddress);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                signpostList.Add(newEvent);
             }
          }
          Signposts = signpostList;
 
-         var flyEvent = new FlyEventModel(events.Model, bank, map, () => events.Token);
+         var flyEvent = new FlyEventViewModel(events.Model, bank, map, () => events.Token);
          if (flyEvent.Valid) {
             FlyEvent = flyEvent;
          }
       }
 
-      public IReadOnlyList<ObjectEventModel> Objects { get; }
-      public IReadOnlyList<WarpEventModel> Warps { get; }
-      public IReadOnlyList<ScriptEventModel> Scripts { get; }
-      public IReadOnlyList<SignpostEventModel> Signposts { get; }
-      public FlyEventModel FlyEvent { get; }
+      public IReadOnlyList<ObjectEventViewModel> Objects { get; }
+      public IReadOnlyList<WarpEventViewModel> Warps { get; }
+      public IReadOnlyList<ScriptEventViewModel> Scripts { get; }
+      public IReadOnlyList<SignpostEventViewModel> Signposts { get; }
+      public FlyEventViewModel FlyEvent { get; }
 
       /*
        *  events<[objectCount. warpCount. scriptCount. signpostCount.

@@ -228,7 +228,7 @@
             </Grid>
             <ContentControl DataContext="{Binding SelectedEvent}" Content="{Binding}">
                <ContentControl.Resources>
-                  <DataTemplate DataType="{x:Type map:ObjectEventModel}">
+                  <DataTemplate DataType="{x:Type map:ObjectEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
                            <ColumnDefinition />
@@ -385,7 +385,7 @@
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
-                  <DataTemplate DataType="{x:Type map:WarpEventModel}">
+                  <DataTemplate DataType="{x:Type map:WarpEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
                            <ColumnDefinition />
@@ -423,7 +423,7 @@
                         <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding WarpID, UpdateSourceTrigger=PropertyChanged}" />
                      </Grid>
                   </DataTemplate>
-                  <DataTemplate DataType="{x:Type map:ScriptEventModel}">
+                  <DataTemplate DataType="{x:Type map:ScriptEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
                            <ColumnDefinition />
@@ -468,7 +468,7 @@
 
                      </Grid>
                   </DataTemplate>
-                  <DataTemplate DataType="{x:Type map:SignpostEventModel}">
+                  <DataTemplate DataType="{x:Type map:SignpostEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
                            <ColumnDefinition />
@@ -537,7 +537,7 @@
                            Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
                      </Grid>
                   </DataTemplate>
-                  <DataTemplate DataType="{x:Type map:FlyEventModel}">
+                  <DataTemplate DataType="{x:Type map:FlyEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
                            <ColumnDefinition />
@@ -712,6 +712,11 @@
                <local:PixelImage />
             </DataTemplate>
          </ItemsControl.ItemTemplate>
+         <ItemsControl.ContextMenu>
+            <ContextMenu IsEnabled="False" ContextMenuClosing="DisableMenuOnClose">
+               <MenuItem Header="Create New Map" Click="CreateMapForWarpClicked" />
+            </ContextMenu>
+         </ItemsControl.ContextMenu>
       </ItemsControl>
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapButtons" ItemsSource="{Binding MapButtons}" Focusable="False">
          <ItemsControl.ItemsPanel>
