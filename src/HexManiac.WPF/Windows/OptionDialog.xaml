@@ -20,11 +20,16 @@
                      <ColumnDefinition SharedSizeGroup="ButtonGroup"/>
                   </Grid.ColumnDefinitions>
                   <Button Padding="5" ToolTip="{Binding Description}" Click="OptionClicked">
-                     <TextBlock>
-                        <Run Text="{Binding Option}" FontSize="20" FontWeight="Bold"/>
-                        <LineBreak/>
-                        <Run Text="{Binding ShortDescription}" FontStyle="Italic" FontSize="10"/>
-                     </TextBlock>
+                     <StackPanel>
+                        <Decorator Visibility="{Binding HasVisual, Converter={StaticResource BoolToVisibility}}">
+                           <hshmwpfc:PixelImage DataContext="{Binding Visual}" />
+                        </Decorator>
+                        <TextBlock>
+                           <Run Text="{Binding Option}" FontSize="20" FontWeight="Bold"/>
+                           <LineBreak/>
+                           <Run Text="{Binding ShortDescription}" FontStyle="Italic" FontSize="10"/>
+                        </TextBlock>
+                     </StackPanel>
                   </Button>
                </Grid>
             </DataTemplate>

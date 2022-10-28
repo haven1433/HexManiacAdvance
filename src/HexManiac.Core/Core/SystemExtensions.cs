@@ -39,6 +39,35 @@ namespace HavenSoft.HexManiac.Core {
       public static IEnumerable<T> Range<T>(this int count, Func<int, T> selector) => Enumerable.Range(0, count).Select(selector);
 
       /// <summary>
+      /// Returns the number of times each element appears in the sequence.
+      /// </summary>
+      public static Dictionary<T, int> ToHistogram<T>(this IEnumerable<T> elements) where T : IEquatable<T> {
+         var result = new Dictionary<T, int>();
+         foreach (var element in elements) {
+            if (!result.ContainsKey(element)) result[element] = 0;
+            result[element]++;
+         }
+         return result;
+      }
+
+      public static T MostCommon<T>(this IDictionary<T, int> histogram) {
+         var first = true;
+         T best = default;
+         var bestCount = 0;
+         foreach (var pair in histogram) {
+            if (first) {
+               best = pair.Key;
+               bestCount = pair.Value;
+               first = false;
+            } else if (pair.Value > bestCount) {
+               best = pair.Key;
+               bestCount = pair.Value;
+            }
+         }
+         return best;
+      }
+
+      /// <summary>
       /// Returns all the elements in a collection until one meets a condition.
       /// Does not include the element that meets the condition.
       /// </summary>

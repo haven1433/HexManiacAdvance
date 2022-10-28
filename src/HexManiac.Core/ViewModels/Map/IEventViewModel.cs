@@ -682,7 +682,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank * 1000 + Map);
+      public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank, Map);
 
       #endregion
 

@@ -554,30 +554,58 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // give me maps that those warp to
          // give me all the primary/secondary blocksets for those maps
          // give me all the borders for those maps
-         // var prototypes = new HashSet<LayoutPrototype> { new(primaryBlocksetAddress, secondaryBlocksetAddress, borderBlockAddress) };
-         var primaryBlocksets = new Dictionary<int, int> { { primaryBlocksetAddress, 0 } };
-         var secondaryBlocksets = new Dictionary<int, int> { { secondaryBlocksetAddress, 0 } };
-         var borders = new Dictionary<int, int> { { borderBlockAddress, 0 } };
+         var prototypes = new Dictionary<LayoutPrototype, List<WarpEventModel>>();
          foreach (var w in warps) {
             var m = w.TargetMap;
             if (m == null) continue;
             var (primary, secondary, border) = (m.Layout.PrimaryBlockset, m.Layout.SecondaryBlockset, m.Layout.BorderBlockAddress);
             if (primary == null || secondary == null || border == Pointer.NULL) continue;
-            if (!primaryBlocksets.ContainsKey(primary.Start)) primaryBlocksets[primary.Start] = 0;
-            if (!secondaryBlocksets.ContainsKey(secondary.Start)) secondaryBlocksets[secondary.Start] = 0;
-            if (!borders.ContainsKey(border)) borders[border] = 0;
-            primaryBlocksets[primary.Start]++;
-            secondaryBlocksets[secondary.Start]++;
-            borders[border]++;
+            var prototype = new LayoutPrototype(primary.Start, secondary.Start, border);
+            if (!prototypes.ContainsKey(prototype)) prototypes.Add(prototype, new());
+            prototypes[prototype].Add(w);
          }
 
-         // use the most frequent primary/secondary blockset and border blocks
-         var bestPrimaryCount = primaryBlocksets.Values.Max();
-         primaryBlocksetAddress = primaryBlocksets.Keys.First(key => primaryBlocksets[key] == bestPrimaryCount);
-         var bestSecondaryCount = secondaryBlocksets.Values.Max();
-         secondaryBlocksetAddress = secondaryBlocksets.Keys.First(key => secondaryBlocksets[key] == bestSecondaryCount);
-         var bestBorderCount = borders.Values.Max();
-         borderBlockAddress = borders.Keys.First(key => borders[key] == bestBorderCount);
+         var orderedPrototypes = prototypes.Keys.ToList();
+         var initialBlockmap = new int[9, 9];
+         var warpIsBottomSquare = true;
+
+         if (orderedPrototypes.Count > 1) {
+            var initialBlockmaps = new List<int[,]>();
+            var warpIsBottomSquareForIndex = new List<bool>();
+
+            // for each prototype, create an image that represents what that map prototype would look like
+            var images = new List<VisualOption>();
+            foreach (var prototype in orderedPrototypes) {
+               var targets = prototypes[prototype];
+               var (render, blockmap, isBottomSquare) = RenderPrototype(targets);
+               initialBlockmaps.Add(blockmap);
+               warpIsBottomSquareForIndex.Add(isBottomSquare);
+               var targetMapName = MapIDToText(model, targets[0].Bank, targets[0].Map);
+               var targetLocation = targetMapName.Split('(')[0];
+               var targetName = '(' + targetMapName.Split('(')[1];
+               var visOption = new VisualOption { Index = orderedPrototypes.IndexOf(prototype), Option = $"Like {targetLocation}", ShortDescription = targetName, Visual = render };
+               images.Add(visOption);
+            }
+
+            var choice = fileSystem.ShowOptions("Create New Map", "Start from which template?", null, images.ToArray());
+            if (choice == -1) return null;
+            var chosenPrototype = orderedPrototypes[choice];
+            // use the most frequent primary/secondary blockset and border blocks
+            primaryBlocksetAddress = chosenPrototype.PrimaryBlockset;
+            secondaryBlocksetAddress = chosenPrototype.SecondaryBlockset;
+            borderBlockAddress = chosenPrototype.BorderBlock;
+            initialBlockmap = initialBlockmaps[choice];
+            warpIsBottomSquare = warpIsBottomSquareForIndex[choice];
+         } else if (orderedPrototypes.Count == 1) {
+            // no dialog, just go with this one
+            var chosenPrototype = orderedPrototypes[0];
+            primaryBlocksetAddress = chosenPrototype.PrimaryBlockset;
+            secondaryBlocksetAddress = chosenPrototype.SecondaryBlockset;
+            borderBlockAddress = chosenPrototype.BorderBlock;
+            var (render, blockmap, isBottomSquare) = RenderPrototype(prototypes.Values.Single());
+            initialBlockmap = blockmap;
+            warpIsBottomSquare = isBottomSquare;
+         }
 
          // create a new 9x9 map
          var newMap = CreateNewMap(token, option, 9, 9);
@@ -585,10 +613,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newLayout.SetAddress(Format.BorderBlock, borderBlockAddress);
          newLayout.SetAddress(Format.PrimaryBlockset, primaryBlocksetAddress);
          newLayout.SetAddress(Format.SecondaryBlockset, secondaryBlocksetAddress);
-
-         // TODO fill with 'background' tile?
-
-         // TODO fill the border
+         var start = newLayout.GetAddress(Format.BlockMap);
+         for (int x = 0; x < 9; x++) {
+            for (int y = 0; y < 9; y++) {
+               model.WriteMultiByteValue(start + (y * 9 + x) * 2, 2, token, initialBlockmap[x, y]);
+            }
+         }
 
          // place reverse warp at bottom heading back
          (warp.Bank, warp.Map, warp.WarpID) = (newMap.group, newMap.map, 1);
@@ -596,8 +626,82 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          returnWarp.WarpID = GetEvents().Where(e => e is WarpEventViewModel).Until(e => e.Equals(warp)).Count();
          (returnWarp.X, returnWarp.Y) = (4, 8);
 
-         // TODO figure out which tiles should be in the 3x2 section around the warp
+         // TODO need to add formatting for everything
+
          return newMap;
+      }
+
+      // from the maps that use this blockmap/blockset/border,
+      // figure out appropriate wall/floor tiles to make a small prototype map
+      private (IPixelViewModel, int[,], bool) RenderPrototype(List<WarpEventModel> warps) {
+         // TODO I don't just want to return an image, I want to return the tiles/collisions to use as well
+
+         // find the edge tiles
+         var topTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, 0].Tile)).ToHistogram().MostCommon();
+         var bottomTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, layout.Height - 1].Tile)).ToHistogram().MostCommon();
+         var leftTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[0, y + 1].Tile)).ToHistogram().MostCommon();
+         var rightTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[layout.Width - 1, y + 1].Tile)).ToHistogram().MostCommon();
+         var topLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, 0].Tile).ToHistogram().MostCommon();
+         var topRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, 0].Tile).ToHistogram().MostCommon();
+         var bottomLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, layout.Height - 1].Tile).ToHistogram().MostCommon();
+         var bottomRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, layout.Height - 1].Tile).ToHistogram().MostCommon();
+
+         // find the floor tile
+         var centerTiles = new List<int>();
+         foreach (var warp in warps) {
+            var layout = warp.TargetMap.Layout;
+            for (int x = 1; x < layout.Width - 1; x++) {
+               for (int y = 1; y < layout.Height - 1; y++) {
+                  centerTiles.Add(layout.BlockMap[x, y].Tile);
+               }
+            }
+         }
+         var floorTile = centerTiles.ToHistogram().MostCommon();
+
+         // build the map image data
+         var tiles = new int[9, 9];
+         for (int i = 1; i < 8; i++) {
+            tiles[0, i] = leftTile;
+            tiles[8, i] = rightTile;
+            tiles[i, 0] = topTile;
+            tiles[i, 8] = bottomTile;
+            for (int j = 1; j < 8; j++) tiles[i, j] = floorTile;
+         }
+         (tiles[0, 0], tiles[8, 0], tiles[0, 8], tiles[8, 8]) = (topLeftTile, topRightTile, bottomLeftTile, bottomRightTile);
+
+         // find the door tile
+         var map0 = warps[0].TargetMap;
+         var matchingWarp0 = map0.Events.Warps[warps[0].WarpID];
+         var warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
+         if (warpIsAgainstWall) {
+            tiles[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
+            tiles[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
+            tiles[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
+
+            tiles[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+            tiles[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+            tiles[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+         } else {
+            tiles[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+            tiles[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+            tiles[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+
+            tiles[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
+            tiles[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
+            tiles[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+         }
+
+         // draw the map
+         var viewModel = new BlockMapViewModel(fileSystem, viewPort, format, warps[0].Bank, warps[0].Map);
+         var canvas = new CanvasPixelViewModel(9 * 16, 9 * 16);
+         for (int y = 0; y < 9; y++) {
+            for (int x = 0; x < 9; x++) {
+               canvas.Draw(viewModel.BlockRenders[tiles[x, y]], x * 16, y * 16);
+            }
+         }
+
+         canvas.SpriteScale = .5;
+         return (canvas, tiles, warpIsAgainstWall);
       }
 
       #region Draw / Paint
@@ -1609,11 +1713,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static string MapIDToText(IDataModel model, int id) {
          var group = id / 1000;
          var map = id % 1000;
+         return MapIDToText(model, group, map);
+      }
+
+      public static string MapIDToText(IDataModel model, int group, int map){
          var offset = model.IsFRLG() ? 0x58 : 0;
 
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
          var bank = mapBanks[group].GetSubTable("maps");
          if (bank == null) return $"{group}-{map}";
+         if (bank.Count <= map) return $"{group}-{map}";
          var mapTable = bank[map]?.GetSubTable("map");
          if (mapTable == null) return $"{group}-{map}";
          if (!mapTable[0].HasField("regionSectionID")) return $"{group}-{map}";

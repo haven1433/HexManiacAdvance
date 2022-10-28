@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -192,5 +193,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public string Option { get => option; set => Set(ref option, value); }
       public string ShortDescription { get => shortDescription; set => Set(ref shortDescription, value); }
       public string Description { get => description; set => Set(ref description, value); }
+
+      public bool HasVisual => Visual != null;
+      public IPixelViewModel Visual { get; set; }
    }
 }
