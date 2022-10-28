@@ -587,6 +587,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             model.WriteValue(token, layoutStart + 25, myLayout.GetValue(Format.BorderHeight));
             model.WriteMultiByteValue(layoutStart + 26, 2, token, 0);
          }
+         if (ArrayRun.TryParse(model, format.LayoutFormat, layoutStart, SortedSpan<int>.None, out var run) == ErrorInfo.NoError) model.ObserveRunWritten(token, run);
          return layoutStart;
       }
 
@@ -594,6 +595,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var blockmapLength = width * height * 2;
          var blockmapStart = model.FindFreeSpace(model.FreeSpaceStart, blockmapLength);
          token.ChangeData(model, blockmapStart, new byte[blockmapLength]);
+         var run = new BlockmapRun(model, blockmapStart, SortedSpan<int>.None, width, height);
+         model.ObserveRunWritten(token, run);
          return blockmapStart;
       }
 

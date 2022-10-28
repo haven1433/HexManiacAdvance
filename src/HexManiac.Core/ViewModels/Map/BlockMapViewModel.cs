@@ -1049,16 +1049,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.WriteValue(token, layoutStart + 0, width);
          model.WriteValue(token, layoutStart + 4, height);
 
-         // TODO update border block (layoutStart + 8)
-
          // update blockmap (layoutStart + 12)
          WritePointerAndSource(token, layoutStart + 12, MapRepointer.CreateNewBlockMap(token, width, height));
 
-         // TODO update primary blockset (layoutStart + 16)
-         // TODO update primary blockset (layoutStart + 20)
-
          WritePointerAndSource(token, address + 0, layoutStart);
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
+
          var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, bank, mapTable.ElementCount - 1) { allOverworldSprites = allOverworldSprites };
          otherMap.UpdateLayoutID();
          return otherMap;

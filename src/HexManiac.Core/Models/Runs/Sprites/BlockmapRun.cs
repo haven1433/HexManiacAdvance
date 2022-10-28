@@ -40,10 +40,12 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
       public BlockmapRun(IDataModel model, int start, SortedSpan<int> sources, int width = -1, int height = -1) : base(start, sources) {
          this.model = model;
-         var primarySource = sources[0];
-         var layoutStart = primarySource - 12;
-         if (width == -1) width = model.ReadValue(layoutStart);
-         if (height == -1) height = model.ReadValue(layoutStart + 4);
+         if (sources != null && sources.Count > 0) {
+            var primarySource = sources[0];
+            var layoutStart = primarySource - 12;
+            if (width == -1) width = model.ReadValue(layoutStart);
+            if (height == -1) height = model.ReadValue(layoutStart + 4);
+         }
          (BlockWidth, BlockHeight) = (width, height);
          var code = model.GetGameCode();
 
