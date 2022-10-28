@@ -52,7 +52,9 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
    }
 
-   public record BlockCell(int Tile, int Collision);
+   public record BlockCell(int Tile, int Collision) {
+      public int Block => (Collision << 10) | Tile;
+   }
 
    public record LayoutModel(ModelArrayElement? Element) {
       public int Width => Element?.GetValue("width") ?? -1;

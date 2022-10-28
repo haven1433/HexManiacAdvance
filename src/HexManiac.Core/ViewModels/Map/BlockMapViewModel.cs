@@ -637,14 +637,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // TODO I don't just want to return an image, I want to return the tiles/collisions to use as well
 
          // find the edge tiles
-         var topTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, 0].Tile)).ToHistogram().MostCommon();
-         var bottomTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, layout.Height - 1].Tile)).ToHistogram().MostCommon();
-         var leftTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[0, y + 1].Tile)).ToHistogram().MostCommon();
-         var rightTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[layout.Width - 1, y + 1].Tile)).ToHistogram().MostCommon();
-         var topLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, 0].Tile).ToHistogram().MostCommon();
-         var topRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, 0].Tile).ToHistogram().MostCommon();
-         var bottomLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, layout.Height - 1].Tile).ToHistogram().MostCommon();
-         var bottomRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, layout.Height - 1].Tile).ToHistogram().MostCommon();
+         var topTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, 0].Block)).ToHistogram().MostCommon();
+         var bottomTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, layout.Height - 1].Block)).ToHistogram().MostCommon();
+         var leftTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[0, y + 1].Block)).ToHistogram().MostCommon();
+         var rightTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[layout.Width - 1, y + 1].Block)).ToHistogram().MostCommon();
+         var topLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, 0].Block).ToHistogram().MostCommon();
+         var topRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, 0].Block).ToHistogram().MostCommon();
+         var bottomLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, layout.Height - 1].Block).ToHistogram().MostCommon();
+         var bottomRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, layout.Height - 1].Block).ToHistogram().MostCommon();
 
          // find the floor tile
          var centerTiles = new List<int>();
@@ -652,43 +652,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var layout = warp.TargetMap.Layout;
             for (int x = 1; x < layout.Width - 1; x++) {
                for (int y = 1; y < layout.Height - 1; y++) {
-                  centerTiles.Add(layout.BlockMap[x, y].Tile);
+                  centerTiles.Add(layout.BlockMap[x, y].Block);
                }
             }
          }
          var floorTile = centerTiles.ToHistogram().MostCommon();
 
          // build the map image data
-         var tiles = new int[9, 9];
+         var blockMap = new int[9, 9];
          for (int i = 1; i < 8; i++) {
-            tiles[0, i] = leftTile;
-            tiles[8, i] = rightTile;
-            tiles[i, 0] = topTile;
-            tiles[i, 8] = bottomTile;
-            for (int j = 1; j < 8; j++) tiles[i, j] = floorTile;
+            blockMap[0, i] = leftTile;
+            blockMap[8, i] = rightTile;
+            blockMap[i, 0] = topTile;
+            blockMap[i, 8] = bottomTile;
+            for (int j = 1; j < 8; j++) blockMap[i, j] = floorTile;
          }
-         (tiles[0, 0], tiles[8, 0], tiles[0, 8], tiles[8, 8]) = (topLeftTile, topRightTile, bottomLeftTile, bottomRightTile);
+         (blockMap[0, 0], blockMap[8, 0], blockMap[0, 8], blockMap[8, 8]) = (topLeftTile, topRightTile, bottomLeftTile, bottomRightTile);
 
          // find the door tile
          var map0 = warps[0].TargetMap;
          var matchingWarp0 = map0.Events.Warps[warps[0].WarpID];
          var warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
          if (warpIsAgainstWall) {
-            tiles[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
-            tiles[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
-            tiles[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
+            blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
+            blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
+            blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
 
-            tiles[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-            tiles[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-            tiles[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+            blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+            blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+            blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
          } else {
-            tiles[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-            tiles[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-            tiles[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+            blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+            blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+            blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
 
-            tiles[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
-            tiles[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
-            tiles[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+            blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
+            blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
+            blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
          }
 
          // draw the map
@@ -696,12 +696,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var canvas = new CanvasPixelViewModel(9 * 16, 9 * 16);
          for (int y = 0; y < 9; y++) {
             for (int x = 0; x < 9; x++) {
-               canvas.Draw(viewModel.BlockRenders[tiles[x, y]], x * 16, y * 16);
+               canvas.Draw(viewModel.BlockRenders[blockMap[x, y] & 0x3FF], x * 16, y * 16);
             }
          }
 
          canvas.SpriteScale = .5;
-         return (canvas, tiles, warpIsAgainstWall);
+         return (canvas, blockMap, warpIsAgainstWall);
       }
 
       #region Draw / Paint
