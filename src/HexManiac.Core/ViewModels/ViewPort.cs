@@ -338,7 +338,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          UpdateAnchorText(dataIndex);
 
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         RequestMenuClose.Raise(this);
       }
 
       private void UpdateAnchorText(int dataIndex) {
@@ -603,9 +603,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (result == null) return;
             if (result == true) {
                fileSystem.SaveMetadata(FileName, metadata?.Serialize());
+               history.TagAsSaved();
             }
          }
-         Closed?.Invoke(this, EventArgs.Empty);
+         Closed.Raise(this);
       }
 
       #endregion

@@ -467,5 +467,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(editor.Undo.CanExecute(default));
          Assert.Contains(nameof(editor.Undo), view.CommandCanExecuteChangedNotifications);
       }
+
+      [Fact]
+      public void Edit_Close_Saved() {
+         FileSystem.TrySavePrompt = arg => true;
+         ViewPort.Edit("11 ");
+
+         ViewPort.Close.Execute(FileSystem);
+
+         Assert.True(ViewPort.ChangeHistory.IsSaved);
+      }
    }
 }
