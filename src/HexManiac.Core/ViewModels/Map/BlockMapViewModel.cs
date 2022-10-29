@@ -1042,18 +1042,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private BlockMapViewModel CreateNewMap(ModelDelta token, int bank, int width, int height) {
          var mapTable = MapRepointer.AddNewMapToBank(bank);
-         var address = MapRepointer.CreateNewMap(token);
-         var layoutStart = MapRepointer.CreateNewLayout(token);
+         var newMap = MapRepointer.CreateNewMap(token);
+         var layout = MapRepointer.CreateNewLayout(token);
 
          // update width / height
-         model.WriteValue(token, layoutStart + 0, width);
-         model.WriteValue(token, layoutStart + 4, height);
+         model.WriteValue(token, layout.Element.Start + 0, width);
+         model.WriteValue(token, layout.Element.Start + 4, height);
 
-         // update blockmap (layoutStart + 12)
-         WritePointerAndSource(token, layoutStart + 12, MapRepointer.CreateNewBlockMap(token, width, height));
+         layout.Element.SetAddress(Format.BlockMap, MapRepointer.CreateNewBlockMap(token, width, height));
 
-         WritePointerAndSource(token, address + 0, layoutStart);
-         model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, address);
+         newMap.Element.SetAddress(Format.Layout, layout.Element.Start);
+         model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, newMap.Element.Start);
 
          var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, bank, mapTable.ElementCount - 1) { allOverworldSprites = allOverworldSprites };
          otherMap.UpdateLayoutID();

@@ -201,8 +201,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var option = GetMapBankForNewMap("Duplicate map into which bank?");
          if (option == -1) return;
          var table = AddNewMapToBank(option);
-         var newMapStart = CreateNewMap(history.CurrentChange);
-         model.UpdateArrayPointer(history.CurrentChange, null, null, -1, table.Start + table.Length - 4, newMapStart);
+         var newMap = CreateNewMap(history.CurrentChange);
+         model.UpdateArrayPointer(history.CurrentChange, null, null, -1, table.Start + table.Length - 4, newMap.Element.Start);
          ChangeMap.Raise(this, new(option, table.ElementCount - 1));
          repointLayout.RaiseCanExecuteChanged();
       }
@@ -551,7 +551,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// Creates event data with 0 events, map scripts data with 0 scripts, and connection data with 0 connections.
       /// Copies all the flags/header from the current map.
       /// </summary>
-      public int CreateNewMap(ModelDelta token) {
+      public MapModel CreateNewMap(ModelDelta token) {
          var currentMap = GetMapModel();
          var mapStart = model.FindFreeSpace(model.FreeSpaceStart, 28);
          // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags. floorNum. battleType.
@@ -565,14 +565,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var table = new TableStreamRun(model, mapStart, SortedSpan<int>.None, format.MapFormat, null, new FixedLengthStreamStrategy(1));
          model.ObserveRunWritten(token, table);
 
-         return mapStart;
+         return new MapModel(new ModelArrayElement(model, mapStart, 0, () => token, table));
       }
 
       /// <summary>
       /// Creates a new layout using the existing layout's borderblock, blockmap, primary blockset, and secondary blockset.
       /// Once this new layout is assigned to a map, you'll want to update that map's layout ID by calling BlockMapViewModel.UpdateLayoutID()
       /// </summary>
-      public int CreateNewLayout(ModelDelta token) {
+      public LayoutModel CreateNewLayout(ModelDelta token) {
          var layoutStart = model.FindFreeSpace(model.FreeSpaceStart, 28);
          var myLayout = GetLayout();
 
@@ -587,8 +587,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             model.WriteValue(token, layoutStart + 25, myLayout.GetValue(Format.BorderHeight));
             model.WriteMultiByteValue(layoutStart + 26, 2, token, 0);
          }
-         if (ArrayRun.TryParse(model, format.LayoutFormat, layoutStart, SortedSpan<int>.None, out var run) == ErrorInfo.NoError) model.ObserveRunWritten(token, run);
-         return layoutStart;
+         if (ArrayRun.TryParse(model, format.LayoutFormat, layoutStart, SortedSpan<int>.None, out var table) != ErrorInfo.NoError) throw new NotImplementedException();
+         model.ObserveRunWritten(token, table);
+         return new(new(model, table.Start, 0, () => token, table));
       }
 
       public int CreateNewBlockMap(ModelDelta token, int width, int height) {
