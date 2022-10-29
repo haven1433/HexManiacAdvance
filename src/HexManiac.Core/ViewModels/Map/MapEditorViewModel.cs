@@ -155,7 +155,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand ResetAlignment => null;
       public ICommand Back => StubCommand(ref backCommand, ExecuteBack, CanExecuteBack);
       public ICommand Forward => StubCommand(ref forwardCommand, ExecuteForward, CanExecuteForward);
-      public ICommand Close => StubCommand(ref close, () => Closed.Raise(this));
+
+      private GameReferenceTables RefTable => singletons.GameReferenceTables.TryGetValue(model.GetGameCode(), out var refTable) ? refTable : null;
+      public ICommand Close => StubCommand(ref close, () => {
+         if (!history.IsSaved) {
+            var metadata = model.ExportMetadata(RefTable, singletons.MetadataInfo);
+            var result = fileSystem.TrySavePrompt(new LoadedFile(viewPort.FileName, model.RawData));
+            if (result == null) return;
+            if (result == true) {
+               fileSystem.SaveMetadata(viewPort.FileName, metadata?.Serialize());
+               history.TagAsSaved();
+            }
+         }
+         Closed.Raise(this);
+      });
+
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
       public ICommand DiffRight => null;
