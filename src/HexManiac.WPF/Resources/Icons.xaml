@@ -11,7 +11,7 @@
             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
             xmlns:hsv="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
             mc:Ignorable="d" 
-            d:DesignHeight="420" d:DesignWidth="420">
+            d:DesignHeight="480" d:DesignWidth="540">
    <ItemsControl.ItemsPanel>
       <ItemsPanelTemplate>
          <WrapPanel/>
@@ -221,6 +221,11 @@
             <RectangleGeometry Rect="-1,2,20,11" RadiusX="2" RadiusY="2"/>
          </CombinedGeometry.Geometry1>
       </CombinedGeometry>
+      <CombinedGeometry x:Name="EscapeKey" GeometryCombineMode="Exclude" Geometry2="{hsv:TextGeometry Esc,1,0,12}">
+         <CombinedGeometry.Geometry1>
+            <RectangleGeometry Rect="-1,2,20,11" RadiusX="2" RadiusY="2"/>
+         </CombinedGeometry.Geometry1>
+      </CombinedGeometry>
       <CombinedGeometry x:Name="ThinPlus" GeometryCombineMode="Union">
          <CombinedGeometry.Geometry1>
             <RectangleGeometry Rect="-5,0,12,2"/>
@@ -277,7 +282,15 @@
          <PathGeometry Figures="m 3306.24,3949.72 c 0.17,-4.98 -5.63,-9.11 -12.81,-9.2 -7.22,-0.16 -13.06,3.87 -13.14,8.77 0,5.03 5.67,9.12 12.89,9.24 7.18,0.14 13.06,-3.86 13.06,-8.81 v 0"/>
          <PathGeometry Figures="m 3352.23,3957.55 c 0.86,-4.86 -4.13,-9.85 -11.26,-11.18 -7.01,-1.28 -13.5,1.72 -14.39,6.54 -0.87,4.98 4.21,9.97 11.21,11.26 7.14,1.24 13.53,-1.68 14.44,-6.62 v 0"/>
       </GeometryGroup>
+      <PathGeometry x:Name="LeftAngleArrow" Figures="M0,0 L-40,0 -54,10 -40,20 -0,20 -14,10 Z"/>
+      <PathGeometry x:Name="OutAngleArrow" Figures="M0,0 L40,0 54,10 40,20 0,20 -14,10 Z"/>
       <PathGeometry x:Name="RightAngleArrow" Figures="M0,0 L40,0 54,10 40,20 0,20 14,10 Z"/>
+      <GeometryGroup x:Name="ArrowKeys">
+         <RectangleGeometry Rect="11,1,8,8" />
+         <RectangleGeometry Rect="1,11,8,8" />
+         <RectangleGeometry Rect="11,11,8,8" />
+         <RectangleGeometry Rect="21,11,8,8" />
+      </GeometryGroup>
       <GeometryGroup x:Name="Multiple" FillRule="EvenOdd">
          <RectangleGeometry Rect="2,3,8,10"/>
          <PathGeometry Figures="M2,10 l-2,0 0,-10 8,0 0,3"/>
