@@ -443,7 +443,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          
          FlipVVisible = true;
          FlipHVisible = true;
-         var index = indexForTileImage[tile];
+         if (!indexForTileImage.TryGetValue(tile, out int index)) return;
          ((FlipVLeft, FlipVTop), (FlipHLeft, FlipHTop)) = layerMode == 0 ? twoSets[index] : layerMode == 1 ? bottomLayerTogether[index] : topLayerTogether[index];
          hoverTile = indexForTileImage[tile];
       }
