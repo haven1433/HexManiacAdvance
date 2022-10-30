@@ -739,7 +739,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                template = template.Substring(1);
                continue;
             }
-            if (line[0] == ' ') {
+            if (line[0] == ' ' || line[0] == '!') {
                line = line.Substring(1);
                continue;
             }
@@ -777,7 +777,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.StartsWith("pc")) line = "r15" + line.Substring(2);
                if (line[0] != 'r') return false;
                var name = "r" + template[1];
-               if (int.TryParse(line.Split(',', ']')[0].Substring(1), out int value)) {
+               if (int.TryParse(line.Split(',', ']', '!')[0].Substring(1), out int value)) {
                   if (value > 7 && !instructionParts.Any(part => part.Type == InstructionArgType.HighRegister)) return false;
                   for (int index = 0; index < instructionParts.Count; index++) {
                      var instruction = instructionParts[index];

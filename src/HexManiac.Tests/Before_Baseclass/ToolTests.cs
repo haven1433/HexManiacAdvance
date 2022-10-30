@@ -411,6 +411,8 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("b <bob+10>", 0b11100_111_1100_0110)] // 90 = pc+#*2+4 : pc=100, so #=-74/2 = -3A = 111_1100_0110
       [InlineData("bl 0x200", 0xF8_7E_F0_00)]
       [InlineData("bl 0x08000200", 0xF8_7E_F0_00)]
+      [InlineData("stmia  r0, {r1}", 0b11000_000_00000010)]
+      [InlineData("stm   r0!, {r1}", 0b11000_000_00000010)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);

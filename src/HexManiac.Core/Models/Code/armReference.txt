@@ -107,6 +107,7 @@ nv=1111  @    never
 10111101 list       |     pop   {list, pc}
 10111101 list       |     pop   pc, {list}
 11000 rn list       |     stmia rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
+11000 rn list       |     stm   rn, {list}     @ *(rn)=Rx, then increment rn by 4. Continue for each x in list. (store array)
 11001 rn list       |     ldmia rn, {list}
 11011111 #          |     swi   #              @ run a bios function
 1101 cond #         |     b{cond}   #=pc+#*2+4 @ if(cond) PC = *(PC+#*2) @example: b #10 jumps to the instruction 28 bytes after the current instruction.
