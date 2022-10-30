@@ -164,7 +164,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool Incomplete { get => incomplete; set => PropertyChanged.TryUpdate(this, ref incomplete, value); }
       public double TargetPosition { get => target; set => PropertyChanged.TryUpdate(this, ref target, value); }
-      public double TopEdge => TargetPosition * 100;
+      public double TopEdge => TargetPosition * 90;
 
       public void TriggerAnimation() => AnimateMovement.Raise(this);
 

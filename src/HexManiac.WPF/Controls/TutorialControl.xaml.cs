@@ -10,10 +10,10 @@ using System.Xml.Linq;
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class TutorialControl {
       private static readonly DoubleAnimation
-         enterControlAnimation = new(-400, Duration(.2)),
+         enterControlAnimation = new(-300, Duration(.2)),
          exitControlAnimaiton = new(0, Duration(.2));
 
-      private const double ElementHeight = 100;
+      private const double ElementHeight = 90;
 
       public MapTutorialsViewModel ViewModel => DataContext as MapTutorialsViewModel;
 
@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private static readonly Duration Time = new(TimeSpan.FromSeconds(.4));
 
       public static void AnimateTop(this FrameworkElement element, double position) {
-         var lag = Math.Min(1, position / 500);
+         var lag = Math.Min(1, position / 450);
          var rush = 1 - lag;
          element.BeginAnimation(Canvas.TopProperty, new DoubleAnimation(position, Time) {
             DecelerationRatio = rush,
