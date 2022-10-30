@@ -53,11 +53,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ConnectionSlider : MapSlider {
+      private readonly MapTutorialsViewModel tutorials;
       private Action notify;
       private ConnectionModel connection, inverse;
 
-      public ConnectionSlider(ConnectionModel connection, (int group, int num) sourceMapInfo, Action notify, int id, MapSliderIcons icon, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
+      public ConnectionSlider(ConnectionModel connection, (int group, int num) sourceMapInfo, Action notify, int id, MapSliderIcons icon, MapTutorialsViewModel tutorials, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          (this.notify, this.connection) = (notify, connection);
+         this.tutorials = tutorials;
          var group = connection.MapGroup;
          var index = connection.MapNum;
 
@@ -71,11 +73,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (Icon == MapSliderIcons.LeftRight) {
             connection.Offset += x;
             if (inverse != null) inverse.Offset = -connection.Offset;
-            if (x != 0) notify();
+            if (x != 0) {
+               notify();
+               tutorials.Complete(Tutorial.DragButtons_AdjustConnection);
+            }
          } else if (Icon == MapSliderIcons.UpDown) {
             connection.Offset += y;
             if (inverse != null) inverse.Offset = -connection.Offset;
-            if (y != 0) notify();
+            if (y != 0) {
+               notify();
+               tutorials.Complete(Tutorial.DragButtons_AdjustConnection);
+            }
          } else {
             throw new NotImplementedException();
          }

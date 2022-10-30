@@ -34,14 +34,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       RightClick_CreateConnection,
       DragButtons_AdjustConnection,
 
-      ToolbarkButton_EditBorderBlock,
+      ToolbarButton_EditBorderBlock,
       ToolbarButton_GotoWildData,
       ToolbarButton_EditMapHeader,
       ToolbarTemplate_CreateObject,
       ToolbarTemplate_CreateEvent,
       RightClick_WarpNewMap,
       ToolbarTemplate_ConfigureObject,
-      Toolbar_Home,
    }
 
    public class MapTutorialsViewModel : ViewModelCore {
@@ -107,7 +106,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("Selection", "Create Event", "Drag the Blue/Green/Red squares from the top toolbar to create warp events, script events, and signpost events."));
             Tutorials.Add(new(RightClick, "Warp New Map", "Right-Click a warp to create a new map to warp to."));
             Tutorials.Add(new("Settings", "Configure Object", "Click the icon next to the character sprite to choose what type of object you want to add."));
-            Tutorials.Add(new("Home", "Goto Map", "Use the home menu to find and goto any map based on name or bank-map."));
          }
 
          Reset();

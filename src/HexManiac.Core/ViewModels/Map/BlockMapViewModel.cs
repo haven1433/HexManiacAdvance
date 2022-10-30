@@ -108,6 +108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // update selection
          SelectedEvent = categories[selectedCategory][selectionIndex];
+         tutorials.Complete(Tutorial.EventButtons_CycleEvent);
       }
 
       #endregion
@@ -348,6 +349,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (wildTable.Start != originalStart) InformRepoint(new("Wild", wildTable.Start));
          }
          viewPort.Goto.Execute(wildTable.Start + wildTable.ElementLength * wildDataIndex);
+         tutorials.Complete(Tutorial.ToolbarButton_GotoWildData);
       }, () => model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.WildTableName) != Pointer.NULL);
 
       #endregion
@@ -368,7 +370,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
                if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
                if (blockAttributes == null) RefreshBlockAttributeCache(layout, blockModel1, blockModel2);
-               blockEditor = new BlockEditor(viewPort.ChangeHistory, model, palettes, tiles, blocks, blockAttributes);
+               blockEditor = new BlockEditor(viewPort.ChangeHistory, model, tutorials, palettes, tiles, blocks, blockAttributes);
                blockEditor.BlocksChanged += HandleBlocksChanged;
                blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
                blockEditor.AutoscrollTiles += HandleAutoscrollTiles;
@@ -382,7 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public BorderEditor BorderEditor {
          get {
             if (borderEditor == null) {
-               borderEditor = new BorderEditor(this);
+               borderEditor = new BorderEditor(this, tutorials);
                borderEditor.BorderChanged += HandleBorderChanged;
                borderEditor.Bind(nameof(borderEditor.ShowBorderPanel), (editor, args) => {
                   BlockEditor.ShowTiles &= !editor.ShowBorderPanel;
@@ -763,6 +765,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (updateBlock) canvas.Draw(blockRenders[blockIndex], xx, yy);
          if (updateHighlight) HighlightCollision(pixelData, xx, yy);
          if (updateBlock || updateHighlight) NotifyPropertyChanged(nameof(PixelData));
+         tutorials.Complete(Tutorial.LeftClickMap_DrawBlock);
       }
 
       public void DrawBlocks(ModelDelta token, int[,] tiles, Point source, Point destination) {
@@ -888,26 +891,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             if (connection.Direction == MapDirection.Up) {
                connectionCount.up++;
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, LeftRight, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, LeftRight, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, LeftRight, tutorials, right: map.LeftEdge, bottom: map.BottomEdge - tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, LeftRight, tutorials, left: map.RightEdge, bottom: map.BottomEdge - tileSize);
             }
 
             if (connection.Direction == MapDirection.Down) {
                connectionCount.down++;
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, LeftRight, right: map.LeftEdge, top: map.TopEdge + tileSize);
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, LeftRight, left: map.RightEdge, top: map.TopEdge + tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, LeftRight, tutorials, right: map.LeftEdge, top: map.TopEdge + tileSize);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, LeftRight, tutorials, left: map.RightEdge, top: map.TopEdge + tileSize);
             }
 
             if (connection.Direction == MapDirection.Left) {
                connectionCount.left++;
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, UpDown, right: map.RightEdge - tileSize, bottom: map.TopEdge);
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, UpDown, right: map.RightEdge - tileSize, top: map.BottomEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, UpDown, tutorials, right: map.RightEdge - tileSize, bottom: map.TopEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, UpDown, tutorials, right: map.RightEdge - tileSize, top: map.BottomEdge);
             }
 
             if (connection.Direction == MapDirection.Right) {
                connectionCount.right++;
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, UpDown, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
-               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, UpDown, left: map.LeftEdge + tileSize, top: map.BottomEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id, UpDown, tutorials, left: map.LeftEdge + tileSize, bottom: map.TopEdge);
+               yield return new ConnectionSlider(connection, sourceMapInfo, Notify, id + 1, UpDown, tutorials, left: map.LeftEdge + tileSize, top: map.BottomEdge);
             }
 
             id += 2;
@@ -1006,6 +1009,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             RefreshMapSize();
             NeighborsChanged.Raise(this);
             if (newRun.Start != run.Start) InformRepoint(new("Map", newRun.Start));
+            tutorials.Complete(Tutorial.DragConnectionButtons_ResizeMap);
          }
       }
 
@@ -1013,6 +1017,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var token = tokenFactory();
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
+         tutorials.Complete(Tutorial.RightClick_CreateConnection);
          if (option == -1) return;
 
          var info = (ConnectionInfo)obj;
@@ -1082,6 +1087,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // select which map to add
          var keys = options.Keys.ToList();
          var enumViewModel = new EnumViewModel(keys.Select(key => MapIDToText(model, key)).ToArray());
+         tutorials.Complete(Tutorial.RightClick_CreateConnection);
 
          var option = fileSystem.ShowOptions(
             "Pick a group",

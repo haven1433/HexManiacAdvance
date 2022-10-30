@@ -316,6 +316,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class BlockEditor : ViewModelCore {
       private readonly ChangeHistory<ModelDelta> history;
+      private readonly MapTutorialsViewModel tutorials;
       private readonly short[][] palettes;
       private readonly int[][,] tiles;
       private readonly byte[][] blocks;
@@ -382,8 +383,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IPixelViewModel drawTileRender;
       public IPixelViewModel DrawTileRender => drawTileRender;
 
-      public BlockEditor(ChangeHistory<ModelDelta> history, IDataModel listSource, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
+      public BlockEditor(ChangeHistory<ModelDelta> history, IDataModel listSource, MapTutorialsViewModel tutorials, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
          this.history = history;
+         this.tutorials = tutorials;
          this.palettes = palettes;
          this.tiles = tiles;
          this.blocks = blocks;
@@ -426,6 +428,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var newImage = BlocksetModel.Read(blocks[blockIndex], hoverTile, tiles, palettes);
          images[hoverTile].Fill(newImage.PixelData);
          BlocksChanged?.Invoke(this, blocks);
+         tutorials.Complete(Tutorial.FlipButton_FlipBlock);
       }
 
       public void FlipV() {
@@ -435,6 +438,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var newImage = BlocksetModel.Read(blocks[blockIndex], hoverTile, tiles, palettes);
          images[hoverTile].Fill(newImage.PixelData);
          BlocksChanged?.Invoke(this, blocks);
+         tutorials.Complete(Tutorial.FlipButton_FlipBlock);
       }
 
       #endregion
@@ -455,6 +459,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var newImage = BlocksetModel.Read(blocks[blockIndex], index, tiles, palettes);
          images[hoverTile].Fill(newImage.PixelData);
          BlocksChanged?.Invoke(this, blocks);
+         tutorials.Complete(Tutorial.ClickBlock_DrawTile);
       }
 
       public void GetSelectionFromTile(IPixelViewModel tileImage) {
@@ -469,6 +474,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AnimateTileSelection();
          history.ChangeCompleted();
          UpdateDrawTileRender();
+         tutorials.Complete(Tutorial.ClickTile_SelectTile);
       }
 
       public void ExitTiles() {
@@ -550,6 +556,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => Set(ref showTiles, value, arg => {
             if (showTiles && tileRender == null) UpdateTileRender(drawPalette);
          });
+      }
+
+      public void ToggleShowTiles() {
+         ShowTiles = !ShowTiles;
+         tutorials.Complete(Tutorial.BlockButton_EditTiles);
       }
 
       public void HideTiles() => ShowTiles = false;

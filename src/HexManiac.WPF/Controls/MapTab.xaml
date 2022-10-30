@@ -61,7 +61,7 @@
             </StackPanel>
             <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,35,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Tiles"
-                   Direction="Right" Padding="2,0" IsChecked="{Binding ShowTiles}" />
+                   Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
             <Grid Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,55">
                <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" />
@@ -861,7 +861,7 @@
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
               Background="{DynamicResource Background}">
          <DockPanel Width="400" HorizontalAlignment="Right">
-            <ToggleButton IsChecked="{Binding ShowBorderPanel}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
+            <ToggleButton Command="{Binding ToggleBorderEditor}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
             </ToggleButton>
             <Grid Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
@@ -919,7 +919,7 @@
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinMinus}" />
             </Button>
          </StackPanel>
-         <local:AngleButton Direction="Left" Content="Edit Map Header" IsChecked="{Binding ShowHeaderPanel}" Margin="5,0,0,0" />
+         <local:AngleButton Direction="Left" Content="Edit Map Header" Command="{res:MethodCommand ToggleHeaderPanel}" Margin="5,0,0,0" />
          <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Width="110">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">

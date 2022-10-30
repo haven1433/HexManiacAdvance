@@ -7,11 +7,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly ChangeHistory<ModelDelta> changeHistory;
       private readonly IDataModel model;
       private readonly BlockMapViewModel blockmap;
+      private readonly MapTutorialsViewModel tutorials;
 
       public event EventHandler BorderChanged;
 
       private bool showBorder;
       public bool ShowBorderPanel { get => showBorder; set => Set(ref showBorder, value); }
+
+      public void ToggleBorderEditor() {
+         ShowBorderPanel = !ShowBorderPanel;
+         tutorials.Complete(Tutorial.ToolbarButton_EditBorderBlock);
+      }
 
       private CanvasPixelViewModel borderRender;
       public IPixelViewModel BorderRender {
@@ -92,8 +98,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public BorderEditor(BlockMapViewModel blockmap) {
+      public BorderEditor(BlockMapViewModel blockmap, MapTutorialsViewModel tutorials) {
          this.blockmap = blockmap;
+         this.tutorials = tutorials;
          this.model = blockmap.ViewPort.Model;
          this.changeHistory = blockmap.ViewPort.ChangeHistory;
          var layout = blockmap.GetLayout();

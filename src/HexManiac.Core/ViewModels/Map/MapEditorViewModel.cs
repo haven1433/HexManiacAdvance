@@ -44,6 +44,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set => Set(ref showHeaderPanel, value);
       }
 
+      public void ToggleHeaderPanel() {
+         ShowHeaderPanel = !ShowHeaderPanel;
+         Tutorials.Complete(Tutorial.ToolbarButton_EditMapHeader);
+      }
+
       private IEventViewModel selectedEvent;
       public IEventViewModel SelectedEvent {
          get => selectedEvent;
@@ -59,7 +64,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private bool showTemplateSettings;
-      public bool ShowTemplateSettings { get => showTemplateSettings; set => Set(ref showTemplateSettings, value); }
+      public bool ShowTemplateSettings {
+         get => showTemplateSettings;
+         set => Set(ref showTemplateSettings, value, old => {
+            if (showTemplateSettings) Tutorials.Complete(Tutorial.ToolbarTemplate_ConfigureObject);
+         });
+      }
 
       public bool ShowEventPanel => selectedEvent != null;
 
@@ -140,6 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand Undo => StubCommand(ref undo,
          () => {
             history.Undo.Execute();
+            Tutorials.Complete(Tutorial.ToolbarUndo_Undo);
             Refresh();
          },
          () => history.Undo.CanExecute(default));
@@ -491,7 +502,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                // nothing to paint
                interactionType = PrimaryInteractionType.None;
             } else {
-               if (map != null) map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+               if (map != null) {
+                  map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+                  Tutorials.Complete(Tutorial.DoubleClick_PaintBlock);
+               }
             }
             Hover(x, y);
          } else {
@@ -531,8 +545,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
          } else if (clickCount == 2 && SelectedEvent is ObjectEventViewModel obj) {
             viewPort.Goto.Execute(obj.ScriptAddress);
+            Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (clickCount == 2 && SelectedEvent is ScriptEventViewModel script) {
             viewPort.Goto.Execute(script.ScriptAddress);
+            Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (
             clickCount == 2 &&
             SelectedEvent is SignpostEventViewModel signpost &&
@@ -542,6 +558,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ) {
             viewPort.Goto.Execute(signpost.Pointer);
          } else {
+            Tutorials.Complete(Tutorial.LeftClick_SelectEvent);
             interactionType = PrimaryInteractionType.Event;
          }
       }
@@ -551,6 +568,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map != null) {
             CreateEventForCreationInteraction(eventCreationType);
             map.UpdateEventLocation(selectedEvent, x, y);
+            Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
          }
          Hover(x, y);
       }
@@ -590,6 +608,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             templates.ApplyTemplate(objectEvent, history.CurrentChange);
             SelectedEvent = objectEvent;
             if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
+            Tutorials.Complete(Tutorial.ToolbarTemplate_CreateObject);
          } else if (type == EventCreationType.Warp) {
             var desiredMap = (bank: 0, map: 0);
             if (backStack.Count > 0) {
@@ -599,12 +618,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
             SelectedEvent = primaryMap.CreateWarpEvent(desiredMap.bank, desiredMap.map);
+            Tutorials.Complete(Tutorial.ToolbarTemplate_CreateEvent);
          } else if (type == EventCreationType.Script) {
             SelectedEvent = primaryMap.CreateScriptEvent();
+            Tutorials.Complete(Tutorial.ToolbarTemplate_CreateEvent);
          } else if (type == EventCreationType.Signpost) {
             var signpost = primaryMap.CreateSignpostEvent();
             templates.ApplyTemplate(signpost, history.CurrentChange);
             SelectedEvent = signpost;
+            Tutorials.Complete(Tutorial.ToolbarTemplate_CreateEvent);
             // TODO primaryMap.InformCreate if we created a script
          } else if (type == EventCreationType.Fly) {
             var flySpot = primaryMap.CreateFlyEvent();
@@ -689,6 +711,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             BlockEditorVisible = true;
             AnimateBlockSelection();
             UpdateHover(left, top, width, height);
+            Tutorials.Complete(Tutorial.RightClickMap_SelectBlock);
             return;
          }
 
@@ -703,6 +726,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                canvas.Draw(primaryMap.BlockRenders[block.blockIndex], xx * 16, yy * 16);
             }
          }
+         Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
          MultiTileDrawRender = canvas;
          DrawMultipleTiles = true;
          BlockEditorVisible = false;
@@ -730,6 +754,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private WarpEventViewModel warpContext;
       public void CreateMapForWarp() {
+         Tutorials.Complete(Tutorial.RightClick_WarpNewMap);
          BlockMapViewModel newMap = primaryMap.CreateMapForWarp(warpContext);
          if (newMap == null) return;
          NavigateTo(newMap.MapID);
@@ -775,10 +800,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Cancel() {
+         if (SelectedEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
          SelectedEvent = null;
          DrawMultipleTiles = false;
          BlockEditorVisible = false;
          tilesToDraw = null;
+         if (DrawBlockIndex != -1) Tutorials.Complete(Tutorial.EscapeKey_UnselectBlock);
          DrawBlockIndex = -1;
          CollisionIndex = -1;
          ShowHeaderPanel = false;
@@ -829,6 +856,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
             if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
          }
+         Tutorials.Complete(Tutorial.LeftClickBlock_SelectBlock);
       }
 
       public void DragBlock(int x, int y) {
@@ -852,6 +880,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          drawBlockIndex = yy * BlockMapViewModel.BlocksPerRow + xx;
          NotifyPropertiesChanged(nameof(HighlightBlockX), nameof(HighlightBlockY), nameof(HighlightBlockWidth), nameof(HighlightBlockHeight));
          DrawMultipleTiles = true;
+         Tutorials.Complete(Tutorial.DragBlocks_SelectBlocks);
       }
 
       public void ReleaseBlock(int x, int y) {
