@@ -474,7 +474,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AnimateTileSelection();
          history.ChangeCompleted();
          UpdateDrawTileRender();
-         tutorials.Complete(Tutorial.ClickTile_SelectTile);
       }
 
       public void ExitTiles() {
@@ -582,6 +581,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (drawTile >= tiles.Length) drawTile = tiles.Length - 1;
             NotifyPropertyChanged();
             drawFlipH = drawFlipV = false;
+            tutorials.Complete(Tutorial.ClickTile_SelectTile);
             UpdateDrawTileRender();
          }
       }
@@ -598,6 +598,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
             drawFlipH = drawFlipV = false;
             history.ChangeCompleted();
+            tutorials.Complete(Tutorial.ClickTile_SelectTile);
             UpdateDrawTileRender();
          }
       }

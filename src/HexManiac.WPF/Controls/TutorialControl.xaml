@@ -37,14 +37,18 @@
             </Style>
          </ItemsControl.ItemContainerStyle>
       </ItemsControl>
-      <Border Canvas.Top="-20" Height="20" Width="100" Background="{DynamicResource Backlight}"
-              Visibility="{Binding IsMouseOver, ElementName=ContentPanel, Converter={StaticResource BoolToVisibility}}">
+      <Border Canvas.Top="-20" Canvas.Right="0" Height="20" Width="110" Background="{DynamicResource Backlight}" BorderBrush="{StaticResource Secondary}"
+              BorderThickness="1" Visibility="{Binding IsMouseOver, ElementName=ContentPanel, Converter={StaticResource BoolToVisibility}}">
          <Border.ContextMenu>
             <ContextMenu>
                <MenuItem Header="Dismiss All" Command="{res:MethodCommand DismissAll}" />
             </ContextMenu>
          </Border.ContextMenu>
-         <TextBlock Text="Tutorials" HorizontalAlignment="Center" />
+         <TextBlock HorizontalAlignment="Center">
+            <Run Text="Tutorials (" />
+            <Run Text="{Binding CompletionPercent, Mode=OneWay}" />
+            <Run Text=")" />
+         </TextBlock>
       </Border>
    </Canvas>
 </UserControl>

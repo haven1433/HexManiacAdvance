@@ -861,7 +861,7 @@
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
               Background="{DynamicResource Background}">
          <DockPanel Width="400" HorizontalAlignment="Right">
-            <ToggleButton Command="{Binding ToggleBorderEditor}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
+            <ToggleButton Command="{res:MethodCommand ToggleBorderEditor}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
             </ToggleButton>
             <Grid Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">

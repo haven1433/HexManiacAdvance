@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public enum Tutorial {
-      MiddleCilck_PanMap,
+      MiddleClick_PanMap,
       ArrowKeys_PanMap,
       Wheel_ZoomMap,
       DoubleClick_FollowWarp,
@@ -15,14 +16,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       ToolbarUndo_Undo,
       DoubleClick_PaintBlock,
       EscapeKey_UnselectBlock,
-      RightClickMap_SelectBlock,
       DragBlocks_SelectBlocks,
-      RightDragMap_SelectBlocks,
 
       BlockButton_EditTiles,
       ClickTile_SelectTile,
       ClickBlock_DrawTile,
       FlipButton_FlipBlock,
+
+      RightClickMap_SelectBlock,
+      RightDragMap_SelectBlocks,
 
       LeftClick_SelectEvent,
       DragEvent_MoveEvent,
@@ -51,6 +53,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          RightClick = "RightMouseButton";
       public ObservableCollection<MapTutorialViewModel> Tutorials { get; } = new();
 
+      public string CompletionPercent {
+         get {
+            double completed = Tutorials.Sum(tut => tut.Incomplete ? 0 : 1);
+            return $"{completed/Tutorials.Count:p}";
+         }
+      } 
+
       public MapTutorialsViewModel() {
          // general navigation
          {
@@ -68,9 +77,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("UndoArrow", "Undo", "Use the Undo button in the toolbar to undo any mistakes."));
             Tutorials.Add(new(LeftClick, "Paint Block", "Double-Click over the map to paint with the selected block."));
             Tutorials.Add(new("EscapeKey", "Unselect Block", "Press the escape key to unselect a block."));
-            Tutorials.Add(new(RightClick, "Select Block", "Right-Click the map to select that block."));
             Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the block panel to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
-            Tutorials.Add(new(RightClick, "Select Blocks", "Right-Click and drag to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
          }
 
          // editing blocks
@@ -79,6 +86,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile to select it."));
             Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's tile to replace it with your selected tile/palette."));
             Tutorials.Add(new("ArrowsLeftRight", "Flip Tile", "Click the arrows next to a tile to flip that tile vertically or horizontally."));
+         }
+
+         // right-click map
+         {
+            Tutorials.Add(new(RightClick, "Select Block", "Right-Click the map to select that block."));
+            Tutorials.Add(new(RightClick, "Select Blocks", "Right-Click and drag on the map to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
          }
 
          // editing events
@@ -138,6 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials[i].TargetPosition -= 1;
             if (Tutorials[i].Incomplete && Tutorials[i].TargetPosition < VisibleCount) Tutorials[i].TriggerAnimation();
          }
+         NotifyPropertyChanged(nameof(CompletionPercent));
       }
    }
 

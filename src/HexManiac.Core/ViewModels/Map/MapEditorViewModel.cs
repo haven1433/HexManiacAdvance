@@ -451,7 +451,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          deltaY -= intY;
          (cursorX, cursorY) = (x, y);
          Pan(intX, intY);
-         if (intX != 0 || intY != 0) Tutorials.Complete(Tutorial.MiddleCilck_PanMap);
+         if (intX != 0 || intY != 0) Tutorials.Complete(Tutorial.MiddleClick_PanMap);
          Hover(x, y);
       }
 
@@ -476,6 +476,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else {
             primaryMap.DeselectEvent();
             SelectedEvent = null;
+            Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
          }
 
          ShowHeaderPanel = false;
@@ -800,7 +801,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Cancel() {
-         if (SelectedEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
          SelectedEvent = null;
          DrawMultipleTiles = false;
          BlockEditorVisible = false;
