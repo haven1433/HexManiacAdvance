@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
       private readonly Format format;
       private readonly IFileSystem fileSystem;
+      private readonly MapTutorialsViewModel tutorials;
       private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
       private readonly Func<ModelDelta> tokenFactory;
@@ -406,9 +407,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public BlockMapViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Format format, int group, int map) {
+      public BlockMapViewModel(IFileSystem fileSystem, MapTutorialsViewModel tutorials, IEditableViewPort viewPort, Format format, int group, int map) {
          this.format = format;
          this.fileSystem = fileSystem;
+         this.tutorials = tutorials;
          this.viewPort = viewPort;
          this.model = viewPort.Model;
          this.tokenFactory = () => viewPort.ChangeHistory.CurrentChange;
@@ -692,7 +694,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // draw the map
-         var viewModel = new BlockMapViewModel(fileSystem, viewPort, format, warps[0].Bank, warps[0].Map);
+         var viewModel = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, warps[0].Bank, warps[0].Map);
          var canvas = new CanvasPixelViewModel(9 * 16, 9 * 16);
          for (int y = 0; y < 9; y++) {
             for (int x = 0; x < 9; x++) {
@@ -1054,7 +1056,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newMap.Element.SetAddress(Format.Layout, layout.Element.Start);
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, newMap.Element.Start);
 
-         var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, bank, mapTable.ElementCount - 1) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, bank, mapTable.ElementCount - 1) { allOverworldSprites = allOverworldSprites };
          otherMap.UpdateLayoutID();
          return otherMap;
       }
@@ -1071,7 +1073,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
             for (int map = 0; map < maps.Count; map++) {
-               var mapVM = new BlockMapViewModel(fileSystem, viewPort, format, group, map) { allOverworldSprites = allOverworldSprites };
+               var mapVM = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, group, map) { allOverworldSprites = allOverworldSprites };
                var newInfo = mapVM.CanConnect(info.OppositeDirection);
                if (newInfo != null) options[mapVM.MapID] = newInfo;
             }
@@ -1095,7 +1097,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         var otherMap = new BlockMapViewModel(fileSystem, viewPort, format, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = options[choice];
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -1334,7 +1336,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
-         var vm = new BlockMapViewModel(fileSystem, viewPort, format, connection.MapGroup, connection.MapNum) {
+         var vm = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connection.MapGroup, connection.MapNum) {
             IncludeBorders = IncludeBorders,
             SpriteScale = SpriteScale,
             allOverworldSprites = allOverworldSprites,
@@ -1617,12 +1619,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < connections.Count; i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
-               var map = new BlockMapViewModel(fileSystem, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeWidth = map.pixelWidth / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
             } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
-               var map = new BlockMapViewModel(fileSystem, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
                var removeHeight = map.pixelHeight / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);

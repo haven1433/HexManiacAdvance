@@ -906,6 +906,9 @@
          </Border.Style>
       </Border>
 
+      <!-- Tutorials Panel -->
+      <local:TutorialControl x:Name="TutorialsControl" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" DataContext="{Binding Tutorials}" />
+
       <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5" Panel.ZIndex="2">
          <StackPanel Margin="5,0">

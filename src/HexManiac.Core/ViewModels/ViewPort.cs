@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (maps.Count > 1) maps = maps.Where(map => map.Name == str).ToList();
                   if (maps.Count == 1 && mapper != null && !str.TryParseHex(out _)) {
                      var previousMap = mapper.PrimaryMap;
-                     mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, this, mapper.Format, maps[0].Group, maps[0].Map);
+                     mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, mapper.Tutorials, this, mapper.Format, maps[0].Group, maps[0].Map);
                      args = new TabChangeRequestedEventArgs(mapper);
                      RequestTabChange?.Invoke(this, args);
                      if (args.RequestAccepted) {

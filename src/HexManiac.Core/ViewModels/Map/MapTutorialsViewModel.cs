@@ -109,12 +109,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("Settings", "Configure Object", "Click the icon next to the character sprite to choose what type of object you want to add."));
             Tutorials.Add(new("Home", "Goto Map", "Use the home menu to find and goto any map based on name or bank-map."));
          }
+
+         Reset();
+         foreach (var tut in Tutorials) tut.Bind(nameof(MapTutorialViewModel.Incomplete), (obj, e) => {
+            if (!obj.Incomplete) Complete((Tutorial)Tutorials.IndexOf(obj));
+         });
       }
 
       public void Reset() {
          for (int i = 0; i < Tutorials.Count; i++) {
             Tutorials[i].Incomplete = true;
-            Tutorials[i].TargetPosition = Tutorials[i].InitialPosition = i;
+            Tutorials[i].TargetPosition = i;
          }
       }
 
@@ -128,10 +133,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Complete(Tutorial id) {
          var index = (int)id;
+         if (!Tutorials[index].Incomplete) return; // already complete
          Tutorials[index].Incomplete = false;
          Tutorials[index].TriggerAnimation();
-         for(int i = index + 1; i < Tutorials.Count; i++) {
-            Tutorials[i].InitialPosition = Tutorials[i].TargetPosition;
+         for (int i = index + 1; i < Tutorials.Count; i++) {
             Tutorials[i].TargetPosition -= 1;
             if (Tutorials[i].Incomplete && Tutorials[i].TargetPosition < VisibleCount) Tutorials[i].TriggerAnimation();
          }
@@ -145,10 +150,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool incomplete;
       private double initial, target;
 
-      public bool Incomplete { get => incomplete; set => PropertyChanged?.TryUpdate(this, ref incomplete, value); }
-      public double InitialPosition { get => initial; set => PropertyChanged?.TryUpdate(this, ref initial, value); }
-      public double TargetPosition { get => target; set => PropertyChanged?.TryUpdate(this, ref target, value); }
+      public bool Incomplete { get => incomplete; set => PropertyChanged.TryUpdate(this, ref incomplete, value); }
+      public double TargetPosition { get => target; set => PropertyChanged.TryUpdate(this, ref target, value); }
+      public double TopEdge => TargetPosition * 100;
 
       public void TriggerAnimation() => AnimateMovement.Raise(this);
+
+      public void Close() {
+         Incomplete = false;
+      }
    }
 }

@@ -74,6 +74,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string hoverPoint;
       public string HoverPoint { get => hoverPoint; set => Set(ref hoverPoint, value); }
 
+      public MapTutorialsViewModel Tutorials { get; } = new();
+
       #region Block Picker
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
@@ -210,6 +212,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (forwardStack.Count == 1) forwardCommand.RaiseCanExecuteChanged();
          if (backStack.Count == 0) backCommand.RaiseCanExecuteChanged();
          NavigateTo(previous, trackChange: false);
+         Tutorials.Complete(Tutorial.BackButton_GoBack);
       }
       private void ExecuteForward() {
          if (forwardStack.Count == 0) return;
@@ -231,7 +234,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
-         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, viewPort, format, bank, map) {
+         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, bank, map) {
             IncludeBorders = primaryMap?.IncludeBorders ?? true,
             SpriteScale = primaryMap?.SpriteScale ?? .5,
          });
@@ -263,7 +266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryTiles = isFRLG ? 640 : 512;
          this.format = new Format(!isFRLG);
 
-         var map = new BlockMapViewModel(fileSystem, viewPort, format, 3, 19);
+         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, 3, 19);
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
@@ -437,6 +440,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          deltaY -= intY;
          (cursorX, cursorY) = (x, y);
          Pan(intX, intY);
+         if (intX != 0 || intY != 0) Tutorials.Complete(Tutorial.MiddleCilck_PanMap);
          Hover(x, y);
       }
 
@@ -524,6 +528,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventViewModel warp && clickCount == 2) {
             NavigateTo(warp.Bank, warp.Map);
+            Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
          } else if (clickCount == 2 && SelectedEvent is ObjectEventViewModel obj) {
             viewPort.Goto.Execute(obj.ScriptAddress);
          } else if (clickCount == 2 && SelectedEvent is ScriptEventViewModel script) {
@@ -738,6 +743,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          map.Scale(x, y, enlarge);
          map.IncludeBorders = map.SpriteScale <= 1;
          UpdatePrimaryMap(map);
+         Tutorials.Complete(Tutorial.Wheel_ZoomMap);
       }
 
       private StubCommand panCommand, zoomCommand, deleteCommand, cancelCommand;
@@ -754,6 +760,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (direction == MapDirection.Down) intY = 1;
          Pan(intX * -32, intY * -32);
          var map = MapUnderCursor(0, 0);
+         Tutorials.Complete(Tutorial.ArrowKeys_PanMap);
          if (map != null) UpdatePrimaryMap(map);
       }
 
