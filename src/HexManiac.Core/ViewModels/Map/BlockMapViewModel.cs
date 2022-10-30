@@ -1016,8 +1016,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void ConnectNewMap(object obj) {
          var token = tokenFactory();
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
-         var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
          tutorials.Complete(Tutorial.RightClick_CreateConnection);
+         var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
          if (option == -1) return;
 
          var info = (ConnectionInfo)obj;
@@ -1087,8 +1087,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // select which map to add
          var keys = options.Keys.ToList();
          var enumViewModel = new EnumViewModel(keys.Select(key => MapIDToText(model, key)).ToArray());
-         tutorials.Complete(Tutorial.RightClick_CreateConnection);
 
+         tutorials.Complete(Tutorial.RightClick_CreateConnection);
          var option = fileSystem.ShowOptions(
             "Pick a group",
             "Which map do you want to connect to?",

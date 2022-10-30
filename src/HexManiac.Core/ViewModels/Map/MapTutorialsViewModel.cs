@@ -8,8 +8,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       MiddleClick_PanMap,
       ArrowKeys_PanMap,
       Wheel_ZoomMap,
-      DoubleClick_FollowWarp,
-      BackButton_GoBack,
 
       LeftClickBlock_SelectBlock,
       LeftClickMap_DrawBlock,
@@ -27,6 +25,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       RightDragMap_SelectBlocks,
 
       LeftClick_SelectEvent,
+      DoubleClick_FollowWarp,
+      BackButton_GoBack,
       DragEvent_MoveEvent,
       ClickMap_UnselectEvent,
       DoubleClickEvent_SeeScript,
@@ -66,8 +66,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new(MiddleClick, "Pan Map", "Middle-Click and drag to move the maps around on the screen."));
             Tutorials.Add(new("ArrowKeys", "Pan Map", "Use the arrow keys to move the maps around on the screen."));
             Tutorials.Add(new(MiddleClick, "Zoom Map", "Use the scroll wheel to zoom in and out of the map. Zooming in will hide the border blocks."));
-            Tutorials.Add(new(LeftClick, "Follow Warp", "Double-Click on a warp to go to the map it references."));
-            Tutorials.Add(new("LeftArrow", "Go Back", "Use the back arrow in the toolbar to return to the previous map or data."));
          }
 
          // select block / draw / paint
@@ -82,9 +80,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // editing blocks
          {
-            Tutorials.Add(new("RightAngleArrow", "Edit Tiles", "Click the button in the block panel to show the tile panel."));
+            Tutorials.Add(new("RightAngleArrow", "Edit Tiles", "Select a block, then click this button in the block panel to show the tile panel."));
             Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile to select it."));
-            Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's tile to replace it with your selected tile/palette."));
+            Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's tile at the top of the block panel to replace it with your selected tile/palette."));
             Tutorials.Add(new("ArrowsLeftRight", "Flip Tile", "Click the arrows next to a tile to flip that tile vertically or horizontally."));
          }
 
@@ -97,6 +95,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // editing events
          {
             Tutorials.Add(new(LeftClick, "Select Event", "Click an event in the map to select it. Selecting an event will unselect any active blocks."));
+            Tutorials.Add(new(LeftClick, "Follow Warp", "Double-Click on a warp to go to the map it references."));
+            Tutorials.Add(new("LeftArrow", "Go Back", "Use the back arrow in the toolbar to return to the previous map or data."));
             Tutorials.Add(new("FourDirectionArrows", "Move Event", "Drag an event to move it on the map."));
             Tutorials.Add(new(LeftClick, "Unselect Event", "Click on any part of the map to unselect the event."));
             Tutorials.Add(new(LeftClick, "See Script", "Double-Click on an object, script tile, or signpost to jump to its script in the other tab."));
@@ -106,8 +106,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // connections
          {
             Tutorials.Add(new("ArrowsLeftRight", "Resize Map", "Use the arrows on the four edges of the map to resize the map."));
-            Tutorials.Add(new(RightClick, "Create Connection", "Right-click an edge arrow to connect a new or existing map."));
-            Tutorials.Add(new("ArrowsLeftRight", "Adjust Connection", "Use the arrows on the corners of the map to adjust the offset between the two maps."));
+            Tutorials.Add(new(RightClick, "New Connection", "Right-click an edge arrow to connect a new or existing map."));
+            Tutorials.Add(new("ArrowsLeftRight", "Edit Connection", "Use the arrows on the corners of the map to adjust the offset between the two maps."));
          }
 
          // other toolbar options

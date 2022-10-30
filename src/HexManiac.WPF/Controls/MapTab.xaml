@@ -949,7 +949,7 @@
                </TextBlock.Style>
             </TextBlock>
          </local:AngleButton>
-         <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" IsChecked="{Binding ShowBorderPanel}" Margin="0,0,5,0" />
+         <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" Command="{res:MethodCommand ToggleBorderEditor}" Margin="0,0,5,0" />
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
             <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>
          </Border>
