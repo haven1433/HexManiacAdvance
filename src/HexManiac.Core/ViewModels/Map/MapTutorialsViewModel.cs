@@ -111,9 +111,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          Reset();
-         foreach (var tut in Tutorials) tut.Bind(nameof(MapTutorialViewModel.Incomplete), (obj, e) => {
-            if (!obj.Incomplete) Complete((Tutorial)Tutorials.IndexOf(obj));
-         });
+         foreach (var tut in Tutorials) {
+            tut.RequestClose += (sender, e) => Complete((Tutorial)Tutorials.IndexOf((MapTutorialViewModel)sender));
+         }
       }
 
       public void Reset() {
@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Complete(Tutorial id) {
          var index = (int)id;
-         if (!Tutorials[index].Incomplete) return; // already complete
+         if (!Tutorials[index].Incomplete) return;
          Tutorials[index].Incomplete = false;
          Tutorials[index].TriggerAnimation();
          for (int i = index + 1; i < Tutorials.Count; i++) {
@@ -144,11 +144,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public record MapTutorialViewModel(string Icon, string Title, string Content) : INotifyPropertyChanged {
-      public event EventHandler AnimateMovement;
+      public event EventHandler AnimateMovement, RequestClose;
       public event PropertyChangedEventHandler? PropertyChanged;
 
       private bool incomplete;
-      private double initial, target;
+      private double target;
 
       public bool Incomplete { get => incomplete; set => PropertyChanged.TryUpdate(this, ref incomplete, value); }
       public double TargetPosition { get => target; set => PropertyChanged.TryUpdate(this, ref target, value); }
@@ -156,8 +156,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void TriggerAnimation() => AnimateMovement.Raise(this);
 
-      public void Close() {
-         Incomplete = false;
-      }
+      public void Close() => RequestClose.Raise(this);
    }
 }
