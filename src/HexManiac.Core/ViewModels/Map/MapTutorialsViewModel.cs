@@ -73,7 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new(LeftClick, "Select Block", "Click a block in the block panel to select it."));
             Tutorials.Add(new(LeftClick, "Draw Block", "Click/Drag over the map to draw with the selected block."));
             Tutorials.Add(new("UndoArrow", "Undo", "Use the Undo button in the toolbar to undo any mistakes."));
-            Tutorials.Add(new(LeftClick, "Paint Block", "Double-Click over the map to paint with the selected block."));
+            Tutorials.Add(new("LeftMouseDoubleClick", "Paint Block", "Double-Click over the map to paint with the selected block."));
             Tutorials.Add(new("EscapeKey", "Unselect Block", "Press the escape key to unselect a block."));
             Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the block panel to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
          }
@@ -95,11 +95,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // editing events
          {
             Tutorials.Add(new(LeftClick, "Select Event", "Click an event in the map to select it. Selecting an event will unselect any active blocks."));
-            Tutorials.Add(new(LeftClick, "Follow Warp", "Double-Click on a warp to go to the map it references."));
+            Tutorials.Add(new("LeftMouseDoubleClick", "Follow Warp", "Double-Click on a warp to go to the map it references."));
             Tutorials.Add(new("LeftArrow", "Go Back", "Use the back arrow in the toolbar to return to the previous map or data."));
             Tutorials.Add(new("FourDirectionArrows", "Move Event", "Drag an event to move it on the map."));
             Tutorials.Add(new(LeftClick, "Unselect Event", "Click on any part of the map to unselect the event."));
-            Tutorials.Add(new(LeftClick, "See Script", "Double-Click on an object, script tile, or signpost to jump to its script in the other tab."));
+            Tutorials.Add(new("LeftMouseDoubleClick", "See Script", "Double-Click on an object, script tile, or signpost to jump to its script in the other tab."));
             Tutorials.Add(new("ArrowsLeftRight", "Cycle Events", "Use the buttons at the top of the event panel to change selection between the events in the current map. There are four groups."));
          }
 

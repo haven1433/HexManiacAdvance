@@ -150,6 +150,31 @@
       </GeometryGroup>
       <PathGeometry x:Name="SizeArrow" Figures="M -6,-6 L 6,-6 6,6 -6,6 Z M 4,4 L -4,4 4,-4 Z M -4,-4 l 5,0 -5,5 Z"/>
       <PathGeometry x:Name="SizeArrow2" Figures="M 4,4 L -4,4 4,-4 Z M -4,-4 l 5,0 -5,5 Z"/>
+      <CombinedGeometry x:Name="RightMouseButton" GeometryCombineMode="Exclude">
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="10" RadiusY="10"/>
+               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
+               <RectangleGeometry Rect="-10,0,20,10"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <GeometryGroup FillRule="Nonzero">
+               <CombinedGeometry GeometryCombineMode="Exclude">
+                  <CombinedGeometry.Geometry1>
+                     <EllipseGeometry RadiusX="8" RadiusY="8"/>
+                  </CombinedGeometry.Geometry1>
+                  <CombinedGeometry.Geometry2>
+                     <GeometryGroup FillRule="Nonzero">
+                        <RectangleGeometry Rect="-10,-10,10,20"/>
+                        <RectangleGeometry Rect="0,0,10,10"/>
+                     </GeometryGroup>
+                  </CombinedGeometry.Geometry2>
+               </CombinedGeometry>
+               <RectangleGeometry Rect="0,0,8,4"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
       <CombinedGeometry x:Name="LeftMouseButton" GeometryCombineMode="Exclude">
          <CombinedGeometry.Geometry1>
             <GeometryGroup FillRule="Nonzero">
@@ -175,6 +200,60 @@
             </GeometryGroup>
          </CombinedGeometry.Geometry2>
       </CombinedGeometry>
+      <CombinedGeometry x:Name="LeftMouseDoubleClick" GeometryCombineMode="Exclude">
+         <!-- Base Shape -->
+         <CombinedGeometry.Geometry1>
+            <GeometryGroup FillRule="Nonzero">
+               <EllipseGeometry RadiusX="10" RadiusY="10"/>
+               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
+               <RectangleGeometry Rect="-10,0,20,10"/>
+            </GeometryGroup>
+         </CombinedGeometry.Geometry1>
+         <CombinedGeometry.Geometry2>
+            <CombinedGeometry GeometryCombineMode="Union">
+               <CombinedGeometry.Geometry1>
+                  <!-- Left Click 1 -->
+                  <GeometryGroup FillRule="Nonzero">
+                     <GeometryGroup.Transform>
+                        <TranslateTransform X="-.5" Y="-.5" />
+                     </GeometryGroup.Transform>
+                     <CombinedGeometry GeometryCombineMode="Exclude">
+                        <CombinedGeometry.Geometry1>
+                           <EllipseGeometry RadiusX="8" RadiusY="8"/>
+                        </CombinedGeometry.Geometry1>
+                        <CombinedGeometry.Geometry2>
+                           <GeometryGroup FillRule="Nonzero">
+                              <RectangleGeometry Rect="0,-10,10,20"/>
+                              <RectangleGeometry Rect="-10,0,10,10"/>
+                           </GeometryGroup>
+                        </CombinedGeometry.Geometry2>
+                     </CombinedGeometry>
+                     <RectangleGeometry Rect="-8,0,8,4"/>
+                  </GeometryGroup>
+               </CombinedGeometry.Geometry1>
+               <CombinedGeometry.Geometry2>
+                  <!-- Left Click 2 -->
+                  <GeometryGroup FillRule="Nonzero">
+                     <GeometryGroup.Transform>
+                        <TranslateTransform X="1.5" Y="1.5" />
+                     </GeometryGroup.Transform>
+                     <CombinedGeometry GeometryCombineMode="Exclude">
+                        <CombinedGeometry.Geometry1>
+                           <EllipseGeometry RadiusX="8" RadiusY="8"/>
+                        </CombinedGeometry.Geometry1>
+                        <CombinedGeometry.Geometry2>
+                           <GeometryGroup FillRule="Nonzero">
+                              <RectangleGeometry Rect="0,-10,10,20"/>
+                              <RectangleGeometry Rect="-10,0,10,10"/>
+                           </GeometryGroup>
+                        </CombinedGeometry.Geometry2>
+                     </CombinedGeometry>
+                     <RectangleGeometry Rect="-8,0,8,4"/>
+                  </GeometryGroup>
+               </CombinedGeometry.Geometry2>
+            </CombinedGeometry>
+         </CombinedGeometry.Geometry2>
+      </CombinedGeometry>
       <CombinedGeometry x:Name="MiddleMouseButton" GeometryCombineMode="Exclude">
          <CombinedGeometry.Geometry1>
             <GeometryGroup FillRule="Nonzero">
@@ -188,31 +267,6 @@
                <EllipseGeometry RadiusX="2" RadiusY="2" Center="0,-5"/>
                <RectangleGeometry Rect="-2,-5,4,4"/>
                <EllipseGeometry RadiusX="2" RadiusY="2" Center="0,-1"/>
-            </GeometryGroup>
-         </CombinedGeometry.Geometry2>
-      </CombinedGeometry>
-      <CombinedGeometry x:Name="RightMouseButton" GeometryCombineMode="Exclude">
-         <CombinedGeometry.Geometry1>
-            <GeometryGroup FillRule="Nonzero">
-               <EllipseGeometry RadiusX="10" RadiusY="10"/>
-               <EllipseGeometry Center="0,10" RadiusX="10" RadiusY="10"/>
-               <RectangleGeometry Rect="-10,0,20,10"/>
-            </GeometryGroup>
-         </CombinedGeometry.Geometry1>
-         <CombinedGeometry.Geometry2>
-            <GeometryGroup FillRule="Nonzero">
-               <CombinedGeometry GeometryCombineMode="Exclude">
-                  <CombinedGeometry.Geometry1>
-                     <EllipseGeometry RadiusX="8" RadiusY="8"/>
-                  </CombinedGeometry.Geometry1>
-                  <CombinedGeometry.Geometry2>
-                     <GeometryGroup FillRule="Nonzero">
-                        <RectangleGeometry Rect="-10,-10,10,20"/>
-                        <RectangleGeometry Rect="0,0,10,10"/>
-                     </GeometryGroup>
-                  </CombinedGeometry.Geometry2>
-               </CombinedGeometry>
-               <RectangleGeometry Rect="0,0,8,4"/>
             </GeometryGroup>
          </CombinedGeometry.Geometry2>
       </CombinedGeometry>
