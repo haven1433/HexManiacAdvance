@@ -674,11 +674,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          selectDownPosition = ToTilePosition(x, y);
          UpdateHover(selectDownPosition.X, selectDownPosition.Y, 1, 1);
          var ev = map.EventUnderCursor(x, y);
-         if (ev is WarpEventViewModel warp) {
-            interactionType = PrimaryInteractionType.None;
-            warpContext = warp;
-            ContextItems.Clear();
-            ContextItems.Add(new MenuCommand("Create New Map", CreateMapForWarp));
+         if (ev != null) {
+            ShowEventContextMenu(ev);
             return SelectionInteractionResult.ShowMenu;
          }
          if (blockIndex >= 0) {
@@ -757,14 +754,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      #region Creating a new map for a warp
+      #region Event Hover / Context Menus
 
-      private WarpEventViewModel warpContext;
+      private IEventViewModel eventContext;
+
+      private void ShowEventContextMenu(IEventViewModel ev) {
+         interactionType = PrimaryInteractionType.None;
+         eventContext = ev;
+         ContextItems.Clear();
+
+         if (ev is ObjectEventViewModel objEvent) {
+            ContextItems.Add(new MenuCommand("Delete Object", DeleteCurrentEvent));
+         } else if (ev is WarpEventViewModel warp) {
+            ContextItems.Add(new MenuCommand("Create New Map", CreateMapForWarp));
+            ContextItems.Add(new MenuCommand("Delete Warp", DeleteCurrentEvent));
+         } else if (ev is ScriptEventViewModel script) {
+            ContextItems.Add(new MenuCommand("Delete Script", DeleteCurrentEvent));
+         } else if (ev is SignpostEventViewModel signpost) {
+            ContextItems.Add(new MenuCommand("Delete Signpost", DeleteCurrentEvent));
+         } else if (ev is FlyEventViewModel fly) {
+            ContextItems.Add(new MenuCommand("Delete Fly Spot", DeleteCurrentEvent));
+         }
+      }
+
+      private void ShowEventHover(BaseEventModel ev) {
+         // TODO
+      }
+
       public void CreateMapForWarp() {
+         if (eventContext is not WarpEventViewModel warpContext) return;
+         eventContext = null;
          Tutorials.Complete(Tutorial.RightClick_WarpNewMap);
          BlockMapViewModel newMap = primaryMap.CreateMapForWarp(warpContext);
          if (newMap == null) return;
          NavigateTo(newMap.MapID);
+      }
+
+      public void DeleteCurrentEvent() {
+         selectedEvent = eventContext;
+         eventContext = null;
+         Delete();
       }
 
       #endregion
