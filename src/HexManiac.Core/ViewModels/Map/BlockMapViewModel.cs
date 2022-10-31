@@ -629,6 +629,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var returnWarp = newMap.CreateWarpEvent(group, map);
          returnWarp.WarpID = GetEvents().Where(e => e is WarpEventViewModel).Until(e => e.Equals(warp)).Count();
          (returnWarp.X, returnWarp.Y) = (4, 8);
+         if (!warpIsBottomSquare) (returnWarp.X, returnWarp.Y) = (4, 7);
 
          // TODO need to add formatting for everything
 
