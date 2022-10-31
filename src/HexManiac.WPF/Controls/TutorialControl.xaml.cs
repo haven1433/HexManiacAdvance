@@ -55,6 +55,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var tut = (MapTutorialViewModel)sender;
          var ui = (FrameworkElement)Tutorials.ItemContainerGenerator.ContainerFromItem(tut);
          if (ui == null) return;
+         ui.Visibility = Visibility.Visible;
          ui.AnimateTop(tut.TargetPosition * ElementHeight);
          ui.AnimateOpacity(tut.Incomplete ? 1 : 0);
          ui.AnimateLeft(tut.Incomplete ? 0 : 100);

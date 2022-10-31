@@ -32,9 +32,10 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
          <ItemsControl.ItemContainerStyle>
-            <Style>
+            <Style TargetType="FrameworkElement">
                <Setter Property="Canvas.Top" Value="{Binding TopEdge}" />
                <Setter Property="Canvas.Left" Value="0" />
+               <Setter Property="Visibility" Value="{Binding Incomplete, Converter={StaticResource BoolToVisibility}}" />
             </Style>
          </ItemsControl.ItemContainerStyle>
       </ItemsControl>
