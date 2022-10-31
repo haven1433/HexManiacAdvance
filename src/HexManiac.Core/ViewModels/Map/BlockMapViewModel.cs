@@ -523,7 +523,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // if no reasonable tileset is found, just use the current map's blocksets
       public BlockMapViewModel CreateMapForWarp(WarpEventViewModel warp) {
          // what bank should the new map go in?
-         var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
+         var option = MapRepointer.GetMapBankForNewMap(
+            "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
+            + Environment.NewLine +
+            "Which map bank do you want use for the new mapa?");
          if (option == -1) return null;
          var token = tokenFactory();
          MapModel thisMap = new(GetMapModel());
@@ -1016,7 +1019,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var token = tokenFactory();
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          tutorials.Complete(Tutorial.RightClick_CreateConnection);
-         var option = MapRepointer.GetMapBankForNewMap("Which map bank do you want to add the new map to?");
+         var option = MapRepointer.GetMapBankForNewMap(
+            "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
+            + Environment.NewLine +
+            "Which map bank do you want use for the new mapa?");
          if (option == -1) return;
 
          var info = (ConnectionInfo)obj;
