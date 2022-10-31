@@ -713,8 +713,13 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
          <ItemsControl.ContextMenu>
-            <ContextMenu IsEnabled="False" ContextMenuClosing="DisableMenuOnClose">
-               <MenuItem Header="Create New Map" Click="CreateMapForWarpClicked" />
+            <ContextMenu IsEnabled="False" ContextMenuClosing="DisableMenuOnClose" ItemsSource="{Binding ContextItems}">
+               <ContextMenu.ItemContainerStyle>
+                  <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                     <Setter Property="Header" Value="{Binding Text}" />
+                     <Setter Property="Command" Value="{Binding}" />
+                  </Style>
+               </ContextMenu.ItemContainerStyle>
             </ContextMenu>
          </ItemsControl.ContextMenu>
       </ItemsControl>

@@ -90,9 +90,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else if (e.RightButton == MouseButtonState.Pressed) {
             withinMapInteraction = MouseButton.Right;
             var result = vm.SelectDown(p.X, p.Y);
-            if (result == SelectionInteractionResult.ShowWarpMenu) {
+            if (result == SelectionInteractionResult.ShowMenu) {
                withinMapInteraction = MouseButton.XButton1;
-               ShowWarpCreation(element, e);
+               ShowMenu(element, e);
             }
          }
       }
@@ -188,7 +188,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          return new(p.X - element.ActualWidth / 2, p.Y - element.ActualHeight / 2);
       }
 
-      private void ShowWarpCreation(FrameworkElement element, MouseEventArgs e) {
+      private void ShowMenu(FrameworkElement element, MouseEventArgs e) {
+         element.ContextMenu.DataContext = ViewModel;
          element.ContextMenu.IsEnabled = true;
          element.ContextMenu.IsOpen = true;
       }
@@ -196,10 +197,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void DisableMenuOnClose(object sender, ContextMenuEventArgs e) {
          var menu = (ContextMenu)sender;
          menu.IsEnabled = false;
-      }
-
-      private void CreateMapForWarpClicked(object sender, RoutedEventArgs e) {
-         ViewModel.CreateMapForWarp();
       }
 
       #endregion

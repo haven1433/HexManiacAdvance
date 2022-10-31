@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public MapSliderIcons Icon { get => icon; set => SetEnum(ref icon, value); }
 
       public bool EnableContextMenu => ContextItems.Count > 0;
-      public ObservableCollection<SliderCommand> ContextItems { get; } = new();
+      public ObservableCollection<IMenuCommand> ContextItems { get; } = new();
 
       private bool anchorLeftEdge, anchorTopEdge;
       private int anchorX, anchorY;
@@ -103,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class ExpansionSlider : MapSlider {
       private Action<MapDirection, int> resize;
 
-      public ExpansionSlider(Action<MapDirection, int> resize, int id, MapSliderIcons icon, IEnumerable<SliderCommand> contextItems, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
+      public ExpansionSlider(Action<MapDirection, int> resize, int id, MapSliderIcons icon, IEnumerable<IMenuCommand> contextItems, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          foreach (var item in contextItems) ContextItems.Add(item);
          this.resize = resize;
       }
@@ -126,18 +126,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          resize = other.resize;
          return true;
       }
-   }
-
-   public class SliderCommand : ViewModelCore, ICommand {
-      private readonly Action<object> action;
-      public event EventHandler? CanExecuteChanged;
-      public string Text { get; }
-      public object Parameter { get; init; }
-
-      public SliderCommand(string text, Action<object> action) => (Text, this.action) = (text, action);
-
-      public bool CanExecute(object? parameter) => true;
-
-      public void Execute(object? parameter) => action(parameter);
    }
 }

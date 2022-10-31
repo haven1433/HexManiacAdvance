@@ -927,7 +927,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          yield return new ExpansionSlider(ResizeMapData, id + 3, LeftRight, GetConnectionCommands(connections, MapDirection.Right), left: RightEdge, top: centerY);
       }
 
-      private IEnumerable<SliderCommand> GetConnectionCommands(IReadOnlyList<ConnectionModel> connections, MapDirection direction) {
+      private IEnumerable<IMenuCommand> GetConnectionCommands(IReadOnlyList<ConnectionModel> connections, MapDirection direction) {
          var toRemove = new List<int>();
 
          var info = CanConnect(direction);
@@ -935,18 +935,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (info.Size > 3) {
                // we can make a map here of width/height longestSpanLength
                // and the offset is availableSpace[longestSpanStart]
-               yield return new SliderCommand("Create New Map", ConnectNewMap) { Parameter = info };
-               yield return new SliderCommand("Connect Existing Map", ConnectExistingMap) { Parameter = info };
+               yield return new MenuCommand<ConnectionInfo>("Create New Map", ConnectNewMap) { Parameter = info };
+               yield return new MenuCommand<ConnectionInfo>("Connect Existing Map", ConnectExistingMap) { Parameter = info };
             } else if (info.Offset < 0) {
                // we can make a map here of width/height 4
                // and the offset is -3
-               yield return new SliderCommand("Create New Map", ConnectNewMap) { Parameter = info };
-               yield return new SliderCommand("Connect Existing Map", ConnectExistingMap) { Parameter = info };
+               yield return new MenuCommand<ConnectionInfo>("Create New Map", ConnectNewMap) { Parameter = info };
+               yield return new MenuCommand<ConnectionInfo>("Connect Existing Map", ConnectExistingMap) { Parameter = info };
             } else {
                // we can make a map here of width/height 4
                // and the offset is dimensionLength-1
-               yield return new SliderCommand("Create New Map", ConnectNewMap) { Parameter = info };
-               yield return new SliderCommand("Connect Existing Map", ConnectExistingMap) { Parameter = info };
+               yield return new MenuCommand<ConnectionInfo>("Create New Map", ConnectNewMap) { Parameter = info };
+               yield return new MenuCommand<ConnectionInfo>("Connect Existing Map", ConnectExistingMap) { Parameter = info };
             }
          }
 
@@ -956,7 +956,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          if (toRemove.Count > 0) {
             // we can remove these connections
-            yield return new SliderCommand("Remove Connections", RemoveConnections) { Parameter = toRemove };
+            yield return new MenuCommand<IReadOnlyList<int>>("Remove Connections", RemoveConnections) { Parameter = toRemove };
          }
       }
 
@@ -1015,7 +1015,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void ConnectNewMap(object obj) {
+      private void ConnectNewMap(ConnectionInfo info) {
          var token = tokenFactory();
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          tutorials.Complete(Tutorial.RightClick_CreateConnection);
@@ -1025,7 +1025,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             "Which map bank do you want use for the new mapa?");
          if (option == -1) return;
 
-         var info = (ConnectionInfo)obj;
          var map = GetMapModel();
          var connectionsAndCount = map.GetSubTable("connections")[0];
          var connections = connectionsAndCount.GetSubTable("connections").Run;
@@ -1071,8 +1070,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return otherMap;
       }
 
-      private void ConnectExistingMap(object obj) {
-         var info = (ConnectionInfo)obj;
+      private void ConnectExistingMap(ConnectionInfo info) {
          var token = tokenFactory();
 
          // find available maps
@@ -1119,8 +1117,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NeighborsChanged.Raise(this);
       }
 
-      private void RemoveConnections(object obj) {
-         var toRemove = (IReadOnlyList<int>)obj;
+      private void RemoveConnections(IReadOnlyList<int> toRemove) {
          var token = tokenFactory();
          var map = GetMapModel();
          var connections = GetConnections(map);

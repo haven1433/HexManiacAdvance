@@ -77,6 +77,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<MapSlider> MapButtons { get; } = new();
 
+      public ObservableCollection<MenuCommand> ContextItems { get; } = new();
+
       public EventTemplate Templates => templates;
 
       private int PrimaryTiles { get; }
@@ -675,7 +677,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (ev is WarpEventViewModel warp) {
             interactionType = PrimaryInteractionType.None;
             warpContext = warp;
-            return SelectionInteractionResult.ShowWarpMenu;
+            ContextItems.Clear();
+            ContextItems.Add(new MenuCommand("Create New Map", CreateMapForWarp));
+            return SelectionInteractionResult.ShowMenu;
          }
          if (blockIndex >= 0) {
             DrawBlockIndex = blockIndex;
@@ -1085,7 +1089,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public enum SelectionInteractionResult { None, ShowWarpMenu }
+   public enum SelectionInteractionResult { None, ShowMenu }
 
    public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 
