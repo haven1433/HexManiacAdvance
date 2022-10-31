@@ -43,22 +43,54 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public virtual int TopOffset => 0;
       public virtual int LeftOffset => 0;
 
+      #region X/Y
+
       public int X {
          get => !Valid ? -1 : flySpot.GetValue("x");
          set {
             if (!Valid) return;
             flySpot.SetValue("x", value);
             NotifyPropertyChanged();
+            if (!ignoreUpdateXY) xy = null;
+            NotifyPropertyChanged(nameof(XY));
+            EventVisualUpdated.Raise(this);
          }
       }
+
       public int Y {
          get => !Valid ? -1 : flySpot.GetValue("y");
          set {
             if (!Valid) return;
             flySpot.SetValue("y", value);
             NotifyPropertyChanged();
+            if (!ignoreUpdateXY) xy = null;
+            NotifyPropertyChanged(nameof(XY));
+            EventVisualUpdated.Raise(this);
          }
       }
+
+      private bool ignoreUpdateXY;
+      private string xy;
+      public string XY {
+         get {
+            if (!Valid) return "(-1, -1)";
+            if (xy == null) xy = $"({X}, {Y})";
+            return xy;
+         }
+         set {
+            if (!Valid) return;
+            xy = value;
+            var parts = value.Split(new[] { ',', ' ', '(', ')' }, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length != 2) return;
+            ignoreUpdateXY = true;
+            if (parts[0].TryParseInt(out int x)) X = x;
+            if (parts[1].TryParseInt(out int y)) Y = y;
+            ignoreUpdateXY = false;
+         }
+      }
+
+
+      #endregion
 
       public IPixelViewModel EventRender { get; private set; }
 

@@ -631,8 +631,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (returnWarp.X, returnWarp.Y) = (4, 8);
          if (!warpIsBottomSquare) (returnWarp.X, returnWarp.Y) = (4, 7);
 
-         // TODO need to add formatting for everything
-
          return newMap;
       }
 
