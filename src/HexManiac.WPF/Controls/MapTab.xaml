@@ -314,7 +314,7 @@
 
                         <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowTrainerContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
-                              <Style TargetType="TextBox" BasedOn="{StaticResource {x:Type TextBox}}">
+                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
                                  <Setter Property="FontFamily" Value="Consolas" />
                                  <Setter Property="AcceptsReturn" Value="True" />
                                  <Setter Property="HorizontalAlignment" Value="Right" />
@@ -327,20 +327,20 @@
                                  <ColumnDefinition />
                               </Grid.ColumnDefinitions>
                               <local:AngleComboBox Direction="Out" ItemsSource="{Binding ClassOptions}" SelectedIndex="{Binding TrainerClass}" />
-                              <local:AngleTextBox Grid.Column="1" TextBinding="{Binding TrainerName}" Direction="Right" />
+                              <local:AngleTextBox Grid.Column="1" TextBinding="{Binding TrainerName, UpdateSourceTrigger=PropertyChanged}" Direction="Right" />
                            </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Before Battle:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerBeforeText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TrainerBeforeText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="When You Win:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerWinText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TrainerWinText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="After Battle:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerAfterText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TrainerAfterText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Team:" Margin="4,0"/>
                            </local:AngleBorder>
@@ -354,7 +354,8 @@
                                     </ItemsControl.ItemTemplate>
                                  </ItemsControl>
                               </Viewbox>
-                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}" Name="TrainerTeamBox" Background="Transparent" Width="200" CaretBrush="{DynamicResource Secondary}" />
+                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}"
+                                       Name="TrainerTeamBox" Background="Transparent" Width="230" CaretBrush="{DynamicResource Secondary}" />
                            </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Edit More:" Margin="4,0"/>
