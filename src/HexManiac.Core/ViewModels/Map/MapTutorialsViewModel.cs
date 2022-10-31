@@ -134,6 +134,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public void Load(string[] metadata) {
+         var line = metadata.FirstOrDefault(str => str.StartsWith("MapTutorials = '''"));
+         if (line == null) return;
+         var content = line.Split("'''")[1];
+         for (int i = 0; i < Tutorials.Count; i++) {
+            if (i >= content.Length || content[i] != '1') continue;
+            Complete((Tutorial)i);
+         }
+      }
+
+      public string Serialize() {
+         var tuts = new char[Tutorials.Count];
+         for (int i = 0; i < Tutorials.Count; i++) tuts[i] = Tutorials[i].Incomplete ? '0' : '1';
+         return $"MapTutorials = '''{new string(tuts)}'''";
+      }
+
       public void DismissAll() {
          for (int i = 0; i < Tutorials.Count; i++) {
             if (!Tutorials[i].Incomplete) continue;

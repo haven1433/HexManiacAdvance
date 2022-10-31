@@ -130,6 +130,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand CopyAlignedAddress => StubCommand<IFileSystem>(ref copyAlignedAddress, ExecuteCopyAlignedAddress);
       public ICommand CopyAnchorReference => StubCommand<IFileSystem>(ref copyAnchorReference, ExecuteCopyAnchorReference);
 
+      public MapTutorialsViewModel MapTutorials { get; } = new();
+
       private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null, false);
       public GotoControlViewModel GotoViewModel {
          get => gotoViewModel;
@@ -566,6 +568,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          PopulateRecentFilesViewModel();
          PythonTool = new PythonTool(this);
+         MapTutorials.Load(metadata);
       }
 
       public static ICommand Wrap(IQuickEditItem quickEdit) => new StubCommand {
@@ -592,6 +595,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"LastUpdateCheck = {LastUpdateCheck}",
             $"AcknowledgeTutorials = {TutorialsAcknowledged}",
             $"Base10Length = {Base10Length}",
+            MapTutorials.Serialize(),
             SerializeRecentFiles(),
             string.Empty
          };
@@ -603,7 +607,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          newCommand.CanExecute = CanAlwaysExecute;
          newCommand.Execute = arg => {
             var model = new PokemonModel(new byte[0], singletons: Singletons);
-            Add(new ViewPort(string.Empty, model, workDispatcher, Singletons, FileSystem, PythonTool));
+            Add(new ViewPort(string.Empty, model, workDispatcher, Singletons, MapTutorials, FileSystem, PythonTool));
          };
 
          open.CanExecute = CanAlwaysExecute;
@@ -689,7 +693,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                copyText += ' ';
             }
 
-
             if (SelectedTab is ViewPort viewPort) viewPort.Edit(copyText);
          };
       }
@@ -722,7 +725,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             IDataModel model = file.Name.ToLower().EndsWith(".gba") ?
                new HardcodeTablesModel(Singletons, file.Contents, metadata) :
                new PokemonModel(file.Contents, metadata, Singletons);
-            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, FileSystem, PythonTool);
+            var viewPort = new ViewPort(file.Name, model, workDispatcher, Singletons, MapTutorials, FileSystem, PythonTool);
             if (metadata.IsEmpty || StoredMetadata.NeedVersionUpdate(metadata.Version, Singletons.MetadataInfo.VersionNumber)) {
                _ = viewPort.Model.InitializationWorkload.ContinueWith(task => {
                   if (!Singletons.GameReferenceTables.TryGetValue(model.GetGameCode(), out var refTable)) refTable = null;

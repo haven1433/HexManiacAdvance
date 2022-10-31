@@ -84,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string hoverPoint;
       public string HoverPoint { get => hoverPoint; set => Set(ref hoverPoint, value); }
 
-      public MapTutorialsViewModel Tutorials { get; } = new();
+      public MapTutorialsViewModel Tutorials { get; }
 
       #region Block Picker
 
@@ -259,16 +259,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool IsValidState { get; private set; }
 
-      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, out MapEditorViewModel editor) {
+      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, out MapEditorViewModel editor) {
          editor = null;
          var maps = viewPort.Model.GetTable(HardcodeTablesModel.MapBankTable);
          if (maps == null) return false;
-         editor = new MapEditorViewModel(fileSystem, viewPort, singletons);
+         editor = new MapEditorViewModel(fileSystem, viewPort, singletons, tutorials);
          return editor.IsValidState;
       }
 
-      public MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons) {
-         (this.viewPort, this.model, this.history, this.singletons, this.fileSystem) = (viewPort, viewPort.Model, viewPort.ChangeHistory, singletons, fileSystem);
+      private MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials) {
+         (this.fileSystem, this.viewPort) = (fileSystem, viewPort);
+         (this.singletons, Tutorials) = (singletons, tutorials);
+         (model, history) = (viewPort.Model, viewPort.ChangeHistory);
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));

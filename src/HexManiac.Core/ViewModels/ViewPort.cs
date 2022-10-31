@@ -927,7 +927,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
          Singletons = singletons ?? new Singletons();
          PythonTool = pythonTool;
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
@@ -972,7 +972,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RefreshBackingData();
                ValidateMatchedWords();
                if (fs != null) {
-                  if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, out mapper)) mapper = null;
+                  if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) mapper = null;
                }
             });
          }, TaskContinuationOptions.ExecuteSynchronously);
@@ -1626,7 +1626,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.FileSystem, PythonTool, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, new(child));
       }
