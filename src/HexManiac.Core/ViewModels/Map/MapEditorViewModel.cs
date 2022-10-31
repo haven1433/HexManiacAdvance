@@ -96,7 +96,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             Set(ref drawBlockIndex, value, old => {
                DrawMultipleTiles = false;
-               BlockEditorVisible = true;
+               if (drawBlockIndex >= 0) BlockEditorVisible = true;
                PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
                drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
                selectionFromBlock = false;

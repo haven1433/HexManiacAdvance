@@ -5,7 +5,6 @@
              xmlns:res="clr-namespace:HavenSoft.HexManiac.WPF.Resources"
              >
    <Grid>
-      <!-- TODO add button for showing tiles -->
       <Grid.ColumnDefinitions>
          <ColumnDefinition />
          <ColumnDefinition Width="Auto" />
