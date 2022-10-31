@@ -814,7 +814,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var destinationRun = new XSERun(Pointer, SortedSpan<int>.None);
          var existingRun = element.Model.GetNextRun(destinationRun.Start);
          if (existingRun.Start <= destinationRun.Start) return; // don't erase existing runs for this
-         element.Model.ObserveRunWritten(element.Token, destinationRun);
+         element.Model.ObserveRunWritten(new ModelDelta(), destinationRun); // don't track this change
       }
 
       public void ClearDestinationFormat() {
