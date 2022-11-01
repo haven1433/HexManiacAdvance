@@ -1262,7 +1262,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // if there were no empty entries in the table, add a new one
          if (emptySpawn == -1) {
-            var newSpawns = spawns.Run.Append(tokenFactory(), 1);
+            var newSpawns = model.RelocateForExpansion(tokenFactory(), spawns.Run, spawns.Run.Length + spawns.Run.ElementLength);
+            newSpawns = newSpawns.Append(tokenFactory(), 1);
+            model.ObserveRunWritten(tokenFactory(), newSpawns);
             if (newSpawns.Start != spawns.Run.Start) InformRepoint(new("Fly Spawns", newSpawns.Start));
             spawns = new ModelTable(model, newSpawns, tokenFactory);
             emptySpawn = spawns.Count - 1;

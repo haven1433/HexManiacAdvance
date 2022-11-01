@@ -188,7 +188,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
       public ICommand DiffRight => null;
-      public bool CanDuplicate => false;
+      public bool CanDuplicate => true;
 
       public event EventHandler<string> OnError;
       public event EventHandler<string> OnMessage;
@@ -202,7 +202,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
       public event EventHandler<CanPatchEventArgs> RequestCreatePatch;
 
-      public void Duplicate() { }
+      public void Duplicate() => Duplicate(PrimaryMap.MapID / 1000, PrimaryMap.MapID % 1000);
+      private void Duplicate(int bank, int map) {
+         var newEditor = new MapEditorViewModel(FileSystem, viewPort, singletons, Tutorials);
+         newEditor.UpdatePrimaryMap(new BlockMapViewModel(FileSystem, Tutorials, viewPort, Format, bank, map));
+         RequestTabChange?.Invoke(this, new(newEditor));
+      }
+
       public void Refresh() {
          VisibleMaps.Clear();
          primaryMap.ClearCaches();
@@ -767,6 +773,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             ContextItems.Add(new MenuCommand("Delete Object", DeleteCurrentEvent));
          } else if (ev is WarpEventViewModel warp) {
             ContextItems.Add(new MenuCommand("Create New Map", CreateMapForWarp));
+            ContextItems.Add(new MenuCommand("Open in New Tab", () => Duplicate(warp.Bank, warp.Map)));
             ContextItems.Add(new MenuCommand("Delete Warp", DeleteCurrentEvent));
          } else if (ev is ScriptEventViewModel script) {
             ContextItems.Add(new MenuCommand("Delete Script", DeleteCurrentEvent));
