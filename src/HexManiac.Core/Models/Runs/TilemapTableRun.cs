@@ -94,7 +94,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var croppedDataStart = width * y;
             Array.Copy(pixels.PixelData, originalDataStart, pixelData, croppedDataStart, width);
          }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, width / 8, height / 8, string.Empty), pixelData);
+         return new ReadonlyPixelViewModel(new SpriteFormat(4, width / 8, height / 8, string.Empty), pixelData, pixels.Transparent);
       }
 
       public static IPixelViewModel DuplicateDown(IPixelViewModel pixels, int count) {

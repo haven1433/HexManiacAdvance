@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
@@ -418,7 +419,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public double HighlightCursorWidth { get => highlightCursorWidth; set => Set(ref highlightCursorWidth, value); }
       public double HighlightCursorHeight { get => highlightCursorHeight; set => Set(ref highlightCursorHeight, value); }
 
-      public void Hover(double x, double y) {
+      // if it returns an empty array: no hover tip to display
+      // if it returns null: continue displaying previous hover tip
+      // if it returns content: display that as the new hover tip
+      private static readonly object[] EmptyTooltip = new object[0]; 
+      public object Hover(double x, double y) {
          if (drawMultipleTiles) {
             var p = ToTilePosition(x, y);
             if (interactionType == PrimaryInteractionType.Draw) {
@@ -428,19 +433,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             UpdateHover(p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
          } else {
             var map = MapUnderCursor(x, y);
-            if (map == null) return;
+            if (map == null) return EmptyTooltip;
             var p = ToTilePosition(x, y);
-            UpdateHover(p.X, p.Y, 1, 1);
-            HoverPoint = $"({p.X}, {p.Y})";
+            if (UpdateHover(p.X, p.Y, 1, 1)) {
+               HoverPoint = $"({p.X}, {p.Y})";
+               if (map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
+                  return ShowEventHover(ev);
+               } else {
+                  return EmptyTooltip;
+               }
+            }
+            return null;
          }
+         return EmptyTooltip;
       }
 
-      private void UpdateHover(int left, int top, int width, int height) {
+      /// <summary>
+      /// returns true if the hover changed
+      /// </summary>
+      private bool UpdateHover(int left, int top, int width, int height) {
+         var (prevX, prevY) = (highlightCursorX, highlightCursorY);
+         var (prevW, prevH) = (highlightCursorWidth, highlightCursorHeight);
+
          var border = primaryMap.GetBorderThickness();
          HighlightCursorX = (left + border.West + width / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
          HighlightCursorY = (top + border.North + height / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
          HighlightCursorWidth = width * 16 * primaryMap.SpriteScale + 4;
          HighlightCursorHeight = height * 16 * primaryMap.SpriteScale + 4;
+
+         if (prevX != highlightCursorX) return true;
+         if (prevY != highlightCursorY) return true;
+         if (prevW != highlightCursorWidth) return true;
+         return prevH != highlightCursorHeight;
       }
 
       public void DragDown(double x, double y) {
@@ -784,8 +808,63 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void ShowEventHover(BaseEventModel ev) {
-         // TODO
+      private object[] ShowEventHover(BaseEventViewModel ev) {
+         var tips = new List<object>(); // ReadOnlyPixelViewModel and string
+         if (ev is WarpEventViewModel warp) {
+            tips.Add(warp.TargetMapName);
+            var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map);
+            tips.Add(new ReadonlyPixelViewModel(blockmap.PixelWidth, blockmap.PixelHeight, blockmap.PixelData, blockmap.Transparent) { SpriteScale = .5 });
+         } else if (ev is ObjectEventViewModel obj) {
+            tips.AddRange(SummarizeScript(obj.ScriptAddress));
+         } else if (ev is ScriptEventViewModel script) {
+            tips.AddRange(SummarizeScript(script.ScriptAddress));
+         } else if (ev is SignpostEventViewModel signpost) {
+            if (signpost.CanGotoScript) tips.AddRange(SummarizeScript(signpost.Pointer));
+            if (signpost.ShowHiddenItemProperties) {
+               var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
+               var item = signpost.ItemID;
+               if (item > 0 && item < options.Count) tips.Add(options[item]);
+            }
+         }
+
+         return tips.ToArray();
+      }
+
+      private IEnumerable<object> SummarizeScript(int address) {
+         var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
+         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x5C); // loadpointer, trainerbattle
+         var tips = new List<object>();
+         // get all the items from item balls
+         // TODO show items from pokemarts
+         // TODO get all the pokemon from the trainers
+         // TODO get all the text from the pokemon trainers?
+         var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+         var icons = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
+         foreach (var spot in scriptSpots) {
+            if (spot.Line.LineCode[0] == 0x0F) {
+               var textStart = model.ReadPointer(spot.Address + 2);
+               var text = model.TextConverter.Convert(model, textStart, 100);
+               tips.Add(text);
+            } else if (spot.Line.LineCode[0] == 0x5C && trainerTable != null && icons != null && icons[0].HasField("icon")) {
+               var trainerID = model.ReadMultiByteValue(spot.Address + 2, 2);
+               if (trainerTable.Count > trainerID && trainerID > 0) {
+                  // TODO items and trainer sprite
+                  var pokemon = trainerTable[trainerID].GetSubTable("pokemon");
+                  foreach (var mon in pokemon) {
+                     if (!mon.HasField("mon")) continue;
+                     var species = mon.GetValue("mon");
+                     if (species < 0 || species >= icons.Count) continue;
+                     var iconStart = icons[species].GetAddress("icon");
+                     var iconRun = model.GetNextRun(iconStart) as ISpriteRun;
+                     if (iconRun == null) continue;
+                     var p = ReadonlyPixelViewModel.Create(model, iconRun, true);
+                     p = ReadonlyPixelViewModel.Crop(p, 0, 0, 32, 32);
+                     tips.Add(p);
+                  }
+               }
+            }
+         }
+         return tips;
       }
 
       public void CreateMapForWarp() {

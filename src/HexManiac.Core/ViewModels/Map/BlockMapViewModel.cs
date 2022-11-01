@@ -849,20 +849,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public IEventViewModel EventUnderCursor(double x, double y) {
+      public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
          foreach (var e in GetEvents()) {
             if (e.X == tileX && e.Y == tileY) {
-               SelectedEvent = e;
+               if (autoSelect) SelectedEvent = e;
                pixelData = null;
                NotifyPropertyChanged(nameof(PixelData));
                return e;
             }
          }
-         return SelectedEvent = null;
+         if (autoSelect) SelectedEvent = null;
+         return null;
       }
 
       public void DeselectEvent() {

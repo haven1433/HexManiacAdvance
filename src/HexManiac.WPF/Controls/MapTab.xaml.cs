@@ -10,10 +10,13 @@ using System.Windows.Media;
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class MapTab {
       private MapEditorViewModel ViewModel => (MapEditorViewModel)DataContext;
+      private new ToolTip ToolTip => (ToolTip)base.ToolTip;
 
       public MapTab() {
          InitializeComponent();
          DataContextChanged += UpdateDataContext;
+         base.ToolTip = new ToolTip();
+         ToolTipService.SetIsEnabled(this, false);
       }
 
       protected override void OnVisualParentChanged(DependencyObject oldParent) {
@@ -61,6 +64,20 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          transform.X = -partial;
       }
 
+      private void UpdateTooltipContent(object content) {
+         if (content == null) return;
+         if (content is not object[] tooltip) return;
+         ToolTipService.SetIsEnabled(this, false);
+         ToolTip.IsOpen = false;
+         InvalidateVisual();
+         base.ToolTip = new HexContentToolTip { DataContext = content }; // have to make a new one to prevent a glitch of text changing as the old one fades to closed.
+         if (tooltip.Length > 0) {
+            ToolTipService.SetIsEnabled(this, true);
+            ToolTip.IsOpen = true;
+            InvalidateVisual();
+         }
+      }
+
       #region Map Interaction
 
       private MouseButton withinMapInteraction = MouseButton.XButton1; // track which button is being used. Set to XButton1 when not in use.
@@ -104,7 +121,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var p = GetCoordinates(element, e);
          e.Handled = true;
          if (withinMapInteraction == MouseButton.XButton1) {
-            vm.Hover(p.X, p.Y);
+            UpdateTooltipContent(vm.Hover(p.X, p.Y));
             return;
          }
          if (withinMapInteraction == MouseButton.Left) {
