@@ -970,6 +970,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<PointerRun>(p2);
       }
 
+      [Fact]
+      public void PointerToLocation_AddAnchorToPointer_NoError() {
+         ViewPort.Edit("<100> ");
+
+         ViewPort.Edit("@000 ^ ");
+
+         Assert.Null(Model.GetNextRun(0).PointerSources);
+         Assert.Empty(Errors);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

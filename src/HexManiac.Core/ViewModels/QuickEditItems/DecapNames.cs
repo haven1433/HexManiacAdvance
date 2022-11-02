@@ -125,21 +125,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (address < 0 || address >= model.Count) return;
          var textLength = PCSString.ReadString(model, address, true);
          if (textLength < 3) return;
-         var text = model.TextConverter.Convert(model, address, textLength).ToCharArray();
-         for (int i = 1; i < text.Length; i++) {
-            if (IsLetter(text[i - 1]) && IsCap(text[i])) {
-               text[i] += (char)('a' - 'A');
+         var (_A, _a) = (0xBB, 0xD5);
+         var run = new PCSRun(model, address, textLength);
+         if (address == 0x245F01) ;
+         bool previousIsCap = run.CreateDataFormat(model, address) is PCS pcs0 && IsCap(pcs0.ThisCharacter);
+         for (int i = 1; i < textLength; i++) {
+            if (run.CreateDataFormat(model, address + i) is not PCS pcs) {
+               previousIsCap = false;
+               continue;
             }
+            var isCap = IsCap(pcs.ThisCharacter);
+            if (previousIsCap && isCap) {
+               token.ChangeData(model, address + i, (byte)(model[address + i] - _A + _a));
+            }
+            previousIsCap = isCap;
          }
-         token.ChangeData(model, address, model.TextConverter.Convert(new string(text), out var _));
       }
 
-      private bool IsLetter(char c) {
-         return char.IsLetter(c);
-      }
-
-      private bool IsCap(char c) {
-         return 'A' <= c && c <= 'Z';
+      private bool IsCap(string c) {
+         if (c.StartsWith("\"")) c = c.Substring(1);
+         if (c.Length != 1) return false;
+         return 'A' <= c[0] && c[0] <= 'Z';
       }
    }
 }

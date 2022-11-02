@@ -1071,6 +1071,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                changeToken.RemoveRun(runs[index]);
                RemoveIndex(index);
             }
+            if (run is PointerRun && run.PointerSources != null && run.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(run.Start)) {
+               // this run contains useful information, but no useful anchors. Remove the pointer sources.
+               run = run.Duplicate(run.Start, null);
+               changeToken.AddRun(run);
+               SetIndex(index, run);
+            }
 
             if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers && arrayRun2.Length > run.Length) {
                for (int i = 0; i < arrayRun2.ElementCount; i++) {
