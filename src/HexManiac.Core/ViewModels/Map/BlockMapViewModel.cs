@@ -866,6 +866,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return null;
       }
 
+      public IPixelViewModel AutoCrop(int warpID) {
+         const int SizeX = 7, SizeY = 7;
+         var map = GetMapModel();
+         var layout = GetLayout(map);
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
+         var warp = events.Warps[warpID];
+         var startX = warp.X - SizeX / 2;
+         var startY = warp.Y - SizeY / 2;
+         while (startX < 0) startX += 1;
+         while (startY < 0) startY += 1;
+         while (startX + SizeX > width) startX--;
+         while (startY + SizeY > height) startY--;
+
+         return ReadonlyPixelViewModel.Crop(this, startX * 16, startY * 16, SizeX * 16, SizeY * 16);
+      }
+
       public void DeselectEvent() {
          if (selectedEvent == null) return;
          SelectedEvent = null;
@@ -1459,6 +1476,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                data &= 0x3FF;
                if (blockRenders.Count > data) canvas.Draw(blockRenders[data], x * 16, y * 16);
                if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
+               if (collisionHighlight == -1 && selectedEvent is ObjectEventViewModel obj && obj.ShouldHighlight(x - border.West, y - border.North)) {
+                  HighlightCollision(canvas.PixelData, x * 16, y * 16);
+               }
             }
          }
 
@@ -1572,6 +1592,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
             return allOverworldSprites;
          }
+         init => allOverworldSprites = value;
       }
       public static List<IPixelViewModel> RenderOWs(IDataModel model) {
          var list = new List<IPixelViewModel>();

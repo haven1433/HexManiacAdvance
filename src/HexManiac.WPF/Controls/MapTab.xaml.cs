@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.ComponentModel;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -82,6 +83,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private MouseButton withinMapInteraction = MouseButton.XButton1; // track which button is being used. Set to XButton1 when not in use.
 
+      private static readonly object NoTooltip = new object[0];
       private void ButtonDown(object sender, MouseButtonEventArgs e) {
          if (e.ChangedButton == MouseButton.XButton1 && ViewModel.Back.CanExecute(null)) {
             ViewModel.Back.Execute();
@@ -92,6 +94,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             return;
          }
          if (withinMapInteraction != MouseButton.XButton1) return;
+         UpdateTooltipContent(NoTooltip);
          Focus();
          e.Handled = true;
          var element = (FrameworkElement)sender;

@@ -662,6 +662,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          element.SetValue(2, 0);
          element.SetValue(12, 0);
       }
+
+      private static readonly Dictionary<int, Point> facingVectors = new() {
+         [7] = new(0, -1),
+         [8] = new(0, 1),
+         [9] = new(-1, 0),
+         [10] = new(1, 0),
+      };
+      public bool ShouldHighlight(int x, int y) {
+         if (TrainerType != 0 && facingVectors.TryGetValue(MoveType, out var vector)) {
+            var (xx, yy) = (X, Y);
+            var range = TrainerRangeOrBerryID;
+            if (Math.Sign(y - yy) == vector.Y && Math.Sign(x - xx) == vector.X && Math.Abs(y - yy) <= range && Math.Abs(x - xx) <= range) {
+               return true;
+            }
+         } else {
+            if (Math.Abs(x - X) <= RangeX && Math.Abs(y - Y) <=    RangeY) return true;
+         }
+         return false;
+      }
    }
 
    public class WarpEventViewModel : BaseEventViewModel {

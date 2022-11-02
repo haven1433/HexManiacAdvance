@@ -334,6 +334,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static int GetItemAddress(IDataModel model, IEventViewModel eventModel) {
          if (eventModel is not ObjectEventViewModel objectModel) return Pointer.NULL;
          var address = objectModel.ScriptAddress;
+         return GetItemAddress(model, address);
+      }
+
+      public static int GetItemAddress(IDataModel model, int address) {
          if (address < 0) return Pointer.NULL;
          // 1A 00 80 item: 1A 01 80 01 00 09 01 02
          var expectedValues = new Dictionary<int, byte> {
@@ -347,7 +351,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             { 9, 0x00 },
             { 10, 0x09 },
             { 11, 0x01 },
-            { 12, 0x02 },
          };
          foreach (var (k, v) in expectedValues) {
             if (model[address + k] != v) return Pointer.NULL;

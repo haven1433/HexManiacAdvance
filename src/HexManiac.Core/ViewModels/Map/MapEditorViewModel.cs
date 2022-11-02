@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -437,7 +438,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var p = ToTilePosition(x, y);
             if (UpdateHover(p.X, p.Y, 1, 1)) {
                HoverPoint = $"({p.X}, {p.Y})";
-               if (map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
+               if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
                   return ShowEventHover(ev);
                } else {
                   return EmptyTooltip;
@@ -812,8 +813,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
          if (ev is WarpEventViewModel warp) {
             tips.Add(warp.TargetMapName);
-            var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map);
-            tips.Add(new ReadonlyPixelViewModel(blockmap.PixelWidth, blockmap.PixelHeight, blockmap.PixelData, blockmap.Transparent) { SpriteScale = .5 });
+            var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+            var image = blockmap.AutoCrop(warp.WarpID - 1);
+            tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
          } else if (ev is ObjectEventViewModel obj) {
             tips.AddRange(SummarizeScript(obj.ScriptAddress));
          } else if (ev is ScriptEventViewModel script) {
@@ -830,41 +832,151 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return tips.ToArray();
       }
 
+      public const int TextSummaryLimit = 60;
       private IEnumerable<object> SummarizeScript(int address) {
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
-         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x5C); // loadpointer, trainerbattle
+         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x1A, 0x5C, 0x86); // loadpointer, copyvarifnotzero, trainerbattle, mart
          var tips = new List<object>();
-         // get all the items from item balls
-         // TODO show items from pokemarts
-         // TODO get all the pokemon from the trainers
-         // TODO get all the text from the pokemon trainers?
+
          var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
          var icons = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
+         var trainerSprites = model.GetTableModel(HardcodeTablesModel.TrainerSpritesName);
+         var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+         var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
          foreach (var spot in scriptSpots) {
             if (spot.Line.LineCode[0] == 0x0F) {
+               // text
                var textStart = model.ReadPointer(spot.Address + 2);
-               var text = model.TextConverter.Convert(model, textStart, 100);
+               var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+               if (text.Length >= TextSummaryLimit) text += "...";
                tips.Add(text);
-            } else if (spot.Line.LineCode[0] == 0x5C && trainerTable != null && icons != null && icons[0].HasField("icon")) {
+            } else if (spot.Line.LineCode[0] == 0x1A && itemStats != null) {
+               var itemAddress = EventTemplate.GetItemAddress(model, spot.Address);
+               if (itemAddress == Pointer.NULL) continue;
+               var itemID = model.ReadMultiByteValue(itemAddress, 2);
+               if (itemID < 0 || itemID >= itemStats.Count || !itemStats[0].HasField("name")) continue;
+               tips.Add(itemStats[itemID].GetStringValue("name"));
+            } else if (
+               spot.Line.LineCode[0] == 0x5C &&
+               trainerTable != null &&
+               trainerTable[0].HasField("sprite") &&
+               trainerSprites != null &&
+               icons != null &&
+               icons[0].HasField("icon") &&
+               trainerSprites[0].HasField("sprite")
+            ) {
+               // trainer
+               if (spot.Address + 1 != 0x03) {
+                  // 5C ** trainer: arg: playerwin<>
+                  var textStart = model.ReadPointer(spot.Address + 6);
+                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                  if (text.Length >= TextSummaryLimit) text += "...";
+                  tips.Add(text);
+               }
+
                var trainerID = model.ReadMultiByteValue(spot.Address + 2, 2);
-               if (trainerTable.Count > trainerID && trainerID > 0) {
-                  // TODO items and trainer sprite
-                  var pokemon = trainerTable[trainerID].GetSubTable("pokemon");
-                  foreach (var mon in pokemon) {
-                     if (!mon.HasField("mon")) continue;
-                     var species = mon.GetValue("mon");
-                     if (species < 0 || species >= icons.Count) continue;
-                     var iconStart = icons[species].GetAddress("icon");
-                     var iconRun = model.GetNextRun(iconStart) as ISpriteRun;
-                     if (iconRun == null) continue;
-                     var p = ReadonlyPixelViewModel.Create(model, iconRun, true);
-                     p = ReadonlyPixelViewModel.Crop(p, 0, 0, 32, 32);
-                     tips.Add(p);
-                  }
+               var pokemon = new List<IPixelViewModel>();
+               var items = new List<IPixelViewModel>();
+               var trainer = AggregateTrainerImages(trainerID, pokemon, items);
+               if (trainer == null) continue;
+               tips.Add(BuildTrainerSummaryImage(trainer, pokemon, items));
+
+               if (spot.Address + 1 == 0x03) {
+                  // 5C ** trainer: arg: playerwin<>
+                  var textStart = model.ReadPointer(spot.Address + 6);
+                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                  if (text.Length >= TextSummaryLimit) text += "...";
+                  tips.Add(text + Environment.NewLine);
+               } else {
+                  // 5C ** trainer: arg: start<> playerwin<>
+                  var textStart = model.ReadPointer(spot.Address + 10);
+                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                  if (text.Length >= TextSummaryLimit) text += "...";
+                  tips.Add(text + Environment.NewLine);
+               }
+            } else if (spot.Line.LineCode[0] == 0x86 && itemStats != null) {
+               // mart
+               var tableRun = model.GetNextRun(model.ReadPointer(spot.Address + 1)) as ITableRun;
+               if (tableRun == null) continue;
+               var table = new ModelTable(model, tableRun);
+               int itemCount = 0;
+               foreach (var item in table) {
+                  if (itemCount == 5) { tips.Add("..."); break; }
+                  var id = item.GetValue(0);
+                  if (id < 0 || id >= itemStats.Count) continue;
+                  var name = itemStats[id].GetStringValue("name");
+                  tips.Add(name);
+                  itemCount++;
                }
             }
          }
          return tips;
+      }
+
+      private IPixelViewModel AggregateTrainerImages(int trainerID, IList<IPixelViewModel> pokemon, IList<IPixelViewModel> items) {
+         var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+         var pokemonSprites = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
+         var trainerSprites = model.GetTableModel(HardcodeTablesModel.TrainerSpritesName);
+         var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+
+         if (trainerID < 0 || trainerID >= trainerTable.Count) return null;
+         var trainerSpriteID = trainerTable[trainerID].GetValue("sprite");
+         var trainerSpriteStart = trainerSprites[trainerSpriteID].GetAddress("sprite");
+         var trainerSpriteRun = model.GetNextRun(trainerSpriteStart) as ISpriteRun;
+         if (trainerSpriteRun == null) return null;
+         var trainerSprite = ReadonlyPixelViewModel.Create(model, trainerSpriteRun, true);
+
+         var pokemonData = trainerTable[trainerID].GetSubTable("pokemon");
+         foreach (var mon in pokemonData) {
+            if (!mon.TryGetValue("mon", out var species)) continue;
+            if (species < 0 || species >= pokemonSprites.Count) continue;
+            var iconStart = pokemonSprites[species].GetAddress("icon");
+            var iconRun = model.GetNextRun(iconStart) as ISpriteRun;
+            if (iconRun == null) continue;
+            var p = ReadonlyPixelViewModel.Create(model, iconRun, true);
+            p = ReadonlyPixelViewModel.Crop(p, 0, 0, 32, 32);
+            pokemon.Add(p);
+         }
+
+         // item sprites are optional (they don't even exist for R/S)
+         if (itemSprites != null && itemSprites[0].HasField("sprite")) {
+            var itemIDs = new List<int>();
+            if (trainerTable[trainerID].TryGetValue("item1", out var itemID) && itemID > 0) itemIDs.Add(itemID);
+            if (trainerTable[trainerID].TryGetValue("item2", out itemID) && itemID > 0) itemIDs.Add(itemID);
+            if (trainerTable[trainerID].TryGetValue("item3", out itemID) && itemID > 0) itemIDs.Add(itemID);
+            if (trainerTable[trainerID].TryGetValue("item4", out itemID) && itemID > 0) itemIDs.Add(itemID);
+            foreach (var item in itemIDs) {
+               if (itemSprites.Count <= item) continue;
+               var itemStart = itemSprites[item].GetAddress("sprite");
+               var itemRun = model.GetNextRun(itemStart) as ISpriteRun;
+               if (itemRun == null) continue;
+               var p = ReadonlyPixelViewModel.Create(model, itemRun, true);
+               items.Add(p);
+            }
+         }
+
+         return trainerSprite;
+      }
+
+      private ReadonlyPixelViewModel BuildTrainerSummaryImage(IPixelViewModel trainer, IReadOnlyList<IPixelViewModel> pokemon, IReadOnlyList<IPixelViewModel> items) {
+         var pokemonColumns = pokemon.Count > 2 ? 2 : 1;
+         var width = 64 + pokemonColumns * 32;
+         var height = 64;
+         var itemOffset = items.Count > 0 ? (40 / items.Count) : 0;
+         var pokeOffset1 = pokemon.Count > 4 ? 16 : 32;
+         var pokeOffset2 = pokemon.Count > 5 ? 16 : 32;
+         var pokeCount2 = pokemon.Count > 2 ? pokemon.Count / 2 : 0;
+         var pokeCount1 = pokemon.Count - pokeCount2;
+         var data = new short[width * height];
+         for (int i = 0; i < data.Length; i++) data[i] = -2;
+         var canvas = new CanvasPixelViewModel(width, height, data) { Transparent = -2 };
+
+         canvas.Draw(trainer, 0, 0);
+         for (int i = 0; i < items.Count; i++) canvas.Draw(items[i], i * itemOffset, 40);
+         for (int i = 0; i < pokeCount1; i++) canvas.Draw(pokemon[i], 64, i * pokeOffset1);
+         for (int i = 0; i < pokeCount2; i++) canvas.Draw(pokemon[i + pokeCount1], 96, i * pokeOffset2);
+
+         return new ReadonlyPixelViewModel(width, height, canvas.PixelData, canvas.Transparent);
       }
 
       public void CreateMapForWarp() {

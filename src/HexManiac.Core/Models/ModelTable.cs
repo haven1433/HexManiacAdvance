@@ -171,6 +171,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      public bool TryGetValue(string fieldName, out int value) {
+         value = -1;
+         if (!HasField(fieldName)) return false;
+         value = GetValue(fieldName);
+         return true;
+      }
+
       public int GetAddress(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
