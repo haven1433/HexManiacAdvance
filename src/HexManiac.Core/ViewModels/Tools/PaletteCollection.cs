@@ -41,10 +41,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int SelectionStart {
          get => selectionStart;
          set {
-            if (Elements[value].Selected || !TryUpdate(ref selectionStart, value)) {
+            if ((Elements.Count > value && Elements[value].Selected) || !TryUpdate(ref selectionStart, value)) {
                SelectionSet?.Invoke(this, EventArgs.Empty);
                return;
-            } 
+            }
 
             SelectionEnd = selectionStart;
             history?.ChangeCompleted();
