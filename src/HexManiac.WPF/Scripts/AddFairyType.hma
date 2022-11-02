@@ -86,6 +86,10 @@
 @data.pokemon.stats/gardevoir/type2        Fairy
 @data.pokemon.stats/mawile/type2           Fairy
 
+# Change the types of Gen1/Gen3 moves to add the fairy type
+@data.pokemon.moves.stats.battle/charm/type       Fairy
+@data.pokemon.moves.stats.battle/sweetkiss/type   Fairy
+@data.pokemon.moves.stats.battle/moonlight/type   Fairy
 
 # ---------------- FR/LG: add extra TM Case palette ----------------
 # This will make TMs in the TM case use the new palette
