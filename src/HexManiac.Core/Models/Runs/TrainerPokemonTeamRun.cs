@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          this.model = model;
          this.showFullIVByteRange = showFullIVByteRange;
          StructType = model[primarySource - TrainerFormat_PointerOffset];
-         ElementCount = model[primarySource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset];
+         ElementCount = model.ReadMultiByteValue(primarySource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset, 4);
          var segments = Initialize();
          ElementContent = segments;
          ElementLength = ElementContent.Sum(segment => segment.Length);
