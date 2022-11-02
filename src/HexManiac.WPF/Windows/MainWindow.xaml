@@ -535,13 +535,17 @@
                   </TabControl.InputBindings>
                   <TabControl.ItemTemplate>
                      <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-                           <StackPanel.ToolTip>
+                        <Grid>
+                           <Grid.ColumnDefinitions>
+                              <ColumnDefinition Width="*" />
+                              <ColumnDefinition Width="Auto" />
+                           </Grid.ColumnDefinitions>
+                           <Grid.ToolTip>
                               <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
                                  <TextBlock Text="{Binding FullFileName}"/>
                               </ToolTip>
-                           </StackPanel.ToolTip>
-                           <StackPanel.ContextMenu>
+                           </Grid.ToolTip>
+                           <Grid.ContextMenu>
                               <ContextMenu>
                                  <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
                                  <MenuItem Header="Diff with Left" Command="{Binding DiffLeft}" />
@@ -550,17 +554,18 @@
                                  <MenuItem Header="Make IPS Patch, this -> Right" Command="{hsv:MethodCommand IpsPatchRight}"/>
                                  <MenuItem Header="Make UPS Patch, this -> Right" Command="{hsv:MethodCommand UpsPatchRight}"/>
                               </ContextMenu>
-                           </StackPanel.ContextMenu>
+                           </Grid.ContextMenu>
                            <TextBlock Name="TabTextBlock" Background="Transparent" Text="{Binding Name}" Foreground="{DynamicResource Primary}" MouseDown="TabMouseDown" MouseMove="TabMouseMove" MouseUp="TabMouseUp">
                               <TextBlock.InputBindings>
                                  <MouseBinding MouseAction="MiddleClick" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}"/>
                               </TextBlock.InputBindings>
                            </TextBlock>
                            <Button Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Width="15" Margin="5,0,0,0" Background="{DynamicResource Background}" BorderBrush="{DynamicResource Background}"
-                                    VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
+                                   Grid.Column="1" 
+                                   VerticalAlignment="Stretch" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
                               <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                            </Button>
-                        </StackPanel>
+                        </Grid>
                      </DataTemplate>
                   </TabControl.ItemTemplate>
                   <TabControl.ContentTemplate>
