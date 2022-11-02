@@ -113,9 +113,6 @@
 4F applymovement npc: data<>                 # has character 'npc' move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
-                                             # WARNING running this command from a Script event will crash the game unless
-                                             #    that script event's 'unknown' field in 0003 and its
-                                             #    "var number" refers to a valid script variable.
 50 applymovement2 npc: data<>                # like applymovement, but only uses variables, not literals
 51 waitmovement npc:                         # block further script execution until the npc movement is completed
 52 waitmovementpos npc: x. y.                # seems bugged. x/y do nothing, only works for FF (the player). Do not use.
