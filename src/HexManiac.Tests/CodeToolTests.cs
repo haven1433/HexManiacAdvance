@@ -175,5 +175,11 @@ namespace HavenSoft.HexManiac.Tests {
          ThumbScript = "add r3,r3,#6; add r3, #6";
          Assert.Equal(Model.ReadMultiByteValue(0, 2), Model.ReadMultiByteValue(2, 2));
       }
+
+      [Fact]
+      public void Word_PlusOne_Compiles() {
+         ThumbScript = ".word 0x8123456+1";
+         Assert.Equal(0x57, Model[0]);
+      }
    }
 }

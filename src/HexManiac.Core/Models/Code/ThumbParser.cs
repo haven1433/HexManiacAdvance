@@ -999,7 +999,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // Parse successful! Nothing else to do.
          } else {
             if (line.StartsWith("0x")) line = line.Substring(2);
+            var add = 0;
+            if (line.Contains("+")) {
+               var parts = line.Split("+");
+               if (!int.TryParse(parts[1], out add)) return false;
+               line = parts[0];
+            }
             if (!int.TryParse(line, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return false;
+            result += add;
          }
          results = new[] {
             (byte)result,
