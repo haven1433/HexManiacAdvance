@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                } else if (fileName.ToLower().EndsWith(".ups")) {
                   ViewModel.OverlayText = "Apply UPS Patch";
                } else if (fileName.ToLower().EndsWith(".hma")) {
-                  var lines = File.ReadLines(fileName)
+                  var lines = File.ReadLines(fileName, Encoding.GetEncoding("iso-8859-1"))
                      .Until(string.IsNullOrEmpty)
                      .Select(line => line.Substring(1));
                   ViewModel.OverlayText = Environment.NewLine.Join(lines);
