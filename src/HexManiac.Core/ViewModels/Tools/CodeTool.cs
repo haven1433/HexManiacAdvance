@@ -35,6 +35,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string errorText;
       public string ErrorText { get => errorText; private set => TryUpdate(ref errorText, value); }
 
+      private int fontSize = 12;
+      public int FontSize { get => fontSize; set => TryUpdate(ref fontSize, value); }
+
       public CodeMode Mode {
          get => mode;
          set {

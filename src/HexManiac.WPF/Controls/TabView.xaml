@@ -866,7 +866,7 @@
                   <TextBlock Text="Code Type" Margin="5,0" Grid.Column="0"/>
                   <hsg3hv:AngleComboBox Height="22" Direction="Out" Grid.Column="1" x:Name="CodeModeSelector" SelectedItem="{Binding CodeTool.Mode}"/>
                </Grid>
-               <Grid Name="CodeToolBody" DataContext="{Binding CodeTool}">
+               <Grid Name="CodeToolBody" DataContext="{Binding CodeTool}" PreviewMouseWheel="WheelCodeBody" TextBlock.FontSize="{Binding FontSize}">
                   <DockPanel Visibility="{Binding UseSingleContent, Converter={StaticResource BoolToVisibility}}">
                      <Decorator DockPanel.Dock="Top" HorizontalAlignment="Right" ToolTipService.ShowDuration="15000">
                         <Decorator.ToolTip>

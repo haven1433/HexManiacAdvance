@@ -621,5 +621,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var element = (FrameworkElement)sender;
          if (element.DataContext is EnumTupleElementViewModel vm) vm.Focus();
       }
-   }
+
+      private void WheelCodeBody(object sender, MouseWheelEventArgs e) {
+         if (Keyboard.Modifiers != ModifierKeys.Control) return;
+         e.Handled = true;
+         var element = (FrameworkElement)sender;
+         var context = (CodeTool)element.DataContext;
+         context.FontSize = (Math.Sign(e.Delta) + context.FontSize).LimitToRange(8, 20);
+      }
+    }
 }
