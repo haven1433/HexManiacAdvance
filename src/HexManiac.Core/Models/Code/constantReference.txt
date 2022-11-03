@@ -354,6 +354,17 @@ AXVE1.data.pokemon.type.length*8 0A0214,0A0310
 AXPE1.data.pokemon.type.length+5 3C1235
 AXPE1.data.pokemon.type.length*8 0A0214,0A0310
 
+# number of item effects that link to type boost. See sHoldEffectToType
+AXVE0.data.pokemon.type.holdEffect.length-1   03BCD8
+AXPE0.data.pokemon.type.holdEffect.length-1   03BCD8
+AXVE1.data.pokemon.type.holdEffect.length-1   03BCD8
+AXPE1.data.pokemon.type.holdEffect.length-1   03BCD8
+BPRE0.data.pokemon.type.holdEffect.length-1   03EF40
+BPGE0.data.pokemon.type.holdEffect.length-1   03EF40
+BPRE1.data.pokemon.type.holdEffect.length-1   03EF54
+BPGE1.data.pokemon.type.holdEffect.length-1   03EF54
+BPEE0.data.pokemon.type.holdEffect.length-1   069778
+
 # trainer phone calls
 BPEE0.data.trainers.call.odds.normal 195E8E
 BPEE0.data.trainers.call.odds.lightningrod 195EAC
