@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       private readonly DrawingContext context;
       private readonly IViewPort viewPort;
       private readonly Geometry rectangleGeometry;
+      private readonly bool LightWeightUI;
 
       public bool MouseIsOverCurrentFormat { get; set; }
 
@@ -50,9 +51,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          this.searchBytes = searchBytes;
          var testText = CreateText("00", fontSize, null);
          CellTextOffset = new Point((cellWidth - testText.Width) / 2, (cellHeight - testText.Height) / 2);
+         if (viewModel is ViewPort vp) LightWeightUI = vp.DistractionFreeMode;
       }
-
-      static readonly bool LightWeightUI = false;
 
       /// <summary>
       /// Rendering individual cells is too slow!
@@ -90,6 +90,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
          for (int x = 0; x < modelWidth; x++) {
             var cell = viewPort[x, position.Y];
+            bool lightweight = LightWeightUI && !viewPort.IsSelected(new(x, position.Y));
             var format = cell.Format;
             while (format is IDataFormatDecorator decorator) format = decorator.OriginalFormat;
 
@@ -100,7 +101,13 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is Pointer pointer) {
                if (pointer.HasError) collector.Collect<ErrorPCS>(format, x, 4, pointer.DestinationAsText);
                else if (pointer.OffsetValue != 0) collector.Collect<IDataFormat>(format, x, 4, pointer.DestinationAsText);
-               else collector.Collect<Pointer>(format, x, 4, pointer.DestinationAsText);
+               else {
+                  if (lightweight) {
+                     collector.Collect<Pointer>(format, x, 4, string.IsNullOrEmpty(pointer.DestinationName) ? "<unknown>" : pointer.DestinationAsText);
+                  } else {
+                     collector.Collect<Pointer>(format, x, 4, pointer.DestinationAsText);
+                  }
+               }
             } else if (format is PlmItem plm) {
                collector.Collect<PlmItem>(format, x, 2, plm.ToString());
             } else if (format is EggItem eggItem) {
@@ -126,7 +133,9 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is Braille braille) {
                collector.Collect<Braille>(format, x, 1, braille.ThisCharacter.ToString());
             } else if (format is None none) {
-               if (!LightWeightUI) {
+               if (lightweight && cell.Value == 0xFF) {
+                  // draw nothing, this is free space
+               } else if (!lightweight) {
                   if (none.IsSearchResult) collector.Collect<None>(format, x, 1, cell.Value.ToHexString());
                   else if (cell.Value == 0x00) collector.Collect<UnderEdit>(format, x, 1, "00");
                   else if (cell.Value == 0xFF) collector.Collect<Undefined>(format, x, 1, "FF");
@@ -134,6 +143,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   else collector.Collect<UnderEdit>(format, x, 1, cell.Value.ToHexString());
                } else if (cell.Value == 0xB5 && x % 2 == 1) {
                   collector.Collect<Undefined>(format, x - 1, 2, "thumb");
+               } else if (x % 2 == 1 || (x < modelWidth - 1 && viewPort[x+1, position.Y].Value != 0xB5)) {
+                  collector.Collect<Undefined>(format, x, 1, "..");
                }
             } else if (format is BitArray array) {
                collector.Collect<BitArray>(format, x, array.Length, array.DisplayValue);

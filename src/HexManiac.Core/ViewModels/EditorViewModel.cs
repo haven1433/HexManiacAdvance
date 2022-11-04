@@ -1350,6 +1350,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var isNewTabWithSameModel = !tabs.Contains(args.NewTab) && sender is ViewPort oldViewPort && args.NewTab is ViewPort newViewPort && oldViewPort.Model == newViewPort.Model;
          if (sender != SelectedTab && !isNewTabWithSameModel) return;
          args.RequestAccepted = true;
+         // if (args.NewTab is ViewPort vp) vp.DistractionFreeMode = sender is MapEditorViewModel;
          var index = tabs.IndexOf(args.NewTab);
          if (index == -1) {
             Add(args.NewTab);

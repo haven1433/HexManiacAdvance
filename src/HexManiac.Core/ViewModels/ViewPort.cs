@@ -56,6 +56,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public PythonTool PythonTool { get; }
 
+      private bool distractionFreeMode;
+      public bool DistractionFreeMode { get => distractionFreeMode; set => Set(ref distractionFreeMode, value); }
+
       private HexElement[,] currentView;
       private bool exitEditEarly, withinComment, skipToNextGameCode;
 
