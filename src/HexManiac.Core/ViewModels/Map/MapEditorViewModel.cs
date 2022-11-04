@@ -61,6 +61,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(ShowEventPanel));
             ShowHeaderPanel = false;
+            primaryMap.BlockEditor.ShowTiles = false;
             DrawBlockIndex = -1;
             CollisionIndex = -1;
          }
