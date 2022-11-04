@@ -559,7 +559,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void ToggleShowTiles() {
          ShowTiles = !ShowTiles;
-         tutorials.Complete(Tutorial.BlockButton_EditTiles);
+         tutorials.Complete(Tutorial.BlockButton_EditBlocks);
       }
 
       public void HideTiles() => ShowTiles = false;

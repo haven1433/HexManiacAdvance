@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       EscapeKey_UnselectBlock,
       DragBlocks_SelectBlocks,
 
-      BlockButton_EditTiles,
+      BlockButton_EditBlocks,
       ClickTile_SelectTile,
       ClickBlock_DrawTile,
       FlipButton_FlipBlock,
@@ -80,7 +80,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // editing blocks
          {
-            Tutorials.Add(new("RightAngleArrow", "Edit Tiles", "Select a block, then click this button in the block panel to show the tile panel."));
+            Tutorials.Add(new("RightAngleArrow", "Edit Blocks", "Select a block, then click this button in the block panel to show the tile panel."));
             Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile to select it."));
             Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's tile at the top of the block panel to replace it with your selected tile/palette."));
             Tutorials.Add(new("ArrowsLeftRight", "Flip Tile", "Click the arrows next to a tile to flip that tile vertically or horizontally."));
