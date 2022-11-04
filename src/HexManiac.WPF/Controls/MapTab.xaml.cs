@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.ComponentModel;
-using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -243,6 +242,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          p.X /= 16;
          p.Y /= 16;
          mainModel.SelectBlock((int)p.X, (int)p.Y);
+         e.Handled = true;
       }
 
       private void BlocksMove(object sender, MouseEventArgs e) {
@@ -253,6 +253,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          p.X /= 16;
          p.Y /= 16;
          mainModel.DragBlock((int)p.X, (int)p.Y);
+         e.Handled = true;
       }
 
       private void BlocksUp(object sender, MouseButtonEventArgs e) {
@@ -264,6 +265,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          p.X /= 16;
          p.Y /= 16;
          mainModel.ReleaseBlock((int)p.X, (int)p.Y);
+         e.Handled = true;
       }
 
       private void TilesDown(object sender, MouseButtonEventArgs e) {
