@@ -1226,7 +1226,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapModel = GetMapModel();
          var events = mapModel.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "warpCount", "warps");
-         var newEvent = new WarpEventViewModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = 0 };
+         var newEvent = new WarpEventViewModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = element.ArrayIndex + 1 };
          SelectedEvent = newEvent;
          return newEvent;
       }

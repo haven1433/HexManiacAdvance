@@ -214,6 +214,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var vm = ViewModel;
          var p = GetCoordinates(element, e);
          vm.Zoom(p.X, p.Y, e.Delta > 0);
+         e.Handled = true;
       }
 
       private void BlocksDown(object sender, MouseButtonEventArgs e) {

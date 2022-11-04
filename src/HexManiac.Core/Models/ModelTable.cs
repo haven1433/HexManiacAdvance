@@ -61,6 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Func<ModelDelta> tokenFactory;
 
       public int Start => table.Start + table.ElementLength * arrayIndex;
+      public int ArrayIndex => arrayIndex;
       public int Length => table.ElementLength;
       public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
       public ITableRun Table => table;
