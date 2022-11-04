@@ -408,7 +408,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
                   frame = decoder.Frames[0];
                } catch (FileFormatException) {
-                  MessageBox.Show("Could not decode bitmap. The file may not be a valid PNG.");
+                  ShowCustomMessageBox("Could not decode bitmap. The file may not be a valid PNG.");
                   return default;
                }
                var metadata = (BitmapMetadata)frame.Metadata;
@@ -426,10 +426,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             }
          } catch(UnauthorizedAccessException) {
             var nl = Environment.NewLine;
-            MessageBox.Show($"Access Denied.{nl}Do you have read access to the file?{nl}Your anti-virus may be blocking {EditorViewModel.ApplicationName}.");
+            ShowCustomMessageBox($"Access Denied.{nl}Do you have read access to the file?{nl}Your anti-virus may be blocking {EditorViewModel.ApplicationName}.");
             return default;
          } catch (IOException io) {
-            MessageBox.Show($"Error: {io.Message}.");
+            ShowCustomMessageBox($"Error: {io.Message}.");
             return default;
          }
       }

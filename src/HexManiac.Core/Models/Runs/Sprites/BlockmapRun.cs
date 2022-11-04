@@ -6,9 +6,6 @@ using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks.Dataflow;
-using static IronPython.Modules._ast;
 
 /*
  layout<[

@@ -231,8 +231,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          set {
             var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
             if (seg is ArrayRunEnumSegment) SetEnumValue(fieldName, (string)value);
-            else if (seg.Type == ElementContentType.Pointer) SetAddress(fieldName, (int)value);
-            else if (seg.Type == ElementContentType.PCS) SetStringValue(fieldName, (string)value);
+            else if (seg.Type == ElementContentType.Pointer) {
+               if (value is string str) {
+                  SetStringValue(fieldName, str);
+               } else {
+                  SetAddress(fieldName, (int)value);
+               }
+            } else if (seg.Type == ElementContentType.PCS) SetStringValue(fieldName, (string)value);
             else SetValue(fieldName, (int)value);
          }
       }
@@ -279,8 +284,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             var bytes = model.TextConverter.Convert(value, out var _);
             var pcsRun = (PCSRun)model.GetNextRun(valueAddress);
             pcsRun = model.RelocateForExpansion(token, pcsRun, bytes.Count);
-            token.ChangeData(model, pcsRun.Start, bytes);
-            for (int i = pcsRun.Length; i < length; i++) token.ChangeData(model, pcsRun.Start + i, 0xFF);
+            pcsRun = (PCSRun)pcsRun.DeserializeRun(value, token, out var _);
+            model.ObserveRunWritten(token, pcsRun);
          } else {
             throw new NotImplementedException();
          }

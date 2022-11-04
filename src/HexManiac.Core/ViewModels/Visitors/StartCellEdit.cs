@@ -78,6 +78,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (underEdit.CurrentText.StartsWith(ViewPort.GotoMarker.ToString())) {
             Result = char.IsLetterOrDigit(Input) || char.IsWhiteSpace(Input);
             Result |= Input.IsAny($"{ArrayAnchorSeparator}{ViewPort.CommandMarker}()~=._+-'\"".ToCharArray());
+            if (underEdit.CurrentText.Count('(') > underEdit.CurrentText.Count(')') && Input == ' ') Result = true; // allow spaces if we have unmatched ()
             if (underEdit.CurrentText.Length == 1) Result |= Input.IsAny('{', '}');
             return;
          } else if (underEdit.CurrentText.StartsWith(AnchorStart.ToString())) {

@@ -1270,10 +1270,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Clear.Execute();
       }
 
+      string pathContext;
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
          if (file.Name.ToLower().EndsWith(".hma")) {
             var edit = Encoding.Default.GetString(file.Contents);
-            Edit(edit);
+            using (Scope(ref pathContext, Path.GetDirectoryName(Path.GetFullPath(file.Name)), old => pathContext = old)) {
+               Edit(edit);
+            }
             return true;
          } else if (file.Name.ToLower().EndsWith(".ips")) {
             history.ChangeCompleted();
@@ -2660,7 +2663,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RequestMenuClose?.Invoke(this, EventArgs.Empty);
                result = true;
             }
-            if (char.IsWhiteSpace(currentText[currentText.Length - 1])) {
+            if (char.IsWhiteSpace(currentText[currentText.Length - 1]) && currentText[1] == CommandMarker && currentText.Count('(') > currentText.Count(')')) {
+               // allow commands to contain spaces
+            } else if (char.IsWhiteSpace(currentText[currentText.Length - 1])) {
                var destination = currentText.Substring(1).Trim();
                ClearEdits(point);
                if (currentText.Contains("=")) {
@@ -2792,6 +2797,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ///             * Does not error if clearing exactly the length of a non-table run. Don't clear the data either: all 0's may not be valid (such as with strings)
       /// put(1234)-> put the bytes 12, then 34, at the current location, but don't change the current selection.
       ///             works no matter what the current data is.
+      /// importimage(path, greedy) -> imports over the current sprite (or pointer to sprite) using cautious, greedy, or smart.
+      ///                              Path is relative to the current rom, unless loading from an .hma file.
       /// </summary>
       private void ExecuteMetacommand(string command) {
          command = command.ToLower();
@@ -2850,6 +2857,52 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             for (int i = 0; i < content.Length / 2; i++) {
                var data = byte.Parse(content.Substring(i * 2, 2), NumberStyles.HexNumber);
                CurrentChange.ChangeData(Model, index + i, data);
+            }
+         } else if (command.StartsWith("importimage(") && paramsEnd > 12) {
+            var content = command.Substring(12, paramsEnd - 12);
+            var run = Model.GetNextRun(index);
+            if (run is ITableRun table) {
+               var offset = table.ConvertByteOffsetToArrayOffset(index);
+               index = Model.ReadPointer(offset.SegmentStart);
+               run = Model.GetNextRun(index);
+            } else if (run is PointerRun pointer) {
+               index = Model.ReadPointer(pointer.Start);
+               run = Model.GetNextRun(index);
+            }
+            var args = content.Trim().Split(' ').ToArray();
+            if (!Enum.TryParse<ImportType>(args[1], true, out var importType)) {
+               RaiseError($"Expected Cautious, Greedy, or Smart, but got {args[1]}.");
+               exitEditEarly = true;
+            } else {
+               var error = Tools.SpriteTool.TryImport(mapper.FileSystem, pathContext ?? Path.GetDirectoryName(FullFileName), run.Start, args[0], importType);
+               if (error == null || !error.HasError) {
+                  // all good
+               } else if (error.IsWarning) {
+                  RaiseMessage(error.ErrorMessage);
+               } else {
+                  RaiseError(error.ErrorMessage);
+                  exitEditEarly = true;
+               }
+            }
+         } else if (command.StartsWith("exportimage(") && paramsEnd > 12) {
+            var content = command.Substring(12, paramsEnd - 12);
+            var run = Model.GetNextRun(index);
+            if (run is ITableRun table) {
+               var offset = table.ConvertByteOffsetToArrayOffset(index);
+               index = Model.ReadPointer(offset.SegmentStart);
+               run = Model.GetNextRun(index);
+            } else if (run is PointerRun pointer) {
+               index = Model.ReadPointer(pointer.Start);
+               run = Model.GetNextRun(index);
+            }
+            var error = Tools.SpriteTool.Export(mapper.FileSystem, pathContext ?? Path.GetDirectoryName(fullFileName), run.Start, content);
+            if (error == null || !error.HasError) {
+               // all good
+            } else if (error.IsWarning) {
+               RaiseMessage(error.ErrorMessage);
+            } else {
+               RaiseError(error.ErrorMessage);
+               exitEditEarly = true;
             }
          } else {
             RaiseError($"Could not parse metacommand {command}.");

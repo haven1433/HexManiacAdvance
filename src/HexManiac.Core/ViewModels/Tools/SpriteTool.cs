@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
@@ -608,6 +609,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var otherColors = palette.Skip(1).ToList();
          while (otherColors.Contains(copy[0])) copy[0] = (short)((copy[0] + 1) % 0x8000);
          return copy;
+      }
+
+      public ErrorInfo TryImport(IFileSystem fileSystem, string currentDirectory, int address, string filePath, ImportType importType) {
+         try {
+            (short[] image, int width) = fileSystem.LoadImage(Path.Combine(currentDirectory, filePath));
+            SpriteAddress = address;
+            if (!TryValidate(image, out var spriteRun, out var paletteRun)) return new ErrorInfo("Could not import.");
+            if (width != PixelWidth || PixelHeight != PixelHeight) return new ErrorInfo("Could not import.");
+            var problemPoint = ImportSinglePageSpriteAndPalette(fileSystem, image, spriteRun, paletteRun, importType);
+            if (problemPoint.X >= 0 && problemPoint.Y >= 0) return new ErrorInfo($"Error importing sprite at pixels {problemPoint}.");
+            return ErrorInfo.NoError;
+         } catch (IOException io) {
+            return new ErrorInfo(io.Message);
+         }
+      }
+
+      public ErrorInfo Export(IFileSystem fileSystem, string currentDirectory, int address, string filePath) {
+         SpriteAddress = address;
+         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (spriteRun != null && paletteRun != null && spriteRun.SpriteFormat.BitsPerPixel == 4 && paletteRun.AllColors(model).Count == 16) {
+            var pixels = spriteRun.GetPixels(model, SpritePage, -1);
+            var palette = paletteRun.GetPalette(model, PalettePage);
+            fileSystem.SaveImage(pixels, palette, Path.Combine(currentDirectory, filePath));
+            return ErrorInfo.NoError;
+         } else {
+            return new ErrorInfo($"Could not export sprite at {address:X6}.");
+         }
       }
 
       private SpriteFormat ReadDefaultSpriteFormat() {
