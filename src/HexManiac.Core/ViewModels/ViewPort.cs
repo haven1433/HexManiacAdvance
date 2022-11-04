@@ -240,7 +240,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                args = new TabChangeRequestedEventArgs(this);
                RequestTabChange?.Invoke(mapper, args);
-               if (args.RequestAccepted) selection.SetJumpBackTab(mapper);
+               if (args.RequestAccepted) {
+                  selection.SetJumpBackTab(mapper);
+                  FocusToolPanel.Raise(this);
+               }
             });
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
@@ -919,6 +922,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
+      public event EventHandler FocusToolPanel;
 #pragma warning restore 0067
 
       public Shortcuts Shortcuts { get; }

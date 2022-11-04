@@ -13,6 +13,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private MapEditorViewModel ViewModel => (MapEditorViewModel)DataContext;
       private new ToolTip ToolTip => (ToolTip)base.ToolTip;
 
+      public event EventHandler FocusElement;
+
       public MapTab() {
          InitializeComponent();
          DataContextChanged += UpdateDataContext;
@@ -158,6 +160,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ButtonLeave(object sender, MouseEventArgs e) {
          UpdateTooltipContent(NoTooltip);
+         if (ViewModel == null) return;
          ViewModel.ShowHighlightCursor = false;
       }
 

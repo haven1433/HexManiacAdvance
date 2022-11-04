@@ -138,7 +138,7 @@
             <ColumnDefinition/>
          </Grid.ColumnDefinitions>
          <!-- Left Panel -->
-         <Grid DataContext="{Binding Tools}" HorizontalAlignment="Stretch">
+         <Grid Name="ToolPanel" DataContext="{Binding Tools}" HorizontalAlignment="Stretch">
             <Grid.Style>
                <Style TargetType="Grid">
                   <Style.Triggers>
@@ -900,7 +900,7 @@
                      <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
                         Text="{Binding ErrorText}"  Visibility="{Binding ShowErrorText, Converter={StaticResource BoolToVisibility}}" />
                      <ScrollViewer Name="CodeToolMultiTextBox" PreviewMouseWheel="ScrollCodeContent">
-                        <ItemsControl ItemsSource="{Binding Contents}">
+                        <ItemsControl ItemsSource="{Binding Contents}" Name="CodeToolMultiTextBoxItems" VerticalAlignment="Top">
                            <ItemsControl.ItemTemplate>
                               <DataTemplate>
                                  <StackPanel>

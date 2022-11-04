@@ -274,6 +274,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          e.Handled = true;
       }
 
+      private void FocusTabElement(object sender, EventArgs e) {
+         var panel = (FrameworkElement)sender;
+         NavigationCommands.NavigateJournal.Execute(panel, this);
+      }
+
       protected override void OnDragEnter(DragEventArgs e) {
          base.OnDragEnter(e);
          if (e.Data.GetDataPresent(DataFormats.FileDrop)) {

@@ -574,6 +574,7 @@
                            <ContentControl.Resources>
                               <DataTemplate DataType="{x:Type hshmcvm:ViewPort}">
                                  <hsg3hv:TabView
+                                          FocusElement="FocusTabElement"
                                           AnimateScroll="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.AnimateScroll}"
                                           ZoomLevel="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ZoomLevel}"/>
                               </DataTemplate>
@@ -594,7 +595,7 @@
                                  <hsg3hv:ImageEditorView />
                               </DataTemplate>
                               <DataTemplate DataType="{x:Type mapvm:MapEditorViewModel}">
-                                 <hsg3hv:MapTab />
+                                 <hsg3hv:MapTab FocusElement="FocusTabElement" />
                               </DataTemplate>
                            </ContentControl.Resources>
                         </ContentControl>

@@ -21,6 +21,7 @@ using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class TabView {
+      public event EventHandler FocusElement;
 
       #region ZoomLevel
 
@@ -69,6 +70,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
          if (e.OldValue is ViewPort viewPortOld) {
             viewPortOld.Tools.StringTool.PropertyChanged -= HandleStringToolPropertyChanged;
+            viewPortOld.FocusToolPanel -= FocusToolPanel;
          }
          if (e.NewValue is IViewPort viewPortNew1) {
             viewPortNew1.PropertyChanged += HandleViewPortScrollChanged;
@@ -77,6 +79,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
          if (e.NewValue is ViewPort viewPortNew) {
             viewPortNew.Tools.StringTool.PropertyChanged += HandleStringToolPropertyChanged;
+            viewPortNew.FocusToolPanel += FocusToolPanel;
          }
       }
 
@@ -507,6 +510,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ClearPopup(object sender, MouseButtonEventArgs e) => CodeContentsPopup.IsOpen = false;
 
       private void ScrollCodeContent(object sender, MouseWheelEventArgs e) => CodeContentsPopup.IsOpen = false;
+
+      private void FocusToolPanel(object sender, EventArgs e) {
+         if (DataContext is IViewPort viewPort) {
+            if (viewPort.Tools.SelectedTool is CodeTool code) {
+               if (code.Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.TrainerAiScript, CodeMode.AnimationScript)) {
+                  FocusElement.Raise(CodeToolMultiTextBoxItems);
+                  return;
+               }
+            }
+         }
+         FocusElement.Raise(ToolPanel);
+      }
 
       private void ComboBoxArrayElementViewTextInput(object sender, TextCompositionEventArgs e) {
          var element = (FrameworkElement)sender;
