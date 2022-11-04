@@ -12,22 +12,26 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void WheelOverImage(object sender, MouseWheelEventArgs e) {
-         ViewModel.LayerMode = (ViewModel.LayerMode + 1) % 3;
+         // ViewModel.LayerMode = (ViewModel.LayerMode + 1) % 3;
+         e.Handled = true;
       }
 
       private void MouseEnterTile(object sender, MouseEventArgs e) {
          var element = (FrameworkElement)sender;
          ViewModel.EnterTile((IPixelViewModel)element.DataContext);
+         e.Handled = true;
       }
 
       private void MouseClickTile(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          ViewModel.DrawOnTile((IPixelViewModel)element.DataContext);
+         e.Handled = true;
       }
 
       private void MouseGrabTile(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          ViewModel.GetSelectionFromTile((IPixelViewModel)element.DataContext);
+         e.Handled = true;
       }
 
       private void MouseExitTiles(object sender, MouseEventArgs e) => ViewModel.ExitTiles();

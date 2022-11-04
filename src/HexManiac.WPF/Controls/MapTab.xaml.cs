@@ -180,6 +180,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void BackgroundDown(object sender, MouseButtonEventArgs e) {
+         if (ViewModel == null) return;
          if (e.ChangedButton == MouseButton.XButton1 && ViewModel.Back.CanExecute(null)) {
             ViewModel.Back.Execute();
             return;
@@ -190,9 +191,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
          if (withinMapInteraction != MouseButton.XButton1) return;
          UpdateTooltipContent(NoTooltip);
-         Focus();
-         e.Handled = true;
          var element = (FrameworkElement)sender;
+         if (!element.IsMouseDirectlyOver) return;
+         e.Handled = true;
          var vm = ViewModel;
          var p = GetCoordinates(element, e);
          element.CaptureMouse();
@@ -202,6 +203,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void BackgroundMove(object sender, MouseEventArgs e) {
          var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
          var vm = ViewModel;
          if (vm == null) return;
          var p = GetCoordinates(element, e);
@@ -211,8 +213,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void BackgroundUp(object sender, MouseButtonEventArgs e) {
-         e.Handled = true;
          var element = (FrameworkElement)sender;
+         if (!element.IsMouseCaptured) return;
          var previousInteraction = withinMapInteraction;
          withinMapInteraction = MouseButton.XButton1;
          element.ReleaseMouseCapture();
@@ -220,6 +222,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.ChangedButton != previousInteraction) return;
          var vm = ViewModel;
          if (vm == null) return;
+         e.Handled = true;
          var p = GetCoordinates(element, e);
          vm.DragUp(p.X, p.Y);
       }
@@ -331,12 +334,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          element.CaptureMouse();
          withinShiftInteraction = true;
          ViewModel.ShiftDown(p.X, p.Y);
+         e.Handled = true;
       }
 
       private void ShifterMove(object sender, MouseEventArgs e) {
          if (!withinShiftInteraction) return;
          var p = GetCoordinates(MapButtons, e);
          ViewModel.ShiftMove(p.X, p.Y);
+         e.Handled = true;
       }
 
       private void ShifterUp(object sender, MouseButtonEventArgs e) {
@@ -346,6 +351,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var p = GetCoordinates(MapButtons, e);
          ViewModel.ShiftUp(p.X, p.Y);
          withinShiftInteraction = false;
+         e.Handled = true;
       }
 
       #endregion

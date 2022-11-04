@@ -31,12 +31,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                tut.PropertyChanged -= HandleTutorialChanged;
                tut.AnimateMovement -= HandleTutorialChanged;
             }
+            oldVM.CompletedTutorial -= ShowCheck;
          }
          if (e.NewValue is MapTutorialsViewModel newVM) {
             foreach (var tut in newVM.Tutorials) {
                tut.PropertyChanged += HandleTutorialChanged;
                tut.AnimateMovement += HandleTutorialChanged;
             }
+            newVM.CompletedTutorial += ShowCheck;
          }
       }
 
@@ -64,8 +66,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (ui == null) return;
          ui.Visibility = Visibility.Visible;
          ui.AnimateTop(tut.TargetPosition * ElementHeight);
-         ui.AnimateOpacity(tut.Incomplete ? 1 : 0);
+         ui.AnimateOpacity(double.NaN, tut.Incomplete ? 1 : 0, 0);
          ui.AnimateLeft(tut.Incomplete ? 0 : 100);
+      }
+
+      private void ShowCheck(object sender, EventArgs e) {
+         var tut = (MapTutorialViewModel)sender;
+         var ui = (FrameworkElement)Tutorials.ItemContainerGenerator.ContainerFromItem(tut);
+         if (ui == null) return;
+         Canvas.SetTop(Check, tut.TopEdge + 15);
+         var offset = 300 + Canvas.GetLeft(Tutorials);
+         Check.AnimateRight(ui.ActualWidth / 2 - offset, ui.ActualWidth * 1.2 - offset);
+         Check.AnimateOpacity(1, 0, 1);
       }
 
       private static Duration Duration(double seconds) => new(TimeSpan.FromSeconds(seconds));
@@ -83,12 +95,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          });
       }
 
-      public static void AnimateOpacity(this FrameworkElement element, double opacity) {
-         element.BeginAnimation(UIElement.OpacityProperty, new DoubleAnimation(opacity, Time));
+      public static void AnimateOpacity(this FrameworkElement element, double from, double to, double acceleration) {
+         var animation = new DoubleAnimation(to, Time) { AccelerationRatio = acceleration };
+         if (!double.IsNaN(from)) animation.From = from;
+         element.BeginAnimation(UIElement.OpacityProperty, animation);
       }
 
       public static void AnimateLeft(this FrameworkElement element, double position) {
          element.BeginAnimation(Canvas.LeftProperty, new DoubleAnimation(position, Time));
+      }
+
+      public static void AnimateRight(this FrameworkElement element, double from, double to) {
+         element.BeginAnimation(Canvas.RightProperty, new DoubleAnimation(from, to, Time) { DecelerationRatio = 1 });
       }
    }
 }

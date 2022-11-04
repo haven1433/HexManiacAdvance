@@ -40,6 +40,7 @@
             </Style>
          </ItemsControl.ItemContainerStyle>
       </ItemsControl>
+      <Path Name="Check" Data="{res:Icon Check}" Fill="{DynamicResource Stream2}" Stretch="Uniform" Width="60" Height="60" Opacity="0" Canvas.Top="0" Canvas.Right="0" IsHitTestVisible="False" />
       <Border Canvas.Top="-20" Canvas.Right="0" Height="20" Width="110" Background="{DynamicResource Backlight}" BorderBrush="{StaticResource Secondary}"
               BorderThickness="1" Visibility="{Binding IsMouseOver, ElementName=ContentPanel, Converter={StaticResource BoolToVisibility}}">
          <Border.ContextMenu>

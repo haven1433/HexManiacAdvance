@@ -349,5 +349,6 @@
          <RectangleGeometry Rect="2,3,8,10"/>
          <PathGeometry Figures="M2,10 l-2,0 0,-10 8,0 0,3"/>
       </GeometryGroup>
+      <PathGeometry x:Name="Check" Figures="M0,0 L5,5 10,-5 4.5,2 Z" />
    </ItemsControl.Items>
 </ItemsControl>

@@ -38,7 +38,7 @@
       <Decorator IsHitTestVisible="False" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-60,0,0" Name="BackButtonWidget" />
       <Decorator IsHitTestVisible="False" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="96,-60,0,0" Name="UndoButtonWidget" />
 
-      <!-- Block Panel -->
+      <!-- Blocks Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
          <local:AngleBorder DockPanel.Dock="Top" Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
@@ -202,7 +202,7 @@
          </ScrollViewer>
       </DockPanel>
 
-      <!-- Event Panel -->
+      <!-- Events Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="EventPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}" Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
          <local:AngleBorder Width="100" Content="Events" DockPanel.Dock="Top" HorizontalContentAlignment="Center" Direction="Out" />
@@ -756,7 +756,8 @@
          </ItemsControl.ItemContainerStyle>
          <ItemsControl.ItemTemplate>
             <DataTemplate>
-               <Border MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterUp" Width="20" Height="20" Background="{DynamicResource Backlight}">
+               <Border MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterUp" Width="20" Height="20"
+                       Background="{DynamicResource Backlight}" ToolTipService.InitialShowDelay="0">
                   <Path Name="Path" Fill="{DynamicResource Secondary}" Stretch="Uniform" />
                   <Border.ContextMenu>
                      <ContextMenu IsEnabled="{Binding EnableContextMenu}" ItemsSource="{Binding ContextItems}">

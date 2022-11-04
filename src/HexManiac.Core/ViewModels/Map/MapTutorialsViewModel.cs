@@ -62,6 +62,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool SeeMore => Tutorials.Count(tut => tut.Incomplete) > VisibleCount;
 
+      public event EventHandler CompletedTutorial;
+
       public MapTutorialsViewModel() {
          // general navigation
          {
@@ -125,7 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          Reset();
          for(int i = 0; i < Tutorials.Count; i++) {
-            Tutorials[i].RequestClose += (sender, e) => Complete((Tutorial)Tutorials.IndexOf((MapTutorialViewModel)sender));
+            Tutorials[i].RequestClose += (sender, e) => CompleteNoCheck((Tutorial)Tutorials.IndexOf((MapTutorialViewModel)sender));
             Tutorials[i].Index = i + 1;
          }
       }
@@ -164,8 +166,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Complete(Tutorial id) {
          var index = (int)id;
          if (!Tutorials[index].Incomplete) return;
+         CompleteNoCheck(id);
+         CompletedTutorial.Raise(Tutorials[index]);
+      }
+
+      private void CompleteNoCheck(Tutorial id) {
+         var index = (int)id;
+         if (!Tutorials[index].Incomplete) return;
          Tutorials[index].Incomplete = false;
-         Tutorials[index].TriggerAnimation();
          for (int i = index + 1; i < Tutorials.Count; i++) {
             Tutorials[i].TargetPosition -= 1;
             if (Tutorials[i].Incomplete && Tutorials[i].TargetPosition < VisibleCount) Tutorials[i].TriggerAnimation();
