@@ -1130,13 +1130,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (bottom * BlockMapViewModel.BlocksPerRow + right > PrimaryMap.BlockRenders.Count) return;
          var (width, height) = (right - xx + 1, bottom - yy + 1);
          if (width == 1 && height == 1) {
+            DrawMultipleTiles = false;
+            BlockEditorVisible = true;
+            drawBlockIndex = -1; // we want to run a full update on DrawBlockIndex
             DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
             if (autoUpdateCollision) {
                var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
                if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
             }
-            DrawMultipleTiles = false;
-            BlockEditorVisible = true;
             return;
          }
          var scale = (width < 4 && height < 4) ? 2 : 1;
