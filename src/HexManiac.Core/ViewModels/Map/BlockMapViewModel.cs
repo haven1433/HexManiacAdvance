@@ -375,6 +375,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
                blockEditor.AutoscrollTiles += HandleAutoscrollTiles;
                blockEditor.Bind(nameof(blockEditor.ShowTiles), (editor, args) => BorderEditor.ShowBorderPanel &= !editor.ShowTiles);
+               blockEditor.Bind(nameof(blockEditor.BlockIndex), (editor, args) => lastDrawX = lastDrawY = -1);
             }
             return blockEditor;
          }
