@@ -37,6 +37,7 @@
 
       <!-- Block Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
+         <local:AngleBorder DockPanel.Dock="Top" Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
                <RowDefinition Height="Auto" MinHeight="112"/>
@@ -60,7 +61,7 @@
                   ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
             <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,35,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
-               <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Tiles"
+               <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
             <Grid Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,55">
@@ -789,9 +790,12 @@
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
               Background="{DynamicResource Background}">
          <DockPanel Name="TilePanel" Width="400" HorizontalAlignment="Right">
-            <ToggleButton IsChecked="{Binding ShowTiles}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
-               <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
-            </ToggleButton>
+            <Grid DockPanel.Dock="Top">
+               <ToggleButton IsChecked="{Binding ShowTiles}" Width="20" Height="20" HorizontalAlignment="Right" Margin="1">
+                  <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+               </ToggleButton>
+               <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" />
+            </Grid>
             <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4">
                <local:PixelImage DataContext="{Binding DrawTileRender}" Margin="0,0,50,0" TransparentBrush="{DynamicResource Background}" />
                <ComboBox ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />

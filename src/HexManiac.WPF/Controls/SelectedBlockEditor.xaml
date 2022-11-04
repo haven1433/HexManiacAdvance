@@ -40,7 +40,7 @@
                      <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                         <Setter Property="BorderBrush" Value="Transparent" />
                         <Setter Property="BorderThickness" Value="1" />
-                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="Background" Value="{DynamicResource Background}" />
                         <Setter Property="Width" Value="8" />
                         <Setter Property="Height" Value="8" />
                         <Setter Property="Padding" Value="0" />
@@ -50,6 +50,13 @@
                         <Setter Property="Stretch" Value="Fill" />
                      </Style>
                   </Canvas.Resources>
+
+                  <Viewbox Canvas.Bottom="95" Canvas.Left="-1" Stretch="Uniform" StretchDirection="DownOnly" Width="48" Height="12">
+                     <local:AngleBorder Content="Foreground" Direction="Out" />
+                  </Viewbox>
+                  <Viewbox Canvas.Bottom="47" Canvas.Left="48" Stretch="Uniform" StretchDirection="DownOnly" Width="48" Height="12">
+                     <local:AngleBorder Content="Background" Direction="Out" />
+                  </Viewbox>
 
                   <Button Width="24" Canvas.Left="{Binding FlipHLeft}" Canvas.Top="{Binding FlipHTop}" Command="{res:MethodCommand FlipH}" Visibility="{Binding FlipHVisible, Converter={StaticResource BoolToVisibility}}">
                      <Path Data="{res:Icon ArrowsLeftRight}" />
@@ -123,26 +130,6 @@
                      <DoubleAnimation DecelerationRatio="1" Duration="0:0:0.5" Storyboard.TargetName="RightBottomFront" Storyboard.TargetProperty="(Canvas.Left)" To="48" />
                   </Storyboard>
                </ControlTemplate.Resources>
-               <ControlTemplate.Triggers>
-                  <DataTrigger Binding="{Binding LayerMode}" Value="0">
-                     <DataTrigger.EnterActions>
-                        <BeginStoryboard Name="AnimateToSplitView" Storyboard="{StaticResource AnimateToSplitView}" />
-                        <RemoveStoryboard BeginStoryboardName="AnimateToFrontView" />
-                     </DataTrigger.EnterActions>
-                  </DataTrigger>
-                  <DataTrigger Binding="{Binding LayerMode}" Value="1">
-                     <DataTrigger.EnterActions>
-                        <BeginStoryboard Name="AnimateToBackView" Storyboard="{StaticResource AnimateToBackView}" />
-                        <RemoveStoryboard BeginStoryboardName="AnimateToSplitView" />
-                     </DataTrigger.EnterActions>
-                  </DataTrigger>
-                  <DataTrigger Binding="{Binding LayerMode}" Value="2">
-                     <DataTrigger.EnterActions>
-                        <BeginStoryboard Name="AnimateToFrontView" Storyboard="{StaticResource AnimateToFrontView}" />
-                        <RemoveStoryboard BeginStoryboardName="AnimateToBackView" />
-                     </DataTrigger.EnterActions>
-                  </DataTrigger>
-               </ControlTemplate.Triggers>
             </ControlTemplate>
          </ContentControl.Template>
       </ContentControl>
