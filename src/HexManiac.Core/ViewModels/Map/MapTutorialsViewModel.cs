@@ -77,14 +77,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("UndoArrow", "Undo", "Use the Undo button in the toolbar to undo any mistakes."));
             Tutorials.Add(new("FillBucket", "Paint Blocks", "Double-Click over the map to paint with the selected block."));
             Tutorials.Add(new("EscapeKey", "Unselect Block", "Press the escape key to unselect a block."));
-            Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the block panel to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
+            Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the Blocks panel to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
          }
 
          // editing blocks
          {
-            Tutorials.Add(new("RightAngleArrow", "Edit Block", "Blocks are made of Tiles in a 2x2 grid, with foreground and background layers. Select a block, then click 'Edit Block' in the block panel to show the tile panel."));
-            Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile in the Tile panel to select it."));
-            Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's foreground or background tile at the top of the block panel to replace it with your selected tile/palette."));
+            Tutorials.Add(new("RightAngleArrow", "Edit Block", "Blocks are made of Tiles in a 2x2 grid, with foreground and background layers. Select a block, then click 'Edit Block' in the Blocks panel to show the Tiles panel."));
+            Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile in the Tiles panel to select it."));
+            Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's foreground or background tile at the top of the Blocks panel to replace it with your selected tile/palette."));
             Tutorials.Add(new("ArrowsLeftRight", "Flip Tile", "Click the arrows next to the selected block's foreground/background tile to flip that tile vertically or horizontally."));
          }
 

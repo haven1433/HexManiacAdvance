@@ -81,6 +81,23 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
       }
 
+      private void OnEnterTutorial(object sender, MapTutorialViewModel tutorial) {
+         var index = (Tutorial)(tutorial.Index - 1);
+         if (index == Tutorial.LeftClickBlock_SelectBlock) FocusElement.Raise(BlockViewer);
+         if (index == Tutorial.BlockButton_EditBlocks) FocusElement.Raise(EditBlockButton);
+         if (index == Tutorial.ToolbarButton_GotoWildData) FocusElement.Raise(WildButton);
+         if (index == Tutorial.ToolbarButton_EditMapHeader) FocusElement.Raise(MapHeaderButton);
+         if (index == Tutorial.ClickBlock_DrawTile) FocusElement.Raise(BlockEditor);
+         if (index == Tutorial.BackButton_GoBack) FocusElement.Raise(BackButtonWidget);
+         if (index == Tutorial.ToolbarUndo_Undo) FocusElement.Raise(UndoButtonWidget);
+         if (index == Tutorial.ToolbarButton_EditBorderBlock) FocusElement.Raise(EditBorderButton);
+         if (index == Tutorial.ToolbarTemplate_ConfigureObject) FocusElement.Raise(ShowTemplateSettingsButton);
+         if (index == Tutorial.ToolbarTemplate_CreateObject) FocusElement.Raise(ObjectEventTemplate);
+         if (index == Tutorial.ToolbarTemplate_CreateEvent) FocusElement.Raise(OtherEventTemplates);
+
+         // TODO cycle events needs focus too
+      }
+
       #region Map Interaction
 
       private MouseButton withinMapInteraction = MouseButton.XButton1; // track which button is being used. Set to XButton1 when not in use.

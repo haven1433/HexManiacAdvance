@@ -484,10 +484,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void ExecuteAnimation(object sender, ExecutedRoutedEventArgs e) {
          if (!IsActive) return;
          var element = (FrameworkElement)e.Parameter;
-         Dispatcher.BeginInvoke((Action<FrameworkElement>)DispatchAnimation, DispatcherPriority.ApplicationIdle, element);
+         Dispatcher.BeginInvoke(DispatchAnimation, DispatcherPriority.ApplicationIdle, element);
       }
 
-      private static readonly Duration fastTime = TimeSpan.FromSeconds(.3);
+      private static readonly Duration fastTime = TimeSpan.FromSeconds(.5);
       private void DispatchAnimation(FrameworkElement element) {
          if (element == GotoBox && !ViewModel.GotoViewModel.ShowAll) return;
          var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);
@@ -495,10 +495,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FocusAnimationElement.Visibility = Visibility.Visible;
          FocusAnimationElement.RenderTransform = new TranslateTransform();
 
-         var xAnimation = new DoubleAnimation(-ContentPanel.ActualWidth + point.X + element.ActualWidth, fastTime);
-         var yAnimation = new DoubleAnimation(point.Y, fastTime);
-         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth, element.ActualWidth, fastTime);
-         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight, element.ActualHeight, fastTime);
+         var xAnimation = new DoubleAnimation((-ContentPanel.ActualWidth + point.X + element.ActualWidth) / 2, -ContentPanel.ActualWidth + point.X + element.ActualWidth, fastTime) { DecelerationRatio = 1 };
+         var yAnimation = new DoubleAnimation(point.Y / 2, point.Y, fastTime) { DecelerationRatio = 1 };
+         var widthAnimation = new DoubleAnimation(ContentPanel.ActualWidth / 2, element.ActualWidth, fastTime) { DecelerationRatio = 1 };
+         var heightAnimation = new DoubleAnimation(ContentPanel.ActualHeight / 2, element.ActualHeight, fastTime) { DecelerationRatio = 1 };
          heightAnimation.Completed += (sender1, e1) => {
             FocusAnimationElement.Visibility = Visibility.Collapsed;
             FocusAnimationElement.RenderTransform = null;

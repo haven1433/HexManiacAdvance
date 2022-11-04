@@ -35,6 +35,9 @@
          <RowDefinition Height="*" />
       </Grid.RowDefinitions>
 
+      <Decorator IsHitTestVisible="False" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,-60,0,0" Name="BackButtonWidget" />
+      <Decorator IsHitTestVisible="False" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="96,-60,0,0" Name="UndoButtonWidget" />
+
       <!-- Block Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
          <local:AngleBorder DockPanel.Dock="Top" Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
@@ -61,7 +64,7 @@
                   ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
             <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,30,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
-               <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block"
+               <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block" x:Name="EditBlockButton"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
             <Grid Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,0,0,55">
@@ -157,7 +160,7 @@
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
             </Decorator>
             <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,0,10,0">
-               <local:SelectedBlockEditor DataContext="{Binding PrimaryMap.BlockEditor}"/>
+               <local:SelectedBlockEditor x:Name="BlockEditor" DataContext="{Binding PrimaryMap.BlockEditor}"/>
             </Decorator>
          </Grid>
          <ScrollViewer Name="BlockViewer">
@@ -920,7 +923,7 @@
       </Border>
 
       <!-- Tutorials Panel -->
-      <local:TutorialControl x:Name="TutorialsControl" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" DataContext="{Binding Tutorials}" />
+      <local:TutorialControl x:Name="TutorialsControl" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Center" DataContext="{Binding Tutorials}" EnterTutorial="OnEnterTutorial" />
 
       <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5" Panel.ZIndex="2">
@@ -932,8 +935,8 @@
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinMinus}" />
             </Button>
          </StackPanel>
-         <local:AngleButton Direction="Left" Content="Edit Map Header" Command="{res:MethodCommand ToggleHeaderPanel}" Margin="5,0,0,0" />
-         <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Width="110">
+         <local:AngleButton Direction="Left" Content="Edit Map Header" Command="{res:MethodCommand ToggleHeaderPanel}" Margin="5,0,0,0" x:Name="MapHeaderButton" />
+         <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Width="110" x:Name="WildButton">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
                   <Style.Triggers>
@@ -962,8 +965,9 @@
                </TextBlock.Style>
             </TextBlock>
          </local:AngleButton>
-         <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" Command="{res:MethodCommand ToggleBorderEditor}" Margin="0,0,5,0" />
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
+         <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" Command="{res:MethodCommand ToggleBorderEditor}" Margin="0,0,5,0" x:Name="EditBorderButton" />
+         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" Name="ObjectEventTemplate"
+                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
             <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>
          </Border>
          <ToggleButton Padding="0" Width="12" Height="12" VerticalAlignment="Top" Name="ShowTemplateSettingsButton" IsChecked="{Binding ShowTemplateSettings}">
@@ -1098,21 +1102,23 @@
                </Grid>
             </Border>
          </Popup>
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Accent}"
-                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}"
-                 ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Warp">
-            <TextBlock Text="W" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
-         </Border>
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Stream2}"
-                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}"
-                 ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Script">
-            <TextBlock Text="Sc" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
-         </Border>
-         <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}"
-                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}"
-                 ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Signpost">
-            <TextBlock Text="Sp" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
-         </Border>
+         <StackPanel Name="OtherEventTemplates" Orientation="Horizontal">
+            <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Accent}"
+                    MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Warp}"
+                    ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Warp">
+               <TextBlock Text="W" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+            </Border>
+            <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Stream2}"
+                    MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Script}"
+                    ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Script">
+               <TextBlock Text="Sc" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+            </Border>
+            <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}"
+                    MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}"
+                    ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Signpost">
+               <TextBlock Text="Sp" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+            </Border>
+         </StackPanel>
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Text1}"
                  Visibility="{Binding PrimaryMap.CanCreateFlyEvent, Converter={StaticResource BoolToVisibility}}"
                  MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Fly}"

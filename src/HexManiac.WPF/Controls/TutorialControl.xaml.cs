@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.Map;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,6 +13,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          exitControlAnimaiton = new(0, Duration(.2));
 
       private const double ElementHeight = 90;
+
+      public event EventHandler<MapTutorialViewModel> EnterTutorial;
 
       public MapTutorialsViewModel ViewModel => DataContext as MapTutorialsViewModel;
 
@@ -47,6 +50,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       protected override void OnMouseLeave(MouseEventArgs e) {
          base.OnMouseLeave(e);
          Tutorials.BeginAnimation(Canvas.LeftProperty, exitControlAnimaiton);
+      }
+
+      private void OnEnterTutorial(object sender, EventArgs e) {
+         var element = (FrameworkElement)sender;
+         if (element.DataContext is not MapTutorialViewModel tutorial) return;
+         EnterTutorial.Raise(this, tutorial);
       }
 
       private void HandleTutorialChanged(object sender, EventArgs e) {

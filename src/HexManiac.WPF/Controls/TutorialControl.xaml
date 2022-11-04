@@ -15,7 +15,7 @@
          <ItemsControl.ItemTemplate>
             <!-- Each card is 400x90, with 100x90 on the left for the icon/title and 300x90 for the description. -->
             <DataTemplate>
-               <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Backlight}">
+               <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Backlight}" MouseEnter="OnEnterTutorial">
                   <Canvas Width="398" Height="88">
                      <Decorator Width="98" Height="78">
                         <Path Data="{Binding Icon, Converter={StaticResource IconConverter}}" Stretch="Uniform" Margin="5,20,5,5" Fill="{DynamicResource Secondary}" />
