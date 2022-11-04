@@ -501,7 +501,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Primary Interaction (left-click)
 
       private PrimaryInteractionType interactionType;
-      public void PrimaryDown(double x, double y, int clickCount) {
+      public void PrimaryDown(double x, double y, PrimaryInteractionStart click) {
          PrimaryMap.BlockEditor.ShowTiles = false;
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          var map = MapUnderCursor(x, y);
@@ -512,7 +512,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
-            EventDown(x, y, ev, clickCount);
+            EventDown(x, y, ev, click);
             return;
          } else {
             primaryMap.DeselectEvent();
@@ -521,7 +521,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          ShowHeaderPanel = false;
-         DrawDown(x, y, clickCount);
+         DrawDown(x, y, click);
       }
 
       public void PrimaryMove(double x, double y) {
@@ -536,10 +536,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       Point drawSource;
-      private void DrawDown(double x, double y, int clickCount) {
+      private void DrawDown(double x, double y, PrimaryInteractionStart click) {
          interactionType = PrimaryInteractionType.Draw;
          var map = MapUnderCursor(x, y);
-         if (clickCount == 2) {
+         if (click == PrimaryInteractionStart.DoubleClick) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
                // nothing to paint
                interactionType = PrimaryInteractionType.None;
@@ -580,19 +580,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          primaryMap.RedrawEvents(); // editing blocks in a map can draw over events, we need to redraw events now that we have new blocks
       }
 
-      private void EventDown(double x, double y, IEventViewModel ev, int clickCount) {
+      private void EventDown(double x, double y, IEventViewModel ev, PrimaryInteractionStart click) {
          SelectedEvent = ev;
-         if (SelectedEvent is WarpEventViewModel warp && clickCount == 2) {
+         if (SelectedEvent is WarpEventViewModel warp && click == PrimaryInteractionStart.DoubleClick) {
             NavigateTo(warp.Bank, warp.Map);
             Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
-         } else if (clickCount == 2 && SelectedEvent is ObjectEventViewModel obj) {
+         } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             viewPort.Goto.Execute(obj.ScriptAddress);
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
-         } else if (clickCount == 2 && SelectedEvent is ScriptEventViewModel script) {
+         } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ScriptEventViewModel script) {
             viewPort.Goto.Execute(script.ScriptAddress);
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (
-            clickCount == 2 &&
+            click == PrimaryInteractionStart.DoubleClick &&
             SelectedEvent is SignpostEventViewModel signpost &&
             signpost.ShowPointer &&
             signpost.Pointer >= 0 &&
@@ -1336,6 +1336,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 
+   public enum PrimaryInteractionStart { None, Click, DoubleClick, ControlClick }
    public enum PrimaryInteractionType { None, Draw, Event }
 
    public record TileSelection(int[]Tiles, int Width);
