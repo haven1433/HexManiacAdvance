@@ -45,6 +45,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public ObservableCollection<EventSelector> EventSelectors { get; } = new();
+
       private void HandleSelectedEventChanged(IEventViewModel old) {
          if (old == selectedEvent) return;
          if (old != null) {
@@ -56,6 +58,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             selectedEvent.CycleEvent += CycleActiveEvent;
          }
          RedrawEvents();
+
+         EventSelectors.Clear();
+         if (selectedEvent != null) {
+            var parts = selectedEvent.EventIndex.Split("/");
+            var index = int.Parse(parts[0]) - 1;
+            var count = int.Parse(parts[1]);
+            for (int i = 0; i < count; i++) {
+               EventSelector selector = new() { IsSelected = i == index, Index = i };
+               selector.Bind(nameof(selector.IsSelected), (sender, e) => {
+                  var events = GetEvents().Where(ev => ev.GetType() == selectedEvent.GetType()).ToList();
+                  SelectedEvent = events[sender.Index];
+               });
+               EventSelectors.Add(selector);
+            }
+         }
       }
 
       private void RefreshFromEventChange(object sender, EventArgs e) => RedrawEvents();
@@ -1805,6 +1822,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                                                          connections<>
                                                          music: layoutID: regionSectionID. cave. weather. mapType. padding: flags.|t|allowCycling.|allowEscaping.|allowRunning.|showMapName::. battleType.
        */
+   }
+
+   public class EventSelector : ViewModelCore {
+      private bool isSelected;
+      public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
+
+      private int index;
+      public int Index { get => index; set => Set(ref index, value); }
+
+      public void Select() => IsSelected = true;
    }
 
    public record Border(int North, int East, int South, int West);

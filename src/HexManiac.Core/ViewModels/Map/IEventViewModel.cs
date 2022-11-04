@@ -167,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ModelArrayElement Element => element;
       public ModelDelta Token => element.Token;
 
-      public string EventType => GetType().Name.Replace("EventModel", string.Empty);
+      public string EventType => GetType().Name.Replace("EventViewModel", " Event");
       public string EventIndex {
          get {
             var eventIndex = (element.Start - element.Table.Start) / element.Table.ElementLength + 1;

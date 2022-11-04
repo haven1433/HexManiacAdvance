@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("FourDirectionArrows", "Move Event", "Drag an event to move it on the map."));
             Tutorials.Add(new(LeftClick, "Unselect Event", "Click on any part of the map to unselect the event."));
             Tutorials.Add(new("LeftMouseDoubleClick", "See Script", "Double-Click on an object, script tile, or signpost to jump to its script in the other tab."));
-            Tutorials.Add(new("ArrowsLeftRight", "Cycle Events", "Use the buttons at the top of the event panel to change selection between the events in the current map. There are four groups."));
+            Tutorials.Add(new("ArrowsLeftRight", "Cycle Events", $"Use the Group buttons at the top of the Events panel to change between the 5 groups of events:{Environment.NewLine}Objects, Warps, Scripts, Sigpost, and Fly."));
          }
 
          // connections

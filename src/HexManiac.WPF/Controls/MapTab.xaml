@@ -96,7 +96,7 @@
                         </Grid.Resources>
                         <!-- Repoint Layout -->
                         <local:AngleButton Content="Repoint Layout" Direction="Out" Grid.ColumnSpan="5" Width="200"
-                                           ToolTip="{Binding RepointLayoutText}" Command="{Binding RepointLayout}" /> 
+                                           ToolTip="{Binding RepointLayoutText}" Command="{Binding RepointLayout}" />
                         <!-- Repoint Border Block -->
                         <local:AngleButton Content="Repoint Border Block" Direction="Out" Grid.Row="1" Grid.ColumnSpan="5" Width="200"
                                            ToolTip="{Binding RepointBorderText}" Command="{Binding RepointBorderBlock}" />
@@ -203,33 +203,35 @@
       </DockPanel>
 
       <!-- Event Panel -->
-      <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="EventPanel"
-         Width="{Binding ActualWidth, ElementName=BlockPanel}"
-         Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
-         <DockPanel>
-            <Grid DockPanel.Dock="Top">
-               <Grid.ColumnDefinitions>
-                  <ColumnDefinition />
-                  <ColumnDefinition />
-                  <ColumnDefinition />
-                  <ColumnDefinition />
-                  <ColumnDefinition />
-               </Grid.ColumnDefinitions>
-               <local:AngleButton Grid.Column="0" Content="Group" Direction="Left" VerticalAlignment="Bottom"
+      <DockPanel Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="EventPanel"
+         Width="{Binding ActualWidth, ElementName=BlockPanel}" Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
+         <local:AngleBorder Width="100" Content="Events" DockPanel.Dock="Top" HorizontalContentAlignment="Center" Direction="Out" />
+         <Grid DockPanel.Dock="Top" Name="EventCategorySelector" Height="24">
+            <Grid.ColumnDefinitions>
+               <ColumnDefinition />
+               <ColumnDefinition />
+               <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <local:AngleButton Grid.Column="0" Margin="2,0" Content="Prev Group" Direction="Left" VerticalAlignment="Bottom"
                   Command="{Binding SelectedEvent.CycleEventCommand}" CommandParameter="{x:Static map:EventCycleDirection.PreviousCategory}" />
-               <local:AngleButton Grid.Column="1" Content="Event" Direction="Left" VerticalAlignment="Bottom"
-                  Command="{Binding SelectedEvent.CycleEventCommand}" CommandParameter="{x:Static map:EventCycleDirection.PreviousEvent}" />
-               <StackPanel Grid.Column="2">
-                  <TextBlock TextAlignment="Center" Text="{Binding SelectedEvent.EventType}" />
-                  <local:AngleBorder Direction="Out">
-                     <TextBlock TextAlignment="Center" Text="{Binding SelectedEvent.EventIndex}" />
-                  </local:AngleBorder>
-               </StackPanel>
-               <local:AngleButton Grid.Column="3" Content="Event" Direction="Right" VerticalAlignment="Bottom"
-                  Command="{Binding SelectedEvent.CycleEventCommand}" CommandParameter="{x:Static map:EventCycleDirection.NextEvent}" />
-               <local:AngleButton Grid.Column="4" Content="Group" Direction="Right" VerticalAlignment="Bottom"
+            <TextBlock Grid.Column="1" TextAlignment="Center" Text="{Binding SelectedEvent.EventType}" />
+            <local:AngleButton Grid.Column="2" Margin="2,0" Content="Next Group" Direction="Right" VerticalAlignment="Bottom"
                   Command="{Binding SelectedEvent.CycleEventCommand}" CommandParameter="{x:Static map:EventCycleDirection.NextCategory}" />
-            </Grid>
+         </Grid>
+         <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding PrimaryMap.EventSelectors}" HorizontalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <WrapPanel HorizontalAlignment="Center"/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <RadioButton IsChecked="{Binding IsSelected}" />
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+
+         <ScrollViewer>
             <ContentControl DataContext="{Binding SelectedEvent}" Content="{Binding}">
                <ContentControl.Resources>
                   <DataTemplate DataType="{x:Type map:ObjectEventViewModel}">
@@ -252,7 +254,7 @@
                            </local:AngleBorder>
                            <local:AngleTextBox Direction="Out" TextBinding="{Binding ObjectID, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
-                     
+
                         <local:AngleComboBox Grid.Row="0" Grid.Column="1" Direction="Right" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}" Margin="0,2,2,2">
                            <local:AngleComboBox.ItemsPanel>
                               <ItemsPanelTemplate>
@@ -568,8 +570,8 @@
                   </DataTemplate>
                </ContentControl.Resources>
             </ContentControl>
-         </DockPanel>
-      </ScrollViewer>
+         </ScrollViewer>
+      </DockPanel>
 
       <!-- Header Panel -->
       <ScrollViewer Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="HeaderPanel"

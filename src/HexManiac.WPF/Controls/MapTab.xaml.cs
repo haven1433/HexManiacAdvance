@@ -93,8 +93,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (index == Tutorial.ToolbarTemplate_ConfigureObject) FocusElement.Raise(ShowTemplateSettingsButton);
          if (index == Tutorial.ToolbarTemplate_CreateObject) FocusElement.Raise(ObjectEventTemplate);
          if (index == Tutorial.ToolbarTemplate_CreateEvent) FocusElement.Raise(OtherEventTemplates);
-
-         // TODO cycle events needs focus too
+         if (index == Tutorial.EventButtons_CycleEvent) FocusElement.Raise(EventCategorySelector);
       }
 
       #region Map Interaction
