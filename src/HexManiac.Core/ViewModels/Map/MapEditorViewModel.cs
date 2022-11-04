@@ -653,7 +653,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
             Tutorials.Complete(Tutorial.ToolbarTemplate_CreateObject);
          } else if (type == EventCreationType.Warp) {
-            var desiredMap = (bank: 0, map: 0);
+            var desiredMap = (bank: primaryMap.MapID / 1000, map: primaryMap.MapID % 1000);
             if (backStack.Count > 0) {
                var last = backStack[backStack.Count - 1];
                if (last >= 0) {
