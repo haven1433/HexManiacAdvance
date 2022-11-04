@@ -765,7 +765,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool updateHighlight = collisionIndex == collisionHighlight && collisionHighlight != -1;
          (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
          if (updateBlock) canvas.Draw(blockRenders[blockIndex], xx, yy);
-         if (updateHighlight) HighlightCollision(pixelData, xx, yy);
+         if (updateHighlight && xx < pixelWidth && yy < pixelHeight) HighlightCollision(pixelData, xx, yy);
          if (updateBlock || updateHighlight) NotifyPropertyChanged(nameof(PixelData));
          tutorials.Complete(Tutorial.LeftClickMap_DrawBlock);
       }
@@ -872,6 +872,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout(map);
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
+         if (events.Warps.Count <= warpID) return null;
          var warp = events.Warps[warpID];
          var startX = warp.X - SizeX / 2;
          var startY = warp.Y - SizeY / 2;

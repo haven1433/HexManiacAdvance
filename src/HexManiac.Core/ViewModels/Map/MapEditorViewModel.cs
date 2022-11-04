@@ -11,6 +11,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
+using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -815,7 +816,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             tips.Add(warp.TargetMapName);
             var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
             var image = blockmap.AutoCrop(warp.WarpID - 1);
-            tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+            if (image != null) {
+               tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+            }
          } else if (ev is ObjectEventViewModel obj) {
             tips.AddRange(SummarizeScript(obj.ScriptAddress));
          } else if (ev is ScriptEventViewModel script) {
@@ -1084,11 +1087,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void SelectBlock(int x, int y) {
          while (y * BlockMapViewModel.BlocksPerRow + x > PrimaryMap.BlockRenders.Count) y -= 1;
          blockInteractionStart = new(x, y);
-         DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
-         if (autoUpdateCollision) {
-            var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
-            if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
-         }
+         selectionFromBlock = false;
+         drawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
+         NotifyPropertiesChanged(nameof(HighlightBlockX), nameof(HighlightBlockY), nameof(HighlightBlockWidth), nameof(HighlightBlockHeight));
          Tutorials.Complete(Tutorial.LeftClickBlock_SelectBlock);
       }
 
@@ -1112,7 +1113,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          drawBlockIndex = yy * BlockMapViewModel.BlocksPerRow + xx;
          NotifyPropertiesChanged(nameof(HighlightBlockX), nameof(HighlightBlockY), nameof(HighlightBlockWidth), nameof(HighlightBlockHeight));
-         DrawMultipleTiles = true;
          Tutorials.Complete(Tutorial.DragBlocks_SelectBlocks);
       }
 
@@ -1123,7 +1123,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (yy > bottom) (yy, bottom) = (bottom, yy);
          if (bottom * BlockMapViewModel.BlocksPerRow + right > PrimaryMap.BlockRenders.Count) return;
          var (width, height) = (right - xx + 1, bottom - yy + 1);
-         if (width == 1 && height == 1) return;
+         if (width == 1 && height == 1) {
+            DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
+            if (autoUpdateCollision) {
+               var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
+               if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
+            }
+            DrawMultipleTiles = false;
+            BlockEditorVisible = true;
+            return;
+         }
          var scale = (width < 4 && height < 4) ? 2 : 1;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
          for (x = 0; x < width; x++) {
