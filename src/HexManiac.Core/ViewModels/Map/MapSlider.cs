@@ -9,6 +9,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public const int SliderSize = 20;
       protected readonly int id;
 
+      public abstract string Tooltip { get; }
+
       private MapSliderIcons icon;
       public MapSliderIcons Icon { get => icon; set => SetEnum(ref icon, value); }
 
@@ -57,6 +59,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private Action notify;
       private ConnectionModel connection, inverse;
 
+      public override string Tooltip => "Drag to adjust the connection between the maps.";
+
       public ConnectionSlider(ConnectionModel connection, (int group, int num) sourceMapInfo, Action notify, int id, MapSliderIcons icon, MapTutorialsViewModel tutorials, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          (this.notify, this.connection) = (notify, connection);
          this.tutorials = tutorials;
@@ -102,6 +106,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ExpansionSlider : MapSlider {
       private Action<MapDirection, int> resize;
+
+      public override string Tooltip => $"Drag to change the {(Icon == MapSliderIcons.LeftRight ? "width" : "height")} of the map";
 
       public ExpansionSlider(Action<MapDirection, int> resize, int id, MapSliderIcons icon, IEnumerable<IMenuCommand> contextItems, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          foreach (var item in contextItems) ContextItems.Add(item);

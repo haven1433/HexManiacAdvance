@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (withinMapInteraction == MouseButton.Left) {
             vm.PrimaryMove(p.X, p.Y);
          } else if (withinMapInteraction == MouseButton.Middle) {
-            vm.DragMove(p.X, p.Y);
+            vm.DragMove(p.X, p.Y, true);
          } else if (withinMapInteraction == MouseButton.Right) {
             vm.SelectMove(p.X, p.Y);
          }
@@ -154,6 +154,56 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else if (previousInteraction == MouseButton.Right) {
             vm.SelectUp(p.X, p.Y);
          }
+      }
+
+      private void ButtonLeave(object sender, MouseEventArgs e) {
+         UpdateTooltipContent(NoTooltip);
+         ViewModel.ShowHighlightCursor = false;
+      }
+
+      private void BackgroundDown(object sender, MouseButtonEventArgs e) {
+         if (e.ChangedButton == MouseButton.XButton1 && ViewModel.Back.CanExecute(null)) {
+            ViewModel.Back.Execute();
+            return;
+         }
+         if (e.ChangedButton == MouseButton.XButton2 && ViewModel.Forward.CanExecute(null)) {
+            ViewModel.Forward.Execute();
+            return;
+         }
+         if (withinMapInteraction != MouseButton.XButton1) return;
+         UpdateTooltipContent(NoTooltip);
+         Focus();
+         e.Handled = true;
+         var element = (FrameworkElement)sender;
+         var vm = ViewModel;
+         var p = GetCoordinates(element, e);
+         element.CaptureMouse();
+         withinMapInteraction = MouseButton.Middle;
+         vm.DragDown(p.X, p.Y);
+      }
+
+      private void BackgroundMove(object sender, MouseEventArgs e) {
+         var element = (FrameworkElement)sender;
+         var vm = ViewModel;
+         if (vm == null) return;
+         var p = GetCoordinates(element, e);
+         e.Handled = true;
+         if (withinMapInteraction == MouseButton.XButton1) return;
+         vm.DragMove(p.X, p.Y, false);
+      }
+
+      private void BackgroundUp(object sender, MouseButtonEventArgs e) {
+         e.Handled = true;
+         var element = (FrameworkElement)sender;
+         var previousInteraction = withinMapInteraction;
+         withinMapInteraction = MouseButton.XButton1;
+         element.ReleaseMouseCapture();
+         if (previousInteraction == MouseButton.XButton1) return;
+         if (e.ChangedButton != previousInteraction) return;
+         var vm = ViewModel;
+         if (vm == null) return;
+         var p = GetCoordinates(element, e);
+         vm.DragUp(p.X, p.Y);
       }
 
       private void Wheel(object sender, MouseWheelEventArgs e) {

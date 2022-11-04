@@ -25,7 +25,7 @@
       <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
       <KeyBinding Key="Backspace" Command="{Binding DeleteCommand}" />
    </UserControl.InputBindings>
-   <Grid ClipToBounds="True">
+   <Grid ClipToBounds="True" Background="Transparent" MouseDown="BackgroundDown" MouseMove="BackgroundMove" MouseUp="BackgroundUp" MouseWheel="Wheel">
       <Grid.ColumnDefinitions>
          <ColumnDefinition Width="Auto" />
          <ColumnDefinition Width="*" />
@@ -60,7 +60,7 @@
                <local:AngleComboBox Direction="Out" Width="50" Height="20"
                   ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
-            <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,35,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
+            <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,30,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
@@ -694,7 +694,7 @@
       <!-- Main View -->
       <ItemsControl Grid.Column="1" Grid.Row="1" Name="MapView" ItemsSource="{Binding VisibleMaps}"
                     SnapsToDevicePixels="True" ClipToBounds="True" Focusable="False"
-                    MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseWheel="Wheel">
+                    MouseDown="ButtonDown" MouseMove="ButtonMove" MouseUp="ButtonUp" MouseLeave="ButtonLeave" MouseWheel="Wheel">
          <ItemsControl.RenderTransform>
             <TranslateTransform/>
          </ItemsControl.RenderTransform>
@@ -764,6 +764,9 @@
                         </ContextMenu.ItemContainerStyle>
                      </ContextMenu>
                   </Border.ContextMenu>
+                  <Border.ToolTip>
+                     <ToolTip Content="{Binding Tooltip}" />
+                  </Border.ToolTip>
                </Border>
                <DataTemplate.Triggers>
                   <DataTrigger Binding="{Binding Icon}" Value="LeftRight">
@@ -776,7 +779,7 @@
             </DataTemplate>
          </ItemsControl.ItemTemplate>
       </ItemsControl>
-      <Rectangle Grid.Column="1" Grid.Row="1" Name="HighlightCursorRect" StrokeThickness="2" IsHitTestVisible="False" Margin="-2,-2,0,0"
+      <Rectangle Grid.Column="1" Grid.Row="1" Name="HighlightCursorRect" StrokeThickness="2" IsHitTestVisible="False" Margin="-2,-2,0,0" Visibility="{Binding ShowHighlightCursor, Converter={StaticResource BoolToVisibility}}"
          HorizontalAlignment="Center" VerticalAlignment="Center" Stroke="{DynamicResource Backlight}"
          Width="{Binding HighlightCursorWidth, Mode=OneWay}" Height="{Binding HighlightCursorHeight, Mode=OneWay}">
          <Rectangle.RenderTransform>

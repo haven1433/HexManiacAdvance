@@ -17,10 +17,11 @@
             <DataTemplate>
                <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Backlight}">
                   <Canvas Width="398" Height="88">
-                     <Decorator Width="98" Height="88">
+                     <Decorator Width="98" Height="78">
                         <Path Data="{Binding Icon, Converter={StaticResource IconConverter}}" Stretch="Uniform" Margin="5,20,5,5" Fill="{DynamicResource Secondary}" />
                      </Decorator>
                      <TextBlock FontWeight="Bold" Width="98" TextAlignment="Center" Text="{Binding Title}" Canvas.Top="2" />
+                     <TextBlock FontStyle="Italic" Width="98" TextAlignment="Center" Text="{Binding IndexText}" Canvas.Bottom="2" />
                      <Decorator Width="300" Height="88" Canvas.Left="98">
                         <TextBlock TextWrapping="Wrap" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10" Text="{Binding Content}" />
                      </Decorator>
@@ -44,6 +45,7 @@
          <Border.ContextMenu>
             <ContextMenu>
                <MenuItem Header="Dismiss All" Command="{res:MethodCommand DismissAll}" />
+               <MenuItem Header="Restart All" Command="{res:MethodCommand Reset}" />
             </ContextMenu>
          </Border.ContextMenu>
          <TextBlock HorizontalAlignment="Center">
@@ -51,6 +53,21 @@
             <Run Text="{Binding CompletionPercent, Mode=OneWay}" />
             <Run Text=")" />
          </TextBlock>
+      </Border>
+      <Border Canvas.Bottom="0" Canvas.Right="0" Height="20" Width="110" Visibility="{Binding SeeMore, Converter={StaticResource BoolToVisibility}}">
+         <Border Background="{DynamicResource Backlight}" BorderBrush="{StaticResource Secondary}" ToolTipService.InitialShowDelay="0"
+               BorderThickness="1" Visibility="{Binding IsMouseOver, ElementName=ContentPanel, Converter={StaticResource BoolToVisibility}}">
+            <Border.ToolTip>
+               <ToolTip>
+                  <TextBlock>
+                     Complete actions to clear tutorials.
+                     <LineBreak />
+                     Additional tutorials will show until you've completed them all.
+                  </TextBlock>
+               </ToolTip>
+            </Border.ToolTip>
+            <TextBlock HorizontalAlignment="Center" Text="See More..."/>
+         </Border>
       </Border>
    </Canvas>
 </UserControl>

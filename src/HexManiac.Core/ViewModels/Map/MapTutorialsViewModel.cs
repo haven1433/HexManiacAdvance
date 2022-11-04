@@ -58,32 +58,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             double completed = Tutorials.Sum(tut => tut.Incomplete ? 0 : 1);
             return $"{completed/Tutorials.Count:p}";
          }
-      } 
+      }
+
+      public bool SeeMore => Tutorials.Count(tut => tut.Incomplete) > VisibleCount;
 
       public MapTutorialsViewModel() {
          // general navigation
          {
-            Tutorials.Add(new(MiddleClick, "Pan Map", "Middle-Click and drag to move the maps around on the screen."));
-            Tutorials.Add(new("ArrowKeys", "Pan Map", "Use the arrow keys to move the maps around on the screen."));
+            Tutorials.Add(new(MiddleClick, "Move Map", "Middle-Click and drag to move the maps around on the screen."));
+            Tutorials.Add(new("ArrowKeys", "Move Map", "Use the arrow keys to move the maps around on the screen."));
             Tutorials.Add(new(MiddleClick, "Zoom Map", "Use the scroll wheel to zoom in and out of the map. Zooming in will hide the border blocks."));
          }
 
          // select block / draw / paint
          {
-            Tutorials.Add(new(LeftClick, "Select Block", "Click a block in the block panel to select it."));
+            Tutorials.Add(new(LeftClick, "Select Block", "Click a block in the Blocks panel to select it."));
             Tutorials.Add(new(LeftClick, "Draw Block", "Click/Drag over the map to draw with the selected block."));
             Tutorials.Add(new("UndoArrow", "Undo", "Use the Undo button in the toolbar to undo any mistakes."));
-            Tutorials.Add(new("LeftMouseDoubleClick", "Paint Block", "Double-Click over the map to paint with the selected block."));
+            Tutorials.Add(new("FillBucket", "Paint Blocks", "Double-Click over the map to paint with the selected block."));
             Tutorials.Add(new("EscapeKey", "Unselect Block", "Press the escape key to unselect a block."));
             Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the block panel to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
          }
 
          // editing blocks
          {
-            Tutorials.Add(new("RightAngleArrow", "Edit Blocks", "Select a block, then click this button in the block panel to show the tile panel."));
-            Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile to select it."));
-            Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's tile at the top of the block panel to replace it with your selected tile/palette."));
-            Tutorials.Add(new("ArrowsLeftRight", "Flip Tile", "Click the arrows next to a tile to flip that tile vertically or horizontally."));
+            Tutorials.Add(new("RightAngleArrow", "Edit Block", "Blocks are made of Tiles in a 2x2 grid, with foreground and background layers. Select a block, then click 'Edit Block' in the block panel to show the tile panel."));
+            Tutorials.Add(new(LeftClick, "Select Tile", "Click a tile in the Tile panel to select it."));
+            Tutorials.Add(new(LeftClick, "Draw Tile", "Click on a block's foreground or background tile at the top of the block panel to replace it with your selected tile/palette."));
+            Tutorials.Add(new("ArrowsLeftRight", "Flip Tile", "Click the arrows next to the selected block's foreground/background tile to flip that tile vertically or horizontally."));
          }
 
          // right-click map
@@ -94,8 +96,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // editing events
          {
-            Tutorials.Add(new(LeftClick, "Select Event", "Click an event in the map to select it. Selecting an event will unselect any active blocks."));
-            Tutorials.Add(new("LeftMouseDoubleClick", "Follow Warp", "Double-Click on a warp to go to the map it references."));
+            Tutorials.Add(new(LeftClick, "Select Event", "Click an event (character, blue warp, green script, or red signpost) in the map to select it. Selecting an event will unselect any active blocks."));
+            Tutorials.Add(new("LeftMouseDoubleClick", "Follow Warp", "Double-Click on a warp event to go to the map it references."));
             Tutorials.Add(new("LeftArrow", "Go Back", "Use the back arrow in the toolbar to return to the previous map or data."));
             Tutorials.Add(new("FourDirectionArrows", "Move Event", "Drag an event to move it on the map."));
             Tutorials.Add(new(LeftClick, "Unselect Event", "Click on any part of the map to unselect the event."));
@@ -118,12 +120,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("Selection", "Create Object", "Drag the character sprite from the top toolbar to create object events."));
             Tutorials.Add(new("Selection", "Create Event", "Drag the Blue/Green/Red squares from the top toolbar to create warp events, script events, and signpost events."));
             Tutorials.Add(new(RightClick, "Warp New Map", "Right-Click a warp to create a new map to warp to."));
-            Tutorials.Add(new("Settings", "Configure Object", "Click the icon next to the character sprite to choose what type of object you want to add."));
+            Tutorials.Add(new("Settings", "Configure Object", "Click the gear icon next to the character sprite to choose what type of object you want to add."));
          }
 
          Reset();
-         foreach (var tut in Tutorials) {
-            tut.RequestClose += (sender, e) => Complete((Tutorial)Tutorials.IndexOf((MapTutorialViewModel)sender));
+         for(int i = 0; i < Tutorials.Count; i++) {
+            Tutorials[i].RequestClose += (sender, e) => Complete((Tutorial)Tutorials.IndexOf((MapTutorialViewModel)sender));
+            Tutorials[i].Index = i + 1;
          }
       }
 
@@ -167,7 +170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials[i].TargetPosition -= 1;
             if (Tutorials[i].Incomplete && Tutorials[i].TargetPosition < VisibleCount) Tutorials[i].TriggerAnimation();
          }
-         NotifyPropertyChanged(nameof(CompletionPercent));
+         NotifyPropertiesChanged(nameof(CompletionPercent), nameof(SeeMore));
       }
    }
 
@@ -181,6 +184,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool Incomplete { get => incomplete; set => PropertyChanged.TryUpdate(this, ref incomplete, value); }
       public double TargetPosition { get => target; set => PropertyChanged.TryUpdate(this, ref target, value); }
       public double TopEdge => TargetPosition * 90;
+      public int Index { get; set; }
+      public string IndexText => $"{Index} of 32";
 
       public void TriggerAnimation() => AnimateMovement.Raise(this);
 

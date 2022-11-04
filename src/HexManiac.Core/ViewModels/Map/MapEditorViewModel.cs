@@ -415,6 +415,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private double cursorX, cursorY, deltaX, deltaY;
       public event EventHandler AutoscrollBlocks;
 
+      private bool showHighlightCursor;
+      public bool ShowHighlightCursor { get => showHighlightCursor; set => Set(ref showHighlightCursor, value); }
+
       private double highlightCursorX, highlightCursorY, highlightCursorWidth, highlightCursorHeight;
       public double HighlightCursorX { get => highlightCursorX; set => Set(ref highlightCursorX, value); }
       public double HighlightCursorY { get => highlightCursorY; set => Set(ref highlightCursorY, value); }
@@ -458,6 +461,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (prevW, prevH) = (highlightCursorWidth, highlightCursorHeight);
 
          var border = primaryMap.GetBorderThickness();
+         ShowHighlightCursor = true;
          HighlightCursorX = (left + border.West + width / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
          HighlightCursorY = (top + border.North + height / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
          HighlightCursorWidth = width * 16 * primaryMap.SpriteScale + 4;
@@ -479,7 +483,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map != null) UpdatePrimaryMap(map);
       }
 
-      public void DragMove(double x, double y) {
+      public void DragMove(double x, double y, bool isMiddleClickMap) {
          deltaX += x - cursorX;
          deltaY += y - cursorY;
          var (intX, intY) = ((int)deltaX, (int)deltaY);
@@ -487,8 +491,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          deltaY -= intY;
          (cursorX, cursorY) = (x, y);
          Pan(intX, intY);
-         if (intX != 0 || intY != 0) Tutorials.Complete(Tutorial.MiddleClick_PanMap);
-         Hover(x, y);
+         if ((intX != 0 || intY != 0) && isMiddleClickMap) Tutorials.Complete(Tutorial.MiddleClick_PanMap);
+         if (isMiddleClickMap) Hover(x, y);
       }
 
       public void DragUp(double x, double y) { }
@@ -594,6 +598,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             signpost.Pointer < model.Count
          ) {
             viewPort.Goto.Execute(signpost.Pointer);
+            Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else {
             Tutorials.Complete(Tutorial.LeftClick_SelectEvent);
             interactionType = PrimaryInteractionType.Event;
