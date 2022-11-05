@@ -578,6 +578,7 @@
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
          <StackPanel>
+            <local:AngleBorder Width="100" HorizontalAlignment="Center" Direction="Out" Content="Map Header" HorizontalContentAlignment="Center" />
             <local:AngleButton  Direction="Out" Margin="5" Content="View Table in Data Tab" DataContext="{Binding PrimaryMap}" Command="{res:MethodCommand GotoData}" />
             <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
                <Grid.ColumnDefinitions>
@@ -880,9 +881,12 @@
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
               Background="{DynamicResource Background}">
          <DockPanel Width="400" HorizontalAlignment="Right">
-            <ToggleButton Command="{res:MethodCommand ToggleBorderEditor}" Width="20" Height="20" DockPanel.Dock="Top" HorizontalAlignment="Right" Margin="1">
-               <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
-            </ToggleButton>
+            <Grid DockPanel.Dock="Top">
+               <ToggleButton Command="{res:MethodCommand ToggleBorderEditor}" Width="20" Height="20" HorizontalAlignment="Right" Margin="1">
+                  <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+               </ToggleButton>
+               <local:AngleBorder Width="100" HorizontalAlignment="Center" Direction="Out" Content="Border Block" HorizontalContentAlignment="Center" Margin="0,0,0,5" />
+            </Grid>
             <Grid Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
                <Grid.RowDefinitions>
                   <RowDefinition />

@@ -1388,7 +1388,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);
 
-      private void HandleHideSidePanels(object sender, EventArgs e) => SelectedEvent = null;
+      private void HandleHideSidePanels(object sender, EventArgs e) {
+         SelectedEvent = null;
+         ShowHeaderPanel = false;
+      }
 
       private void HandleMapChangeRequest(object sender, ChangeMapEventArgs e) {
          NavigateTo(e.Bank, e.Map);
