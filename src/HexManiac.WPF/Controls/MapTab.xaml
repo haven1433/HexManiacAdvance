@@ -1078,6 +1078,14 @@
                                  <Setter Property="Visibility" Value="Visible" />
                                  <Setter Property="Grid.Row" Value="1" />
                               </DataTrigger>
+                              <DataTrigger Binding="{Binding SelectedTemplate}" Value="Tutor">
+                                 <Setter Property="Visibility" Value="Visible" />
+                                 <Setter Property="Grid.Row" Value="1" />
+                              </DataTrigger>
+                              <DataTrigger Binding="{Binding SelectedTemplate}" Value="Trade">
+                                 <Setter Property="Visibility" Value="Visible" />
+                                 <Setter Property="Grid.Row" Value="1" />
+                              </DataTrigger>
                               <DataTrigger Binding="{Binding SelectedTemplate}" Value="Trainer">
                                  <Setter Property="Visibility" Value="Visible" />
                                  <Setter Property="Grid.Row" Value="2" />

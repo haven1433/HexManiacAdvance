@@ -967,15 +967,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (spot.Address + 1 == 0x03) {
                   // 5C ** trainer: arg: playerwin<>
                   var textStart = model.ReadPointer(spot.Address + 6);
-                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
-                  if (text.Length >= TextSummaryLimit) text += "...";
-                  tips.Add(text + Environment.NewLine);
+                  if (textStart >= 0 && textStart < model.Count) {
+                     var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                     if (text.Length >= TextSummaryLimit) text += "...";
+                     tips.Add(text + Environment.NewLine);
+                  }
                } else {
                   // 5C ** trainer: arg: start<> playerwin<>
                   var textStart = model.ReadPointer(spot.Address + 10);
-                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
-                  if (text.Length >= TextSummaryLimit) text += "...";
-                  tips.Add(text + Environment.NewLine);
+                  if (textStart >= 0 && textStart < model.Count) {
+                     var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                     if (text.Length >= TextSummaryLimit) text += "...";
+                     tips.Add(text + Environment.NewLine);
+                  }
                }
             } else if (spot.Line.LineCode[0] == 0x86 && itemStats != null) {
                // mart

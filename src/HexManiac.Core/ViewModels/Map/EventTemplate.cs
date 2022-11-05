@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
@@ -61,9 +62,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
          AvailableTemplateTypes.Clear();
          AvailableTemplateTypes.Add(TemplateType.None);
-         AvailableTemplateTypes.Add(TemplateType.Trainer);
          AvailableTemplateTypes.Add(TemplateType.Npc);
          AvailableTemplateTypes.Add(TemplateType.Item);
+         AvailableTemplateTypes.Add(TemplateType.Trainer);
+         AvailableTemplateTypes.Add(TemplateType.Mart);
+         AvailableTemplateTypes.Add(TemplateType.Trade);
+         AvailableTemplateTypes.Add(TemplateType.Tutor);
 
          GraphicsOptions.Clear();
          for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i));
@@ -93,6 +97,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedTemplate == TemplateType.Trainer) CreateTrainer(objectEventModel, token);
          if (selectedTemplate == TemplateType.Npc) CreateNPC(objectEventModel, token);
          if (selectedTemplate == TemplateType.Item) CreateItem(objectEventModel, token);
+         if (selectedTemplate == TemplateType.Mart) CreateMart(objectEventModel, token);
+         if (selectedTemplate == TemplateType.Tutor) CreateTutor(objectEventModel, token);
+         if (selectedTemplate == TemplateType.Trade) CreateTrade(objectEventModel, token);
       }
 
       #region Trainer
@@ -404,6 +411,140 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Mart
+
+      private int ClerkGraphics => model.IsFRLG() ? 68 : 83;
+
+      public void CreateMart(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
+         // FireRed template:
+         // lock faceplayer preparemsg   waitmsg pokemart          loadpointer 0 msg   callstd 4   release end
+         // 6A  5A  67  11 62 1A 08      66      86 08 A7 16 08    0F 00 90 51 1A 08   09 04       6C 02
+         // ~30 bytes total
+         //                      <pointer>         <pointer>         <pointer>               pokeball/potion/antidote
+         var script = "6A 5A 67 00 00 00 00 66 86 00 00 00 00 0F 00 00 00 00 00 09 04 6C 02 FF 04 00 0D 00 0E 00".ToByteArray();
+         // 3 pointer to start text
+         // 9 pointer to mart
+         // 15 pointer to end text
+         // 24 start of mart data
+
+         var hello = WriteText(token, "Hi, there!\\nMay I help you?");
+         var goodbye = WriteText(token, "Please come again!");
+
+         var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, script.Length);
+         token.ChangeData(model, scriptStart, script);
+         model.WritePointer(token, scriptStart + 3, hello);
+         model.WritePointer(token, scriptStart + 9, scriptStart + 24);
+         model.WritePointer(token, scriptStart + 15, goodbye);
+
+         objectEventViewModel.Graphics = ClerkGraphics;
+         objectEventViewModel.Elevation = 3;
+         objectEventViewModel.MoveType = 10;
+         objectEventViewModel.RangeX = objectEventViewModel.RangeY = 0;
+         objectEventViewModel.TrainerType = objectEventViewModel.TrainerRangeOrBerryID = objectEventViewModel.Flag = 0;
+         objectEventViewModel.ScriptAddress = scriptStart;
+
+         model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventViewModel.Start + 16)));
+      }
+
+      #endregion
+
+      #region Tutor
+
+      public void CreateTutor(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
+         /* pseudo code:
+          *    if flag: goto end
+          *    print "forward text" -> yes/no
+          *    if no:   goto failed
+          *    print "only can learn once!" -> yes/no
+          *    if no:   goto failed
+          *    print "which pokemon will learn?"
+          *    ChooseMonForMoveTutor
+          *    if no:   goto failed
+          *    setflag
+          * end:
+          *    print "done text"
+          *    end
+          * failed:
+          *    print "failed text"
+          *    end
+          */
+
+         var tutorFlag = 0x21;
+         while (UsedFlags.Contains(tutorFlag)) tutorFlag++;
+         UsedFlags.Add(tutorFlag);
+
+         int tutor = 0;
+         int infoStart = WriteText(token, "Want to learn a cool move?");
+         int warningStart = WriteText(token, "This move can be learned only\\nonce. Is that okay?");
+         int whichStart = WriteText(token, "Which POKéMON wants to learn\\nthe move?");
+         int doneStart = WriteText(token, "Enjoy the move!");
+         int failedStart = WriteText(token, "I guess not.");
+
+         var script = $@"
+   lock
+   faceplayer
+   checkflag {tutorFlag}
+   if1 = <success>
+   loadpointer 0 <{infoStart:X6}>
+   callstd 5
+   compare 0x800D 0
+   if1 = <failed>
+   textcolor 3
+   special DisableMsgBoxWalkaway
+   signmsg
+   loadpointer 0 <{warningStart:X6}>
+   callstd 5
+   normalmsg
+   copyvar 0x8012 0x8013
+   campare 0x800D 0
+   if1 = <failed>
+   loadpointer 0 <{whichStart:X6}>
+   callstd 4
+   setvar 0x8005 {tutor}
+   special ChooseMonForMoveTutor
+   waitstate
+   lock
+   faceplayer
+   compare 0x800D 0
+   if1 = <failed>
+   setflag {tutorFlag}
+success:
+   loadpointer 0 <{doneStart:X6}>
+   callstd 4
+   release
+   end
+failed:
+   loadpointer 0 <{failedStart:X6}>
+   callstd 4
+   release
+   end
+";
+         // script length = 109
+
+         var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 109);
+         var content = parser.Compile(token, model, scriptStart, ref script, out var _);
+         token.ChangeData(model, scriptStart, content);
+
+         objectEventViewModel.Graphics = trainerGraphics;
+         objectEventViewModel.Elevation = 3;
+         objectEventViewModel.MoveType = 8;
+         objectEventViewModel.RangeX = objectEventViewModel.RangeY = 0;
+         objectEventViewModel.TrainerType = objectEventViewModel.TrainerRangeOrBerryID = 0;
+         objectEventViewModel.ScriptAddress = scriptStart;
+         objectEventViewModel.Flag = 0;
+      }
+
+      #endregion
+
+      #region Trade
+
+      public void CreateTrade(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
+         // TODO
+         throw new NotImplementedException();
+      }
+
+      #endregion
+
       #region Helper Methods
 
       private int WriteText(ModelDelta token, string text) {
@@ -416,10 +557,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void UpdateObjectTemplateImage(TemplateType old = default) {
          if (selectedTemplate == TemplateType.None) {
             ObjectTemplateImage = GraphicsOptions[0];
-         } else if (selectedTemplate == TemplateType.Trainer || selectedTemplate == TemplateType.Npc) {
+         } else if (selectedTemplate == TemplateType.Trainer || selectedTemplate == TemplateType.Npc || selectedTemplate == TemplateType.Tutor || selectedTemplate == TemplateType.Trade) {
             ObjectTemplateImage = GraphicsOptions[TrainerGraphics];
          } else if (selectedTemplate == TemplateType.Item) {
             ObjectTemplateImage = GraphicsOptions[ItemGraphics];
+         } else if (selectedTemplate == TemplateType.Mart) {
+            ObjectTemplateImage = GraphicsOptions[ClerkGraphics];
          }
          ObjectTemplateImage = new ReadonlyPixelViewModel(ObjectTemplateImage.PixelWidth, ObjectTemplateImage.PixelHeight, ObjectTemplateImage.PixelData, ObjectTemplateImage.PixelData[0]);
          ObjectTemplateImage = ObjectTemplateImage.AutoCrop();
@@ -431,7 +574,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public record TrainerEventContent(int BeforeTextPointer, int WinTextPointer, int AfterTextPointer, int TrainerClassAddress, int TrainerNameAddress, int TeamPointer);
 
-   public enum TemplateType { None, Trainer, Npc, Item }
+   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade }
 }
 
 /*
