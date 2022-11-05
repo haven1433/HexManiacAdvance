@@ -488,6 +488,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockRenders.Clear();
          blockPixels = null;
          eventRenders = null;
+         borderBlock = null;
          RefreshMapSize();
          if (blockEditor != null) {
             var oldShowTiles = blockEditor.ShowTiles;
