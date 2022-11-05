@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
-using System;
 using System.Windows;
 using System.Windows.Input;
 

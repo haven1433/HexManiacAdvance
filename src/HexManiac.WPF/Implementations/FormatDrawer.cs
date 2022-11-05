@@ -5,7 +5,6 @@ using HavenSoft.HexManiac.WPF.Controls;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 

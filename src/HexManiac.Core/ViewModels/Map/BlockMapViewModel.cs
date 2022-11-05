@@ -761,9 +761,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (x, y) = (x / 16, y / 16);
 
          var layout = GetLayout();
-         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         DrawBlock(token, blockIndex, collisionIndex, xx, yy);
+      }
+
+      public void DrawBlock(ModelDelta token, int blockIndex, int collisionIndex, int xx, int yy) {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+
          if (xx < 0 || yy < 0 || xx > width || yy > height) return;
          if (lastDrawX == xx && lastDrawY == yy) return;
          var start = layout.GetAddress("blockmap");
@@ -810,6 +817,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             pixelData = null;
             NotifyPropertyChanged(nameof(PixelData));
          }
+      }
+
+      public void RepeatBlocks(ModelDelta token, int[,] blockValues, int x, int y, int w, int h) {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+         int changeCount = 0;
+         for (int xx = 0; xx < w; xx++) {
+            for (int yy = 0; yy < h; yy++) {
+               if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
+               var address = start + ((yy + y) * width + xx + x) * 2;
+               var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
+               if (model.ReadMultiByteValue(address, 2) != block) {
+                  model.WriteMultiByteValue(address, 2, token, block);
+                  changeCount++;
+               }
+            }
+         }
+         if (changeCount > 0) {
+            pixelData = null;
+            NotifyPropertyChanged(nameof(PixelData));
+         }
+      }
+
+      public int[,] ReadRectangle(int x, int y, int w, int h) {
+         var results = new int[w, h];
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+         for (int xx = 0; xx < w; xx++) {
+            for (int yy = 0; yy < h; yy++) {
+               if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
+               var address = start + ((yy + y) * width + xx + x) * 2;
+               results[xx, yy] = model.ReadMultiByteValue(address, 2);
+            }
+         }
+         return results;
       }
 
       public void PaintBlock(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {

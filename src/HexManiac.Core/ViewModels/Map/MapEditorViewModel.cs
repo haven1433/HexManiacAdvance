@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
@@ -526,18 +527,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void PrimaryMove(double x, double y) {
          if (interactionType == PrimaryInteractionType.Draw) DrawMove(x, y);
+         if (interactionType == PrimaryInteractionType.RectangleDraw) RectangleDrawMove(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventMove(x, y);
       }
 
       public void PrimaryUp(double x, double y) {
          if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
+         if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventUp(x, y);
          interactionType = PrimaryInteractionType.None;
       }
 
-      Point drawSource;
+      Point drawSource, lastDraw;
       private void DrawDown(double x, double y, PrimaryInteractionStart click) {
          interactionType = PrimaryInteractionType.Draw;
+         if (click == PrimaryInteractionStart.ControlClick) interactionType = PrimaryInteractionType.RectangleDraw;
          var map = MapUnderCursor(x, y);
          if (click == PrimaryInteractionStart.DoubleClick) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
@@ -553,7 +557,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else {
             PrimaryMap = map;
             drawSource = ToTilePosition(x, y);
-            DrawMove(x, y);
+            lastDraw = drawSource;
+            Debug.WriteLine("drawSource: " + lastDraw);
+            if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
+            if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
          }
       }
 
@@ -574,7 +581,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Hover(x, y);
       }
 
+      private void RectangleDrawMove(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map != null) {
+            ResetFromRectangleBackup();
+            lastDraw = ToTilePosition(x, y);
+            if (lastDraw != drawSource) Tutorials.Complete(Tutorial.ControlClick_FillRect);
+            Debug.WriteLine("lastDraw: " + lastDraw);
+            FillBackup();
+            FillRect();
+            UpdateHover(Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
+         }
+      }
+
       private void DrawUp(double x, double y) {
+         rectangleBackup = null;
          history.ChangeCompleted();
          interactionType = PrimaryInteractionType.None;
          primaryMap.RedrawEvents(); // editing blocks in a map can draw over events, we need to redraw events now that we have new blocks
@@ -629,6 +650,59 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             eventCreationType = EventCreationType.None;
          }
       }
+
+      #region Rectangle-Drawing helper methods
+
+      // this will hold whatever blocks were originally in the map, so we can put them back as the user moves the rect around.
+      int[,] rectangleBackup;
+
+      /// <summary>
+      /// Use the values of drawSource and lastDraw to fill the map from the backup
+      /// </summary>
+      private void ResetFromRectangleBackup() {
+         if (rectangleBackup == null) return;
+         var (left, right) = (lastDraw.X, drawSource.X);
+         var (top, bottom) = (lastDraw.Y, drawSource.Y);
+         if (left > right) (left, right) = (right, left);
+         if (top > bottom) (top, bottom) = (bottom, top);
+         var (width, height) = (right - left + 1, bottom - top + 1);
+         primaryMap.RepeatBlocks(history.CurrentChange, rectangleBackup, left, top, width, height);
+      }
+
+      /// <summary>
+      /// Use the values of drawSource and lastDraw to fill the backup from the current map
+      /// </summary>
+      private void FillBackup() {
+         var (left, right) = (lastDraw.X, drawSource.X);
+         var (top, bottom) = (lastDraw.Y, drawSource.Y);
+         if (left > right) (left, right) = (right, left);
+         if (top > bottom) (top, bottom) = (bottom, top);
+         var (width, height) = (right - left + 1, bottom - top + 1);
+         rectangleBackup = primaryMap.ReadRectangle(left, top, width, height);
+      }
+
+      /// <summary>
+      /// Fill the map from drawSource, lastDraw, drawBlockIndex, drawCollisionIndex, and tilesToDraw
+      /// </summary>
+      private void FillRect() {
+         var (left, right) = (lastDraw.X, drawSource.X);
+         var (top, bottom) = (lastDraw.Y, drawSource.Y);
+         if (left > right) (left, right) = (right, left);
+         if (top > bottom) (top, bottom) = (bottom, top);
+         var (width, height) = (right - left + 1, bottom - top + 1);
+
+         if (tilesToDraw == null) {
+            for (int y = 0; y < height; y++) {
+               for (int x = 0; x < width; x++) {
+                  primaryMap.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, left + x, top + y);
+               }
+            }
+         } else {
+            primaryMap.RepeatBlocks(history.CurrentChange, tilesToDraw, left, top, width, height);
+         }
+      }
+
+      #endregion
 
       #endregion
 
@@ -1337,7 +1411,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 
    public enum PrimaryInteractionStart { None, Click, DoubleClick, ControlClick }
-   public enum PrimaryInteractionType { None, Draw, Event }
+   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw }
 
    public record TileSelection(int[]Tiles, int Width);
 }
