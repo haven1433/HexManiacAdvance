@@ -604,8 +604,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void EventDown(double x, double y, IEventViewModel ev, PrimaryInteractionStart click) {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventViewModel warp && click == PrimaryInteractionStart.DoubleClick) {
-            NavigateTo(warp.Bank, warp.Map);
-            Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+            var banks = AllMapsModel.Create(warp.Element.Model, default);
+            if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
+               NavigateTo(warp.Bank, warp.Map);
+               Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+            }
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             viewPort.Goto.Execute(obj.ScriptAddress);
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
@@ -894,10 +897,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
          if (ev is WarpEventViewModel warp) {
             tips.Add(warp.TargetMapName);
-            var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
-            var image = blockmap.AutoCrop(warp.WarpID - 1);
-            if (image != null) {
-               tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+            var banks = AllMapsModel.Create(warp.Element.Model, default);
+            if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
+               var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+               var image = blockmap.AutoCrop(warp.WarpID - 1);
+               if (image != null) {
+                  tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+               }
             }
          } else if (ev is ObjectEventViewModel obj) {
             tips.AddRange(SummarizeScript(obj.ScriptAddress));
