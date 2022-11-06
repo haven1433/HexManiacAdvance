@@ -78,10 +78,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new(LeftClick, "Select Block", "Click a block in the Blocks panel to select it."));
             Tutorials.Add(new(LeftClick, "Draw Block", "Click/Drag over the map to draw with the selected block."));
             Tutorials.Add(new("UndoArrow", "Undo", "Use the Undo button in the toolbar to undo any mistakes."));
-            Tutorials.Add(new("FillBucket", "Paint Blocks", "Double-Click over the map to paint with the selected block."));
+            Tutorials.Add(new("FillBucket", "Paint Blocks", "Double-Click over the map to paint an area with the selected block."));
             Tutorials.Add(new("CtrlKey", "Fill Rectangle", "Hold Control, then left-click and drag over an area to create a rectangle of blocks."));
             Tutorials.Add(new("EscapeKey", "Unselect Block", "Press the escape key to unselect a block."));
-            Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the Blocks panel to select multiple blocks. When multiple blocks are selected, you can draw, but not paint."));
+            Tutorials.Add(new(LeftClick, "Select Blocks", "Left-Click and drag on the Blocks panel to select multiple blocks. When multiple blocks are selected, you can draw, but not double-click fill."));
          }
 
          // editing blocks

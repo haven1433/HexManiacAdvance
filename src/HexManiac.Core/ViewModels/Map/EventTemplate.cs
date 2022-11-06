@@ -57,6 +57,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public EventTemplate(IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
          (this.model, this.parser) = (model, parser);
          RefreshLists(owGraphics);
+         if (model.IsFRLG()) UseNationalDex = true;
       }
 
       public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
@@ -70,7 +71,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AvailableTemplateTypes.Add(TemplateType.Tutor);
 
          GraphicsOptions.Clear();
-         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i));
+         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2));
 
          TypeOptions.Clear();
          foreach (var type in model.GetTableModel(HardcodeTablesModel.TypesTableName)) {

@@ -95,7 +95,13 @@
       <PathGeometry x:Name="RightArrow" Figures="M5,5 L15,5 L15,0 L25,10 L15,20 L15,15 L5,15 z"/>
       <PathGeometry x:Name="LeftArrow" Figures="M-5,5 L-15,5 L-15,0 L-25,10 L-15,20 L-15,15 L-5,15 z"/>
       <PathGeometry x:Name="ArrowsLeftRight" Figures="M6,6 L7,6 7,5 9,7 7,9 7,8 6,8 6,8 5,8 5,9 3,7 5,5 5,6 z"/>
+      <PathGeometry x:Name="ArrowsLeftRightDisconnect" Figures="M0,0 L1,-1 1,1 Z M3,0 L2,-1 2,1 Z"/>
       <PathGeometry x:Name="ArrowsUpDown" Figures="M6,6 L6,7 5,7 7,9 9,7 8,7 8,6 8,6 8,5 9,5 7,3 5,5 6,5 z"/>
+      <PathGeometry x:Name="ArrowsUpDownDisconnect" Figures="M0,0 L-1,1 1,1 Z M0,3 L-1,2 1,2 Z"/>
+      <PathGeometry x:Name="LineArrowRight" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" />
+      <PathGeometry x:Name="LineArrowDown" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" Transform="{hsv:RotateTransform 90}" />
+      <PathGeometry x:Name="LineArrowLeft" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" Transform="{hsv:RotateTransform 180}" />
+      <PathGeometry x:Name="LineArrowUp" Figures="M0,0 L1,0, 1,2, 4,2 4,1 6,3 4,5 4,4 1,4 1,6 0,6 Z" Transform="{hsv:RotateTransform 270}" />
       <PathGeometry x:Name="UndoArrow" Figures="m-7,2 L-3,-5 -2,-2 7,-5 6,2 3,6 4,-1 -1,2 0,5 z"/>
       <PathGeometry x:Name="RedoArrow" Figures="m7,2 L3,-5 2,-2 -7,-5 -6,2 -3,6 -4,-1 1,2 0,5 z"/>
       <PathGeometry x:Name="Add" Figures="M -5,-5 L -5,-10 0,-10 0,-5 5,-5 5,0 0,0 0,5 -5,5 -5,0 -10,0 -10,-5 -5,-5"/>
@@ -210,7 +216,7 @@
             </GeometryGroup>
          </CombinedGeometry.Geometry1>
          <CombinedGeometry.Geometry2>
-            <CombinedGeometry GeometryCombineMode="Union">
+            <CombinedGeometry GeometryCombineMode="Xor" Geometry2="{hsv:TextGeometry 2,-7,-8,10}">
                <CombinedGeometry.Geometry1>
                   <!-- Left Click 1 -->
                   <GeometryGroup FillRule="Nonzero">
@@ -231,26 +237,6 @@
                      <RectangleGeometry Rect="-8,0,8,4"/>
                   </GeometryGroup>
                </CombinedGeometry.Geometry1>
-               <CombinedGeometry.Geometry2>
-                  <!-- Left Click 2 -->
-                  <GeometryGroup FillRule="Nonzero">
-                     <GeometryGroup.Transform>
-                        <TranslateTransform X="1.5" Y="1.5" />
-                     </GeometryGroup.Transform>
-                     <CombinedGeometry GeometryCombineMode="Exclude">
-                        <CombinedGeometry.Geometry1>
-                           <EllipseGeometry RadiusX="8" RadiusY="8"/>
-                        </CombinedGeometry.Geometry1>
-                        <CombinedGeometry.Geometry2>
-                           <GeometryGroup FillRule="Nonzero">
-                              <RectangleGeometry Rect="0,-10,10,20"/>
-                              <RectangleGeometry Rect="-10,0,10,10"/>
-                           </GeometryGroup>
-                        </CombinedGeometry.Geometry2>
-                     </CombinedGeometry>
-                     <RectangleGeometry Rect="-8,0,8,4"/>
-                  </GeometryGroup>
-               </CombinedGeometry.Geometry2>
             </CombinedGeometry>
          </CombinedGeometry.Geometry2>
       </CombinedGeometry>

@@ -460,6 +460,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          images[hoverTile].Fill(newImage.PixelData);
          BlocksChanged?.Invoke(this, blocks);
          tutorials.Complete(Tutorial.ClickBlock_DrawTile);
+
       }
 
       public void GetSelectionFromTile(IPixelViewModel tileImage) {

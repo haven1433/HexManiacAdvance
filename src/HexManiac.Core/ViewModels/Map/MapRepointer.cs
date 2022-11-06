@@ -198,7 +198,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ExecuteDuplicateMap() {
-         var option = GetMapBankForNewMap("Duplicate map into which bank?");
+         var option = GetMapBankForNewMap(
+            "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
+            + Environment.NewLine +
+            "Duplicate map into which bank?"
+            );
          if (option == -1) return;
          var table = AddNewMapToBank(option);
          var newMap = CreateNewMap(history.CurrentChange);
@@ -511,9 +515,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int GetMapBankForNewMap(string prompt) {
          var tokenFactory = () => history.CurrentChange;
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
-         var enumViewModel = new EnumViewModel(mapBanks.Count.Range(i => i.ToString()).ToArray());
+         var options = mapBanks.Count.Range(i => i.ToString()).ToList();
+         options.Add("Create New Bank");
+         var enumViewModel = new EnumViewModel(options.ToArray());
          var option = fileSystem.ShowOptions(
-            "Pick a group",
+            "Pick a bank",
             prompt,
             new[] { new[] { enumViewModel } },
             new VisualOption { Index = 1, Option = "OK", ShortDescription = "Insert New Map" });

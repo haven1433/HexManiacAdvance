@@ -72,6 +72,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ShowCheck(object sender, EventArgs e) {
          var tut = (MapTutorialViewModel)sender;
+         if (tut.Index >= 5) return; // don't show the checkmark for off-screen tutorials
          var ui = (FrameworkElement)Tutorials.ItemContainerGenerator.ContainerFromItem(tut);
          if (ui == null) return;
          Canvas.SetTop(Check, tut.TopEdge + 15);

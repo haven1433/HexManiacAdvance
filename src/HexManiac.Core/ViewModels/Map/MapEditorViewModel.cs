@@ -10,9 +10,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Windows.Input;
-using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -62,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(ShowEventPanel));
             ShowHeaderPanel = false;
+            if (selectedEvent == null) primaryMap.DeselectEvent();
             primaryMap.BlockEditor.ShowTiles = false;
             DrawBlockIndex = -1;
             CollisionIndex = -1;
@@ -88,8 +87,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private int PrimaryTiles { get; }
 
-      private string hoverPoint;
+      private string hoverPoint, zoomLevel;
       public string HoverPoint { get => hoverPoint; set => Set(ref hoverPoint, value); }
+      public string ZoomLevel { get => zoomLevel; set => Set(ref zoomLevel, value); }
 
       public MapTutorialsViewModel Tutorials { get; }
 
@@ -296,6 +296,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
+
+         ZoomLevel = "1x Zoom";
       }
 
       #endregion
@@ -331,6 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.AutoscrollTiles -= HandleAutoscrollTiles;
                primaryMap.HideSidePanels -= HandleHideSidePanels;
                primaryMap.RequestChangeMap -= HandleMapChangeRequest;
+               primaryMap.DeselectEvent();
             }
             primaryMap = map;
             primaryMap.BlockEditor.BlockIndex = drawBlockIndex;
@@ -438,6 +441,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                while (Math.Abs(p.Y - drawSource.Y) % tilesToDraw.GetLength(1) != 0) p -= new Point(0, 1);
             }
             UpdateHover(p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
+            HoverPoint = string.Empty;
          } else {
             var map = MapUnderCursor(x, y);
             if (map == null) return EmptyTooltip;
@@ -516,7 +520,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             EventDown(x, y, ev, click);
             return;
          } else {
-            primaryMap.DeselectEvent();
             SelectedEvent = null;
             Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
          }
@@ -583,7 +586,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void RectangleDrawMove(double x, double y) {
          var map = MapUnderCursor(x, y);
-         if (map != null) {
+         if (tilesToDraw == null && drawBlockIndex < 0 && collisionIndex < 0) {
+            interactionType = PrimaryInteractionType.None;
+         } else if (map != null) {
             ResetFromRectangleBackup();
             lastDraw = ToTilePosition(x, y);
             if (lastDraw != drawSource) Tutorials.Complete(Tutorial.ControlClick_FillRect);
@@ -763,7 +768,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int[,] tilesToDraw;
       Point selectDownPosition;
       private bool drawMultipleTiles;
-      public bool DrawMultipleTiles { get => drawMultipleTiles; private set => Set(ref drawMultipleTiles, value); }
+      public bool DrawMultipleTiles {
+         get => drawMultipleTiles;
+         private set => Set(ref drawMultipleTiles, value, arg => { if (!drawMultipleTiles) tilesToDraw = null; });
+      }
 
       private bool blockEditorVisible;
       public bool BlockEditorVisible { get => blockEditorVisible; private set => Set(ref blockEditorVisible, value); }
@@ -837,20 +845,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tilesToDraw = new int[width, height];
          var scale = (width < 4 && height < 4) ? 2 : 1;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
+         bool fillError = false;
          for (int xx = 0; xx < width; xx++) {
             for (int yy = 0; yy < height; yy++) {
                var (tX, tY) = ToMapPosition(left + xx, top + yy);
                var block = primaryMap.GetBlock(tX, tY);
+               if (block.blockIndex == -1 || block.collisionIndex == -1) {
+                  fillError = true;
+                  break;
+               }
                tilesToDraw[xx, yy] = (block.collisionIndex << 10) | block.blockIndex;
                canvas.Draw(primaryMap.BlockRenders[block.blockIndex], xx * 16, yy * 16);
             }
          }
-         Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
-         MultiTileDrawRender = canvas;
-         DrawMultipleTiles = true;
-         BlockEditorVisible = false;
-         PrimaryMap.BlockEditor.ShowTiles = false;
-         UpdateHover(left, top, width, height);
+         if (fillError) {
+            tilesToDraw = null;
+            UpdateHover(selectMovePosition.X, selectMovePosition.Y, 1, 1);
+         } else {
+            Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
+            MultiTileDrawRender = canvas;
+            DrawMultipleTiles = true;
+            BlockEditorVisible = false;
+            PrimaryMap.BlockEditor.ShowTiles = false;
+            UpdateHover(left, top, width, height);
+         }
       }
 
       private Point ToTilePosition(double x, double y) {
@@ -1003,6 +1021,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
          }
+         if (address == Pointer.NULL) tips.Add("(no script)");
          return tips;
       }
 
@@ -1079,6 +1098,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BlockMapViewModel newMap = primaryMap.CreateMapForWarp(warpContext);
          if (newMap == null) return;
          NavigateTo(newMap.MapID);
+         history.ChangeCompleted();
       }
 
       public void DeleteCurrentEvent() {
@@ -1095,6 +1115,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          map.Scale(x, y, enlarge);
          map.IncludeBorders = map.SpriteScale <= 1;
          UpdatePrimaryMap(map);
+         if (map.SpriteScale >= 1) ZoomLevel = $"{(int)map.SpriteScale}x Zoom";
+         else ZoomLevel = $"1/{(int)Math.Round(1 / map.SpriteScale)}x Zoom";
          Tutorials.Complete(Tutorial.Wheel_ZoomMap);
       }
 
@@ -1122,8 +1144,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedEvent == null) return;
          selectedEvent.Delete();
          SelectedEvent = null;
-         primaryMap.DeselectEvent();
          primaryMap.RedrawEvents();
+         history.ChangeCompleted();
       }
 
       public void Cancel() {

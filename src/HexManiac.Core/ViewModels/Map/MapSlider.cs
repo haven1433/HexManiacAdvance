@@ -51,13 +51,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public enum MapSliderIcons {
-      None, LeftRight, UpDown, X
+      LeftRight, UpDown, ExtendLeft, ExtendRight, ExtendUp, ExtendDown,
    }
 
    public class ConnectionSlider : MapSlider {
       private readonly MapTutorialsViewModel tutorials;
       private Action notify;
-      private ConnectionModel connection, inverse;
+      private ConnectionModel connection;
 
       public override string Tooltip => "Drag to adjust the connection between the maps.";
 
@@ -66,14 +66,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.tutorials = tutorials;
          var group = connection.MapGroup;
          var index = connection.MapNum;
-
-         var direction = connection.Direction.Reverse();
-         var map = BlockMapViewModel.GetMapModel(connection.Model, group, index, connection.Tokens);
-         var neighbors = BlockMapViewModel.GetConnections(map);
-         inverse = neighbors.FirstOrDefault(c => c.MapGroup == sourceMapInfo.group && c.MapNum == sourceMapInfo.num && c.Direction == direction);
       }
 
       public override void Move(int x, int y) {
+         var inverse = connection.GetInverse();
          if (Icon == MapSliderIcons.LeftRight) {
             connection.Offset += x;
             if (inverse != null) inverse.Offset = -connection.Offset;
@@ -107,7 +103,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class ExpansionSlider : MapSlider {
       private Action<MapDirection, int> resize;
 
-      public override string Tooltip => $"Drag to change the {(Icon == MapSliderIcons.LeftRight ? "width" : "height")} of the map";
+      public override string Tooltip => $"Drag to change the {(Icon == MapSliderIcons.LeftRight ? "width" : "height")} of the map." + Environment.NewLine +
+         "Right-Click to add or remove a connection.";
 
       public ExpansionSlider(Action<MapDirection, int> resize, int id, MapSliderIcons icon, IEnumerable<IMenuCommand> contextItems, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
          foreach (var item in contextItems) ContextItems.Add(item);
@@ -115,13 +112,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public override void Move(int x, int y) {
-         if (Icon == MapSliderIcons.LeftRight && !AnchorLeftEdge) {
+         if (Icon == MapSliderIcons.ExtendLeft && !AnchorLeftEdge) {
             resize(MapDirection.Left, -x);
-         } else if (Icon == MapSliderIcons.LeftRight && AnchorLeftEdge) {
+         } else if (Icon == MapSliderIcons.ExtendRight && AnchorLeftEdge) {
             resize(MapDirection.Right, x);
-         } else if (Icon == MapSliderIcons.UpDown && !AnchorTopEdge) {
+         } else if (Icon == MapSliderIcons.ExtendUp && !AnchorTopEdge) {
             resize(MapDirection.Up, -y);
-         } else if (Icon == MapSliderIcons.UpDown && AnchorTopEdge) {
+         } else if (Icon == MapSliderIcons.ExtendDown && AnchorTopEdge) {
             resize(MapDirection.Down, y);
          }
       }

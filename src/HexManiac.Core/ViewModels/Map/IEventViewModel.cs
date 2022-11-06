@@ -691,7 +691,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObjectEventViewModel(Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
          this.gotoAddress = gotoAddress;
-         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i));
+         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2));
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);

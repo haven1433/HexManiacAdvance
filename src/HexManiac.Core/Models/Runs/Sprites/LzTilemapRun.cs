@@ -140,14 +140,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return (paletteIndex, hFlip, vFlip, tileIndex);
       }
 
-      public static void WriteTileData(byte[] lzRunData, int index, int paletteIndex, bool hFlip, bool vFlip, int tileIndex) {
+      public static void WriteTileData(byte[] tileData, int index, int paletteIndex, bool hFlip, bool vFlip, int tileIndex) {
          int packedData = 0;
          packedData |= tileIndex;
          if (hFlip) packedData |= 1 << 10;
          if (vFlip) packedData |= 1 << 11;
          packedData |= paletteIndex << 12;
-         lzRunData[index * 2 + 0] = (byte)packedData;
-         lzRunData[index * 2 + 1] = (byte)(packedData >> 8);
+         tileData[index * 2 + 0] = (byte)packedData;
+         tileData[index * 2 + 1] = (byte)(packedData >> 8);
       }
 
       public static int[,] GetPixels(byte[] mapData, byte[] tiles, TilemapFormat format, int bytesPerTile) {

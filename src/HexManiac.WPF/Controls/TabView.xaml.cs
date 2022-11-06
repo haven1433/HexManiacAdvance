@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Implementations;
 using HavenSoft.HexManiac.WPF.Windows;
+using IronPython.Runtime;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -18,6 +19,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Xml.Linq;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class TabView {

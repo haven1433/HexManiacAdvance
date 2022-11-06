@@ -172,7 +172,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
       }
 
-      public BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, MapDirection direction, int amount) {
+      public BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, MapDirection direction, int amount, int borderWidth, int borderHeight) {
          if (amount == 0) return null;
 
          int xAmount = 0, yAmount = 0;
@@ -207,19 +207,19 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
          // fill new rows/columns
          for (int y = yOffset - 1; y >= 0; y--) {
-            for (int x = 0; x < newWidth; x++) newData[x, y] = newData[x, y + 1];
+            for (int x = 0; x < newWidth; x++) newData[x, y] = newData[x, y + borderHeight];
          }
          if (yOffset == 0) {
             for (int y = BlockHeight; y < newHeight; y++) {
-               for (int x = 0; x < newWidth; x++) newData[x, y] = newData[x, y - 1];
+               for (int x = 0; x < newWidth; x++) newData[x, y] = newData[x, y - borderHeight];
             }
          }
          for (int x = xOffset - 1; x >= 0; x--) {
-            for (int y = 0; y < newHeight; y++) newData[x, y] = newData[x + 1, y];
+            for (int y = 0; y < newHeight; y++) newData[x, y] = newData[x + borderWidth, y];
          }
          if (xOffset == 0) {
             for (int x = BlockWidth; x < newWidth; x++) {
-               for (int y = 0; y < newHeight; y++) newData[x, y] = newData[x - 1, y];
+               for (int y = 0; y < newHeight; y++) newData[x, y] = newData[x - borderWidth, y];
             }
          }
 

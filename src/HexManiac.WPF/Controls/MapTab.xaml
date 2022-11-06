@@ -40,6 +40,7 @@
 
       <!-- Blocks Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
+         <Rectangle Fill="{DynamicResource Backlight}" Width="1" DockPanel.Dock="Right" />
          <local:AngleBorder DockPanel.Dock="Top" Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
@@ -162,8 +163,31 @@
             <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,0,10,0">
                <local:SelectedBlockEditor x:Name="BlockEditor" DataContext="{Binding PrimaryMap.BlockEditor}"/>
             </Decorator>
+            <TextBlock Foreground="{DynamicResource Secondary}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
+               <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                     <Setter Property="Visibility" Value="Collapsed" />
+                     <Style.Triggers>
+                        <MultiDataTrigger>
+                           <MultiDataTrigger.Conditions>
+                              <Condition Binding="{Binding BlockEditorVisible}" Value="False" />
+                              <Condition Binding="{Binding DrawMultipleTiles}" Value="False" />
+                           </MultiDataTrigger.Conditions>
+                           <MultiDataTrigger.Setters>
+                              <Setter Property="Visibility" Value="Visible" />
+                           </MultiDataTrigger.Setters>
+                        </MultiDataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </TextBlock.Style>
+               <Run Text="(No Block Selected)" FontStyle="Italic" />
+               <LineBreak />
+               <Run Text="Click a block below to select it, or" />
+               <LineBreak />
+               <Run Text="Right-Click the map to select a block." />
+            </TextBlock>
          </Grid>
-         <ScrollViewer Name="BlockViewer">
+         <ScrollViewer Name="BlockViewer" Margin="0,0,-1,0">
             <Canvas Width="{Binding Blocks.ScaledWidth}" Height="{Binding Blocks.ScaledHeight}">
                <local:PixelImage DataContext="{Binding Blocks}" MouseDown="BlocksDown" MouseMove="BlocksMove" MouseUp="BlocksUp" />
                <ContentControl IsHitTestVisible="False" Canvas.Left="{Binding HighlightBlockX}" Canvas.Top="{Binding HighlightBlockY}" Margin="-1,-1,0,0">
@@ -757,7 +781,7 @@
          </ItemsControl.ItemContainerStyle>
          <ItemsControl.ItemTemplate>
             <DataTemplate>
-               <Border MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterUp" Width="20" Height="20"
+               <Border Name="PathBackground" MouseLeftButtonDown="ShifterDown" MouseMove="ShifterMove" MouseLeftButtonUp="ShifterUp" Width="20" Height="20"
                        Background="{DynamicResource Backlight}" ToolTipService.InitialShowDelay="0">
                   <Path Name="Path" Fill="{DynamicResource Secondary}" Stretch="Uniform" />
                   <Border.ContextMenu>
@@ -776,6 +800,18 @@
                   </Border.ToolTip>
                </Border>
                <DataTemplate.Triggers>
+                  <DataTrigger Binding="{Binding Icon}" Value="ExtendLeft">
+                     <Setter TargetName="Path" Property="Data" Value="{res:Icon LineArrowLeft}"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Icon}" Value="ExtendUp">
+                     <Setter TargetName="Path" Property="Data" Value="{res:Icon LineArrowUp}"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Icon}" Value="ExtendRight">
+                     <Setter TargetName="Path" Property="Data" Value="{res:Icon LineArrowRight}"/>
+                  </DataTrigger>
+                  <DataTrigger Binding="{Binding Icon}" Value="ExtendDown">
+                     <Setter TargetName="Path" Property="Data" Value="{res:Icon LineArrowDown}"/>
+                  </DataTrigger>
                   <DataTrigger Binding="{Binding Icon}" Value="LeftRight">
                      <Setter TargetName="Path" Property="Data" Value="{res:Icon ArrowsLeftRight}"/>
                   </DataTrigger>
@@ -793,7 +829,10 @@
             <TranslateTransform X="{Binding HighlightCursorX, Mode=OneWay}" Y="{Binding HighlightCursorY, Mode=OneWay}"/>
          </Rectangle.RenderTransform>
       </Rectangle>
-      <TextBlock Width="100" Text="{Binding HoverPoint}" Background="{DynamicResource Background}" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom"/>
+      <Canvas Width="160" Height="16" Background="{DynamicResource Background}" Grid.Row="1" Grid.Column="1" HorizontalAlignment="Right" VerticalAlignment="Bottom">
+         <TextBlock Canvas.Left="20" Text="{Binding HoverPoint}" Background="{DynamicResource Background}" />
+         <TextBlock Canvas.Left="90" Text="{Binding ZoomLevel}" Background="{DynamicResource Background}" />
+      </Canvas>
 
       <!-- Tile Panel -->
       <Border DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
@@ -807,7 +846,11 @@
                <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" />
             </Grid>
             <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4">
-               <local:PixelImage DataContext="{Binding DrawTileRender}" Margin="0,0,50,0" TransparentBrush="{DynamicResource Background}" />
+               <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0"/>
+               <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center">
+                  <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
+               </Border>
+               <TextBlock Text="Selected Palette:" VerticalAlignment="Center" Margin="5,0"/>
                <ComboBox ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
             </StackPanel>
             <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
@@ -934,11 +977,11 @@
 
       <!-- Toolbar -->
       <StackPanel Grid.Column="1" Orientation="Horizontal" Background="{DynamicResource Background}" Margin="1,0,1,5" Panel.ZIndex="2">
-         <StackPanel Margin="5,0">
-            <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}">
+         <StackPanel Margin="5,0" HorizontalAlignment="Center">
+            <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}" ToolTip="Zoom In">
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinPlus}" />
             </Button>
-            <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Shrink}">
+            <Button Width="12" Height="12" Padding="1" Command="{res:MethodCommand Zoom}" CommandParameter="{x:Static map:ZoomDirection.Shrink}" ToolTip="Zoom Out">
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinMinus}" />
             </Button>
          </StackPanel>
@@ -1039,7 +1082,7 @@
                            </Style.Triggers>
                         </Style>
                      </StackPanel.Style>
-                     <!-- This trainer prefers to use a level <15> <Bug> pokemon from first <50> pokemon in the <Regional> pokedex. -->
+                     <!-- This trainer prefers to use a level <15> <Bug> pokemon from first <50> pokemon in the <National> pokedex. -->
                      <StackPanel Orientation="Horizontal">
                         <TextBlock Text="This trainer prefers to use" />
                      </StackPanel>
@@ -1057,7 +1100,7 @@
                         <local:AngleButton Width="60" Padding="0" Height="18" Direction="Out" IsChecked="{Binding UseNationalDex}">
                            <local:AngleButton.Style>
                               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
-                                 <Setter Property="Content" Value="Regional" />
+                                 <Setter Property="Content" Value="Hoenn" />
                                  <Style.Triggers>
                                     <DataTrigger Binding="{Binding UseNationalDex}" Value="True">
                                        <Setter Property="Content" Value="National" />
@@ -1140,11 +1183,13 @@
                  ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Fly Spot">
             <TextBlock Text="F" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
          </Border>
-         <local:AngleBorder Direction="Left" VerticalAlignment="Stretch">
+         <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map ID:" />
+         <local:AngleBorder Direction="Out" VerticalAlignment="Stretch" Margin="0,0,5,0">
             <Border Width="50">
                <TextBlock Text="{Binding PrimaryMap.Name}" HorizontalAlignment="Center" />
             </Border>
          </local:AngleBorder>
+         <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
          <local:AngleComboBox Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />
       </StackPanel>
       <Border Grid.Column="1" IsHitTestVisible="False" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Background}" BorderThickness="0,0,0,1" Height="5" VerticalAlignment="Bottom" />

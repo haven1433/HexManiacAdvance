@@ -22,6 +22,8 @@ namespace HavenSoft.HexManiac.WPF.Resources {
          CenterY = centerY;
       }
 
+      public RotateTransformExtension(double angle) : this(angle, .5, .5) { }
+
       public override object ProvideValue(IServiceProvider serviceProvider) {
          return new RotateTransform(Angle, CenterX, CenterY);
       }

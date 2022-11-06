@@ -364,6 +364,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetAddress("fish", Pointer.NULL);
             wildDataIndex = wildTable.ElementCount - 1;
             if (wildTable.Start != originalStart) InformRepoint(new("Wild", wildTable.Start));
+            NotifyPropertyChanged(nameof(HasWildData));
+            viewPort.ChangeHistory.ChangeCompleted();
          }
          viewPort.Goto.Execute(wildTable.Start + wildTable.ElementLength * wildDataIndex);
          tutorials.Complete(Tutorial.ToolbarButton_GotoWildData);
@@ -489,17 +491,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = null;
          eventRenders = null;
          borderBlock = null;
+         wildDataIndex = int.MinValue;
          RefreshMapSize();
          if (blockEditor != null) {
-            var oldShowTiles = blockEditor.ShowTiles;
-            var selection = blockEditor.BlockIndex;
             blockEditor.BlocksChanged -= HandleBlocksChanged;
             blockEditor.BlockAttributesChanged -= HandleBlockAttributesChanged;
             BlockEditor.AutoscrollTiles -= HandleAutoscrollTiles;
             var oldBlockEditor = blockEditor;
             blockEditor = null;
-            BlockEditor.BlockIndex = selection;
-            BlockEditor.ShowTiles = oldShowTiles;
+            BlockEditor.BlockIndex = oldBlockEditor.BlockIndex;
+            (BlockEditor.TileSelectionX, BlockEditor.TileSelectionY) = (oldBlockEditor.TileSelectionX, oldBlockEditor.TileSelectionY);
+            BlockEditor.PaletteSelection = oldBlockEditor.PaletteSelection;
+            BlockEditor.ShowTiles = oldBlockEditor.ShowTiles;
             oldBlockEditor.ShowTiles = false;
             NotifyPropertyChanged(nameof(BlockEditor));
          }
@@ -512,8 +515,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             oldBorderEditor.ShowBorderPanel = false;
             NotifyPropertyChanged(nameof(BorderEditor));
          }
-         NotifyPropertyChanged(nameof(BlockRenders));
-         NotifyPropertyChanged(nameof(BlockPixels));
+         NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(HasWildData));
       }
 
       public void RedrawEvents() {
@@ -545,7 +547,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var option = MapRepointer.GetMapBankForNewMap(
             "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
             + Environment.NewLine +
-            "Which map bank do you want use for the new mapa?");
+            "Which map bank do you want to use for the new map?");
          if (option == -1) return null;
          var token = tokenFactory();
          MapModel thisMap = new(GetMapModel());
@@ -1003,10 +1005,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // get sliders for size expansion
          var centerX = (LeftEdge + RightEdge - MapSlider.SliderSize) / 2;
          var centerY = (TopEdge + BottomEdge - MapSlider.SliderSize) / 2;
-         yield return new ExpansionSlider(ResizeMapData, id + 0, UpDown, GetConnectionCommands(connections, MapDirection.Up), left: centerX, bottom: TopEdge);
-         yield return new ExpansionSlider(ResizeMapData, id + 1, UpDown, GetConnectionCommands(connections, MapDirection.Down), left: centerX, top: BottomEdge);
-         yield return new ExpansionSlider(ResizeMapData, id + 2, LeftRight, GetConnectionCommands(connections, MapDirection.Left), right: LeftEdge, top: centerY);
-         yield return new ExpansionSlider(ResizeMapData, id + 3, LeftRight, GetConnectionCommands(connections, MapDirection.Right), left: RightEdge, top: centerY);
+         yield return new ExpansionSlider(ResizeMapData, id + 0, ExtendUp, GetConnectionCommands(connections, MapDirection.Up), left: centerX, bottom: TopEdge);
+         yield return new ExpansionSlider(ResizeMapData, id + 1, ExtendDown, GetConnectionCommands(connections, MapDirection.Down), left: centerX, top: BottomEdge);
+         yield return new ExpansionSlider(ResizeMapData, id + 2, ExtendLeft, GetConnectionCommands(connections, MapDirection.Left), right: LeftEdge, top: centerY);
+         yield return new ExpansionSlider(ResizeMapData, id + 3, ExtendRight, GetConnectionCommands(connections, MapDirection.Right), left: RightEdge, top: centerY);
       }
 
       private IEnumerable<IMenuCommand> GetConnectionCommands(IReadOnlyList<ConnectionModel> connections, MapDirection direction) {
@@ -1066,20 +1068,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout(map);
          var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
          if (run == null) return;
-
-         var newRun = run.TryChangeSize(tokenFactory, direction, amount);
+         var borderWidth = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
+         var borderHeight = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
+         var newRun = run.TryChangeSize(tokenFactory, direction, amount, borderWidth, borderHeight);
          if (newRun != null) {
             var tileSize = (int)(16 * spriteScale);
             if (direction == MapDirection.Left) LeftEdge -= amount * tileSize;
             if (direction == MapDirection.Up) TopEdge -= amount * tileSize;
-            foreach (var connection in GetConnections(map)) {
+            foreach (var connection in GetConnections(map, group, this.map)) {
                if (direction == MapDirection.Left) {
                   if (connection.Direction == MapDirection.Down || connection.Direction == MapDirection.Up) {
                      connection.Offset += amount;
+                     var inverse = connection.GetInverse();
+                     if (inverse != null) inverse.Offset -= amount;
                   }
                } else if (direction == MapDirection.Up) {
                   if (connection.Direction == MapDirection.Left || connection.Direction == MapDirection.Right) {
                      connection.Offset += amount;
+                     var inverse = connection.GetInverse();
+                     if (inverse != null) inverse.Offset -= amount;
                   }
                }
             }
@@ -1104,7 +1111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var option = MapRepointer.GetMapBankForNewMap(
             "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
             + Environment.NewLine +
-            "Which map bank do you want use for the new mapa?");
+            "Which map bank do you want to use for the new map?");
          if (option == -1) return;
 
          var map = GetMapModel();
@@ -1115,7 +1122,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (connections.Start != originalConnectionStart) InformRepoint(new("Connections", connections.Start));
          connectionsAndCount.SetValue("count", connections.ElementCount + 1);
          var table = new ModelTable(model, connections.Start, tokenFactory, connections);
-         var newConnection = new ConnectionModel(table[connections.ElementCount]);
+         var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
 
@@ -1131,6 +1138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          RefreshMapSize();
          NeighborsChanged.Raise(this);
+         viewPort.ChangeHistory.ChangeCompleted();
       }
 
       private BlockMapViewModel CreateNewMap(ModelDelta token, int bank, int width, int height) {
@@ -1197,12 +1205,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          RefreshMapSize();
          NeighborsChanged.Raise(this);
+         viewPort.ChangeHistory.ChangeCompleted();
       }
 
       private void RemoveConnections(IReadOnlyList<int> toRemove) {
          var token = tokenFactory();
          var map = GetMapModel();
-         var connections = GetConnections(map);
+         var connections = GetConnections(map, group, this.map);
          for (int i = 0; i < toRemove.Count; i++) {
             for (int j = toRemove[i] - i + 1; j < connections.Count - i; j++) {
                connections[j - 1].Direction = connections[j].Direction;
@@ -1223,6 +1232,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          RefreshMapSize();
          NeighborsChanged.Raise(this);
+         viewPort.ChangeHistory.ChangeCompleted();
       }
 
       private ConnectionModel AddConnection(ConnectionInfo info) {
@@ -1255,7 +1265,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, connections);
 
          var table = new ModelTable(model, connections.Start, tokenFactory, connections);
-         var newConnection = new ConnectionModel(table[count]);
+         var newConnection = new ConnectionModel(table[count], group, this.map);
          token.ChangeData(model, table[count].Start, new byte[12]);
          newConnection.Direction = info.Direction;
          return newConnection;
@@ -1532,7 +1542,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int y = 0; y < height + border.North + border.South; y++) {
             for (int x = 0; x < width + border.West + border.East; x++) {
                if (y < border.North || x < border.West || y >= border.North + height || x >= border.West + width) {
-                  if (x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  var (xEdge, yEdge) = (x - border.West - width, y - border.North - height);
+                  var (rightEdge, bottomEdge) = (xEdge >= 0, yEdge >= 0);
+                  // top/left
+                  if (!rightEdge && !bottomEdge && x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  // right edge
+                  if (rightEdge && !bottomEdge && xEdge % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  // bottom edge
+                  if (!rightEdge && bottomEdge && x % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  // bottom right corner
+                  if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
                   continue;
                }
                var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
@@ -1634,9 +1653,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private IReadOnlyList<ConnectionModel> GetConnections() {
          var map = GetMapModel(model, group, this.map, tokenFactory);
-         return GetConnections(map);
+         return GetConnections(map, group, this.map);
       }
-      public static IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map) {
+      public static IReadOnlyList<ConnectionModel> GetConnections(ModelArrayElement map, int bankNum, int mapNum) {
          if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
          var list = new List<ConnectionModel>();
@@ -1646,7 +1665,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (count == 0) return list;
          var connections = connectionsAndCount.GetSubTable("connections");
          if (connections == null) return new ConnectionModel[0];
-         for (int i = 0; i < count; i++) list.Add(new(connections[i]));
+         for (int i = 0; i < count; i++) list.Add(new(connections[i], bankNum, mapNum));
          return list;
       }
 
@@ -1781,6 +1800,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = null;
          pixelData = null;
          NotifyPropertiesChanged(nameof(BlockPixels), nameof(PixelData), nameof(BlockRenders));
+         viewPort.ChangeHistory.ChangeCompleted();
       }
 
       private void HandleBorderChanged(object sender, EventArgs e) {
@@ -1977,9 +1997,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ConnectionModel {
       private readonly ModelArrayElement connection;
+      private readonly int sourceGroup, sourceMap;
       public IDataModel Model => connection.Model;
       public Func<ModelDelta> Tokens => () => connection.Token;
-      public ConnectionModel(ModelArrayElement connection) => this.connection = connection;
+      public ConnectionModel(ModelArrayElement connection, int sourceGroup, int sourceMap) => (this.connection, this.sourceGroup, this.sourceMap) = (connection, sourceGroup, sourceMap);
 
       public MapDirection Direction {
          get => (MapDirection)connection.GetValue("direction");
@@ -2001,6 +2022,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int MapNum {
          get => connection.GetValue("mapNum");
          set => connection.SetValue("mapNum", value);
+      }
+
+      public ConnectionModel GetInverse() {
+         var direction = Direction.Reverse();
+         var map = BlockMapViewModel.GetMapModel(Model, MapGroup, MapNum, Tokens);
+         var neighbors = BlockMapViewModel.GetConnections(map, MapGroup, MapNum);
+         return neighbors.FirstOrDefault(c => c.MapGroup == sourceGroup && c.MapNum == sourceMap && c.Direction == direction);
       }
 
       public void Clear(IDataModel model, ModelDelta token) {

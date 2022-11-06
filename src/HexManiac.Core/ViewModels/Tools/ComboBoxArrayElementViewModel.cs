@@ -31,14 +31,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int PixelWidth { get; private set; }
       public int PixelHeight { get; private set; }
       public short[] PixelData { get; private set; }
-      public double SpriteScale => 1;
+      public double SpriteScale { get; init; } = 1;
       public override bool DisplayAsText => false;
 
       private VisualComboOption(string text, int index) : base(text, index) { PixelData = new short[0]; }
-      public static VisualComboOption CreateFromSprite(string text, short[] pixelData, int width, int index) => new VisualComboOption(text, index) {
+      public static VisualComboOption CreateFromSprite(string text, short[] pixelData, int width, int index, double scale = 1) => new VisualComboOption(text, index) {
          PixelData = pixelData,
          PixelWidth = width,
          PixelHeight = pixelData.Length / width,
+         SpriteScale = scale
       };
    }
 

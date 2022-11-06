@@ -922,7 +922,7 @@
             </DockPanel>
          </Grid>
 
-         <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4" MouseDoubleClick="ResetLeftToolsPane"/>
+         <GridSplitter Grid.Column="1" Focusable="False" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4" MouseDoubleClick="ResetLeftToolsPane"/>
 
          <!-- Center Panel-->
          <DockPanel Grid.Column="2">
