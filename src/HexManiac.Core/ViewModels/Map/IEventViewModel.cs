@@ -462,8 +462,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null;
-
       public bool ShowNpcText => EventTemplate.GetNPCTextPointer(element.Model, this) != Pointer.NULL;
 
       public string NpcText {
@@ -473,6 +471,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
+
+      #region Trainer Content
+
+      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null;
 
       public int TrainerClass {
          get {
@@ -607,6 +609,83 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (trainerContent == null) return;
          gotoAddress(trainerContent.TrainerClassAddress - 1);
       });
+
+      #endregion
+
+      #region Tutor Content
+
+      public bool ShowTutorContent => EventTemplate.GetTutorContent(element.Model, this) != null;
+
+      public string TutorInfoText {
+         get {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return null;
+            return GetText(tutorContent.InfoPointer);
+         }
+         set {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return;
+            var newStart = SetText(tutorContent.InfoPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string TutorWhichPokemonText {
+         get {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return null;
+            return GetText(tutorContent.WhichPokemonPointer);
+         }
+         set {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return;
+            var newStart = SetText(tutorContent.WhichPokemonPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string TutorFailedText {
+         get {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return null;
+            return GetText(tutorContent.FailedPointer);
+         }
+         set {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return;
+            var newStart = SetText(tutorContent.FailedPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string TutorSucessText {
+         get {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return null;
+            return GetText(tutorContent.SuccessPointer);
+         }
+         set {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return;
+            var newStart = SetText(tutorContent.SuccessPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public int TutorNumber {
+         get {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return -1;
+            return element.Model.ReadMultiByteValue(tutorContent.TutorAddress, 2);
+         }
+         set {
+            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
+            if (tutorContent == null) return;
+            element.Model.WriteMultiByteValue(tutorContent.TutorAddress, 2, Token, value);
+         }
+      }
+
+      #endregion
 
       #endregion
 

@@ -446,6 +446,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventViewModel.Start + 16)));
       }
 
+      public MartEventContent GetMartContent(ObjectEventViewModel eventModel) => GetMartContent(model, eventModel);
+      public static MartEventContent GetMartContent(IDataModel model, ObjectEventViewModel eventViewModel) {
+         throw new NotImplementedException();
+      }
+
       #endregion
 
       #region Tutor
@@ -534,6 +539,12 @@ failed:
          objectEventViewModel.Flag = 0;
       }
 
+      public TutorEventContent GetTutorContent(ObjectEventViewModel eventModel) => GetTutorContent(model, eventModel);
+      public static TutorEventContent GetTutorContent(IDataModel model, ObjectEventViewModel eventViewModel) {
+         // int InfoPointer, int WhichPokemonPointer, int FailedPointer, int SuccessPointer, int TutorAddress
+         return null;
+      }
+
       #endregion
 
       #region Trade
@@ -573,6 +584,10 @@ failed:
    }
 
    public record TrainerEventContent(int BeforeTextPointer, int WinTextPointer, int AfterTextPointer, int TrainerClassAddress, int TrainerNameAddress, int TeamPointer);
+
+   public record MartEventContent(int HelloPointer, int MartPointer, int GoodbyePointer);
+
+   public record TutorEventContent(int InfoPointer, int WhichPokemonPointer, int FailedPointer, int SuccessPointer, int TutorAddress);
 
    public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade }
 }
