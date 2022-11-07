@@ -543,6 +543,9 @@
                                              </Grid>
                                           </StackPanel>
                                        </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteIndicatorElementViewModel}">
+                                          <hsg3hv:PixelImage Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" SnapsToDevicePixels="True" DataContext="{Binding Image}" />
+                                       </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
                                           <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                              <hsg3hv:CommonTableStreamControl />

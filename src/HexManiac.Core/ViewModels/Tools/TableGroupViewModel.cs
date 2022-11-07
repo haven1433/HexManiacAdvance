@@ -1,7 +1,11 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -101,6 +105,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             itemAddress += item.Length;
          }
+         AddAdhocSpecialElementsToGroup(viewPort, table);
+      }
+
+      private void AddAdhocSpecialElementsToGroup(IViewPort viewPort, ITableRun table) {
+         if (table.ElementContent.Count == 14 && table.ElementCount == 1 && table.ElementContent.Select(seg => seg.Type).ToArray().SequenceEqual(new[] {
+            ElementContentType.Pointer, ElementContentType.Pointer, ElementContentType.Pointer, ElementContentType.Pointer,
+            ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer,
+            ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer,
+            ElementContentType.Integer, ElementContentType.Integer,
+         })) {
+            AddAdhocMapElementsToGroup(viewPort, table);
+         }
+      }
+
+      private void AddAdhocMapElementsToGroup(IViewPort viewPort, ITableRun table) {
+         var model = viewPort.Model;
+         if (table.PointerSources == null || table.PointerSources.Count != 1) return;
+         var addressInBankTable = table.PointerSources[0];
+         var bankTable = model.GetNextRun(addressInBankTable) as ITableRun;
+         if (bankTable == null || bankTable.PointerSources == null || bankTable.PointerSources.Count != 1) return;
+         var topTable = model.GetNextRun(bankTable.PointerSources[0]) as ITableRun;
+         if (topTable == null) return;
+         var bankOffset = topTable.ConvertByteOffsetToArrayOffset(bankTable.PointerSources[0]);
+         var mapOffset = bankTable.ConvertByteOffsetToArrayOffset(addressInBankTable);
+         var (bank, map) = (bankOffset.ElementIndex, mapOffset.ElementIndex);
+         var name = "maps." + BlockMapViewModel.MapIDToText(model, bank, map);
+         var matches = model.GetMatchingMaps(name);
+         if (matches.Count != 1) return;
+         var mapModel = new MapModel(new ModelArrayElement(model, table.Start, 0, () => viewPort.ChangeHistory.CurrentChange, table));
+         if (model.GetNextRun(mapModel.Layout.BlockMap.Start) is BlockmapRun blockmapRun) {
+            var image = (CanvasPixelViewModel)model.CurrentCacheScope.GetImage(blockmapRun);
+            image.SpriteScale = 128.0 / Math.Max(image.PixelWidth, image.PixelHeight);
+            Add(new SpriteIndicatorElementViewModel(image));
+         }
+         Add(new ButtonArrayElementViewModel("Edit Map", () => viewPort.Goto.Execute(name)));
       }
 
       private void AddChildrenFromPointerSegment(ViewPort viewPort, int itemAddress, ArrayRunElementSegment item, IArrayElementViewModel parent, int recursionLevel) {

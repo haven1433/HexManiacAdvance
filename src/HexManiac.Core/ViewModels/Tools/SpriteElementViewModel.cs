@@ -1,17 +1,39 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
+   public class SpriteIndicatorElementViewModel : ViewModelCore, IArrayElementViewModel {
+      public IPixelViewModel Image { get; private set; }
+
+      private bool visible;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
+      public bool IsInError => false;
+
+      public string ErrorText => string.Empty;
+
+      public int ZIndex => 1;
+
+      public event EventHandler DataChanged;
+      public event EventHandler DataSelected;
+
+      public SpriteIndicatorElementViewModel(IPixelViewModel image) => Image = image;
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (other is not SpriteIndicatorElementViewModel indicator) return false;
+         Image = indicator.Image;
+         NotifyPropertyChanged(nameof(Image));
+         return true;
+      }
+   }
 
    public class SpriteElementViewModel : PagedElementViewModel, IPixelViewModel {
       private SpriteFormat format;

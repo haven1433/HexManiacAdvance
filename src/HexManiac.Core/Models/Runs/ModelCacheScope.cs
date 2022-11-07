@@ -92,7 +92,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var maps = banks[i].GetSubTable("maps");
             if (maps == null) continue;
             for (int j = 0; j < maps.Count; j++) {
-               var mapText = "maps." + BlockMapViewModel.MapIDToText(model, i * 1000 + j);
+               var mapText = "maps." + BlockMapViewModel.MapIDToText(model, i, j);
                results.Add(new(i, j, mapText));
             }
          }

@@ -318,9 +318,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var allMaps = model.CurrentCacheScope?.GetAllMaps();
          var results = allMaps?.Where(map => map.Name.MatchesPartial(text)).ToList() ?? new();
 
-         return //*
-            new() /*/ results //*/
-            ;
+         //*
+         return new();
+         /*/
+         var lower = text.ToLower();
+         foreach (var result in results) {
+            if (result.Name.ToLower() == lower) return new() { result };
+         }
+         return results;
+         //*/
       }
    }
 
