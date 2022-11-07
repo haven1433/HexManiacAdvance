@@ -64,6 +64,10 @@
                <local:AngleComboBox Direction="Out" Width="50" Height="20"
                   ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
+            <StackPanel Orientation="Vertical" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,0,12" Grid.Row="1" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
+               <local:AngleBorder Direction="Out" VerticalAlignment="Stretch" Content="Block ID" />
+               <TextBlock Text="{Binding DrawBlockIndex}" HorizontalAlignment="Center" Margin="0,5,0,0" />
+            </StackPanel>
             <Decorator Grid.Row="1" Height="20" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,30,55" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block" x:Name="EditBlockButton"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
@@ -850,7 +854,13 @@
                <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center">
                   <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
                </Border>
-               <TextBlock Text="Selected Palette:" VerticalAlignment="Center" Margin="5,0"/>
+               <TextBlock VerticalAlignment="Center" Margin="5,0" TextAlignment="Center">
+                  <Run Text="Selected Palette:" />
+                  <LineBreak />
+                  <Run Text="(" />
+                  <Run Text="{Binding PaletteSelection, Mode=OneWay}" />
+                  <Run Text=")" />
+               </TextBlock>
                <ComboBox ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
             </StackPanel>
             <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
