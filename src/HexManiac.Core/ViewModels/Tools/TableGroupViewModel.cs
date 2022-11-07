@@ -109,11 +109,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void AddAdhocSpecialElementsToGroup(IViewPort viewPort, ITableRun table) {
-         if (table.ElementContent.Count == 14 && table.ElementCount == 1 && table.ElementContent.Select(seg => seg.Type).ToArray().SequenceEqual(new[] {
+         if (!viewPort.Model.IsEmerald() && table.ElementContent.Count == 14 && table.ElementCount == 1 && table.ElementContent.Select(seg => seg.Type).ToArray().SequenceEqual(new[] {
             ElementContentType.Pointer, ElementContentType.Pointer, ElementContentType.Pointer, ElementContentType.Pointer,
             ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer,
             ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer,
             ElementContentType.Integer, ElementContentType.Integer,
+         })) {
+            AddAdhocMapElementsToGroup(viewPort, table);
+         }
+
+         if (viewPort.Model.IsEmerald() && table.ElementContent.Count == 13 && table.ElementCount == 1 && table.ElementContent.Select(seg => seg.Type).ToArray().SequenceEqual(new[] {
+            ElementContentType.Pointer, ElementContentType.Pointer, ElementContentType.Pointer, ElementContentType.Pointer,
+            ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer,
+            ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer, ElementContentType.Integer,
+            ElementContentType.Integer,
          })) {
             AddAdhocMapElementsToGroup(viewPort, table);
          }
