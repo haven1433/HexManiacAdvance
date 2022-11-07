@@ -238,6 +238,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
       }
 
+      private void EatMouseWheel(object sender, MouseWheelEventArgs e) {
+         // we have this so that mouse-wheel over certain elements won't get taken by the Wheel method above.
+         e.Handled = true;
+      }
+
       private void BlocksDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          if (element.IsMouseCaptured) return;

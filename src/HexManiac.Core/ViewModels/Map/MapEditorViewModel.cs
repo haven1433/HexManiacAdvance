@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using IronPython.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -176,19 +177,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ICommand Back => StubCommand(ref backCommand, ExecuteBack, CanExecuteBack);
       public ICommand Forward => StubCommand(ref forwardCommand, ExecuteForward, CanExecuteForward);
 
-      private GameReferenceTables RefTable => singletons.GameReferenceTables.TryGetValue(model.GetGameCode(), out var refTable) ? refTable : null;
-      public ICommand Close => StubCommand(ref close, () => {
-         if (!history.IsSaved) {
-            var metadata = model.ExportMetadata(RefTable, singletons.MetadataInfo);
-            var result = fileSystem.TrySavePrompt(new LoadedFile(viewPort.FileName, model.RawData));
-            if (result == null) return;
-            if (result == true) {
-               fileSystem.SaveMetadata(viewPort.FileName, metadata?.Serialize());
-               history.TagAsSaved();
-            }
-         }
-         Closed.Raise(this);
-      });
+      public ICommand Close => StubCommand(ref close, () => Closed.Raise(this));
 
       public ICommand Diff => null;
       public ICommand DiffLeft => null;
@@ -615,10 +604,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
             }
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
-            viewPort.Goto.Execute(obj.ScriptAddress);
+            if (0 <= obj.ScriptAddress && obj.ScriptAddress < model.Count) {
+               viewPort.Goto.Execute(obj.ScriptAddress);
+            } else {
+               OnError.Raise(this, "Not a valid script address.");
+            }
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ScriptEventViewModel script) {
-            viewPort.Goto.Execute(script.ScriptAddress);
+            if (0 <= script.ScriptAddress && script.ScriptAddress < model.Count) {
+               viewPort.Goto.Execute(script.ScriptAddress);
+            } else {
+               OnError.Raise(this, "Not a valid script address.");
+            }
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (
             click == PrimaryInteractionStart.DoubleClick &&
@@ -1118,6 +1115,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map.SpriteScale >= 1) ZoomLevel = $"{(int)map.SpriteScale}x Zoom";
          else ZoomLevel = $"1/{(int)Math.Round(1 / map.SpriteScale)}x Zoom";
          Tutorials.Complete(Tutorial.Wheel_ZoomMap);
+      }
+
+      public void ResetZoom() {
+         while (primaryMap.SpriteScale > 1) Zoom(0, 0, false);
+         while (primaryMap.SpriteScale < 1) Zoom(0, 0, true);
       }
 
       private StubCommand panCommand, zoomCommand, deleteCommand, cancelCommand;

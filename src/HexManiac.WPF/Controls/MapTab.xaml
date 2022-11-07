@@ -39,7 +39,7 @@
       <Decorator IsHitTestVisible="False" Width="30" Height="30" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="96,-60,0,0" Name="UndoButtonWidget" />
 
       <!-- Blocks Panel -->
-      <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}">
+      <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}" MouseWheel="EatMouseWheel">
          <Rectangle Fill="{DynamicResource Backlight}" Width="1" DockPanel.Dock="Right" />
          <local:AngleBorder DockPanel.Dock="Top" Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
@@ -836,7 +836,7 @@
 
       <!-- Tile Panel -->
       <Border DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
-              BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
+              BorderBrush="{DynamicResource Backlight}" BorderThickness="1" MouseWheel="EatMouseWheel"
               Background="{DynamicResource Background}">
          <DockPanel Name="TilePanel" Width="400" HorizontalAlignment="Right">
             <Grid DockPanel.Dock="Top">
@@ -921,7 +921,7 @@
 
       <!-- Border Panel-->
       <Border DataContext="{Binding PrimaryMap.BorderEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
-              BorderBrush="{DynamicResource Backlight}" BorderThickness="1"
+              BorderBrush="{DynamicResource Backlight}" BorderThickness="1" MouseWheel="EatMouseWheel"
               Background="{DynamicResource Background}">
          <DockPanel Width="400" HorizontalAlignment="Right">
             <Grid DockPanel.Dock="Top">

@@ -659,7 +659,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          toggleScrollAnimation.Execute = arg => AnimateScroll = !AnimateScroll;
 
          resetZoom.CanExecute = CanAlwaysExecute;
-         resetZoom.Execute = arg => ZoomLevel = 16;
+         resetZoom.Execute = arg => {
+            ZoomLevel = 16;
+            foreach(var tab in this) {
+               if (tab is not MapEditorViewModel mapTab) continue;
+               mapTab.ResetZoom();
+            }
+         };
 
          resetTheme.CanExecute = CanAlwaysExecute;
          resetTheme.Execute = arg => Theme.Reset();

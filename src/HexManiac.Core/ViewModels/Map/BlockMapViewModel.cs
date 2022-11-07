@@ -919,16 +919,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
+         IEventViewModel last = null;
          foreach (var e in GetEvents()) {
-            if (e.X == tileX && e.Y == tileY) {
-               if (autoSelect) SelectedEvent = e;
-               pixelData = null;
-               NotifyPropertyChanged(nameof(PixelData));
-               return e;
-            }
+            if (e.X == tileX && e.Y == tileY) last = e;
          }
-         if (autoSelect) SelectedEvent = null;
-         return null;
+         if (autoSelect) SelectedEvent = last;
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
+         return last;
       }
 
       public IPixelViewModel AutoCrop(int warpID) {

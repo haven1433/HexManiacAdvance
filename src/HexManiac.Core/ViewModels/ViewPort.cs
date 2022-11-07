@@ -603,7 +603,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void CloseExecuted(IFileSystem fileSystem) {
-         if (!history.IsSaved) {
+         if (!history.IsSaved && ownsHistory) {
             var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
             var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
@@ -877,6 +877,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool isFocused;
       public bool IsFocused { get => isFocused; set => Set(ref isFocused, value); }
 
+      private bool ownsHistory; // true if this tab is responsible for history ownership. False if this is a 'duplicate' tab, and another tab owns the history.
+
       public ICommand Copy => copy;
       public ICommand CopyAddress => copyAddress;
       public ICommand CopyBytes => copyBytes;
@@ -937,6 +939,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
          Singletons = singletons ?? new Singletons();
          PythonTool = pythonTool;
+         ownsHistory = changeHistory == null;
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
          this.dispatcher = dispatcher ?? InstantDispatch.Instance;
