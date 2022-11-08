@@ -1,10 +1,12 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -326,6 +328,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ObjectEventViewModel : BaseEventViewModel {
+      private readonly ScriptParser parser;
       private readonly Action<int> gotoAddress;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
@@ -612,90 +615,146 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Mart Content
+
+      private Lazy<MartEventContent> martContent;
+
+      public bool ShowMartContents => martContent.Value != null;
+
+      public string MartHello {
+         get {
+            if (martContent.Value == null) return null;
+            return GetText(martContent.Value.HelloPointer);
+         }
+         set {
+            if (martContent.Value == null) return;
+            var newStart = SetText(martContent.Value.HelloPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string MartContent {
+         get {
+            if (martContent.Value == null) return null;
+            var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
+            if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
+            return stream.SerializeRun();
+         }
+         set {
+            if (martContent.Value == null) return;
+            var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
+            if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return;
+            var newStream = stream.DeserializeRun(value, Token, out var _);
+            element.Model.ObserveRunWritten(Token, newStream);
+            if (newStream.Start != stream.Start) DataMoved.Raise(this, new("Mart", newStream.Start));
+         }
+      }
+
+      public string MartGoodbye {
+         get {
+            if (martContent.Value == null) return null;
+            return GetText(martContent.Value.GoodbyePointer);
+         }
+         set {
+            var newStart = SetText(martContent.Value.GoodbyePointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      #endregion
+
       #region Tutor Content
 
-      public bool ShowTutorContent => EventTemplate.GetTutorContent(element.Model, this) != null;
+      private Lazy<TutorEventContent> tutorContent;
+
+      public bool ShowTutorContent {
+         get {
+            var content = tutorContent.Value;
+            if (content != null && TutorOptions.Count == 0) {
+               TutorOptions.AddRange(element.Model.GetOptions(HardcodeTablesModel.MoveTutors));
+            }
+            return tutorContent.Value != null;
+         }
+      }
 
       public string TutorInfoText {
          get {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return null;
-            return GetText(tutorContent.InfoPointer);
+            if (tutorContent.Value == null) return null;
+            return GetText(tutorContent.Value.InfoPointer);
          }
          set {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return;
-            var newStart = SetText(tutorContent.InfoPointer, value);
+            if (tutorContent.Value == null) return;
+            var newStart = SetText(tutorContent.Value.InfoPointer, value);
             if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
       public string TutorWhichPokemonText {
          get {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return null;
-            return GetText(tutorContent.WhichPokemonPointer);
+            if (tutorContent.Value == null) return null;
+            return GetText(tutorContent.Value.WhichPokemonPointer);
          }
          set {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return;
-            var newStart = SetText(tutorContent.WhichPokemonPointer, value);
+            if (tutorContent.Value == null) return;
+            var newStart = SetText(tutorContent.Value.WhichPokemonPointer, value);
             if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
       public string TutorFailedText {
          get {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return null;
-            return GetText(tutorContent.FailedPointer);
+            if (tutorContent.Value == null) return null;
+            return GetText(tutorContent.Value.FailedPointer);
          }
          set {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return;
-            var newStart = SetText(tutorContent.FailedPointer, value);
+            if (tutorContent.Value == null) return;
+            var newStart = SetText(tutorContent.Value.FailedPointer, value);
             if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
       public string TutorSucessText {
          get {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return null;
-            return GetText(tutorContent.SuccessPointer);
+            if (tutorContent.Value == null) return null;
+            return GetText(tutorContent.Value.SuccessPointer);
          }
          set {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return;
-            var newStart = SetText(tutorContent.SuccessPointer, value);
+            if (tutorContent.Value == null) return;
+            var newStart = SetText(tutorContent.Value.SuccessPointer, value);
             if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
       }
 
       public int TutorNumber {
          get {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return -1;
-            return element.Model.ReadMultiByteValue(tutorContent.TutorAddress, 2);
+            if (tutorContent.Value == null) return -1;
+            return element.Model.ReadMultiByteValue(tutorContent.Value.TutorAddress, 2);
          }
          set {
-            var tutorContent = EventTemplate.GetTutorContent(element.Model, this);
-            if (tutorContent == null) return;
-            element.Model.WriteMultiByteValue(tutorContent.TutorAddress, 2, Token, value);
+            if (tutorContent.Value == null) return;
+            element.Model.WriteMultiByteValue(tutorContent.Value.TutorAddress, 2, Token, value);
          }
       }
 
-      #endregion
+      public ObservableCollection<string> TutorOptions { get; } = new();
+
+      public void GotoTutors() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.MoveTutors)[TutorNumber].Start);
 
       #endregion
 
-      public ObjectEventViewModel(Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+      #endregion
+
+      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+         this.parser = parser;
          this.gotoAddress = gotoAddress;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2));
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
+
+         tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
+         martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
       }
 
       public override int TopOffset => 16 - EventRender.PixelHeight;

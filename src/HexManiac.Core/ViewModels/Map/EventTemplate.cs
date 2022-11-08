@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AvailableTemplateTypes.Add(TemplateType.Trainer);
          AvailableTemplateTypes.Add(TemplateType.Mart);
          AvailableTemplateTypes.Add(TemplateType.Trade);
-         AvailableTemplateTypes.Add(TemplateType.Tutor);
+         if (model.IsFRLG() || model.IsEmerald()) AvailableTemplateTypes.Add(TemplateType.Tutor); // Ruby/Sapphire don't have tutors
 
          GraphicsOptions.Clear();
          for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2));
@@ -420,9 +420,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // FireRed template:
          // lock faceplayer preparemsg   waitmsg pokemart          loadpointer 0 msg   callstd 4   release end
          // 6A  5A  67  11 62 1A 08      66      86 08 A7 16 08    0F 00 90 51 1A 08   09 04       6C 02
-         // ~30 bytes total
+         // 0x20 bytes total
          //                      <pointer>         <pointer>         <pointer>               pokeball/potion/antidote
-         var script = "6A 5A 67 00 00 00 00 66 86 00 00 00 00 0F 00 00 00 00 00 09 04 6C 02 FF 04 00 0D 00 0E 00".ToByteArray();
+         var script = "6A 5A 67 00 00 00 00 66 86 00 00 00 00 0F 00 00 00 00 00 09 04 6C 02 FF 04 00 0D 00 0E 00 00 00".ToByteArray();
          // 3 pointer to start text
          // 9 pointer to mart
          // 15 pointer to end text
@@ -445,11 +445,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventViewModel.ScriptAddress = scriptStart;
 
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventViewModel.Start + 16)));
+         parser.WriteMartStream(model, token, scriptStart + 24, scriptStart + 9);
+         foreach (var offset in new[] { 3, 9, 15 }) model.ObserveRunWritten(token, new PointerRun(scriptStart + offset));
       }
 
-      public MartEventContent GetMartContent(ObjectEventViewModel eventModel) => GetMartContent(model, eventModel);
-      public static MartEventContent GetMartContent(IDataModel model, ObjectEventViewModel eventViewModel) {
-         throw new NotImplementedException();
+      public MartEventContent GetMartContent(ObjectEventViewModel eventModel) => GetMartContent(model, parser, eventModel);
+      public static MartEventContent GetMartContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventViewModel) {
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x67, 0x86, 0x0F); // preparemsg, pokemart, loadpointer
+         // look for the first preparemsg, then the first pokemart, then the first loadpointer
+         var results = spots.GetEnumerator();
+         if (!results.MoveNext()) return null;
+         var messageStart = results.Current;
+         if (model[messageStart.Address] != 0x67) return null;
+         if (!results.MoveNext()) return null;
+         var martStart = results.Current;
+         if (model[martStart.Address] != 0x86) return null;
+         if (!results.MoveNext()) return null;
+         var loadStart = results.Current;
+         if (model[loadStart.Address] != 0x0F) return null;
+         var messageAddress = model.ReadPointer(messageStart.Address + 1);
+         var martAddress = model.ReadPointer(martStart.Address + 1);
+         var loadAddress = model.ReadPointer(loadStart.Address + 2);
+         if (messageAddress < 0 || messageAddress >= model.Count) return null;
+         if (martAddress < 0 || martAddress >= model.Count) return null;
+         if (loadAddress < 0 || loadAddress >= model.Count) return null;
+         return new(messageStart.Address + 1, martStart.Address + 1, loadStart.Address + 2);
       }
 
       #endregion
@@ -538,12 +558,69 @@ failed:
          objectEventViewModel.TrainerType = objectEventViewModel.TrainerRangeOrBerryID = 0;
          objectEventViewModel.ScriptAddress = scriptStart;
          objectEventViewModel.Flag = 0;
+
+         model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventViewModel.Start + 16)));
+         parser.FormatScript<XSERun>(token, model, scriptStart);
       }
 
-      public TutorEventContent GetTutorContent(ObjectEventViewModel eventModel) => GetTutorContent(model, eventModel);
-      public static TutorEventContent GetTutorContent(IDataModel model, ObjectEventViewModel eventViewModel) {
+      public TutorEventContent GetTutorContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTutorContent(model, parser, eventModel);
+      public static TutorEventContent GetTutorContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventViewModel) {
          // int InfoPointer, int WhichPokemonPointer, int FailedPointer, int SuccessPointer, int TutorAddress
-         return null;
+
+         // InfoPointer is the first pointer
+         // WhichPokemonPointer should have 0 pointers to it
+         // WarningPointer comes directly after `signmsg`
+         // SuccessPointer has at least 1 but less than 3 pointers to it
+         // FailedPointer has 3 pointers to it
+         // `setvar 0x8005` is the tutor number
+
+         var content = new TutorEventContent(Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL);
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x16, 0x0F); // setvar, loadpointer
+
+         foreach (var spot in spots) {
+            if (spot.Line.LineCode[0] == 0x16) {
+               if (content.TutorAddress != Pointer.NULL) return null;
+               if (model.ReadMultiByteValue(spot.Address + 1, 2) != 0x8005) return null;
+               content = content with { TutorAddress = spot.Address + 3 };
+               continue;
+            }
+            if (content.InfoPointer == Pointer.NULL) {
+               content = content with { InfoPointer = spot.Address + 2 };
+               if (!GoodPointer(model, spot.Address + 2)) return null;
+               continue;
+            }
+            if (model[spot.Address - 1] == 0xCA) continue; // skip warningpointer
+
+            // it's either which, success, or fail. We can tell by the number of pointers
+            var run = model.GetNextRun(spot.Address);
+            if (spot.Address != run.Start) {
+               // 0 pointers -> WhichPokemon
+               if (content.WhichPokemonPointer != Pointer.NULL) return null;
+               content = content with { WhichPokemonPointer = spot.Address + 2 };
+               if (!GoodPointer(model, spot.Address + 2)) return null;
+               continue;
+            }
+            if (run.PointerSources == null) return null;
+            if (run.PointerSources.Count == 3) {
+               // 3 pointers -> Failed
+               if (content.FailedPointer != Pointer.NULL) return null;
+               content = content with { FailedPointer = spot.Address + 2 };
+               if (!GoodPointer(model, spot.Address + 2)) return null;
+               continue;
+            }
+            if (run.PointerSources.Count.IsAny(1, 2)) {
+               // 1 or 2 pointers -> Success
+               if (content.SuccessPointer == spot.Address + 2) continue;
+               if (content.SuccessPointer != Pointer.NULL) return null;
+               content = content with { SuccessPointer = spot.Address + 2 };
+               if (!GoodPointer(model, spot.Address + 2)) return null;
+               continue;
+            }
+            return null;
+         }
+
+         if (Pointer.NULL.IsAny(content.InfoPointer, content.WhichPokemonPointer, content.SuccessPointer, content.FailedPointer, content.TutorAddress)) return null;
+         return content;
       }
 
       #endregion
@@ -558,6 +635,12 @@ failed:
       #endregion
 
       #region Helper Methods
+
+      private static bool GoodPointer(IDataModel model, int address) {
+         if (address < 0 || address >= model.Count - 3) return false;
+         address = model.ReadPointer(address);
+         return 0 <= address && address < model.Count;
+      }
 
       private int WriteText(ModelDelta token, string text) {
          var bytes = model.TextConverter.Convert(text, out var _);

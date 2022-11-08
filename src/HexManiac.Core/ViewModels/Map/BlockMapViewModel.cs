@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -934,7 +935,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var layout = GetLayout(map);
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
          if (events.Warps.Count <= warpID) return null;
          var warp = events.Warps[warpID];
          var startX = warp.X - SizeX / 2;
@@ -1275,7 +1276,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         var newEvent = new ObjectEventViewModel(GotoAddress, element, allOverworldSprites) {
+         var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, allOverworldSprites) {
             X = 0, Y = 0,
             Elevation = 0,
             ObjectID = element.Table.ElementCount,
@@ -1689,7 +1690,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var map = GetMapModel();
          var results = new List<IEventViewModel>();
-         var events = new EventGroupModel(GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
          events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
@@ -2039,7 +2040,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, int bank, int map) {
+      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, int bank, int map) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -2047,7 +2048,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var objectList = new List<ObjectEventViewModel>();
          if (objects != null) {
             for (int i = 0; i < objectCount; i++) {
-               var newEvent = new ObjectEventViewModel(gotoAddress, objects[i], ows);
+               var newEvent = new ObjectEventViewModel(parser, gotoAddress, objects[i], ows);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                objectList.Add(newEvent);
             }

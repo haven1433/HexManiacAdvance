@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          WriteStream(model, token, start, source, format);
       }
 
-      private void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
+      public void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
          var format = $"[item:{HardcodeTablesModel.ItemsTableName}]!0000";
          WriteStream(model, token, start, source, format);
       }

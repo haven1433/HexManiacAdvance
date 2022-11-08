@@ -418,6 +418,58 @@
                            </local:AngleBorder>
                            <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding NpcText, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
+
+                        <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowMartContents, Converter={StaticResource BoolToVisibility}}">
+                           <StackPanel.Resources>
+                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
+                                 <Setter Property="FontFamily" Value="Consolas" />
+                                 <Setter Property="AcceptsReturn" Value="True" />
+                                 <Setter Property="HorizontalAlignment" Value="Right" />
+                                 <Setter Property="Width" Value="244" />
+                              </Style>
+                           </StackPanel.Resources>
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Greeting:" />
+                           <TextBox Text="{Binding MartHello, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Shop:" />
+                           <TextBox Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Goodbye:" />
+                           <TextBox Text="{Binding MartGoodbye, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
+                        <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowTutorContent, Converter={StaticResource BoolToVisibility}}">
+                           <StackPanel.Resources>
+                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
+                                 <Setter Property="FontFamily" Value="Consolas" />
+                                 <Setter Property="AcceptsReturn" Value="True" />
+                                 <Setter Property="HorizontalAlignment" Value="Right" />
+                                 <Setter Property="Width" Value="244" />
+                              </Style>
+                           </StackPanel.Resources>
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Info:" />
+                           <TextBox Text="{Binding TutorInfoText, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Which Pokemon:" />
+                           <TextBox Text="{Binding TutorWhichPokemonText, UpdateSourceTrigger=PropertyChanged}" />
+
+                           <Grid Margin="0,10,0,0">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                                 <ColumnDefinition Width="Auto" />
+                              </Grid.ColumnDefinitions>
+                              <local:AngleBorder Direction="Left" Content="Tutor Move:" />
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" ItemsSource="{Binding TutorOptions}" SelectedIndex="{Binding TutorNumber}" />
+                              <local:AngleButton Command="{res:MethodCommand GotoTutors}" Direction="Right" Grid.Column="2" HorizontalAlignment="Right"
+                                    Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+                           </Grid>
+
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Sucess:" />
+                           <TextBox Text="{Binding TutorSucessText, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Fail:" />
+                           <TextBox Text="{Binding TutorFailedText, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
                      </Grid>
                   </DataTemplate>
                   <DataTemplate DataType="{x:Type map:WarpEventViewModel}">
