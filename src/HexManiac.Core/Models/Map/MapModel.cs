@@ -1,13 +1,19 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Map {
 
-   public record AllMapsModel(ModelTable Table) {
+   public record AllMapsModel(ModelTable Table) : IEnumerable<MapBankModel> {
       public static AllMapsModel Create(IDataModel model, Func<ModelDelta> tokenFactory) => new(model.GetTableModel("data.maps.banks", tokenFactory));
+
+      public IEnumerator<MapBankModel> GetEnumerator() => Enumerate().GetEnumerator();
+
+      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
       public MapBankModel? this[int index] {
          get {
             var bank = Table[index].GetSubTable("maps");
@@ -16,9 +22,16 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          }
       }
       public int Count => Table.Count;
+
+      private IEnumerable<MapBankModel> Enumerate() {
+         for (int i = 0; i < Count; i++) yield return this[i];
+      }
    }
 
-   public record MapBankModel(ModelTable Table) {
+   public record MapBankModel(ModelTable Table) : IEnumerable<MapModel> {
+      public IEnumerator<MapModel> GetEnumerator() => Enumerate().GetEnumerator();
+      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
       public MapModel? this[int index] {
          get {
             var table = Table[index].GetSubTable("map");
@@ -27,6 +40,10 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          }
       }
       public int Count => Table.Count;
+
+      private IEnumerable<MapModel> Enumerate() {
+         for (int i = 0; i < Count; i++) yield return this[i];
+      }
    }
 
    public record MapModel(ModelArrayElement Element) {
@@ -94,7 +111,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    }
 
    public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
-
+      public int Graphics => Element.GetValue("graphics");
    }
 
    public record WarpEventModel(ModelArrayElement Element) : BaseEventModel(Element) {

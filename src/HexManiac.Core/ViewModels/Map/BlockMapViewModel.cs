@@ -665,14 +665,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // TODO I don't just want to return an image, I want to return the tiles/collisions to use as well
 
          // find the edge tiles
-         var topTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, 0].Block)).ToHistogram().MostCommon();
-         var bottomTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, layout.Height - 1].Block)).ToHistogram().MostCommon();
-         var leftTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[0, y + 1].Block)).ToHistogram().MostCommon();
-         var rightTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[layout.Width - 1, y + 1].Block)).ToHistogram().MostCommon();
-         var topLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, 0].Block).ToHistogram().MostCommon();
-         var topRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, 0].Block).ToHistogram().MostCommon();
-         var bottomLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, layout.Height - 1].Block).ToHistogram().MostCommon();
-         var bottomRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, layout.Height - 1].Block).ToHistogram().MostCommon();
+         var topTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, 0].Block)).ToHistogram().MostCommonKey();
+         var bottomTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Width - 2).Range(x => layout.BlockMap[x + 1, layout.Height - 1].Block)).ToHistogram().MostCommonKey();
+         var leftTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[0, y + 1].Block)).ToHistogram().MostCommonKey();
+         var rightTile = warps.Select(warp => warp.TargetMap.Layout).SelectMany(layout => (layout.Height - 2).Range(y => layout.BlockMap[layout.Width - 1, y + 1].Block)).ToHistogram().MostCommonKey();
+         var topLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, 0].Block).ToHistogram().MostCommonKey();
+         var topRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, 0].Block).ToHistogram().MostCommonKey();
+         var bottomLeftTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[0, layout.Height - 1].Block).ToHistogram().MostCommonKey();
+         var bottomRightTile = warps.Select(warp => warp.TargetMap.Layout).Select(layout => layout.BlockMap[layout.Width - 1, layout.Height - 1].Block).ToHistogram().MostCommonKey();
 
          // find the floor tile
          var centerTiles = new List<int>();
@@ -684,7 +684,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
          }
-         var floorTile = centerTiles.ToHistogram().MostCommon();
+         var floorTile = centerTiles.ToHistogram().MostCommonKey();
 
          // build the map image data
          var blockMap = new int[9, 9];

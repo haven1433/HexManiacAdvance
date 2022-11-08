@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core {
          return result;
       }
 
-      public static T MostCommon<T>(this IDictionary<T, int> histogram) {
+      public static T MostCommonKey<T>(this IDictionary<T, int> histogram) {
          var first = true;
          T best = default;
          var bestCount = 0;

@@ -213,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // part 4: the event
          objectEventModel.Graphics = trainerGraphics;
-         objectEventModel.Elevation = 3;
+         objectEventModel.Elevation = FindPreferredTrainerElevation(model, trainerGraphics);
          objectEventModel.MoveType = new[] { 7, 8, 9, 10 }[rnd.Next(4)];
          objectEventModel.RangeX = objectEventModel.RangeY = 1;
          objectEventModel.TrainerType = 1;
@@ -222,6 +222,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventModel.Flag = 0;
 
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
+      }
+
+      private int FindPreferredTrainerElevation(IDataModel model, int graphics) {
+         var histogram = new Dictionary<int, int>();
+         foreach (var bank in AllMapsModel.Create(model, null)) {
+            foreach (var map in bank) {
+               foreach (var obj in map.Events.Objects) {
+                  if (obj.Graphics != graphics) continue;
+                  if (!histogram.ContainsKey(obj.Elevation)) histogram[obj.Elevation] = 0;
+                  histogram[obj.Elevation]++;
+               }
+            }
+         }
+         return histogram.MostCommonKey();
       }
 
       public TrainerEventContent GetTrainerContent(IEventViewModel eventModel) => GetTrainerContent(model, eventModel);
