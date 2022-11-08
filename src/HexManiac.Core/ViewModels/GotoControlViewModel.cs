@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -314,19 +315,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return options;
       }
 
+      private static readonly Lazy<bool> mapEditorRelease;
+      static IDataModelExtensions() {
+         mapEditorRelease = new(() => DateTime.Today >= new DateTime(2022, 12, 25));
+      }
+
       public static List<MapInfo> GetMatchingMaps(this IDataModel model, string text) {
+         if (!mapEditorRelease.Value) return new();
+
          var allMaps = model.CurrentCacheScope?.GetAllMaps();
          var results = allMaps?.Where(map => map.Name.MatchesPartial(text)).ToList() ?? new();
-
-         //*
-         return new();
-         /*/
          var lower = text.ToLower();
          foreach (var result in results) {
             if (result.Name.ToLower() == lower) return new() { result };
          }
          return results;
-         //*/
       }
    }
 
