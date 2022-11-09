@@ -470,6 +470,45 @@
                            <TextBox Text="{Binding TutorFailedText, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
 
+                        <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowTradeContent, Converter={StaticResource BoolToVisibility}}">
+                           <StackPanel.Resources>
+                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
+                                 <Setter Property="FontFamily" Value="Consolas" />
+                                 <Setter Property="AcceptsReturn" Value="True" />
+                                 <Setter Property="HorizontalAlignment" Value="Right" />
+                                 <Setter Property="Width" Value="244" />
+                              </Style>
+                           </StackPanel.Resources>
+                           <local:AngleBorder Content="Info:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
+                           <TextBox Text="{Binding TradeInitialText, UpdateSourceTrigger=PropertyChanged}" />
+
+                           <Grid Margin="0,10,0,0">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                                 <ColumnDefinition Width="Auto" />
+                              </Grid.ColumnDefinitions>
+                              <local:AngleBorder Direction="Left" Content="Trade:" />
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" ItemsSource="{Binding TradeOptions}" SelectedIndex="{Binding TradeIndex}" />
+                              <local:AngleButton Command="{res:MethodCommand GotoTrades}" Direction="Right" Grid.Column="2" HorizontalAlignment="Right"
+                                    Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+                           </Grid>
+
+                           <local:AngleBorder Content="Cancel:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
+                           <TextBox Text="{Binding TradeFailedText, UpdateSourceTrigger=PropertyChanged}" />
+
+                           <local:AngleBorder Content="Wrong Pokemon:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
+                           <TextBox Text="{Binding TradeWrongSpeciesText, UpdateSourceTrigger=PropertyChanged}" />
+
+                           <local:AngleBorder Content="Success:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
+                           <TextBox Text="{Binding TradeThanksText, UpdateSourceTrigger=PropertyChanged}" />
+
+                           <local:AngleBorder Content="After Trade:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
+                           <TextBox Text="{Binding TradeSuccessText, UpdateSourceTrigger=PropertyChanged}" />
+                        </StackPanel>
+
                      </Grid>
                   </DataTemplate>
                   <DataTemplate DataType="{x:Type map:WarpEventViewModel}">

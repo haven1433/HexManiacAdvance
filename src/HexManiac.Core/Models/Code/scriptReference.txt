@@ -61,10 +61,8 @@
 23 callasm code<>
 24 setcode pointer<>                                    # puts a pointer to some assembly code at a specific place in RAM
 
-[BPRE_BPGE] 25 special function:specialsFR              # calls a piece of ASM code from a table located at <15FD60>
-[AXVE_AXPE_BPEE] 25 special function:                   # calls a piece of ASM code from a table located at <15FD60>
-[BPRE_BPGE] 26 special2 variable: function:specialsFR   # calls a special and puts the ASM's return value in the variable you listed
-[AXVE_AXPE_BPEE] 26 special2 variable: function:        # calls a special and puts the ASM's return value in the variable you listed
+25 special function:specials                            # calls a piece of ASM code from a table
+26 special2 variable: function:specials                 # calls a special and puts the ASM's return value in the variable you listed
 
 27 waitstate                                 # blocks the script until it gets unblocked by a command or some ASM code.
 28 pause time:                               # blocks the script for 'time' ticks

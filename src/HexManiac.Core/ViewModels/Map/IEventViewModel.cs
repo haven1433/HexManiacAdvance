@@ -742,6 +742,103 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Trade Content
+
+      private Lazy<TradeEventContent> tradeContent;
+
+      public ObservableCollection<string> TradeOptions { get; } = new();
+
+      public bool ShowTradeContent {
+         get {
+            var content = tradeContent.Value;
+            if (content != null && TradeOptions.Count == 0) {
+               var pokenames = element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable);
+               foreach (var trade in element.Model.GetTableModel(HardcodeTablesModel.TradeTable)) {
+                  if (!trade.TryGetValue("receive", out int receive) || !trade.TryGetValue("give", out int give)) {
+                     TradeOptions.Add(TradeOptions.Count.ToString());
+                  } else {
+                     TradeOptions.Add($"{pokenames[give]} -> {pokenames[receive]}");
+                  }
+               }
+            }
+            return tradeContent.Value != null;
+         }
+      }
+
+      public string TradeInitialText {
+         get {
+            if (tradeContent.Value == null) return null;
+            return GetText(tradeContent.Value.InfoPointer);
+         }
+         set {
+            if (tradeContent.Value == null) return;
+            var newStart = SetText(tradeContent.Value.InfoPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      // int ThanksPointer, int SuccessPointer, int FailedPointer, int WrongSpeciesPointer
+      public string TradeThanksText {
+         get {
+            if (tradeContent.Value == null) return null;
+            return GetText(tradeContent.Value.ThanksPointer);
+         }
+         set {
+            if (tradeContent.Value == null) return;
+            var newStart = SetText(tradeContent.Value.ThanksPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string TradeSuccessText {
+         get {
+            if (tradeContent.Value == null) return null;
+            return GetText(tradeContent.Value.SuccessPointer);
+         }
+         set {
+            if (tradeContent.Value == null) return;
+            var newStart = SetText(tradeContent.Value.SuccessPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string TradeFailedText {
+         get {
+            if (tradeContent.Value == null) return null;
+            return GetText(tradeContent.Value.FailedPointer);
+         }
+         set {
+            if (tradeContent.Value == null) return;
+            var newStart = SetText(tradeContent.Value.FailedPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public string TradeWrongSpeciesText {
+         get {
+            if (tradeContent.Value == null) return null;
+            return GetText(tradeContent.Value.WrongSpeciesPointer);
+         }
+         set {
+            if (tradeContent.Value == null) return;
+            var newStart = SetText(tradeContent.Value.WrongSpeciesPointer, value);
+            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
+         }
+      }
+
+      public int TradeIndex {
+         get {
+            if (tradeContent.Value == null) return -1;
+            return element.Model.ReadMultiByteValue(tradeContent.Value.TradeAddress, 2);
+         }
+         set {
+            if (tradeContent.Value == null) return;
+            element.Model.WriteMultiByteValue(tradeContent.Value.TradeAddress, 2, Token, value);
+         }
+      }
+
+      #endregion
+
       #endregion
 
       public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
@@ -755,6 +852,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
+         tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this));
       }
 
       public override int TopOffset => 16 - EventRender.PixelHeight;

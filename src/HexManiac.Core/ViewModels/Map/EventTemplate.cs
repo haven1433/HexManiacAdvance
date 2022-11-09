@@ -10,6 +10,8 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 // example for making a bug trainer: templates.CreateTrainer(objectEvent, history.CurrentChange, 20 /* bug catcher */, 30, 9, 6 /*bug*/, true);
 
@@ -519,6 +521,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          int whichStart = WriteText(token, "Which POKéMON wants to learn\\nthe move?");
          int doneStart = WriteText(token, "Enjoy the move!");
          int failedStart = WriteText(token, "I guess not.");
+         var fr = model.IsFRLG();
 
          var script = $@"
    lock
@@ -529,12 +532,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    callstd 5
    compare 0x800D 0
    if1 = <failed>
-   textcolor 3
-   special DisableMsgBoxWalkaway
-   signmsg
+   {(fr?"textcolor 3":string.Empty)}
+   {(fr?"special DisableMsgBoxWalkaway":string.Empty)}
+   {(fr?"signmsg":string.Empty)}
    loadpointer 0 <{warningStart:X6}>
    callstd 5
-   normalmsg
+   {(fr?"normalmsg":string.Empty)}
    copyvar 0x8012 0x8013
    campare 0x800D 0
    if1 = <failed>
@@ -560,6 +563,10 @@ failed:
    end
 ";
          // script length = 109
+         // note that the condition for recognizing the `warningStart` message is different in
+         // the Emerald case, since there's no `signmsg` command to use for reference
+         // instead, it's just 0 or 1 pointers, and has `callstd 5` after it.
+         // maybe just expect a `callstd 5` after it, since it's the only one after infoStart that has that in both FR and Em
 
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 109);
          var content = parser.Compile(token, model, scriptStart, ref script, out var _);
@@ -579,14 +586,15 @@ failed:
 
       public TutorEventContent GetTutorContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTutorContent(model, parser, eventModel);
       public static TutorEventContent GetTutorContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventViewModel) {
-         // int InfoPointer, int WhichPokemonPointer, int FailedPointer, int SuccessPointer, int TutorAddress
-
-         // InfoPointer is the first pointer
-         // WhichPokemonPointer should have 0 pointers to it
-         // WarningPointer comes directly after `signmsg`
-         // SuccessPointer has at least 1 but less than 3 pointers to it
-         // FailedPointer has 3 pointers to it
-         // `setvar 0x8005` is the tutor number
+         // tutors must have a `special ChooseMonForMoveTutor`
+         if (!model.TryGetList("specials", out var specials)) return null;
+         var tutorSpecial = specials.IndexOf("ChooseMonForMoveTutor");
+         if (tutorSpecial == -1) return null;
+         if (!Flags.GetAllScriptSpots(
+            model, parser, new[] { eventViewModel.ScriptAddress }, 0x25
+         ).Any(
+            spot => model.ReadMultiByteValue(spot.Address + 1, 2) == tutorSpecial)
+         ) return null;
 
          var content = new TutorEventContent(Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL);
          var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x16, 0x0F); // setvar, loadpointer
@@ -603,7 +611,7 @@ failed:
                if (!GoodPointer(model, spot.Address + 2)) return null;
                continue;
             }
-            if (model[spot.Address - 1] == 0xCA) continue; // skip warningpointer
+            if (model[spot.Address + 6] == 9 && model[spot.Address + 7] == 5) continue; // skip warningpointer (has a `callstd 5` after it)
 
             // it's either which, success, or fail. We can tell by the number of pointers
             var run = model.GetNextRun(spot.Address);
@@ -642,8 +650,141 @@ failed:
       #region Trade
 
       public void CreateTrade(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
-         // TODO
-         throw new NotImplementedException();
+         var tradeFlag = 0x21;
+         while (UsedFlags.Contains(tradeFlag)) tradeFlag++;
+         UsedFlags.Add(tradeFlag);
+
+         int tradeId = 0;
+         int initialText = WriteText(token, "Want to trade your \\\\02\nfor my \\\\03?");
+         int thanksText = WriteText(token, "Thank you!");
+         int successText = WriteText(token, "How is my old \\\\03?\\pnYour old \\\\02 is doing great!");
+         int failText = WriteText(token, "That's too bad.");
+         int wrongSpeciesText = WriteText(token, "\\.This is no \\\\02.\\pnIf you get one, please trade it\\nfor my \\\\03!");
+
+         var script = @$"
+  lock
+  faceplayer
+  setvar 0x8008 {tradeId}
+  copyvar 0x8004 0x8008
+  special2 0x800D GetInGameTradeSpeciesInfo
+  copyvar 0x8009 0x800D
+  checkflag {tradeFlag}
+  if1 = <success>
+  loadpointer 0 <{initialText:X6}>
+  callstd 5
+  compare 0x800D 0
+  if1 = <fail>
+  special ChoosePartyMon
+  waitstate
+  lock
+  faceplayer
+  copyvar 0x800A 0x8004
+  compare 0x8004 6
+  if1 >= <fail>
+  copyvar 0x8005 0x800A
+  special2 0x800D GetTradeSpecies
+  copyvar 0x800B 0x800D
+  comparevars 0x800D 0x8009
+  if1 != <wrongspecies>
+  copyvar 0x8004 0x8008
+  copyvar 0x8005 0x800A
+  special CreateInGameTradePokemon
+  special DoInGameTradeScene
+  waitstate
+  lock
+  faceplayer
+  loadpointer 0 <{thanksText:X6}>
+  callstd 4
+  setflag {tradeFlag}
+  release
+  end
+success:
+  loadpointer 0 <{successText:X6}>
+  callstd 4
+  release
+  end
+fail:
+  loadpointer 0 <{failText:X6}>
+  callstd 4
+  release
+  end
+wrongspecies:
+  loadpointer 0 <{wrongSpeciesText:X6}>
+  callstd 4
+  release
+  end
+";
+
+         var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 160);
+         var content = parser.Compile(token, model, scriptStart, ref script, out var _);
+         token.ChangeData(model, scriptStart, content);
+
+         objectEventViewModel.Graphics = trainerGraphics;
+         objectEventViewModel.Elevation = 3;
+         objectEventViewModel.MoveType = 8;
+         objectEventViewModel.RangeX = objectEventViewModel.RangeY = 0;
+         objectEventViewModel.TrainerType = objectEventViewModel.TrainerRangeOrBerryID = 0;
+         objectEventViewModel.ScriptAddress = scriptStart;
+         objectEventViewModel.Flag = 0;
+
+         model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventViewModel.Start + 16)));
+         parser.FormatScript<XSERun>(token, model, scriptStart);
+      }
+
+      public TradeEventContent GetTradeEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTradeContent(model, parser, eventModel);
+      public static TradeEventContent GetTradeContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventViewModel) {
+         // tardes must have a `special CreateInGameTradePokemon`
+         if (!model.TryGetList("specials", out var specials)) return null;
+         var tradeSpecial = specials.IndexOf("CreateInGameTradePokemon");
+         if (tradeSpecial == -1) return null;
+         if (!Flags.GetAllScriptSpots(
+            model, parser, new[] { eventViewModel.ScriptAddress }, 0x25
+         ).Any(
+            spot => model.ReadMultiByteValue(spot.Address + 1, 2) == tradeSpecial)
+         ) return null;
+
+         var content = new TradeEventContent(Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL);
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x16, 0x0F); // setvar, loadpointer
+
+         foreach (var spot in spots) {
+            // TradeAddress is the only `setvar 0x8008` command
+            if (spot.Line.LineCode[0] == 0x16) {
+               if (model.ReadMultiByteValue(spot.Address + 1, 2) != 0x8008) continue;
+               if (content.TradeAddress != Pointer.NULL) return null;
+               content = content with { TradeAddress = spot.Address + 3 };
+               continue;
+            }
+
+            // loadpointer InfoPointer is right before callstd 5
+            if (model[spot.Address + 7] == 5) {
+               if (content.InfoPointer != Pointer.NULL) return null;
+               content = content with { InfoPointer = spot.Address + 2 };
+               continue;
+            }
+
+            // loadpointer ThanksPointer is right after faceplayer (0x5A)
+            if (model[spot.Address - 1] == 0x5A) {
+               if (content.ThanksPointer != Pointer.NULL) return null;
+               content = content with { ThanksPointer = spot.Address + 2 };
+               continue;
+            }
+
+            // SuccessPointer, FailedPointer, and WrongSpecies all look exactly the same, but come in that order
+            if (content.SuccessPointer == Pointer.NULL) {
+               content = content with { SuccessPointer = spot.Address + 2 };
+               continue;
+            } else if (content.FailedPointer == Pointer.NULL) {
+               content = content with { FailedPointer = spot.Address + 2 };
+               continue;
+            } else if (content.WrongSpeciesPointer == Pointer.NULL) {
+               content = content with { WrongSpeciesPointer = spot.Address + 2 };
+               continue;
+            }
+            return null;
+         }
+
+         if (Pointer.NULL.IsAny(content.InfoPointer, content.ThanksPointer, content.SuccessPointer, content.FailedPointer, content.WrongSpeciesPointer, content.TradeAddress)) return null;
+         return content;
       }
 
       #endregion
@@ -686,6 +827,8 @@ failed:
    public record MartEventContent(int HelloPointer, int MartPointer, int GoodbyePointer);
 
    public record TutorEventContent(int InfoPointer, int WhichPokemonPointer, int FailedPointer, int SuccessPointer, int TutorAddress);
+
+   public record TradeEventContent(int InfoPointer, int ThanksPointer, int SuccessPointer, int FailedPointer, int WrongSpeciesPointer, int TradeAddress);
 
    public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade }
 }

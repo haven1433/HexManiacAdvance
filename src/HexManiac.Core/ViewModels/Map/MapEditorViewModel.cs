@@ -951,9 +951,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (spot.Line.LineCode[0] == 0x0F) {
                // text
                var textStart = model.ReadPointer(spot.Address + 2);
-               var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
-               if (text.Length >= TextSummaryLimit) text += "...";
-               tips.Add(text);
+               if (0 <= textStart && textStart < model.Count) {
+                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                  if (text.Length >= TextSummaryLimit) text += "...";
+                  tips.Add(text);
+               }
             } else if (spot.Line.LineCode[0] == 0x1A && itemStats != null) {
                var itemAddress = EventTemplate.GetItemAddress(model, spot.Address);
                if (itemAddress == Pointer.NULL) continue;

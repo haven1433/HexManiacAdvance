@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.Generic;
@@ -48,11 +49,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public static ISet<int> GetUsedTrainerFlags(IDataModel model, ScriptParser parser) {
          var trainerFlags = new HashSet<int>();
+
+         // check all scripts
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x5C)) {
             var trainerFlag = model.ReadMultiByteValue(spot.Address + 2, 2);
             trainerFlags.Add(trainerFlag);
          }
-         // TODO need to check the rematch table
+
+         // check rematch table
+         var rematches = model.GetTableModel(HardcodeTablesModel.RematchTable);
+         if (rematches != null) {
+            foreach(var rematch in rematches) {
+               if (!trainerFlags.Contains(rematch.GetValue("match1"))) continue;
+               foreach (var match in new[] { "match2", "match3", "match4", "match5", "match6" }.Select(rematch.GetValue)) trainerFlags.Add(match);
+            }
+         }
+
          return trainerFlags;
       }
 
@@ -160,6 +172,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var element in GetAllEvents(model, "objects")) scriptAddresses.Add(element.GetAddress("script"));
          foreach (var element in GetAllEvents(model, "scripts")) scriptAddresses.Add(element.GetAddress("script"));
          foreach (var element in GetAllEvents(model, "signposts")) scriptAddresses.Add(element.GetAddress("arg"));
+         // header scripts
+         foreach (var bank in AllMapsModel.Create(model, default)) {
+            foreach (var map in bank) {
+               var scripts = map.MapScripts;
+               if (scripts == null) continue;
+               foreach (var script in scripts) {
+                  if (script.GetValue("type").IsAny(2, 4)) {
+                     var start = script.GetAddress("pointer");
+                     while (!model.ReadMultiByteValue(start, 2).IsAny(0, 0xFFFF)) {
+                        scriptAddresses.Add(start + 4);
+                        start += 8;
+                        if (scriptAddresses.Count > 100) break; // sanity check
+                     }
+                  } else {
+                     scriptAddresses.Add(script.GetAddress("pointer"));
+                  }
+               }
+            }
+         }
 
          return scriptAddresses; // takes about <1s
       }

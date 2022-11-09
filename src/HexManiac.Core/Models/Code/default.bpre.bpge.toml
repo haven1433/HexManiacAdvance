@@ -111,7 +111,7 @@ Name = '''movementtypes'''
 ]
 
 [[List]]
-Name = '''specialsFR'''
+Name = '''specials'''
 0x00 = '''HealPlayerParty'''
 0x01 = '''SetCableClubWarp'''
 0x02 = '''DoCableClubWarp'''

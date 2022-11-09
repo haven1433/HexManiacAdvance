@@ -56,6 +56,9 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return layout.BlockMap;
          }
       }
+      public ModelTable MapScripts {
+         get => Element.GetSubTable("mapscripts");
+      }
    }
 
    public record LayoutPrototype(int PrimaryBlockset, int SecondaryBlockset, int BorderBlock);
