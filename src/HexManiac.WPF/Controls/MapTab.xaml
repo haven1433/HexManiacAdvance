@@ -1258,6 +1258,24 @@
                      </Decorator.Style>
                      <local:PixelImage DataContext="{Binding TrainerSprite}" TransparentBrush="{DynamicResource Background}" />
                   </Decorator>
+                  <Grid Grid.Row="1" Grid.ColumnSpan="2" Margin="0,10,0,0">
+                     <Grid.Style>
+                        <Style TargetType="Grid">
+                           <Setter Property="Visibility" Value="Collapsed" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding SelectedTemplate}" Value="HMObject">
+                                 <Setter Property="Visibility" Value="Visible" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </Grid.Style>
+                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                     </Grid.ColumnDefinitions>
+                     <local:AngleBorder Direction="Left" Content="Type:" />
+                     <local:AngleComboBox Grid.Column="1"  Direction="Out" ItemsSource="{Binding HMObjectOptions}" SelectedIndex="{Binding HMObjectIndex}" />
+                  </Grid>
                </Grid>
             </Border>
          </Popup>

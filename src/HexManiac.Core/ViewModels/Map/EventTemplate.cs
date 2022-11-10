@@ -60,6 +60,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (this.model, this.parser) = (model, parser);
          RefreshLists(owGraphics);
          if (model.IsFRLG()) UseNationalDex = true;
+
+         HMObjectOptions.Add("Cut Tree");
+         HMObjectOptions.Add("Smash Rock");
+         HMObjectOptions.Add("Strength Boulder");
       }
 
       public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
@@ -70,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AvailableTemplateTypes.Add(TemplateType.Trainer);
          AvailableTemplateTypes.Add(TemplateType.Mart);
          AvailableTemplateTypes.Add(TemplateType.Trade);
+         AvailableTemplateTypes.Add(TemplateType.HMObject);
          if (model.IsFRLG() || model.IsEmerald()) AvailableTemplateTypes.Add(TemplateType.Tutor); // Ruby/Sapphire don't have tutors
 
          GraphicsOptions.Clear();
@@ -91,7 +96,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private TemplateType selectedTemplate;
       public TemplateType SelectedTemplate {
          get => selectedTemplate;
-         set => SetEnum(ref selectedTemplate, value, UpdateObjectTemplateImage);
+         set {
+            SetEnum(ref selectedTemplate, value, UpdateObjectTemplateImage);
+            if (selectedTemplate == TemplateType.HMObject) UpdateSpriteFromHMObject();
+         }
       }
 
       public ObservableCollection<TemplateType> AvailableTemplateTypes { get; } = new();
@@ -103,6 +111,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedTemplate == TemplateType.Mart) CreateMart(objectEventModel, token);
          if (selectedTemplate == TemplateType.Tutor) CreateTutor(objectEventModel, token);
          if (selectedTemplate == TemplateType.Trade) CreateTrade(objectEventModel, token);
+         if (selectedTemplate == TemplateType.HMObject) CreateHMObject(objectEventModel, token);
       }
 
       #region Trainer
@@ -762,15 +771,11 @@ wrongspecies:
                continue;
             }
 
-            // loadpointer ThanksPointer is right after faceplayer (0x5A)
-            if (model[spot.Address - 1] == 0x5A) {
-               if (content.ThanksPointer != Pointer.NULL) return null;
+            // ThanksPointer, SuccessPointer, FailedPointer, and WrongSpecies all look exactly the same, but come in that order
+            if (content.ThanksPointer == Pointer.NULL) {
                content = content with { ThanksPointer = spot.Address + 2 };
                continue;
-            }
-
-            // SuccessPointer, FailedPointer, and WrongSpecies all look exactly the same, but come in that order
-            if (content.SuccessPointer == Pointer.NULL) {
+            } else if (content.SuccessPointer == Pointer.NULL) {
                content = content with { SuccessPointer = spot.Address + 2 };
                continue;
             } else if (content.FailedPointer == Pointer.NULL) {
@@ -785,6 +790,47 @@ wrongspecies:
 
          if (Pointer.NULL.IsAny(content.InfoPointer, content.ThanksPointer, content.SuccessPointer, content.FailedPointer, content.WrongSpeciesPointer, content.TradeAddress)) return null;
          return content;
+      }
+
+      #endregion
+
+      #region HM Object
+
+      public ObservableCollection<string> HMObjectOptions { get; } = new();
+
+      private int hmObjectIndex;
+      public int HMObjectIndex {
+         get => hmObjectIndex;
+         set {
+            Set(ref hmObjectIndex, value);
+            UpdateSpriteFromHMObject();
+         }
+      }
+
+      private void UpdateSpriteFromHMObject() {
+         if (hmObjectIndex < 0 || hmObjectIndex > 2) return;
+         // FR/LG:  95, 96, 97
+         // R/S/EE: 82, 86, 87
+         if (model.IsFRLG()) TrainerGraphics = new[] { 95, 96, 97 }[hmObjectIndex];
+         else TrainerGraphics = new[] { 82, 86, 87 }[hmObjectIndex];
+      }
+
+      public void CreateHMObject(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
+         var scriptStart = AllMapsModel.Create(model, default)
+            .SelectMany(bank => bank)
+            .SelectMany(map => map.Events.Objects)
+            .Where(obj => obj.Graphics == trainerGraphics)
+            .Select(obj => obj.ScriptAddress)
+            .ToHistogram()
+            .MostCommonKey();
+
+         objectEventViewModel.Graphics = trainerGraphics;
+         objectEventViewModel.Elevation = 3;
+         objectEventViewModel.MoveType = 8;
+         objectEventViewModel.RangeX = objectEventViewModel.RangeY = 0;
+         objectEventViewModel.TrainerType = objectEventViewModel.TrainerRangeOrBerryID = 0;
+         objectEventViewModel.ScriptAddress = scriptStart;
+         objectEventViewModel.Flag = (objectEventViewModel.ObjectID % 0x10) + 0x10;
       }
 
       #endregion
@@ -807,7 +853,7 @@ wrongspecies:
       private void UpdateObjectTemplateImage(TemplateType old = default) {
          if (selectedTemplate == TemplateType.None) {
             ObjectTemplateImage = GraphicsOptions[0];
-         } else if (selectedTemplate == TemplateType.Trainer || selectedTemplate == TemplateType.Npc || selectedTemplate == TemplateType.Tutor || selectedTemplate == TemplateType.Trade) {
+         } else if (selectedTemplate.IsAny(TemplateType.Trainer, TemplateType.Npc, TemplateType.Tutor, TemplateType.Trade, TemplateType.HMObject)) {
             ObjectTemplateImage = GraphicsOptions[TrainerGraphics];
          } else if (selectedTemplate == TemplateType.Item) {
             ObjectTemplateImage = GraphicsOptions[ItemGraphics];
@@ -830,7 +876,7 @@ wrongspecies:
 
    public record TradeEventContent(int InfoPointer, int ThanksPointer, int SuccessPointer, int FailedPointer, int WrongSpeciesPointer, int TradeAddress);
 
-   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade }
+   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade, HMObject }
 }
 
 /*

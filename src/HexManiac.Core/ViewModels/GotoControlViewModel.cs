@@ -357,7 +357,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          foreach (var option in noNumbers.OrderBy(text => text).Concat(hasNumbers)) {
             if (option.StartsWith(prefix)) {
-               thisLevel.Add(option.Substring(prefix.Length).Split(".")[0]);
+               thisLevel.Add(DotSplit(option.Substring(prefix.Length)));
             }
          }
 
@@ -368,6 +368,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Tokens.Add(new GotoToken { Content = $"({count} options)", IsSelectable = false });
          }
          Initialize();
+      }
+
+      /// <summary>
+      /// If a '.' is followed by a space, it's not a divider
+      /// </summary>
+      private string DotSplit(string content) {
+         var parts = content.Split(".");
+         var firstPart = parts[0];
+         for (int i = 1; i < parts.Length; i++) {
+            if (!parts[i].StartsWith(" ")) return firstPart;
+            firstPart += "." + parts[i];
+         }
+         return firstPart;
       }
 
       public GotoLabelSection(string prefix, IList<GotoToken> tokens) {

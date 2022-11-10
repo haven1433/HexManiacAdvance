@@ -837,6 +837,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public void GotoTrades() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.TradeTable)[TradeIndex].Start);
+
       #endregion
 
       #endregion

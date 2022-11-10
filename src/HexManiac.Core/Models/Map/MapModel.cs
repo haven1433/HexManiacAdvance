@@ -115,6 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
 
    public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
       public int Graphics => Element.GetValue("graphics");
+      public int ScriptAddress => Element.GetAddress("script");
    }
 
    public record WarpEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
