@@ -589,6 +589,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out ITableRun self) {
+         return TryParse(data, name, format, start, pointerSources, sourceSegments, true, out self);
+      }
+
+      public static ErrorInfo TryParse(IDataModel data, string name, string format, int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> sourceSegments, bool validate, out ITableRun self) {
          self = null;
          var startArray = format.IndexOf(ArrayStart);
          var closeArray = format.LastIndexOf(ArrayEnd);
@@ -625,7 +629,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } catch (ArrayRunParseException e) {
                return new ErrorInfo(e.Message);
             }
-         } else if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, sourceSegments, out var tableStreamRun)) {
+         } else if (TableStreamRun.TryParseTableStream(data, start, pointerSources, name, format, sourceSegments, validate, out var tableStreamRun)) {
             // option 2: parse as a table stream, because the length contains characters like / or ! that make it look dependent on 
             self = tableStreamRun;
          } else {

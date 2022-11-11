@@ -616,7 +616,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventViewModel warp && click == PrimaryInteractionStart.DoubleClick) {
             var banks = AllMapsModel.Create(warp.Element.Model, default);
-            if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
+            if (banks[warp.Bank] == null) {
+               OnError.Raise(this, $"Could not load map bank {warp.Bank}");
+               interactionType = PrimaryInteractionType.None;
+               return;
+            }
+            if (warp.Bank < banks.Count) {
                NavigateTo(warp.Bank, warp.Map);
                Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
             }
@@ -926,6 +931,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (ev is WarpEventViewModel warp) {
             tips.Add(warp.TargetMapName);
             var banks = AllMapsModel.Create(warp.Element.Model, default);
+            if (banks[warp.Bank] == null) return tips.ToArray();
             if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
                var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
                var image = blockmap.AutoCrop(warp.WarpID - 1);

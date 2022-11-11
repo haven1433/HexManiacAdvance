@@ -444,9 +444,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       public void EnterTile(IPixelViewModel tile) {
-         
          FlipVVisible = true;
          FlipHVisible = true;
+         if (tile == null) return;
          if (!indexForTileImage.TryGetValue(tile, out int index)) return;
          ((FlipVLeft, FlipVTop), (FlipHLeft, FlipHTop)) = layerMode == 0 ? twoSets[index] : layerMode == 1 ? bottomLayerTogether[index] : topLayerTogether[index];
          hoverTile = indexForTileImage[tile];

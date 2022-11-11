@@ -331,7 +331,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (error.HasError) {
                childTable = model.GetNextRun(destination) as ITableRun;
             }
-            if (childTable == null) return null;
+            if (childTable == null) {
+               // one last try, with validation turned off
+               error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, false, out childTable);
+               if (error.HasError) return null;
+            }
             return new ModelTable(model, destination, tokenFactory, childTable);
          } else {
             return null; // format didn't match expected, give up

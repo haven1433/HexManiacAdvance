@@ -17,8 +17,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public bool AllowsZeroElements => endStream is EndCodeStreamStrategy;
 
       #region Constructors
-
       public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
+         return TryParseTableStream(model, start, sources, fieldName, content, sourceSegments, true, out tableStream);
+      }
+      public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, bool validate, out TableStreamRun tableStream) {
          tableStream = null;
 
          if (content.Length < 4 || content[0] != '[') return false;
@@ -41,6 +43,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // we're pasting this format and something else is expecting it. Don't expect the content to match yet.
             return tableStream.ElementCount > 0 || tableStream.endStream is EndCodeStreamStrategy; 
          }
+
+         if (!validate) return true;
 
          // if the first 90% matches, we don't need to check the last 10%
          var mostElementsCount = (int)Math.Ceiling(tableStream.ElementCount * .85);
@@ -529,7 +533,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             // verify that there's enough room for another element
             var existingRun = model.GetNextRun(start);
             if (existingRun.Start >= start && existingRun.Start < start + elementLength) {
-               if (existingRun.PointerSources != null && !(existingRun is NoInfoRun)) return i;        // break if it's not a no-info run and has pointers
+               if (existingRun.PointerSources != null && existingRun is not NoInfoRun && existingRun is not PointerRun) return i;        // break if it's not a no-info run and has pointers
                if (!string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, existingRun.Start))) return i; // break if it's an anchor
             }
 
@@ -626,7 +630,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          foreach (var source in pointerSources.OrderBy(source => source)) {
             if (source < parentIndex) continue;
-            return Math.Max(model.ReadMultiByteValue(source - pointerSegmentOffset + countSegmentOffset, segments[countSegmentIndex].Length), defaultValue);
+            var modelValue = model.ReadMultiByteValue(source - pointerSegmentOffset + countSegmentOffset, segments[countSegmentIndex].Length);
+            return Math.Max(modelValue, defaultValue);
          }
 
          return defaultValue;
