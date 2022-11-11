@@ -1375,7 +1375,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         FormatRunFactory.GetStrategy(segment.InnerFormat).UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
+         var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
+         strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
       }
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
