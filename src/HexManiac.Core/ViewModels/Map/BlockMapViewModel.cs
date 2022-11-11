@@ -1604,7 +1604,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ModelArrayElement GetLayout(ModelArrayElement map = null) {
          if (map == null) map = GetMapModel();
          if (map == null) return null;
-         return map.GetSubTable("layout")[0];
+         var layout = map.GetSubTable("layout");
+         if (layout == null) return null;
+         return layout[0];
       }
 
       private IReadOnlyList<ConnectionModel> GetConnections() {
@@ -1872,6 +1874,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) {
          (map, tokenFactory) = (element, tokens);
+         if (element == null) return;
          if (element.Model.TryGetList("songnames", out var songnames)) {
             for (int i = 0; i < songnames.Count; i++) {
                var name = songnames[i] ?? $"song_{i}";

@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       private int FindWildData() {
          var wildData = model.GetTableModel(HardcodeTablesModel.WildTableName, default);
+         if (wildData == null) return -1;
          for (int i = 0; i < wildData.Count; i++) {
             var bank = wildData[i].GetValue("bank");
             var map = wildData[i].GetValue("map");

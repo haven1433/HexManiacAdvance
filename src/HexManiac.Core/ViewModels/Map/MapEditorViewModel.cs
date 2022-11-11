@@ -329,6 +329,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void UpdatePrimaryMap(BlockMapViewModel map) {
          if (!map.IsValidMap) return;
          blockset = UpdateBlockset(map.MapID);
+         if (blockset == -1) return;
          if (blockset == Pointer.NULL) return;
          // update the primary map
          if (primaryMap != map) {
@@ -1432,11 +1433,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private long UpdateBlockset(int mapID) {
          var banksTable = model.GetTable(HardcodeTablesModel.MapBankTable);
          var banks = new ModelTable(model, banksTable.Start, null, banksTable);
-         var layout = banks[mapID / 1000].GetSubTable("maps")[mapID % 1000].GetSubTable("map")[0].GetSubTable(Format.Layout)[0];
+         var bank = banks[mapID / 1000];
+         if (bank == null) return -1;
+         var maps = bank.GetSubTable("maps");
+         if (maps == null) return -1;
+         var mapsElement = maps[mapID % 1000];
+         if (mapsElement == null) return -1;
+         var map = mapsElement.GetSubTable("map");
+         if (map == null) return -1;
+         var mapElement = map[0];
+         if (mapElement == null) return -1;
+         var layoutTable = mapElement.GetSubTable(Format.Layout);
+         if (layoutTable == null) return -1;
+         var layout = layoutTable[0];
          var address1 = layout.GetAddress(Format.PrimaryBlockset);
          var address2 = layout.GetAddress(Format.SecondaryBlockset);
          if (address1 == Pointer.NULL || address2 == Pointer.NULL) return Pointer.NULL;
-         var combined = (address1 << 7) | address2;
+         var combined = (address1 << 25) | address2;
          (blockset1, blockset2) = (address1, address2);
          return combined;
       }

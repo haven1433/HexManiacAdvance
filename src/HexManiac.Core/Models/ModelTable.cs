@@ -323,10 +323,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       public ModelTable GetSubTable(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
+         if (valueAddress < 0 || valueAddress >= model.Count) return null;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunPointerSegment pointerSeg) {
             var destination = model.ReadPointer(valueAddress);
-            if (destination == Pointer.NULL) return null;
+            if (destination < 0 || destination >= model.Count) return null;
             var error = ArrayRun.TryParse(model, fieldName, pointerSeg.InnerFormat, destination, SortedSpan.One(valueAddress), table.ElementContent, out var childTable);
             if (error.HasError) {
                childTable = model.GetNextRun(destination) as ITableRun;

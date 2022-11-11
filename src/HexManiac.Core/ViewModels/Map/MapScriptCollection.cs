@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -26,6 +27,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Scripts.Clear();
          this.owner = owner;
          address = owner.GetAddress("mapscripts");
+         if (address == Pointer.NULL) return;
          var model = viewPort.Model;
          var scriptStart = address;
          while (model[scriptStart] != 0) {
