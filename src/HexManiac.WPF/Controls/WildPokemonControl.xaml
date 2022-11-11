@@ -1,0 +1,95 @@
+﻿<UserControl x:Class="HavenSoft.HexManiac.WPF.Controls.WildPokemonControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
+   <!-- This panel takes you to the table tool, to the appropriate table based on which pokemon you want to edit. -->
+   <!-- It takes you to the page where you see the rate and a textbox for all the pokemon, such as 39B738 in Ruby -->
+   <Grid Width="320" Height="180" Background="{DynamicResource Background}">
+      <Grid.RowDefinitions>
+         <RowDefinition Height="Auto" />
+         <RowDefinition />
+         <RowDefinition />
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+         <ColumnDefinition />
+         <ColumnDefinition />
+      </Grid.ColumnDefinitions>
+      <Grid.Resources>
+         <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+            <Setter Property="Direction" Value="Out" />
+            <Setter Property="Width" Value="150" />
+            <Setter Property="Height" Value="24" />
+         </Style>
+         <Style TargetType="Decorator">
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+         </Style>
+      </Grid.Resources>
+      <StackPanel Grid.ColumnSpan="2">
+         <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="65,5" Padding="10,5">
+            <TextBlock TextWrapping="Wrap">
+               Wild pokemon have 3 stats: <LineBreak />
+               &#x2022; Lowest possible level <LineBreak />
+               &#x2022; Highest possible level <LineBreak />
+               &#x2022; Species
+            </TextBlock>
+         </Border>
+      </StackPanel>
+      <Decorator Grid.Row="1">
+         <local:AngleButton Command="{Binding GotoGrass}">
+            <local:AngleButton.Style>
+               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Setter Property="Content" Value="Show Grass Pokemon" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding GrassExists}" Value="False">
+                        <Setter Property="Content" Value="Add Grass Pokemon" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </local:AngleButton.Style>
+         </local:AngleButton>
+      </Decorator>
+      <Decorator Grid.Row="1" Grid.Column="1">
+         <local:AngleButton Command="{Binding TreeGrass}">
+            <local:AngleButton.Style>
+               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Setter Property="Content" Value="Show Tree Pokemon" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding TreeExists}" Value="False">
+                        <Setter Property="Content" Value="Add Tree Pokemon" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </local:AngleButton.Style>
+         </local:AngleButton>
+      </Decorator>
+      <Decorator Grid.Row="2">
+         <local:AngleButton Command="{Binding GotoSurf}">
+            <local:AngleButton.Style>
+               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Setter Property="Content" Value="Show Surf Pokemon" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding SurfExists}" Value="False">
+                        <Setter Property="Content" Value="Add Surf Pokemon" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </local:AngleButton.Style>
+         </local:AngleButton>
+      </Decorator>
+      <Decorator Grid.Row="2" Grid.Column="1">
+         <local:AngleButton Command="{Binding GotoFishing}">
+            <local:AngleButton.Style>
+               <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Setter Property="Content" Value="Show Fishing Pokemon" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding FishingExists}" Value="False">
+                        <Setter Property="Content" Value="Add Fishing Pokemon" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </local:AngleButton.Style>
+         </local:AngleButton>
+      </Decorator>
+   </Grid>
+</UserControl>

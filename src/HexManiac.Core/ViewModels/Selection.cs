@@ -21,6 +21,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
    }
 
+   public record SelectionTabChangeArgs(ITabContent Tab, bool IsBackArrow);
+
    public class Selection : ViewModelCore {
       private const int DefaultPreferredWidth = 0x10;
 
@@ -126,7 +128,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ScrollRegion Scroll { get; }
 
-      public event EventHandler<ITabContent> RequestTabChanged;
+      public event EventHandler<SelectionTabChangeArgs> RequestTabChanged;
       public event EventHandler<string> OnError;
 
       /// <summary>
@@ -223,7 +225,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var backInfo = backStack.Pop();
                if (backStack.Count == 0) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
                if (backInfo.Tab != null) {
-                  RequestTabChanged?.Invoke(this, backInfo.Tab);
+                  RequestTabChanged?.Invoke(this, new(backInfo.Tab, true));
                   return;
                }
                forwardStack.Push(new JumpInfo(Scroll.DataIndex, selectionPoint));
@@ -238,12 +240,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (forwardStack.Count == 0) return;
                var selectionPoint = Scroll.ViewPointToDataIndex(SelectionStart);
                if (selectionPoint < Scroll.DataIndex || selectionPoint > Scroll.DataIndex + Scroll.Width * Scroll.Height) selectionPoint = Scroll.DataIndex;
+               var forwardInfo = forwardStack.Pop();
+               if (forwardStack.Count == 0) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
+               if (forwardInfo.Tab != null) {
+                  RequestTabChanged?.Invoke(this, new(forwardInfo.Tab, false));
+                  return;
+               }
                backStack.Push(new JumpInfo(Scroll.DataIndex, selectionPoint));
                if (backStack.Count == 1) backward.CanExecuteChanged.Invoke(backward, EventArgs.Empty);
-               var forwardInfo = forwardStack.Pop();
                GotoAddressHelper(forwardInfo.ViewStart);
                SelectionStart = Scroll.DataIndexToViewPoint(forwardInfo.SelectionStart);
-               if (forwardStack.Count == 0) forward.CanExecuteChanged.Invoke(forward, EventArgs.Empty);
             },
          };
       }
@@ -303,7 +309,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void SetJumpBackTab(ITabContent tab) => backStack.Push(new JumpInfo(-1, -1, tab));
+      public void SetJumpBackTab(ITabContent tab) {
+         backStack.Push(new JumpInfo(-1, -1, tab));
+         if (forwardStack.Count > 0) {
+            forwardStack.Clear();
+            forward.RaiseCanExecuteChanged();
+         }
+         if (backStack.Count == 1) backward.RaiseCanExecuteChanged();
+      }
+
+      public void SetJumpForwardTab(ITabContent tab) {
+         forwardStack.Push(new JumpInfo(-1, -1, tab));
+         if (forwardStack.Count == 1) forward.RaiseCanExecuteChanged();
+      }
 
       public void SetJumpBackPoint(int address) {
          if (backStack.Count > 0) backStack.Pop();

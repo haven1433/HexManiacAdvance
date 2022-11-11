@@ -5,7 +5,6 @@
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
              xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
-             xmlns:images="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Images;assembly=HexManiac.Core"
              xmlns:models="clr-namespace:HavenSoft.HexManiac.Core.Models;assembly=HexManiac.Core"
              Focusable="True">
    <UserControl.Resources>
@@ -1087,35 +1086,31 @@
             </Button>
          </StackPanel>
          <local:AngleButton Direction="Left" Content="Edit Map Header" Command="{res:MethodCommand ToggleHeaderPanel}" Margin="5,0,0,0" x:Name="MapHeaderButton" />
-         <local:AngleButton Direction="Out" Command="{Binding PrimaryMap.GotoWildData}" Width="110" x:Name="WildButton">
+         <local:AngleButton Direction="Out" Width="110" x:Name="WildButton" IsChecked="{Binding PrimaryMap.WildPokemon.ShowWildData}">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                  <Setter Property="Content" Value="Create Wild Data" />
                   <Style.Triggers>
-                     <DataTrigger Binding="{Binding PrimaryMap.HasWildData}" Value="True">
+                     <DataTrigger Binding="{Binding PrimaryMap.WildPokemon.HasWildData}" Value="True">
+                        <Setter Property="Content" Value="Edit Wild Data" />
                         <Setter Property="ToolTip">
                            <Setter.Value>
                               <ToolTip Width="200">
-                                 <TextBlock TextWrapping="Wrap" Text="{Binding PrimaryMap.WildText}" />
+                                 <TextBlock TextWrapping="Wrap" Text="{Binding PrimaryMap.WildPokemon.WildSummary}" />
                               </ToolTip>
                            </Setter.Value>
                         </Setter>
+                        <Setter Property="ToolTipService.InitialShowDelay" Value="0" />
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
             </local:AngleButton.Style>
-            <TextBlock>
-               <TextBlock.Style>
-                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-                     <Setter Property="Text" Value="Goto Wild Data" />
-                     <Style.Triggers>
-                        <DataTrigger Binding="{Binding PrimaryMap.HasWildData}" Value="False">
-                           <Setter Property="Text" Value="Create Wild Data" />
-                        </DataTrigger>
-                     </Style.Triggers>
-                  </Style>
-               </TextBlock.Style>
-            </TextBlock>
          </local:AngleButton>
+         <Popup IsOpen="{Binding PrimaryMap.WildPokemon.ShowWildData}" PlacementTarget="{Binding ElementName=WildButton}" StaysOpen="{Binding IsMouseOver, ElementName=WildButton}">
+            <Border BorderThickness="1" BorderBrush="{DynamicResource Accent}">
+               <local:WildPokemonControl DataContext="{Binding PrimaryMap.WildPokemon}" />
+            </Border>
+         </Popup>
          <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" Command="{res:MethodCommand ToggleBorderEditor}" Margin="0,0,5,0" x:Name="EditBorderButton" />
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" Name="ObjectEventTemplate"
                  MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
@@ -1124,7 +1119,8 @@
          <ToggleButton Padding="0" Width="12" Height="12" VerticalAlignment="Top" Name="ShowTemplateSettingsButton" IsChecked="{Binding ShowTemplateSettings}">
             <Path Data="{res:Icon Settings}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
          </ToggleButton>
-         <Popup DataContext="{Binding Templates}" IsOpen="{Binding IsChecked, ElementName=ShowTemplateSettingsButton}" PlacementTarget="{Binding ElementName=ShowTemplateSettingsButton}" Width="235" Height="220" StaysOpen="False">
+         <Popup DataContext="{Binding Templates}" IsOpen="{Binding IsChecked, ElementName=ShowTemplateSettingsButton}" PlacementTarget="{Binding ElementName=ShowTemplateSettingsButton}"
+                Width="235" Height="220" StaysOpen="{Binding IsMouseOver, ElementName=ShowTemplateSettingsButton}">
             <Border BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Background="{DynamicResource Background}">
                <Grid Margin="5">
                   <Grid.ColumnDefinitions>

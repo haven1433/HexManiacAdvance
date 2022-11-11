@@ -297,83 +297,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      #region Wild Data
-
-      private int wildDataIndex = int.MinValue;
-      public bool HasWildData {
-         get {
-            if (wildDataIndex != int.MinValue) return wildDataIndex != -1;
-            var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
-            var wildData = new ModelTable(model, wildTable.Start, null, wildTable);
-            for (int i = 0; i < wildData.Count; i++) {
-               var bank = wildData[i].GetValue("bank");
-               var map = wildData[i].GetValue("map");
-               var id = bank * 1000 + map;
-               if (id != MapID) continue;
-               wildDataIndex = i;
-               return true;
-            }
-            wildDataIndex = -1;
-            return false;
-         }
-      }
-
-      private string wildText;
-      public string WildText {
-         get {
-            if (wildText != null) return wildText;
-            var wild = model.GetTableModel(HardcodeTablesModel.WildTableName);
-            // grass<[rate:: list<>]1> surf<[rate:: list<>]1> tree<[rate:: list<>]1> fish<[rate:: list<>]1>
-            var text = new StringBuilder();
-            if (wildDataIndex < 0) return text.ToString();
-            BuildWildTooltip(text, wild[wildDataIndex], "grass");
-            text.AppendLine();
-            BuildWildTooltip(text, wild[wildDataIndex], "surf");
-            text.AppendLine();
-            BuildWildTooltip(text, wild[wildDataIndex], "tree");
-            text.AppendLine();
-            BuildWildTooltip(text, wild[wildDataIndex], "fish");
-            return text.ToString();
-         }
-      }
-      private static void BuildWildTooltip(StringBuilder text, ModelArrayElement wild, string type) {
-         // list<[low. high. species:]n>
-         var terrain = wild.GetSubTable(type);
-         if (terrain == null) return;
-         var list = terrain[0].GetSubTable("list");
-         if (list == null) return;
-         text.Append(type);
-         text.Append(": ");
-         text.AppendJoin(", ", list.Select(element => element.GetEnumValue("species")).Distinct());
-      }
-
-      private StubCommand gotoWildData;
-      public ICommand GotoWildData => StubCommand(ref gotoWildData, () => {
-         var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
-         if (!HasWildData) {
-            var token = tokenFactory();
-            var originalStart = wildTable.Start;
-            wildTable = model.RelocateForExpansion(token, wildTable, wildTable.Length + wildTable.ElementLength);
-            wildTable = wildTable.Append(token, 1);
-            model.ObserveRunWritten(token, wildTable);
-            var element = new ModelArrayElement(model, wildTable.Start, wildTable.ElementCount - 1, tokenFactory, wildTable);
-            element.SetValue("bank", group);
-            element.SetValue("map", map);
-            element.SetAddress("grass", Pointer.NULL);
-            element.SetAddress("surf", Pointer.NULL);
-            element.SetAddress("tree", Pointer.NULL);
-            element.SetAddress("fish", Pointer.NULL);
-            wildDataIndex = wildTable.ElementCount - 1;
-            if (wildTable.Start != originalStart) InformRepoint(new("Wild", wildTable.Start));
-            NotifyPropertyChanged(nameof(HasWildData));
-            viewPort.ChangeHistory.ChangeCompleted();
-         }
-         viewPort.Goto.Execute(wildTable.Start + wildTable.ElementLength * wildDataIndex);
-         tutorials.Complete(Tutorial.ToolbarButton_GotoWildData);
-      }, () => model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.WildTableName) != Pointer.NULL);
-
-      #endregion
-
       public event EventHandler NeighborsChanged;
       public event EventHandler AutoscrollTiles;
       public event EventHandler HideSidePanels;
@@ -427,6 +350,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                mapScriptCollection.Load(map);
             }
             return mapScriptCollection;
+         }
+      }
+
+      private WildPokemonViewModel wildPokemon;
+      public WildPokemonViewModel WildPokemon {
+         get {
+            if (wildPokemon == null) wildPokemon = new WildPokemonViewModel(viewPort, tutorials, group, map);
+            return wildPokemon;
          }
       }
 
@@ -492,7 +423,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = null;
          eventRenders = null;
          borderBlock = null;
-         wildDataIndex = int.MinValue;
+         WildPokemon.ClearCache();
          RefreshMapSize();
          if (blockEditor != null) {
             blockEditor.BlocksChanged -= HandleBlocksChanged;
@@ -516,7 +447,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             oldBorderEditor.ShowBorderPanel = false;
             NotifyPropertyChanged(nameof(BorderEditor));
          }
-         NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(HasWildData));
+         NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels));
       }
 
       public void RedrawEvents() {

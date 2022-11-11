@@ -218,7 +218,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var previous = backStack[backStack.Count - 1];
          backStack.RemoveAt(backStack.Count - 1);
          if (previous == -1) {
-            RequestTabChange(this, new(viewPort));
+            var request = new TabChangeRequestedEventArgs(viewPort);
+            RequestTabChange(this, request);
+            if (request.RequestAccepted) (viewPort as ViewPort).SetJumpForwardTab(this);
             return;
          }
          if (primaryMap != null) forwardStack.Add(primaryMap.MapID);
@@ -231,6 +233,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (forwardStack.Count == 0) return;
          var next = forwardStack[forwardStack.Count - 1];
          forwardStack.RemoveAt(forwardStack.Count - 1);
+         if (next == -1) {
+            var request = new TabChangeRequestedEventArgs(viewPort);
+            RequestTabChange(this, request);
+            if (request.RequestAccepted) (viewPort as ViewPort).SetJumpBackTab(this);
+            return;
+         }
          if (primaryMap != null) backStack.Add(primaryMap.MapID);
          if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
          if (forwardStack.Count == 0) forwardCommand.RaiseCanExecuteChanged();
@@ -307,6 +315,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             forwardCommand.RaiseCanExecuteChanged();
          }
          if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
+      }
+
+      public void AddForwardNavigation(int id) {
+         forwardStack.Add(id);
+         if (backStack.Count > 0) {
+            backStack.Clear();
+            backCommand.RaiseCanExecuteChanged();
+         }
+         if (forwardStack.Count == 1) forwardCommand.RaiseCanExecuteChanged();
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {

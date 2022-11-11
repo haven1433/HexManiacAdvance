@@ -251,6 +251,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
+      public void SetJumpBackTab(ITabContent tab) => selection.SetJumpBackTab(tab);
+
+      public void SetJumpForwardTab(ITabContent tab) {
+         selection.SetJumpForwardTab(tab);
+      }
+
       private void ClearActiveEditBeforeSelectionChanges(object sender, Point location) {
          if (location.X >= 0 && location.X < scroll.Width && location.Y >= 0 && location.Y < scroll.Height) {
             var element = this[location.X, location.Y];
@@ -955,7 +961,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          selection.PropertyChanged += SelectionPropertyChanged;
          selection.PreviewSelectionStartChanged += ClearActiveEditBeforeSelectionChanges;
          selection.OnError += (sender, e) => OnError?.Invoke(this, e);
-         selection.RequestTabChanged += (sender, e) => RequestTabChange(this, new(e));
+         selection.RequestTabChanged += (sender, e) => {
+            var request = new TabChangeRequestedEventArgs(e.Tab);
+            RequestTabChange(this, request);
+            if (request.RequestAccepted && request.NewTab == mapper) {
+               if (e.IsBackArrow) {
+                  mapper.AddForwardNavigation(-1);
+               } else {
+                  mapper.AddBackNavigation(-1);
+               }
+            }
+         };
 
          if (this is not ChildViewPort) { // child viewports don't need tools
             tools = new ToolTray(Singletons, Model, selection, history, this);
