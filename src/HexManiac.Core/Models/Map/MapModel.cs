@@ -175,10 +175,10 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          if (isRSE) LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {PrimaryBlockset}<{BlockDataFormat}>]1";
          var regionSectionIDFormat = "data.maps.names+88";
          if (isRSE) regionSectionIDFormat = "data.maps.names";
-         ObjectsFormat = $"[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/{ObjectCount}";
-         WarpsFormat = $"[x:500 y:500 elevation. warpID. map. bank.]/{WarpCount}";
-         ScriptsFormat = $"[x:500 y:500 elevation: trigger: index:: script<`xse`>]/{ScriptCount}";
-         SignpostsFormat = $"[x:500 y:500 elevation. kind. unused: arg::|h]/{SignpostCount}";
+         ObjectsFormat = $"[id. graphics. unused:1 x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/{ObjectCount}";
+         WarpsFormat = $"[x:|z y:|z elevation.10 warpID. map. bank.]/{WarpCount}";
+         ScriptsFormat = $"[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/{ScriptCount}";
+         SignpostsFormat = $"[x:|z y:|z elevation.10 kind. unused:1 arg::|h]/{SignpostCount}";
          EventsFormat = $"[{ObjectCount}. {WarpCount}. {ScriptCount}. {SignpostCount}. {Objects}<{ObjectsFormat}> {Warps}<{WarpsFormat}> {Scripts}<{ScriptsFormat}> {Signposts}<{SignpostsFormat}>]1";
          ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
          HeaderFormat = $"music:songnames layoutID:data.maps.layouts+1 regionSectionID.{regionSectionIDFormat} cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";

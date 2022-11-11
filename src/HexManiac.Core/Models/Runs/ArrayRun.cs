@@ -236,11 +236,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      public static bool DataFormatMatches(this IReadOnlyList<ArrayRunElementSegment> segments, IDataModel model, int start, int elementIndex) {
+      public static bool DataFormatMatches(this IReadOnlyList<ArrayRunElementSegment> segments, IDataModel model, int start, int elementIndex, bool deepCheck = true) {
          ArrayRun.FormatMatchFlags flags = default;
          if (segments.Count == 1) flags = ArrayRun.FormatMatchFlags.IsSingleSegment;
          for (int i = 0; i < segments.Count; i++) {
-            if (!ArrayRun.DataMatchesSegmentFormat(model, start, segments[i], flags, segments, elementIndex)) return false;
+            if (!ArrayRun.DataMatchesSegmentFormat(model, start, segments[i], flags, segments, elementIndex, deepCheck)) return false;
             start += segments[i].Length;
          }
          return true;
@@ -1422,7 +1422,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return true;
       }
 
-      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex) {
+      public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, bool deepCheck = true) {
          if (start < 0 || start >= owner.Count - segment.Length) return false;
          Debug.Assert(sourceSegments.Contains(segment), "Expected segment to be one among sourceSegments.");
          switch (segment.Type) {
@@ -1473,7 +1473,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (segment is ArrayRunPointerSegment pointerSegment) {
                   // allow the format to not match if the pointer points to zero
                   // this is because AdvanceMap inserts pointers to zero and expects them to act like NULLs
-                  if (!pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments, parentIndex) && destination != 0) return false;
+                  if (deepCheck && !pointerSegment.DestinationDataMatchesPointerFormat(owner, new NoDataChangeDeltaModel(), start, destination, sourceSegments, parentIndex) && destination != 0) return false;
                }
                return true;
             case ElementContentType.BitArray:

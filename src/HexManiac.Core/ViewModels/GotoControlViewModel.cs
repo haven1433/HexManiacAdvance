@@ -218,11 +218,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var matchedMaps = viewPort.Model.GetMatchingMaps(currentSelection);
          if (matchedMaps.Count == 1 || matchedMaps.Any(map => map.Name == currentSelection)) {
-            viewPort?.Goto?.Execute(currentSelection);
-            ControlVisible = false;
-            ShowAutoCompleteOptions = false;
-            DeselectLastRow();
-            return;
+            // if we can add a new section, then don't go to a map
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
+            if (newSection.Tokens.Count == 0) {
+               viewPort?.Goto?.Execute(currentSelection);
+               ControlVisible = false;
+               ShowAutoCompleteOptions = false;
+               DeselectLastRow();
+               return;
+            }
          }
 
          using (ModelCacheScope.CreateScope(viewPort.Model)) {
