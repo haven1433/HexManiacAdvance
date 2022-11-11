@@ -754,6 +754,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public void RepeatBlock(ModelDelta token, int block, int collision, int x, int y, int w, int h) {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+         int changeCount = 0;
+         for (int xx = 0; xx < w; xx++) {
+            for (int yy = 0; yy < h; yy++) {
+               if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
+               var address = start + ((yy + y) * width + xx + x) * 2;
+               // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
+               var blockValue = model.ReadMultiByteValue(address, 2);
+               var originalBlockValue = blockValue;
+               if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
+               if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
+               if (blockValue != originalBlockValue) {
+                  model.WriteMultiByteValue(address, 2, token, blockValue);
+                  changeCount++;
+               }
+            }
+         }
+         if (changeCount > 0) {
+            pixelData = null;
+            NotifyPropertyChanged(nameof(PixelData));
+         }
+      }
+
       public void RepeatBlocks(ModelDelta token, int[,] blockValues, int x, int y, int w, int h) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));

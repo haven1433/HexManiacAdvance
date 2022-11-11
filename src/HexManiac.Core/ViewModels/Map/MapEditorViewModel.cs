@@ -714,11 +714,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (right - left + 1, bottom - top + 1);
 
          if (tilesToDraw == null) {
-            for (int y = 0; y < height; y++) {
-               for (int x = 0; x < width; x++) {
-                  primaryMap.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, left + x, top + y);
-               }
-            }
+            primaryMap.RepeatBlock(history.CurrentChange, drawBlockIndex, collisionIndex, left, top, width, height);
          } else {
             primaryMap.RepeatBlocks(history.CurrentChange, tilesToDraw, left, top, width, height);
          }
