@@ -57,6 +57,13 @@ namespace HavenSoft.HexManiac.Tests {
 
       public AutoSearchTests(AutoSearchFixture fixture) => this.fixture = fixture;
 
+      [SkippableFact]
+      public void MapsInBankOneAreFound() {
+         var model = fixture.LoadModel("sampleFiles/glazed-b8.6-TrainerX493.gba");
+         var banks = model.GetTableModel(MapBankTable);
+         Assert.Equal(57, banks[0].GetSubTable("maps").Count);
+      }
+
       [SkippableTheory]
       [MemberData(nameof(PokemonGames))]
       public void PokemonNamesAreFound(string game) {
@@ -885,16 +892,19 @@ namespace HavenSoft.HexManiac.Tests {
       public Singletons Singletons { get; } = new Singletons();
 
       public AutoSearchFixture() {
-         Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), name => {
-            if (!File.Exists(name)) return;
-            var data = File.ReadAllBytes(name);
-            var metadata = new StoredMetadata(new string[0]);
-            var model = new HardcodeTablesModel(Singletons, data, metadata);
-            lock (modelCache) modelCache[name] = model;
-         });
+         Parallel.ForEach(AutoSearchTests.PokemonGames.Select(array => (string)array[0]), AddCache);
+      }
+
+      private void AddCache(string name) {
+         if (!File.Exists(name)) return;
+         var data = File.ReadAllBytes(name);
+         var metadata = new StoredMetadata(new string[0]);
+         var model = new HardcodeTablesModel(Singletons, data, metadata);
+         lock (modelCache) modelCache[name] = model;
       }
 
       public PokemonModel LoadModel(string name) {
+         if (!modelCache.ContainsKey(name)) AddCache(name);
          Skip.IfNot(modelCache.ContainsKey(name));
          return modelCache[name];
       }

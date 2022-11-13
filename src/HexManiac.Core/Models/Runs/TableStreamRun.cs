@@ -58,7 +58,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                // at this point I already know the length of the table
                // I don't need to do a deep-match, I just need to figure out if the pointers/text/enums are in the right spots.
                // the data that this points to doesn't have to be valid in order for this to be valid.
-               if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, tableStream.ElementContent, i, deepCheck: true)) return false;
+               if (!ArrayRun.DataMatchesSegmentFormat(model, subStart, tableStream.ElementContent[j], default, tableStream.ElementContent, i, deepCheck: false)) return false;
                subStart += tableStream.ElementContent[j].Length;
             }
          }
@@ -541,7 +541,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
 
             // verify that the data matches the expected format
-            if (!segments.DataFormatMatches(model, start, i, deepCheck: true)) return i;
+            if (!segments.DataFormatMatches(model, start, i, deepCheck: false)) return i;
 
             start += elementLength;
          }

@@ -1376,6 +1376,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
+         if (strategy is TableStreamRunContentStrategy) {
+            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, segments, false, out var newRun)) {
+               for (var existingRun = GetNextRun(newRun.Start); existingRun.Start < newRun.Start + newRun.Length; existingRun = GetNextRun(existingRun.Start + existingRun.Length)) {
+                  if (existingRun.Start > newRun.Start && existingRun is ITableRun) {
+                     // we still care about the pointer, we just don't want to add the format
+                     return;
+                  }
+               }
+            }
+         }
+
          strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
       }
 
