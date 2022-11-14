@@ -882,6 +882,19 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("Decompressed more bytes than expected. Add a ! to override this.", Errors[0]);
       }
 
+      [Theory]
+      [InlineData("`ucs4x0x1`")]
+      [InlineData("`ucs4x1x0`")]
+      [InlineData("`uct4x0`")]
+      [InlineData("`lzs4x0x1`")]
+      [InlineData("`lzs4x1x0`")]
+      [InlineData("`lzt4x0`")]
+      public void ImageFormatWithZeroDimensionErrors(string format) {
+         WriteCompressedData(0, 0x20);
+         ViewPort.Edit($"^image{format} ");
+         Assert.Single(Errors);
+      }
+
       private void WriteCompressedData(int start, int length) {
          var compressedData = LZRun.Compress(new byte[length], 0, length);
          for (int i = 0; i < compressedData.Count; i++) Model[start + i] = compressedData[i];

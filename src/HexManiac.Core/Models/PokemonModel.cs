@@ -1391,7 +1391,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
-         Debug.Assert(run.Length > 0); // writing an anchor of length zero is stupid.
+         Debug.Assert(run.Length > 0, $"Trying to write a run of length zero! {run.FormatString} at {run.Start:X6}"); // writing an anchor of length zero is stupid.
          lock (threadlock) {
             int location = run.Start;
             var index = BinarySearch(location);

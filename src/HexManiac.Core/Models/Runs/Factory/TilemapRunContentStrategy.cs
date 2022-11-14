@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         var error = SpriteRunContentStrategy.IsValid(format.BitsPerPixel);
+         var error = SpriteRunContentStrategy.IsValid(format);
          if (error.HasError) return error;
          var newRun = new TilemapRun(model, dataIndex, format);
          run = newRun;

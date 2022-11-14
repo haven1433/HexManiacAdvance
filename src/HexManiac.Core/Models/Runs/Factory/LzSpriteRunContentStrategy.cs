@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         var error = SpriteRunContentStrategy.IsValid(spriteFormat.BitsPerPixel);
+         var error = SpriteRunContentStrategy.IsValid(spriteFormat);
          if (error.HasError) return error;
          run = new LzSpriteRun(spriteFormat, model, dataIndex, run.PointerSources);
          if (run.Length == LZRun.DecompressedTooLong) return new ErrorInfo("Decompressed more bytes than expected. Add a ! to override this.");

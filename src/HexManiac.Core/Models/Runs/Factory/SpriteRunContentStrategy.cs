@@ -36,15 +36,35 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
       }
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
-         var error = IsValid(spriteFormat.BitsPerPixel);
+         var error = IsValid(spriteFormat);
          if (error.HasError) return error;
          run = new SpriteRun(model, dataIndex, spriteFormat, run.PointerSources);
          return ErrorInfo.NoError;
       }
 
-      public static ErrorInfo IsValid(int bitsPerPixel) {
-         if (!new[] { 1, 2, 4, 8 }.Contains(bitsPerPixel)) {
+      public static ErrorInfo IsValid(TilemapFormat format) {
+         if (!format.BitsPerPixel.IsAny(1, 2, 4, 8)) {
             return new ErrorInfo("Sprite bpp must be 1, 2, 4, or 8.");
+         }
+         return ErrorInfo.NoError;
+      }
+
+      public static ErrorInfo IsValid(TilesetFormat format) {
+         if (!format.BitsPerPixel.IsAny(1, 2, 4, 8)) {
+            return new ErrorInfo("Sprite bpp must be 1, 2, 4, or 8.");
+         }
+         if (format.MaxTiles == 0 || format.Tiles == 0) {
+            return new ErrorInfo("Tilesets must have at least 1 tile.");
+         }
+         return ErrorInfo.NoError;
+      }
+
+      public static ErrorInfo IsValid(SpriteFormat format) {
+         if (!format.BitsPerPixel.IsAny(1, 2, 4, 8)) {
+            return new ErrorInfo("Sprite bpp must be 1, 2, 4, or 8.");
+         }
+         if (format.ExpectedByteLength <= 0) {
+            return new ErrorInfo("Sprite width/height must positive.");
          }
          return ErrorInfo.NoError;
       }
