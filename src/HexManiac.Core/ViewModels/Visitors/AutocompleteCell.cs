@@ -113,7 +113,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private void GenerateOptions(IDataFormatInstance format) {
          var arrayRun = (ITableRun)Model.GetNextRun(format.Source);
          var offsets = arrayRun.ConvertByteOffsetToArrayOffset(format.Source);
-         var segment = (IHasOptions)arrayRun.ElementContent[offsets.SegmentIndex];
+         var contentSegment = arrayRun.ElementContent[offsets.SegmentIndex];
+         if (contentSegment is ArrayRunRecordSegment record) contentSegment = record.CreateConcrete(Model, format.Source);
+         var segment = (IHasOptions)contentSegment;
          var allOptions = segment.GetOptions(Model).Where(option => option != null).Select(option => option + " ");
          Result = AutoCompleteSelectionItem.Generate(allOptions.Where(option => option.MatchesPartial(InputText, onlyCheckLettersAndDigits: true)), -1);
       }

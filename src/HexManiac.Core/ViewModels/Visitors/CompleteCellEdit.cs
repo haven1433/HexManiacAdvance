@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private readonly IDataModel Model;
       private readonly int memoryLocation;
       private readonly string CurrentText;
-      private readonly ModelDelta CurrentChange;
+      private readonly Func<ModelDelta> currentChange;
       private readonly ScrollRegion scroll;
 
       public bool Result { get; private set; }         // if true, the edit was completed correctly
@@ -27,12 +27,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                                                        // and refresh the one cell (along with any other UnderEdit cells)
                                                        // if result is true and this _is_ null, then the entire screen needs to be refreshed.
 
-      public CompleteCellEdit(IDataModel model, ScrollRegion scroll, int memoryLocation, string currentText, ModelDelta currentChange) {
+      private ModelDelta CurrentChange => currentChange();
+
+      public CompleteCellEdit(IDataModel model, ScrollRegion scroll, int memoryLocation, string currentText, Func<ModelDelta> currentChange) {
          Model = model;
          this.scroll = scroll;
          this.memoryLocation = memoryLocation;
          CurrentText = currentText;
-         CurrentChange = currentChange;
+         this.currentChange = currentChange;
 
          NewDataIndex = memoryLocation;
       }
@@ -585,7 +587,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          string sanitizedText = CurrentText.Replace(')', ' ');
          var array = (ITableRun)Model.GetNextRun(memoryLocation);
          var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
-         var segment = (ArrayRunEnumSegment)array.ElementContent[offsets.SegmentIndex];
+         var contentSegment = array.ElementContent[offsets.SegmentIndex];
+         if (contentSegment is ArrayRunRecordSegment record) contentSegment = record.CreateConcrete(Model, memoryLocation);
+         var segment = (ArrayRunEnumSegment)contentSegment;
          if (segment.TryParse(Model, sanitizedText, out int value)) {
             Model.WriteMultiByteValue(offsets.SegmentStart, segment.Length, CurrentChange, value);
             NewDataIndex = offsets.SegmentStart + segment.Length;

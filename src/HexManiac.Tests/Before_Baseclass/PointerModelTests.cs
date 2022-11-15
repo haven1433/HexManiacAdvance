@@ -980,6 +980,13 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(Errors);
       }
 
+      [Fact]
+      public void NoChanges_StartChangeThenCancel_NoSaveOption() {
+         ViewPort.Edit("<");
+
+         Assert.False(ViewPort.Save.CanExecute(FileSystem));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

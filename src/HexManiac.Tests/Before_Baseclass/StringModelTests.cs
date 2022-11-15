@@ -757,6 +757,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsAssignableFrom<ITableRun>(Model.GetNextRun(0));
       }
 
+      [Fact]
+      public void TableWithZeroLengthString_Error() {
+         ViewPort.Edit("^table[text\"\"0]1 ");
+         Assert.Single(Errors);
+      }
+
+      [Fact]
+      public void Table_OnlyZeroLengthSegments_Error() {
+         ViewPort.Edit("^table[field|=() ]1 ");
+         Assert.Single(Errors);
+      }
+
       private void HackTextConverter(string game) {
          var converter = new PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));

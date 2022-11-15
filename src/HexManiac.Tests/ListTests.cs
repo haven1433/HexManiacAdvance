@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -316,6 +317,16 @@ DefaultHash = '''0BEEDA92'''
          Assert.Equal("1", list[1]);
          Assert.Equal("name2", list[2]);
          Assert.Equal(3, list.Count);
+      }
+
+      [Fact]
+      public void ListWithApostrophe_TypeIntoBitFieldFromList_AcceptsApostrophe() {
+         Model.SetList("list", new[] { "Item", "Arby's", "Content" });
+         ViewPort.Edit("^table[content|b[]list]1 ");
+
+         ViewPort.Edit("arby'");
+
+         Assert.IsType<UnderEdit>(ViewPort[0, 0].Format);
       }
    }
 }

@@ -357,5 +357,15 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(10, ViewPort.DataLength);
       }
+
+      [Theory]
+      [InlineData("^table[a: b: c: d: e:]3 ")]
+      [InlineData("^text`asc`20 ")]
+      public void EndOfModel_LongRunFormat_Error(string format) {
+         ViewPort.Goto.Execute(0x1F0);
+         ViewPort.Edit(format);
+         Assert.Single(Errors);
+      }
    }
+
 }

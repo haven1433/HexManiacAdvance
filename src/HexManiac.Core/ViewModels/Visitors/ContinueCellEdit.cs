@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(IntegerEnum integer, byte data) {
          Result = integer.CanStartWithCharacter(Input) ||
-            ".'~|,_&%)".Contains(Input) ||
+            ".'~|,_&%()".Contains(Input) ||
             char.IsWhiteSpace(Input);
       }
 
@@ -137,7 +137,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(BitArray array, byte data) {
-         Result = char.IsLetterOrDigit(Input) || Input.IsAny('"', '-', ' ');
+         Result = char.IsLetterOrDigit(Input) || "?-\" .'~|,_&%)".Contains(Input);
       }
 
       public void Visit(MatchedWord word, byte data) => Visit((None)null, data);

@@ -528,6 +528,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
          ElementLength = ElementContent.Sum(e => e.Length);
+         if (ElementLength == 0) throw new ArrayRunParseException("Array Content Length must not be zero.");
 
          FormatMatchFlags flags = default;
          if (ElementContent.Count == 1) flags |= FormatMatchFlags.IsSingleSegment;
@@ -1243,6 +1244,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             segments = segments.Substring(nameEnd);
             var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
             if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException("expected name, but none was found: " + segments);
+            if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException("Cannot have 0-length text: " + name);
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {

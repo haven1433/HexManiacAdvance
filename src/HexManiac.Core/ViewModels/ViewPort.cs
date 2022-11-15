@@ -2601,7 +2601,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             // normal case: whether or not to accept the edit depends on the existing cell format
             var dataIndex = scroll.ViewPointToDataIndex(point);
-            var completeEditOperation = new CompleteCellEdit(Model, scroll, dataIndex, underEdit.CurrentText, history.CurrentChange);
+            var completeEditOperation = new CompleteCellEdit(Model, scroll, dataIndex, underEdit.CurrentText, () => history.CurrentChange);
             using (ModelCacheScope.CreateScope(Model)) {
                (underEdit.OriginalFormat ?? Undefined.Instance).Visit(completeEditOperation, element.Value);
 
