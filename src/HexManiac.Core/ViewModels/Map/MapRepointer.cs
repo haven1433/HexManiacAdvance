@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Windows.Input;
 
@@ -571,6 +572,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var table = new TableStreamRun(model, mapStart, SortedSpan<int>.None, format.MapFormat, null, new FixedLengthStreamStrategy(1));
          model.ObserveRunWritten(token, table);
 
+         DataMoved.Raise(this, new("Map", mapStart));
          return new MapModel(new ModelArrayElement(model, mapStart, 0, () => token, table));
       }
 

@@ -36,13 +36,13 @@
          </Border>
       </StackPanel>
       <Decorator Grid.Row="1">
-         <local:AngleButton Command="{Binding GotoGrass}">
+         <local:AngleButton Command="{Binding GotoGrass}" ToolTip="These pokemon will show up in tall grass.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
-                  <Setter Property="Content" Value="Show Grass Pokemon" />
+                  <Setter Property="Content" Value="Show Pokemon in Grass" />
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding GrassExists}" Value="False">
-                        <Setter Property="Content" Value="Add Grass Pokemon" />
+                        <Setter Property="Content" Value="Add Pokemon to Grass" />
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
@@ -50,13 +50,13 @@
          </local:AngleButton>
       </Decorator>
       <Decorator Grid.Row="1" Grid.Column="1">
-         <local:AngleButton Command="{Binding TreeGrass}">
+         <local:AngleButton Command="{Binding GotoTree}" ToolTip="These pokemon will show up when smashing rocks.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
-                  <Setter Property="Content" Value="Show Tree Pokemon" />
+                  <Setter Property="Content" Value="Show Pokemon in Rocks" />
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding TreeExists}" Value="False">
-                        <Setter Property="Content" Value="Add Tree Pokemon" />
+                        <Setter Property="Content" Value="Add Pokemon to Rocks" />
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
@@ -64,13 +64,13 @@
          </local:AngleButton>
       </Decorator>
       <Decorator Grid.Row="2">
-         <local:AngleButton Command="{Binding GotoSurf}">
+         <local:AngleButton Command="{Binding GotoSurf}" ToolTip="These pokemon will show up when surfing.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
-                  <Setter Property="Content" Value="Show Surf Pokemon" />
+                  <Setter Property="Content" Value="Show Surfing Pokemon" />
                   <Style.Triggers>
                      <DataTrigger Binding="{Binding SurfExists}" Value="False">
-                        <Setter Property="Content" Value="Add Surf Pokemon" />
+                        <Setter Property="Content" Value="Add Surfing Pokemon" />
                      </DataTrigger>
                   </Style.Triggers>
                </Style>
@@ -78,7 +78,7 @@
          </local:AngleButton>
       </Decorator>
       <Decorator Grid.Row="2" Grid.Column="1">
-         <local:AngleButton Command="{Binding GotoFishing}">
+         <local:AngleButton Command="{Binding GotoFishing}" ToolTip="These pokemon will show up when fishing.">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
                   <Setter Property="Content" Value="Show Fishing Pokemon" />

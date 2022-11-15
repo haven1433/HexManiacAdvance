@@ -811,6 +811,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (content is ViewPort viewPort) {
                bool anyTabsHaveMatchingViewModel = false;
                foreach (var tab in tabs) {
+                  if (tab is MapEditorViewModel map) anyTabsHaveMatchingViewModel |= map.ViewPort == viewPort;
                   if (!(tab is ViewPort vp)) continue;
                   if (tab == viewPort) continue;
                   anyTabsHaveMatchingViewModel |= vp.Model == viewPort.Model;

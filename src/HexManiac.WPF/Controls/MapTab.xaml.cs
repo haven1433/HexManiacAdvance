@@ -193,11 +193,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             return;
          }
          if (withinMapInteraction != MouseButton.XButton1) return;
+         if (e.ChangedButton == MouseButton.Right) return; // right-click is not a valid drag operation, because that's confusing.
          UpdateTooltipContent(NoTooltip);
          var element = (FrameworkElement)sender;
          if (!element.IsMouseDirectlyOver) return;
          e.Handled = true;
          var vm = ViewModel;
+         vm.ClearSelection();
          var p = GetCoordinates(element, e);
          element.CaptureMouse();
          withinMapInteraction = MouseButton.Middle;

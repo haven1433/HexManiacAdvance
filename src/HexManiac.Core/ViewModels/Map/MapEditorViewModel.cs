@@ -568,7 +568,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             PrimaryMap = map;
             drawSource = ToTilePosition(x, y);
             lastDraw = drawSource;
-            Debug.WriteLine("drawSource: " + lastDraw);
             if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
             if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
          }
@@ -629,6 +628,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             if (0 <= obj.ScriptAddress && obj.ScriptAddress < model.Count) {
                viewPort.Goto.Execute(obj.ScriptAddress);
+               RequestTabChange?.Invoke(this, new(viewPort));
             } else {
                OnError.Raise(this, "Not a valid script address.");
             }
@@ -1185,6 +1185,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          HighlightCursorY -= (HighlightCursorHeight - (16 * primaryMap.SpriteScale + 4)) / 2;
          HighlightCursorWidth = 16 * primaryMap.SpriteScale + 4;
          HighlightCursorHeight = 16 * primaryMap.SpriteScale + 4;
+      }
+
+      public void ClearSelection() {
+         ShowHeaderPanel = false;
+         DrawBlockIndex = -1;
+         CollisionIndex = -1;
+         SelectedEvent = null;
+         DrawMultipleTiles = false;
+         BlockEditorVisible = false;
+         tilesToDraw = null;
+         if (primaryMap != null) {
+            primaryMap.BlockEditor.ShowTiles = false;
+            primaryMap.BorderEditor.ShowBorderPanel = false;
+         }
       }
 
       private void Pan(int intX, int intY) {
