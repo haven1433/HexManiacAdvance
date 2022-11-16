@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (string.IsNullOrEmpty(tupleItem.Elements[i].Name)) {
                // don't make a viewmodel for unnamed tuple item elements
             } else if (tupleItem.Elements[i].BitWidth == 1) {
-               Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i]));
+               Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged));
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
                Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected));
             } else {
@@ -104,6 +104,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CheckBoxTupleElementViewModel : ViewModelCore, ITupleElementViewModel {
       private readonly TupleSegment seg;
       private readonly ViewPort viewPort;
+      private Action RaiseDataChanged { get; }
       public string Name => seg.Name;
       public int BitOffset { get; }
       public int BitLength => 1;
@@ -115,13 +116,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var bit = value ? 1 : 0;
             seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, bit);
             NotifyPropertyChanged();
+            RaiseDataChanged();
          }
       }
 
-      public CheckBoxTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment) {
+      public CheckBoxTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged) {
          Debug.Assert(segment.BitWidth == 1, "Checkboxes should not be constructed from segments with BitWidth other than 1!");
          this.viewPort = viewPort;
          (seg, Start, BitOffset) = (segment, start, bitOffset);
+         this.RaiseDataChanged = raiseDataChanged;
       }
 
       public bool TryCopy(ITupleElementViewModel other) {
