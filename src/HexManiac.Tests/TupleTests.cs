@@ -359,6 +359,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("9", tuple.FilterText);
       }
 
+      [Fact]
+      public void TupleFormat_NoLengthForTupleValues_Error() {
+         ViewPort.Edit("^table[content:|t|a|b|c]1 ");
+         Assert.Single(Errors);
+      }
+
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

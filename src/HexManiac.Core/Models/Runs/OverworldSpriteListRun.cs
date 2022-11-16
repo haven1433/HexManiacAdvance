@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          };
          ElementContent = segments;
          ElementCount = 1;
+         ElementNames = new[] { "" };
          Length = ElementLength;
          SpriteFormat = new SpriteFormat(4, 1, 1, string.Empty);
 

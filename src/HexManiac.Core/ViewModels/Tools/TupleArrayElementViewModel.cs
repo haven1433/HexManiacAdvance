@@ -34,7 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
                Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected));
             } else {
-               Children.Add(new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataSelected));
+               Children.Add(new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected));
             }
             bitOffset += tupleItem.Elements[i].BitWidth;
          }
@@ -68,6 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int BitOffset { get; }
       public int BitLength => seg.BitWidth;
       public int Start { get; private set; }
+      private Action RaiseDataChanged { get; }
       private Action RaiseDataSelected { get; }
 
       public int Content {
@@ -75,11 +76,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, value);
             NotifyPropertyChanged();
+            RaiseDataChanged();
          }
       }
 
-      public NumericTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataSelected) {
+      public NumericTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged, Action raiseDataSelected) {
          (this.viewPort, seg, Start, BitOffset) = (viewPort, segment, start, bitOffset);
+         RaiseDataChanged = raiseDataChanged;
          RaiseDataSelected = raiseDataSelected;
       }
 
