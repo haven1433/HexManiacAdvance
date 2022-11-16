@@ -987,6 +987,20 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(ViewPort.Save.CanExecute(FileSystem));
       }
 
+      [Fact]
+      public void DataInTableLooksLikePointerToAddress_AddAnchorAtAddress_PointerSourceFromTableNotAdded() {
+         Model.ExpandData(Token, 0x1000);
+         ViewPort.Refresh();
+         SetFullModel(0xFF);
+         ViewPort.Edit("^table[a: unused: pointer<>]1 0 256 <000800> ");
+
+         ViewPort.Goto.Execute(0x100);
+         ViewPort.Edit("^anchor ");
+
+         var run = Model.GetNextRun(0x100);
+         Assert.Empty(run.PointerSources);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

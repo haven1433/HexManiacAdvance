@@ -2380,9 +2380,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (index >= 0 && runs[index].Start + runs[index].Length > address) {
             // ah, but if that run is an array and there's already a pointer here...
             if (runs[index] is ArrayRun array) {
-               var offsets = array.ConvertByteOffsetToArrayOffset(address + 3);
-               // should this check that offsets.SegmentOffset == 0?
-               if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
+               var offsets = array.ConvertByteOffsetToArrayOffset(address);
+               if (offsets.SegmentOffset == 0 && array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                   return true;
                }
             }
