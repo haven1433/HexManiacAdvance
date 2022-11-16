@@ -133,6 +133,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
          }
 
+         ElementCount = Math.Max(ElementCount, 1);
+         Length = Math.Max(ElementLength, Length);
          SpriteFormat = new SpriteFormat(4, tileWidth, tileHeight, hint);
          ElementNames = ElementCount.Range().Select(i => string.Empty).ToList();
       }
