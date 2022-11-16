@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Input;
+using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -849,18 +850,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var top = Math.Min(selectDownPosition.Y, selectMovePosition.Y);
          var width = Math.Abs(selectDownPosition.X - selectMovePosition.X) + 1;
          var height = Math.Abs(selectDownPosition.Y - selectMovePosition.Y) + 1;
+         tilesToDraw = new int[width, height];
          if (width == 1 && height == 1) {
             DrawMultipleTiles = false;
             BlockEditorVisible = true;
+            tilesToDraw[0, 0] = drawBlockIndex;
+            FillMultiTileRender();
             AnimateBlockSelection();
             UpdateHover(left, top, width, height);
             Tutorials.Complete(Tutorial.RightClickMap_SelectBlock);
             return;
          }
 
-         tilesToDraw = new int[width, height];
-         var scale = (width < 4 && height < 4) ? 2 : 1;
-         var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
          bool fillError = false;
          for (int xx = 0; xx < width; xx++) {
             for (int yy = 0; yy < height; yy++) {
@@ -871,7 +872,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   break;
                }
                tilesToDraw[xx, yy] = (block.collisionIndex << 10) | block.blockIndex;
-               canvas.Draw(primaryMap.BlockRenders[block.blockIndex], xx * 16, yy * 16);
             }
          }
          if (fillError) {
@@ -879,12 +879,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             UpdateHover(selectMovePosition.X, selectMovePosition.Y, 1, 1);
          } else {
             Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
-            MultiTileDrawRender = canvas;
+            FillMultiTileRender();
             DrawMultipleTiles = true;
             BlockEditorVisible = false;
             PrimaryMap.BlockEditor.ShowTiles = false;
             UpdateHover(left, top, width, height);
          }
+      }
+
+      private void FillMultiTileRender() {
+         var (width, height) = (tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
+         var scale = (width < 4 && height < 4) ? 2 : 1;
+         var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
+         for (int xx = 0; xx < tilesToDraw.GetLength(0); xx++) {
+            for (int yy = 0; yy < tilesToDraw.GetLength(1); yy++) {
+               canvas.Draw(primaryMap.BlockRenders[tilesToDraw[xx, yy] & 0x3FF], xx * 16, yy * 16);
+            }
+         }
+         MultiTileDrawRender = canvas;
       }
 
       private Point ToTilePosition(double x, double y) {
@@ -1278,21 +1290,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             BlockEditorVisible = true;
             drawBlockIndex = -1; // we want to run a full update on DrawBlockIndex
             DrawBlockIndex = y * BlockMapViewModel.BlocksPerRow + x;
+            tilesToDraw = new int[width, height];
+            tilesToDraw[0, 0] = drawBlockIndex;
+            FillMultiTileRender();
             if (autoUpdateCollision) {
                var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
                if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
             }
             return;
          }
-         var scale = (width < 4 && height < 4) ? 2 : 1;
-         var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
-         for (x = 0; x < width; x++) {
-            for (y = 0; y < height; y++) {
-               canvas.Draw(primaryMap.BlockRenders[tilesToDraw[x, y] & 0x3FF], x * 16, y * 16);
-            }
-         }
          PrimaryMap.BlockEditor.ShowTiles = false;
-         MultiTileDrawRender = canvas;
+         FillMultiTileRender();
          DrawMultipleTiles = true;
          BlockEditorVisible = false;
       }

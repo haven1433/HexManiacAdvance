@@ -71,11 +71,21 @@
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block" x:Name="EditBlockButton"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
-            <Decorator Visibility="{Binding DrawMultipleTiles, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <Decorator HorizontalAlignment="Center" VerticalAlignment="Center">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
-            </Decorator>
-            <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,0,10,0">
-               <local:SelectedBlockEditor x:Name="BlockEditor" DataContext="{Binding PrimaryMap.BlockEditor}"/>
+               <Decorator.Style>
+                  <Style TargetType="Decorator">
+                     <Setter Property="Visibility" Value="Collapsed" />
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding BlockEditorVisible}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding DrawMultipleTiles}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </Decorator.Style>
             </Decorator>
             <TextBlock Foreground="{DynamicResource Secondary}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
                <TextBlock.Style>
@@ -939,17 +949,21 @@
       </Canvas>
 
       <!-- Tile Panel -->
-      <Border DataContext="{Binding PrimaryMap.BlockEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
+      <Border Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1" MouseWheel="EatMouseWheel"
               Background="{DynamicResource Background}">
          <DockPanel Name="TilePanel" Width="400" HorizontalAlignment="Right">
-            <Grid DockPanel.Dock="Top">
+            <Grid DockPanel.Dock="Top" DataContext="{Binding PrimaryMap.BlockEditor}">
                <ToggleButton IsChecked="{Binding ShowTiles}" Width="20" Height="20" HorizontalAlignment="Right" Margin="1">
                   <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                </ToggleButton>
-               <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" />
+               <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Selected Block" Direction="Out" DockPanel.Dock="Top" />
             </Grid>
-            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4">
+            <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,10" DockPanel.Dock="Top" Height="115">
+               <local:SelectedBlockEditor x:Name="BlockEditor" DataContext="{Binding PrimaryMap.BlockEditor}" HorizontalAlignment="Center" Width="300"/>
+            </Decorator>
+            <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" DockPanel.Dock="Top" />
+            <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4" DataContext="{Binding PrimaryMap.BlockEditor}">
                <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0"/>
                <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center">
                   <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
@@ -963,7 +977,7 @@
                </TextBlock>
                <ComboBox ItemsSource="{Binding Palettes}" SelectedIndex="{Binding PaletteSelection}" />
             </StackPanel>
-            <ScrollViewer Name="TileViewer" VerticalAlignment="Top">
+            <ScrollViewer Name="TileViewer" VerticalAlignment="Top" DataContext="{Binding PrimaryMap.BlockEditor}">
                <Grid HorizontalAlignment="Left">
                   <local:PixelImage x:Name="TileImage" DataContext="{Binding TileRender}" MouseDown="TilesDown" TransparentBrush="{DynamicResource Background}" />
                   <ContentControl HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False">
@@ -1008,7 +1022,7 @@
             <Style TargetType="Border">
                <Setter Property="Width" Value="0" />
                <Style.Triggers>
-                  <DataTrigger Binding="{Binding ShowTiles}" Value="True">
+                  <DataTrigger Binding="{Binding PrimaryMap.BlockEditor.ShowTiles}" Value="True">
                      <DataTrigger.EnterActions>
                         <BeginStoryboard>
                            <Storyboard>

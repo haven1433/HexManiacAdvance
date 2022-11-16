@@ -127,7 +127,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (textLength < 3) return;
          var (_A, _a) = (0xBB, 0xD5);
          var run = new PCSRun(model, address, textLength);
-         if (address == 0x245F01) ;
          bool previousIsCap = run.CreateDataFormat(model, address) is PCS pcs0 && IsCap(pcs0.ThisCharacter);
          for (int i = 1; i < textLength; i++) {
             if (run.CreateDataFormat(model, address + i) is not PCS pcs) {

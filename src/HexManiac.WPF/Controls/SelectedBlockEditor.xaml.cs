@@ -33,6 +33,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
       }
 
-      private void MouseExitTiles(object sender, MouseEventArgs e) => ViewModel.ExitTiles();
+      private void MouseExitTiles(object sender, MouseEventArgs e) => ViewModel?.ExitTiles();
    }
 }
