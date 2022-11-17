@@ -40,7 +40,25 @@
       <!-- Blocks Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Panel.ZIndex="1" Name="BlockPanel" Background="{DynamicResource Background}" MouseWheel="EatMouseWheel">
          <Rectangle Fill="{DynamicResource Backlight}" Width="1" DockPanel.Dock="Right" />
-         <local:AngleBorder DockPanel.Dock="Top" Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
+         <Grid DockPanel.Dock="Top">
+            <local:AngleBorder Content="Blocks" Direction="Out" Width="100" HorizontalContentAlignment="Center" Margin="0,0,0,4" />
+            <Button Width="20" Height="20" HorizontalAlignment="Right" Margin="1" Command="{res:MethodCommand Cancel}">
+               <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+               <Button.Style>
+                  <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                     <Setter Property="Visibility" Value="Collapsed" />
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding BlockEditorVisible}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding DrawMultipleTiles}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </Button.Style>
+            </Button>
+         </Grid>
          <Grid Width="{Binding Blocks.ScaledWidth}" MinHeight="100" DockPanel.Dock="Top">
             <Grid.RowDefinitions>
                <RowDefinition Height="Auto" MinHeight="112"/>
@@ -153,7 +171,12 @@
       <!-- Events Panel -->
       <DockPanel Grid.Column="0" Grid.RowSpan="2" Background="{DynamicResource Background}" Panel.ZIndex="1" Name="EventPanel"
          Width="{Binding ActualWidth, ElementName=BlockPanel}" Visibility="{Binding ShowEventPanel, Converter={StaticResource BoolToVisibility}}">
-         <local:AngleBorder Width="100" Content="Events" DockPanel.Dock="Top" HorizontalContentAlignment="Center" Direction="Out" />
+         <Grid DockPanel.Dock="Top" >
+            <local:AngleBorder Width="100" Content="Events" HorizontalContentAlignment="Center" Direction="Out" />
+            <ToggleButton IsChecked="{Binding ShowEventPanel}" Width="20" Height="20" HorizontalAlignment="Right" Margin="1">
+               <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+            </ToggleButton>
+         </Grid>
          <Grid DockPanel.Dock="Top" Name="EventCategorySelector" Height="24">
             <Grid.ColumnDefinitions>
                <ColumnDefinition />

@@ -90,7 +90,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             BuildWildTooltip(text, wild[wildDataIndex], "tree");
             text.AppendLine();
             BuildWildTooltip(text, wild[wildDataIndex], "fish");
-            return wildText = text.ToString();
+            wildText = text.ToString();
+            if (string.IsNullOrWhiteSpace(wildText)) wildText = "No Wild Pokemon (yet!)";
+            return wildText;
          }
       }
       private static void BuildWildTooltip(StringBuilder text, ModelArrayElement wild, string type) {
@@ -169,6 +171,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          wild.SetAddress(subtable, subtableStart);
          viewPort.Goto.Execute(subtableStart);
          viewPort.RaiseMessage($"New {subtable} data was added at {subtableStart:X6}.");
+         wildText = null;
+         NotifyPropertyChanged(nameof(WildSummary));
       }
 
       public void ClearCache() {

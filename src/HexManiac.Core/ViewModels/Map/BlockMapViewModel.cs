@@ -754,7 +754,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public void RepeatBlock(ModelDelta token, int block, int collision, int x, int y, int w, int h) {
+      public void RepeatBlock(Func<ModelDelta> futureToken, int block, int collision, int x, int y, int w, int h) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
@@ -769,7 +769,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
                if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
                if (blockValue != originalBlockValue) {
-                  model.WriteMultiByteValue(address, 2, token, blockValue);
+                  model.WriteMultiByteValue(address, 2, futureToken(), blockValue);
                   changeCount++;
                }
             }
@@ -780,7 +780,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public void RepeatBlocks(ModelDelta token, int[,] blockValues, int x, int y, int w, int h) {
+      public void RepeatBlocks(Func<ModelDelta> futureToken, int[,] blockValues, int x, int y, int w, int h) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
@@ -791,7 +791,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var address = start + ((yy + y) * width + xx + x) * 2;
                var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
                if (model.ReadMultiByteValue(address, 2) != block) {
-                  model.WriteMultiByteValue(address, 2, token, block);
+                  model.WriteMultiByteValue(address, 2, futureToken(), block);
                   changeCount++;
                }
             }
@@ -1398,6 +1398,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             IncludeBorders = IncludeBorders,
             SpriteScale = SpriteScale,
             allOverworldSprites = allOverworldSprites,
+            CollisionHighlight = CollisionHighlight,
          };
          var (n, _, _, w) = vm.GetBorderThickness();
          vm.TopEdge = TopEdge + (connection.Offset + border.North - n) * (int)(16 * SpriteScale);

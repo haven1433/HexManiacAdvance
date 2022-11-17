@@ -77,7 +77,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          });
       }
 
-      public bool ShowEventPanel => selectedEvent != null;
+      public bool ShowEventPanel {
+         get => selectedEvent != null;
+         set { // so that the UI can hide the panel
+            if (value) return;
+            SelectedEvent = null;
+         }
+      }
 
       public ObservableCollection<BlockMapViewModel> VisibleMaps { get; } = new();
 
@@ -124,10 +130,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int CollisionIndex {
          get => collisionIndex;
          set {
-            Set(ref collisionIndex, value, old => {
-               primaryMap.CollisionHighlight = value;
-               DrawMultipleTiles = false;
-            });
+            Set(ref collisionIndex, value);
+            foreach (var map in VisibleMaps)
+               map.CollisionHighlight = value;
+            DrawMultipleTiles = false;
          }
       }
 
@@ -528,8 +534,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             EventDown(x, y, ev, click);
             return;
          } else {
+            if (SelectedEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
             SelectedEvent = null;
-            Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
          }
 
          ShowHeaderPanel = false;
@@ -577,12 +583,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void DrawMove(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map != null) {
+            var tilePosition = ToTilePosition(x, y);
             if (drawMultipleTiles) {
-               var tilePosition = ToTilePosition(x, y);
                map.DrawBlocks(history.CurrentChange, tilesToDraw, drawSource, tilePosition);
             } else {
                if (drawBlockIndex < 0 && collisionIndex < 0) {
-                  interactionType = PrimaryInteractionType.None;
+                  ResetFromRectangleBackup();
+                  lastDraw = tilePosition;
+                  FillBackup();
+                  SwapBlocks(lastDraw, drawSource);
                } else {
                   map.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
                }
@@ -599,7 +608,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             ResetFromRectangleBackup();
             lastDraw = ToTilePosition(x, y);
             if (lastDraw != drawSource) Tutorials.Complete(Tutorial.ControlClick_FillRect);
-            Debug.WriteLine("lastDraw: " + lastDraw);
             FillBackup();
             FillRect();
             UpdateHover(Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
@@ -695,7 +703,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (left > right) (left, right) = (right, left);
          if (top > bottom) (top, bottom) = (bottom, top);
          var (width, height) = (right - left + 1, bottom - top + 1);
-         primaryMap.RepeatBlocks(history.CurrentChange, rectangleBackup, left, top, width, height);
+         primaryMap.RepeatBlocks(() => history.CurrentChange, rectangleBackup, left, top, width, height);
       }
 
       /// <summary>
@@ -721,10 +729,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (right - left + 1, bottom - top + 1);
 
          if (tilesToDraw == null) {
-            primaryMap.RepeatBlock(history.CurrentChange, drawBlockIndex, collisionIndex, left, top, width, height);
+            primaryMap.RepeatBlock(() => history.CurrentChange, drawBlockIndex, collisionIndex, left, top, width, height);
          } else {
-            primaryMap.RepeatBlocks(history.CurrentChange, tilesToDraw, left, top, width, height);
+            primaryMap.RepeatBlocks(() => history.CurrentChange, tilesToDraw, left, top, width, height);
          }
+      }
+
+      private void SwapBlocks(Point a, Point b) {
+         var p1 = primaryMap.ReadRectangle(a.X, a.Y, 1, 1);
+         var p2 = primaryMap.ReadRectangle(b.X, b.Y, 1, 1);
+         primaryMap.RepeatBlocks(() => history.CurrentChange, p1, b.X, b.Y, 1, 1);
+         primaryMap.RepeatBlocks(() => history.CurrentChange, p2, a.X, a.Y, 1, 1);
+         if (a != b) Tutorials.Complete(Tutorial.DragMap_SwapBlock);
       }
 
       #endregion
@@ -854,7 +870,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (width == 1 && height == 1) {
             DrawMultipleTiles = false;
             BlockEditorVisible = true;
-            tilesToDraw[0, 0] = drawBlockIndex;
+            tilesToDraw[0, 0] = drawBlockIndex | (collisionIndex << 10);
             FillMultiTileRender();
             AnimateBlockSelection();
             UpdateHover(left, top, width, height);
@@ -1297,6 +1313,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var prefferredCollision = GetPreferredCollision(DrawBlockIndex);
                if (prefferredCollision >= 0) CollisionIndex = prefferredCollision;
             }
+            if (collisionIndex >= 0) tilesToDraw[0, 0] |= collisionIndex << 10;
             return;
          }
          PrimaryMap.BlockEditor.ShowTiles = false;
