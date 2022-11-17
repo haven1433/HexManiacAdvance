@@ -194,7 +194,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          // copy data into new array
          int xOffset = direction == MapDirection.Left ? amount : 0;
          int yOffset = direction == MapDirection.Up ? amount : 0;
-         var newData = new int[BlockWidth + xAmount, BlockHeight + yAmount];
+         var newData = new int[newWidth, newHeight];
          for (int y = 0; y < BlockHeight; y++) {
             if (y + yOffset < 0) continue;
             if (y + yOffset >= newHeight) continue;
@@ -231,6 +231,11 @@ namespace HexManiac.Core.Models.Runs.Sprites {
                model.WriteMultiByteValue(run.Start + (y * newWidth + x) * 2, 2, token, newData[x, y]);
             }
          }
+         // clear excess
+         for (int i = newHeight * newWidth; i < BlockWidth * BlockHeight; i++) {
+            model.WriteMultiByteValue(run.Start + i * 2, 2, token, -1);
+         }
+
          var primarySource = PointerSources[0];
          var layoutStart = primarySource - 12;
          model.WriteValue(token, layoutStart, newWidth);

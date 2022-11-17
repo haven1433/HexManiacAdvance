@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.Models {
    public abstract class BaseModel : IDataModel {
       public const int PointerOffset = 0x08000000;
 
-      private readonly ISet<int> changes = new LimitSet<int>(2000);
+      private readonly ISet<int> changes = new LimitSet<int>(5000);
 
       public Task InitializationWorkload { get; protected set; }
 
