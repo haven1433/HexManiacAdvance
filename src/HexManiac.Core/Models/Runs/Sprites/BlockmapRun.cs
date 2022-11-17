@@ -146,6 +146,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                var value = model.ReadMultiByteValue(start + (y * width + x) * 2, 2) & 0x3FF;
+               if (blocks.Count <= value) continue;
                canvas.Draw(blocks[value], x * 16, y * 16);
             }
          }
