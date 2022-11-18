@@ -4,15 +4,13 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
-using IronPython.Runtime;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
-using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -196,6 +194,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler ClearMessage;
       public event EventHandler Closed;
       public event EventHandler<TabChangeRequestedEventArgs> RequestTabChange;
+      public void RaiseRequestTabChange(TabChangeRequestedEventArgs e) => RequestTabChange.Raise(this, e);
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler<Direction> RequestDiff;
@@ -205,9 +204,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Duplicate() => Duplicate(PrimaryMap.MapID / 1000, PrimaryMap.MapID % 1000);
       private void Duplicate(int bank, int map) {
-         var newEditor = new MapEditorViewModel(FileSystem, viewPort, singletons, Tutorials);
-         newEditor.UpdatePrimaryMap(new BlockMapViewModel(FileSystem, Tutorials, viewPort, Format, bank, map));
-         RequestTabChange?.Invoke(this, new(newEditor));
+         var dup = viewPort.CreateDuplicate();
+         // don't check for the viewPort initilazition workload until the model is initialized (for map duplication, this should never really be an issue)
+         model.InitializationWorkload.ContinueWith(t => {
+            // don't try to use the to tab's map editor until it's been fully initialized.
+            dup.InitializationWorkload.ContinueWith(task => {
+               singletons.WorkDispatcher.BlockOnUIWork(() => {
+                  dup.MapEditor.UpdatePrimaryMap(new BlockMapViewModel(FileSystem, Tutorials, viewPort, Format, bank, map));
+                  RequestTabChange?.Invoke(this, new(dup.MapEditor));
+               });
+            }, TaskContinuationOptions.ExecuteSynchronously);
+         }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
       public void Refresh() {
@@ -253,6 +260,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       private void NavigateTo(int mapID, bool trackChange = true) => NavigateTo(mapID / 1000, mapID % 1000, trackChange);
       private void NavigateTo(int bank, int map, bool trackChange = true) {
+         // special case
+         if (bank == 127 && map == 127) {
+            ExecuteBack();
+            return;
+         }
+
          if (trackChange && primaryMap != null) {
             backStack.Add(primaryMap.MapID);
             if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
@@ -625,12 +638,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventViewModel warp && click == PrimaryInteractionStart.DoubleClick) {
             var banks = AllMapsModel.Create(warp.Element.Model, default);
-            if (banks[warp.Bank] == null) {
+            interactionType = PrimaryInteractionType.None;
+            if (warp.Bank == 127 && warp.Map == 127) { // special case -> 'warp back'
+               NavigateTo(warp.Bank, warp.Map);
+               Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+            } else if (banks[warp.Bank] == null) {
                OnError.Raise(this, $"Could not load map bank {warp.Bank}");
-               interactionType = PrimaryInteractionType.None;
-               return;
-            }
-            if (warp.Bank < banks.Count) {
+            } else if (warp.Bank < banks.Count) {
                NavigateTo(warp.Bank, warp.Map);
                Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
             }

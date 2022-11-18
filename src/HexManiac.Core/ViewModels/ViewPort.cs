@@ -50,10 +50,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private MapEditorViewModel mapper;
       public bool HasValidMapper => mapper?.IsValidState ?? false;
+      public MapEditorViewModel MapEditor => HasValidMapper ? mapper : null;
 
       public Singletons Singletons { get; }
 
       public PythonTool PythonTool { get; }
+
+      public Task InitializationWorkload { get; private set; }
 
       private bool distractionFreeMode;
       public bool DistractionFreeMode { get => distractionFreeMode; set => Set(ref distractionFreeMode, value); }
@@ -242,6 +245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                args = new TabChangeRequestedEventArgs(this);
                RequestTabChange?.Invoke(mapper, args);
+               if (!args.RequestAccepted) mapper.RaiseRequestTabChange(args); // if this tab has been closed, ask the mapper to raise it
                if (args.RequestAccepted) {
                   selection.SetJumpBackTab(mapper);
                   FocusToolPanel.Raise(this);
@@ -754,6 +758,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Duplicate
 
       public bool CanDuplicate => true;
+      public IEditableViewPort CreateDuplicate() {
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history);
+         child.selection.GotoAddress(scroll.DataIndex);
+         return child;
+      }
       public void Duplicate() => OpenInNewTab(scroll.DataIndex);
 
       #endregion
@@ -993,7 +1002,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.InitializationWorkload.ContinueWith(task => {
             // if we're sharing history with another viewmodel, our model has already been updated like this.
             if (changeHistory == null) CascadeScripts();
-            dispatcher.DispatchWork(() => {
+            InitializationWorkload = dispatcher.DispatchWork(() => {
                RefreshBackingData();
                ValidateMatchedWords();
                if (fs != null) {

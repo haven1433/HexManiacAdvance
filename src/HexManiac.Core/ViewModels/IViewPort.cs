@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -69,6 +70,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public interface IEditableViewPort : IViewPort, IRaiseMessageTab {
+      Task InitializationWorkload { get; }
+      MapEditorViewModel MapEditor { get; }
       bool AllowSingleTableMode { get; set; }
       bool IsFocused { get; set; }
       Point SelectionStart { get; }
@@ -79,5 +82,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       void Edit(ConsoleKey key);
       InlineDispatch UpdateProgress(double value);
       void ClearProgress();
+      IEditableViewPort CreateDuplicate();
    }
 }
