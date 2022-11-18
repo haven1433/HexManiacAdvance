@@ -126,7 +126,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
                if (this is not ArrayRunPointerSegment pointerSegment || pointerSegment.DestinationDataMatchesPointerFormat(model, token, start, address, null, -1)) {
                   var currentDestination = model.ReadPointer(start);
-                  model.UpdateArrayPointer(token, this, parentSegments, default, start, address);
+                  if (currentDestination != address) {
+                     model.UpdateArrayPointer(token, this, parentSegments, default, start, address);
+                  }
                   return currentDestination != address;
                } else {
                   var oldDestination = model.ReadPointer(start);

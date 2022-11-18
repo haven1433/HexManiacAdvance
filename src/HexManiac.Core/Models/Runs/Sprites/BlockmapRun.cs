@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 /*
  layout<[
@@ -18,7 +19,7 @@ using System.Collections.Generic;
  */
 
 namespace HexManiac.Core.Models.Runs.Sprites {
-   public class BlockmapRun : BaseRun {
+   public class BlockmapRun : BaseRun, IUpdateFromParentRun {
       private readonly IDataModel model;
 
       private static int TotalTiles => 1024;
@@ -34,6 +35,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
       public static string SharedFormatString => "`blm`";
       public override string FormatString => SharedFormatString;
+
+      public string RepointContentShortName => "Blocks";
 
       public BlockmapRun(IDataModel model, int start, SortedSpan<int> sources, int width = -1, int height = -1) : base(start, sources) {
          this.model = model;
@@ -176,14 +179,22 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, MapDirection direction, int amount, int borderWidth, int borderHeight) {
          if (amount == 0) return null;
 
-         int xAmount = 0, yAmount = 0;
-         if (direction == MapDirection.Left || direction == MapDirection.Right) xAmount = amount;
-         if (direction == MapDirection.Up || direction == MapDirection.Down) yAmount = amount;
-         var (newWidth, newHeight) = (BlockWidth + xAmount, BlockHeight + yAmount);
+         var (leftAmount, upAmount, rightAmount, downAmount) = (0, 0, 0, 0);
+         if (direction == MapDirection.Left) leftAmount = amount;
+         if (direction == MapDirection.Right) rightAmount = amount;
+         if (direction == MapDirection.Up) upAmount = amount;
+         if (direction == MapDirection.Down) downAmount = amount;
+         var result = TryChangeSize(tokenFactory, leftAmount, upAmount, rightAmount, downAmount, borderWidth, borderHeight);
+         if (result == this) return null;
+         return result;
+      }
+
+      private BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight){
+         var (newWidth, newHeight) = (BlockWidth + leftAmount + rightAmount, BlockHeight + upAmount + downAmount);
 
          // validate that the new width/height combo is reasonable
-         if (amount > 0 && !BlockMapViewModel.IsMapWithinSizeLimit(newWidth, newHeight)) return null;
-         if (amount < 0 && (newWidth < 4 || newHeight < 4)) return null;
+         if (newWidth * newHeight > BlockWidth * BlockHeight && !BlockMapViewModel.IsMapWithinSizeLimit(newWidth, newHeight)) return this;
+         if (new[] { leftAmount, upAmount, rightAmount, downAmount }.Aggregate(Math.Min) < 0 && (newWidth < 4 || newHeight < 4)) return this;
 
          var data = new int[BlockWidth, BlockHeight];
          for (int y = 0; y < BlockHeight; y++) {
@@ -193,8 +204,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
 
          // copy data into new array
-         int xOffset = direction == MapDirection.Left ? amount : 0;
-         int yOffset = direction == MapDirection.Up ? amount : 0;
+         int xOffset = leftAmount;
+         int yOffset = upAmount;
          var newData = new int[newWidth, newHeight];
          for (int y = 0; y < BlockHeight; y++) {
             if (y + yOffset < 0) continue;
@@ -247,6 +258,19 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new BlockmapRun(model, Start, newPointerSources, BlockWidth, BlockHeight);
+
+      public IUpdateFromParentRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
+         // width:: height:: borderblock<> blockmap<`blm`>
+         var width = model.ReadValue(pointerSource - 12);
+         var height = model.ReadValue(pointerSource - 8);
+         int dx = width - BlockWidth;
+         int dy = height - BlockHeight;
+         if (dx == 0 && dy == 0) return this;
+         var layout = new ModelArrayElement(model, pointerSource - 12, 0, () => token, null);
+         var borderWidth = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
+         var borderHeight = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
+         return TryChangeSize(() => token, 0, 0, dx, dy, borderWidth, borderHeight);
+      }
    }
 
    public class BlocksetModel {

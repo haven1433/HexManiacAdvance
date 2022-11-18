@@ -6,7 +6,7 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    // TODO this should be an ISpriteRun so we can see the tiles
-   public class MapAnimationTilesRun : BaseRun, ITableRun {
+   public class MapAnimationTilesRun : BaseRun, ITableRun, IUpdateFromParentRun {
       public const string ParentTileCountField = "tiles";
       public const string ParentFrameCountField = "frames";
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "mat" + AsciiRun.StreamDelimeter;
@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int ElementLength => 4;
       public IReadOnlyList<string> ElementNames { get; } = new List<string>();
       public IReadOnlyList<ArrayRunElementSegment> ElementContent { get; }
+      string IUpdateFromParentRun.RepointContentShortName => "Tiles";
 
       public MapAnimationTilesRun(IDataModel model, int start, SortedSpan<int> sources) : base(start, sources) {
          this.model = model;
@@ -41,15 +42,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ITableRun Append(ModelDelta token, int length) {
          var parent = PointerSources[0];
          model.WriteMultiByteValue(parent + 4, 2, token, ElementCount + length);
-         return UpdateFromParent(token, 1, parent, out var _);
+         return UpdateFromParent(token, 1, parent);
       }
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          throw new NotImplementedException();
       }
 
-      public MapAnimationTilesRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource, out bool childrenMoved) {
-         childrenMoved = false;
+      IUpdateFromParentRun IUpdateFromParentRun.UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource) => UpdateFromParent(token, segmentIndex, pointerSource);
+      public MapAnimationTilesRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource) {
          if (segmentIndex == 1) {
             var newTableCount = model.ReadMultiByteValue(pointerSource + 4, 2);
             var self = model.RelocateForExpansion(token, this, newTableCount * 4);
@@ -65,7 +66,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (destination == Pointer.NULL) continue;
                var child = (ISpriteRun)model.GetNextRun(destination);
                var newChild = model.RelocateForExpansion(token, child, newTileCount * 32);
-               if (newChild.Start != child.Start) childrenMoved = true;
                model.ObserveRunWritten(token, new TilesetRun(tilesetFormat, model, newChild.Start, newChild.PointerSources));
             }
             return this;

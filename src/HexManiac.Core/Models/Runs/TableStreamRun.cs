@@ -8,13 +8,15 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class TableStreamRun : BaseRun, IStreamRun, ITableRun {
+   public class TableStreamRun : BaseRun, IStreamRun, ITableRun, IUpdateFromParentRun {
       private readonly IDataModel model;
       private readonly IStreamEndStrategy endStream;
 
       public bool CanAppend => !(endStream is FixedLengthStreamStrategy || endStream is DynamicStreamStrategy);
 
       public bool AllowsZeroElements => endStream is EndCodeStreamStrategy;
+
+      string IUpdateFromParentRun.RepointContentShortName => "Table";
 
       #region Constructors
       public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out TableStreamRun tableStream) {
@@ -176,10 +178,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }).ToArray());
       }
 
-      IStreamRun IStreamRun.DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) => DeserializeRun(content, token, out changedOffsets);
+      IStreamRun IStreamRun.DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> movedChildren) {
+         var result = DeserializeRun(content, token, out changedOffsets, out var children);
+         movedChildren = children;
+         return result;
+      }
 
-      public TableStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
-         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token, out changedOffsets);
+      public TableStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
+         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token, out changedOffsets, out movedChildren);
          var changedAddresses = new List<int>();
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          if (lines.Length == 0) lines = content.Split(Environment.NewLine);
@@ -211,6 +217,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             start += ElementLength;
          }
          changedOffsets = changedAddresses;
+         movedChildren = new List<int>();
          return newRun;
       }
 
@@ -250,12 +257,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result.ToString();
       }
 
-      private TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      private TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
          Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
+         movedChildren = new List<int>();
          var fields = content.SplitLines();
          int segmentOffset = 0;
          int fieldIndex = 0;
          var changeAddresses = new List<int>();
+         var changedSegments = new HashSet<int>();
          var unwritten = ElementContent.Count.Range().ToList();
          for (int j = 0; j < ElementContent.Count; j++) {
             while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
@@ -263,6 +272,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last() : string.Empty;
             if (ElementContent[j].Write(this.ElementContent, model, token, Start + segmentOffset, ref data)) {
                changeAddresses.Add(Start + segmentOffset);
+               changedSegments.Add(j);
             }
             segmentOffset += ElementContent[j].Length;
             fieldIndex += 1;
@@ -275,9 +285,33 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (unwritten.Contains(j)) {
                if (seg.Type == ElementContentType.Pointer) model.WriteMultiByteValue(Start + segmentOffset, 4, token, 0);
                if (seg.Type == ElementContentType.Integer) model.WriteMultiByteValue(Start + segmentOffset, seg.Length, token, 0);
+               changeAddresses.Add(Start + segmentOffset);
+               changedSegments.Add(j);
             }
             segmentOffset += seg.Length;
          }
+
+         // check for any pointers that care about values being changed
+         segmentOffset = 0;
+         for (int j = 0; j < ElementContent.Count; j++) {
+            var seg = ElementContent[j];
+            if (seg is ArrayRunPointerSegment pSeg && !unwritten.Contains(j)) {
+               var subStart = model.ReadPointer(Start + segmentOffset);
+               var subRun = model.GetNextRun(subStart);
+               if (subRun is IUpdateFromParentRun childRun) {
+                  var newChild = childRun;
+                  foreach (var i in changedSegments) {
+                     newChild = newChild.UpdateFromParent(token, i, Start + segmentOffset);
+                  }
+                  if (newChild != childRun && newChild != null) {
+                     model.ObserveRunWritten(token, newChild);
+                     movedChildren.Add(newChild.Start);
+                  }
+               }
+            }
+            segmentOffset += seg.Length;
+         }
+
          changedOffsets = changeAddresses;
          return this;
       }
@@ -478,7 +512,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #endregion
 
-      public TableStreamRun UpdateFromParent(ModelDelta token, int parentSegmentChange) {
+      IUpdateFromParentRun IUpdateFromParentRun.UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) => UpdateFromParent(token, parentSegmentChange, pointerSource);
+      public TableStreamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
          if (!(endStream is LengthFromParentStreamStrategy strategy)) return this;
          return strategy.UpdateFromParentStream(this, token, parentSegmentChange);
       }

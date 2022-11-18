@@ -148,8 +148,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return builder.ToString();
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
          var changedAddresses = new List<int>();
+         changedRuns = new List<int>();
          var cache = ModelCacheScope.GetCache(model);
          var cachedPokenames = cache.GetOptions(PokemonNameTable);
          var cachedMovenames = cache.GetOptions(MoveNamesTable);

@@ -153,6 +153,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);
       }
 
+
       public OverworldSpriteListRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource, out bool spritesMoved) {
          spritesMoved = false;
          if (!(model.GetNextRun(pointerSource) is ITableRun tableSource)) return this;

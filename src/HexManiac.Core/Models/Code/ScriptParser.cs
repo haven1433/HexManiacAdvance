@@ -228,7 +228,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // Let the stream run handle updating itself based on the stream content.
                if (streamLocation >= 0 && streamPointerLocation >= 0) {
                   if (model.GetNextRun(streamLocation) is IStreamRun streamRun && streamRun.Start == streamLocation) {
-                     streamRun = streamRun.DeserializeRun(stream, token, out var _); // we don't notify parents/children based on script-stream changes: we they never have parents/children.
+                     streamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we they never have parents/children.
                      // alter script content and compiled byte location based on stream move
                      if (streamRun.Start != streamLocation) {
                         script = script.Replace(streamLocation.ToString("X6"), streamRun.Start.ToString("X6"));

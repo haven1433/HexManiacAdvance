@@ -499,7 +499,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.ObserveRunWritten(Token, stream);
 
          var text = Environment.NewLine.Join(new[] { "<100>", "<null>" });
-         stream.DeserializeRun(text, Token, out var changedOffsets);
+         stream.DeserializeRun(text, Token, out var changedOffsets, out _);
 
          var destinationRun = Model.GetNextRun(0x100);
          Assert.Equal(0x100, destinationRun.Start);
@@ -516,7 +516,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.ObserveRunWritten(Token, stream);
 
          var text = Environment.NewLine.Join(new[] { "<180>", "<null>" });
-         stream.DeserializeRun(text, Token, out var _);
+         stream.DeserializeRun(text, Token, out var _, out _);
 
          var destinationRun = Model.GetNextRun(0x100);
          Assert.Equal(0x180, destinationRun.Start);
@@ -533,7 +533,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Model[0x180] = 0x40; // invalid text byte
          var text = Environment.NewLine.Join(new[] { "<180>", "<null>" });
-         stream.DeserializeRun(text, Token, out var _);
+         stream.DeserializeRun(text, Token, out var _, out _);
 
          var destinationRun = Model.GetNextRun(0x100);
          Assert.Equal(0x180, destinationRun.Start);

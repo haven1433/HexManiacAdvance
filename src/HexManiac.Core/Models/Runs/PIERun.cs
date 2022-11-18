@@ -326,7 +326,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       private HashSet<int> changedAddresses;
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
+         changedRuns = new List<int>();
          changedAddresses = new HashSet<int>();
          var pairs = content.Split(Environment.NewLine).Where(line => line.Count('=') == 1).Select(line => line.Split('=')).Select(pair => new KeyValuePair<string, string>(pair[0].Trim().ToLower(), pair[1].Trim().ToLower()));
          bool parseBool; sbyte parseInt;

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class TrainerPokemonTeamRun : BaseRun, IStreamRun, ITableRun {
+   public class TrainerPokemonTeamRun : BaseRun, IStreamRun, ITableRun, IUpdateFromParentRun {
       public const int IV_Cap = 31;
       public const int TrainerFormat_StructTypeOffset = 0;
       public const int TrainerFormat_PokemonCountOffset = 32;
@@ -30,6 +30,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public byte StructType { get; }
 
       public bool CanAppend => ElementCount < 6;
+
+      string IUpdateFromParentRun.RepointContentShortName => "Team";
 
       private readonly bool showFullIVByteRange = false;
 
@@ -185,7 +187,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // - "Aerial Ace"
       // - "Silver Wind"
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) => DeserializeRun(content, token, false, false, out changedOffsets);
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
+         changedRuns = new List<int>();
+         return DeserializeRun(content, token, false, false, out changedOffsets);
+      }
       public TrainerPokemonTeamRun DeserializeRun(string content, ModelDelta token, bool setDefaultMoves, bool setDefaultItems, out IReadOnlyList<int> changedOffsets) {
          var changedAddresses = new HashSet<int>();
          var lines = content.Split(Environment.NewLine).Select(line => line.Trim()).ToArray();
@@ -202,7 +207,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (totalLength > workingRun.Length) workingRun = model.RelocateForExpansion(token, workingRun, totalLength);
 
          // step 3: write the run data
-         WriteData(token, workingRun.Start, data, changedAddresses);
+         WriteData(token, workingRun.Start, data);
 
          // step 4: write the parent data
          var structType = (data.ItemsIncluded ? INCLUDE_ITEM : 0) ^ (data.MovesIncluded ? INCLUDE_MOVES : 0);
@@ -212,28 +217,28 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new TrainerPokemonTeamRun(model, workingRun.Start, showFullIVByteRange, workingRun.PointerSources);
       }
 
-      private void WriteData(ModelDelta token, int runStart, TeamData data, HashSet<int> changedAddresses) {
+      private void WriteData(ModelDelta token, int runStart, TeamData data) {
          var elementLength = data.MovesIncluded ? 16 : 8;
          for (int i = 0; i < data.Pokemon.Count; i++) {
             int start = runStart + elementLength * i;
-            if (model.WriteMultiByteValue(start + 0, 2, token, data.IVs[i])) changedAddresses.Add(start);
-            if (model.WriteMultiByteValue(start + 2, 2, token, data.Levels[i])) changedAddresses.Add(start + 2);
-            if (model.WriteMultiByteValue(start + 4, 2, token, data.Pokemon[i])) changedAddresses.Add(start + 4);
+            model.WriteMultiByteValue(start + 0, 2, token, data.IVs[i]);
+            model.WriteMultiByteValue(start + 2, 2, token, data.Levels[i]);
+            model.WriteMultiByteValue(start + 4, 2, token, data.Pokemon[i]);
             start += 6;
             if (data.ItemsIncluded) {
-               if (model.WriteMultiByteValue(start, 2, token, data.Items[i])) changedAddresses.Add(start + 2);
+               model.WriteMultiByteValue(start, 2, token, data.Items[i]);
                start += 2;
             }
             if (data.MovesIncluded) {
                for (int j = 0; j < 4; j++) {
-                  if (model.WriteMultiByteValue(start + j * 2, 2, token, data.Moves[i * 4 + j])) changedAddresses.Add(start + j * 2);
+                  model.WriteMultiByteValue(start + j * 2, 2, token, data.Moves[i * 4 + j]);
                }
                start += 8;
             }
 
             // if there's no item, add 2 more bytes to get to the next multiple of 4.
             if (!data.ItemsIncluded) {
-               if (model.WriteMultiByteValue(start, 2, token, 0)) changedAddresses.Add(start);
+               model.WriteMultiByteValue(start, 2, token, 0);
             }
          }
 
@@ -507,7 +512,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #endregion
 
-      public TrainerPokemonTeamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource, HashSet<int> changedAddresses) {
+      IUpdateFromParentRun IUpdateFromParentRun.UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) => UpdateFromParent(token, parentSegmentChange, pointerSource);
+      public TrainerPokemonTeamRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource) {
          // we only care if the change was to the parent's structType or pokemonCount.
          var sourceTable = model.GetNextRun(pointerSource) as ITableRun;
          if (sourceTable == null) return this;
@@ -540,7 +546,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else if ((newStructType & INCLUDE_ITEM) == 0 && data.ItemsIncluded) {
                data.RemoveItems();
             }
-            WriteData(token, newRun.Start, data, changedAddresses);
+            WriteData(token, newRun.Start, data);
          }
          if (newElementCount != ElementCount || newStructType != StructType) {
             UpdateParents(token, newStructType, newElementCount, newRun.PointerSources);

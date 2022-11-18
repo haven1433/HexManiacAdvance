@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override bool Matches(IFormattedRun run) => run is TrainerPokemonTeamRun;
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         return new TrainerPokemonTeamRun(owner, destination, showFullIVByteRange, new SortedSpan<int>(source)).DeserializeRun("0 ???", token, out var _); // new run, so we don't care about the changes
+         return new TrainerPokemonTeamRun(owner, destination, showFullIVByteRange, new SortedSpan<int>(source)).DeserializeRun("0 ???", token, out var _, out var _); // new run, so we don't care about the changes
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new TrainerPokemonTeamRun(model, run.Start, showFullIVByteRange, run.PointerSources);

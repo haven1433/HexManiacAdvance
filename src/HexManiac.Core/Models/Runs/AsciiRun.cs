@@ -33,12 +33,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return builder.ToString();
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
          for (int i = 0; i < Length; i++) {
             if (i < content.Length) token.ChangeData(model, Start + i, (byte)content[i]);
             else token.ChangeData(model, Start + i, 0);
          }
          changedOffsets = new List<int>();
+         changedRuns = new List<int>();
          return this;
       }
 

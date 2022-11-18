@@ -90,7 +90,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return builder.ToString();
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
+         changedRuns = new List<int>();
          var data = new List<int>();
          var changedAddresses = new HashSet<int>();
          var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);

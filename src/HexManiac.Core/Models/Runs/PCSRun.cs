@@ -57,7 +57,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return newContent;
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
+         changedRuns = new List<int>();
          var bytes = model.TextConverter.Convert(content, out var _);
          var changedAddresses = new List<int>();
          var newRun = model.RelocateForExpansion(token, this, bytes.Count);

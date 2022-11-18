@@ -195,7 +195,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return builder.ToString();
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
+         changedRuns = new List<int>();
          var uncompressed = new List<byte>();
          foreach (var textByte in content.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)) {
             if (byte.TryParse(textByte, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte value)) uncompressed.Add(value);

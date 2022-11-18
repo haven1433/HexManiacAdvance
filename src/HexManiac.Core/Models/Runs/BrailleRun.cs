@@ -77,7 +77,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return match;
       }
 
-      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets) {
+      public IStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> changedRuns) {
          var changes = new List<int>();
          content = content.ToUpper();
 
@@ -104,6 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          changedOffsets = changes;
+         changedRuns = new List<int>();
          return new BrailleRun(model, run.Start, PointerSources);
       }
 

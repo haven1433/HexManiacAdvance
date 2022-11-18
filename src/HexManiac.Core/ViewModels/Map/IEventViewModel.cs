@@ -308,7 +308,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var address = element.Model.ReadPointer(pointer);
          if (address < 0 || address >= element.Model.Count) return -1;
          if (element.Model.GetNextRun(address) is not PCSRun pcs) return -1;
-         var newRun = pcs.DeserializeRun(text, element.Token, out _);
+         var newRun = pcs.DeserializeRun(text, element.Token, out _, out _);
          element.Model.ObserveRunWritten(element.Token, newRun);
          NotifyPropertyChanged(propertyName);
          return newRun.Start != pcs.Start ? newRun.Start : -1;
@@ -644,7 +644,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (martContent.Value == null) return;
             var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
             if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return;
-            var newStream = stream.DeserializeRun(value, Token, out var _);
+            var newStream = stream.DeserializeRun(value, Token, out var _, out var _);
             element.Model.ObserveRunWritten(Token, newStream);
             if (newStream.Start != stream.Start) DataMoved.Raise(this, new("Mart", newStream.Start));
          }

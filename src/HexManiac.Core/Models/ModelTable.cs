@@ -285,7 +285,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var bytes = model.TextConverter.Convert(value, out var _);
             var pcsRun = (PCSRun)model.GetNextRun(valueAddress);
             pcsRun = model.RelocateForExpansion(token, pcsRun, bytes.Count);
-            pcsRun = (PCSRun)pcsRun.DeserializeRun(value, token, out var _);
+            pcsRun = (PCSRun)pcsRun.DeserializeRun(value, token, out var _, out var _);
             model.ObserveRunWritten(token, pcsRun);
          } else {
             throw new NotImplementedException();

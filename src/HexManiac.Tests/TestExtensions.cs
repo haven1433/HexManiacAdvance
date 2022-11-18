@@ -27,9 +27,9 @@ namespace HavenSoft.HexManiac.Tests {
          return sprite.GetPixels(model, 0);
       }
 
-      public static IStreamRun DeserializeRun(this IStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
+      public static IStreamRun DeserializeRun(this IStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _, out _);
       public static TrainerPokemonTeamRun DeserializeRun(this TrainerPokemonTeamRun streamRun, string content, ModelDelta token, bool setDefaultMoves, bool setDefaultItems) => streamRun.DeserializeRun(content, token, setDefaultMoves, setDefaultItems, out var _);
-      public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _);
+      public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _, out _);
 
       public static void ChangeList(this ModelDelta token, string name, string[] oldValues, string[] newValues) {
          token.ChangeList(name, new ValidationList(null, oldValues), new ValidationList(null, newValues));

@@ -12,6 +12,11 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
+   public interface IUpdateFromParentRun : IFormattedRun {
+      string RepointContentShortName { get; }
+      IUpdateFromParentRun UpdateFromParent(ModelDelta token, int parentSegmentChange, int pointerSource);
+   }
+
    public interface ITableRun : IAppendToBuilderRun {
       int ElementCount { get; }
       int ElementLength { get; }
@@ -189,31 +194,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   }
                }
 
-               if (run.Start == destination && run is TrainerPokemonTeamRun teamRun) {
-                  var newRun = teamRun.UpdateFromParent(token, segmentIndex, pointerSource, new HashSet<int>()); // we don't care about the changes that come back from here
+               if (run.Start == destination && run is IUpdateFromParentRun childRun) {
+                  var newRun = childRun.UpdateFromParent(token, segmentIndex, pointerSource);
                   if (newRun != null) {
                      model.ObserveRunWritten(token, newRun);
-                     if (newRun.Start != teamRun.Start) info = new ErrorInfo($"Team was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
+                     if (newRun.Start != childRun.Start) info = new ErrorInfo($"{childRun.RepointContentShortName} was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                   } else {
-                     info = new ErrorInfo($"Team was automatically deleted. Data set to null.", isWarningLevel: true);
+                     info = new ErrorInfo($"{childRun.RepointContentShortName} was automatically deleted. Data set to null.", isWarningLevel: true);
                   }
                } else if (run.Start == destination && run is OverworldSpriteListRun oslRun) {
+                  // overworld sprite list cares about multiple things that could change/repoint, so we need a different method signature.
                   var newRun = oslRun.UpdateFromParent(token, segmentIndex, pointerSource, out bool spritesMoved);
                   model.ObserveRunWritten(token, newRun);
                   if (newRun.Start != oslRun.Start) info = new ErrorInfo($"Overworld sprite was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                   if (spritesMoved) info = new ErrorInfo($"Overworld sprites were automatically moved after resize. Pointers were updated.", isWarningLevel: true);
-               } else if (run.Start == destination && run is TableStreamRun tableStreamRun) {
-                  var newRun = tableStreamRun.UpdateFromParent(token, segmentIndex);
-                  if (newRun != null) {
-                     model.ObserveRunWritten(token, newRun);
-                     if (newRun.Start != tableStreamRun.Start) info = new ErrorInfo($"Stream was automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
-                  } else {
-                     info = new ErrorInfo($"Stream was automatically deleted. Data set to null.", isWarningLevel: true);
-                  }
-               } else if (run.Start == destination && run is MapAnimationTilesRun matRun) {
-                  var newRun = matRun.UpdateFromParent(token, segmentIndex, pointerSource, out bool childrenMoved);
-                  model.ObserveRunWritten(token, newRun);
-                  if (newRun.Start != matRun.Start) info = new ErrorInfo($"Tiles were automatically moved to {newRun.Start:X6}. Pointers were updated.", isWarningLevel: true);
                }
             }
             offset += segment.Length;

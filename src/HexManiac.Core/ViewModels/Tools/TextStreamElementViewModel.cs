@@ -13,20 +13,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   var destination = Model.ReadPointer(Start);
                   var rawRun = Model.GetNextRun(destination);
                   if (rawRun is IStreamRun streamRun) {
-                     var newRun = streamRun.DeserializeRun(content, ViewPort.CurrentChange, out var changedOffsets);
-                     HandleNewDataStream(streamRun, newRun, changedOffsets);
+                     var newRun = streamRun.DeserializeRun(content, ViewPort.CurrentChange, out var changedOffsets, out var changedRuns);
+                     HandleNewDataStream(streamRun, newRun, changedOffsets, changedRuns);
                   } else if (rawRun is ITableRun tRun) {
                      var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
                         tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
-                     var newRun = proxy.DeserializeRun(Content, ViewPort.CurrentChange, out var changedOffsets);
-                     HandleNewDataStream(proxy, newRun, changedOffsets);
+                     var newRun = proxy.DeserializeRun(Content, ViewPort.CurrentChange, out var changedOffsets, out var changedRuns);
+                     HandleNewDataStream(proxy, newRun, changedOffsets, changedRuns);
                   }
                }
             }
          }
       }
 
-      protected void HandleNewDataStream(IStreamRun oldRun, IStreamRun newRun, IReadOnlyList<int> changedOffsets) {
+      protected void HandleNewDataStream(IStreamRun oldRun, IStreamRun newRun, IReadOnlyList<int> changedOffsets, IReadOnlyList<int> changedRuns) {
          Model.ObserveRunWritten(ViewPort.CurrentChange, newRun);
          if (oldRun.Start != newRun.Start) {
             RaiseDataMoved(oldRun.Start, newRun.Start);
@@ -42,6 +42,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          using (PreventSelfCopy()) {
             RaiseDataChanged();
+         }
+
+         if (changedRuns != null && changedRuns.Count > 0) {
+            RaiseDataMoved(-1, changedRuns[0]);
          }
 
          NotifyPropertyChanged(nameof(Visualizations));
