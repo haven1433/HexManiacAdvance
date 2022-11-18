@@ -269,10 +269,24 @@
                         </Style>
                      </MenuItem.Style>
                   </MenuItem>
-                  <MenuItem Header="_Wiki" Click="WikiClick"/>
-                  <MenuItem Header="_Tutorials" Click="TutorialsClick" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged"/>
-                  <MenuItem Header="_Report an Issue" Click="ReportIssueClick"/>
-                  <MenuItem Header="_Discord" Click="DiscordClick">
+                  <MenuItem Header="_Wiki" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki" />
+                  <MenuItem Header="_Tutorials" Click="WebLink" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials" />
+                  <MenuItem Header="_Online Reference Content">
+                     <MenuItem Header="Ruby">
+                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
+                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
+                     </MenuItem>
+                     <MenuItem Header="FireRed">
+                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/flags.h" />
+                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/vars.h" />
+                     </MenuItem>
+                     <MenuItem Header="Emerald">
+                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/flags.h" />
+                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/vars.h" />
+                     </MenuItem>
+                  </MenuItem>
+                  <MenuItem Header="_Report an Issue" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/issues" />
+                  <MenuItem Header="_Discord" Click="WebLink" CommandParameter="https://discord.gg/x9eQuBg">
                      <MenuItem.Icon>
                         <Path Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </MenuItem.Icon>
