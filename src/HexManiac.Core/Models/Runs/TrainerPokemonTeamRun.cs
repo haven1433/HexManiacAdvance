@@ -516,7 +516,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          var newStructType = model[pointerSource - TrainerFormat_PointerOffset];
          var newElementCount = model.ReadMultiByteValue(pointerSource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset, 4);
-         newElementCount.LimitToRange(0, 100);
+         newElementCount = newElementCount.LimitToRange(0, 100);
 
          var newRun = this;
          if (newElementCount == 0) {
