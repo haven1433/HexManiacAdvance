@@ -364,6 +364,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("range", (RangeY << 4) | value);
             rangeXY = null;
             NotifyPropertyChanged(nameof(RangeXY));
+            RaiseEventVisualUpdated();
          }
       }
 
@@ -373,6 +374,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("range", (value << 4) | RangeX);
             rangeXY = null;
             NotifyPropertyChanged(nameof(RangeXY));
+            RaiseEventVisualUpdated();
          }
       }
 
@@ -389,6 +391,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (parts[0].TryParseInt(out int x) && parts[1].TryParseInt(out int y)) element.SetValue("range", (y << 4) | x);
             NotifyPropertyChanged(nameof(RangeX));
             NotifyPropertyChanged(nameof(RangeY));
+            RaiseEventVisualUpdated();
          }
       }
 
@@ -401,7 +404,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public int TrainerRangeOrBerryID {
          get => element.GetValue("trainerRangeOrBerryID");
-         set => element.SetValue("trainerRangeOrBerryID", value);
+         set {
+            element.SetValue("trainerRangeOrBerryID", value);
+            RaiseEventVisualUpdated();
+         }
       }
 
       public int ScriptAddress {
@@ -410,6 +416,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void GotoScript() => gotoAddress(ScriptAddress);
+      public bool CanGotoScript => 0 <= ScriptAddress && ScriptAddress < element.Model.Count;
 
       private string scriptAddressText;
       public string ScriptAddressText {
@@ -467,9 +474,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool ShowNpcText => EventTemplate.GetNPCTextPointer(element.Model, this) != Pointer.NULL;
 
+      private string npcText;
       public string NpcText {
-         get => GetText(EventTemplate.GetNPCTextPointer(element.Model, this));
+         get {
+            if (npcText != null) return npcText;
+            return npcText = GetText(EventTemplate.GetNPCTextPointer(element.Model, this));
+         }
          set {
+            npcText = value;
             var newStart = SetText(EventTemplate.GetNPCTextPointer(element.Model, this), value);
             if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
          }
@@ -505,14 +517,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string trainerName;
       public string TrainerName {
          get {
+            if (trainerName != null) return trainerName;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return null;
             var text = element.Model.TextConverter.Convert(element.Model, trainerContent.TrainerNameAddress, 12);
-            return text.Trim('"');
+            return trainerName = text.Trim('"');
          }
          set {
+            trainerName = value;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             var bytes = element.Model.TextConverter.Convert(value, out _);
@@ -526,13 +541,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string trainerBeforeText;
       public string TrainerBeforeText {
          get {
+            if (trainerBeforeText != null) return trainerBeforeText;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return null;
-            return GetText(trainerContent.BeforeTextPointer);
+            return trainerBeforeText = GetText(trainerContent.BeforeTextPointer);
          }
          set {
+            trainerBeforeText = value;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             var newStart = SetText(trainerContent.BeforeTextPointer, value);
@@ -540,13 +558,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string trainerWinText;
       public string TrainerWinText {
          get {
+            if (trainerWinText != null) return trainerWinText;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return null;
-            return GetText(trainerContent.WinTextPointer);
+            return trainerWinText = GetText(trainerContent.WinTextPointer);
          }
          set {
+            trainerWinText = value;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             var newStart = SetText(trainerContent.WinTextPointer, value);
@@ -554,13 +575,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string trainerAfterText;
       public string TrainerAfterText {
          get {
+            if (trainerAfterText != null) return trainerAfterText;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return null;
-            return GetText(trainerContent.AfterTextPointer);
+            return trainerAfterText = GetText(trainerContent.AfterTextPointer);
          }
          set {
+            trainerAfterText = value;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             var newStart = SetText(trainerContent.AfterTextPointer, value);
@@ -582,13 +606,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             return teamText = run.SerializeRun();
          }
          set {
+            teamText = value;
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             var address = element.Model.ReadPointer(trainerContent.TeamPointer);
             if (address < 0 || address >= element.Model.Count) return;
             if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return;
             if (run.Start != address) return;
-            teamText = value;
             var newRun = run.DeserializeRun(value, element.Token, false, false, out _);
             element.Model.ObserveRunWritten(element.Token, newRun);
             if (newRun.Start != run.Start) DataMoved.Raise(this, new("Trainer Team", newRun.Start));
@@ -621,26 +645,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool ShowMartContents => martContent.Value != null;
 
+      private string martHello, martContentText, martGoodbye;
       public string MartHello {
-         get {
-            if (martContent.Value == null) return null;
-            return GetText(martContent.Value.HelloPointer);
-         }
-         set {
-            if (martContent.Value == null) return;
-            var newStart = SetText(martContent.Value.HelloPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref martHello, martContent.Value?.HelloPointer);
+         set => SetText(ref martHello, martContent.Value?.HelloPointer, value, "Text");
       }
 
       public string MartContent {
          get {
+            if (martContentText != null) return martContentText;
             if (martContent.Value == null) return null;
             var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
             if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
-            return stream.SerializeRun();
+            return martContentText = stream.SerializeRun();
          }
          set {
+            martContentText = value;
             if (martContent.Value == null) return;
             var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
             if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return;
@@ -651,14 +671,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public string MartGoodbye {
-         get {
-            if (martContent.Value == null) return null;
-            return GetText(martContent.Value.GoodbyePointer);
-         }
-         set {
-            var newStart = SetText(martContent.Value.GoodbyePointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref martGoodbye, martContent.Value?.GoodbyePointer);
+         set => SetText(ref martGoodbye, martContent.Value?.GoodbyePointer, value, "Text");
       }
 
       #endregion
@@ -677,52 +691,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string tutorInfoText, tutorWhichPokemonText, tutorFailedText, tutorSuccessText;
       public string TutorInfoText {
-         get {
-            if (tutorContent.Value == null) return null;
-            return GetText(tutorContent.Value.InfoPointer);
-         }
-         set {
-            if (tutorContent.Value == null) return;
-            var newStart = SetText(tutorContent.Value.InfoPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tutorInfoText, tutorContent.Value?.InfoPointer);
+         set => SetText(ref tutorInfoText, tutorContent.Value?.InfoPointer, value, "Text");
       }
 
       public string TutorWhichPokemonText {
-         get {
-            if (tutorContent.Value == null) return null;
-            return GetText(tutorContent.Value.WhichPokemonPointer);
-         }
-         set {
-            if (tutorContent.Value == null) return;
-            var newStart = SetText(tutorContent.Value.WhichPokemonPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tutorWhichPokemonText, tutorContent.Value?.WhichPokemonPointer);
+         set => SetText(ref tutorWhichPokemonText, tutorContent.Value?.WhichPokemonPointer, value, "Text");
       }
 
       public string TutorFailedText {
-         get {
-            if (tutorContent.Value == null) return null;
-            return GetText(tutorContent.Value.FailedPointer);
-         }
-         set {
-            if (tutorContent.Value == null) return;
-            var newStart = SetText(tutorContent.Value.FailedPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tutorFailedText, tutorContent.Value?.FailedPointer);
+         set => SetText(ref tutorFailedText, tutorContent.Value?.FailedPointer, value, "Text");
       }
 
       public string TutorSucessText {
-         get {
-            if (tutorContent.Value == null) return null;
-            return GetText(tutorContent.Value.SuccessPointer);
-         }
-         set {
-            if (tutorContent.Value == null) return;
-            var newStart = SetText(tutorContent.Value.SuccessPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tutorSuccessText, tutorContent.Value?.SuccessPointer);
+         set => SetText(ref tutorSuccessText, tutorContent.Value?.SuccessPointer, value, "Text");
       }
 
       public int TutorNumber {
@@ -765,65 +752,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string tradeInitialText, tradeThanksText, tradeSuccessText, tradeFailedText, tradeWrongSpeciesText;
       public string TradeInitialText {
-         get {
-            if (tradeContent.Value == null) return null;
-            return GetText(tradeContent.Value.InfoPointer);
-         }
-         set {
-            if (tradeContent.Value == null) return;
-            var newStart = SetText(tradeContent.Value.InfoPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tradeInitialText, tradeContent.Value?.InfoPointer);
+         set => SetText(ref tradeInitialText, tradeContent.Value?.InfoPointer, value, "Text");
       }
 
-      // int ThanksPointer, int SuccessPointer, int FailedPointer, int WrongSpeciesPointer
       public string TradeThanksText {
-         get {
-            if (tradeContent.Value == null) return null;
-            return GetText(tradeContent.Value.ThanksPointer);
-         }
-         set {
-            if (tradeContent.Value == null) return;
-            var newStart = SetText(tradeContent.Value.ThanksPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tradeThanksText, tradeContent.Value?.ThanksPointer);
+         set => SetText(ref tradeThanksText, tradeContent.Value?.ThanksPointer, value, "Text");
       }
 
       public string TradeSuccessText {
-         get {
-            if (tradeContent.Value == null) return null;
-            return GetText(tradeContent.Value.SuccessPointer);
-         }
-         set {
-            if (tradeContent.Value == null) return;
-            var newStart = SetText(tradeContent.Value.SuccessPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tradeSuccessText, tradeContent.Value?.SuccessPointer);
+         set => SetText(ref tradeSuccessText, tradeContent.Value?.SuccessPointer, value, "Text");
       }
 
       public string TradeFailedText {
-         get {
-            if (tradeContent.Value == null) return null;
-            return GetText(tradeContent.Value.FailedPointer);
-         }
-         set {
-            if (tradeContent.Value == null) return;
-            var newStart = SetText(tradeContent.Value.FailedPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tradeFailedText, tradeContent.Value?.FailedPointer);
+         set => SetText(ref tradeFailedText, tradeContent.Value?.FailedPointer, value, "Text");
       }
 
       public string TradeWrongSpeciesText {
-         get {
-            if (tradeContent.Value == null) return null;
-            return GetText(tradeContent.Value.WrongSpeciesPointer);
-         }
-         set {
-            if (tradeContent.Value == null) return;
-            var newStart = SetText(tradeContent.Value.WrongSpeciesPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
+         get => GetText(ref tradeWrongSpeciesText, tradeContent.Value?.WrongSpeciesPointer);
+         set => SetText(ref tradeWrongSpeciesText, tradeContent.Value?.WrongSpeciesPointer, value, "Text");
       }
 
       public int TradeIndex {
@@ -840,6 +792,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void GotoTrades() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.TradeTable)[TradeIndex].Start);
 
       #endregion
+
+      private string GetText(ref string cache, int? pointer) {
+         if (cache != null) return cache;
+         if (pointer == null) return null;
+         return cache = GetText((int)pointer);
+      }
+
+      private void SetText(ref string cache, int? pointer, string value, string type) {
+         cache = value;
+         if (pointer == null) return;
+         var newStart = SetText((int)pointer, value);
+         if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
+      }
 
       #endregion
 
@@ -914,7 +879,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                return true;
             }
          } else {
-            if (Math.Abs(x - X) <= RangeX && Math.Abs(y - Y) <=    RangeY) return true;
+            if (!MoveType.IsAny(2, 3, 4, 5, 6)) return false;
+            if (Math.Abs(x - X) <= RangeX && Math.Abs(y - Y) <= RangeY) return true;
          }
          return false;
       }

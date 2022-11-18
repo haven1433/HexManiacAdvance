@@ -219,7 +219,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var matchedMaps = viewPort.Model.GetMatchingMaps(currentSelection);
          if (matchedMaps.Count == 1 || matchedMaps.Any(map => map.Name == currentSelection)) {
             // if we can add a new section, then don't go to a map
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
             if (newSection.Tokens.Count == 0) {
                viewPort?.Goto?.Execute(currentSelection);
                ControlVisible = false;
@@ -243,7 +243,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // Deselect it.
             DeselectLastRow();
          } else {
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, devMode);
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
             PrefixSelections.Add(AddListeners(newSection));
             foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
          }
@@ -424,9 +424,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections, bool includeMatchingMaps) {
          using (ModelCacheScope.CreateScope(model)) {
             List<string> allOptions = model.GetExtendedAutocompleteOptions(filter)?.ToList() ?? new();
-            if (includeMatchingMaps) {
-               allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
-            }
+            allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
             var selections = GetSectionSelections(previousSections).ToList();
 
             var newSection = new GotoLabelSection(allOptions, selections);

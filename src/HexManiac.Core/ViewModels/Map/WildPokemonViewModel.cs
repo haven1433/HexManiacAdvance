@@ -103,7 +103,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (list == null) return;
          text.Append(type);
          text.Append(": ");
-         text.AppendJoin(", ", list.Select(element => element.GetEnumValue("species")).Distinct());
+         var content = list.Select(element => element.GetEnumValue("species")).ToHistogram();
+         text.AppendJoin(", ", content.Keys.Select(pokemon => {
+            if (content[pokemon] == 1) return pokemon;
+            return $"{pokemon} x{content[pokemon]}";
+         }));
       }
 
       private StubCommand gotoWildData;

@@ -4,6 +4,7 @@ using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 
@@ -135,6 +136,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
                ShowMenu(element, e);
             }
          }
+      }
+
+      // this has to be an event rather than a command, otherwise the +/- interactions will happen even if we're in a textbox in the event panel (such as typing pokemon moves for a trainer)
+      private void HandleKeyDown(object sender, KeyEventArgs e) {
+         if (Keyboard.FocusedElement is TextBoxBase || Keyboard.FocusedElement is TextBoxLookAlike) return;
+         e.Handled = true;
+         if (e.Key == Key.Add) ViewModel.ZoomCommand.Execute(ZoomDirection.Enlarge);
+         else if (e.Key == Key.Subtract) ViewModel.ZoomCommand.Execute(ZoomDirection.Shrink);
+         else e.Handled = false;
       }
 
       private void ButtonMove(object sender, MouseEventArgs e) {

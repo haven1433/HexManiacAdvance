@@ -6,7 +6,7 @@
              xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
              xmlns:models="clr-namespace:HavenSoft.HexManiac.Core.Models;assembly=HexManiac.Core"
-             Focusable="True">
+             Focusable="True" KeyDown="HandleKeyDown">
    <UserControl.Resources>
       <local:EqualityToBooleanConverter x:Key="Equality" />
       <DataTemplate DataType="{x:Type tools:VisualComboOption}">
@@ -18,8 +18,6 @@
       <KeyBinding Key="Right" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Right}" />
       <KeyBinding Key="Up" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Up}" />
       <KeyBinding Key="Down" Command="{Binding PanCommand}" CommandParameter="{x:Static map:MapDirection.Down}" />
-      <KeyBinding Key="Add" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Enlarge}" />
-      <KeyBinding Key="Subtract" Command="{Binding ZoomCommand}" CommandParameter="{x:Static map:ZoomDirection.Shrink}" />
       <KeyBinding Key="Escape" Command="{Binding CancelCommand}" />
       <KeyBinding Key="Delete" Command="{Binding DeleteCommand}" />
       <KeyBinding Key="Backspace" Command="{Binding DeleteCommand}" />
