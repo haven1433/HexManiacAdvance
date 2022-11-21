@@ -1,0 +1,55 @@
+#   callasm command code insertion
+#   Original ASM routine by Jambo51, port to Emerald by Xencleamas. HMA script by AGSMGMaster64.
+#   Manual TOML changes are needed after running this script! Open in a text editor for more details.
+
+#   More Details:
+#   Expands the battle script command table if necessary to implement the callasm command
+#   Make sure you change the Resources/battleScriptReference.txt from your HMA folder and add in a new line after "[BPEE] f8 trainerslideout battler." the text in the next line here
+#   f9 callasm ptr<>
+
+# ---------------- All Games: Add in the callasm command ----------------
+@!game(All)
+@thumb.battlescriptcommands.callasm(34) .thumb
+Main:
+    push  {lr}
+    push  {r1-r7}
+    ldr   r0, BattlescriptCurrInstr
+    ldr   r0, [r0, #0]
+    ldrb  r1, [r0, #1]
+    ldrb  r2, [r0, #2]
+    lsl   r2, r2, #8
+    orr   r1, r2
+    ldrb  r2, [r0, #3]
+    lsl   r2, r2, #16
+    orr   r1, r2
+    ldrb  r2, [r0, #4]
+    lsl   r2, r2, #24
+    orr   r1, r2
+    bl    CallViaR1
+    ldr   r0, BattlescriptCurrInstr
+    ldr   r1, [r0, #0]
+    add   r1, r1, #5
+    str   r1, [r0, #0]
+    pop   {r1-r7}
+    pop   {r0}
+    bx    r0
+CallViaR1:
+    bx    r1
+BattlescriptCurrInstr:
+    .word 0x02024214      @ gBattlescriptCurrInstr
+.end
+
+# gBattlescriptCurrInstr is different for the other games
+@thumb.battlescriptcommands.callasm+30
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) 10 4C
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) 74 3D
+
+# ---------------- All Games: Add the callasm command in the battle script command table ----------------
+
+# add dummy command at 248 (f8) since it doesn't exist in these games
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1) @scripts.battle.thumb/248 +
+
+@!game(All)
+@scripts.battle.thumb/249
++ <thumb.battlescriptcommands.callasm+1>
+
