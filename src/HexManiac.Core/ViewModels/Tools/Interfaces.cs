@@ -97,9 +97,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is CalculatedElementViewModel cevm) childVisible = filterMatchesGroup || cevm.Name.MatchesPartial(filter);
             if (child is IStreamArrayElementViewModel saevm) childVisible = lastFieldVisible;
             if (child is BitListArrayElementViewModel blaevm) {
-               childVisible = filterMatchesGroup ||
-                  blaevm.Name.MatchesPartial(filter) ||
-                  blaevm.Any(bitChild => bitChild.BitLabel.MatchesPartial(filter));
+               var filterMatchesBitList = blaevm.Name.MatchesPartial(filter);
+               if (!filterMatchesGroup && !filterMatchesBitList) {
+                  var filteredChildren = blaevm.Where(bitChild => bitChild.BitLabel.MatchesPartial(filter)).ToList();
+                  if (filteredChildren.Count > 0) {
+                     // filter the children
+                     foreach (var bit in blaevm) bit.Visible = filteredChildren.Contains(bit);
+                     childVisible = true;
+                  } else {
+                     // unfilter the children
+                     foreach (var bit in blaevm) bit.Visible = true;
+                     childVisible = false;
+                  }
+               } else {
+                  // unfilter the children
+                  foreach (var bit in blaevm) bit.Visible = true;
+                  childVisible = true;
+               }
             } else if (child is TupleArrayElementViewModel taevm) {
                childVisible = filterMatchesGroup ||
                   taevm.Name.MatchesPartial(filter) ||

@@ -1,11 +1,11 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
@@ -13,16 +13,11 @@ using System.Windows.Input;
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class BitElement : ViewModelCore, IEquatable<BitElement> {
       private string bitLabel;
-      public string BitLabel {
-         get => bitLabel;
-         set => TryUpdate(ref bitLabel, value);
-      }
+      public string BitLabel { get => bitLabel; set => Set(ref bitLabel, value); }
 
-      private bool isChecked;
-      public bool IsChecked {
-         get => isChecked;
-         set => TryUpdate(ref isChecked, value);
-      }
+      private bool isChecked, visible = true;
+      public bool IsChecked { get => isChecked; set => Set(ref isChecked, value); }
+      public bool Visible { get => visible; set => Set(ref visible, value); }
 
       public bool Equals(BitElement other) => bitLabel == other.bitLabel && isChecked == other.isChecked;
    }
@@ -253,6 +248,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool deferChanges;
       private void ChildChanged(object sender, PropertyChangedEventArgs e) {
          if (deferChanges) return;
+         if (e.PropertyName == nameof(BitElement.Visible)) return;
          UpdateModelFromView();
       }
    }
