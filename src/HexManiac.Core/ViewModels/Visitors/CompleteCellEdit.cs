@@ -176,7 +176,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          if (char.IsWhiteSpace(CurrentText.Last()) || CurrentText.Last() == ')') {
-            CompleteIntegerEdit(integer);
+            if (CurrentText.StartsWith(".")) {
+               CompleteNamedConstantEdit(1);
+            } else if (CurrentText.StartsWith(":")) {
+               CompleteNamedConstantEdit(2);
+            } else {
+               CompleteIntegerEdit(integer);
+            }
             Result = true;
          }
       }
@@ -558,6 +564,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                            model.ClearFormat(token, newArray.Start, array.Length);
                         }
                      }
+                     model.ClearFormat(token, newArray.Start, newArray.Length);
                      model.ObserveRunWritten(token, newArray);
 
                      // if this run has pointers, those may have been cleared by some earlier update

@@ -138,14 +138,13 @@ namespace HexManiac.WPF.Resources {
          int i = 0;
 
          if (bitDepth == 4) {
-            Debug.Assert(width % 2 == 0);
+            Debug.Assert(width % 2 == 0, "Width must be even.");
             result = new byte[(width / 2 + 1) * height];
             for (var y = 0; y < height; y++) {
                result[i++] = 0;
                for (var x = 0; x < width; x += 2) {
-                  var pixel1 = pixels[x, y];
-                  var pixel2 = pixels[x + 1, y];
-                  Debug.Assert(pixel1 < 16 && pixel2 < 16);
+                  var pixel1 = pixels[x, y] % 16;
+                  var pixel2 = pixels[x + 1, y] % 16;
                   result[i++] = (byte)((pixel1 << 4) | pixel2);
                }
             }

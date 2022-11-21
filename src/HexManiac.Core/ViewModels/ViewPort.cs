@@ -245,7 +245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                args = new TabChangeRequestedEventArgs(this);
                RequestTabChange?.Invoke(mapper, args);
-               if (!args.RequestAccepted) mapper.RaiseRequestTabChange(args); // if this tab has been closed, ask the mapper to raise it
+               if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args); // if this tab has been closed, ask the mapper to raise it
                if (args.RequestAccepted) {
                   selection.SetJumpBackTab(mapper);
                   FocusToolPanel.Raise(this);

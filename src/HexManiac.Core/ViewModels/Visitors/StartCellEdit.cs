@@ -158,9 +158,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Braille braille, byte data) => Result = true;
 
       public void Visit(Integer intFormat, byte data) {
-         if (Input == '+' && Model.GetNextRun(MemoryLocation) is LzSpriteRun spriteRun && spriteRun.Start == MemoryLocation - 1 && spriteRun.Pages == 1) {
+         var nextRun = Model.GetNextRun(MemoryLocation);
+         if (Input == '+' && nextRun is LzSpriteRun spriteRun && nextRun.Start == MemoryLocation - 1 && spriteRun.Pages == 1) {
             Result = true;
             return;
+         }
+         if (nextRun is WordRun && nextRun.Start == MemoryLocation) {
+            if (nextRun.Length == 1 && Input == '.') {
+               Result = true;
+               return;
+            } else if (nextRun.Length == 2 && Input == ':') {
+               Result = true;
+               return;
+            }
          }
 
          if (!intFormat.CanStartWithCharacter(Input)) return;

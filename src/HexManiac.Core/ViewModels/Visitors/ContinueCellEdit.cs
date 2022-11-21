@@ -94,6 +94,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(Integer integer, byte data) {
          Result = integer.CanStartWithCharacter(Input) || char.IsWhiteSpace(Input) || Input == ')';
+         if (UnderEdit.CurrentText.StartsWith(".") || UnderEdit.CurrentText.StartsWith(":")) {
+            Result |= char.IsLetterOrDigit(Input) || Input.IsAny('+', '-', '.'); 
+         }
       }
 
       public void Visit(IntegerEnum integer, byte data) {
