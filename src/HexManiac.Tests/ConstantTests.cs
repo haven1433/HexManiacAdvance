@@ -28,12 +28,12 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [Fact]
-      public void ConstantFormat_EnterNewConstantOnByteWithDifferentValue_OtherBytesChangeToMatchCurrentValue() {
+      public void ConstantFormat_EnterNewConstantOnByteWithDifferentValue_CurrentValueCHangesToMatchConstant() {
          ViewPort.Edit("@100 03 @100 .some.number+1 ");
 
          ViewPort.Edit("@000 .some.number ");
 
-         Assert.Equal(1, Model[0x100]);
+         Assert.Equal(2, Model[0]);
       }
 
       [Fact]

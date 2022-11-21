@@ -564,7 +564,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                            model.ClearFormat(token, newArray.Start, array.Length);
                         }
                      }
-                     model.ClearFormat(token, newArray.Start, newArray.Length);
+
+                     // clear any anchors that would be added as inner-pointers
+                     for (var nextRun = model.GetNextRun(newArray.Start); nextRun.Start < newArray.Start + newArray.Length; nextRun = model.GetNextRun(nextRun.Start + nextRun.Length)) {
+                        if (nextRun.Start == newArray.Start) continue;
+                        model.ClearAnchor(token, nextRun.Start, nextRun.Length);
+                     }
                      model.ObserveRunWritten(token, newArray);
 
                      // if this run has pointers, those may have been cleared by some earlier update
@@ -767,8 +772,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             ErrorText = "Cannot write constant with no name.";
             return;
          }
+         var addresses = Model.GetMatchedWords(constantName);
+         if (CurrentChange is not NoDataChangeDeltaModel && newValue == int.MinValue && addresses.Count > 0) {
+            var valueSource = (WordRun)Model.GetNextRun(addresses[0]);
+            int value = Model.ReadMultiByteValue(valueSource.Start, valueSource.Length);
+            value /= valueSource.MultOffset;
+            value -= valueSource.ValueOffset;
+            Model.WriteMultiByteValue(memoryLocation, byteCount, CurrentChange, (value + offset) * multOffset);
+            newValue = (value + offset) * multOffset;
+         }
 
-         var coreValue = (Model[memoryLocation] / multOffset) - offset;
+         // var coreValue = (Model[memoryLocation] / multOffset) - offset;
+         var coreValue = Model.ReadMultiByteValue(memoryLocation, byteCount) / multOffset - offset;
          if (newValue != int.MinValue) coreValue = newValue / multOffset - offset;
          var maxValue = Math.Pow(2, byteCount * 8) - 1;
          if (coreValue < 0) {
