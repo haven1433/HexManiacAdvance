@@ -40,7 +40,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public bool SupportsImport => true;
       public bool SupportsEdit => true;
 
-      public bool CanAppend => false;
+      public bool CanAppend => true;
 
       public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, string paletteHint, int runIndex, int start, SortedSpan<int> sources = null) : base(start, sources) {
          this.model = model;
@@ -143,7 +143,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, newPointerSources);
 
-      public ITableRun Append(ModelDelta token, int length) => throw new NotImplementedException();
+      public ITableRun Append(ModelDelta token, int length) {
+         var naturalLength = Length;
+         var newRun = model.RelocateForExpansion(token, this, naturalLength + length * ElementLength);
+
+         // add new element data
+         for (int i = 0; i < ElementLength * length; i++) {
+            var prevIndex = newRun.Start + naturalLength + i - newRun.ElementLength * length;
+            while (prevIndex < newRun.Start) prevIndex += newRun.ElementLength;
+            byte prevData = prevIndex >= newRun.Start ? model[prevIndex] : default;
+            token.ChangeData(model, newRun.Start + naturalLength + i, prevData);
+         }
+
+         // remove excess element data
+         for (int i = naturalLength + length * ElementLength; i < naturalLength; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
+
+         return new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, newRun.Start, PointerSources);
+      }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) => throw new NotImplementedException();
 
@@ -152,7 +168,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);
       }
-
 
       public OverworldSpriteListRun UpdateFromParent(ModelDelta token, int segmentIndex, int pointerSource, out bool spritesMoved) {
          spritesMoved = false;

@@ -316,6 +316,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (!(tools.SelectedTool == tools.CodeTool && tools.CodeTool.Mode == CodeMode.Raw)) {
                using (ModelCacheScope.CreateScope(Model)) {
                   // update the tool from pointers too
+                  if (run is ITableRun array) {
+                     var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
+                     Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
+                     Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
+                     if (!(run is IStreamRun || array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) || tools.SelectedTool != tools.StringTool) {
+                        tools.SelectedIndex = tools.IndexOf(tools.TableTool);
+                     }
+                  }
                   if (run is ISpriteRun spriteRun) {
                      var tool = tools.SpriteTool;
                      if (tool.SpriteAddress != run.Start) {
@@ -324,20 +332,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         tool.UpdateSpriteProperties();
                         tool.PaletteAddress = SpriteTool.FindMatchingPalette(Model, spriteRun, tool.PaletteAddress);
                      }
-                     tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+
+                     if (tools.SelectedIndex == tools.IndexOf(tools.TableTool) && run is ITableRun) {
+                        // don't switch to the sprite tool if the selected tool is valid
+                     } else {
+                        tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
+                     }
                   } else if (run is IPaletteRun) {
                      tools.SpriteTool.PaletteAddress = run.Start;
                      tools.SelectedIndex = tools.IndexOf(tools.SpriteTool);
-                  } else if (run is ITableRun array) {
-                     var offsets = array.ConvertByteOffsetToArrayOffset(dataIndex);
-                     Tools.StringTool.Address = offsets.SegmentStart - offsets.ElementIndex * array.ElementLength;
-                     Tools.TableTool.Address = array.Start + array.ElementLength * offsets.ElementIndex;
-                     if (!(run is IStreamRun || array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.PCS) || tools.SelectedTool != tools.StringTool) {
-                        tools.SelectedIndex = tools.IndexOf(tools.TableTool);
-                     }
                   } else if (run is IStreamRun) {
                      Tools.StringTool.Address = run.Start;
-                     tools.SelectedIndex = tools.IndexOf(tools.StringTool);
+                     if (tools.SelectedIndex == tools.IndexOf(tools.TableTool) && run is ITableRun) {
+                        // don't switch to the text tool if the selected tool is valid
+                     } else {
+                        tools.SelectedIndex = tools.IndexOf(tools.StringTool);
+                     }
                   } else if (run is IScriptStartRun) {
                      tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
                      if (run is XSERun) tools.CodeTool.Mode = CodeMode.Script;
