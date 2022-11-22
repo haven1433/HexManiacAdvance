@@ -672,9 +672,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          var fullValue = destinationValue + offset;
-         if (destinationValue == Pointer.NULL || (0 <= destinationValue && destinationValue < Model.Count)) {
+         if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
             if (inArray) {
-               UpdateArrayPointer((ITableRun)currentRun, destinationValue);
+               UpdateArrayPointer((ITableRun)currentRun, fullValue);
             } else {
                if (Model.ReadPointer(memoryLocation) != fullValue) {
                   Model.WritePointer(CurrentChange, memoryLocation, fullValue);

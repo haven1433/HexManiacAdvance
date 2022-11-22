@@ -1001,6 +1001,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(run.PointerSources);
       }
 
+      [Fact]
+      public void Anchor_WriteOffsetPointerToAnchorFromTable_OffsetWritten() {
+         ViewPort.Edit("@100 ^anchor @000 ^table[pointer<>]1 ");
+
+         ViewPort.Edit("<anchor+1>");
+
+         Assert.Equal(0x101, Model.ReadPointer(0));
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
