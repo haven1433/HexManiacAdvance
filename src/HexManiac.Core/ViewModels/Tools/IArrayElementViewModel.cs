@@ -195,6 +195,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          int number = viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
+
+         return number.ToString();
+      }
+   }
+
+   public class SignedFieldStrategy : IFieldArrayElementViewModelStrategy {
+      public static SignedFieldStrategy Instance { get; } = new SignedFieldStrategy();
+      public ElementContentViewModelType Type => ElementContentViewModelType.NumericField;
+
+      public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
+         if (int.TryParse(viewModel.Content, out int content)) {
+            viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, content);
+            var run = (ITableRun)viewModel.Model.GetNextRun(viewModel.Start);
+            var offsets = run.ConvertByteOffsetToArrayOffset(viewModel.Start);
+            var error = run.NotifyChildren(viewModel.Model, viewModel.ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
+            if (error.IsWarning) viewModel.ViewPort.RaiseMessage(error.ErrorMessage);
+         } else {
+            viewModel.ErrorText = $"{viewModel.Name} must be an integer.";
+         }
+      }
+
+      public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
+         int number = viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
+         if (viewModel.Length == 1) number = (sbyte)number;
+         if (viewModel.Length == 2) number = (short)number;
+
          return number.ToString();
       }
    }
@@ -253,8 +279,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public class HexFieldStratgy : IFieldArrayElementViewModelStrategy {
-      public static HexFieldStratgy Instance { get; } = new HexFieldStratgy();
+   public class HexFieldStrategy : IFieldArrayElementViewModelStrategy {
+      public static HexFieldStrategy Instance { get; } = new HexFieldStrategy();
       public ElementContentViewModelType Type => ElementContentViewModelType.HexField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {

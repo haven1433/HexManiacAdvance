@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             IArrayElementViewModel viewModel = null;
-            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
+            if (item.Type == ElementContentType.Unknown) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStrategy.Instance);
             else if (item.Type == ElementContentType.PCS) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new TextFieldStrategy());
             else if (item.Type == ElementContentType.Pointer) viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new AddressFieldStrategy());
             else if (item.Type == ElementContentType.BitArray) viewModel = new BitListArrayElementViewModel(viewPort, item.Name, itemAddress);
@@ -86,13 +86,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                } else if (item is ArrayRunTupleSegment tupleItem) {
                   viewModel = new TupleArrayElementViewModel(viewPort, tupleItem, itemAddress);
                } else if (item is ArrayRunHexSegment) {
-                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStratgy.Instance);
+                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, HexFieldStrategy.Instance);
                } else if (item is ArrayRunColorSegment) {
                   viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
                } else if (item is ArrayRunCalculatedSegment calcSeg) {
                   viewModel = new CalculatedElementViewModel(viewPort, calcSeg, itemAddress);
                } else if (item is ArrayRunOffsetRenderSegment renderSeg) {
                   viewModel = new OffsetRenderViewModel(viewPort, renderSeg, itemAddress);
+               } else if (item is ArrayRunSignedSegment signedSegment) {
+                  viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, SignedFieldStrategy.Instance);
                } else {
                   viewModel = new FieldArrayElementViewModel(viewPort, item.Name, itemAddress, item.Length, new NumericFieldStrategy());
                }
