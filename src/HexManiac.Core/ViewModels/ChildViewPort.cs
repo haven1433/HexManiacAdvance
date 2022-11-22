@@ -113,6 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool AnchorTextVisible => this[0].AnchorTextVisible;
 
       public IDataModel Model => this[0].Model;
+      public IDataModel ModelFor(Point p) => this[0].ModelFor(p);
 
       public bool HasTools => this[0].HasTools;
 

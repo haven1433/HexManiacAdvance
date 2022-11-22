@@ -420,13 +420,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          bool needClearToolTip = true;
-         if (ViewPort is ViewPort viewPort1) {
-            var source = viewPort1.ConvertViewPointToAddress(newMouseOverPoint);
-            if (format is IDataFormatInstance dfi) source = dfi.Source;
+         if (ViewPort is IViewPort viewPort1) {
+            var source = newMouseOverPoint;
+            if (format is IDataFormatInstance dfi) source -= new ModelPoint(dfi.Position, 0);
             if (source == previousSource && ToolTipService.GetIsEnabled(this)) {
                // already set
                needClearToolTip = false;
-            } else if (MakeNewToolTip(format)) {
+            } else if (MakeNewToolTip(format, newMouseOverPoint)) {
                previousSource = source;
                needClearToolTip = false;
             }
@@ -461,14 +461,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          ReleaseMouseCapture();
       }
 
-      private int previousSource;
+      private ModelPoint previousSource;
       private new ToolTip ToolTip => (ToolTip)base.ToolTip;
       private void ShowToolTip() => ToolTip.IsOpen = true;
       protected override void OnMouseLeave(MouseEventArgs e) {
          ToolTip.IsOpen = false;
       }
-      private bool MakeNewToolTip(IDataFormat instance) {
-         var visitor = new ToolTipContentVisitor(ViewPort.Model);
+      private bool MakeNewToolTip(IDataFormat instance, ModelPoint newMouseOverPoint) {
+         var visitor = new ToolTipContentVisitor(ViewPort.ModelFor(newMouseOverPoint));
          instance.Visit(visitor, default);
          ToolTip.IsOpen = false;
          if (visitor.Content.Count == 0) return false;

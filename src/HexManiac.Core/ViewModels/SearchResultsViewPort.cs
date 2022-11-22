@@ -112,6 +112,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public double Progress => 0;
 
       public IDataModel Model => null;
+      public IDataModel ModelFor(Point p) {
+         var (childIndex, line) = GetChildLine(p.Y);
+         if (line == -1 || childIndex >= children.Count) return null;
+
+         return children[childIndex].ModelFor(new Point(p.X, line));
+      }
 
       public bool HasTools => false;
       public bool AutoAdjustDataWidth { get; set; }

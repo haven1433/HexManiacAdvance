@@ -113,6 +113,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IDataModel Model => null;
 
+      public IDataModel ModelFor(Point p) {
+         var (childIndex, childLine) = ConvertLine(0);
+         if (p.X == leftWidth) return null;
+         if (p.X < leftWidth) return left[childIndex].ModelFor(new Point(p.X, childLine));
+         return right[childIndex].ModelFor(new Point(p.X - leftWidth - 1, childLine));
+      }
+
       public bool HasTools => false;
 
       public bool Base10Length { get; set; }

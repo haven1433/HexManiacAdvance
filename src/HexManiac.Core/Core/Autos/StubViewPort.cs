@@ -387,8 +387,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 return get_Item(x, y);
             }
         }
+
         public PropertyImplementation<HavenSoft.HexManiac.Core.Models.IDataModel> Model = new PropertyImplementation<HavenSoft.HexManiac.Core.Models.IDataModel>();
-        
         HavenSoft.HexManiac.Core.Models.IDataModel IViewPort.Model
         {
             get
@@ -396,6 +396,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 return this.Model.get();
             }
         }
+
+        public Func<Point,IDataModel> ModelFor;
+        IDataModel IViewPort.ModelFor(Point point) => ModelFor?.Invoke(point) ?? Model.value;
+
         public PropertyImplementation<bool> HasTools = new PropertyImplementation<bool>();
         
         bool IViewPort.HasTools

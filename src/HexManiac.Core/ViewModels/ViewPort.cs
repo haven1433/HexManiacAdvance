@@ -932,6 +932,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public IDataModel Model { get; }
+      public IDataModel ModelFor(Point p) => Model;
 
       public bool FormattedDataIsSelected {
          get {

@@ -51,6 +51,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       HexElement this[int x, int y] { get; }
       IDataModel Model { get; }
+      IDataModel ModelFor(Point point);
       bool IsSelected(Point point);
       bool IsTable(Point point);
 
