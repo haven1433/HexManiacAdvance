@@ -92,3 +92,9 @@
 5b if_level_cond cond. ptr<>
 5c if_target_taunted ptr<>
 5d if_target_not_taunted ptr<>
+5e if_target_is_ally ptr<>
+5f is_of_type battler. type.
+60 check_ability battler. ability.data.pokemon.type.names
+61 if_flash_fired battler. ptr<>
+62 if_holds_item battler. item:data.items.stats ptr<>
+
