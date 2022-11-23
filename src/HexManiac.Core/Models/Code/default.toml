@@ -979,7 +979,7 @@ Name = '''itemtype'''
 0 = [
     '''Mail''',
     '''Party_Menu''',
-    '''Field''',
+    '''Field_Item''',
     '''PokeBlock_Case''',
     '''Bag_Menu''',
 ]
