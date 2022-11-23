@@ -321,7 +321,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private static readonly Lazy<bool> mapEditorRelease;
       static IDataModelExtensions() {
-         mapEditorRelease = new(() => DateTime.Today >= new DateTime(2022, 12, 25));
+         TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
+         mapEditorRelease = new(() => {
+            var now = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, centralZone);
+            return now >= new DateTime(2022, 12, 25, 12, 0, 0);
+         });
       }
 
       public static List<MapInfo> GetMatchingMaps(this IDataModel model, string text) {
