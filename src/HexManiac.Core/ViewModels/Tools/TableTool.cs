@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -140,6 +141,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => enabled;
          private set => TryUpdate(ref enabled, value);
       }
+
+      private bool usageOptionsOpen;
+      public bool UsageOptionsOpen { get => usageOptionsOpen; set => Set(ref usageOptionsOpen, value); }
 
       private string fieldFilter = string.Empty;
       public string FieldFilter {
@@ -468,18 +472,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                return s;
             }).ToList() : null;
             AddUsageChild(new ButtonArrayElementViewModel("trainer teams", () => {
+               UsageOptionsOpen = false;
                viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.TrainerTableName}", selections, trainerAddresses);
             }));
          }
 
          if (plmResults.Count > 0) {
             AddUsageChild(new ButtonArrayElementViewModel("level-up moves", () => {
+               UsageOptionsOpen = false;
                viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.LevelMovesTableName}", plmResults);
             }));
          }
 
          if (eggResults.Count > 0) {
             AddUsageChild(new ButtonArrayElementViewModel("egg moves", () => {
+               UsageOptionsOpen = false;
                viewPort.OpenSearchResultsTab($"{elementName} within {HardcodeTablesModel.EggMovesTableName}", eggResults);
             }));
          }
@@ -490,14 +497,51 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (results.Count == 0) continue;
             var name = model.GetAnchorFromAddress(-1, table.Start);
             AddUsageChild(new ButtonArrayElementViewModel(name, name, () => {
+               UsageOptionsOpen = false;
                viewPort.OpenSearchResultsTab($"{elementName} within {name}", results);
             }));
          }
 
          if (streamResults.Count > 0) {
             AddUsageChild(new ButtonArrayElementViewModel("other streams", () => {
+               UsageOptionsOpen = false;
                viewPort.OpenSearchResultsTab($"{elementName} within streams", streamResults);
             }));
+         }
+
+         // only check XSE scripts for now
+         if (viewPort.Tools.CodeTool.ScriptParser.DependsOn(basename).Any()) {
+            AddUsageChild(new ButtonArrayElementViewModel("scripts", () => {
+               var results = new List<(int, int)>(FindXseScriptUses(basename, index));
+               if (results.Count == 0) {
+                  OnMessage?.Invoke(this, "No matches were found.");
+               } else {
+                  UsageOptionsOpen = false;
+                  viewPort.Tools.SelectedTool = viewPort.Tools.CodeTool;
+                  viewPort.Tools.CodeTool.Mode = CodeMode.Script;
+                  viewPort.OpenSearchResultsTab($"{elementName} within scripts", results);
+                  viewPort.Tools.SelectedTool = viewPort.Tools.CodeTool;
+                  viewPort.Tools.CodeTool.Mode = CodeMode.Script;
+               }
+            }));
+         }
+      }
+
+      private IEnumerable<(int, int)> FindXseScriptUses(string basename, int index) {
+         var parser = viewPort.Tools.CodeTool.ScriptParser;
+         var lines = parser.DependsOn(basename).ToList();
+         var filter = lines.Select(line => line.LineCode[0]).ToArray();
+         foreach (var spot in Flags.GetAllScriptSpots(model, parser, Flags.GetAllTopLevelScripts(model), filter)) {
+            int check = spot.Address + spot.Line.LineCode.Count;
+            foreach (var arg in spot.Line.Args) {
+               var length = arg.Length(model, check);
+               if (arg.EnumTableName == basename) {
+                  if (model.ReadMultiByteValue(check, length) == index) {
+                     yield return (spot.Address, check + length - 1);
+                  }
+               }
+               check += length;
+            }
          }
       }
 

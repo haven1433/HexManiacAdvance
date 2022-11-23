@@ -211,7 +211,7 @@
                        so we declare an extra ItemsControl just so we can access its HasItems property
                   -->
                   <ItemsControl Name="UsageItems" ItemsSource="{Binding TableTool.UsageChildren}" Visibility="Collapsed" />
-                  <hsg3hv:AngleButton x:Name="ShowUsesButton" Content="Show Uses" HorizontalAlignment="Center" IsEnabled="{Binding HasItems, ElementName=UsageItems}" Direction="Out" />
+                  <hsg3hv:AngleButton x:Name="ShowUsesButton" Content="Show Uses" HorizontalAlignment="Center" IsEnabled="{Binding HasItems, ElementName=UsageItems}" Direction="Out" IsChecked="{Binding TableTool.UsageOptionsOpen}" />
                   <Popup IsOpen="{Binding IsChecked, ElementName=ShowUsesButton}" StaysOpen="{Binding IsMouseOver, ElementName=ShowUsesButton}" PlacementTarget="{Binding ElementName=ShowUsesButton}">
                      <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
                         <ItemsControl ItemsSource="{Binding TableTool.UsageChildren}" />
