@@ -223,9 +223,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          UpdateAvailablePalettes(that.Start);
          Start = other.Start;
          Pages = that.Pages;
-         NotifyPropertyChanged(nameof(CanExportMany));
-         NotifyPropertyChanged(nameof(CanExportAll));
-         NotifyPropertyChanged(nameof(CanExportManyOrAll));
+         NotifyPropertiesChanged(nameof(CanExportMany), nameof(CanExportAll), nameof(CanExportManyOrAll), nameof(HasMultiplePalettes));
          importImage.RaiseCanExecuteChanged();
          exportImage.RaiseCanExecuteChanged();
          exportImages.RaiseCanExecuteChanged();

@@ -500,6 +500,7 @@
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                                           <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                              <hsg3hv:CommonTableStreamControl />
+                                             <hsg3hv:AngleBorder Content="Palette Selection" FontSize="10" Direction="Out" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" />
                                              <ItemsControl ItemsSource="{Binding PaletteSelection}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" IsTabStop="False">
                                                 <ItemsControl.ItemsPanel>
                                                    <ItemsPanelTemplate>
