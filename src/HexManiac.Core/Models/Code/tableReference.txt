@@ -125,7 +125,8 @@ graphics.trainers.sprites.back.throw,       031B60, 031B60, 031B60, 031B60,     
 graphics.trainers.sprites.back.throw,             ,       ,       ,       , 03F8A0, 03F8A0, 03F8B4, 03F8B4,       , [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]graphics.trainers.sprites.back.enter
 graphics.trainers.sprites.back.throw,             ,       ,       ,       ,       ,       ,       ,       , 06A168, [starterbytes:|h unknown:|h a<> b<> sprites<`osl|graphics.trainers.palettes.back:sprite`> d<> e<>]graphics.trainers.sprites.back.enter
 graphics.trainers.coordinates.back,               ,       ,       ,       , 03240C, 03240C, 032420, 032420,       , [x. y. unused:]graphics.trainers.sprites.back.enter
-graphics.trainers.palettes.back,            030E14, 030E14, 030E14, 030E14, 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter
+graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter
+graphics.trainers.palettes.back,            030E14, 030E14, 030E14, 030E14,       ,       ,       ,       ,       , [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.throw
 graphics.trainers.emotes.sprites,                 ,       ,       ,       , 3C7394, 3C71D0, 3C7404, 3C7240,       , [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> lengeth::]15
 
 graphics.trainers.elite4.mugshots.sidney.palette,  , , , , , , , , 5C8EFC, `ucp4`
