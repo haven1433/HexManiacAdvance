@@ -15,6 +15,8 @@ using System.Linq;
  */
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
+   public record BerrySpot(int Address, int BerryID);
+
    public class Flags {
       private const int ScriptLengthLimit = 0x1000;
       private const int ScriptCountLimit = 100;
@@ -31,6 +33,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          return usedFlags;
+      }
+
+      public static Dictionary<int, BerrySpot> GetBerrySpots(IDataModel model, ScriptParser parser) {
+         var code = model.GetGameCode();
+         if (!code.StartsWith("AXPE") && !code.StartsWith("AXVE") && !code.StartsWith("BPEE")) return new();
+
+         var start = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "scripts.newgame.setflags");
+         if (start < 0 || start >= model.Count) return new();
+
+         var results = new Dictionary<int, BerrySpot>();
+         foreach (var spot in GetAllScriptSpots(model, parser, new[] { start }, 0x8A)) {
+            var plantID = model[spot.Address + 1];
+            var berryID = model[spot.Address + 2];
+            results[plantID] =  new(spot.Address, berryID - 1);
+         }
+         return results;
       }
 
       public static HashSet<int> FindFlagUsages(IDataModel model, ScriptParser parser, int flag) {

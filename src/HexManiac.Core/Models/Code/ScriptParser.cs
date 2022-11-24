@@ -489,7 +489,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool Matches(IReadOnlyList<byte> data, int index) {
          if (index + LineCode.Count >= data.Count) return false;
-         return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
+         var code = data.GetGameCode();
+         if (matchingGames == null || matchingGames.Count == 0 || matchingGames.Any(code.StartsWith)) {
+            return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
+         }
+         return false;
       }
 
       public bool CanCompile(string line) {
@@ -750,11 +754,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public ArgType Type { get; }
       public string Name { get; }
       public string EnumTableName { get; }
+      public int EnumOffset { get; }
 
       public int Length(IDataModel model, int start) => length;
 
       public ScriptArg(string token) {
          (Type, Name, EnumTableName, length) = Construct(token);
+         if (EnumTableName == null) return;
+         if (EnumTableName.Contains("+")) {
+            var parts = EnumTableName.Split(new[] { '+' }, 2);
+            EnumTableName = parts[0];
+            if (parts[1].TryParseInt(out var result)) EnumOffset = result;
+         } else if (EnumTableName.Contains("-")) {
+            var parts = EnumTableName.Split(new[] { '-' }, 2);
+            EnumTableName = parts[0];
+            if (parts[1].TryParseInt(out var result)) EnumOffset = -result;
+         }
       }
 
       public static (ArgType type, string name, string enumTableName, int length) Construct(string token) {
@@ -774,8 +789,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             return (type, name, enumTableName, length);
          } else if (token.Contains(".")) {
             var (type, length) = (ArgType.Byte, 1);
-            var name = token.Split('.').First();
-            var enumTableName = token.Split('.').Last();
+            var parts = token.Split(new[] { '.' }, 2);
+            var name = parts[0];
+            var enumTableName = parts[1];
             return (type, name, enumTableName, length);
          } else {
             // didn't find a token :(
@@ -790,20 +806,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var preferHex = EnumTableName?.EndsWith("|h") ?? false;
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
-         if (table == null || table.Count <= value || string.IsNullOrEmpty(table[value])) {
+         if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
             if (preferHex || Math.Abs(value) >= 0x4000) {
                return "0x" + ((uint)value).ToString($"X{length * 2}");
             } else {
                return value.ToString();
             }
          }
-         return table[value];
+         return table[value - EnumOffset];
       }
 
       public int Convert(IDataModel model, string value) {
          int result;
          if (!string.IsNullOrEmpty(EnumTableName)) {
-            if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result;
+            if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result + EnumOffset;
          }
          if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
          if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return result;

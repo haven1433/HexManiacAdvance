@@ -1213,9 +1213,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private IReadOnlyList<GotoShortcutViewModel> CreateGotoShortcuts(GotoControlViewModel gotoViewModel) {
-         if (!(SelectedTab is IEditableViewPort viewPort)) return null;
+         var tab = SelectedTab;
+         if (tab is MapEditorViewModel mapEditor) tab = mapEditor.ViewPort;
+         if (tab is not IEditableViewPort viewPort) {
+            gotoViewModel.Loading = false;
+            return null;
+         }
          var model = viewPort.Model;
-         if (model == null) return null;
+         if (model == null) {
+            gotoViewModel.Loading = false;
+            return null;
+         }
          model.InitializationWorkload.ContinueWith(task => Singletons.WorkDispatcher.DispatchWork(() => gotoViewModel.Loading = false), TaskContinuationOptions.ExecuteSynchronously);
          var results = new List<GotoShortcutViewModel>();
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {

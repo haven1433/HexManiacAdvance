@@ -304,7 +304,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Undo.CanExecuteChanged += (sender, e) => undo.RaiseCanExecuteChanged();
          history.Redo.CanExecuteChanged += (sender, e) => redo.RaiseCanExecuteChanged();
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
-
          var isFRLG = model.IsFRLG();
          PrimaryTiles = isFRLG ? 640 : 512;
          this.format = new Format(!isFRLG);

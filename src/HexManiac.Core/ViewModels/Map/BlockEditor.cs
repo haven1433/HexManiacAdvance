@@ -339,6 +339,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private static readonly List<((int, int), (int, int))> bottomLayerTogether, topLayerTogether, twoSets;
+      private static readonly ObservableCollection<string> movementPermissions = new();
       static BlockEditor() {
          int p0 = 0, p1 = 24, p2 = 48, p3 = 72, p4 = 96, shortD = 8;
          bottomLayerTogether = new() {
@@ -371,7 +372,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             ((p0 - shortD, p1), (p0, p2         )),
             ((p2         , p1), (p1, p2         )),
          };
+
+         // movement permissions
+         movementPermissions.Add("00 - Cross Layers");
+         movementPermissions.Add("01 - Wall");
+         movementPermissions.Add("02");
+         movementPermissions.Add("03");
+         for (int i = 0; i < 13; i++) {
+            var start = i + 4;
+            movementPermissions.Add($"{start + 0:X2} - Elevation {i} Pass");
+            movementPermissions.Add($"{start + 1:X2} - Elevation {i} Wall");
+            movementPermissions.Add($"{start + 2:X2} - Elevation {i} Unused");
+            movementPermissions.Add($"{start + 3:X2} - Elevation {i} Unused");
+         }
+         movementPermissions.Add("3C - Above/Below");
+         movementPermissions.Add("3D - No Use");
+         movementPermissions.Add("3E - No Use");
+         movementPermissions.Add("3F - No Use");
       }
+
+      public ObservableCollection<string> MovementPermissions => movementPermissions;
 
       public event EventHandler AutoscrollTiles;
       public event EventHandler<byte[][]> BlocksChanged;

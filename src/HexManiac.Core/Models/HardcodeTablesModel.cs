@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          MoveDataTable = "data.pokemon.moves.stats.battle",
          ItemsTableName = "data.items.stats",
          MapLayoutTable = "data.maps.layouts",
+         BerryTableName = "data.items.berry.stats",
          TypesTableName = "data.pokemon.type.names",
          MoveNamesTable = "data.pokemon.moves.names",
          FlyConnections = "data.maps.fly.connections",

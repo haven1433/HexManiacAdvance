@@ -116,6 +116,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             selectionIndex += categories[selectedCategory].Count - 1;
          } else if (direction == EventCycleDirection.NextEvent) {
             selectionIndex += 1;
+         } else if (direction == EventCycleDirection.None) {
+            // we just wanted to regenerate the event object
          } else {
             throw new NotImplementedException();
          }
@@ -388,6 +390,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          };
       }
 
+      private BerryInfo berryInfo;
+      public BerryInfo BerryInfo {
+         get {
+            if (berryInfo != null) return berryInfo;
+            return berryInfo = SetupBerryInfo();
+         }
+         set {
+            berryInfo = value;
+            NotifyPropertyChanged(nameof(BerryInfo));
+         }
+      }
+
+      private BerryInfo SetupBerryInfo() {
+         var collection = new ObservableCollection<string>();
+         var options = model.GetOptions(HardcodeTablesModel.BerryTableName);
+         if (options == null) options = 100.Range().Select(i => i.ToString()).ToList();
+         foreach (var option in options) collection.Add(option);
+         var spots = Flags.GetBerrySpots(model, ViewPort.Tools.CodeTool.ScriptParser);
+         return new(spots, collection);
+      }
+
       public void InformRepoint(DataMovedEventArgs e) {
          viewPort.RaiseMessage($"{e.Type} data was moved to {e.Address:X6}.");
       }
@@ -421,6 +444,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = null;
          eventRenders = null;
          borderBlock = null;
+         berryInfo = null;
          WildPokemon.ClearCache();
          RefreshMapSize();
          if (blockEditor != null) {
@@ -445,7 +469,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             oldBorderEditor.ShowBorderPanel = false;
             NotifyPropertyChanged(nameof(BorderEditor));
          }
-         NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels));
+         NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(BerryInfo));
+         if (SelectedEvent != null) CycleActiveEvent(default, EventCycleDirection.None);
       }
 
       public void RedrawEvents() {
@@ -652,7 +677,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // draw the map
-         var viewModel = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, warps[0].Bank, warps[0].Map);
+         var viewModel = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, warps[0].Bank, warps[0].Map) { BerryInfo = BerryInfo };
          var canvas = new CanvasPixelViewModel(9 * 16, 9 * 16);
          for (int y = 0; y < 9; y++) {
             for (int x = 0; x < 9; x++) {
@@ -893,7 +918,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
          var layout = GetLayout(map);
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, BerryInfo, group, this.map);
          if (events.Warps.Count <= warpID) return null;
          var warp = events.Warps[warpID];
          var startX = warp.X - SizeX / 2;
@@ -1112,7 +1137,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newMap.Element.SetAddress(Format.Layout, layout.Element.Start);
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, newMap.Element.Start);
 
-         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, bank, mapTable.ElementCount - 1) { allOverworldSprites = allOverworldSprites };
+         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, bank, mapTable.ElementCount - 1) {
+            allOverworldSprites = allOverworldSprites,
+            BerryInfo = BerryInfo,
+         };
          otherMap.UpdateLayoutID();
          return otherMap;
       }
@@ -1128,7 +1156,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
             for (int map = 0; map < maps.Count; map++) {
-               var mapVM = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, group, map) { allOverworldSprites = allOverworldSprites };
+               var mapVM = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, group, map) {
+                  allOverworldSprites = allOverworldSprites,
+                  BerryInfo = BerryInfo,
+               };
                var newInfo = mapVM.CanConnect(info.OppositeDirection);
                if (newInfo != null) options[mapVM.MapID] = newInfo;
             }
@@ -1147,13 +1178,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (option == -1) return;
          var choice = keys[enumViewModel.Choice];
 
+         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, choice / 1000, choice % 1000) {
+            allOverworldSprites = allOverworldSprites,
+            BerryInfo = BerryInfo,
+         };
+         var size = GetBlockSize();
+         var otherSize = otherMap.GetBlockSize();
+         if (info.Direction.IsAny(MapDirection.Left, MapDirection.Right)) {
+            info = info with { Offset = info.Offset - (otherSize.height - info.Size) / 2 };
+         } else if (info.Direction.IsAny(MapDirection.Up, MapDirection.Down)) {
+            info = info with { Offset = info.Offset - (otherSize.width - info.Size) / 2 };
+         }
+
          var newConnection = AddConnection(info);
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, newConnection.MapGroup, newConnection.MapNum) { allOverworldSprites = allOverworldSprites };
          info = options[choice];
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
@@ -1234,7 +1276,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, allOverworldSprites) {
+         var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, allOverworldSprites, BerryInfo) {
             X = 0, Y = 0,
             Elevation = 0,
             ObjectID = element.Table.ElementCount,
@@ -1399,6 +1441,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             IncludeBorders = IncludeBorders,
             SpriteScale = SpriteScale,
             allOverworldSprites = allOverworldSprites,
+            BerryInfo = BerryInfo,
             CollisionHighlight = CollisionHighlight,
          };
          var (n, _, _, w) = vm.GetBorderThickness();
@@ -1651,7 +1694,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          var map = GetMapModel();
          var results = new List<IEventViewModel>();
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, group, this.map);
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, BerryInfo, group, this.map);
          events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
@@ -1694,12 +1737,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < connections.Count; i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
-               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) {
+                  allOverworldSprites = allOverworldSprites,
+                  BerryInfo = BerryInfo,
+               };
                var removeWidth = map.pixelWidth / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
             } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
-               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) { allOverworldSprites = allOverworldSprites };
+               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) {
+                  allOverworldSprites = allOverworldSprites,
+                  BerryInfo = BerryInfo,
+               };
                var removeHeight = map.pixelHeight / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);
@@ -1748,7 +1797,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, NoInfoRun.FromPointer(model, source));
       }
 
-      private void GotoAddress(int address) => viewPort.Goto.Execute(address);
+      private void GotoAddress(int address) {
+         if (model.GetNextRun(address).Start > address) {
+            viewPort.Tools.SelectedTool = viewPort.Tools.CodeTool;
+            viewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         }
+         viewPort.Goto.Execute(address);
+      }
 
       private void HandleBlocksChanged(object sender, byte[][] blocks) {
          var layout = GetLayout();
@@ -1874,6 +1929,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Func<ModelDelta> tokenFactory;
       // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
 
+      private static readonly ObservableCollection<string> weatherOptions = new();
+      private static readonly ObservableCollection<string> caveOptions = new();
+      static MapHeaderViewModel() {
+         // weather
+         weatherOptions.Add("None");
+         weatherOptions.Add("Sunny Clouds");
+         weatherOptions.Add("Sunny");
+         weatherOptions.Add("Rain");
+         weatherOptions.Add("Snow");
+         weatherOptions.Add("Thunderstorm");
+         weatherOptions.Add("Fog - Horizontal");
+         weatherOptions.Add("Ash");
+         weatherOptions.Add("Sandstorm");
+         weatherOptions.Add("Fog - Diagonal");
+         weatherOptions.Add("Underwater");
+         weatherOptions.Add("Shade");
+         weatherOptions.Add("Drought");
+         weatherOptions.Add("Downpour");
+         weatherOptions.Add("Underwater - Bubbles");
+         weatherOptions.Add("Alternating Storm");
+         weatherOptions.Add("16 - Unused");
+         weatherOptions.Add("17 - Unused");
+         weatherOptions.Add("18 - Unused");
+         weatherOptions.Add("19 - Unused");
+         weatherOptions.Add("Cycle - Route 119");
+         weatherOptions.Add("Cycle - Route 123");
+
+         // cave
+         caveOptions.Add("Normal");
+         caveOptions.Add("Flash");
+      }
+
+      public ObservableCollection<string> WeatherOptions => weatherOptions;
+
+      public ObservableCollection<string> CaveOptions => caveOptions;
+
       public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) {
          (map, tokenFactory) = (element, tokens);
          if (element == null) return;
@@ -1956,6 +2047,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
+   public record BerryInfo(IDictionary<int, BerrySpot> BerryMap, ObservableCollection<string> BerryOptions);
+
    public class ConnectionModel {
       private readonly ModelArrayElement connection;
       private readonly int sourceGroup, sourceMap;
@@ -2002,7 +2095,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, int bank, int map) {
+      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, BerryInfo berries, int bank, int map) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -2010,7 +2103,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var objectList = new List<ObjectEventViewModel>();
          if (objects != null) {
             for (int i = 0; i < objectCount; i++) {
-               var newEvent = new ObjectEventViewModel(parser, gotoAddress, objects[i], ows);
+               var newEvent = new ObjectEventViewModel(parser, gotoAddress, objects[i], ows, berries);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                objectList.Add(newEvent);
             }

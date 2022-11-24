@@ -74,10 +74,10 @@
             </CheckBox>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom" HorizontalAlignment="Left" Margin="0,10" Grid.Row="1">
                <local:AngleBorder Direction="Left" VerticalAlignment="Stretch">
-                  <TextBlock Text="Movement Permissions:" Margin="2,0" Height="30"/>
+                  <TextBlock Text="Movement:" Margin="4,0" Height="30"/>
                </local:AngleBorder>
-               <local:AngleComboBox Direction="Out" Width="50" Height="20"
-                  ItemsSource="{Binding CollisionOptions}" SelectedIndex="{Binding CollisionIndex}" />
+               <local:AngleComboBox Direction="Out" Width="135" Height="20"
+                  ItemsSource="{Binding PrimaryMap.BlockEditor.MovementPermissions}" SelectedIndex="{Binding CollisionIndex}" />
             </StackPanel>
             <StackPanel Orientation="Vertical" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="0,0,0,12" Grid.Row="1" Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
                <local:AngleBorder Direction="Out" VerticalAlignment="Stretch" Content="Block ID" />
@@ -287,6 +287,21 @@
                         </local:AngleBorder>
                         <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
 
+                        <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowBerryContent, Converter={StaticResource BoolToVisibility}}">
+                           <Grid>
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                              </Grid.ColumnDefinitions>
+                              <local:AngleBorder Direction="Out" Content="Initial Berry:" />
+                              <local:AngleBorder Direction="Right" Grid.Column="1" Content="{Binding BerryText}" Margin="0,2,21,2" />
+                              <local:AngleButton Command="{res:MethodCommand GotoBerryCode}" Direction="Right" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Right"
+                                    Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+                           </Grid>
+                        </StackPanel>
+                        
                         <StackPanel Margin="2,12" Grid.Row="9" Grid.ColumnSpan="2" Visibility="{Binding ShowTrainerContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
                               <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
@@ -772,11 +787,11 @@
                                     ItemsSource="{Binding MusicOptions}" SelectedIndex="{Binding Music}"
                                     Visibility="{Binding HasMusicOptions, Converter={StaticResource BoolToVisibility}}" />
 
-               <local:AngleBorder  Grid.Row="1" Content="Cave:" />
-               <local:AngleTextBox Grid.Row="1" TextBinding="{Binding Cave, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="1" Content="Cave:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="{Binding Cave}" ItemsSource="{Binding CaveOptions}" Direction="Out" Margin="0,2,4,2" />
 
-               <local:AngleBorder  Grid.Row="2" Content="Weather:" />
-               <local:AngleTextBox Grid.Row="2" TextBinding="{Binding Weather, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="2" Content="Weather:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="{Binding Weather}" ItemsSource="{Binding WeatherOptions}" Direction="Out" Margin="0,2,4,2" />
 
                <local:AngleBorder  Grid.Row="3" Content="MapType:" Direction="Left" />
                <local:AngleComboBox Grid.Row="3" Grid.Column="1" Direction="Out" Margin="0,2,4,2"

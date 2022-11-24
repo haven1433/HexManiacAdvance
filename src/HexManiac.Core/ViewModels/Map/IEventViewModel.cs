@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       void Delete();
    }
 
-   public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory }
+   public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory, None }
 
    public class FlyEventViewModel : ViewModelCore, IEventViewModel {
       private readonly ModelArrayElement flySpot;
@@ -329,6 +329,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ObjectEventViewModel : BaseEventViewModel {
       private readonly ScriptParser parser;
+      private readonly BerryInfo berries;
       private readonly Action<int> gotoAddress;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
@@ -399,7 +400,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public int TrainerType {
          get => element.GetValue("trainerType");
-         set => element.SetValue("trainerType", value);
+         set {
+            element.SetValue("trainerType", value);
+            NotifyPropertyChanged(nameof(ShowBerryContent));
+         }
       }
 
       public int TrainerRangeOrBerryID {
@@ -407,6 +411,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("trainerRangeOrBerryID", value);
             RaiseEventVisualUpdated();
+            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(BerryText));
          }
       }
 
@@ -793,6 +798,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Berry Content
+
+      public bool ShowBerryContent => TrainerType == 0 && TrainerRangeOrBerryID != 0;
+
+      public string BerryText {
+         get {
+            if (berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out BerrySpot spot)) {
+               if (spot.BerryID >= 0 && spot.BerryID < berries.BerryOptions.Count) {
+                  return berries.BerryOptions[spot.BerryID];
+               }
+            }
+            return "Unknown";
+         }
+      }
+
+      public void GotoBerryCode() {
+         if (berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out BerrySpot spot)) {
+            gotoAddress(spot.Address);
+         }
+      }
+
+      #endregion
+
       private string GetText(ref string cache, int? pointer) {
          if (cache != null) return cache;
          if (pointer == null) return null;
@@ -808,9 +836,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites) : base(objectEvent, "objectCount") {
+      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites, BerryInfo berries) : base(objectEvent, "objectCount") {
          this.parser = parser;
          this.gotoAddress = gotoAddress;
+         this.berries = berries;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2));
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);
