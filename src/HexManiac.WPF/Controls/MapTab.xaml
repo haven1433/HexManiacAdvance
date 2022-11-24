@@ -804,8 +804,8 @@
                <CheckBox Grid.Row="5" Grid.Column="0" Content="Allow Biking"   IsChecked="{Binding AllowBiking}" Margin="4,2" Visibility="{Binding ShowAllowBikingField, Converter={StaticResource BoolToVisibility}}" />
                <CheckBox Grid.Row="5" Grid.Column="1" Content="Allow Escaping" IsChecked="{Binding AllowEscaping}" Margin="4,2" />
 
-               <local:AngleBorder  Grid.Row="6" Content="BattleType:" />
-               <local:AngleTextBox Grid.Row="6" TextBinding="{Binding BattleType, UpdateSourceTrigger=PropertyChanged}" />
+               <local:AngleBorder  Grid.Row="6" Content="BattleType:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="6" Grid.Column="1" Direction="Out" Margin="0,2,4,2" SelectedIndex="{Binding BattleType}" ItemsSource="{Binding BattleOptions}" />
 
                <local:AngleBorder  Grid.Row="7" Content="FloorNum:" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
                <local:AngleTextBox Grid.Row="7" TextBinding="{Binding FloorNum, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />

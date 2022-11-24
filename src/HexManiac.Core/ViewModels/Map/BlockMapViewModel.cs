@@ -1931,11 +1931,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private static readonly ObservableCollection<string> weatherOptions = new();
       private static readonly ObservableCollection<string> caveOptions = new();
+      private static readonly ObservableCollection<string> battleOptions = new();
       static MapHeaderViewModel() {
          // weather
-         weatherOptions.Add("None");
+         weatherOptions.Add("Indoor");
          weatherOptions.Add("Sunny Clouds");
-         weatherOptions.Add("Sunny");
+         weatherOptions.Add("Outdoor");
          weatherOptions.Add("Rain");
          weatherOptions.Add("Snow");
          weatherOptions.Add("Thunderstorm");
@@ -1958,12 +1959,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // cave
          caveOptions.Add("Normal");
-         caveOptions.Add("Flash");
+         caveOptions.Add("Flash Usable");
+         caveOptions.Add("Flash Not Usable");
+
+         // battle
+         battleOptions.Add("Normal");
+         battleOptions.Add("Gym");
+         battleOptions.Add("Evil Team");
+         battleOptions.Add("Unknown");
+         battleOptions.Add("Elite 1");
+         battleOptions.Add("Elite 2");
+         battleOptions.Add("Elite 3");
+         battleOptions.Add("Elite 4");
+         battleOptions.Add("Big Red Pokeball");
       }
 
       public ObservableCollection<string> WeatherOptions => weatherOptions;
 
       public ObservableCollection<string> CaveOptions => caveOptions;
+
+      public ObservableCollection<string> BattleOptions => battleOptions;
 
       public MapHeaderViewModel(ModelArrayElement element, Func<ModelDelta> tokens) {
          (map, tokenFactory) = (element, tokens);
