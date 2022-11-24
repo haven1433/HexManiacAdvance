@@ -580,7 +580,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                // nothing to paint
                interactionType = PrimaryInteractionType.None;
             } else {
-               if (map != null) {
+               if (map != null && !drawMultipleTiles) {
                   map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
                   Tutorials.Complete(Tutorial.DoubleClick_PaintBlock);
                }
