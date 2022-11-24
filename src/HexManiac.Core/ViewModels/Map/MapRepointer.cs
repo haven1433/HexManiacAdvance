@@ -657,6 +657,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private int DuplicateData(int start, int length) {
+         return DuplicateData(model, history, start, length);
+      }
+
+      public static int DuplicateData(IDataModel model, ChangeHistory<ModelDelta> history, int start, int length) {
          var newStart = model.FindFreeSpace(model.FreeSpaceStart, length);
          var token = history.CurrentChange;
          for (int i = 0; i < length; i++) token.ChangeData(model, newStart + i, model[start + i]);

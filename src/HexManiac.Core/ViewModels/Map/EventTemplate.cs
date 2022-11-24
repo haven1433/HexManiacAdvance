@@ -145,6 +145,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // TODO use all-caps name or mixed-caps name depending on other trainers in the table
       // TODO use reference file to get names and before/win/after text
       public void CreateTrainer(ObjectEventViewModel objectEventModel, ModelDelta token) {
+         const int ChosenTypeOddsMultiplier = 100;
+
          // part 1: the team
          var availablePokemon = new List<int>();
          var dexName = HardcodeTablesModel.RegionalDexTableName;
@@ -156,7 +158,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (MinLevel.TryGetValue(i, out var level) && level > maxLevel) continue;
             availablePokemon.Add(i);
             if (pokestats[i].GetValue("type1") == preferredType || pokestats[i].GetValue("type2") == preferredType) {
-               for (int j = 0; j < 9; j++) availablePokemon.Add(i);
+               for (int j = 0; j < ChosenTypeOddsMultiplier; j++) availablePokemon.Add(i);
             }
          }
 

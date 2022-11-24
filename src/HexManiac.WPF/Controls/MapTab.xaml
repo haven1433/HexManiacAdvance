@@ -1165,7 +1165,7 @@
             <Path Data="{res:Icon Settings}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
          </ToggleButton>
          <Popup DataContext="{Binding Templates}" IsOpen="{Binding IsChecked, ElementName=ShowTemplateSettingsButton}" PlacementTarget="{Binding ElementName=ShowTemplateSettingsButton}"
-                Width="235" Height="220" StaysOpen="{Binding IsMouseOver, ElementName=ShowTemplateSettingsButton}">
+                Width="235" Height="245" StaysOpen="{Binding IsMouseOver, ElementName=ShowTemplateSettingsButton}">
             <Border BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Background="{DynamicResource Background}">
                <Grid Margin="5">
                   <Grid.ColumnDefinitions>

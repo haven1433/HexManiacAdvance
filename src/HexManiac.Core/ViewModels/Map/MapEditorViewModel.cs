@@ -425,6 +425,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged(nameof(Name));
          } else if (e.PropertyName == nameof(BlockMapViewModel.BlockPixels)) {
             NotifyPropertyChanged(nameof(Blocks));
+         } else if (e.PropertyName == nameof(BlockMapViewModel.BlockRenders)) {
+            FillMultiTileRender();
          }
       }
 
@@ -918,6 +920,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void FillMultiTileRender() {
+         if (tilesToDraw == null) return;
          var (width, height) = (tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
          var scale = (width < 4 && height < 4) ? 2 : 1;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };

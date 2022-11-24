@@ -12,8 +12,6 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -586,6 +584,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          returnWarp.WarpID = GetEvents().Where(e => e is WarpEventViewModel).Until(e => e.Equals(warp)).Count();
          (returnWarp.X, returnWarp.Y) = (4, 8);
          if (!warpIsBottomSquare) (returnWarp.X, returnWarp.Y) = (4, 7);
+
+         // repoint border block
+         newMap.MapRepointer.RepointBorderBlock.Execute();
 
          return newMap;
       }
