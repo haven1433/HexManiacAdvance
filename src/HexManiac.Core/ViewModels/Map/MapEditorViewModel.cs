@@ -544,12 +544,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             return;
          }
 
+         var prevEvent = SelectedEvent;
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
             EventDown(x, y, ev, click);
             return;
          } else {
-            if (SelectedEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
+            if (prevEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
             SelectedEvent = null;
          }
 
