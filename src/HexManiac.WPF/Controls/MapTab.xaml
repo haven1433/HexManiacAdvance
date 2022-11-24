@@ -638,7 +638,12 @@
          Width="{Binding ActualWidth, ElementName=BlockPanel}"
          Visibility="{Binding ShowHeaderPanel, Converter={StaticResource BoolToVisibility}}">
          <StackPanel>
-            <local:AngleBorder Width="100" HorizontalAlignment="Center" Direction="Out" Content="Map Header" HorizontalContentAlignment="Center" />
+            <Grid>
+               <local:AngleBorder Width="100" HorizontalAlignment="Center" Direction="Out" Content="Map Header" HorizontalContentAlignment="Center" />
+               <Button Width="20" Height="20" HorizontalAlignment="Right" Margin="1" Command="{res:MethodCommand Cancel}">
+                  <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+               </Button>
+            </Grid>
             <local:AngleButton  Direction="Out" Margin="5" Content="View Table in Data Tab" DataContext="{Binding PrimaryMap}" Command="{res:MethodCommand GotoData}" />
             <Grid Height="20" Margin="0,0,0,25">
                <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" />
