@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -219,6 +220,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Refresh() {
          VisibleMaps.Clear();
+         format.Refresh();
          primaryMap.ClearCaches();
          UpdatePrimaryMap(primaryMap);
       }
@@ -306,7 +308,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
          var isFRLG = model.IsFRLG();
          PrimaryTiles = isFRLG ? 640 : 512;
-         this.format = new Format(!isFRLG);
+         this.format = new Format(model);
 
          var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, 3, 19);
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
@@ -1539,6 +1541,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum PrimaryInteractionStart { None, Click, DoubleClick, ControlClick }
    public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw }
+
+   public record BlocksetCache(ObservableCollection<string> Primary, ObservableCollection<string> Secondary) {
+      public void CalculateBlocksetOptions(IDataModel model) {
+         Primary.Clear();
+         Secondary.Clear();
+
+         var primary = new HashSet<int>();
+         var secondary = new HashSet<int>();
+
+         foreach (var bank in AllMapsModel.Create(model, null)) {
+            foreach (var map in bank) {
+               var layout = map.Layout;
+               primary.Add(layout.PrimaryBlockset.Start);
+               secondary.Add(layout.SecondaryBlockset.Start);
+            }
+         }
+
+         Primary.AddRange(primary.OrderBy(s => s).Select(s => s.ToAddress()));
+         Secondary.AddRange(secondary.OrderBy(s => s).Select(s => s.ToAddress()));
+      }
+   }
 
    public record TileSelection(int[]Tiles, int Width);
 }

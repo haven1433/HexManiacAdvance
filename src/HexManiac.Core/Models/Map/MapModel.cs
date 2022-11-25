@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -156,6 +157,12 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public static string Palette => "pal";
       public static string BorderWidth => "borderwidth";
       public static string BorderHeight => "borderheight";
+      public static string IsSecondary => "isSecondary";
+
+      private readonly IDataModel model;
+      private BlocksetCache cache;
+
+      public BlocksetCache BlocksetCache => cache;
 
       public string BlockDataFormat { get; }
       public string LayoutFormat { get; }
@@ -168,7 +175,11 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public string HeaderFormat { get; }
       public string MapFormat { get; }
 
-      public Format(bool isRSE) {
+      public Format(IDataModel model) {
+         this.model = model;
+         cache = new BlocksetCache(new(), new());
+         cache.CalculateBlocksetOptions(model);
+         bool isRSE = !model.IsFRLG();
          BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {TileAnimationRoutine}<> {BlockAttributes}<>]1";
          if (isRSE) BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {BlockAttributes}<> {TileAnimationRoutine}<>]1";
          LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}> {BorderWidth}. {BorderHeight}. unused:]1";
@@ -183,6 +194,11 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
          HeaderFormat = $"music:songnames layoutID:data.maps.layouts+1 regionSectionID.{regionSectionIDFormat} cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";
          MapFormat = $"[{Layout}<{LayoutFormat}> events<{EventsFormat}> mapscripts<[type. pointer<>]!00> {Connections}<{ConnectionsFormat}> {HeaderFormat}]";
+      }
+
+      public void Refresh() {
+         cache = new BlocksetCache(new(), new());
+         cache.CalculateBlocksetOptions(model);
       }
    }
 }
