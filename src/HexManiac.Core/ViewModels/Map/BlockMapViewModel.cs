@@ -570,6 +570,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                images.Add(visOption);
             }
 
+            // create one additional 'blank' prototype
+            initialBlockmaps.Add(new int[9, 9]);
+            var blank = new LayoutPrototype(primaryBlocksetAddress, secondaryBlocksetAddress, borderBlockAddress);
+            orderedPrototypes.Add(blank);
+            var blankRender = new CanvasPixelViewModel(9 * 16, 9 * 16) { SpriteScale = images[0].Visual.SpriteScale };
+            var blankVisOption = new VisualOption { Index = orderedPrototypes.Count - 1, Option = "Blank", ShortDescription = "Use Current Blocksets", Visual = blankRender };
+            warpIsBottomSquareForIndex.Add(true);
+            images.Add(blankVisOption);
+
             var choice = fileSystem.ShowOptions("Create New Map", "Start from which template?", null, images.ToArray());
             if (choice == -1) return null;
             var chosenPrototype = orderedPrototypes[choice];
