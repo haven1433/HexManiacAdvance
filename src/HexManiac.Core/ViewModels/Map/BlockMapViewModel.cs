@@ -119,6 +119,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else {
             throw new NotImplementedException();
          }
+         if (selectedCategory < 0) {
+            SelectedEvent = null;
+            return;
+         }
          selectedCategory %= categories.Count;
          selectionIndex %= categories[selectedCategory].Count;
 

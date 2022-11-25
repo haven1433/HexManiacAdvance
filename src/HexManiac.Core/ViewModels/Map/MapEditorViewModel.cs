@@ -685,7 +685,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void EventMove(double x, double y) {
          var map = MapUnderCursor(x, y);
-         if (map != null) {
+         if (map == primaryMap) {
             CreateEventForCreationInteraction(eventCreationType);
             map.UpdateEventLocation(selectedEvent, x, y);
             Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
@@ -929,7 +929,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
          for (int xx = 0; xx < tilesToDraw.GetLength(0); xx++) {
             for (int yy = 0; yy < tilesToDraw.GetLength(1); yy++) {
-               canvas.Draw(primaryMap.BlockRenders[tilesToDraw[xx, yy] & 0x3FF], xx * 16, yy * 16);
+               var index = tilesToDraw[xx, yy] & 0x3FF;
+               if (index >= primaryMap.BlockRenders.Count) index = 0;
+               canvas.Draw(primaryMap.BlockRenders[index], xx * 16, yy * 16);
             }
          }
          MultiTileDrawRender = canvas;

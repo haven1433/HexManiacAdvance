@@ -408,7 +408,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                   var decoder = new PngBitmapDecoder(fileStream, BitmapCreateOptions.None, BitmapCacheOption.None);
                   frame = decoder.Frames[0];
                } catch (FileFormatException) {
-                  ShowCustomMessageBox("Could not decode bitmap. The file may not be a valid PNG.");
+                  ShowCustomMessageBox("Could not decode bitmap. The file may not be a valid PNG.", false);
+                  return default;
+               } catch (NotSupportedException) {
+                  ShowCustomMessageBox("Could not decode bitmap. The file may not be a valid PNG.", false);
                   return default;
                }
                var metadata = (BitmapMetadata)frame.Metadata;
