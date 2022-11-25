@@ -22,8 +22,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Func<ModelDelta> tokenFactory;
       private readonly int group, map;
 
-      private int PrimaryTiles { get; } // 640
-      private int PrimaryBlocks { get; } // 640
+      private int PrimaryTiles { get; }
+      private int PrimaryBlocks { get; }
       private int TotalBlocks => 1024;
       private int PrimaryPalettes { get; } // 7
 
@@ -1488,13 +1488,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RefreshBlockCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
+         if (layout == null) layout = GetLayout();
          if (blockModel1 == null || blockModel2 == null) {
-            if (layout == null) layout = GetLayout();
-            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
+            if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
+            if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
+         int width = layout.GetValue("width"), height = layout.GetValue("height");
+         int start = layout.GetAddress(Format.BlockMap);
+         var maxUsedPrimary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, PrimaryBlocks);
+         var maxUsedSecondary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, 1024) - PrimaryBlocks;
 
-         blocks = BlockmapRun.ReadBlocks(blockModel1, blockModel2);
+         blocks = BlockmapRun.ReadBlocks(maxUsedPrimary, maxUsedSecondary, blockModel1, blockModel2);
       }
 
       private void RefreshBlockAttributeCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
@@ -1503,7 +1507,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
-         blockAttributes = BlockmapRun.ReadBlockAttributes(blockModel1, blockModel2);
+         int width = layout.GetValue("width"), height = layout.GetValue("height");
+         int start = layout.GetAddress(Format.BlockMap);
+         var maxUsedPrimary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, PrimaryBlocks);
+         var maxUsedSecondary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, 1024) - PrimaryBlocks;
+
+         blockAttributes = BlockmapRun.ReadBlockAttributes(maxUsedPrimary, maxUsedSecondary, blockModel1, blockModel2);
       }
 
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {

@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -28,6 +29,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public int BlockWidth { get; }
       public int BlockHeight { get; }
 
+      public int PrimaryBlocks { get; }
       public int PrimaryTiles { get; }
       public int PrimaryPalettes { get; }
 
@@ -50,9 +52,11 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          var code = model.GetGameCode();
 
          if (code.Contains("BPRE") || code.Contains("BPGE")) {
+            PrimaryBlocks = 640;
             PrimaryTiles = 640;
             PrimaryPalettes = 7;
          } else {
+            PrimaryBlocks = 512;
             PrimaryTiles = 512;
             PrimaryPalettes = 6;
          }
@@ -100,9 +104,9 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return new List<int> { a, b };
       }
 
-      public static byte[][] ReadBlocks(BlocksetModel blockModel1, BlocksetModel blockModel2) {
-         var primary = blockModel1.ReadBlocks();
-         var secondary = blockModel2.ReadBlocks();
+      public static byte[][] ReadBlocks(int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2) {
+         var primary = blockModel1.ReadBlocks(maxUsedPrimary);
+         var secondary = blockModel2.ReadBlocks(maxUsedSecondary);
          var result = new List<byte[]>();
          for (int i = 0; i < primary.Length; i++) result.Add(primary[i]);
          while (result.Count < blockModel1.PrimaryBlocks) result.Add(new byte[16]);
@@ -119,9 +123,9 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          blockModel2.WriteBlocks(secondary.ToArray(), token);
       }
 
-      public static byte[][] ReadBlockAttributes(BlocksetModel blockModel1, BlocksetModel blockModel2) {
-         var primary = blockModel1.ReadBlockAttributes();
-         var secondary = blockModel2.ReadBlockAttributes();
+      public static byte[][] ReadBlockAttributes(int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2) {
+         var primary = blockModel1.ReadBlockAttributes(maxUsedPrimary);
+         var secondary = blockModel2.ReadBlockAttributes(maxUsedSecondary);
          var result = new List<byte[]>();
          for (int i = 0; i < primary.Length; i++) result.Add(primary[i]);
          while (result.Count < blockModel1.PrimaryBlocks) result.Add(new byte[blockModel1.BytesPerAttribute]);
@@ -154,6 +158,10 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             }
          }
          return canvas;
+      }
+
+      public static int GetMaxUsedBlock(IReadOnlyList<byte> model, int start, int width, int height, int maxCheck) {
+         return (width * height).Range(i => model.ReadMultiByteValue(start + i * 2, 2) & 0x3FF).Where(i => maxCheck > i).Aggregate(0, Math.Max);
       }
 
       int lastFormatRequested = int.MaxValue;
@@ -393,13 +401,13 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public byte[][] ReadBlocks() {
+      public byte[][] ReadBlocks(int maxUsedBlock) {
          int blockCount = primaryBlocks;
          // each block is 16 bytes
          int start = ReadPointer(12);
          if (IsSecondary) blockCount = 1024 - blockCount;
          var attributeStart = ReadPointer(attributeOffset);
-         EstimateBlockCount(ref blockCount, start, attributeStart);
+         EstimateBlockCount(ref blockCount, start, attributeStart, maxUsedBlock);
          var data = new byte[blockCount][];
          for (int i = 0; i < blockCount; i++) {
             data[i] = new byte[16];
@@ -420,12 +428,12 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public byte[][] ReadBlockAttributes() {
+      public byte[][] ReadBlockAttributes(int maxUsedBlock) {
          int blockCount = primaryBlocks;
          int start = ReadPointer(12);
          if (IsSecondary) blockCount = 1024 - blockCount;
          var attributeStart = ReadPointer(attributeOffset);
-         EstimateBlockCount(ref blockCount, start, attributeStart);
+         EstimateBlockCount(ref blockCount, start, attributeStart, maxUsedBlock);
          var data = new byte[blockCount][];
          for (int i = 0; i < blockCount; i++) {
             data[i] = new byte[BytesPerAttribute];
@@ -479,7 +487,11 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return canvas;
       }
 
-      private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart) => EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
+      private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart, int maxUsedBlock) {
+         EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
+         blockCount = Math.Max(blockCount, maxUsedBlock);
+      }
+
       public static void EstimateBlockCount(IDataModel model, ref int blockCount, int blockStart, int attributeStart) {
          var blockLength = 0x10;
          IFormattedRun run;
