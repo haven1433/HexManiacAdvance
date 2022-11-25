@@ -277,6 +277,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
+         VisibleMaps.Clear(); // need to clear in case the navigation takes us to a nearby map
          UpdatePrimaryMap(new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, bank, map) {
             IncludeBorders = primaryMap?.IncludeBorders ?? true,
             SpriteScale = primaryMap?.SpriteScale ?? .5,
