@@ -338,7 +338,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public int ObjectID {
          get => element.GetValue("id");
-         set => element.SetValue("id", value);
+         set {
+            element.SetValue("id", value);
+            NotifyPropertyChanged();
+         }
       }
 
       public int Graphics {
@@ -346,6 +349,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("graphics", value);
             RaiseEventVisualUpdated();
+            NotifyPropertyChanged();
          }
       }
 
@@ -354,6 +358,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("moveType", value);
             RaiseEventVisualUpdated();
+            NotifyPropertyChanged();
          }
       }
 
@@ -392,6 +397,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (parts[0].TryParseInt(out int x) && parts[1].TryParseInt(out int y)) element.SetValue("range", (y << 4) | x);
             NotifyPropertyChanged(nameof(RangeX));
             NotifyPropertyChanged(nameof(RangeY));
+            NotifyPropertyChanged();
             RaiseEventVisualUpdated();
          }
       }
@@ -403,6 +409,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("trainerType", value);
             NotifyPropertyChanged(nameof(ShowBerryContent));
+            NotifyPropertyChanged();
          }
       }
 
@@ -412,12 +419,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("trainerRangeOrBerryID", value);
             RaiseEventVisualUpdated();
             NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(BerryText));
+            NotifyPropertyChanged();
          }
       }
 
       public int ScriptAddress {
          get => element.GetAddress("script");
-         set => element.SetAddress("script", value);
+         set {
+            element.SetAddress("script", value);
+            NotifyPropertyChanged();
+            trainerSprite = null;
+            scriptAddressText = npcText =
+               martContentText = martHello = martGoodbye =
+               trainerAfterText = trainerBeforeText = trainerWinText =
+               tutorFailedText = tutorInfoText = tutorSuccessText = tutorWhichPokemonText =
+               tradeFailedText = tradeInitialText = tradeSuccessText = tradeThanksText = null;
+            NotifyPropertiesChanged(
+               nameof(ScriptAddressText),
+               nameof(ShowItemContents), nameof(ItemContents),
+               nameof(ShowNpcText), nameof(NpcText),
+               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeText), nameof(TrainerAfterText), nameof(TrainerWinText), nameof(TrainerTeam),
+               nameof(ShowMartContents), nameof(MartHello), nameof(MartContent), nameof(MartGoodbye),
+               nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
+               nameof(ShowTradeContent), nameof(TradeFailedText), nameof(TradeIndex), nameof(TradeInitialText), nameof(TradeSuccessText), nameof(TradeThanksText), nameof(TradeWrongSpeciesText),
+               nameof(ShowBerryContent), nameof(BerryText));
+         }
       }
 
       public void GotoScript() => gotoAddress(ScriptAddress);
@@ -437,17 +463,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             scriptAddressText = value;
             value = value.Trim("<null>".ToCharArray());
             element.SetAddress("script", value.TryParseHex(out int result) ? result : Pointer.NULL);
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(ScriptAddress));
          }
       }
 
       public int Flag {
          get => element.GetValue("flag");
-         set => element.SetValue("flag", value);
+         set {
+            element.SetValue("flag", value);
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(FlagText));
+         }
       }
 
       public string FlagText {
          get => element.GetValue("flag").ToString("X4");
-         set => element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
+         set {
+            element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(Flag));
+         }
       }
 
       public ObservableCollection<VisualComboOption> Options { get; } = new();
@@ -827,10 +863,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return cache = GetText((int)pointer);
       }
 
-      private void SetText(ref string cache, int? pointer, string value, string type) {
+      private void SetText(ref string cache, int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
          cache = value;
          if (pointer == null) return;
-         var newStart = SetText((int)pointer, value);
+         var newStart = SetText((int)pointer, value, propertyName);
          if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
       }
 
