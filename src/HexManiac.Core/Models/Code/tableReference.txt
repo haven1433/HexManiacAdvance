@@ -229,7 +229,8 @@ scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 0
 scripts.moves.setupeffects,            ,,,, 1DBA96, 1DBA72, 1DBB06, 1DBAE2, , [effects.moveeffectoptions]!FF
 scripts.moves.setupeffects,            ,,,, ,,,, 2DDE7F,                      [effects.moveeffectoptions]!FF
 scripts.specials.thumb,                      ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
-scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       , 099314, [code<>]
+scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       ,       , [code<>]342
+scripts.specials.thumb,                      ,       ,       ,       ,       ,       ,       ,       , 099314, [code<>]527
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 scripts.battle.ai.thumb,               1073FC, 1073FC, 10741C, 10741C, 0C70E0, 0C70B4, 0C70F4, 0C70C8,       , [command<>]94
