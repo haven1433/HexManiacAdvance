@@ -754,7 +754,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private int GetParentIndex(IReadOnlyList<int> pointerSources) {
          if (parentName == string.Empty) {
             var matches = pointerSources.Where(SourceIsFromParentTable).ToList();
-            return matches.Count > 0 ? matches[0] : -1;
+            if (matches.Count == 0) return -1;
+            // we know where we expect the beginning of the element to be if this is a valid pointer in a recognized table
+            foreach (var match in matches) {
+               if (model.GetNextRun(match) is ITableRun run) {
+                  var segments = run?.ElementContent ?? sourceSegments;
+                  var pointerSegmentIndex = GetSegmentIndex(segments, parentFieldForThis);
+                  var pointerSegmentOffset = segments.Take(pointerSegmentIndex).Sum(segment => segment.Length);
+                  var offset = run.ConvertByteOffsetToArrayOffset(match - pointerSegmentOffset);
+                  if (offset.SegmentIndex == 0 && offset.SegmentOffset == 0) return match;
+               }
+            }
+            return matches[0];
          } else {
             return model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, parentName);
          }

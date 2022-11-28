@@ -508,7 +508,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
       private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart, int maxUsedBlock) {
          EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
-         blockCount = Math.Max(blockCount, maxUsedBlock);
+         blockCount = Math.Max(blockCount, maxUsedBlock + 1);
       }
 
       public static void EstimateBlockCount(IDataModel model, ref int blockCount, int blockStart, int attributeStart) {

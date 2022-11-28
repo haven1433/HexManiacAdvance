@@ -25,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var usedFlags = new HashSet<int>();
 
          foreach (var element in GetAllEvents(model, "objects")) {
+            if (!element.HasField("flag")) continue;
             usedFlags.Add(element.GetValue("flag"));
          }
 
@@ -123,6 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // for each OW that is a trainer, count up how many times it uses each trainer sprite and music
          // class.data.trainers.classes.names introMusicAndGender.|t|music:::.|female. sprite.graphics.trainers.sprites.front
          foreach (var element in GetAllEvents(model, "objects")) {
+            if (!element.HasField("graphics")) continue;
             var graphics = element.GetValue("graphics");
             if (!classHistogram.TryGetValue(graphics, out var desiredClass)) classHistogram[graphics] = desiredClass = new();
             if (!musicHistogram.TryGetValue(graphics, out var desiredMusic)) musicHistogram[graphics] = desiredMusic = new();
@@ -198,6 +200,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                foreach (var script in scripts) {
                   if (script.GetValue("type").IsAny(2, 4)) {
                      var start = script.GetAddress("pointer");
+                     if (start >= model.Count || start < 0) continue;
                      while (!model.ReadMultiByteValue(start, 2).IsAny(0, 0xFFFF)) {
                         scriptAddresses.Add(start + 4);
                         start += 8;
@@ -223,7 +226,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var maps = bank.GetSubTable("maps");
             if (maps == null) continue;
             foreach (var map in maps) {
-               var events = map.GetSubTable("map")[0].GetSubTable("events")[0];
+               var mapTable = map.GetSubTable("map");
+               if (mapTable == null) continue;
+               var mapElement = mapTable[0];
+               if (mapElement == null || !mapElement.HasField("events")) continue;
+               var eventTable = mapElement.GetSubTable("events");
+               if (eventTable == null) continue;
+               var events = eventTable[0];
                if (events == null) continue;
 
                // id. graphics. unused: x:500 y:500 elevation. moveType. range: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:

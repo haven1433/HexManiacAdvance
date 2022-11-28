@@ -115,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    }
 
    public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
-      public int Graphics => Element.GetValue("graphics");
+      public int Graphics => Element.TryGetValue("graphics", out var result) ? result : -1;
       public int ScriptAddress => Element.GetAddress("script");
    }
 
