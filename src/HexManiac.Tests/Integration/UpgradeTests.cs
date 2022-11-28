@@ -19,6 +19,7 @@ namespace HavenSoft.HexManiac.Tests {
                   "0.3.0",
                   "0.3.5",
                   "0.4.0",
+                  "0.4.4.7"
                }) {
                   var tomlPath = "_" + toml + ".toml";
                   yield return new object[] { gamePath, tomlPath };
