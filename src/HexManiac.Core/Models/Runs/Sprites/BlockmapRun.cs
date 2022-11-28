@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
@@ -317,6 +318,24 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          if (!IsCompressed) return ReadUncompressedTiles();
          int start = ReadPointer(4);
          if (start < 0 || start > model.Count) return null;
+
+         // try to silently replace noinfo run with tileset run
+         var existingRun = model.GetNextRun(start);
+         if (existingRun is NoInfoRun && existingRun.Start == start) {
+            var formatRun = new LzTilesetRun(new TilesetFormat(4, null), model, start);
+            var conflict = false;
+            for (var nextRun = model.GetNextRun(start + 1); nextRun.Start < formatRun.Start + formatRun.Length; nextRun = model.GetNextRun(nextRun.Start + nextRun.Length)) {
+               if (nextRun is PointerRun) continue; // probably false pointer
+               if (nextRun is PCSRun pcsRun && model.GetAnchorFromAddress(-1, pcsRun.Start) == null) continue; // probably false text
+               conflict = true;
+               break;
+            }
+            if (formatRun.Length > 1 && !conflict) {
+               model.ClearFormat(new NoTrackChange(), formatRun.Start, formatRun.Length);
+               model.ObserveRunWritten(new NoTrackChange(), formatRun);
+            }
+         }
+
          var run = new LzTilesetRun(new TilesetFormat(4, null), model, start);
          var fullData = run.GetPixels(model, 0, 1);
          var list = new List<int[,]>();
@@ -362,7 +381,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       private int WriteUncompressedTiles(int[][,] tiles, ModelDelta token) {
-         // TODO this current doesn't worry about repointing or expansion, but it probably should
+         // TODO this currently doesn't worry about repointing or expansion, but it probably should
          var start = ReadPointer(4);
          for (int i = 0; i < tiles.Length; i++) {
             for (int y = 0; y < 8; y++) {

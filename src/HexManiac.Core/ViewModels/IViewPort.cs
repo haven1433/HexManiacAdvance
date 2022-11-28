@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       IReadOnlyList<IContextItem> GetContextMenuItems(Point point, IFileSystem fileSystem);
    }
 
-   public interface IEditableViewPort : IViewPort, IRaiseMessageTab {
+   public interface IEditableViewPort : IViewPort, IRaiseMessageTab, IRaiseErrorTab {
       Task InitializationWorkload { get; }
       MapEditorViewModel MapEditor { get; }
       bool AllowSingleTableMode { get; set; }

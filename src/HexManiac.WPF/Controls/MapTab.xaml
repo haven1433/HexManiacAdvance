@@ -675,7 +675,7 @@
             </Grid>
             <Grid Height="20" Margin="0,5,0,25">
                <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" />
-               <Popup DataContext="{Binding PrimaryMap.MapRepointer}" Width="300" Height="320" IsOpen="{Binding IsChecked, ElementName=DataOperations}" StaysOpen="{Binding IsMouseOver, ElementName=DataOperations}">
+               <Popup DataContext="{Binding PrimaryMap.MapRepointer}" Width="420" Height="320" IsOpen="{Binding IsChecked, ElementName=DataOperations}" StaysOpen="{Binding IsMouseOver, ElementName=DataOperations}">
                   <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
                      <Grid>
                         <Grid.RowDefinitions>
@@ -696,6 +696,8 @@
                            <ColumnDefinition />
                            <ColumnDefinition />
                            <ColumnDefinition />
+                           <ColumnDefinition />
+                           <ColumnDefinition />
                         </Grid.ColumnDefinitions>
                         <Grid.Resources>
                            <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -709,64 +711,123 @@
                               <Setter Property="Margin" Value="0,4,0,0" />
                               <Setter Property="HorizontalContentAlignment" Value="Center" />
                            </Style>
+                           <Style TargetType="local:AngleMenuItem" BasedOn="{StaticResource {x:Type local:AngleMenuItem}}">
+                              <Setter Property="Header" Value="File" />
+                              <Setter Property="Width" Value="56" />
+                              <Setter Property="Margin" Value="0,8,0,4" />
+                              <Setter Property="Background" Value="{DynamicResource Backlight}" />
+                           </Style>
+                           <Style TargetType="Menu" BasedOn="{StaticResource {x:Type Menu}}">
+                              <Setter Property="Background" Value="Transparent" />
+                              <Setter Property="HorizontalAlignment" Value="Center" />
+                              <Setter Property="VerticalAlignment" Value="Center" />
+                           </Style>
                         </Grid.Resources>
                         <!-- Repoint Layout -->
-                        <local:AngleButton Content="Repoint Layout" Direction="Out" Grid.ColumnSpan="5" Width="200"
+                        <local:AngleButton Content="Repoint Layout" Direction="Out" Grid.ColumnSpan="7" Width="200"
                                            ToolTip="{Binding RepointLayoutText}" Command="{Binding RepointLayout}" />
                         <!-- Repoint Border Block -->
-                        <local:AngleButton Content="Repoint Border Block" Direction="Out" Grid.Row="1" Grid.ColumnSpan="5" Width="200"
+                        <Menu Grid.Row="1" Grid.Column="0">
+                           <local:AngleMenuItem Direction="Left">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportBorderBlock}" ToolTip="Import a single .bin file." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportBorderBlock}" ToolTip="Export a single .bin file." />
+                           </local:AngleMenuItem>
+                        </Menu>
+                        <local:AngleButton Content="Repoint Border Block" Direction="Out" Grid.Row="1" Grid.ColumnSpan="7" Width="200"
                                            ToolTip="{Binding RepointBorderText}" Command="{Binding RepointBorderBlock}" />
                         <!-- Repoint Blockmap -->
-                        <local:AngleButton Content="Repoint Blockmap" Direction="Out" Grid.Row="2" Grid.ColumnSpan="5" Width="200"
+                        <Menu Grid.Row="2" Grid.Column="0">
+                           <local:AngleMenuItem Direction="Left">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportBlockMap}" ToolTip="Import a single .bin file." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportBlockMap}" ToolTip="Export a single .bin file." />
+                           </local:AngleMenuItem>
+                        </Menu>
+                        <local:AngleButton Content="Repoint Blockmap" Direction="Out" Grid.Row="2" Grid.ColumnSpan="7" Width="200"
                                            ToolTip="{Binding RepointBlockMap}" Command="{Binding RepointBlockMap}" />
                         <!-- Primary / Secondary lables -->
-                        <local:AngleBorder Content="Primary" Direction="Left" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="2" />
-                        <local:AngleBorder Content="Secondary" Direction="Right" Grid.Row="3" Grid.Column="3" Grid.ColumnSpan="2" />
-                        <!-- Repoint Primary Blockset -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="2"
+                        <local:AngleBorder Content="Primary" Direction="Left" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" />
+                        <local:AngleBorder Content="Secondary" Direction="Right" Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="3" />
+                        <!-- Repoint Blockset -->
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2"
                                            ToolTip="{Binding RepointPrimaryBlocksetText}" Command="{Binding RepointPrimaryBlockset}" />
-                        <local:AngleBorder Content="Blockset" Direction="Out" Grid.Row="4" Grid.Column="2" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="4" Grid.Column="3" Grid.ColumnSpan="2"
+                        <local:AngleBorder Content="Blockset" Direction="Out" Grid.Row="4" Grid.Column="3" />
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="4" Grid.Column="4" Grid.ColumnSpan="2"
                                            ToolTip="{Binding RepointSecondaryBlocksetText}" Command="{Binding RepointSecondaryBlockset}" />
-                        <!-- Expand Primary Blocks/Attributes -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="5" Grid.Column="0"
+                        <!-- Expand Blocks/Attributes -->
+                        <Menu Grid.Row="5" Grid.Column="0" ToolTip="Blocks are stored as a pair of .bin files, one for the visuals and one for the attributes.">
+                           <local:AngleMenuItem Direction="Left">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportPrimaryBlocks}" ToolTip="Import a pair of .bin files." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportPrimaryBlocks}" ToolTip="Export a pair of .bin files." />
+                           </local:AngleMenuItem>
+                        </Menu>
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="5" Grid.Column="1"
                                            ToolTip="{Binding RepointPrimaryBlocksText}" Command="{Binding RepointPrimaryBlocks}" />
-                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="5" Grid.Column="1"
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="5" Grid.Column="2"
                                            ToolTip="{Binding ExpandPrimaryBlocksText}" Command="{Binding ExpandPrimaryBlocks}" />
-                        <local:AngleBorder Content="Blocks" Direction="Out" Grid.Row="5" Grid.Column="2" />
+                        <local:AngleBorder Content="Blocks" Direction="Out" Grid.Row="5" Grid.Column="3" />
 
-                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="5" Grid.Column="3"
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="5" Grid.Column="4"
                                            ToolTip="{Binding ExpandSecondaryBlocksText}" Command="{Binding ExpandSecondaryBlocks}" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="5" Grid.Column="4"
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="5" Grid.Column="5"
                                            ToolTip="{Binding RepointSecondaryBlocksText}" Command="{Binding RepointSecondaryBlocks}" />
+                        <Menu Grid.Row="5" Grid.Column="6" ToolTip="Blocks are stored as a pair of .bin files, one for the visuals and one for the attributes.">
+                           <local:AngleMenuItem Direction="Right">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportSecondaryBlocks}" ToolTip="Import a pair of .bin files." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportSecondaryBlocks}" ToolTip="Export a pair of .bin files." />
+                           </local:AngleMenuItem>
+                        </Menu>
                         <!-- Tileset -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="6" Grid.Column="0"
+                        <Menu Grid.Row="6" Grid.Column="0" ToolTip="Tilesets are stored as a single .bin file that contains all the tiles.">
+                           <local:AngleMenuItem Direction="Left">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportPrimaryTileset}" ToolTip="Import a single .bin file." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportPrimaryTileset}" ToolTip="Export a single .bin file." />
+                           </local:AngleMenuItem>
+                        </Menu>
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="6" Grid.Column="1"
                                            ToolTip="{Binding RepointPrimaryTilesetText}" Command="{Binding RepointPrimaryTileset}" />
-                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="6" Grid.Column="1"
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="6" Grid.Column="2"
                                            ToolTip="{Binding ExpandPrimaryTilesetText}" Command="{Binding ExpandPrimaryTileset}" />
-                        <local:AngleBorder Content="Tileset" Direction="Out" Grid.Row="6" Grid.Column="2" />
-                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="6" Grid.Column="3"
+                        <local:AngleBorder Content="Tileset" Direction="Out" Grid.Row="6" Grid.Column="3" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="6" Grid.Column="4"
                                            ToolTip="{Binding ExpandSecondaryTilesetText}" Command="{Binding ExpandSecondaryTileset}" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="6" Grid.Column="4"
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="6" Grid.Column="5"
                                            ToolTip="{Binding RepointSecondaryTilesetText}" Command="{Binding RepointSecondaryTileset}" />
+                        <Menu Grid.Row="6" Grid.Column="6" ToolTip="Tilesets are stored as a single .bin file that contains all the tiles.">
+                           <local:AngleMenuItem Direction="Right">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportSecondaryTileset}" ToolTip="Import a single .bin file."/>
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportSecondaryTileset}" ToolTip="Export a single .bin file." />
+                           </local:AngleMenuItem>
+                        </Menu>
                         <!-- Palette -->
-                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="7" Grid.Column="0"
+                        <Menu Grid.Row="7" Grid.Column="0" ToolTip="Palettes are stored as 16 .pal files, one for each palette in the collection.">
+                           <local:AngleMenuItem Direction="Left">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportPrimaryPalette}" ToolTip="Import files named 00.pal, 01.pal, ... 0F.pal, 10.pal from a single folder." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportPrimaryPalette}" ToolTip="Export files named 00.pal, 01.pal, ... 0F.pal, 10.pal to a single folder." />
+                           </local:AngleMenuItem>
+                        </Menu>
+                        <local:AngleButton Content="Repoint" Direction="Left" Grid.Row="7" Grid.Column="1"
                                            ToolTip="{Binding RepointPrimaryPaletteText}" Command="{Binding RepointPrimaryPalette}" />
-                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="7" Grid.Column="1"
+                        <local:AngleButton Content="Expand" Direction="Left" Grid.Row="7" Grid.Column="2"
                                            ToolTip="{Binding ExpandPrimaryPaletteText}" Command="{Binding ExpandPrimaryPalette}" />
-                        <local:AngleBorder Content="Palette" Direction="Out" Grid.Row="7" Grid.Column="2" />
-                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="7" Grid.Column="3"
+                        <local:AngleBorder Content="Palette" Direction="Out" Grid.Row="7" Grid.Column="3" />
+                        <local:AngleButton Content="Expand" Direction="Right" Grid.Row="7" Grid.Column="4"
                                            ToolTip="{Binding ExpandSecondaryPaletteText}" Command="{Binding ExpandSecondaryPalette}" />
-                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="7" Grid.Column="4"
+                        <local:AngleButton Content="Repoint" Direction="Right" Grid.Row="7" Grid.Column="5"
                                            ToolTip="{Binding RepointSecondaryPaletteText}" Command="{Binding RepointSecondaryPalette}" />
+                        <Menu Grid.Row="7" Grid.Column="6" ToolTip="Palettes are stored as 16 .pal files, one for each palette in the collection.">
+                           <local:AngleMenuItem Direction="Right">
+                              <MenuItem Header="Import" Command="{res:MethodCommand ImportSecondaryPalette}" ToolTip="Import files named 00.pal, 01.pal, ... 0F.pal, 10.pal from a single folder." />
+                              <MenuItem Header="Export" Command="{res:MethodCommand ExportSecondaryPalette}" ToolTip="Export files named 00.pal, 01.pal, ... 0F.pal, 10.pal to a single folder." />
+                           </local:AngleMenuItem>
+                        </Menu>
                         <!-- Create Primary Animations -->
-                        <local:AngleButton Content="Create" Direction="Left" Grid.Row="8" Grid.Column="0"
+                        <local:AngleButton Content="Create" Direction="Left" Grid.Row="8" Grid.Column="1"
                                            ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreatePrimaryTilesetAnimations}" />
-                        <local:AngleBorder Content="Animation" Direction="Out" Grid.Row="8" Grid.Column="1" Grid.ColumnSpan="3" />
-                        <local:AngleButton Content="Create" Direction="Right" Grid.Row="8" Grid.Column="4"
+                        <local:AngleBorder Content="Animation" Direction="Out" Grid.Row="8" Grid.Column="2" Grid.ColumnSpan="3" />
+                        <local:AngleButton Content="Create" Direction="Right" Grid.Row="8" Grid.Column="5"
                                            ToolTip="{Binding CreatePrimaryTilesetAnimationsText}" Command="{Binding CreateSecondaryTilesetAnimations}" />
                         <!-- Duplicate Map (Using Same Layout) -->
-                        <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.ColumnSpan="5" Width="200"
+                        <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.Column="1" Grid.ColumnSpan="5" Width="200"
                                            ToolTip="{Binding DuplicateMapText}" Command="{Binding DuplicateMap}" />
                      </Grid>
                   </Border>

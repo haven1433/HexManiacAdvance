@@ -2,11 +2,13 @@
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Diagnostics.Metrics;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -17,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private readonly Format format;
       private readonly IFileSystem fileSystem;
+      private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly int mapID; // bank * 1000 + map
@@ -68,13 +71,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public event EventHandler<DataMovedEventArgs> DataMoved;
+      public event EventHandler<DataMovedEventArgs> DataMoved; // also works as a "data changed" (request refresh) if the arg is null
       public event EventHandler<ChangeMapEventArgs> ChangeMap;
 
-      public MapRepointer(Format format, IFileSystem fileSystem, IDataModel model, ChangeHistory<ModelDelta> history, int mapID) {
+      public MapRepointer(Format format, IFileSystem fileSystem, IEditableViewPort viewPort, ChangeHistory<ModelDelta> history, int mapID) {
          this.format = format;
          this.fileSystem = fileSystem;
-         this.model = model;
+         this.viewPort = viewPort;
+         this.model = viewPort.Model;
          this.history = history;
          this.mapID = mapID;
       }
@@ -158,6 +162,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ExecuteRepointLayoutMember(Format.BorderBlock, count * 2, repointBorderBlock);
       }
 
+      public void ImportBorderBlock() {
+         var layout = GetLayout();
+         var count = 4;
+         if (layout.HasField(Format.BorderWidth) && layout.HasField(Format.BorderHeight)) {
+            count = Math.Max(4, layout.GetValue(Format.BorderWidth) * layout.GetValue(Format.BorderHeight));
+         }
+
+         if (ImportBytes(layout.GetAddress(Format.BorderBlock), count * 2)) DataMoved.Raise(this, null);
+      }
+
+      public void ExportBorderBlock() {
+         var layout = GetLayout();
+         var count = 4;
+         if (layout.HasField(Format.BorderWidth) && layout.HasField(Format.BorderHeight)) {
+            count = Math.Max(4, layout.GetValue(Format.BorderWidth) * layout.GetValue(Format.BorderHeight));
+         }
+
+         ExportBytes(layout.GetAddress(Format.BorderBlock), count * 2);
+      }
+
       public string RepointBlockMapText => $"This BlockMap is used by {CountLayoutMemberSources(Format.BlockMap)} layouts.";
 
       private bool CanRepointBlockMap() => CountLayoutMemberSources(Format.BlockMap) > 1;
@@ -166,6 +190,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          ExecuteRepointLayoutMember(Format.BlockMap, width * height * 2, repointBlockMap);
+      }
+
+      public void ImportBlockMap() {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var size = width * height * 2;
+         var address = layout.GetAddress(Format.BlockMap);
+
+         if (ImportBytes(address, size)) DataMoved.Raise(this, null);
+      }
+
+      public void ExportBlockMap() {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var size = width * height * 2;
+         var address = layout.GetAddress(Format.BlockMap);
+
+         ExportBytes(address, size);
       }
 
       public string RepointPrimaryBlocksetText => $"This primary blockset is used by {CountLayoutMemberSources(Format.PrimaryBlockset)} layouts.";
@@ -231,6 +273,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       #region Blocks / Tilesets / Palettes
+
+      #region Blocks
 
       public string RepointPrimaryBlocksText => $"These primary blocks are used by {CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Blocks)} blocksets.";
 
@@ -326,6 +370,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BlocksetModel.EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
          return (blockCount, maxBlockCount);
       }
+
+      public void ExportPrimaryBlocks() => ExportBlocks(true);
+
+      public void ImportPrimaryBlocks() => ImportBlocks(true);
+
+      public void ExportSecondaryBlocks() => ExportBlocks(false);
+
+      public void ImportSecondaryBlocks() => ImportBlocks(false);
+
+      private void ExportBlocks(bool primary) {
+         var layout = GetLayout();
+         var (blockCount, maxBlockCount) = EstimateBlockCount(layout, primary);
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var blockStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.Blocks);
+         var attributeStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.BlockAttributes);
+         var attributeSize = model.IsFRLG() ? 2 : 1;
+         if (ExportBytes(blockStart, blockCount * 16)) {
+            ExportBytes(attributeStart, blockCount * attributeSize);
+         }
+      }
+
+      private void ImportBlocks(bool primary) {
+         var layout = GetLayout();
+         var (blockCount, maxBlockCount) = EstimateBlockCount(layout, primary);
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var blockStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.Blocks);
+         var attributeStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.BlockAttributes);
+         var attributeSize = model.IsFRLG() ? 2 : 1;
+         if (ImportBytes(blockStart, blockCount * 16)) {
+            if (ImportBytes(attributeStart, blockCount * attributeSize)) {
+               DataMoved.Raise(this, null);
+            }
+         }
+      }
+
+      #endregion
+
+      #region Tilesets
 
       public string RepointPrimaryTilesetText {
          get {
@@ -430,6 +512,62 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return (currentTiles, maxTiles);
       }
 
+      public void ExportPrimaryTileset() => ExportTileset(true);
+
+      public void ImportPrimaryTileset() => ImportTileset(true);
+
+      public void ExportSecondaryTileset() => ExportTileset(false);
+
+      public void ImportSecondaryTileset() => ImportTileset(false);
+
+      private void ExportTileset(bool primary) {
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var (currentTiles, maxTiles) = EstimateTileCount(blockset);
+         var start = blockset.GetAddress(Format.Tileset);
+         var isCompressed = blockset.GetValue("isCompressed") != 0;
+         if (isCompressed) {
+            var run = new LZRun(model, start);
+            ExportBytes(start, run.Length);
+         } else {
+            ExportBytes(start, currentTiles * 0x20);
+         }
+      }
+
+      private void ImportTileset(bool primary) {
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var (currentTiles, maxTiles) = EstimateTileCount(blockset);
+         var start = blockset.GetAddress(Format.Tileset);
+         var isCompressed = blockset.GetValue("isCompressed") != 0;
+         if (isCompressed) {
+            var file = fileSystem.OpenFile("Byte File", "bin");
+            if (file == null) return;
+            var existingRun = model.GetNextRun(start);
+            var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), file.Contents.Length);
+            history.CurrentChange.ChangeData(model, newRun.Start, file.Contents);
+            if (newRun is LzTilesetRun tsRun) {
+               tsRun = new LzTilesetRun(tsRun.TilesetFormat, model, tsRun.Start, tsRun.PointerSources);
+               model.ObserveRunWritten(history.CurrentChange, tsRun);
+            }
+            if (newRun.Start != start) {
+               DataMoved.Raise(this, new("Tileset", newRun.Start));
+            } else {
+               DataMoved.Raise(this, null);
+            }
+         } else {
+            if (ImportBytes(start, currentTiles * 0x20)) {
+               DataMoved.Raise(this, null);
+            }
+         }
+      }
+
+      #endregion
+
+      #region Palettes
+
       public string RepointPrimaryPalettesText => $"These primary palettes are used by {CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Palette)} blocksets.";
 
       private bool CanRepointPrimaryPalette() => CountBlocksetMemberSources(Format.PrimaryBlockset, Format.Palette) > 1;
@@ -458,6 +596,71 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void ExecuteExpandSecondaryPalette() => throw new NotImplementedException();
 
+      public void ExportPrimaryPalette() => ExportPalette(true);
+
+      public void ImportPrimaryPalette() => ImportPalette(true);
+
+      public void ExportSecondaryPalette() => ExportPalette(false);
+
+      public void ImportSecondaryPalette() => ImportPalette(false);
+
+      private void ExportPalette(bool primary) {
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var start = blockset.GetAddress(Format.Palette);
+         var folder = fileSystem.OpenFolder();
+         if (folder == null) return;
+         for (int i = 0; i < 16; i++) ExportPal(folder, i, start + i * 32);
+      }
+
+      private void ExportPal(string folder, int nameIndex, int start) {
+         var content = new StringBuilder();
+         content.AppendLine("JASC-PAL");
+         content.AppendLine("0100");
+         content.AppendLine("16");
+         for (int i = 0; i < 16; i++) {
+            var color = model.ReadMultiByteValue(start + i * 2, 2);
+            var (r, g, b) = UncompressedPaletteColor.ToRGB((short)color);
+            r = r * 255 / 31;
+            g = g * 255 / 31;
+            b = b * 255 / 31;
+            content.AppendLine($"{r} {g} {b}");
+         }
+         fileSystem.Save(new(folder + "/" + nameIndex.ToString("X2") + ".pal", Encoding.ASCII.GetBytes(content.ToString())));
+         viewPort.RaiseMessage($"Exported palettes to {folder}");
+      }
+
+      private void ImportPalette(bool primary) {
+         var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         var layout = GetLayout();
+         var blockset = layout.GetSubTable(blocksetName)[0];
+         var start = blockset.GetAddress(Format.Palette);
+         var folder = fileSystem.OpenFolder();
+         if (folder == null) return;
+         for (int i = 0; i < 16; i++) ImportPal(folder, i, start + i * 32);
+         DataMoved.Raise(this, null);
+      }
+
+      private void ImportPal(string folder, int nameIndex, int start) {
+         var file = fileSystem.LoadFile(folder + "/" + nameIndex.ToString("X2") + ".pal");
+         if (file == null) return;
+         var lines = Encoding.ASCII.GetString(file.Contents).SplitLines();
+         foreach (var line in lines) {
+            var parts = line.Split(' ');
+            if (parts.Length != 3) continue;
+            if (!parts[0].TryParseInt(out var r)) continue;
+            if (!parts[1].TryParseInt(out var g)) continue;
+            if (!parts[2].TryParseInt(out var b)) continue;
+            r /= 8;
+            g /= 8;
+            b /= 8;
+            model.WriteMultiByteValue(start, 2, history.CurrentChange, UncompressedPaletteColor.Pack(r, g, b));
+            start += 2;
+         }
+      }
+
+      #endregion
 
       private int CountBlocksetMemberSources(string blocksetName, string member) {
          var layout = GetLayout();
@@ -670,6 +873,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void WritePointerAndSource(ModelDelta token, int source, int destination) {
          model.WritePointer(token, source, destination);
          model.ObserveRunWritten(token, NoInfoRun.FromPointer(model, source));
+      }
+
+      private bool ImportBytes(int address, int size) {
+         var file = fileSystem.OpenFile("Byte File", "bin");
+         if (file == null) return false;
+         var bytes = file.Contents;
+
+         if (size != bytes.Length) {
+            viewPort.RaiseError($"Expected a file with {size} bytes, but got {bytes.Length} instead.");
+            return false;
+         }
+         viewPort.ChangeHistory.CurrentChange.ChangeData(model, address, bytes);
+         return true;
+      }
+
+      private bool ExportBytes(int address, int size) {
+         var content = new byte[size];
+         Array.Copy(model.RawData, address, content, 0, size);
+         var newName = fileSystem.RequestNewName(string.Empty, "Byte File", "bin");
+         if (newName == null) return false;
+         return fileSystem.Save(new(newName, content));
       }
 
       #endregion

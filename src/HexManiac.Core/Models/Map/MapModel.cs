@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public static string SecondaryBlockset => "blockdata2";
       public static string Tileset => "tileset";
       public static string BlockAttributes => "attributes";
-      public static string Blocks => "block";
+      public static string Blocks => "blockset";
       public static string TileAnimationRoutine => "animation";
       public static string Palette => "pal";
       public static string BorderWidth => "borderwidth";

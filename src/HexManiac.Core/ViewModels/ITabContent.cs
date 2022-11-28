@@ -56,6 +56,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       void RaiseMessage(string message);
    }
 
+   public interface IRaiseErrorTab : ITabContent {
+      void RaiseError(string message);
+   }
+
    public class CanDiffEventArgs : EventArgs {
       public Direction Direction { get; }
       public bool Result { get; set; }
