@@ -12,7 +12,7 @@
 09 playse effect:
 0A monbg battler.
 0B clearmonbg battler.
-0C setalpha ev:
+0C setalpha eva. evb.
 0D blendoff
 0E call pointer<>
 0F return
@@ -24,27 +24,27 @@
 15 restorebg
 16 waitbgfadeout
 17 waitbgfadein
-18 changebg
+18 changebg bg.
 19 playsewithpan se: pan.
 1A setpan pan.
-1B panse_1B se: param1. param2. param3. param4.
+1B panse se: param1. param2. param3. param4.
 1C loopsewithpan se: pan. wait. times.
 1D waitplaysewithpan se: pan. wait.
 1E setbldcnt param0:
 1F createsoundtask address<> [argv:]
 20 waitsound
 21 jumpargeq param0. param1: ptr<>
-22 monbg_22 battler.
-23 clearmonbg_23 battler.
+22 monbg_static battler.
+23 clearmonbg_static battler.
 24 jumpifcontest ptr<>
 25 fadetobgfromset param0. praam1. param2.
-26 panse_26 se: param1. param2. param3. param4.
-27 panse_27 se: param1. param2. param3. param4.
-28 monbgprio_28 battler.
-29 monbgprio_29
-2A monbgprio_2A battler.
+26 panse_adjustnone se: param1. param2. param3. param4.
+27 panse_adjustall se: param1. param2. param3. param4.
+28 splitbgprio battler.
+29 splitbgprio_all
+2A splitbgprio_foes battler.
 2B invisible battler.
 2C visible battler.
-2D doublebattle_2D battler.
-2E doublebattle_2E battler.
+2D teamattack_moveback battler.
+2E teamattack_movefwd battler.
 2F stopsound
