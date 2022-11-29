@@ -73,6 +73,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return EllipsedLines(stream.ToString().SplitLines());
          } else if (destinationRun is BlockmapRun blockmapRun) {
             var canvas = model.CurrentCacheScope.GetImage(blockmapRun);
+            if (canvas == null) return null;
             return new ReadonlyPixelViewModel(canvas.PixelWidth, canvas.PixelHeight, canvas.PixelData, canvas.Transparent);
          } else {
             return null;

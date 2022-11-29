@@ -192,6 +192,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       }
 
       public static IPixelViewModel BuildSprite(IDataModel model, BlockmapRun run) {
+         if (!IDataModelExtensions.EditorReleased) return null;
          var primarySource = run.PointerSources[0];
          var blocks1 = new BlocksetModel(model, model.ReadPointer(primarySource + 4));
          var blocks2 = new BlocksetModel(model, model.ReadPointer(primarySource + 8));

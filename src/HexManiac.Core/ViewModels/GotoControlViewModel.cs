@@ -319,6 +319,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return options;
       }
 
+      public static bool EditorReleased => mapEditorRelease.Value;
+
       private static readonly Lazy<bool> mapEditorRelease;
       static IDataModelExtensions() {
          TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
