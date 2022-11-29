@@ -7,7 +7,6 @@
 #            if (gBattleMons[gBattlerAttacker].ability != entry.ability) continue;
 #            if (gBattleMoves[gCurrentMove].type != entry.original) continue;
 #            gBattleStruct->dynamicMoveType = entry.change | 0x40;
-#            gBattleMons[battlerId].type2 = battlerHoldEffectParam
 #            gDynamicBasePower *= entry.scale / 100;
 
 
