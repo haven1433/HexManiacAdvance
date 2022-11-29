@@ -8,6 +8,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using HexManiac.Core.Models.Runs.Sprites;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
    public class ToolTipContentVisitor : IDataFormatVisitor {
@@ -70,6 +71,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             var stream = new StringBuilder();
             arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), false);
             return EllipsedLines(stream.ToString().SplitLines());
+         } else if (destinationRun is BlockmapRun blockmapRun) {
+            var canvas = model.CurrentCacheScope.GetImage(blockmapRun);
+            return new ReadonlyPixelViewModel(canvas.PixelWidth, canvas.PixelHeight, canvas.PixelData, canvas.Transparent);
          } else {
             return null;
          }

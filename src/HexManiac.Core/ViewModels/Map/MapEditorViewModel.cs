@@ -1556,8 +1556,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var bank in AllMapsModel.Create(model, null)) {
             foreach (var map in bank) {
                var layout = map.Layout;
-               primary.Add(layout.PrimaryBlockset.Start);
-               secondary.Add(layout.SecondaryBlockset.Start);
+               if (layout.PrimaryBlockset != null) primary.Add(layout.PrimaryBlockset.Start);
+               if (layout.SecondaryBlockset != null) secondary.Add(layout.SecondaryBlockset.Start);
             }
          }
 

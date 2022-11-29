@@ -38,8 +38,9 @@ namespace HexManiac.Core.Models.Runs.Factory {
       }
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
+         var sanitySize = 100000;
          var runAttempt = new BlockmapRun(model, run.Start, run.PointerSources);
-         if (runAttempt.Length > 0) {
+         if (runAttempt.Length > 0 && runAttempt.BlockWidth <= sanitySize && runAttempt.BlockHeight <= sanitySize) {
             run = runAttempt.MergeAnchor(run.PointerSources);
             model.ClearFormat(token, run.Start, run.Length);
          }
