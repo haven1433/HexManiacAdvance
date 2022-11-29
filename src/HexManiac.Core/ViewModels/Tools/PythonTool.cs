@@ -35,6 +35,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public ErrorInfo RunPythonScript(string code) {
+         if (editor.SelectedTab is IEditableViewPort vp) {
+            var anchors = AnchorGroup.GetTopLevelAnchorGroups(vp.Model, () => vp.ChangeHistory.CurrentChange);
+            foreach (var key in anchors.Keys) scope.SetVariable(key, anchors[key]);
+         }
          try {
             var result = engine.Execute(code, scope);
             string resultText = result?.ToString();

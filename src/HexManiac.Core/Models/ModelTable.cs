@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models {
-   public class ModelTable : IReadOnlyList<ModelArrayElement> {
+   public class ModelTable : DynamicObject, IReadOnlyList<ModelArrayElement> {
       private readonly IDataModel model;
       private readonly int arrayAddress;
       private readonly Func<ModelDelta> tokenFactory;
@@ -43,6 +43,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          (this.model, arrayAddress) = (model, address);
          run = tableRun ?? model.GetNextRun(address) as ITableRun;
          this.tokenFactory = tokenFactory ?? (() => new NoDataChangeDeltaModel());
+      }
+
+      public override bool TryGetMember(GetMemberBinder binder, out object? result) {
+         result = this[binder.Name];
+         return true;
       }
 
       public IEnumerator<ModelArrayElement> GetEnumerator() {
@@ -447,5 +452,44 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       #endregion
+   }
+
+   public class AnchorGroup : DynamicObject {
+      private readonly IDataModel model;
+      private readonly Func<ModelDelta> tokenFactory;
+      private readonly string header;
+
+      public static IDictionary<string, AnchorGroup> GetTopLevelAnchorGroups(IDataModel model, Func<ModelDelta> tokenFactory) {
+         var topLevel = new HashSet<string>();
+         foreach (var anchor in model.Anchors) topLevel.Add(anchor.Split('.')[0]);
+         var results = new Dictionary<string, AnchorGroup>();
+         foreach (var top in topLevel) {
+            results.Add(top, new(model, tokenFactory, top));
+         }
+         return results;
+      }
+
+      public AnchorGroup(IDataModel model, Func<ModelDelta> tokenFactory, string header) {
+         this.model = model;
+         this.tokenFactory = tokenFactory;
+         this.header = header;
+      }
+
+      public override bool TryGetMember(GetMemberBinder binder, out object? result) {
+         var name = header + "." + binder.Name;
+         var address = model.GetAddressFromAnchor(tokenFactory(), -1, name);
+         if (address < 0) {
+            result = new AnchorGroup(model, tokenFactory, name);
+            return true;
+         }
+         var run = model.GetNextRun(address);
+         if (run is ITableRun table) {
+            result = new ModelTable(model, table, tokenFactory);
+            return true;
+         }
+         // TODO
+
+         return base.TryGetMember(binder, out result);
+      }
    }
 }
