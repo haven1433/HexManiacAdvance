@@ -160,8 +160,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// This lets us easily distinguish multiple elements with the same name.
       /// </summary>
       private static void AddResult(IDictionary<string, int> currentResultsCache, IList<string> results, string newResult) {
-         if (!currentResultsCache.TryGetValue(newResult, out int count)) count = 1;
-         currentResultsCache[newResult] = count + 1;
+         if (!currentResultsCache.TryGetValue(newResult.ToLower(), out int count)) count = 1;
+         currentResultsCache[newResult.ToLower()] = count + 1;
          var hasQuotes = newResult.StartsWith("\"") && newResult.EndsWith("\"");
          if (hasQuotes) newResult = newResult.Substring(1, newResult.Length - 2);
          if (count > 1) newResult += "~" + count;

@@ -1332,6 +1332,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(2, Model[2]);
       }
 
+      [Theory]
+      [InlineData("thename", 0x100)]
+      [InlineData("thename~1", 0x100)]
+      [InlineData("thename~2", 0x108)]
+      [InlineData("THENAME", 0x100)]
+      [InlineData("THENAME~1", 0x100)]
+      [InlineData("THENAME~2", 0x108)]
+      public void TwoNamesSameExceptCase_Goto_ConsidersNamesEquivalent(string target, int address) {
+         CreateTextTable("names", 0x100, "thename", "THENAME");
+
+         ViewPort.Goto.Execute(target);
+
+         var selected = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+         Assert.Equal(address, selected);
+         Assert.Empty(Errors);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
