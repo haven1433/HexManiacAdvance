@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -1232,15 +1233,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                var count = model.GetMatchingMaps(model.GotoShortcuts[i].GotoAnchor).Count;
                if (count != 1) continue;
             }
+
+            IPixelViewModel sprite;
             var spriteAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].ImageAnchor);
             var run = model.GetNextRun(spriteAddress) as BaseRun;
-            IPixelViewModel sprite;
-            if (run is ISpriteRun spriteRun) {
-               sprite = SpriteDecorator.BuildSprite(viewPort.Model, spriteRun, useTransparency: true);
-            } else if (run.CreateDataFormat(viewPort.Model, run.Start, true, 16) is SpriteDecorator decorator) {
-               sprite = decorator.Pixels;
+            if (model.GotoShortcuts[i].ImageAnchor.EndsWith("/")) {
+               var length = model.GotoShortcuts[i].ImageAnchor.Length;
+               var source = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].ImageAnchor.Substring(0, length - 1));
+               sprite = ToolTipContentVisitor.BuildContentForRun(model, source, spriteAddress, run) as IPixelViewModel;
             } else {
-               sprite = null;
+               if (run is ISpriteRun spriteRun) {
+                  sprite = SpriteDecorator.BuildSprite(viewPort.Model, spriteRun, useTransparency: true);
+               } else if (run.CreateDataFormat(viewPort.Model, run.Start, true, 16) is SpriteDecorator decorator) {
+                  sprite = decorator.Pixels;
+               } else {
+                  sprite = null;
+               }
             }
             var anchor = model.GotoShortcuts[i].GotoAnchor;
             var text = model.GotoShortcuts[i].DisplayText;

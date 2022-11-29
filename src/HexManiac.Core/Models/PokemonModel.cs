@@ -2249,7 +2249,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var gotoShortcuts = new List<StoredGotoShortcut>();
-         foreach(var shortcut in this.GotoShortcuts) {
+         foreach (var shortcut in this.GotoShortcuts) {
             gotoShortcuts.Add(new StoredGotoShortcut(shortcut.DisplayText, shortcut.ImageAnchor, shortcut.GotoAnchor));
          }
 
