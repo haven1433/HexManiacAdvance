@@ -613,7 +613,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ErrorInfo TryImport(IFileSystem fileSystem, string currentDirectory, int address, string filePath, ImportType importType) {
          try {
-            (short[] image, int width) = fileSystem.LoadImage(Path.Combine(currentDirectory, filePath));
+            var path = Path.Combine(currentDirectory, filePath);
+            (short[] image, int width) = fileSystem.LoadImage(path);
+            if (image == null) return new ErrorInfo($"Unable to load image {path}.");
             SpriteAddress = address;
             ImportSpriteAndPalette(fileSystem, image, width, importType);
             return ErrorInfo.NoError;

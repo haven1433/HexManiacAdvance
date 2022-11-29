@@ -432,7 +432,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             ShowCustomMessageBox($"Access Denied.{nl}Do you have read access to the file?{nl}Your anti-virus may be blocking {EditorViewModel.ApplicationName}.");
             return default;
          } catch (IOException io) {
-            ShowCustomMessageBox($"Error: {io.Message}.");
+            ShowCustomMessageBox($"Error: {io.Message}.", false);
             return default;
          }
       }

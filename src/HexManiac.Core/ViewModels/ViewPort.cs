@@ -1319,9 +1319,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) {
          if (file.Name.ToLower().EndsWith(".hma")) {
             var edit = Encoding.Default.GetString(file.Contents);
-            using (Scope(ref pathContext, Path.GetDirectoryName(Path.GetFullPath(file.Name)), old => pathContext = old)) {
-               Edit(edit);
-            }
+            pathContext = Path.GetDirectoryName(Path.GetFullPath(file.Name));
+            Edit(edit);
             return true;
          } else if (file.Name.ToLower().EndsWith(".ips")) {
             history.ChangeCompleted();
@@ -1533,6 +1532,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          CurrentProgressScopes.Clear();
          UpdateInProgress = false;
          skipToNextGameCode = false;
+         pathContext = null;
       }
 
       public void Edit(ConsoleKey key) {
@@ -2844,6 +2844,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       ///             works no matter what the current data is.
       /// importimage(path, greedy) -> imports over the current sprite (or pointer to sprite) using cautious, greedy, or smart.
       ///                              Path is relative to the current rom, unless loading from an .hma file.
+      /// exportimage(path) -> exports an image
       /// </summary>
       private void ExecuteMetacommand(string command) {
          command = command.ToLower();
@@ -2915,7 +2916,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                run = Model.GetNextRun(index);
             }
             var args = content.Trim().Split(' ').ToArray();
-            if (!Enum.TryParse<ImportType>(args[1], true, out var importType)) {
+            if (args.Length != 2) {
+               RaiseError($"importimage: expected 2 arguments, but got {args.Length}.");
+               exitEditEarly = true;
+            } else if (!Enum.TryParse<ImportType>(args[1], true, out var importType)) {
                RaiseError($"Expected Cautious, Greedy, or Smart, but got {args[1]}.");
                exitEditEarly = true;
             } else {
