@@ -615,10 +615,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          try {
             (short[] image, int width) = fileSystem.LoadImage(Path.Combine(currentDirectory, filePath));
             SpriteAddress = address;
-            if (!TryValidate(image, out var spriteRun, out var paletteRun)) return new ErrorInfo("Could not import.");
-            if (width != PixelWidth || PixelHeight != PixelHeight) return new ErrorInfo("Could not import.");
-            var problemPoint = ImportSinglePageSpriteAndPalette(fileSystem, image, spriteRun, paletteRun, importType);
-            if (problemPoint.X >= 0 && problemPoint.Y >= 0) return new ErrorInfo($"Error importing sprite at pixels {problemPoint}.");
+            ImportSpriteAndPalette(fileSystem, image, width, importType);
             return ErrorInfo.NoError;
          } catch (IOException io) {
             return new ErrorInfo(io.Message);
@@ -742,6 +739,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ImportSpriteAndPalette(IFileSystem fileSystem) {
          (short[] image, int width) = fileSystem.LoadImage();
+         ImportSpriteAndPalette(fileSystem, image, width);
+      }
+
+      private void ImportSpriteAndPalette(IFileSystem fileSystem, short[] image, int width, ImportType importType = ImportType.Unknown){
          if (image == null) return;
          if (!TryValidate(image, out var spriteRun, out var paletteRun)) return;
          int height = image.Length / width;
@@ -749,11 +750,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var relatedPalettes = spriteRun.FindRelatedPalettes(model);
          int relatedImageCount = relatedSprites.Count * relatedPalettes.Count;
          if (width == PixelWidth && height == PixelHeight) {
-            ImportSinglePageSpriteAndPalette(fileSystem, image, spriteRun, paletteRun);
+            ImportSinglePageSpriteAndPalette(fileSystem, image, spriteRun, paletteRun, importType);
          } else if (width == PixelWidth * spritePages && height == PixelHeight) {
-            ImportWideSpriteAndPalette(fileSystem, image, spriteRun, paletteRun);
+            ImportWideSpriteAndPalette(fileSystem, image, spriteRun, paletteRun, importType);
          } else if (width == PixelWidth && height == PixelHeight * spritePages) {
-            ImportTallSpriteAndPalette(fileSystem, image, spriteRun, paletteRun);
+            ImportTallSpriteAndPalette(fileSystem, image, spriteRun, paletteRun, importType);
          } else if (width == PixelWidth * relatedImageCount && height == PixelHeight) {
             var images = SplitHorizontally(image, width, relatedImageCount);
             var desiredImportType = ImportType.Greedy;
@@ -859,7 +860,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return (ImportType)chosenOption;
       }
 
-      private Point ImportSinglePageSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType = ImportType.Unknown, bool allowSpriteEdits = true) {
+      private Point ImportSinglePageSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType, bool allowSpriteEdits = true) {
          var result = new Point(spriteRun.SpriteFormat.TileWidth * 8, spriteRun.SpriteFormat.TileHeight * 8);
 
          var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
@@ -896,7 +897,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return result;
       }
 
-      private void ImportWideSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun) {
+      private void ImportWideSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType) {
          var imageForPage = new short[spritePages][];
          for (int i = 0; i < spritePages; i++) {
             imageForPage[i] = new short[PixelWidth * PixelHeight];
@@ -924,7 +925,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
          if (dependentSprites.Any(ds => ds is ITilesetRun)) imageType = "tilesets";
-         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun, ImportType.Unknown, out var usablePalPages);
+         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun, importType, out var usablePalPages);
 
          if (choice == ImportType.Smart) {
             var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();
@@ -939,7 +940,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
-      private void ImportTallSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun) {
+      private void ImportTallSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType) {
          var imageForPage = new short[spritePages][];
          for (int i = 0; i < spritePages; i++) {
             imageForPage[i] = new short[PixelWidth * PixelHeight];
@@ -964,7 +965,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
          string imageType = "images";
          if (dependentSprites.Any(ds => ds is ITilesetRun)) imageType = "tilesets";
-         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun, ImportType.Unknown, out var usablePalPages);
+         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun, importType, out var usablePalPages);
 
          if (choice == ImportType.Smart) {
             var otherSprites = dependentSprites.Except(new[] { spriteRun }).ToList();

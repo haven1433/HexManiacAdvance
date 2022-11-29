@@ -15,7 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public static IPixelViewModel AutoCrop(this IPixelViewModel image) {
          int top = 0, bottom = image.PixelHeight;
          while (top < image.PixelHeight && image.PixelWidth.Range().All(i => image.PixelData[top * image.PixelWidth + i] == image.Transparent)) top++;
-         while (bottom > 0 && image.PixelWidth.Range().All(i => image.PixelData[bottom * image.PixelWidth - i - 1] == image.Transparent)) bottom--;
+         while (bottom > top && image.PixelWidth.Range().All(i => image.PixelData[bottom * image.PixelWidth - i - 1] == image.Transparent)) bottom--;
          var height = bottom - top;
          while (height % 8 != 0) {
             height++;
