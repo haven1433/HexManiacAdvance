@@ -365,6 +365,12 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Errors);
       }
 
+      [Fact]
+      public void TupleFormat_Serialize_ContainsLengthForFormat() {
+         var segment = new ArrayRunTupleSegment("evs", "|hp:|atk:|def:|spd:|spatk:|spdef:", 2);
+         Assert.Equal("evs:|t|hp:|atk:|def:|spd:|spatk:|spdef:", segment.SerializeFormat);
+      }
+
       private TupleArrayElementViewModel TupleTable => (TupleArrayElementViewModel)ViewPort.Tools.TableTool.Children.Where(child => child is TupleArrayElementViewModel).Single();
    }
 }

@@ -46,7 +46,11 @@ namespace HavenSoft.HexManiac.Tests {
          var freshMetadata = freshModel.ExportMetadata(singletons.MetadataInfo);
 
          // verify that the content is the same
-         Assert.Equal(upgradedMetadata.FreeSpaceBuffer, freshMetadata.FreeSpaceBuffer);
+
+         if (!tomlName.Contains("0.4.4.7")) {
+            // in 0.4.4.7, FreeSpaceBuffer was set to 0x100, but it was later reduced to 0x40
+            Assert.Equal(upgradedMetadata.FreeSpaceBuffer, freshMetadata.FreeSpaceBuffer);
+         }
          // FreeSpaceSearch is allowed to be different
          Assert.Equal(upgradedMetadata.Version, freshMetadata.Version);
          Assert.Equal(upgradedMetadata.NextExportID, freshMetadata.NextExportID);
@@ -90,6 +94,15 @@ namespace HavenSoft.HexManiac.Tests {
                exemptFormat |= new[] { // legitimate format changes: same name, new format
                   "scripts.specials.thumb",
                   HardcodeTablesModel.WildTableName,
+               }.Contains(namedAnchor.Name);
+            }
+            if (tomlName == "_0.4.4.7.toml") {
+               exemptFormat |= new[] {
+                  "graphics.pokemon.icons.deoxys",              // sprite was discovered to be twice as tall as a normal pokemon icon (2 forms)
+                  "graphics.pokemon.animations.front",          // table was too long by 1
+                  "data.trainers.multibattle.steven.team",      // use repeated field macro for steven's moves
+                  "scripts.specials.thumb",                     // length was wrong
+                  "graphics.townmap.catchmap.conversion.kanto", // added +88 offset for elements from data.maps.names (FireRed)
                }.Contains(namedAnchor.Name);
             }
 

@@ -549,7 +549,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          get {
             var format = new StringBuilder("|");
             format.Append(Name);
-            for (var remainingWidth = BitWidth; remainingWidth > 2; remainingWidth -= 2) format.Append(":");
+            for (var remainingWidth = BitWidth; remainingWidth >= 2; remainingWidth -= 2) format.Append(":");
             if (BitWidth % 2 == 1) format.Append('.');
             if (!string.IsNullOrEmpty(SourceName)) format.Append(SourceName);
             return format.ToString();
