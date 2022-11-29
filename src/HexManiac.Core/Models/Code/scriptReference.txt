@@ -95,14 +95,14 @@
 41 warp5 mapbank. map. warp. x: y:           # probably shouldn't use
 42 getplayerpos varX: varY:                  # stores the current player position into varX and varY
 43 countPokemon                              # stores number of pokemon in your party into LASTRESULT (800D)
-44 additem item:data.items.stats quantity:              # item/quantity can both be either a literal or a variable.
-                                             # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
-45 removeitem item: quantity:                # opposite of additem. 800D is set to 0 if the removal cannot happen
-46 checkitemroom item: quantity:             # 800D is set to 1 if additem would succeed
-47 checkitem item: quantity:                 # 800D is set to 1 if removeitem would succeed
-48 checkitemtype item:                       # 800D is set to the bag pocket number of the item
-49 addpcitem item: quantity:                 # adds 'quantity' of 'item' into the PC
-4A checkpcitem item: quantity:               # 800D is set to 1 if the PC has at least 'quantity' of 'item'
+44 additem item:data.items.stats quantity:       # item/quantity can both be either a literal or a variable.
+                                                 # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
+45 removeitem item:data.items.stats quantity:    # opposite of additem. 800D is set to 0 if the removal cannot happen
+46 checkitemroom item:data.items.stats quantity: # 800D is set to 1 if additem would succeed
+47 checkitem item:data.items.stats quantity:     # 800D is set to 1 if removeitem would succeed
+48 checkitemtype item:data.items.stats           # 800D is set to the bag pocket number of the item
+49 addpcitem item:data.items.stats quantity:     # adds 'quantity' of 'item' into the PC
+4A checkpcitem item:data.items.stats quantity:   # 800D is set to 1 if the PC has at least 'quantity' of 'item'
 4B adddecoration decoration:                 # adds a decoration to the player's PC in FR/LG, this is a NOP
                                              # decoration can be either a literal or a variable
 4C removedecoration decoration:              # removes a decoration to the player's PC in FR/LG, this is a NOP
