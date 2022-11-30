@@ -1216,9 +1216,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Delete() {
          if (selectedEvent == null) return;
-         selectedEvent.Delete();
-         SelectedEvent = null;
-         primaryMap.RedrawEvents();
+         var success = selectedEvent.Delete();
+         if (success) {
+            SelectedEvent = null;
+            primaryMap.RedrawEvents();
+         } else {
+            OnError?.Raise(this, "Event is hard-coded.");
+         }
          history.ChangeCompleted();
       }
 

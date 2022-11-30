@@ -6,6 +6,15 @@
       <Canvas.Resources>
          <res:IconConverter x:Key="IconConverter" />
       </Canvas.Resources>
+      <Canvas.Style>
+         <Style TargetType="Canvas">
+            <Style.Triggers>
+               <DataTrigger Binding="{Binding CompletionPercent}" Value="100.00%">
+                  <Setter Property="Visibility" Value="Collapsed" />
+               </DataTrigger>
+            </Style.Triggers>
+         </Style>
+      </Canvas.Style>
       <ItemsControl Name="Tutorials" ItemsSource="{Binding Tutorials}" Width="400" Height="450" Canvas.Left="0">
          <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>

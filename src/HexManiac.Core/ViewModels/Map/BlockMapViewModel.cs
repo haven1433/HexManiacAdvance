@@ -1383,7 +1383,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          spawns[emptySpawn].SetValue("map", this.map);
 
          NotifyPropertyChanged(nameof(CanCreateFlyEvent));
-         return new FlyEventViewModel(model, group, this.map, tokenFactory);
+         return new FlyEventViewModel(spawns[emptySpawn], group, this.map, emptySpawn + 1);
       }
 
       // TODO use this for connections as well, since the structure is the same
@@ -1723,7 +1723,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);
          results.AddRange(events.Signposts);
-         if (events.FlyEvent != null) results.Add(events.FlyEvent);
+         results.AddRange(events.FlyEvents);
          return results;
       }
 
@@ -2038,17 +2038,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          Signposts = signpostList;
 
-         var flyEvent = new FlyEventViewModel(events.Model, bank, map, () => events.Token);
-         if (flyEvent.Valid) {
-            FlyEvent = flyEvent;
+         var flyList = new List<FlyEventViewModel>();
+         foreach (var flyEvent in FlyEventViewModel.Create(events.Model, bank, map, () => events.Token)) {
+            if (flyEvent.Valid) flyList.Add(flyEvent);
          }
+         FlyEvents = flyList;
       }
 
       public IReadOnlyList<ObjectEventViewModel> Objects { get; }
       public IReadOnlyList<WarpEventViewModel> Warps { get; }
       public IReadOnlyList<ScriptEventViewModel> Scripts { get; }
       public IReadOnlyList<SignpostEventViewModel> Signposts { get; }
-      public FlyEventViewModel FlyEvent { get; }
+      public IReadOnlyList<FlyEventViewModel> FlyEvents { get; }
 
       /*
        *  events<[objectCount. warpCount. scriptCount. signpostCount.

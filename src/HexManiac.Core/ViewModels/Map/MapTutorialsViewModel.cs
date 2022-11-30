@@ -165,6 +165,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials[i].Incomplete = false;
             Tutorials[i].TriggerAnimation();
          }
+         NotifyPropertyChanged(nameof(CompletionPercent));
       }
 
       public void Complete(Tutorial id) {

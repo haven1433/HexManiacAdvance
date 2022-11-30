@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
       void Render(IDataModel model);
-      void Delete();
+      bool Delete();
    }
 
    public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory, None }
@@ -105,42 +105,54 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
 
-      public FlyEventViewModel(IDataModel model, int bank, int map, Func<ModelDelta> tokenFactory) {
+      public static IEnumerable<FlyEventViewModel> Create(IDataModel model, int bank, int map, Func<ModelDelta> tokenFactory) {
+         var flyTable = model.GetTableModel(HardcodeTablesModel.FlySpawns, tokenFactory);
+         if (flyTable == null) yield break;
+         for (int i = 0; i < flyTable.Count; i++) {
+            var flight = flyTable[i];
+            if (flight.GetValue("bank") != bank) continue;
+            if (flight.GetValue("map") != map) continue;
+            yield return new FlyEventViewModel(flight, bank, map, i + 1);
+         }
+      }
+
+      public FlyEventViewModel(ModelArrayElement flySpot, int bank, int map, int expectedFlight) {
+         this.flySpot = flySpot;
+         var model = flySpot.Model;
+         var tokenFactory = () => flySpot.Token;
          // get the region from the map
          var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable, tokenFactory);
-         if (banks == null) return;
+         if (banks == null) return; // not valid map table
          var maps = banks[bank].GetSubTable("maps");
-         if (maps == null) return;
+         if (maps == null) return;  // not valid bank
          var table = maps[map].GetSubTable("map");
-         if (table == null) return;
+         if (table == null) return; // not valid map
          var region = table[0].GetValue(Format.RegionSection);
          if (model.IsFRLG()) region -= 88;
-         if (region < 0) return;
+         if (region < 0) return;    // not valid region section
+
+         Valid = true; // connection entries are optional
+
          var flyIndexTable = model.GetTableModel(HardcodeTablesModel.FlyConnections, tokenFactory);
          if (flyIndexTable == null) return;
          if (region >= flyIndexTable.Count) return;
-         connectionEntry = flyIndexTable[region];
-         if (flyIndexTable[region].GetValue("bank") != bank) return;
-         if (flyIndexTable[region].GetValue("map") != map) return;
-         var flyIndex = flyIndexTable[region].GetValue("flight") - 1;
-         if (flyIndex < 0) return;
-         var flyTable = model.GetTableModel(HardcodeTablesModel.FlySpawns, tokenFactory);
-         if (flyTable == null) return;
-         if (flyIndex >= flyTable.Count) return;
-         flySpot = flyTable[flyIndex];
-         if (flySpot.GetValue("bank") != bank) return;
-         if (flySpot.GetValue("map") != map) return;
-         Valid = true;
+         var entry = flyIndexTable[region];
+         if (entry.TryGetValue("flight", out int savedFlight) && savedFlight == expectedFlight) {
+            connectionEntry = entry;
+         }
       }
 
-      public void Delete() {
-         if (!Valid) return;
+      /// <returns>true if the event was deleted</returns>
+      public bool Delete() {
+         if (!Valid) return false;
+         if (connectionEntry == null) return false; // cannot delete 'special' fly events (such as the player's house)
          // set the connection table's index to 0
          connectionEntry.SetValue("flight", 0);
          flySpot.SetValue("bank", 0);
          flySpot.SetValue("map", 0);
          flySpot.SetValue("x", 0);
          flySpot.SetValue("y", 0);
+         return true;
       }
 
       public bool Equals(IEventViewModel? other) {
@@ -236,7 +248,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public BaseEventViewModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
 
-      public void Delete() => DeleteElement(parentLengthField);
+      public bool Delete() => DeleteElement(parentLengthField);
 
       public virtual bool Equals(IEventViewModel other) {
          if (other is not BaseEventViewModel bem) return false;
@@ -247,7 +259,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
-      protected void DeleteElement(string parentCountField) {
+      protected bool DeleteElement(string parentCountField) {
          var table = element.Table;
          var model = element.Model;
          var token = element.Token;
@@ -280,6 +292,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
             model.ClearFormatAndData(token, table.Start, table.Length);
          }
+         return true;
       }
 
       protected string GetText(int pointer) {
