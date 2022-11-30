@@ -363,6 +363,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private SurfConnectionViewModel surfConnection;
+      public SurfConnectionViewModel SurfConnection {
+         get {
+            if (surfConnection == null) {
+               surfConnection = new SurfConnectionViewModel(viewPort, group, map);
+               surfConnection.RequestChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
+            }
+            return surfConnection;
+         }
+      }
+
       public BlockMapViewModel(IFileSystem fileSystem, MapTutorialsViewModel tutorials, IEditableViewPort viewPort, Format format, int group, int map) {
          this.format = format;
          this.fileSystem = fileSystem;

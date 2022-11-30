@@ -673,7 +673,7 @@
                <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" SelectedIndex="{Binding PrimaryIndex}" ItemsSource="{Binding PrimaryOptions}" />
                <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" SelectedIndex="{Binding SecondaryIndex}" ItemsSource="{Binding SecondaryOptions}" Grid.Row="1" />
             </Grid>
-            <Grid Height="20" Margin="0,5,0,25">
+            <Grid Height="20" Margin="0,5">
                <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" />
                <Popup DataContext="{Binding PrimaryMap.MapRepointer}" Width="420" Height="320" IsOpen="{Binding IsChecked, ElementName=DataOperations}" StaysOpen="{Binding IsMouseOver, ElementName=DataOperations}">
                   <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
@@ -832,6 +832,28 @@
                      </Grid>
                   </Border>
                </Popup>
+            </Grid>
+            <Grid Height="24" Margin="0,5,0,25" DataContext="{Binding PrimaryMap.SurfConnection}">
+               <Menu Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding CanCreate, Converter={StaticResource BoolToVisibility}}">
+                  <local:AngleMenuItem Header="New Z-Connection" Direction="Out">
+                     <MenuItem Header="Dive to Existing Map" Command="{res:MethodCommand DiveExisting}" />
+                     <MenuItem Header="Emerge to Existing Map" Command="{res:MethodCommand EmergeExisting}" />
+                     <MenuItem Header="Dive to New Map" Command="{res:MethodCommand DiveNew}" />
+                     <MenuItem Header="Emerge to New Map" Command="{res:MethodCommand EmergeNew}" />
+                  </local:AngleMenuItem>
+               </Menu>
+               <local:AngleButton Direction="Out" Command="{res:MethodCommand FollowConnection}" Visibility="{Binding CanWarp, Converter={StaticResource BoolToVisibility}}">
+                  <local:AngleButton.Style>
+                     <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                        <Setter Property="Content" Value="Dive" />
+                        <Style.Triggers>
+                           <DataTrigger Binding="{Binding CanEmerge}" Value="True">
+                              <Setter Property="Content" Value="Emerge" />
+                           </DataTrigger>
+                        </Style.Triggers>
+                     </Style>
+                  </local:AngleButton.Style>
+               </local:AngleButton>
             </Grid>
             <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
                <Grid.ColumnDefinitions>

@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          get {
             var bank = Table[index].GetSubTable("maps");
             if (bank == null) return null;
-            return new MapBankModel(bank);
+            return new MapBankModel(bank, index);
          }
       }
       public int Count => Table.Count;
@@ -29,7 +29,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
    }
 
-   public record MapBankModel(ModelTable Table) : IEnumerable<MapModel> {
+   public record MapBankModel(ModelTable Table, int Group) : IEnumerable<MapModel> {
       public IEnumerator<MapModel> GetEnumerator() => Enumerate().GetEnumerator();
       IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          get {
             var table = Table[index].GetSubTable("map");
             if (table == null) return null;
-            return new MapModel(table[0]);
+            return new MapModel(table[0], Group, index);
          }
       }
       public int Count => Table.Count;
@@ -47,9 +47,20 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
    }
 
-   public record MapModel(ModelArrayElement Element) {
+   public record MapModel(ModelArrayElement Element, int Group = -1, int Map = -1) {
       public LayoutModel Layout => Element.TryGetSubTable(Format.Layout, out var table) ? new(table[0]) : new(null);
+
       public EventGroupModel Events => Element.TryGetSubTable(Format.Events, out var table) ? new(table[0]) : new(null);
+
+      public IList<ConnectionModel> Connections {
+         get {
+            if (Group < 0 || Map < 0) throw new InvalidOperationException("bank/map location unknown.");
+            if (!Element.TryGetSubTable(Format.Connections, out var outerTable)) return null;
+            if (!outerTable[0].TryGetSubTable(Format.Connections, out var innerTable)) return null;
+            return innerTable.Select(e => new ConnectionModel(e, Group, Map)).ToList();
+         }
+      }
+
       public BlockCells Blocks {
          get {
             var layout = Layout;
@@ -57,6 +68,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return layout.BlockMap;
          }
       }
+
       public ModelTable MapScripts {
          get => Element.GetSubTable("mapscripts");
       }
