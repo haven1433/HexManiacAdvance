@@ -214,12 +214,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public ModelTupleElement GetTuple(string fieldName) {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-         return new ModelTupleElement(model, table, arrayIndex, (ArrayRunTupleSegment)seg, tokenFactory);
+         var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
+         return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunTupleSegment)seg, tokenFactory);
       }
 
       public object this[string fieldName] {
          get {
             var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
             if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
             if (seg.Type == ElementContentType.Pointer) {
                var address = GetAddress(fieldName);
@@ -230,7 +232,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
             if (seg is ArrayRunTupleSegment tuple) {
-               return new ModelTupleElement(model, table, arrayIndex, tuple, tokenFactory);
+               return new ModelTupleElement(model, table, arrayIndex, segmentOffset, tuple, tokenFactory);
+            }
+            if (seg is ArrayRunBitArraySegment bits) {
+               return new ModelTupleElement(model, table, arrayIndex, segmentOffset, bits, tokenFactory);
             }
             return GetValue(fieldName);
          }
@@ -385,21 +390,36 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class ModelTupleElement : DynamicObject {
       private readonly IDataModel model;
       private readonly ITableRun table;
-      private readonly int arrayIndex;
+      private readonly int arrayIndex, segmentOffset;
       private readonly ArrayRunTupleSegment tuple;
       private readonly Func<ModelDelta> tokenFactory;
 
-      public ModelTupleElement(IDataModel model, ITableRun table, int arrayIndex, ArrayRunTupleSegment tuple, Func<ModelDelta> tokenFactory) {
+      public ModelTupleElement(IDataModel model, ITableRun table, int arrayIndex, int segmentOffset, ArrayRunTupleSegment tuple, Func<ModelDelta> tokenFactory) {
          this.model = model;
          this.table = table;
          this.arrayIndex = arrayIndex;
+         this.segmentOffset = segmentOffset;
          this.tuple = tuple;
+         this.tokenFactory = tokenFactory;
+      }
+
+      public ModelTupleElement(IDataModel model, ITableRun table, int arrayIndex, int segmentOffset, ArrayRunBitArraySegment bits, Func<ModelDelta> tokenFactory) {
+         var contract = "|".Join(bits.GetOptions(model).Select(option => option + "."));
+
+         this.model = model;
+         this.table = table;
+         this.arrayIndex = arrayIndex;
+         this.segmentOffset = segmentOffset;
+         this.tuple = new ArrayRunTupleSegment(bits.Name, contract, bits.Length);
          this.tokenFactory = tokenFactory;
       }
 
       public object this[string fieldName] {
          get => GetValue(fieldName);
-         set => SetValue(fieldName, (int)value);
+         set {
+            if (value is bool b) value = Convert.ToInt32(b);
+            SetValue(fieldName, (int)value);
+         }
       }
 
       public bool HasField(string name) => tuple.Elements.Any(field => field.Name == name);
@@ -414,8 +434,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public void SetValue(string fieldName, int value) {
          var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
-         var start = table.Start + table.ElementLength * arrayIndex;
-         start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
+         var start = table.Start + table.ElementLength * arrayIndex + segmentOffset;
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
          tup.Write(model, tokenFactory(), start, bitOffset, value);
       }
@@ -487,7 +506,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             result = new ModelTable(model, table, tokenFactory);
             return true;
          }
-         // TODO
+         // TODO not a table, but maybe something else (sprite, constant, text, etc)
 
          return base.TryGetMember(binder, out result);
       }
