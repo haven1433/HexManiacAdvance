@@ -1999,7 +1999,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          searchBytes.AddRange(pcsBytes.Select(b => PCSSearchByte.Create(b, matchExactCase)));
          var textResults = Model.Search(searchBytes).ToList();
-         Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, textResults);
+         Model.ConsiderResultsAsTextRuns(() => new NoTrackChange(), textResults); // don't add auto-recognized text to undo/redo
          foreach (var result in textResults) {
             // also look for elements that use that text as a name or value
             // (if matching exact case, we only want to find text: skip this step)
