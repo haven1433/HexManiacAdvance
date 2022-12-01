@@ -27,6 +27,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int TotalBlocks => 1024;
       private int PrimaryPalettes { get; } // 7
 
+      private int zIndex;
+      public int ZIndex { get => zIndex; set => Set(ref zIndex, value); }
+
       public IEditableViewPort ViewPort => viewPort;
 
       #region SelectedEvent
@@ -369,6 +372,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (surfConnection == null) {
                surfConnection = new SurfConnectionViewModel(viewPort, group, map);
                surfConnection.RequestChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
+               surfConnection.ConnectNewMap += (sender, e) => ConnectNewMap(e);
+               surfConnection.ConnectExistingMap += (sender, e) => ConnectExistingMap(e);
+               surfConnection.RequestRemoveConnection += (sender, e) => {
+                  var connections = AllMapsModel.Create(model, tokenFactory)[group][map].Connections;
+                  var toRemove = connections.Count.Range().Where(i => connections[i].Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)).ToList();
+                  RemoveConnections(toRemove);
+               };
             }
             return surfConnection;
          }
@@ -1133,13 +1143,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
 
-         var otherMap = CreateNewMap(token, option, info.Size, info.Size);
+         var (width, height) = (info.Size, info.Size);
+         var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
+         if (isZConnection) height = info.Offset;
+         var otherMap = CreateNewMap(token, option, width, height);
 
          newConnection.MapGroup = otherMap.group;
          newConnection.MapNum = otherMap.map;
-         info = new ConnectionInfo(info.Size, -info.Offset, info.OppositeDirection);
+         info = new ConnectionInfo(info.Size, isZConnection ? 0 : -info.Offset, info.OppositeDirection);
          newConnection = otherMap.AddConnection(info);
-         newConnection.Offset = info.Offset;
+         newConnection.Offset = isZConnection ? 0 : info.Offset;
          newConnection.MapGroup = MapID / 1000;
          newConnection.MapNum = MapID % 1000;
 
@@ -1196,7 +1209,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          tutorials.Complete(Tutorial.RightClick_CreateConnection);
          var option = fileSystem.ShowOptions(
-            "Pick a group",
+            "Pick a map",
             "Which map do you want to connect to?",
             new[] { new[] { enumViewModel } },
             new VisualOption { Index = 1, Option = "OK", ShortDescription = "Connect Existing Map" });
@@ -1213,6 +1226,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             info = info with { Offset = info.Offset - (otherSize.height - info.Size) / 2 };
          } else if (info.Direction.IsAny(MapDirection.Up, MapDirection.Down)) {
             info = info with { Offset = info.Offset - (otherSize.width - info.Size) / 2 };
+         } else if (info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) {
+            info = info with { Offset = 0 };
          }
 
          var newConnection = AddConnection(info);
@@ -1222,6 +1237,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapNum = choice % 1000;
 
          info = options[choice];
+         if (info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) info = info with { Offset = 0 };
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
          newConnection.MapGroup = MapID / 1000;
@@ -1476,6 +1492,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (connection.Direction == MapDirection.Right) vm.LeftEdge = LeftEdge + (int)(PixelWidth * SpriteScale);
          if (connection.Direction == MapDirection.Up) vm.TopEdge = TopEdge - (int)(vm.PixelHeight * SpriteScale);
          if (connection.Direction == MapDirection.Down) vm.TopEdge = TopEdge + (int)(PixelHeight * SpriteScale);
+         vm.ZIndex = ZIndex;
+         if (connection.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) vm.ZIndex = ZIndex - 1;
          return vm;
       }
 
@@ -1763,6 +1781,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             MapDirection.Down => width,
             MapDirection.Left => height,
             MapDirection.Right => height,
+            MapDirection.Dive => 0,
+            MapDirection.Emerge => 0,
             _ => throw new NotImplementedException(),
          });
          var availableSpace = dimensionLength.Range().ToList();
@@ -1786,7 +1806,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var removeHeight = map.pixelHeight / 16;
                var removeOffset = connections[i].Offset;
                foreach (int j in removeHeight.Range()) availableSpace.Remove(j + removeOffset);
+            } else if (direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) {
+               // can't dive or emerge to a map that already has a dive/emerge
+               var map = AllMapsModel.Create(model, tokenFactory)[connections[i].MapGroup][connections[i].MapNum];
+               if (map.Connections.Any(c => c.Direction.IsAny(MapDirection.Emerge, MapDirection.Dive))) return null;
             }
+         }
+
+         if (direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) {
+            var layout = AllMapsModel.Create(model, tokenFactory)[group][map].Layout;
+            return new ConnectionInfo(layout.Width, layout.Height, direction);
          }
 
          // find the longest stretch of available space

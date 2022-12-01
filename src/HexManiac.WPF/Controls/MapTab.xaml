@@ -842,18 +842,21 @@
                      <MenuItem Header="Emerge to New Map" Command="{res:MethodCommand EmergeNew}" />
                   </local:AngleMenuItem>
                </Menu>
-               <local:AngleButton Direction="Out" Command="{res:MethodCommand FollowConnection}" Visibility="{Binding CanWarp, Converter={StaticResource BoolToVisibility}}">
-                  <local:AngleButton.Style>
-                     <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
-                        <Setter Property="Content" Value="Dive" />
-                        <Style.Triggers>
-                           <DataTrigger Binding="{Binding CanEmerge}" Value="True">
-                              <Setter Property="Content" Value="Emerge" />
-                           </DataTrigger>
-                        </Style.Triggers>
-                     </Style>
-                  </local:AngleButton.Style>
-               </local:AngleButton>
+               <StackPanel Orientation="Horizontal" Visibility="{Binding CanWarp, Converter={StaticResource BoolToVisibility}}">
+                  <local:AngleButton Direction="Out" Command="{res:MethodCommand FollowConnection}" Width="120">
+                     <local:AngleButton.Style>
+                        <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                           <Setter Property="Content" Value="Dive" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding CanEmerge}" Value="True">
+                                 <Setter Property="Content" Value="Emerge" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </local:AngleButton.Style>
+                  </local:AngleButton>
+                  <local:AngleButton Direction="Right" Content="Delete Connection" Command="{res:MethodCommand RemoveConnection}" Width="120" />
+               </StackPanel>
             </Grid>
             <Grid DataContext="{Binding PrimaryMap.Header}" VerticalAlignment="Top">
                <Grid.ColumnDefinitions>
@@ -988,6 +991,7 @@
             <Style>
                <Setter Property="Canvas.Top" Value="{Binding TopEdge}" />
                <Setter Property="Canvas.Left" Value="{Binding LeftEdge}" />
+               <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}" />
             </Style>
          </ItemsControl.ItemContainerStyle>
          <ItemsControl.ItemTemplate>

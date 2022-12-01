@@ -277,11 +277,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
+         var template = VisibleMaps.FirstOrDefault(vm => vm.MapID == (bank * 1000 + map));
          VisibleMaps.Clear(); // need to clear in case the navigation takes us to a nearby map
-         UpdatePrimaryMap(new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, bank, map) {
+         var newMap = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, bank, map) {
             IncludeBorders = primaryMap?.IncludeBorders ?? true,
             SpriteScale = primaryMap?.SpriteScale ?? .5,
-         });
+         };
+         if (template != null) (newMap.LeftEdge, newMap.TopEdge) = (template.LeftEdge, template.TopEdge);
+         UpdatePrimaryMap(newMap);
       }
 
       #endregion
@@ -381,7 +384,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // update the neighbor maps
          var oldMaps = VisibleMaps.ToList();
-         var newMaps = GetMapNeighbors(map, map.SpriteScale < .5 ? 2 : 1).ToList();
+         var neighborDepth = 1;
+         if (map.SpriteScale <= .5) neighborDepth = 2;
+         if (map.SpriteScale <= .25) neighborDepth = 3;
+         var newMaps = GetMapNeighbors(map,neighborDepth).ToList();
          newMaps.Add(map);
          var mapDict = new Dictionary<int, BlockMapViewModel>();
          newMaps.ForEach(m => mapDict[m.MapID] = m);
@@ -396,6 +402,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   existingM.SpriteScale = newM.SpriteScale;
                   existingM.LeftEdge = newM.LeftEdge;
                   existingM.TopEdge = newM.TopEdge;
+                  existingM.ZIndex = newM.ZIndex;
                   break;
                }
             }
@@ -433,17 +440,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private IEnumerable<BlockMapViewModel> GetMapNeighbors(BlockMapViewModel map, int recursionLevel) {
-         if (recursionLevel < 1) yield break;
+         if (recursionLevel < 1) return new BlockMapViewModel[0];
          var directions = new List<MapDirection> {
-            MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right
+            MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right, MapDirection.Dive, MapDirection.Emerge,
          };
-         var newMaps = new List<BlockMapViewModel>(directions.SelectMany(map.GetNeighbors));
-         foreach (var m in newMaps) {
-            yield return m;
-            if (recursionLevel > 1) {
-               foreach (var mm in GetMapNeighbors(m, recursionLevel - 1)) yield return mm;
+
+         var newMaps = new Dictionary<int, BlockMapViewModel>();
+         foreach (var child in directions.SelectMany(map.GetNeighbors)) {
+            if (newMaps.ContainsKey(child.MapID)) continue;
+            newMaps.Add(child.MapID, child);
+         }
+         if (recursionLevel > 1) {
+            foreach (var key in newMaps.Keys.ToList()) {
+               if (newMaps[key].ZIndex < 0) continue;
+               foreach (var child in GetMapNeighbors(newMaps[key], recursionLevel - 1)) {
+                  if (newMaps.ContainsKey(child.MapID)) continue;
+                  newMaps.Add(child.MapID, child);
+               }
             }
          }
+         return newMaps.Values.ToList();
+
+         //var newMaps = new List<BlockMapViewModel>(directions.SelectMany(map.GetNeighbors));
+         //foreach (var m in newMaps) {
+         //   yield return m;
+         //   if (recursionLevel > 1 && m.ZIndex >= 0) {
+         //      foreach (var mm in GetMapNeighbors(m, recursionLevel - 1)) yield return mm;
+         //   }
+         //}
       }
 
       #region Map Interaction
@@ -1270,6 +1294,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BlockMapViewModel closestMap = null;
          double closestDistance = int.MaxValue;
          foreach (var map in VisibleMaps) {
+            if (map.ZIndex < 0) continue;
             var dx = x.LimitToRange(map.LeftEdge, map.LeftEdge + map.PixelWidth * map.SpriteScale);
             var dy = y.LimitToRange(map.TopEdge, map.TopEdge + map.PixelHeight * map.SpriteScale);
             var distance = (x - dx) * (x - dx) + (y - dy) * (y - dy);
