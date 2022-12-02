@@ -354,8 +354,9 @@ Script:
 
          Assert.NotEqual(2, Model.GetNextRun(2).Start);
          var text = Model.GetNextAnchor("text");
+         var script = Model.GetNextAnchor("script");
          Assert.DoesNotContain(2, text.PointerSources);
-         Assert.Contains(Model.GetNextAnchor("script").Start + 2, text.PointerSources);
+         Assert.Contains(script.Start + 2, text.PointerSources);
       }
 
       [Fact]

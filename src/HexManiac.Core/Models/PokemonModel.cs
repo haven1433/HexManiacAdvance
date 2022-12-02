@@ -1557,6 +1557,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (run is XSERun) lines = singletons.ScriptLines;
             if (run is BSERun) lines = singletons.BattleScriptLines;
             if (run is ASERun) lines = singletons.AnimationScriptLines;
+            if (run is TSERun) lines = singletons.BattleAIScriptLines;
             currentLength = Math.Max(currentLength, lines.GetScriptSegmentLength(this, run.Start));
          }
          if (minimumLength <= currentLength) return run;

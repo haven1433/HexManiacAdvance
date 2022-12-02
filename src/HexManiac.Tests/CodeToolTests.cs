@@ -181,5 +181,40 @@ namespace HavenSoft.HexManiac.Tests {
          ThumbScript = ".word 0x8123456+1";
          Assert.Equal(0x57, Model[0]);
       }
+
+      [Fact]
+      public void TrainerScript_Decompile_MultipleFormatSections() {
+         // 5C trainerbattle 00 trainer:data.trainers.stats arg: start<""> playerwin<"">
+         SetFullModel(0xFF);
+         ViewPort.Edit("5C 00 0000 0000 <100> <110> 02 @100 ^start\"\"Start\" @110 ^win\"\"Win\"");
+         ViewPort.CascadeScript(0);
+         var code = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, 15).SplitLines().Select(line=>line.Trim()).ToArray();
+         var expected = new[] {
+            "trainerbattle 00 0 0 <000100> <000110>",
+            "{",
+            "Start",
+            "}",
+            "{",
+            "Win",
+            "}",
+            "end",
+            "",
+         };
+         Assert.All(code.Length.Range(), i => Assert.Equal(expected[i], code[i]));
+      }
+
+      [Fact]
+      public void TrainerScript_MultipleFormatSections_Compiles() {
+         SetFullModel(0xFF);
+         Tool.Mode = CodeMode.Script;
+
+         EventScript = "trainerbattle 0 0 0 <100> <110>;{;Start;};{;Win;};end";
+
+         var results = new byte[16];
+         Array.Copy(Model.RawData, 0, results, 0, 16);
+         Assert.Equal(new byte[] { 0x5C, 0, 0,0, 0,0, 0,1,0,8, 0x10,1,0,8, 2, 0xFF }, results);
+         Assert.Equal("\"Start\"", Model.TextConverter.Convert(Model, 0x100, 0x20));
+         Assert.Equal("\"Win\"", Model.TextConverter.Convert(Model, 0x110, 0x20));
+      }
    }
 }

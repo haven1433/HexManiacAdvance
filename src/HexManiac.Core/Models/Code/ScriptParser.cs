@@ -136,20 +136,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         model.ObserveRunWritten(token, new PointerRun(address + length));
                         if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
                         if (arg.PointerType == ExpectedPointerType.Text) {
-                           var destinationLength = PCSString.ReadString(model, destination, true);
-                           if (destinationLength > 0) {
-                              // if there's an anchor that starts exactly here, we don't want to clear it: just update it
-                              // if the run starts somewhere else, we better to a clear to prevent conflicting formats
-                              var existingTextRun = model.GetNextRun(destination);
-                              if (existingTextRun.Start != destination) {
-                                 model.ClearFormat(token, destination, destinationLength);
-                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(address + length)));
-                              } else {
-                                 model.ClearAnchor(token, destination + existingTextRun.Length, destinationLength - existingTextRun.Length); // assuming that the old run ends before the new run, clear the difference
-                                 model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(address + length)));
-                                 model.ClearAnchor(token, destination + destinationLength, existingTextRun.Length - destinationLength); // assuming that the new run ends before the old run, clear the difference
-                              }
-                           }
+                           WriteTextStream(model, token, destination, address + length);
                         } else if (arg.PointerType == ExpectedPointerType.Movement) {
                            WriteMovementStream(model, token, destination, address + length);
                         } else if (arg.PointerType == ExpectedPointerType.Mart) {
@@ -164,6 +151,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.IsEndingCommand) break;
             }
             processed.Add(address);
+         }
+      }
+
+      private void WriteTextStream(IDataModel model, ModelDelta token, int destination, int source) {
+         if (destination < 0 || destination > model.Count) return;
+         var destinationLength = PCSString.ReadString(model, destination, true);
+         if (destinationLength > 0) {
+            // if there's an anchor that starts exactly here, we don't want to clear it: just update it
+            // if the run starts somewhere else, we better to a clear to prevent conflicting formats
+            var existingTextRun = model.GetNextRun(destination);
+            if (existingTextRun.Start != destination) {
+               model.ClearFormat(token, destination, destinationLength);
+               model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(source)));
+            } else {
+               model.ClearAnchor(token, destination + existingTextRun.Length, destinationLength - existingTextRun.Length); // assuming that the old run ends before the new run, clear the difference
+               model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(source)));
+               model.ClearAnchor(token, destination + destinationLength, existingTextRun.Length - destinationLength); // assuming that the new run ends before the old run, clear the difference
+            }
          }
       }
 
@@ -195,6 +200,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
+      private record StreamInfo(int Source, int Destination);
+
       /// <summary>
       /// Potentially edits the script text and returns a set of data repoints.
       /// The data is moved, but the script itself has not written by this method.
@@ -213,7 +220,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             .Where(line => !string.IsNullOrWhiteSpace(line))
             .ToArray();
          var result = new List<byte>();
-         int streamLocation = -1, streamPointerLocation = -1;
+         var streamInfo = new List<StreamInfo>();
 
          var labels = ExtractLocalLabels(model, start, lines);
 
@@ -234,26 +241,28 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                i -= 1;
                var streamEnd = i;
                var streamLines = lines.Skip(streamStart).Take(streamEnd - streamStart).ToList();
-               var stream = streamLines.Aggregate(string.Empty, (a, b) => a + Environment.NewLine + b);
+               var stream = Environment.NewLine.Join(streamLines);
 
                // Let the stream run handle updating itself based on the stream content.
-               if (streamLocation >= 0 && streamPointerLocation >= 0) {
-                  if (model.GetNextRun(streamLocation) is IStreamRun streamRun && streamRun.Start == streamLocation) {
+               if (streamInfo.Count > 0) {
+                  var info = streamInfo[0];
+                  if (model.GetNextRun(info.Destination) is IStreamRun streamRun && streamRun.Start == info.Destination) {
                      streamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we they never have parents/children.
                      // alter script content and compiled byte location based on stream move
-                     if (streamRun.Start != streamLocation) {
-                        script = script.Replace(streamLocation.ToString("X6"), streamRun.Start.ToString("X6"));
-                        result[streamPointerLocation + 0] = (byte)(streamRun.Start >> 0);
-                        result[streamPointerLocation + 1] = (byte)(streamRun.Start >> 8);
-                        result[streamPointerLocation + 2] = (byte)(streamRun.Start >> 16);
-                        result[streamPointerLocation + 3] = (byte)((streamRun.Start >> 24) + 0x08);
-                        ((List<(int, int)>)movedData).Add((streamLocation, streamRun.Start));
+                     if (streamRun.Start != info.Destination) {
+                        script = script.Replace(info.Destination.ToAddress(), streamRun.Start.ToAddress());
+                        result[info.Source - start + 0] = (byte)(streamRun.Start >> 0);
+                        result[info.Source - start + 1] = (byte)(streamRun.Start >> 8);
+                        result[info.Source - start + 2] = (byte)(streamRun.Start >> 16);
+                        result[info.Source - start + 3] = (byte)((streamRun.Start >> 24) + 0x08);
+                        ((List<(int, int)>)movedData).Add((info.Destination, streamRun.Start));
                      }
                   }
+                  streamInfo.RemoveAt(0);
                }
                continue;
             }
-            streamLocation = -1; streamPointerLocation = -1;
+            streamInfo.Clear();
             foreach (var command in engine) {
                if (!command.MatchesGame(gameCode)) continue;
                if (!command.CanCompile(line)) continue;
@@ -312,8 +321,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (arg.Type == ArgType.Pointer && arg.PointerType != ExpectedPointerType.Unknown) {
                      var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
                      if (destination >= 0) {
-                        streamPointerLocation = currentSize + pointerOffset;
-                        streamLocation = destination;
+                        streamInfo.Add(new(start + currentSize + pointerOffset, destination));
+                        if (arg.PointerType == ExpectedPointerType.Text) {
+                           WriteTextStream(model, token, destination, start + currentSize + pointerOffset);
+                        }
                      }
                   }
                   pointerOffset += arg.Length(model, currentSize + pointerOffset);
@@ -611,7 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             builder.Append(" " + LineCode[i].ToHexString());
          }
 
-         int lastAddress = -1;
+         var streamContent = new List<string>();
          foreach (var arg in Args) {
             builder.Append(" ");
             if (arg is ScriptArg scriptArg) {
@@ -626,7 +637,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   } else {
                      address -= 0x8000000;
                      builder.Append($"<{address:X6}>");
-                     lastAddress = address;
+                     if (arg.PointerType != ExpectedPointerType.Unknown) {
+                        if (data.GetNextRun(address) is IStreamRun stream && stream.Start == address) {
+                           streamContent.Add(stream.SerializeRun());
+                        }
+                     }
                   }
                }
             } else if (arg is ArrayArg arrayArg) {
@@ -636,13 +651,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             start += arg.Length(data, start);
          }
-         if (Args.Any(arg => arg.PointerType != ExpectedPointerType.Unknown)) {
-            if (data.GetNextRun(lastAddress) is IStreamRun stream && stream.Start == lastAddress) {
-               builder.AppendLine();
-               builder.AppendLine("{");
-               builder.AppendLine(stream.SerializeRun());
-               builder.Append("}");
-            }
+         foreach (var content in streamContent) {
+            builder.AppendLine();
+            builder.AppendLine("{");
+            builder.AppendLine(content);
+            builder.Append("}");
          }
          return builder.ToString();
       }
