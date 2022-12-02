@@ -144,7 +144,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
          if (e.Key == Key.Add) ViewModel.ZoomCommand.Execute(ZoomDirection.Enlarge);
          else if (e.Key == Key.Subtract) ViewModel.ZoomCommand.Execute(ZoomDirection.Shrink);
+         else if (e.Key== Key.Space) {
+            ViewModel.ShowBeneath = true;
+         }
          else e.Handled = false;
+      }
+
+      private void HandleKeyUp(object sender, KeyEventArgs e) {
+         if (Keyboard.FocusedElement is TextBoxBase || Keyboard.FocusedElement is TextBoxLookAlike) return;
+         if (e.Key == Key.Space) {
+            ViewModel.ShowBeneath = false;
+            e.Handled = true;
+         }
       }
 
       private void ButtonMove(object sender, MouseEventArgs e) {

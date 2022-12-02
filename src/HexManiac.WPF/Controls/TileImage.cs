@@ -1,12 +1,14 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -126,6 +128,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
    }
 
+   public class PointConverter : IValueConverter {
+      public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
+         var p = (ImageLocation)value;
+         return new Point(p.X, p.Y);
+      }
+
+      public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture) {
+         var p = (Point)value;
+         return new ImageLocation(p.X, p.Y);
+      }
+   }
+
    public class BooleanToVisibilityConverter : IValueConverter {
       private readonly System.Windows.Controls.BooleanToVisibilityConverter core = new System.Windows.Controls.BooleanToVisibilityConverter();
       public object Convert(object value, Type targetType, object parameter, CultureInfo culture) {
@@ -236,17 +250,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          return source;
       }
 
-      public void UpdateSource() {
-         if (ViewModel == null) return;
-         var pixels = ViewModel.PixelData;
-         if (pixels == null) return;
+      public async void UpdateSource() {
+         var vm = ViewModel;
+         if (vm == null) return;
+         var pixels = await Task.Run(() => vm.PixelData);
+         if (pixels == null || ViewModel == null) return;
          if (!UseTrueTransparency) {
             pixels = ConvertTransparentPixels(pixels);
-            OpacityMask = null;
+            if (OpacityMask is VisualBrush) OpacityMask = null;
          } else if (ViewModel.Transparent != -1) {
             OpacityMask = new VisualBrush(CreateOpacityMask());
          } else {
-            OpacityMask = null;
+            if (OpacityMask is VisualBrush) OpacityMask = null;
          }
          var expectedLength = ViewModel.PixelWidth * ViewModel.PixelHeight;
          if (pixels.Length < expectedLength || pixels.Length == 0) { Source = null; return; }

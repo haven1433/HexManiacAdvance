@@ -45,6 +45,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       ToolbarTemplate_CreateEvent,
       RightClick_WarpNewMap,
       ToolbarTemplate_ConfigureObject,
+
+      SpaceBar_ShowBeneath,
    }
 
    public class MapTutorialsViewModel : ViewModelCore {
@@ -129,6 +131,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Tutorials.Add(new("Settings", "Configure Object", "Click the gear icon next to the character sprite to choose what type of object you want to add."));
          }
 
+         // additions
+         {
+            Tutorials.Add(new("Remove", "Show Map Beneath", "Hold Spacebar to see the map from the Dive/Emerge connection. Double-click to switch to that map."));
+         }
+
          Reset();
          for(int i = 0; i < Tutorials.Count; i++) {
             Tutorials[i].RequestClose += (sender, e) => CompleteNoCheck((Tutorial)Tutorials.IndexOf((MapTutorialViewModel)sender));
@@ -198,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public double TargetPosition { get => target; set => PropertyChanged.TryUpdate(this, ref target, value); }
       public double TopEdge => TargetPosition * 90;
       public int Index { get; set; }
-      public string IndexText => $"{Index} of 32";
+      public string IndexText => $"{Index} of 35";
 
       public void TriggerAnimation() => AnimateMovement.Raise(this);
 

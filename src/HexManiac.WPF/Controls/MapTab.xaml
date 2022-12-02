@@ -6,9 +6,10 @@
              xmlns:tools="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Tools;assembly=HexManiac.Core"
              xmlns:map="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
              xmlns:models="clr-namespace:HavenSoft.HexManiac.Core.Models;assembly=HexManiac.Core"
-             Focusable="True" KeyDown="HandleKeyDown">
+             Focusable="True" KeyDown="HandleKeyDown" KeyUp="HandleKeyUp">
    <UserControl.Resources>
       <local:EqualityToBooleanConverter x:Key="Equality" />
+      <local:PointConverter x:Key="PointConverter" />
       <DataTemplate DataType="{x:Type tools:VisualComboOption}">
          <local:PixelImage />
       </DataTemplate>
@@ -988,7 +989,7 @@
             </ItemsPanelTemplate>
          </ItemsControl.ItemsPanel>
          <ItemsControl.ItemContainerStyle>
-            <Style>
+            <Style TargetType="FrameworkElement">
                <Setter Property="Canvas.Top" Value="{Binding TopEdge}" />
                <Setter Property="Canvas.Left" Value="{Binding LeftEdge}" />
                <Setter Property="Panel.ZIndex" Value="{Binding ZIndex}" />
@@ -996,7 +997,34 @@
          </ItemsControl.ItemContainerStyle>
          <ItemsControl.ItemTemplate>
             <DataTemplate>
-               <local:PixelImage />
+               <local:PixelImage>
+                  <local:PixelImage.OpacityMask>
+                     <RadialGradientBrush RadiusX="{Binding WidthRatio}" RadiusY="{Binding HeightRatio}" GradientOrigin="{Binding HoverPoint, Converter={StaticResource PointConverter}}" Center="{Binding HoverPoint, Converter={StaticResource PointConverter}}">
+                        <GradientStop x:Name="Stop1" Color="Transparent" Offset="0" />
+                        <GradientStop x:Name="Stop2" Color="White" Offset="0" />
+                     </RadialGradientBrush>
+                  </local:PixelImage.OpacityMask>
+               </local:PixelImage>
+               <DataTemplate.Triggers>
+                  <DataTrigger Binding="{Binding ShowBeneath}" Value="True">
+                     <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <DoubleAnimation Storyboard.TargetName="Stop1" Storyboard.TargetProperty="Offset" From="0" To=".8" Duration="0:0:.5" DecelerationRatio="1" />
+                              <DoubleAnimation Storyboard.TargetName="Stop2" Storyboard.TargetProperty="Offset" From="0" To="1" Duration="0:0:.5" DecelerationRatio="1" />
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </DataTrigger.EnterActions>
+                     <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                           <Storyboard>
+                              <DoubleAnimation Storyboard.TargetName="Stop1" Storyboard.TargetProperty="Offset" From=".8" To="0" Duration="0:0:.5" DecelerationRatio="1" />
+                              <DoubleAnimation Storyboard.TargetName="Stop2" Storyboard.TargetProperty="Offset" From="1" To="0" Duration="0:0:.5" DecelerationRatio="1" />
+                           </Storyboard>
+                        </BeginStoryboard>
+                     </DataTrigger.ExitActions>
+                  </DataTrigger>
+               </DataTemplate.Triggers>
             </DataTemplate>
          </ItemsControl.ItemTemplate>
          <ItemsControl.ContextMenu>

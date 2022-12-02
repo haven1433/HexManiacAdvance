@@ -13,6 +13,8 @@ using System.Linq;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
+   public record ImageLocation(double X, double Y); // ranges from (0,0) upper-left to (1,1) lower-right
+
    public class BlockMapViewModel : ViewModelCore, IPixelViewModel {
       private readonly Format format;
       private readonly IFileSystem fileSystem;
@@ -141,7 +143,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public int MapID => group * 1000 + map;
 
-      public MapHeaderViewModel Header { get; }
+      private MapHeaderViewModel header;
+      public MapHeaderViewModel Header {
+         get {
+            if (header == null) {
+               header = new MapHeaderViewModel(GetMapModel(), format, tokenFactory);
+               header.Bind(nameof(Header.PrimaryIndex), (sender, e) => ClearCaches());
+               header.Bind(nameof(Header.SecondaryIndex), (sender, e) => ClearCaches());
+            }
+            return header;
+         }
+      }
 
       public bool IsValidMap => GetMapModel() != null;
 
@@ -183,6 +195,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private int BottomEdge => topEdge + (int)(PixelHeight * SpriteScale);
       private int RightEdge => leftEdge + (int)(PixelWidth * SpriteScale);
+
+      private ImageLocation hoverPoint = new(0, 0);
+      public ImageLocation HoverPoint {
+         get => hoverPoint;
+         set {
+            hoverPoint = value;
+            NotifyPropertyChanged();
+         }
+      }
+
+      public double WidthRatio => 80.0 / PixelWidth / Math.Min(1, SpriteScale);
+      public double HeightRatio => 80.0 / PixelHeight / Math.Min(1, SpriteScale);
+      private bool showBeneath;
+      public bool ShowBeneath { get => showBeneath; set => Set(ref showBeneath, value, old => {
+         NotifyPropertiesChanged(nameof(WidthRatio), nameof(HeightRatio));
+         tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
+      } ); }
 
       #endregion
 
@@ -394,9 +423,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (this.group, this.map) = (group, map);
          Transparent = -1;
          var mapModel = GetMapModel();
-         Header = new(mapModel, format, tokenFactory);
-         Header.Bind(nameof(Header.PrimaryIndex), (sender, e) => ClearCaches());
-         Header.Bind(nameof(Header.SecondaryIndex), (sender, e) => ClearCaches());
          RefreshMapSize();
          PrimaryTiles = PrimaryBlocks = model.IsFRLG() ? 640 : 512;
          PrimaryPalettes = model.IsFRLG() ? 7 : 6;

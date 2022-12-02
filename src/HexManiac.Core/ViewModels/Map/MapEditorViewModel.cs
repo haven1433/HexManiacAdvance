@@ -366,6 +366,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.HideSidePanels -= HandleHideSidePanels;
                primaryMap.RequestChangeMap -= HandleMapChangeRequest;
                primaryMap.DeselectEvent();
+               primaryMap.ShowBeneath = false;
             }
             primaryMap = map;
             primaryMap.BlockEditor.BlockIndex = drawBlockIndex;
@@ -377,6 +378,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.AutoscrollTiles += HandleAutoscrollTiles;
                primaryMap.HideSidePanels += HandleHideSidePanels;
                primaryMap.RequestChangeMap += HandleMapChangeRequest;
+               primaryMap.ShowBeneath = ShowBeneath;
             }
             selectedEvent = null;
             NotifyPropertiesChanged(nameof(Blocks), nameof(Name), nameof(ShowEventPanel));
@@ -387,7 +389,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var neighborDepth = 1;
          if (map.SpriteScale <= .5) neighborDepth = 2;
          if (map.SpriteScale <= .25) neighborDepth = 3;
-         var newMaps = GetMapNeighbors(map,neighborDepth).ToList();
+         if (map.SpriteScale <= .125) neighborDepth = 4;
+         if (map.SpriteScale <= .0625) neighborDepth = 5;
+         var newMaps = GetMapNeighbors(map, neighborDepth).ToList();
          newMaps.Add(map);
          var mapDict = new Dictionary<int, BlockMapViewModel>();
          newMaps.ForEach(m => mapDict[m.MapID] = m);
@@ -484,6 +488,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public double HighlightCursorWidth { get => highlightCursorWidth; set => Set(ref highlightCursorWidth, value); }
       public double HighlightCursorHeight { get => highlightCursorHeight; set => Set(ref highlightCursorHeight, value); }
 
+      private bool showBeneath;
+      public bool ShowBeneath { get => showBeneath; set => Set(ref showBeneath, value, old => PrimaryMap.ShowBeneath = ShowBeneath); }
+
       // if it returns an empty array: no hover tip to display
       // if it returns null: continue displaying previous hover tip
       // if it returns content: display that as the new hover tip
@@ -501,6 +508,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var map = MapUnderCursor(x, y);
             if (map == null) return EmptyTooltip;
             var p = ToTilePosition(x, y);
+            map.HoverPoint = ToPixelPosition(x, y);
             if (UpdateHover(p.X, p.Y, 1, 1)) {
                HoverPoint = $"({p.X}, {p.Y})";
                if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
@@ -581,6 +589,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          ShowHeaderPanel = false;
+         if (click == PrimaryInteractionStart.DoubleClick && ShowBeneath) {
+            PrimaryMap.SurfConnection.FollowConnection();
+            return;
+         }
          DrawDown(x, y, click);
       }
 
@@ -966,6 +978,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          
          var borders = primaryMap.GetBorderThickness();
          return new Point((int)Math.Floor(x) - borders.West, (int)Math.Floor(y) - borders.North);
+      }
+
+      private ImageLocation ToPixelPosition(double x, double y) {
+         (x, y) = ((x - primaryMap.LeftEdge) / primaryMap.SpriteScale, (y - primaryMap.TopEdge) / primaryMap.SpriteScale);
+         return new ImageLocation(x / primaryMap.PixelWidth, y / primaryMap.PixelHeight);
       }
 
       private (double, double) ToMapPosition(int x, int y) {

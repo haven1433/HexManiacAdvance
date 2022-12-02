@@ -40,7 +40,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void FollowConnection() {
          var allmaps = AllMapsModel.Create(viewPort.Model, () => viewPort.ChangeHistory.CurrentChange);
          var connections = allmaps[group][map].Connections;
-         var connection = connections.First(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
+         var connection = connections.FirstOrDefault(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
+         if (connection == null) return;
          RequestChangeMap?.Invoke(this, new(connection.MapGroup, connection.MapNum));
       }
 
