@@ -897,9 +897,7 @@
                            </Button.Style>
                         </Button>
                      </Decorator>
-                     <TextBox Name="CodeToolSingleTextBox" UndoLimit="0" Margin="5" FontFamily="Consolas" HorizontalScrollBarVisibility="Auto"
-                        Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                        IsReadOnly="{Binding IsReadOnly}" AcceptsReturn="True" AcceptsTab="True" VerticalScrollBarVisibility="Auto"/>
+                     <hsg3hv:TextEditor x:Name="CodeToolSingleTextBox" DataContext="{Binding Editor}" Margin="5" IsReadOnly="{Binding IsReadOnly}" />
                   </DockPanel>
                   <DockPanel Visibility="{Binding UseMultiContent, Converter={StaticResource BoolToVisibility}}">
                      <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"

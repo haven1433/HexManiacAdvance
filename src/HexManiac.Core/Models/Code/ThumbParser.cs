@@ -476,6 +476,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int ByteLength { get; } = 2;
       public bool RequiresAlignment => false;
 
+      public string Operator => template.Split(" ")[0];
+
       #region Constructor
 
       private Instruction(string compiled, string script) {

@@ -3,27 +3,35 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
    <Grid Background="{DynamicResource Background}" TextBlock.FontFamily="Consolas" ClipToBounds="True">
-      <TextBlock Name="BasicLayer" Foreground="{DynamicResource Primary}" Margin="2" Text="{Binding PlainContent}">
-         <TextBlock.RenderTransform>
-            <TranslateTransform />
-         </TextBlock.RenderTransform>
-      </TextBlock>
-      <TextBlock Name="AccentLayer" Foreground="{DynamicResource Accent}" Margin="2" Text="{Binding AccentContent}">
-         <TextBlock.RenderTransform>
-            <TranslateTransform />
-         </TextBlock.RenderTransform>
-      </TextBlock>
-      <TextBlock Name="ConstantsLayer" Foreground="{DynamicResource Data1}" Margin="2" Text="{Binding ConstantContent}">
-         <TextBlock.RenderTransform>
-            <TranslateTransform />
-         </TextBlock.RenderTransform>
-      </TextBlock>
-      <TextBlock Name="CommentLayer" Foreground="{DynamicResource Secondary}" Margin="2" Text="{Binding CommentContent}">
-         <TextBlock.RenderTransform>
-            <TranslateTransform />
-         </TextBlock.RenderTransform>
-      </TextBlock>
-      <TextBox Name="TransparentLayer" Background="Transparent" CaretBrush="{DynamicResource Primary}" Foreground="Transparent" AcceptsReturn="True" AcceptsTab="True"
-         Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" ScrollViewer.ScrollChanged="TextScrollChanged" VerticalScrollBarVisibility="Visible" />
+      <Canvas ClipToBounds="False">
+         <TextBlock Name="BasicLayer" Foreground="{DynamicResource Primary}" Margin="2" Text="{Binding PlainContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+            <TextBlock.RenderTransform>
+               <TranslateTransform />
+            </TextBlock.RenderTransform>
+         </TextBlock>
+         <TextBlock Name="AccentLayer" Foreground="{DynamicResource Accent}" Margin="2" Text="{Binding AccentContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+            <TextBlock.RenderTransform>
+               <TranslateTransform />
+            </TextBlock.RenderTransform>
+         </TextBlock>
+         <TextBlock Name="ConstantsLayer" Foreground="{DynamicResource Data1}" Margin="2" Text="{Binding ConstantContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+            <TextBlock.RenderTransform>
+               <TranslateTransform />
+            </TextBlock.RenderTransform>
+         </TextBlock>
+         <TextBlock Name="NumericLayer" Foreground="{DynamicResource Data2}" Margin="2" Text="{Binding NumericContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+            <TextBlock.RenderTransform>
+               <TranslateTransform />
+            </TextBlock.RenderTransform>
+         </TextBlock>
+         <TextBlock Name="CommentLayer" Foreground="{DynamicResource Secondary}" Margin="2" Text="{Binding CommentContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+            <TextBlock.RenderTransform>
+               <TranslateTransform />
+            </TextBlock.RenderTransform>
+         </TextBlock>
+      </Canvas>
+      <TextBox Name="TransparentLayer" Background="Transparent" CaretBrush="{DynamicResource Primary}" Foreground="Transparent"
+               UndoLimit="0" AcceptsReturn="True" AcceptsTab="True" ScrollViewer.ScrollChanged="TextScrollChanged"
+         Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" VerticalScrollBarVisibility="Visible" />
    </Grid>
 </UserControl>

@@ -5,11 +5,14 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class TextEditorViewModel : ViewModelCore {
       public ObservableCollection<string> Keywords { get; } = new();
+      public ObservableCollection<string> Constants { get; } = new();
+
+      private string commentHeader = string.Empty;
+      public string LineCommentHeader { get => commentHeader; set => Set(ref commentHeader, value); }
 
       public TextEditorViewModel() {
-         foreach (var word in new[] { "for", "do", "while", "in", "print" }) {
-            Keywords.Add(word);
-         }
+         Keywords.CollectionChanged += (sender, e) => UpdateLayers();
+         Constants.CollectionChanged += (sender, e) => UpdateLayers();
       }
 
       private string content = string.Empty;
@@ -26,20 +29,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string AccentContent { get; private set; } = string.Empty;
       public string PlainContent { get; private set; } = string.Empty;
       public string ConstantContent { get; private set; } = string.Empty;
+      public string NumericContent { get; private set; } = string.Empty;
       public string CommentContent { get; private set; } = string.Empty;
 
       private void UpdateLayers() {
+         if (content.Length == 0) return;
          var basic = new MutableString(Content);
          var accent = new MutableString(basic.Length);
          var constants = new MutableString(basic.Length);
+         var numeric = new MutableString(basic.Length);
          var comments = new MutableString(basic.Length);
          accent.CopyNewlines(basic);
          constants.CopyNewlines(basic);
+         numeric.CopyNewlines(basic);
          comments.CopyNewlines(basic);
 
          // comments
-         while (true) {
-            var index = basic.IndexOf("//");
+         while (!string.IsNullOrEmpty(LineCommentHeader)) {
+            var index = basic.IndexOf(LineCommentHeader);
             if (index == -1) break;
             var endIndex = basic.IndexOfCharacter(index, '\n', '\r');
             if (index == -1) break;
@@ -58,7 +65,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // constants
-         foreach (var keyword in new[] { "true", "false" }) {
+         foreach (var keyword in Constants) {
             while (true) {
                var index = basic.IndexOfKeyword(keyword);
                if (index == -1) break;
@@ -66,23 +73,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                basic.Clear(index, keyword.Length);
             }
          }
+
+         // numeric
          int start = 0;
          while (true) {
             var (index, length) = basic.IndexOfNumber(start);
             if (index == -1) break;
             start = index;
-            constants.Replace(index, basic, index, length);
+            numeric.Replace(index, basic, index, length);
             basic.Clear(index, length);
          }
 
          PlainContent = basic.ToString();
          AccentContent = accent.ToString();
          ConstantContent = constants.ToString();
+         NumericContent = numeric.ToString();
          CommentContent = comments.ToString();
-         NotifyPropertyChanged(nameof(PlainContent));
-         NotifyPropertyChanged(nameof(AccentContent));
-         NotifyPropertyChanged(nameof(ConstantContent));
-         NotifyPropertyChanged(nameof(CommentContent));
+         NotifyPropertiesChanged(
+            nameof(PlainContent),
+            nameof(AccentContent),
+            nameof(ConstantContent),
+            nameof(NumericContent),
+            nameof(CommentContent));
       }
    }
 

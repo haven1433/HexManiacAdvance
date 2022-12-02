@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -14,7 +15,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeTool : ViewModelCore, IToolViewModel {
       public string Name => "Code Tool";
 
-      private string content;
       private CodeMode mode;
       private readonly ThumbParser thumb;
       private readonly ScriptParser script, battleScript, animationScript, battleAIScript;
@@ -49,11 +49,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public TextEditorViewModel Editor { get; } = new();
+
       public string Content {
-         get => content;
+         get => Editor.Content;
          set {
             if (ignoreContentUpdates) return;
-            TryUpdate(ref content, value);
+            if (Editor.Content != value) {
+               Editor.Content = value;
+               NotifyPropertyChanged();
+            }
             CompileChanges();
          }
       }
@@ -102,6 +107,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                UpdateContent();
             }
          };
+
+         SetupThumbKeywords(singletons);
+      }
+
+      private void SetupThumbKeywords(Singletons singletons) {
+         Editor.Keywords.Clear();
+         var set = new HashSet<string>();
+         foreach (var template in singletons.ThumbInstructionTemplates) {
+            if (template is Instruction instr) {
+               set.Add(instr.Operator);
+            }
+         }
+         set.AddRange(new[] { ".word", ".byte", ".hword", ".align" });
+         set.AddRange("beq bne bhs blo bcs bcc bmi bpl bvs bvc bhi bls bge blt bgt ble bal bnv".Split(' '));
+         Editor.Keywords.AddRange(set);
+
+         Editor.Constants.Clear();
+         for (int i = 0; i <= 12; i++) Editor.Constants.Add($"r{i}");
+         Editor.Constants.AddRange(new[] { "lr", "sp", "pc" });
+
+         Editor.LineCommentHeader = "@";
       }
 
       public void DataForCurrentRunChanged() => UpdateContent();
@@ -116,11 +142,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          using (ModelCacheScope.CreateScope(model)) {
             if (length > 0x1000) {
-               Set(ref content, "Too many bytes selected.", nameof(Content));
+               Editor.Content = "Too many bytes selected.";
+               NotifyPropertyChanged(nameof(Content));
             } else if (mode == CodeMode.Raw) {
                Content = RawParse(model, start, end - start + 1);
             } else if (length < 2 && mode == CodeMode.Thumb) {
-               TryUpdate(ref content, string.Empty, nameof(Content));
+               Editor.Content = string.Empty;
+               NotifyPropertyChanged(nameof(Content));
                UpdateContents(-1, null);
                CanRepointThumb = CalculateCanRepointThumb();
             } else if (mode == CodeMode.Script) {
@@ -132,7 +160,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else if (mode == CodeMode.TrainerAiScript) {
                UpdateContents(start, battleAIScript);
             } else if (mode == CodeMode.Thumb) {
-               TryUpdate(ref content, thumb.Parse(model, start, end - start + 1), nameof(Content));
+               Editor.Content = thumb.Parse(model, start, end - start + 1);
+               NotifyPropertyChanged(nameof(Content));
                CanRepointThumb = CalculateCanRepointThumb();
             } else {
                throw new NotImplementedException();
@@ -473,7 +502,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => caretPosition;
          set {
             if (!TryUpdate(ref caretPosition, value)) return;
-            var lines = content.Split('\r', '\n').ToList();
+            var lines = Content.Split('\r', '\n').ToList();
             var contentBoundaryCount = 0;
             while (caretPosition > lines[0].Length) {
                if (lines[0].Trim() == "{") contentBoundaryCount += 1;
@@ -488,12 +517,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private string content;
+      public TextEditorViewModel Editor { get; } = new();
+
       public string Content {
-         get => content;
+         get => Editor.Content;
          set {
-            if (!TryUpdate(ref content, value)) return;
-            ContentChanged?.Invoke(this, EventArgs.Empty);
+            if (Editor.Content != value) {
+               Editor.Content = value;
+               NotifyPropertyChanged();
+               ContentChanged.Raise(this);
+            }
          }
       }
 
