@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (this.group, this.map) = (group, map);
          var allmaps = AllMapsModel.Create(viewPort.Model, () => viewPort.ChangeHistory.CurrentChange);
          var connections = allmaps[group][map].Connections;
-         var connection = connections.FirstOrDefault(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
+         var connection = connections?.FirstOrDefault(c => c.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge));
          if (connection == null) {
             canWarp = false;
          } else {

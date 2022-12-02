@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (arg.Type == ArgType.Pointer) {
                      var destination = model.ReadPointer(address + length);
                      if (destination >= 0 && destination < model.Count &&
-                        line.PointsToNextScript &&
+                        arg.PointerType == ExpectedPointerType.Script &&
                         !scripts.Contains(destination) &&
                         i.Range().All(j => destination < scripts[j] || scripts[j] + lengths[j] <= destination)
                      ) {
@@ -134,8 +134,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      if (destination >= 0 && destination < model.Count) {
                         model.ClearFormat(token, address + length, 4);
                         model.ObserveRunWritten(token, new PointerRun(address + length));
-                        if (line.PointsToNextScript) toProcess.Add(destination);
-                        if (line.PointsToText) {
+                        if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
+                        if (arg.PointerType == ExpectedPointerType.Text) {
                            var destinationLength = PCSString.ReadString(model, destination, true);
                            if (destinationLength > 0) {
                               // if there's an anchor that starts exactly here, we don't want to clear it: just update it
@@ -150,11 +150,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                                  model.ClearAnchor(token, destination + destinationLength, existingTextRun.Length - destinationLength); // assuming that the new run ends before the old run, clear the difference
                               }
                            }
-                        } else if (line.PointsToMovement) {
+                        } else if (arg.PointerType == ExpectedPointerType.Movement) {
                            WriteMovementStream(model, token, destination, address + length);
-                        } else if (line.PointsToMart) {
+                        } else if (arg.PointerType == ExpectedPointerType.Mart) {
                            WriteMartStream(model, token, destination, address + length);
-                        } else if (line.PointsToSpriteTemplate) {
+                        } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
                            WriteSpriteTemplateStream(model, token, destination, address + length);
                         }
                      }
@@ -261,11 +261,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
                if (line.Contains("<??????>")) {
                   int newAddress = -1;
-                  if (command.PointsToMovement) {
+                  if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Movement)) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0xFE);
                      WriteMovementStream(model, token, newAddress, -1);
-                  } else if (command.PointsToText) {
+                  } else if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Text)) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      if (newAddress == -1) {
                         var endLength = model.Count;
@@ -274,23 +274,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      }
                      token.ChangeData(model, newAddress, 0xFF);
                      model.ObserveRunWritten(token, new PCSRun(model, newAddress, 1));
-                  } else if (command.PointsToMart) {
+                  } else if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Mart)) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0x00);
                      token.ChangeData(model, newAddress + 1, 0x00);
                      WriteMartStream(model, token, newAddress, -1);
-                  } else if (command.PointsToSpriteTemplate) {
+                  } else if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.SpriteTemplate)) {
                      newAddress = model.FindFreeSpace(0, 0x18);
                      for (int j = 0; j < 0x18; j++) token.ChangeData(model, newAddress + j, 0x00);
                      WriteSpriteTemplateStream(model, token, newAddress, -1);
-                  } else if (command.PointsToNextScript) {
+                  } else if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Script)) {
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, endToken);
                      // TODO write a new script template... an anchor with a format based on the current script
                   }
                   if (newAddress != -1) {
                      line = line.ReplaceOne("<??????>", $"<{newAddress:X6}>");
-                     if (command.PointsToNextScript) {
+                     if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Script)) {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      } else if (script.IndexOf("<??????>") != script.IndexOf($"<??????>{Environment.NewLine}{{{Environment.NewLine}")) {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>{Environment.NewLine}{{{Environment.NewLine}}}");
@@ -307,13 +307,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   CompileError?.Invoke(this, i + ": " + error);
                   return null;
                }
-               if (command.PointsToMovement || command.PointsToText || command.PointsToMart || command.PointsToSpriteTemplate) {
-                  var pointerOffset = command.Args.Until(arg => arg.Type == ArgType.Pointer).Sum(arg => arg.Length(model, -1)) + command.LineCode.Count;
-                  var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
-                  if (destination >= 0) {
-                     streamPointerLocation = currentSize + pointerOffset;
-                     streamLocation = destination;
+               var pointerOffset = command.LineCode.Count;
+               foreach (var arg in command.Args) {
+                  if (arg.Type == ArgType.Pointer && arg.PointerType != ExpectedPointerType.Unknown) {
+                     var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
+                     if (destination >= 0) {
+                        streamPointerLocation = currentSize + pointerOffset;
+                        streamLocation = destination;
+                     }
                   }
+                  pointerOffset += arg.Length(model, currentSize + pointerOffset);
                }
 
                break;
@@ -393,11 +396,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       string LineCommand { get; }
 
       bool IsEndingCommand { get; }
-      bool PointsToNextScript { get; }
-      bool PointsToText { get; }
-      bool PointsToMovement { get; }
-      bool PointsToMart { get; }
-      bool PointsToSpriteTemplate { get; }
 
       bool MatchesGame(string game);
       int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
@@ -405,6 +403,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool Matches(IReadOnlyList<byte> data, int index);
       string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
       string Decompile(IDataModel data, int start);
+   }
+
+   public enum ExpectedPointerType {
+      Unknown,
+      Script,
+      Text,
+      Movement,
+      Mart,
+      SpriteTemplate,
    }
 
    public abstract class ScriptLine : IScriptLine {
@@ -419,11 +426,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public string Usage { get; }
 
       public virtual bool IsEndingCommand { get; }
-      public virtual bool PointsToNextScript { get; }
-      public virtual bool PointsToText { get; }
-      public virtual bool PointsToMovement { get; }
-      public virtual bool PointsToMart { get; }
-      public virtual bool PointsToSpriteTemplate { get; }
 
       public int CompiledByteLength(IDataModel model, int start) {
          var length = LineCode.Count;
@@ -459,7 +461,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (token.StartsWith("[") && token.EndsWith("]")) {
                var content = token.Substring(1, token.Length - 2);
                args.Add(new ArrayArg(content));
-            } else if ("<> : .".Split(' ').Any(token.Contains)) {
+            } else if ("<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains)) {
                args.Add(new ScriptArg(token));
             } else {
                LineCommand = token;
@@ -634,7 +636,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             start += arg.Length(data, start);
          }
-         if (PointsToText || PointsToMovement || PointsToMart || PointsToSpriteTemplate) {
+         if (Args.Any(arg => arg.PointerType != ExpectedPointerType.Unknown)) {
             if (data.GetNextRun(lastAddress) is IStreamRun stream && stream.Start == lastAddress) {
                builder.AppendLine();
                builder.AppendLine("{");
@@ -683,65 +685,28 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public XSEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(4, 5, 6, 7);
-      public override bool PointsToText => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0F, 0x67);
-      public override bool PointsToMovement => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x4F, 0x50);
-      public override bool PointsToMart => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x86, 0x87, 0x88);
    }
 
    public class BSEScriptLine : ScriptLine {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(
-         0x01,
-         0x1C,
-         0x1D,
-         0x1E,
-         0x1F,
-         0x20,
-         0x21,
-         0x22,
-         0x28,
-         0x29,
-         0x2A,
-         0x2B,
-         0x2C,
-         0x2D,
-         0x41,
-         0x7A,
-         0x82,
-         0x84,
-         0x97,
-         0xBA,
-         0xC9,
-         0xCF,
-         0xE1,
-         0xE3
-         );
    }
 
    public class ASEScriptLine : ScriptLine {
       public ASEScriptLine(string engineLine) : base(engineLine) { }
 
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x08, 0x0F, 0x11, 0x13);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x0E, 0x11, 0x12, 0x13);
-      public override bool PointsToSpriteTemplate => LineCode.Count == 1 && LineCode[0] == 0x02;
    }
 
    public class TSEScriptLine : ScriptLine {
       public TSEScriptLine(string engineLine) : base(engineLine) { }
       public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x5A);
-      public override bool PointsToNextScript => LineCode.Count == 1 && LineCode[0].IsAny<byte>(
-         0x00, 0x01, 0x02, 0x03, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D,
-         0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A,
-         0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x20, 0x26, 0x27, 0x28, 0x29, 0x31, 0x34, 0x35,
-         0x37, 0x38, 0x39, 0x3A, 0x3B, 0x3C, 0x3D, 0x3E, 0x3F, 0x40, 0x41, 0x42, 0x43,
-         0x44, 0x46, 0x58, 0x59, 0x5B, 0x5C, 0x5D, 0x5E, 0x61, 0x62);
    }
 
    public interface IScriptArg {
       ArgType Type { get; }
+      ExpectedPointerType PointerType { get; }
       string Name { get; }
       string EnumTableName { get; }
 
@@ -752,6 +717,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private int length;
 
       public ArgType Type { get; }
+      public ExpectedPointerType PointerType { get; }
       public string Name { get; }
       public string EnumTableName { get; }
       public int EnumOffset { get; }
@@ -759,7 +725,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int Length(IDataModel model, int start) => length;
 
       public ScriptArg(string token) {
-         (Type, Name, EnumTableName, length) = Construct(token);
+         (Type, PointerType, Name, EnumTableName, length) = Construct(token);
          if (EnumTableName == null) return;
          if (EnumTableName.Contains("+")) {
             var parts = EnumTableName.Split(new[] { '+' }, 2);
@@ -772,33 +738,67 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
-      public static (ArgType type, string name, string enumTableName, int length) Construct(string token) {
+      public static (ArgType type, ExpectedPointerType pointerType, string name, string enumTableName, int length) Construct(string token) {
          if (token.Contains("<>")) {
             var (type, length) = (ArgType.Pointer, 4);
             var name = token.Split(new[] { "<>" }, StringSplitOptions.None).First();
-            return (type, name, default, length);
+            return (type, ExpectedPointerType.Unknown, name, default, length);
+         } else if (token.Contains("<\"\">")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<\"\">" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Text, name, default, length);
+         } else if (token.Contains("<`mart`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`mart`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Mart, name, default, length);
+         } else if (token.Contains("<`move`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`move`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Movement, name, default, length);
+         } else if (token.Contains("<`oam`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`oam`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.SpriteTemplate, name, default, length);
+
+         } else if (token.Contains("<`xse`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`xse`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Script, name, default, length);
+         } else if (token.Contains("<`bse`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`bse`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Script, name, default, length);
+         } else if (token.Contains("<`ase`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`ase`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Script, name, default, length);
+         } else if (token.Contains("<`tse`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`tse`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Script, name, default, length);
+
          } else if (token.Contains("::")) {
             var (type, length) = (ArgType.Word, 4);
             var name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
             var enumTableName = token.Split("::").Last();
-            return (type, name, enumTableName, length);
+            return (type, default, name, enumTableName, length);
          } else if (token.Contains(":")) {
             var (type, length) = (ArgType.Short, 2);
             var name = token.Split(':').First();
             var enumTableName = token.Split(':').Last();
-            return (type, name, enumTableName, length);
+            return (type, default, name, enumTableName, length);
          } else if (token.Contains(".")) {
             var (type, length) = (ArgType.Byte, 1);
             var parts = token.Split(new[] { '.' }, 2);
             var name = parts[0];
             var enumTableName = parts[1];
-            return (type, name, enumTableName, length);
+            return (type, default, name, enumTableName, length);
          } else {
             // didn't find a token :(
             // I guess it's a byte?
             var (type, length) = (ArgType.Byte, 1);
             var name = token;
-            return (type, name, default, length);
+            return (type, default, name, default, length);
          }
       }
 
@@ -834,13 +834,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public string Name { get; }
       public string EnumTableName { get; }
       public int TokenLength { get; }
+      public ExpectedPointerType PointerType => ExpectedPointerType.Unknown;
 
       public int Length(IDataModel model, int start) {
          return model[start] * TokenLength + 1;
       }
 
       public ArrayArg(string token) {
-         (Type, Name, EnumTableName, TokenLength) = ScriptArg.Construct(token);
+         (Type, _, Name, EnumTableName, TokenLength) = ScriptArg.Construct(token);
       }
 
       public string ConvertMany(IDataModel model, int start) {

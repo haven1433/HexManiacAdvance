@@ -174,10 +174,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (line == null) break;
                   var length = line.CompiledByteLength(model, address);
                   if (filter.Contains(model[address])) yield return new(address, line);
-                  if (line.PointsToNextScript) {
-                     var destination = model.ReadPointer(address + length - 4);
-                     if (destination >= 0 && destination < model.Count && !scriptsToCheck.Contains(destination) && scriptsToCheck.Count < ScriptCountLimit) scriptsToCheck.Add(destination);
+
+                  var commandOffset = line.LineCode.Count;
+                  foreach (var arg in line.Args) {
+                     if (arg.PointerType == ExpectedPointerType.Script) {
+                        var destination = model.ReadPointer(address + commandOffset);
+                        if (destination >= 0 && destination < model.Count && !scriptsToCheck.Contains(destination) && scriptsToCheck.Count < ScriptCountLimit) scriptsToCheck.Add(destination);
+                     }
+                     commandOffset += arg.Length(model, -1);
                   }
+
                   if (line.IsEndingCommand) break;
                   address += length;
                   currentScriptLength += length;

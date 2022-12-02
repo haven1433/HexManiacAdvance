@@ -2,7 +2,7 @@
 
 00 loadspritegfx tag:|h
 01 unloadspritegfx tag:|h
-02 createsprite template<> subpriority_offset. [argv:]
+02 createsprite template<`oam`> subpriority_offset. [argv:]
 03 createvisualtask address<> priority. [argv:]
 04 delay time.
 05 waitforvisualfinish
@@ -14,12 +14,12 @@
 0B clearmonbg battler.
 0C setalpha eva. evb.
 0D blendoff
-0E call pointer<>
+0E call pointer<`ase`>
 0F return
 10 setarg param0. param1:
-11 choosetwoturnanim option1<> option2<>
-12 jumpifmoveturn param0. ptr<>
-13 goto ptr<>
+11 choosetwoturnanim option1<`ase`> option2<`ase`>
+12 jumpifmoveturn param0. ptr<`ase`>
+13 goto ptr<`ase`>
 14 fadetobg bg.
 15 restorebg
 16 waitbgfadeout

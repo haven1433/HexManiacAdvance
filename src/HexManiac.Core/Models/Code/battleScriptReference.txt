@@ -7,7 +7,7 @@
 # 05 A &~ B  <- no common bits
 
 00 attackcanceler
-01 accuracycheck param0<> param1:
+01 accuracycheck ptr<`bse`> param1:
 02 attackstring
 03 ppreduce
 04 critcalc
@@ -34,24 +34,24 @@
 19 tryfaintmon battler. fromMove. ptr<>
 1a dofaintanimation battler.
 1b cleareffectsonfaint battler.
-1c jumpifstatus battler. status1:: ptr<>
-1d jumpifstatus2 battler. status2:: ptr<>
-1e jumpifability param0. ability. ptr<>
-1f jumpifsideaffecting battler. sidestatus: ptr<>
-20 jumpifstat battler. ifflag. stat. value. ptr<>
-21 jumpifstatus3condition battler. status3:: param2. ptr<>
-22 jumpiftype battler. type. ptr<>
+1c jumpifstatus battler. status1:: ptr<`bse`>
+1d jumpifstatus2 battler. status2:: ptr<`bse`>
+1e jumpifability param0. ability. ptr<`bse`>
+1f jumpifsideaffecting battler. sidestatus: ptr<`bse`>
+20 jumpifstat battler. ifflag. stat. value. ptr<`bse`>
+21 jumpifstatus3condition battler. status3:: param2. ptr<`bse`>
+22 jumpiftype battler. type. ptr<`bse`>
 23 getexp battler.
 24 checkteamslost ptr<>
 25 movevaluescleanup
 26 setmultihit value.
 27 decrementmultihit ptr<>
-28 goto ptr<>
-29 jumpifbyte ifflag.battle_compare param1:: param2. ptr<>
-2a jumpifhalfword ifflag.battle_compare address:: value: ptr<>
-2b jumpifword ifflag.battle_compare param1:: param2:: ptr<>
-2c jumpifarrayequal param0:: param1:: param2. ptr<>
-2d jumpifarraynotequal param0:: param1:: param2. ptr<>
+28 goto ptr<`bse`>
+29 jumpifbyte ifflag.battle_compare param1:: param2. ptr<`bse`>
+2a jumpifhalfword ifflag.battle_compare address:: value: ptr<`bse`>
+2b jumpifword ifflag.battle_compare param1:: param2:: ptr<`bse`>
+2c jumpifarrayequal param0:: param1:: param2. ptr<`bse`>
+2d jumpifarraynotequal param0:: param1:: param2. ptr<`bse`>
 2e setbyte ram:: param1.
 2f addbyte ram:: param1.
 30 subbyte ram:: param1.
@@ -71,7 +71,7 @@
 3e end2
 3f end3
 40 jumpifaffectedbyprotect ptr<>
-41 call ptr<>
+41 call ptr<`bse`>
 42 jumpiftype2 battler. type. ptr<>
 43 jumpifabilitypresent ability. ptr<>
 44 endselectionscript
@@ -142,7 +142,7 @@
 77 setprotectlike
 78 faintifabilitynotdamp
 79 setatkhptozero
-7a jumpifnexttargetvalid ptr<>
+7a jumpifnexttargetvalid ptr<`bse`>
 7b tryhealhalfhealth ptr<> battler.
 7c trymirrormove
 7d setrain
@@ -150,9 +150,9 @@
 7f setseeded
 80 manipulatedamage param0.
 81 trysetrest ptr<>
-82 jumpifnotfirstturn ptr<>
+82 jumpifnotfirstturn ptr<`bse`>
 83 nop
-84 jumpifcantmakeasleep ptr<>
+84 jumpifcantmakeasleep ptr<`bse`>
 85 stockpile
 86 stockpiletobasedamage ptr<>
 87 stockpiletohpheal ptr<>
@@ -171,7 +171,7 @@
 94 damagetohalftargethp
 95 setsandstorm
 96 weatherdamage
-97 tryinfatuating ptr<>
+97 tryinfatuating ptr<`bse`>
 98 updatestatusicon battler.
 99 setmist
 9a setfocusenergy
@@ -184,29 +184,29 @@ a0 psywavedamageeffect
 a1 counterdamagecalculator ptr<>
 a2 mirrorcoatdamagecalculator ptr<>
 a3 disablelastusedattack ptr<>
-a4 trysetencore ptr<>
+a4 trysetencore ptr<`bse`>
 a5 painsplitdmgcalc ptr<>
 a6 settypetorandomresistance ptr<>
 a7 setalwayshitflag
 a8 copymovepermanently ptr<>
-a9 trychoosesleeptalkmove ptr<>
+a9 trychoosesleeptalkmove ptr<`bse`>
 aa setdestinybond
 ab trysetdestinybondtohappen
 ac remaininghptopower
-ad tryspiteppreduce ptr<>
+ad tryspiteppreduce ptr<`bse`>
 ae healpartystatus
 af cursetarget ptr<>
-b0 trysetspikes ptr<>
+b0 trysetspikes ptr<`bse`>
 b1 setforesight
-b2 trysetperishsong ptr<>
+b2 trysetperishsong ptr<`bse`>
 b3 rolloutdamagecalculation
-b4 jumpifconfusedandstatmaxed stat. ptr<>
+b4 jumpifconfusedandstatmaxed stat. ptr<`bse`>
 b5 furycuttercalc
 b6 happinesstodamagecalculation
 b7 presentdamagecalculation
 b8 setsafeguard
 b9 magnitudedamagecalculation
-ba jumpifnopursuitswitchdmg ptr<>
+ba jumpifnopursuitswitchdmg ptr<`bse`>
 bb setsunny
 bc maxattackhalvehp ptr<>
 bd copyfoestats ptr<>
@@ -221,40 +221,40 @@ c5 setsemiinvulnerablebit
 c6 clearsemiinvulnerablebit
 c7 setminimize
 c8 sethail
-c9 jumpifattackandspecialattackcannotfall ptr<>
+c9 jumpifattackandspecialattackcannotfall ptr<`bse`>
 ca setforcedtarget
 cb setcharge
 cc callterrainattack
 cd cureifburnedparalysedorpoisoned ptr<>
 ce settorment ptr<>
-cf jumpifnodamage ptr<>
+cf jumpifnodamage ptr<`bse`>
 d0 settaunt ptr<>
-d1 trysethelpinghand ptr<>
-d2 tryswapitems ptr<>
-d3 trycopyability ptr<>
-d4 trywish param0. param1<>
-d5 trysetroots ptr<>
+d1 trysethelpinghand ptr<`bse`>
+d2 tryswapitems ptr<`bse`>
+d3 trycopyability ptr<`bse`>
+d4 trywish param0. param1<`bse`>
+d5 trysetroots ptr<`bse`>
 d6 doubledamagedealtifdamaged
 d7 setyawn ptr<>
 d8 setdamagetohealthdifference ptr<>
 d9 scaledamagebyhealthratio
-da tryswapabilities ptr<>
-db tryimprison ptr<>
-dc trysetgrudge ptr<>
+da tryswapabilities ptr<`bse`>
+db tryimprison ptr<`bse`>
+dc trysetgrudge ptr<`bse`>
 dd weightdamagecalculation
 de assistattackselect ptr<>
-df trysetmagiccoat ptr<>
-e0 trysetsnatch ptr<>
+df trysetmagiccoat ptr<`bse`>
+e0 trysetsnatch ptr<`bse`>
 e1 trygetintimidatetarget ptr<>
 e2 switchoutabilities battler.
-e3 jumpifhasnohp battler. ptr<>
+e3 jumpifhasnohp battler. ptr<`bse`>
 e4 getsecretpowereffect
 e5 pickup
 e6 docastformchangeanimation
 e7 trycastformdatachange
 e8 settypebasedhalvers ptr<>
 e9 setweatherballtype
-ea tryrecycleitem ptr<>
+ea tryrecycleitem ptr<`bse`>
 eb settypetoterrain ptr<>
 ec pursuitdoubles ptr<>
 ed snatchsetbattlers

@@ -22,40 +22,40 @@
 # you can write individual bytes into set locations in the RAM. Examples?
 
 
-00 nop                                       # does nothing
-01 nop1                                      # does nothing
-02 end                                       # ends the script
-03 return                                    # pops back to the last calling command used.
-04 call pointer<>                            # Continues script execution from another point. Can be returned to.
-05 goto pointer<>                            # Continues script execution from another point. Cannot return.
-06 if1 condition.script_compare pointer<>    # if the last comparison returned a certain value, "goto" to another script
-07 if2 condition.script_compare pointer<>    # if the last comparison returned a certain value, "call" to another script
-08 gotostd function.                         # goto a built-in function
-09 callstd function.                         # call a built-in function
-0A gotostdif condition. function.            # goto a built in function if the condition is met
-0B callstdif condition. function.            # call a built in function if the condition is met
-0C jumpram                                   # executes a script from the default RAM location (???)
-0D killscript                                # kill the script, reset script RAM
-0E setbyte byte.                             # sets a predefined address to the specified byte value
-0F loadpointer bank.4 pointer<>              # loads a pointer into script RAM so other commands can use it
-10 setbyte2 bank.4 value.                    # sets a memory bank to the specified byte value.
-11 writebytetooffset value. offset<>         # store the byte 'value' at the RAM address 'offset'
-12 loadbytefrompointer bank.4 pointer<>      # load a byte value from a RAM address into the specified memory bank
-13 setfarbyte bank.4 pointer<>               # stores the least-significant byte in the bank to a RAM address
-14 copyscriptbanks destination.4 source.4    # copies the value in source to destination
-15 copybyte destination<> source<>           # copies the value from the source RAM address to the destination RAM address
-16 setvar variable: value:          # sets the given variable to the given value
-17 addvar variable: value:          # variable += value
-18 subvar variable: value:          # variable -= value
-19 copyvar destination: source:              # destination = source
-1A copyvarifnotzero destination: source:     # destination = source (or) destination = *source
-                                             # (if source isn't a valid variable, it's read as a value)
-1B comparebanks bankA.4 bankB.4              # sets the condition variable based on the values in the two banks
-1C comparebanktobyte bank.4 value.           # sets the condition variable
-1D compareBankTofarbyte bank.4 pointer<>     # compares the bank value to the value stored in the RAM address
-1E compareFarByteToBank pointer<> bank.4     # opposite of 1D
-1F compareFarByteToByte pointer<> value.     # compares the value at the RAM address to the value
-20 compareFarBytes a<> b<>                   # compares the two values at the two RAM addresses
+00 nop                                          # does nothing
+01 nop1                                         # does nothing
+02 end                                          # ends the script
+03 return                                       # pops back to the last calling command used.
+04 call pointer<`xse`>                          # Continues script execution from another point. Can be returned to.
+05 goto pointer<`xse`>                          # Continues script execution from another point. Cannot return.
+06 if1 condition.script_compare pointer<`xse`>  # if the last comparison returned a certain value, "goto" to another script
+07 if2 condition.script_compare pointer<`xse`>  # if the last comparison returned a certain value, "call" to another script
+08 gotostd function.                            # goto a built-in function
+09 callstd function.                            # call a built-in function
+0A gotostdif condition. function.               # goto a built in function if the condition is met
+0B callstdif condition. function.               # call a built in function if the condition is met
+0C jumpram                                      # executes a script from the default RAM location (???)
+0D killscript                                   # kill the script, reset script RAM
+0E setbyte byte.                                # sets a predefined address to the specified byte value
+0F loadpointer bank.4 pointer<"">               # loads a pointer into script RAM so other commands can use it
+10 setbyte2 bank.4 value.                       # sets a memory bank to the specified byte value.
+11 writebytetooffset value. offset<>            # store the byte 'value' at the RAM address 'offset'
+12 loadbytefrompointer bank.4 pointer<>         # load a byte value from a RAM address into the specified memory bank
+13 setfarbyte bank.4 pointer<>                  # stores the least-significant byte in the bank to a RAM address
+14 copyscriptbanks destination.4 source.4       # copies the value in source to destination
+15 copybyte destination<> source<>              # copies the value from the source RAM address to the destination RAM address
+16 setvar variable: value:                      # sets the given variable to the given value
+17 addvar variable: value:                      # variable += value
+18 subvar variable: value:                      # variable -= value
+19 copyvar destination: source:                 # destination = source
+1A copyvarifnotzero destination: source:        # destination = source (or) destination = *source
+                                                # (if source isn't a valid variable, it's read as a value)
+1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the values in the two banks
+1C comparebanktobyte bank.4 value.              # sets the condition variable
+1D compareBankTofarbyte bank.4 pointer<>        # compares the bank value to the value stored in the RAM address
+1E compareFarByteToBank pointer<> bank.4        # opposite of 1D
+1F compareFarByteToByte pointer<> value.        # compares the value at the RAM address to the value
+20 compareFarBytes a<> b<>                      # compares the two values at the two RAM addresses
 21 compare variable: value:
 22 comparevars var1: var2:
 23 callasm code<>
@@ -108,10 +108,10 @@
 4C removedecoration decoration:              # removes a decoration to the player's PC in FR/LG, this is a NOP
 4D testdecoration decoration:                # 800D is set to 1 if the PC could store at least 1 more of that decoration
 4E checkdecoration decoration:               # 800D is set to 1 if the PC has at least 1 of that decoration
-4F applymovement npc: data<>                 # has character 'npc' move according to movement data 'data'
+4F applymovement npc: data<`move`>           # has character 'npc' move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
-50 applymovement2 npc: data<>                # like applymovement, but only uses variables, not literals
+50 applymovement2 npc: data<`move`>          # like applymovement, but only uses variables, not literals
 51 waitmovement npc:                         # block further script execution until the npc movement is completed
 52 waitmovementpos npc: x. y.                # seems bugged. x/y do nothing, only works for FF (the player). Do not use.
 53 hidesprite npc:                           # hides an NPC, but only if they have a Person ID. Doesn't work on the player.
@@ -124,17 +124,17 @@
 5A faceplayer                                # if the script was called by a person event, make that person face the player
 5B spriteface npc: direction.
 
-5C trainerbattle 00 trainer:data.trainers.stats arg: start<> playerwin<>
-5C trainerbattle 01 trainer:data.trainers.stats arg: start<> playerwin<> winscript<>            # doesn't play encounter music, continues with winscript
-5C trainerbattle 02 trainer:data.trainers.stats arg: start<> playerwin<> winscript<>            # does play encounter music, continues with winscript
-5C trainerbattle 03 trainer:data.trainers.stats arg: playerwin<>                                # no intro text
-5C trainerbattle 04 trainer:data.trainers.stats arg: start<> playerwin<> needmorepokemonText<>  # double battles
-5C trainerbattle 05 trainer:data.trainers.stats arg: start<> playerwin<>                        # clone of 0, but with rematch potential
-5C trainerbattle 06 trainer:data.trainers.stats arg: start<> playerwin<> needmorepokemonText<> unknown<> # double battles
-5C trainerbattle 07 trainer:data.trainers.stats arg: start<> playerwin<> needmorepokemonText<>  # clone of 4, but with rematch potential
-5C trainerbattle 08 trainer:data.trainers.stats arg: start<> playerwin<> needmorepokemonText<> unknown<> # clone of 6
-5C trainerbattle 09 trainer:data.trainers.stats arg: start<> playerwin<> # tutorial battle (can't lose) (set arg=3 for oak's naration)
-5C trainerbattle other. trainer:data.trainers.stats arg: start<> playerwin<> # same as 0
+5C trainerbattle 00 trainer:data.trainers.stats arg: start<""> playerwin<"">
+5C trainerbattle 01 trainer:data.trainers.stats arg: start<""> playerwin<""> winscript<`xse`>         # doesn't play encounter music, continues with winscript
+5C trainerbattle 02 trainer:data.trainers.stats arg: start<""> playerwin<""> winscript<`xse`>         # does play encounter music, continues with winscript
+5C trainerbattle 03 trainer:data.trainers.stats arg: playerwin<"">                              # no intro text
+5C trainerbattle 04 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">  # double battles
+5C trainerbattle 05 trainer:data.trainers.stats arg: start<""> playerwin<"">                        # clone of 0, but with rematch potential
+5C trainerbattle 06 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> unknown<> # double battles
+5C trainerbattle 07 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">  # clone of 4, but with rematch potential
+5C trainerbattle 08 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> unknown<> # clone of 6
+5C trainerbattle 09 trainer:data.trainers.stats arg: start<""> playerwin<""> # tutorial battle (can't lose) (set arg=3 for oak's naration)
+5C trainerbattle other. trainer:data.trainers.stats arg: start<""> playerwin<""> # same as 0
                                              # trainer battle takes different parameters depending on the
                                              # 'type', or the first parameter.
                                              # 'trainer' is the ID of the trainer battle
@@ -152,7 +152,7 @@
 64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
 65 spritebehave npc: behavior.               # ???
 66 waitmsg                                   # block script execution until box/text is fully drawn
-67 preparemsg text<>                         # text can be a pointer to a text pointer, or just a pointer to text
+67 preparemsg text<"">                       # text can be a pointer to a text pointer, or just a pointer to text
                                              # starts displaying text in a textbox. Does not block. Call waitmsg to block.
 68 closeonkeypress                           # keeps the current textbox open until the player presses a button.
 69 lockall                                   # don't let characters move
@@ -192,9 +192,9 @@
 83 buffernumber buffer.3 number:             # literal or variable gets converted to a string and put in the buffer.
 84 bufferstd buffer.3 index:                 # gets one of the standard strings and pushes it into a buffer
 85 bufferstring buffer.3 pointer<>           # copies the string into the buffer.
-86 pokemart products<>                       # products is a list of 2-byte items, terminated with 0000
-87 pokemart2 products<>                      # clone
-88 pokemart3 products<>                      # clone
+86 pokemart products<`mart`>                 # products is a list of 2-byte items, terminated with 0000
+87 pokemart2 products<`mart`>                # clone
+88 pokemart3 products<`mart`>                # clone
 89 pokecasino index:
 [BPRE_BPGE] 8A nop8A
 [AXPE_AXVE_BPEE] 8A setberrytree plantID. berryID.data.items.berry.stats+1 growth.    # sets a specific berry-growing spot on the map with the specific berry and growth level.

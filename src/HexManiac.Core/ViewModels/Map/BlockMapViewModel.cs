@@ -1611,7 +1611,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (layout == null) return;
          if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
          if (borderBlock == null) RefreshBorderRender();
-         if (eventRenders == null) RefreshMapEvents();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var start = layout.GetAddress("blockmap");
@@ -1650,9 +1649,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         foreach (var obj in eventRenders) {
-            var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-            canvas.Draw(obj.EventRender, x, y);
+         if (eventRenders == null) RefreshMapEvents();
+         if (eventRenders != null) {
+            foreach (var obj in eventRenders) {
+               var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+               canvas.Draw(obj.EventRender, x, y);
+            }
          }
 
          pixelData = canvas.PixelData;
