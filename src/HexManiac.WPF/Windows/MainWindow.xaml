@@ -275,14 +275,17 @@
                      <MenuItem Header="Ruby">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeruby/symbols/pokeruby.sym" />
                      </MenuItem>
                      <MenuItem Header="FireRed">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokefirered/symbols/pokefirered.sym" />
                      </MenuItem>
                      <MenuItem Header="Emerald">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeemerald/symbols/pokeemerald.sym" />
                      </MenuItem>
                   </MenuItem>
                   <MenuItem Header="_Report an Issue" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/issues" />
@@ -379,6 +382,14 @@
             </StackPanel>
             <!-- Message -->
             <StackPanel Name="MessagePanel" Visibility="{Binding ShowMessage, Converter={StaticResource BoolToVisibility}}" Style="{StaticResource AnimateOnVisibilityChanged}" Orientation="Horizontal">
+               <StackPanel.InputBindings>
+                  <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearMessage}"/>
+               </StackPanel.InputBindings>
+               <StackPanel.ContextMenu>
+                  <ContextMenu>
+                     <MenuItem Header="Copy Message" Command="{hsv:MethodCommand CopyMessage}" />
+                  </ContextMenu>
+               </StackPanel.ContextMenu>
                <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding InformationMessage}" Foreground="{DynamicResource Accent}"/>
                <Button Command="{Binding ClearMessage}" Width="15">
                   <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
@@ -393,6 +404,11 @@
                <Grid.InputBindings>
                   <MouseBinding MouseAction="MiddleClick" Command="{Binding ClearError}"/>
                </Grid.InputBindings>
+               <Grid.ContextMenu>
+                  <ContextMenu>
+                     <MenuItem Header="Copy Error" Command="{hsv:MethodCommand CopyError}" />
+                  </ContextMenu>
+               </Grid.ContextMenu>
                <TextBlock Margin="10,0" VerticalAlignment="Center" Text="{Binding ErrorMessage}" TextWrapping="Wrap" TextAlignment="Right" Foreground="{DynamicResource Error}"/>
                <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
                   <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>

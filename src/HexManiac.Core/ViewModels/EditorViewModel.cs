@@ -704,6 +704,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
       }
 
+      public void CopyMessage() => fileSystem.CopyText = InformationMessage;
+
+      public void CopyError() => fileSystem.CopyText = ErrorMessage;
+
       private async void ExecuteOpen(object arg) {
          try {
             var file = arg as LoadedFile ?? fileSystem.OpenFile("GameBoy Advanced", "gba");
