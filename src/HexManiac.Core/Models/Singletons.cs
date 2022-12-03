@@ -28,10 +28,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyDictionary<string, GameReferenceConstants> GameReferenceConstants { get; }
       public IReadOnlyList<ConditionCode> ThumbConditionalCodes { get; }
       public IReadOnlyList<IInstruction> ThumbInstructionTemplates { get; }
-      public IReadOnlyList<ScriptLine> ScriptLines { get; }
-      public IReadOnlyList<ScriptLine> BattleScriptLines { get; }
-      public IReadOnlyList<ScriptLine> AnimationScriptLines { get; }
-      public IReadOnlyList<ScriptLine> BattleAIScriptLines { get; }
+      public IReadOnlyList<IScriptLine> ScriptLines { get; }
+      public IReadOnlyList<IScriptLine> BattleScriptLines { get; }
+      public IReadOnlyList<IScriptLine> AnimationScriptLines { get; }
+      public IReadOnlyList<IScriptLine> BattleAIScriptLines { get; }
       public IWorkDispatcher WorkDispatcher { get; }
       public int CopyLimit { get; }
 
@@ -64,15 +64,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          CopyLimit = copyLimit;
       }
 
-      private IReadOnlyList<ScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {
+      private IReadOnlyList<IScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {
          if (!File.Exists(file)) return new List<ScriptLine>();
-         Func<string, ScriptLine> factory = line => new XSEScriptLine(line);
+         Func<string, IScriptLine> factory = line => new XSEScriptLine(line);
          if (typeof(TLine) == typeof(BSEScriptLine)) factory = line => new BSEScriptLine(line);
          if (typeof(TLine) == typeof(ASEScriptLine)) factory = line => new ASEScriptLine(line);
 
          var lines = File.ReadAllLines(file);
-         var scriptLines = new List<ScriptLine>();
-         ScriptLine active = null;
+         var scriptLines = new List<IScriptLine>();
+         IScriptLine active = null;
          foreach (var line in lines) {
             if (string.IsNullOrEmpty(line)) continue;
             if (!line.StartsWith(" ") && active != null) active = null;
@@ -80,8 +80,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (line.Trim().StartsWith("#") && active != null) {
                active.AddDocumentation(line.Trim());
             } else {
-               active = factory(line);
-               scriptLines.Add(active);
+               if (MacroScriptLine.IsMacroLine(line)) {
+                  var macro = new MacroScriptLine(line);
+                  if (macro.IsValid) active = macro;
+               } else {
+                  active = factory(line);
+               }
+               if (active != null) scriptLines.Add(active);
             }
          }
 

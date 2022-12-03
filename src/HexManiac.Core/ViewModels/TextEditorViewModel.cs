@@ -169,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue; // not valid keyword start
             if (!char.IsLetter(content[i])) continue;
             int length = 1;
-            while (i + length < content.Length && char.IsLetterOrDigit(content[i + length])) length++;
+            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length] == '.')) length++;
             yield return (i, length);
             i += length;
          }

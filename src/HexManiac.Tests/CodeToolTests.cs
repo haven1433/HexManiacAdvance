@@ -216,5 +216,34 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("\"Start\"", Model.TextConverter.Convert(Model, 0x100, 0x20));
          Assert.Equal("\"Win\"", Model.TextConverter.Convert(Model, 0x110, 0x20));
       }
+
+      [Theory]
+      [InlineData("npc", 2)]
+      [InlineData("sign", 3)]
+      [InlineData("default", 4)]
+      [InlineData("yesno", 5)]
+      [InlineData("autoclose", 6)]
+      public void Macro_Compile_Compiles(string type, byte value) {
+         SetFullModel(0xFF);
+         Tool.Mode = CodeMode.Script;
+
+         EventScript = $"msgbox.{type} <100>;end";
+
+         var expected = $"0F 00 00 01 00 08 09 {value:X2} 02".ToByteArray();
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], Model[i]));
+      }
+
+      [Theory]
+      [InlineData("npc", 2)]
+      [InlineData("sign", 3)]
+      [InlineData("default", 4)]
+      [InlineData("yesno", 5)]
+      [InlineData("autoclose", 6)]
+      public void Macro_Decompile_Decompiles(string type, byte value) {
+         SetFullModel(0xFF);
+         $"0F 00 00 01 00 08 09 {value:X2} 02".ToByteArray().WriteInto(Model.RawData, 0);
+         var lines = Tool.ScriptParser.Parse(Model, 0, 9).SplitLines();
+         Assert.Equal($"msgbox.{type} <000100>", lines[0].Trim());
+      }
    }
 }

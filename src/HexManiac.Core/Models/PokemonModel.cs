@@ -1553,7 +1553,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) {
          int currentLength = run.Length;
          if (run is IScriptStartRun) {
-            IReadOnlyList<ScriptLine> lines = null;
+            IReadOnlyList<IScriptLine> lines = null;
             if (run is XSERun) lines = singletons.ScriptLines;
             if (run is BSERun) lines = singletons.BattleScriptLines;
             if (run is ASERun) lines = singletons.AnimationScriptLines;

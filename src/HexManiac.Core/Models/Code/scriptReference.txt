@@ -21,6 +21,13 @@
 # RAM:
 # you can write individual bytes into set locations in the RAM. Examples?
 
+# macros
+msgbox.npc       0F 00 ptr<""> 09 02
+msgbox.sign      0F 00 ptr<""> 09 03
+msgbox.default   0F 00 ptr<""> 09 04
+msgbox.yesno     0F 00 ptr<""> 09 05
+msgbox.autoclose 0F 00 ptr<""> 09 06
+
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing

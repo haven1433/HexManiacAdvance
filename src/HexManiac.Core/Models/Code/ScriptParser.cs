@@ -11,12 +11,12 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
-      private readonly IReadOnlyList<ScriptLine> engine;
+      private readonly IReadOnlyList<IScriptLine> engine;
       private readonly byte endToken;
 
       public event EventHandler<string> CompileError;
 
-      public ScriptParser(IReadOnlyList<ScriptLine> engine, byte endToken) => (this.engine, this.endToken) = (engine, endToken);
+      public ScriptParser(IReadOnlyList<IScriptLine> engine, byte endToken) => (this.engine, this.endToken) = (engine, endToken);
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address);
 
@@ -85,7 +85,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public ScriptLine GetLine(IDataModel model, int address) => engine.GetMatchingLine(model, address);
 
-      public IEnumerable<ScriptLine> DependsOn(string basename) {
+      public IEnumerable<IScriptLine> DependsOn(string basename) {
          foreach (var line in engine) {
             foreach (var arg in line.Args) {
                if (arg.EnumTableName == basename) {
@@ -431,6 +431,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       IReadOnlyList<IScriptArg> Args { get; }
       IReadOnlyList<byte> LineCode { get; }
       string LineCommand { get; }
+      IReadOnlyList<string> Documentation { get; }
+      string Usage { get; }
 
       bool IsEndingCommand { get; }
 
@@ -438,8 +440,141 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(IReadOnlyList<byte> data, int index);
-      string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
       string Decompile(IDataModel data, int start);
+
+      bool CanCompile(string line);
+      string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
+
+      void AddDocumentation(string content);
+   }
+
+   public class MacroScriptLine : IScriptLine {
+      private static readonly IReadOnlyList<byte> emptyByteList = new byte[0];
+      private readonly List<string> documentation = new List<string>();
+
+      public IReadOnlyList<IScriptArg> Args { get; }
+      public IReadOnlyList<byte> LineCode => emptyByteList;
+      public IReadOnlyList<string> Documentation => documentation;
+      public string LineCommand { get; }
+      public bool IsEndingCommand => false;
+      public bool IsValid { get; } = true;
+      public string Usage { get; }
+
+      public static bool IsMacroLine(string engineLine) {
+         engineLine = engineLine.Trim();
+         var token = engineLine.Split(' ')[0];
+         if (token.StartsWith("#")) return false;
+         if (token.StartsWith("[")) return false;
+         if (token.Length == 2 && token.TryParseHex(out _)) return false;
+         return true;
+      }
+
+      public MacroScriptLine(string engineLine) {
+         var docSplit = engineLine.Split(new[] { '#' }, 2);
+         if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
+         engineLine = docSplit[0].Trim();
+         Usage = " ".Join(engineLine.Split(' ').Where(token => token.Length != 2 || !token.TryParseHex(out _)));
+
+         var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+         var args = new List<IScriptArg>();
+         LineCommand = tokens[0];
+
+         for (int i = 1; i < tokens.Length; i++) {
+            var token = tokens[i];
+            if (token.Length == 2 && token.TryParseHex(out int number)) {
+               args.Add(new SilentMatchArg((byte)number));
+            } else if (ScriptArg.IsValidToken(token)) {
+               args.Add(new ScriptArg(token));
+            } else {
+               IsValid = false;
+            }
+         }
+
+         Args = args;
+      }
+
+      public bool MatchesGame(string game) => true;
+      public int CompiledByteLength(IDataModel model, int start) {
+         var length = LineCode.Count;
+         foreach (var arg in Args) {
+            length += arg.Length(default, -1);
+         }
+         return length;
+      }
+      public int CompiledByteLength(IDataModel model, string line) {
+         var length = LineCode.Count;
+         foreach (var arg in Args) {
+            length += arg.Length(default, -1);
+         }
+         return length;
+      }
+
+      public bool Matches(IReadOnlyList<byte> data, int index) {
+         if (Args.Count == 0) return false;
+         foreach (var arg in Args) {
+            if (arg is SilentMatchArg smarg) {
+               if (data[index] != smarg.ExpectedValue) return false;
+            } else if (arg is ScriptArg sarg) {
+               // don't validate, this part is variable
+            } else {
+               throw new NotImplementedException();
+            }
+            index += arg.Length(default, -1);
+         }
+         return true;
+      }
+
+      public string Decompile(IDataModel data, int start) {
+         var builder = new StringBuilder(LineCommand);
+         var streamContent = new List<string>();
+         foreach (var arg in Args) {
+            if (arg is ScriptArg sarg) {
+               builder.Append(" ");
+               sarg.Build(false, data, start, builder, streamContent);
+            }
+            start += arg.Length(data, start);
+         }
+         foreach (var content in streamContent) {
+            builder.AppendLine();
+            builder.AppendLine("{");
+            builder.AppendLine(content);
+            builder.Append("}");
+         }
+         return builder.ToString();
+      }
+
+      public bool CanCompile(string line) {
+         var tokens = ScriptLine.Tokenize(line);
+         if (tokens[0] != LineCommand) return false;
+         return tokens.Length == Args.Where(arg => arg is ScriptArg).Count() + 1;
+      }
+
+      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
+         result = null;
+         var tokens = ScriptLine.Tokenize(scriptLine);
+         if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
+         var commandText = LineCommand;
+         var specifiedArgs = Args.Where(arg => arg is ScriptArg).Count();
+         if (specifiedArgs != tokens.Length - 1) {
+            return $"Command {commandText} expects {specifiedArgs} arguments, but received {tokens.Length - 1} instead.";
+         }
+         var results = new List<byte>();
+         var specifiedArgIndex = 0;
+         for (int i = 0; i < Args.Count; i++) {
+            if (Args[i] is ScriptArg scriptArg) {
+               var token = tokens[1 + specifiedArgIndex];
+               var message = scriptArg.Build(model, token, results, labels);
+               if (message != null) return message;
+               specifiedArgIndex += 1;
+            } else if (Args[i] is SilentMatchArg silentArg) {
+               results.Add(silentArg.ExpectedValue);
+            }
+         }
+         result = results.ToArray();
+         return null;
+      }
+
+      public void AddDocumentation(string doc) => documentation.Add(doc);
    }
 
    public enum ExpectedPointerType {
@@ -498,7 +633,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (token.StartsWith("[") && token.EndsWith("]")) {
                var content = token.Substring(1, token.Length - 2);
                args.Add(new ArrayArg(content));
-            } else if ("<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains)) {
+            } else if (ScriptArg.IsValidToken(token)) {
                args.Add(new ScriptArg(token));
             } else {
                LineCommand = token;
@@ -570,49 +705,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg scriptArg) {
                var token = tokens[i + LineCode.Count];
-               if (Args[i].Type == ArgType.Byte) {
-                  results.Add((byte)scriptArg.Convert(model, token));
-               } else if (Args[i].Type == ArgType.Short) {
-                  var value = scriptArg.Convert(model, token);
-                  results.Add((byte)value);
-                  results.Add((byte)(value >> 8));
-               } else if (Args[i].Type == ArgType.Word) {
-                  var value = scriptArg.Convert(model, token);
-                  results.Add((byte)value);
-                  results.Add((byte)(value >> 0x8));
-                  results.Add((byte)(value >> 0x10));
-                  results.Add((byte)(value >> 0x18));
-               } else if (Args[i].Type == ArgType.Pointer) {
-                  int value;
-                  if (token.StartsWith("<")) {
-                     if (!token.EndsWith(">")) {
-                        return "Unmatched <>";
-                     }
-                     token = token.Substring(1, token.Length - 2);
-                     if (labels.TryResolveLabel(token, out value)) {
-                        // resolved to an address
-                     } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
-                        // pointer *is* an address: nothing else to do
-                     } else {
-                        return $"Unable to parse {token} as a hex number.";
-                     }
-                     value -= Pointer.NULL;
-                  } else {
-                     if (labels.TryResolveLabel(token, out value)) {
-                        // resolved to an address
-                     } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
-                        // pointer *is* an address: nothing else to do
-                     } else {
-                        return $"Unable to parse {token} as a hex number.";
-                     }
-                  }
-                  results.Add((byte)value);
-                  results.Add((byte)(value >> 0x8));
-                  results.Add((byte)(value >> 0x10));
-                  results.Add((byte)(value >> 0x18));
-               } else {
-                  throw new NotImplementedException();
-               }
+               var message = scriptArg.Build(model, token, results, labels);
+               if (message != null) return message;
             } else if (Args[i] is ArrayArg arrayArg) {
                var values = arrayArg.ConvertMany(model, tokens.Skip(i + 1)).ToList();
                results.Add((byte)values.Count);
@@ -652,24 +746,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          foreach (var arg in Args) {
             builder.Append(" ");
             if (arg is ScriptArg scriptArg) {
-               if (allFillerIsZero && scriptArg.Name == "filler") continue;
-               if (arg.Type == ArgType.Byte) builder.Append(scriptArg.Convert(data, data[start]));
-               if (arg.Type == ArgType.Short) builder.Append(scriptArg.Convert(data, data.ReadMultiByteValue(start, 2)));
-               if (arg.Type == ArgType.Word) builder.Append(scriptArg.Convert(data, data.ReadMultiByteValue(start, 4)));
-               if (arg.Type == ArgType.Pointer) {
-                  var address = data.ReadMultiByteValue(start, 4);
-                  if (address < 0x8000000) {
-                     builder.Append($"{address:X6}");
-                  } else {
-                     address -= 0x8000000;
-                     builder.Append($"<{address:X6}>");
-                     if (arg.PointerType != ExpectedPointerType.Unknown) {
-                        if (data.GetNextRun(address) is IStreamRun stream && stream.Start == address) {
-                           streamContent.Add(stream.SerializeRun());
-                        }
-                     }
-                  }
-               }
+               if (scriptArg.Build(allFillerIsZero, data, start, builder, streamContent)) continue;
             } else if (arg is ArrayArg arrayArg) {
                builder.Append(arrayArg.ConvertMany(data, start));
             } else {
@@ -841,6 +918,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
+      public static bool IsValidToken(string token) {
+         return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
+      }
+
       public string Convert(IDataModel model, int value) {
          var preferHex = EnumTableName?.EndsWith("|h") ?? false;
          var enumName = EnumTableName?.Split('|')[0];
@@ -866,6 +947,88 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (int.TryParse(value, out result)) return result;
          return 0;
       }
+
+      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent) {
+         if (allFillerIsZero && Name == "filler") return true;
+         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start]));
+         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2)));
+         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4)));
+         if (Type == ArgType.Pointer) {
+            var address = data.ReadMultiByteValue(start, 4);
+            if (address < 0x8000000) {
+               builder.Append($"{address:X6}");
+            } else {
+               address -= 0x8000000;
+               builder.Append($"<{address:X6}>");
+               if (PointerType != ExpectedPointerType.Unknown) {
+                  if (data.GetNextRun(address) is IStreamRun stream && stream.Start == address) {
+                     streamContent.Add(stream.SerializeRun());
+                  }
+               }
+            }
+         }
+         return false;
+      }
+
+      public string Build(IDataModel model, string token, IList<byte> results, LabelLibrary labels) {
+         if (Type == ArgType.Byte) {
+            results.Add((byte)Convert(model, token));
+         } else if (Type == ArgType.Short) {
+            var value = Convert(model, token);
+            results.Add((byte)value);
+            results.Add((byte)(value >> 8));
+         } else if (Type == ArgType.Word) {
+            var value = Convert(model, token);
+            results.Add((byte)value);
+            results.Add((byte)(value >> 0x8));
+            results.Add((byte)(value >> 0x10));
+            results.Add((byte)(value >> 0x18));
+         } else if (Type == ArgType.Pointer) {
+            int value;
+            if (token.StartsWith("<")) {
+               if (!token.EndsWith(">")) {
+                  return "Unmatched <>";
+               }
+               token = token.Substring(1, token.Length - 2);
+               if (labels.TryResolveLabel(token, out value)) {
+                  // resolved to an address
+               } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
+                  // pointer *is* an address: nothing else to do
+               } else {
+                  return $"Unable to parse {token} as a hex number.";
+               }
+               value -= Pointer.NULL;
+            } else {
+               if (labels.TryResolveLabel(token, out value)) {
+                  // resolved to an address
+               } else if (token.TryParseHex(out value)) {
+                  // pointer *is* an address: nothing else to do
+               } else {
+                  return $"Unable to parse {token} as a hex number.";
+               }
+            }
+            results.Add((byte)value);
+            results.Add((byte)(value >> 0x8));
+            results.Add((byte)(value >> 0x10));
+            results.Add((byte)(value >> 0x18));
+         } else {
+            throw new NotImplementedException();
+         }
+         return null;
+      }
+   }
+
+   public class SilentMatchArg : IScriptArg {
+      public ArgType Type => ArgType.Byte;
+      public ExpectedPointerType PointerType => ExpectedPointerType.Unknown;
+      public string Name => null;
+      public string EnumTableName => null;
+      public int EnumOffset => 0;
+
+      public int Length(IDataModel model, int start) => 1;
+
+      public byte ExpectedValue { get; }
+      public SilentMatchArg(byte value) => ExpectedValue = value;
    }
 
    public class ArrayArg : IScriptArg {
@@ -928,9 +1091,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public static class ScriptExtensions {
-      public static ScriptLine GetMatchingLine(this IReadOnlyList<ScriptLine> self, IReadOnlyList<byte> data, int start) => self.FirstOrDefault(option => option.Matches(data, start));
+      /// <summary>
+      /// Does not consider macros. Only returns individual lines.
+      /// </summary>
+      public static ScriptLine GetMatchingLine(this IReadOnlyList<IScriptLine> self, IReadOnlyList<byte> data, int start) {
+         return (ScriptLine)self.FirstOrDefault(option => option is ScriptLine && option.Matches(data, start));
+      }
 
-      public static int GetScriptSegmentLength(this IReadOnlyList<ScriptLine> self, IDataModel model, int address) {
+      public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, IDataModel model, int address) {
          int length = 0;
          while (true) {
             var line = self.GetMatchingLine(model, address + length);
