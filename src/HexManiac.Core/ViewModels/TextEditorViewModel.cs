@@ -1,14 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
+   public enum TextFormatting { None, Keyword, Constant, Numeric, Comment, Text }
+   public interface ITextPreProcessor {
+      TextFormatting[] Format(string content);
+   }
+
    public class TextEditorViewModel : ViewModelCore {
       public ObservableCollection<string> Keywords { get; } = new();
       public ObservableCollection<string> Constants { get; } = new();
 
       private string commentHeader = string.Empty;
       public string LineCommentHeader { get => commentHeader; set => Set(ref commentHeader, value); }
+
+      public ITextPreProcessor PreFormatter { get; set; }
 
       public TextEditorViewModel() {
          Keywords.CollectionChanged += (sender, e) => UpdateLayers();
@@ -31,18 +39,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string ConstantContent { get; private set; } = string.Empty;
       public string NumericContent { get; private set; } = string.Empty;
       public string CommentContent { get; private set; } = string.Empty;
+      public string TextContent { get; private set; } = string.Empty;
 
       private void UpdateLayers() {
-         if (content.Length == 0) return;
+         if (content.Length == 0) {
+            PlainContent = AccentContent =
+            ConstantContent = NumericContent =
+            CommentContent = TextContent = string.Empty;
+            NotifyPropertiesChanged(
+               nameof(PlainContent), nameof(AccentContent),
+               nameof(ConstantContent), nameof(NumericContent),
+               nameof(CommentContent), nameof(TextContent));
+            return;
+         }
          var basic = new MutableString(Content);
          var accent = new MutableString(basic.Length);
          var constants = new MutableString(basic.Length);
          var numeric = new MutableString(basic.Length);
          var comments = new MutableString(basic.Length);
+         var text = new MutableString(basic.Length);
          accent.CopyNewlines(basic);
          constants.CopyNewlines(basic);
          numeric.CopyNewlines(basic);
          comments.CopyNewlines(basic);
+         text.CopyNewlines(basic);
+
+         if (PreFormatter != null) {
+            var pre = PreFormatter.Format(Content);
+            for (int i = 0; i < pre.Length; i++) {
+               if (pre[i] == TextFormatting.None) continue;
+               if (pre[i] == TextFormatting.Keyword) accent.Replace(i, basic, i, 1);
+               if (pre[i] == TextFormatting.Constant) constants.Replace(i, basic, i, 1);
+               if (pre[i] == TextFormatting.Numeric) numeric.Replace(i, basic, i, 1);
+               if (pre[i] == TextFormatting.Comment) comments.Replace(i, basic, i, 1);
+               if (pre[i] == TextFormatting.Text) text.Replace(i, basic, i, 1);
+               basic.Clear(i, 1);
+            }
+         }
 
          // comments
          while (!string.IsNullOrEmpty(LineCommentHeader)) {
@@ -54,34 +87,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             basic.Clear(index, endIndex - index);
          }
 
-         // accent
-         foreach (var keyword in Keywords) {
-            while (true) {
-               var index = basic.IndexOfKeyword(keyword);
-               if (index == -1) break;
-               accent.Replace(index, keyword);
-               basic.Clear(index, keyword.Length);
-            }
-         }
+         var check = basic.GetPossibleKeywordStartPoints().ToList();
+         for (int i = 0; i < check.Count; i++) {
+            bool match = false;
 
-         // constants
-         foreach (var keyword in Constants) {
-            while (true) {
-               var index = basic.IndexOfKeyword(keyword);
-               if (index == -1) break;
-               constants.Replace(index, keyword);
-               basic.Clear(index, keyword.Length);
+            // keywords
+            for (int j = 0; j < Keywords.Count; j++) {
+               if (check[i].length != Keywords[j].Length) continue;
+               if (basic.Match(Keywords[j], check[i].start)) {
+                  accent.Replace(check[i].start, Keywords[j]);
+                  basic.Clear(check[i].start, Keywords[j].Length);
+                  match = true;
+                  break;
+               }
+            }
+            if (match) continue;
+
+            // constants
+            for (int j = 0; j < Constants.Count; j++) {
+               if (check[i].length != Constants[j].Length) continue;
+               if (basic.Match(Constants[j], check[i].start)) {
+                  constants.Replace(check[i].start, Constants[j]);
+                  basic.Clear(check[i].start, Constants[j].Length);
+                  break;
+               }
             }
          }
 
          // numeric
-         int start = 0;
-         while (true) {
-            var (index, length) = basic.IndexOfNumber(start);
-            if (index == -1) break;
-            start = index;
-            numeric.Replace(index, basic, index, length);
-            basic.Clear(index, length);
+         {
+            int start = 0;
+            while (true) {
+               var (index, length) = basic.IndexOfNumber(start);
+               if (index == -1) break;
+               start = index;
+               numeric.Replace(index, basic, index, length);
+               basic.Clear(index, length);
+            }
          }
 
          PlainContent = basic.ToString();
@@ -89,12 +131,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ConstantContent = constants.ToString();
          NumericContent = numeric.ToString();
          CommentContent = comments.ToString();
+         TextContent = text.ToString();
          NotifyPropertiesChanged(
             nameof(PlainContent),
             nameof(AccentContent),
             nameof(ConstantContent),
             nameof(NumericContent),
-            nameof(CommentContent));
+            nameof(CommentContent),
+            nameof(TextContent));
       }
    }
 
@@ -108,9 +152,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public override string ToString() => new(content);
 
-      public int IndexOfKeyword(string keyword) {
+      public int IndexOfKeyword(string keyword, int start) {
          if (keyword.Length == 0) return -1;
-         for (int i = 0; i < content.Length - keyword.Length + 1; i++) {
+         for (int i = start; i < content.Length - keyword.Length + 1; i++) {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue; // not valid keyword start
             if (i < content.Length - keyword.Length && char.IsLetterOrDigit(content[i + keyword.Length])) continue; // not valid keyword end
             var matchLength = 0;
@@ -118,6 +162,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (matchLength == keyword.Length) return i;
          }
          return -1;
+      }
+
+      public IEnumerable<(int start, int length)> GetPossibleKeywordStartPoints() {
+         for (int i = 0; i < content.Length - 1; i++) {
+            if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue; // not valid keyword start
+            if (!char.IsLetter(content[i])) continue;
+            int length = 1;
+            while (i + length < content.Length && char.IsLetterOrDigit(content[i + length])) length++;
+            yield return (i, length);
+            i += length;
+         }
+      }
+
+      public bool Match(string keyword, int start) {
+         if (start < 0 || start + keyword.Length > content.Length) return false;
+         for (int i = 0; i < keyword.Length; i++) {
+            if (content[start + i] != keyword[i]) return false;
+         }
+         return true;
       }
 
       public int IndexOf(string text) {
@@ -142,7 +205,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue;
             if (!char.IsDigit(content[i])) continue;
             int length = 1;
-            while (i + length < content.Length && char.IsDigit(content[i + length])) length++;
+            bool isHex = false;
+            while (true) {
+               if (i + length >= content.Length) break;
+               if (length == 1 && content[i + length] == 'x') {
+                  isHex = true;
+                  length++;
+                  continue;
+               }
+               if (content[i+length].IsAny('A','B','C','D','E','F') && isHex) {
+                  length++;
+                  continue;
+               }
+               if (!char.IsDigit(content[i + length])) break;
+               length++;
+            }
             if (i + length < content.Length && char.IsLetter(content[i + length])) continue;
             return (i, length);
          }
@@ -158,7 +235,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Clear(int index, int length) {
-         for (int i = 0; i < length; i++) content[index + i] = ' ';
+         for (int i = 0; i < length; i++) {
+            if (content[index + i] == '\n' || content[index + i] == '\r') continue;
+            content[index + i] = ' ';
+         }
       }
 
       public void CopyNewlines(MutableString other) {

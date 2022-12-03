@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -92,6 +94,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
             }
          }
+      }
+
+      private HashSet<string> constantCache, keywordCache;
+      public void AddKeywords(IDataModel model, CodeBody body) {
+         var editor = body.Editor;
+         editor.LineCommentHeader = "#";
+         if (constantCache == null || keywordCache == null) {
+            constantCache = new HashSet<string>();
+            keywordCache = new HashSet<string>();
+            foreach (var line in engine) {
+               keywordCache.Add(line.LineCommand);
+               foreach (var arg in line.Args) {
+                  if (string.IsNullOrEmpty(arg.EnumTableName)) continue;
+                  foreach (var option in model.GetOptions(arg.EnumTableName)) {
+                     if (option == null) continue;
+                     if ("<>!=?".Any(option.Contains)) continue;
+                     constantCache.Add(option);
+                  }
+               }
+            }
+         }
+
+         editor.Constants.AddRange(constantCache);
+         editor.Keywords.AddRange(keywordCache);
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code

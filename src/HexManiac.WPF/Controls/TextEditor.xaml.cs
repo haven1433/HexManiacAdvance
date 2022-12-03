@@ -25,17 +25,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region TextBox-Like properties
+
+      public event RoutedEventHandler SelectionChanged;
+
       public double VerticalOffset => TransparentLayer.VerticalOffset;
+      //public int SelectionStart => TransparentLayer.SelectionStart;
+      //public string SelectedText => TransparentLayer.SelectedText;
+      //public string Text => TransparentLayer.Text;
+      //public double ExtentHeight => TransparentLayer.ExtentHeight;
+
+      #endregion
 
       public TextEditorViewModel ViewModel => (TextEditorViewModel)DataContext;
       public TextEditor() {
          InitializeComponent();
+         TransparentLayer.SelectionChanged += (sender, e) => SelectionChanged?.Invoke(this, e);
       }
 
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
 
       private void TextScrollChanged(object sender, ScrollChangedEventArgs e) {
-         foreach (var layer in new[] { BasicLayer, AccentLayer, ConstantsLayer, NumericLayer, CommentLayer }) {
+         foreach (var layer in new[] { BasicLayer, AccentLayer, ConstantsLayer, NumericLayer, CommentLayer, TextLayer }) {
             var transform = (TranslateTransform)layer.RenderTransform;
             transform.Y = -TransparentLayer.VerticalOffset;
          }

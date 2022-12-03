@@ -2,7 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
-   <Grid Background="{DynamicResource Background}" TextBlock.FontFamily="Consolas" ClipToBounds="True">
+   <Grid Background="{DynamicResource Backlight}" TextBlock.FontFamily="Consolas" ClipToBounds="True">
       <Canvas ClipToBounds="False">
          <TextBlock Name="BasicLayer" Foreground="{DynamicResource Primary}" Margin="2" Text="{Binding PlainContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
             <TextBlock.RenderTransform>
@@ -15,6 +15,11 @@
             </TextBlock.RenderTransform>
          </TextBlock>
          <TextBlock Name="ConstantsLayer" Foreground="{DynamicResource Data1}" Margin="2" Text="{Binding ConstantContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+            <TextBlock.RenderTransform>
+               <TranslateTransform />
+            </TextBlock.RenderTransform>
+         </TextBlock>
+         <TextBlock Name="TextLayer" Foreground="{DynamicResource Text1}" Margin="2" Text="{Binding TextContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
             <TextBlock.RenderTransform>
                <TranslateTransform />
             </TextBlock.RenderTransform>

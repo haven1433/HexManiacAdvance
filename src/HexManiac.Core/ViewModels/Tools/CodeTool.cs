@@ -55,11 +55,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          get => Editor.Content;
          set {
             if (ignoreContentUpdates) return;
-            if (Editor.Content != value) {
-               Editor.Content = value;
-               NotifyPropertyChanged();
-            }
-            CompileChanges();
+            if (Editor.Content != value) Editor.Content = value;
+            else CompileChanges();
          }
       }
 
@@ -109,6 +106,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
 
          SetupThumbKeywords(singletons);
+         Editor.Bind(nameof(Editor.Content), (sender, e) => {
+            if (ignoreContentUpdates) return;
+            NotifyPropertyChanged(nameof(Content));
+            CompileChanges();
+         });
       }
 
       private void SetupThumbKeywords(Singletons singletons) {
@@ -140,12 +142,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (start > end) (start, end) = (end, start);
          int length = end - start + 1;
 
-         using (ModelCacheScope.CreateScope(model)) {
+         using (Scope(ref ignoreContentUpdates, true, old => ignoreContentUpdates = old)) {
             if (length > 0x1000) {
                Editor.Content = "Too many bytes selected.";
                NotifyPropertyChanged(nameof(Content));
             } else if (mode == CodeMode.Raw) {
-               Content = RawParse(model, start, end - start + 1);
+               Editor.Content = RawParse(model, start, end - start + 1);
+               NotifyPropertyChanged(nameof(Content));
             } else if (length < 2 && mode == CodeMode.Thumb) {
                Editor.Content = string.Empty;
                NotifyPropertyChanged(nameof(Content));
@@ -223,7 +226,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var scriptLength = parser.FindLength(model, scriptStart);
             var label = scriptStart.ToString("X6");
             var content = parser.Parse(model, scriptStart, scriptLength);
-            var body = new CodeBody { Address = scriptStart, Label = label, Content = content, CompiledLength = scriptLength };
+            var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = scriptLength };
+            parser.AddKeywords(model, body);
+            body.Content = content;
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
@@ -474,6 +479,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
+   public class CodeTextFormatter : ITextPreProcessor {
+      public TextFormatting[] Format(string content) {
+         var result = new TextFormatting[content.Length];
+         bool inText = false, inComment = false;
+         for (int i = 0; i < content.Length; i++) {
+            if (inComment && content[i] == '\n') inComment = false;
+            if (content[i] == '#') inComment = true;
+            if (inComment) continue;
+            if (content[i] == '{') inText = true;
+            else if (content[i] == '}') inText = false;
+            else if (inText) result[i] = TextFormatting.Text;
+         }
+         return result;
+      }
+   }
+
    public class CodeBody : ViewModelCore {
       public event EventHandler ContentChanged;
 
@@ -517,7 +538,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      public TextEditorViewModel Editor { get; } = new();
+      public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
 
       public string Content {
          get => Editor.Content;
@@ -532,5 +553,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private string helpContent;
       public string HelpContent { get => helpContent; set => TryUpdate(ref helpContent, value); }
+
+      public CodeBody() {
+         Editor.Bind(nameof(Editor.Content), (sender, e) => {
+            NotifyPropertyChanged(nameof(Content));
+            ContentChanged.Raise(this);
+         });
+      }
    }
 }

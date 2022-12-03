@@ -391,11 +391,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void CodeToolContentsSelectionChanged(object sender, RoutedEventArgs e) {
-         var textbox = (TextBox)sender;
+         var editor = (TextEditor)sender;
+         var textbox = editor.TransparentLayer;
          var viewPort = DataContext as IViewPort;
          var tool = viewPort?.Tools?.CodeTool;
          if (tool == null) return;
-         var codebody = textbox.DataContext as CodeBody;
+         var codebody = editor.Tag as CodeBody;
          if (codebody == null) return;
 
          codebody.CaretPosition = textbox.SelectionStart;
