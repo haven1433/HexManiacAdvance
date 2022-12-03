@@ -1050,7 +1050,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public const int TextSummaryLimit = 60;
       private IEnumerable<object> SummarizeScript(int address) {
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
-         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x1A, 0x5C, 0x86); // loadpointer, copyvarifnotzero, trainerbattle, mart
+         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x67, 0x1A, 0x5C, 0x86); // loadpointer, preparemsg, copyvarifnotzero, trainerbattle, mart
          var tips = new List<object>();
 
          var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
@@ -1060,8 +1060,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
          foreach (var spot in scriptSpots) {
             if (spot.Line.LineCode[0] == 0x0F) {
-               // text
+               // loadpointer (text)
                var textStart = model.ReadPointer(spot.Address + 2);
+               if (0 <= textStart && textStart < model.Count) {
+                  var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
+                  if (text.Length >= TextSummaryLimit) text += "...";
+                  tips.Add(text);
+               }
+            } else if (spot.Line.LineCode[0] == 0x67) {
+               // preparemsg (text)
+               var textStart = model.ReadPointer(spot.Address + 1);
                if (0 <= textStart && textStart < model.Count) {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";

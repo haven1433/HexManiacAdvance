@@ -1307,6 +1307,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
+         Tools?.CodeTool.ClearConstantCache();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
       }
 

@@ -172,6 +172,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public void ClearConstantCache() {
+         script.ClearConstantCache();
+         battleScript.ClearConstantCache();
+         animationScript.ClearConstantCache();
+         battleAIScript.ClearConstantCache();
+      }
+
       #region RepointThumb
 
       private bool CalculateCanRepointThumb() {
