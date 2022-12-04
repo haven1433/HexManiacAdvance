@@ -182,7 +182,7 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a wenner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
-79 givePokemon species:data.pokemon.names level. item: filler. filler:: filler::
+79 givePokemon species:data.pokemon.names level. item:data.items.stats filler. filler:: filler::
                                              # gives the player one of that pokemon. the last 9 bytes are all 00.
                                              # 800D=0 if it was added to the party
                                              # 800D=1 if it was put in the PC

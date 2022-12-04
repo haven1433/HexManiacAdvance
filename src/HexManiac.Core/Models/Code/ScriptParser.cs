@@ -261,12 +261,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var streamStart = i + 1;
                var indentCount = 1;
                i += 1;
-               while (indentCount > 0) {
+               while (indentCount > 0 && lines.Length > i) {
                   line = lines[i].Trim();
                   if (line == "{") indentCount += 1;
                   if (line == "}") indentCount -= 1;
                   i += 1;
-                  if (i == lines.Length) break;
                }
                i -= 1;
                var streamEnd = i;
@@ -413,13 +412,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var checkToken = 1;
             while (candidates.Count > 1 && checkToken < tokens.Length) {
                if (!tokens[checkToken].TryParseHex(out var codeValue)) break;
-               candidates = candidates.Where(line => line.LineCode[checkToken] == codeValue).ToList();
+               candidates = candidates.Where(line => line.LineCode.Count <= checkToken || line.LineCode[checkToken] == codeValue).ToList();
+               checkToken++;
             }
             var syntax = candidates.FirstOrDefault();
             if (syntax != null) {
                var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
-               if (args.Count + 1 > tokens.Length) {
-                  var arg = args[tokens.Length - 2];
+               var skipCount = syntax.LineCode.Count;
+               if (skipCount == 0) skipCount = 1; // macros
+               if (args.Count + skipCount > tokens.Length && tokens.Length >= skipCount + 1) {
+                  var arg = args[tokens.Length - 1 - skipCount];
                   if (!string.IsNullOrEmpty(arg.EnumTableName)) {
                      var options = model.GetOptions(arg.EnumTableName).Where(option => option.MatchesPartial(tokens[tokens.Length - 1])).ToList();
                      if (options.Count > 10) {
