@@ -402,6 +402,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // need autocomplete for command?
             if (tokens.Length == 1) {
                candidates.Where(line => line.LineCommand.StartsWith(tokens[0])).ToList();
+               foreach (var line in candidates) {
+                  if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
+               }
                return Environment.NewLine.Join(candidates.Take(10).Select(line => line.Usage));
             }
 
@@ -432,7 +435,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (candidates.Count > 10) return null;
          if (candidates.Count == 0) return null;
          if (candidates.Count == 1) {
-            if (candidates[0].CountShowArgs() == tokens.Length - 1) return null;
+            if (candidates[0].CountShowArgs() <= tokens.Length - 1) return null;
             return candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
          }
          var perfectMatch = candidates.FirstOrDefault(candidate => (currentLine + " ").StartsWith(candidate.LineCommand + " "));
