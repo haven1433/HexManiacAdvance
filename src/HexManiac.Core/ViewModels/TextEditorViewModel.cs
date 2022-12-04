@@ -167,9 +167,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IEnumerable<(int start, int length)> GetPossibleKeywordStartPoints() {
          for (int i = 0; i < content.Length - 1; i++) {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue; // not valid keyword start
+            if (content[i] == '"') {
+               // look for matching
+               var closeIndex = i;
+               for (int j = i + 1; j < content.Length; j++) {
+                  if (content[j] != '"') continue;
+                  closeIndex = j;
+                  break;
+               }
+               if (closeIndex == i) break;
+               yield return (i, closeIndex - i + 1);
+               i = closeIndex + 1;
+            }
             if (!char.IsLetter(content[i])) continue;
-            int length = 1;
-            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length] == '.')) length++;
+            int length = 1;                                                                                               
+            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~".ToCharArray()))) length++;
             yield return (i, length);
             i += length;
          }
