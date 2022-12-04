@@ -386,20 +386,64 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return new LabelLibrary(model, labels);
       }
 
-      public string GetHelp(string currentLine) {
+      public string GetHelp(IDataModel model, HelpContext context) {
+         var currentLine = context.Line;
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0])).ToList();
+
+         var isAfterToken = context.Index > 0 &&
+            (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
+            char.IsLetterOrDigit(context.Line[context.Index - 1]);
+         if (isAfterToken) {
+            tokens = ScriptLine.Tokenize(currentLine.Substring(0, context.Index).Trim());
+            // try to auto-complete whatever token is left of the cursor
+
+            // need autocomplete for command?
+            if (tokens.Length == 1) {
+               candidates.Where(line => line.LineCommand.StartsWith(tokens[0])).ToList();
+               return Environment.NewLine.Join(candidates.Take(10).Select(line => line.Usage));
+            }
+
+            // filter down to just perfect matches. There could be several (trainerbattle)
+            candidates = candidates.Where(line => line.LineCommand == tokens[0]).ToList();
+            var checkToken = 1;
+            while (candidates.Count > 1 && checkToken < tokens.Length) {
+               if (!tokens[checkToken].TryParseHex(out var codeValue)) break;
+               candidates = candidates.Where(line => line.LineCode[checkToken] == codeValue).ToList();
+            }
+            var syntax = candidates.FirstOrDefault();
+            if (syntax != null) {
+               var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
+               if (args.Count + 1 > tokens.Length) {
+                  var arg = args[tokens.Length - 2];
+                  if (!string.IsNullOrEmpty(arg.EnumTableName)) {
+                     var options = model.GetOptions(arg.EnumTableName).Where(option => option.MatchesPartial(tokens[tokens.Length - 1])).ToList();
+                     if (options.Count > 10) {
+                        while (options.Count > 9) options.RemoveAt(options.Count - 1);
+                        options.Add("...");
+                     }
+                     return Environment.NewLine.Join(options);
+                  }
+               }
+            }
+         }
+
          if (candidates.Count > 10) return null;
          if (candidates.Count == 0) return null;
          if (candidates.Count == 1) {
-            if (candidates[0].Args.Count == tokens.Length - 1) return null;
+            if (candidates[0].CountShowArgs() == tokens.Length - 1) return null;
             return candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
          }
          var perfectMatch = candidates.FirstOrDefault(candidate => (currentLine + " ").StartsWith(candidate.LineCommand + " "));
          if (perfectMatch != null) {
-            if (perfectMatch.Args.Count == tokens.Length - 1) return null;
+            if (perfectMatch.CountShowArgs() == tokens.Length - 1) return null;
             return perfectMatch.Usage + Environment.NewLine + string.Join(Environment.NewLine, perfectMatch.Documentation);
+         }
+         var bestMatch = candidates.FirstOrDefault(candidate => tokens[0].Contains(candidate.LineCommand));
+         if (bestMatch != null) {
+            if (bestMatch.CountShowArgs() == tokens.Length - 1) return null;
+            return bestMatch.Usage + Environment.NewLine + Environment.NewLine.Join(bestMatch.Documentation);
          }
          return string.Join(Environment.NewLine, candidates.Select(line => line.Usage));
       }
@@ -450,6 +494,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
 
       void AddDocumentation(string content);
+
+      public int CountShowArgs() {
+         return Args.Sum(arg => {
+            if (arg is ScriptArg) return 1;
+            return 0;
+            // something with array args?
+         });
+      }
    }
 
    public class MacroScriptLine : IScriptLine {

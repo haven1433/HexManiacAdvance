@@ -300,13 +300,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private void UpdateScriptHelpFromLine(object sender, string line) {
+      private void UpdateScriptHelpFromLine(object sender, HelpContext context) {
          var codeBody = (CodeBody)sender;
-         string help = null;
-         if (mode == CodeMode.Script) help = ScriptParser.GetHelp(line);
-         else if (mode == CodeMode.BattleScript) BattleScriptParser.GetHelp(line);
-         else if (mode == CodeMode.AnimationScript) AnimationScriptParser.GetHelp(line);
-         else if (mode == CodeMode.TrainerAiScript) BattleAIScriptParser.GetHelp(line);
+         string help;
+         if (mode == CodeMode.Script) help = ScriptParser.GetHelp(model, context);
+         else if (mode == CodeMode.BattleScript) help = BattleScriptParser.GetHelp(model, context);
+         else if (mode == CodeMode.AnimationScript) help = AnimationScriptParser.GetHelp(model, context);
+         else if (mode == CodeMode.TrainerAiScript) help = BattleAIScriptParser.GetHelp(model, context);
          else throw new NotImplementedException();
          codeBody.HelpContent = help;
       }
@@ -505,7 +505,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeBody : ViewModelCore {
       public event EventHandler ContentChanged;
 
-      public event EventHandler<string> HelpSourceChanged;
+      public event EventHandler<HelpContext> HelpSourceChanged;
 
       private string label;
       public string Label {
@@ -541,7 +541,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             // only show help if we're not within content curlies.
             if (contentBoundaryCount != 0) HelpContent = string.Empty;
-            else HelpSourceChanged?.Invoke(this, lines[0]);
+            else HelpSourceChanged?.Invoke(this, new(lines[0], caretPosition));
          }
       }
 
@@ -568,4 +568,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          });
       }
    }
+
+   public record HelpContext(string Line, int Index);
 }
