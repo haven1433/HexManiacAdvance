@@ -747,9 +747,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
          if (content.MatchesPartial("(/=)/")) {
             var parts = content.Split("(/=)".ToCharArray());
-            var message = $"Expected {content} to fit the form (table/field=local)/field. But it didn't.";
-            if (parts.Length != 6) throw new NotImplementedException(message);
-            if (!string.IsNullOrEmpty(parts[0]) || !string.IsNullOrEmpty(parts[4])) throw new NotImplementedException(message);
+            if (parts.Length != 6) return Pointer.NULL;
+            if (!string.IsNullOrEmpty(parts[0]) || !string.IsNullOrEmpty(parts[4])) return Pointer.NULL;
             var matchTableName = parts[1];
             var matchTableField = parts[2];
             var matchLocalField = parts[3];
@@ -765,8 +764,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          if (content.MatchesPartial("//")) {
             var parts = content.Split("/");
-            var message = $"Expected {content} to fit the form field/index/field. But it didn't.";
-            if (parts.Length != 3) throw new NotImplementedException(message);
+            if (parts.Length != 3) return Pointer.NULL;
             var destination = table.ReadPointer(model, elementIndex, parts[0]);
             var childTable = model.GetNextRun(destination) as ITableRun;
             if (childTable == null) return Pointer.NULL;
@@ -774,7 +772,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             return CalculateSource(model, childTable, childTableIndex, parts[2]);
          }
 
-         throw new NotImplementedException();
+         return Pointer.NULL;
       }
 
       public static int ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
