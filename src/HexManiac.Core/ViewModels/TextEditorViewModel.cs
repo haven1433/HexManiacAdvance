@@ -46,6 +46,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string CommentContent { get; private set; } = string.Empty;
       public string TextContent { get; private set; } = string.Empty;
 
+      public void PushCaretUpdate(int index) {
+         CaretIndex = index;
+         RequestCaretMove.Raise(this);
+      }
+
       private void UpdateLayers() {
          if (content.Length == 0) {
             PlainContent = AccentContent =

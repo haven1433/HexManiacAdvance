@@ -371,6 +371,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData);
+            if (originalCodeContent != codeContent) body.SaveCaret();
             if (code == null) {
                return;
             }
@@ -528,6 +529,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int CaretPosition {
          get => Editor.CaretIndex;
          set {
+            if (savedCaret >= 0) {
+               value = savedCaret;
+               savedCaret = -1;
+               Editor.PushCaretUpdate(value);
+               return;
+            }
             if (Editor.CaretIndex == value) return;
             var lines = Content.Split('\r', '\n').ToList();
             var contentBoundaryCount = 0;
@@ -570,6 +577,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Editor.Bind(nameof(Editor.CaretIndex), (sender, e) => {
             NotifyPropertyChanged(nameof(CaretPosition));
          });
+      }
+
+      private int savedCaret = -1;
+      public void SaveCaret() {
+         savedCaret = CaretPosition + 1;
       }
    }
 

@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -40,7 +39,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public TextEditor() {
          InitializeComponent();
          TransparentLayer.SelectionChanged += (sender, e) => {
-            // if (ViewModel != null) ViewModel.CaretIndex = TransparentLayer.SelectionStart;
             SelectionChanged?.Invoke(this, e);
          };
          DataContextChanged += HandleDataContextChanged;
