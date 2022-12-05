@@ -1059,7 +1059,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
          var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
          foreach (var spot in scriptSpots) {
-            if (spot.Line.LineCode[0] == 0x0F) {
+            if (model[spot.Address] == 0x0F) {
                // loadpointer (text)
                var textStart = model.ReadPointer(spot.Address + 2);
                if (0 <= textStart && textStart < model.Count) {
@@ -1067,7 +1067,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
                }
-            } else if (spot.Line.LineCode[0] == 0x67) {
+            } else if (model[spot.Address] == 0x67) {
                // preparemsg (text)
                var textStart = model.ReadPointer(spot.Address + 1);
                if (0 <= textStart && textStart < model.Count) {
@@ -1075,14 +1075,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
                }
-            } else if (spot.Line.LineCode[0] == 0x1A && itemStats != null) {
+            } else if (model[spot.Address] == 0x1A && itemStats != null) {
                var itemAddress = EventTemplate.GetItemAddress(model, spot.Address);
                if (itemAddress == Pointer.NULL) continue;
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
                if (itemID < 0 || itemID >= itemStats.Count || !itemStats[0].HasField("name")) continue;
                tips.Add(itemStats[itemID].GetStringValue("name"));
             } else if (
-               spot.Line.LineCode[0] == 0x5C &&
+               model[spot.Address] == 0x5C &&
                trainerTable != null &&
                trainerTable[0].HasField("sprite") &&
                trainerSprites != null &&
@@ -1123,7 +1123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                      tips.Add(text + Environment.NewLine);
                   }
                }
-            } else if (spot.Line.LineCode[0] == 0x86 && itemStats != null) {
+            } else if (model[spot.Address] == 0x86 && itemStats != null) {
                // mart
                var tableRun = model.GetNextRun(model.ReadPointer(spot.Address + 1)) as ITableRun;
                if (tableRun == null) continue;

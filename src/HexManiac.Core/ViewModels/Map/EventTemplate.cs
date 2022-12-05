@@ -611,7 +611,7 @@ failed:
          var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x16, 0x0F); // setvar, loadpointer
 
          foreach (var spot in spots) {
-            if (spot.Line.LineCode[0] == 0x16) {
+            if (model[spot.Address] == 0x16) {
                if (content.TutorAddress != Pointer.NULL) return null;
                if (model.ReadMultiByteValue(spot.Address + 1, 2) != 0x8005) return null;
                content = content with { TutorAddress = spot.Address + 3 };
@@ -759,7 +759,7 @@ wrongspecies:
 
          foreach (var spot in spots) {
             // TradeAddress is the only `setvar 0x8008` command
-            if (spot.Line.LineCode[0] == 0x16) {
+            if (model[spot.Address] == 0x16) {
                if (model.ReadMultiByteValue(spot.Address + 1, 2) != 0x8008) continue;
                if (content.TradeAddress != Pointer.NULL) return null;
                content = content with { TradeAddress = spot.Address + 3 };
