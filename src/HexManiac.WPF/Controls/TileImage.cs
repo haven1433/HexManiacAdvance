@@ -253,7 +253,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public async void UpdateSource() {
          var vm = ViewModel;
          if (vm == null) return;
-         var pixels = await Task.Run(() => vm.PixelData);
+         short[] pixels;
+         if (vm is not BlockMapViewModel) {
+            pixels = vm.PixelData;
+         } else {
+            pixels = await Task.Run(() => vm.PixelData);
+         }
          if (pixels == null || ViewModel == null) return;
          if (!UseTrueTransparency) {
             pixels = ConvertTransparentPixels(pixels);
