@@ -18,6 +18,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ITextPreProcessor PreFormatter { get; set; }
 
+      public event EventHandler RequestCaretMove;
+
       public TextEditorViewModel() {
          Keywords.CollectionChanged += (sender, e) => UpdateLayers();
          Constants.CollectionChanged += (sender, e) => UpdateLayers();
@@ -33,6 +35,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             NotifyPropertyChanged();
          }
       }
+
+      private int caretIndex;
+      public int CaretIndex { get => caretIndex; set => Set(ref caretIndex, value); }
 
       public string AccentContent { get; private set; } = string.Empty;
       public string PlainContent { get; private set; } = string.Empty;
@@ -181,7 +186,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             if (!char.IsLetter(content[i])) continue;
             int length = 1;                                                                                               
-            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~".ToCharArray()))) length++;
+            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~_".ToCharArray()))) length++;
             yield return (i, length);
             i += length;
          }

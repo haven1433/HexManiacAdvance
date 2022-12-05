@@ -86,7 +86,7 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
 2E resetvars                                 # sets x8000, x8001, and x8002 to 0
 2F sound number:                             # 0000 mutes the music
 30 waitsound                                 # blocks script execution until any playing sounds finish
-31 fanfare song:                             # plays a song from the song list as a fanfare
+31 fanfare song:songnames                    # plays a song from the song list as a fanfare
 32 waitfanfare                               # blocks script execution until any playing fanfair finishes
 33 playsong song:songnames mode.songloopoptions       # plays a song once or loop
 34 playsong2 song:songnames                           # seems buggy?
@@ -197,7 +197,7 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
 7D bufferPokemon buffer.3 species:           # species can be a literal or variable. Store the name in the given buffer
 7E bufferfirstPokemon buffer.3               # name of your first pokemon gets stored in the given buffer
 7F bufferpartyPokemon buffer.3 party:        # name of pokemon 'party' from your party gets stored in the buffer
-80 bufferitem buffer.3 item:                 # stores an item name in a buffer
+80 bufferitem buffer.3 item:data.items.stats # stores an item name in a buffer
 81 bufferdecoration buffer.3 decoration:
 82 bufferattack buffer.3 move:               # species, party, item, decoration, and move can all be literals or variables
 83 buffernumber buffer.3 number:             # literal or variable gets converted to a string and put in the buffer.

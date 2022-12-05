@@ -83,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return length;
       }
 
+      public MacroScriptLine GetMacro(IDataModel model, int address) => engine.GetMatchingMacro(model, address);
       public ScriptLine GetLine(IDataModel model, int address) => engine.GetMatchingLine(model, address);
 
       public IEnumerable<IScriptLine> DependsOn(string basename) {
@@ -327,11 +328,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      // TODO write a new script template... an anchor with a format based on the current script
                   }
                   if (newAddress != -1) {
+                     var originalLine = line;
                      line = line.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Script)) {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
-                     } else if (script.IndexOf("<??????>") != script.IndexOf($"<??????>{Environment.NewLine}{{{Environment.NewLine}")) {
-                        script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>{Environment.NewLine}{{{Environment.NewLine}}}");
+                     } else if (script.IndexOf(originalLine) != script.IndexOf($"{originalLine}{Environment.NewLine}{{{Environment.NewLine}")) {
+                        script = script.ReplaceOne(originalLine, $"{line}{Environment.NewLine}{{{Environment.NewLine}}}");
                      } else {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      }
@@ -393,7 +395,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
-            char.IsLetterOrDigit(context.Line[context.Index - 1]);
+            (char.IsLetterOrDigit(context.Line[context.Index - 1]) || context.Line[context.Index - 1].IsAny("_~'\"-".ToCharArray()));
          if (isAfterToken) {
             tokens = ScriptLine.Tokenize(currentLine.Substring(0, context.Index).Trim());
             // try to auto-complete whatever token is left of the cursor
@@ -420,7 +422,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
                var skipCount = syntax.LineCode.Count;
                if (skipCount == 0) skipCount = 1; // macros
-               if (args.Count + skipCount > tokens.Length && tokens.Length >= skipCount + 1) {
+               if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {
                   var arg = args[tokens.Length - 1 - skipCount];
                   if (!string.IsNullOrEmpty(arg.EnumTableName)) {
                      var options = model.GetOptions(arg.EnumTableName).Where(option => option.MatchesPartial(tokens[tokens.Length - 1])).ToList();
@@ -428,6 +430,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         while (options.Count > 9) options.RemoveAt(options.Count - 1);
                         options.Add("...");
                      }
+                     if (args.Count == tokens.Length - skipCount && options.Any(option => option == tokens[tokens.Length - 1])) return null; // perfect match on last token
                      return Environment.NewLine.Join(options);
                   }
                }
@@ -1152,6 +1155,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public static class ScriptExtensions {
+      public static MacroScriptLine GetMatchingMacro(this IReadOnlyList<IScriptLine> self, IReadOnlyList<byte>data, int start) {
+         return (MacroScriptLine)self.FirstOrDefault(option => option is MacroScriptLine && option.Matches(data, start));
+      }
+
       /// <summary>
       /// Does not consider macros. Only returns individual lines.
       /// </summary>

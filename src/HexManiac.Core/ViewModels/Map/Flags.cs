@@ -170,7 +170,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var address = scriptsToCheck[i];
                int currentScriptLength = 0;
                while (currentScriptLength < ScriptLengthLimit) {
-                  var line = parser.GetLine(model, address);
+                  IScriptLine line = parser.GetMacro(model, address);
+                  if (line == null) line = parser.GetLine(model, address);
                   if (line == null) break;
                   var length = line.CompiledByteLength(model, address);
                   if (filter.Contains(model[address])) yield return new(address, line);
@@ -250,7 +251,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
-   public record ScriptSpot(int Address, ScriptLine Line);
+   public record ScriptSpot(int Address, IScriptLine Line);
    public record TrainerPreference(int TrainerClass, int MusicAndGender, int Sprite);
 }
 

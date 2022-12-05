@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
@@ -530,8 +531,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private IEnumerable<(int, int)> FindXseScriptUses(string basename, int index) {
          var parser = viewPort.Tools.CodeTool.ScriptParser;
          var lines = parser.DependsOn(basename).ToList();
-         var filter = lines.Select(line => line.LineCode[0]).ToArray();
-         foreach (var spot in Flags.GetAllScriptSpots(model, parser, Flags.GetAllTopLevelScripts(model), filter)) {
+         var filter = new List<byte>();
+         foreach (var line in lines) {
+            if (line is MacroScriptLine macro && macro.Args[0] is SilentMatchArg silent) filter.Add(silent.ExpectedValue);
+            if (line is ScriptLine sl) filter.Add(line.LineCode[0]);
+         }
+         foreach (var spot in Flags.GetAllScriptSpots(model, parser, Flags.GetAllTopLevelScripts(model), filter.ToArray())) {
             int check = spot.Address + spot.Line.LineCode.Count;
             foreach (var arg in spot.Line.Args) {
                var length = arg.Length(model, check);

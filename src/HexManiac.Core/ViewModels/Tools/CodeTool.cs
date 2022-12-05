@@ -525,23 +525,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => Set(ref compiledLength, value);
       }
 
-      private int caretPosition;
       public int CaretPosition {
-         get => caretPosition;
+         get => Editor.CaretIndex;
          set {
-            if (!TryUpdate(ref caretPosition, value)) return;
+            if (Editor.CaretIndex == value) return;
             var lines = Content.Split('\r', '\n').ToList();
             var contentBoundaryCount = 0;
-            while (caretPosition > lines[0].Length) {
+            while (value > lines[0].Length) {
                if (lines[0].Trim() == "{") contentBoundaryCount += 1;
                if (lines[0].Trim() == "}") contentBoundaryCount -= 1;
-               caretPosition -= lines[0].Length + 1;
+               value -= lines[0].Length + 1;
                lines.RemoveAt(0);
             }
 
+            Editor.CaretIndex = value;
+
             // only show help if we're not within content curlies.
             if (contentBoundaryCount != 0) HelpContent = string.Empty;
-            else HelpSourceChanged?.Invoke(this, new(lines[0], caretPosition));
+            else HelpSourceChanged?.Invoke(this, new(lines[0], value));
          }
       }
 
@@ -565,6 +566,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Editor.Bind(nameof(Editor.Content), (sender, e) => {
             NotifyPropertyChanged(nameof(Content));
             ContentChanged.Raise(this);
+         });
+         Editor.Bind(nameof(Editor.CaretIndex), (sender, e) => {
+            NotifyPropertyChanged(nameof(CaretPosition));
          });
       }
    }

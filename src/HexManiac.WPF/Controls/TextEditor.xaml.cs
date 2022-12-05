@@ -1,4 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
+using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -30,17 +32,32 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public event RoutedEventHandler SelectionChanged;
 
       public double VerticalOffset => TransparentLayer.VerticalOffset;
-      //public int SelectionStart => TransparentLayer.SelectionStart;
-      //public string SelectedText => TransparentLayer.SelectedText;
-      //public string Text => TransparentLayer.Text;
-      //public double ExtentHeight => TransparentLayer.ExtentHeight;
 
       #endregion
 
       public TextEditorViewModel ViewModel => (TextEditorViewModel)DataContext;
+
       public TextEditor() {
          InitializeComponent();
-         TransparentLayer.SelectionChanged += (sender, e) => SelectionChanged?.Invoke(this, e);
+         TransparentLayer.SelectionChanged += (sender, e) => {
+            // if (ViewModel != null) ViewModel.CaretIndex = TransparentLayer.SelectionStart;
+            SelectionChanged?.Invoke(this, e);
+         };
+         DataContextChanged += HandleDataContextChanged;
+      }
+
+      private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
+         if (e.OldValue is TextEditorViewModel oldVM) {
+            oldVM.RequestCaretMove -= HandleViewModelCaretMove;
+         }
+         if (e.NewValue is TextEditorViewModel newVM) {
+            newVM.RequestCaretMove += HandleViewModelCaretMove;
+         }
+      }
+
+      private void HandleViewModelCaretMove(object sender, EventArgs e) {
+         var vm = (TextEditorViewModel)sender;
+         TransparentLayer.CaretIndex = vm.CaretIndex;
       }
 
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
