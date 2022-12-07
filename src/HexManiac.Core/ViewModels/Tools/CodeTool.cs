@@ -114,6 +114,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void SetupThumbKeywords(Singletons singletons) {
+         Editor.LineCommentHeader = "@";
+         Editor.MultiLineCommentHeader = "/*";
+         Editor.MultiLineCommentFooter = "*/";
+
          Editor.Keywords.Clear();
          var set = new HashSet<string>();
          foreach (var template in singletons.ThumbInstructionTemplates) {
@@ -128,8 +132,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Editor.Constants.Clear();
          for (int i = 0; i <= 12; i++) Editor.Constants.Add($"r{i}");
          Editor.Constants.AddRange(new[] { "lr", "sp", "pc" });
-
-         Editor.LineCommentHeader = "@";
       }
 
       public void DataForCurrentRunChanged() => UpdateContent();

@@ -101,6 +101,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public void AddKeywords(IDataModel model, CodeBody body) {
          var editor = body.Editor;
          editor.LineCommentHeader = "#";
+         editor.MultiLineCommentHeader = "/*";
+         editor.MultiLineCommentFooter = "*/";
          if (constantCache == null || keywordCache == null) {
             constantCache = new HashSet<string>();
             keywordCache = new HashSet<string>();

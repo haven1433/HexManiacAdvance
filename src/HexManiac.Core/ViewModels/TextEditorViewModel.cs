@@ -13,8 +13,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ObservableCollection<string> Keywords { get; } = new();
       public ObservableCollection<string> Constants { get; } = new();
 
-      private string commentHeader = string.Empty;
+      private string commentHeader = string.Empty, multiLineCommentStart = string.Empty, multiLineCommentEnd = string.Empty;
       public string LineCommentHeader { get => commentHeader; set => Set(ref commentHeader, value); }
+      public string MultiLineCommentHeader { get => multiLineCommentStart; set => Set(ref multiLineCommentStart, value); }
+      public string MultiLineCommentFooter { get => multiLineCommentEnd; set => Set(ref multiLineCommentEnd, value); }
 
       public ITextPreProcessor PreFormatter { get; set; }
 
@@ -93,6 +95,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (index == -1) break;
             var endIndex = basic.IndexOfCharacter(index, '\n', '\r');
             if (index == -1) break;
+            comments.Replace(index, basic, index, endIndex - index);
+            basic.Clear(index, endIndex - index);
+         }
+         while (!string.IsNullOrEmpty(multiLineCommentStart) && !string.IsNullOrEmpty(multiLineCommentEnd)) {
+            var index = basic.IndexOf(multiLineCommentStart);
+            if (index == -1) break;
+            var endIndex = basic.IndexOf(multiLineCommentEnd, index + multiLineCommentStart.Length);
+            if (endIndex == -1) endIndex = basic.Length;
+            else endIndex += multiLineCommentEnd.Length;
             comments.Replace(index, basic, index, endIndex - index);
             basic.Clear(index, endIndex - index);
          }
@@ -205,9 +216,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return true;
       }
 
-      public int IndexOf(string text) {
+      public int IndexOf(string text, int start = 0) {
          if (text.Length == 0) return -1;
-         for (int i = 0; i < content.Length - text.Length + 1; i++) {
+         for (int i = start; i < content.Length - text.Length + 1; i++) {
             var matchLength = 0;
             for (int j = 0; j < text.Length && content[i + j] == text[j]; j++) matchLength = j + 1;
             if (matchLength == text.Length) return i;
