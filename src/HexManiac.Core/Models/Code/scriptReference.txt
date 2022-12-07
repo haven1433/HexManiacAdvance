@@ -194,7 +194,7 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
 7C checkattack move:                         # 800D=n, where n is the index of the pokemon that knows the move.
                                              # 800D=6, if no pokemon in your party knows the move
                                              # if successful, 8004 is set to the pokemon species
-7D bufferPokemon buffer.3 species:           # species can be a literal or variable. Store the name in the given buffer
+7D bufferPokemon buffer.3 species:data.pokemon.names  # species can be a literal or variable. Store the name in the given buffer
 7E bufferfirstPokemon buffer.3               # name of your first pokemon gets stored in the given buffer
 7F bufferpartyPokemon buffer.3 party:        # name of pokemon 'party' from your party gets stored in the buffer
 80 bufferitem buffer.3 item:data.items.stats # stores an item name in a buffer
