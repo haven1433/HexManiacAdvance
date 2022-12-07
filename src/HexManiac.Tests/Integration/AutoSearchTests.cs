@@ -1,10 +1,12 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -49,6 +51,8 @@ namespace HavenSoft.HexManiac.Tests {
          "LeafGreen v1.1",
          "Emerald",
       }.Select(game => "sampleFiles/Pokemon " + game + ".gba");
+
+      public static string FireRedName => PokemonGames.Skip(2).First()[0] as string;
 
       private readonly AutoSearchFixture fixture;
       private readonly NoDataChangeDeltaModel noChange = new NoDataChangeDeltaModel();
@@ -762,6 +766,35 @@ namespace HavenSoft.HexManiac.Tests {
             var elementAddress = model.ReadPointer(run.Start + run.ElementLength * i);
             Assert.IsNotType<NoInfoRun>(model.GetNextRun(elementAddress));
          });
+      }
+
+      [SkippableTheory]
+      [InlineData(0x169C78, "msgbox.default <18E2E5>")]
+      [InlineData(0x169CAD, "msgbox.yesno <1A56A7>")]
+      [InlineData(0x1BE5C2, "give.item POTION 1")]
+      public void FireRed_Macros_Parse(int address, string content) {
+         var model = fixture.LoadModel(FireRedName);
+
+         var parser = new ScriptParser(fixture.Singletons.ScriptLines, 2);
+         var lines = parser.Parse(model, address, 50).SplitLines();
+
+         var text = lines[0].Trim();
+         if (lines[0].Contains(":")) text = lines[1].Trim();
+         Assert.Equal(content, text);
+      }
+
+      [SkippableFact]
+      public void Potion_FindUsesInScripts_5Results() {
+         ITabContent newTab = null;
+         var model = fixture.LoadModel(FireRedName);
+         var viewPort = new ViewPort(FireRedName, model, InstantDispatch.Instance, fixture.Singletons);
+         viewPort.RequestTabChange += (sender, e) => newTab = e.NewTab;
+
+         viewPort.Goto.Execute("potion");
+         var button = viewPort.Tools.TableTool.UsageChildren.Last() as ButtonArrayElementViewModel;
+         button.Command.Execute();
+
+         Assert.Equal(7, ((SearchResultsViewPort)newTab).ResultCount);
       }
 
       // patch application process is fine
