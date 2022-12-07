@@ -702,7 +702,7 @@
                                           <TextBlock Text="{Binding DisplayText}"/>
                                        </Viewbox>
                                        <Viewbox Stretch="Uniform" MinWidth="32" MinHeight="32">
-                                          <hsg3hv:PixelImage DataContext="{Binding Image}" TransparentBrush="{DynamicResource Backlight}"/>
+                                          <hsg3hv:PixelImage DataContext="{Binding Image}" UseTrueTransparency="True"/>
                                        </Viewbox>
                                     </DockPanel>
                                  </Button>
