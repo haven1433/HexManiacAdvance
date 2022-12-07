@@ -35,7 +35,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int selectedTableSection;
       public int SelectedTableSection {
          get => selectedTableSection;
-         set => Set(ref selectedTableSection, value, UpdateTableList);
+         set {
+            if (dataForCurrentRunChangeUpdate) return; // recursion guard: ignore this update if we're about to change it manually
+            Set(ref selectedTableSection, value, UpdateTableList);
+         }
       }
 
       public IReadOnlyList<string> TableList {
