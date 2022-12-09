@@ -84,9 +84,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int MaximumScroll => startOfNextSegment[startOfNextSegment.Count - 1] - 1;
 
-      public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
+      public ObservableCollection<RowHeader> Headers { get; } = new ObservableCollection<RowHeader>();
 
-      public ObservableCollection<HeaderRow> ColumnHeaders => null;
+      public ObservableCollection<ColumnHeaderRow> ColumnHeaders => null;
 
       public int DataOffset => 0;
 

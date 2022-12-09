@@ -92,9 +92,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int MaximumScroll => this[0].MaximumScroll;
 
-      public ObservableCollection<string> Headers => this[0].Headers;
+      public ObservableCollection<RowHeader> Headers => this[0].Headers;
 
-      public ObservableCollection<HeaderRow> ColumnHeaders => this[0].ColumnHeaders;
+      public ObservableCollection<ColumnHeaderRow> ColumnHeaders => this[0].ColumnHeaders;
 
       public int DataOffset => this[0].DataOffset;
 

@@ -123,8 +123,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int MaximumScroll => scroll.MaximumScroll;
 
-      public ObservableCollection<string> Headers => scroll.Headers;
-      public ObservableCollection<HeaderRow> ColumnHeaders { get; }
+      public ObservableCollection<RowHeader> Headers => scroll.Headers; // the headers for each row
+      public ObservableCollection<ColumnHeaderRow> ColumnHeaders { get; } // the collection of all rows of column headers (for narrow dislpays, the column headers can be broken into multiple rows)
       public int DataOffset => scroll.DataIndex;
       public ICommand Scroll => scroll.Scroll;
 
@@ -971,7 +971,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          Model = model;
          FileName = fileName;
-         ColumnHeaders = new ObservableCollection<HeaderRow>();
+         ColumnHeaders = new ObservableCollection<ColumnHeaderRow>();
 
          scroll = new ScrollRegion(model.TryGetUsefulHeader) { DataLength = Model.Count };
          scroll.PropertyChanged += ScrollPropertyChanged;
@@ -3191,7 +3191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var index = scroll.ViewPointToDataIndex(new Point(0, 0));
          var run = Model.GetNextRun(index) as ArrayRun;
          if (run != null && run.Start > index) run = null; // only use the run if it starts _before_ the screen
-         var headers = run?.GetColumnHeaders(Width, index) ?? HeaderRow.GetDefaultColumnHeaders(Width, index);
+         var headers = run?.GetColumnHeaders(Width, index) ?? ColumnHeaderRow.GetDefaultColumnHeaders(Width, index);
 
          for (int i = 0; i < headers.Count; i++) {
             if (i < ColumnHeaders.Count) ColumnHeaders[i] = headers[i];
@@ -3199,6 +3199,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          while (ColumnHeaders.Count > headers.Count) ColumnHeaders.RemoveAt(ColumnHeaders.Count - 1);
+
+         if (headers.Count == 1 && SelectionStart == SelectionEnd) {
+            int offset = 0;
+            for (int i = 0; i < headers.Count; i++) {
+               headers[0].ColumnHeaders[i].IsSelected = SelectionStart.X == offset;
+               offset += headers[0].ColumnHeaders[i].ByteWidth;
+            }
+         }
       }
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
@@ -119,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
+      public ObservableCollection<RowHeader> Headers { get; } = new ObservableCollection<RowHeader>();
 
       public event EventHandler<int> ScrollChanged;
 
@@ -232,9 +233,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (address >= DataLength) hexAddress = string.Empty;
 
             if (Headers.Count > i) {
-               Headers[i] = hexAddress;
+               Headers[i] = new RowHeader { Content = hexAddress };
             } else {
-               Headers.Add(hexAddress);
+               Headers.Add(new RowHeader { Content = hexAddress });
             }
          }
       }
@@ -253,5 +254,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          return effectiveDataLength;
       }
+   }
+
+   public class RowHeader : ViewModelCore, IEquatable<RowHeader> {
+      private bool isSelected;
+      public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
+
+      private string content;
+      public string Content { get => content; set => Set(ref content, value); }
+
+      public static implicit operator RowHeader(string value) => new RowHeader { Content = value };
+
+      public bool Equals(RowHeader? other) => other?.content == content;
    }
 }

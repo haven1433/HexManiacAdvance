@@ -98,7 +98,7 @@ namespace HavenSoft.HexManiac.Tests {
             Model = new BasicModel(new byte[0x200]),
             Goto = new StubCommand { CanExecute = arg => true, Execute = arg => gotoCount++ },
             CreateChildView = (start, end) => new ChildViewPort(tab, InstantDispatch.Instance, BaseViewModelTestClass.Singletons),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Tests {
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab1),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Tests {
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab2),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
@@ -158,7 +158,7 @@ namespace HavenSoft.HexManiac.Tests {
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
@@ -167,8 +167,8 @@ namespace HavenSoft.HexManiac.Tests {
          editor.Find.Execute("something");
          var results = (IViewPort)editor[1];
          results.Height = 9; // both children are size 4, one space inbetween
-         Assert.False(results.Headers.All(string.IsNullOrEmpty)); // not all the headers are blank
-         Assert.Contains(results.Headers, string.IsNullOrEmpty);  // blank lines have blank headers
+         Assert.False(results.Headers.Select(s => s.Content).All(string.IsNullOrEmpty)); // not all the headers are blank
+         Assert.Contains(results.Headers.Select(s => s.Content), string.IsNullOrEmpty);  // blank lines have blank headers
       }
 
       [Fact]
@@ -179,7 +179,7 @@ namespace HavenSoft.HexManiac.Tests {
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
@@ -258,7 +258,7 @@ namespace HavenSoft.HexManiac.Tests {
             Find = DefaultFind((0x50, 0x50)),
             Goto = new StubCommand(),
             CreateChildView = CreateCreateChildView(() => tab),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };
@@ -279,7 +279,7 @@ namespace HavenSoft.HexManiac.Tests {
             Goto = new StubCommand(),
             Model = new BasicModel(new byte[0x200]),
             CreateChildView = CreateCreateChildView(() => tab),
-            Headers = new ObservableCollection<string> { "00", "01", "02", "03" },
+            Headers = new ObservableCollection<RowHeader> { "00", "01", "02", "03" },
             Width = 4,
             Height = 4,
          };

@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
       public int MaximumScroll { get => maxScrollValue; private set => TryUpdate(ref maxScrollValue, value); }
-      public ObservableCollection<string> Headers { get; } = new ObservableCollection<string>();
+      public ObservableCollection<RowHeader> Headers { get; } = new ObservableCollection<RowHeader>();
       public ICommand Scroll => scroll;
       public int DataOffset {
          get {
@@ -134,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool AnchorTextVisible => false;
 
-      public ObservableCollection<HeaderRow> ColumnHeaders { get; }
+      public ObservableCollection<ColumnHeaderRow> ColumnHeaders { get; }
 
 #pragma warning disable 0067 // it's ok if events are never used
       public event EventHandler<string> OnError;
@@ -312,7 +312,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 0; i < height; i++) {
             var (childIndex, line) = GetChildLine(i);
             if (line == -1 || childIndex >= children.Count) { // blank line between results / after results
-               Headers.Add(string.Empty);
+               Headers.Add(new RowHeader { Content = string.Empty });
             } else {
                Headers.Add(children[childIndex].Headers[line]);
             }

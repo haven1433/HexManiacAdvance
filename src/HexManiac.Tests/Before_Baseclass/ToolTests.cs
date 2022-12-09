@@ -76,7 +76,7 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Goto.Execute(0);
 
          viewPort.Tools.StringTool.Content = "Some More Text";
-         Assert.NotEqual(0, int.Parse(viewPort.Headers[0], NumberStyles.HexNumber));
+         Assert.NotEqual(0, int.Parse(viewPort.Headers[0].Content, NumberStyles.HexNumber));
       }
 
       [Fact]

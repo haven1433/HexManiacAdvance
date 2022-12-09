@@ -14,12 +14,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #region HeaderRows
 
-      public ObservableCollection<HeaderRow> HeaderRows {
-         get { return (ObservableCollection<HeaderRow>)GetValue(HeaderRowsProperty); }
+      public ObservableCollection<ColumnHeaderRow> HeaderRows {
+         get { return (ObservableCollection<ColumnHeaderRow>)GetValue(HeaderRowsProperty); }
          set { SetValue(HeaderRowsProperty, value); }
       }
 
-      public static readonly DependencyProperty HeaderRowsProperty = DependencyProperty.Register(nameof(HeaderRows), typeof(ObservableCollection<HeaderRow>), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(null, HeaderRowsChanged));
+      public static readonly DependencyProperty HeaderRowsProperty = DependencyProperty.Register(nameof(HeaderRows), typeof(ObservableCollection<ColumnHeaderRow>), typeof(HorizontalSlantedTextControl), new FrameworkPropertyMetadata(null, HeaderRowsChanged));
 
       private static void HeaderRowsChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
          var self = (HorizontalSlantedTextControl)d;
@@ -27,9 +27,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       private void OnHeaderRowsChanged(DependencyPropertyChangedEventArgs e) {
-         var oldCollection = (ObservableCollection<HeaderRow>)e.OldValue;
+         var oldCollection = (ObservableCollection<ColumnHeaderRow>)e.OldValue;
          if (oldCollection != null) oldCollection.CollectionChanged -= HeaderRowsCollectionChanged;
-         var newCollection = (ObservableCollection<HeaderRow>)e.NewValue;
+         var newCollection = (ObservableCollection<ColumnHeaderRow>)e.NewValue;
          if (newCollection != null) newCollection.CollectionChanged += HeaderRowsCollectionChanged;
          UpdateDesiredHeight();
          InvalidateVisual();

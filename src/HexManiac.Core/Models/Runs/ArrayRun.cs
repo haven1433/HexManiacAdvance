@@ -1031,17 +1031,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Arrays might want custom column headers.
       /// If so, this method can get them.
       /// </summary>
-      public IReadOnlyList<HeaderRow> GetColumnHeaders(int columnCount, int startingDataIndex) {
+      public IReadOnlyList<ColumnHeaderRow> GetColumnHeaders(int columnCount, int startingDataIndex) {
          // check if it's a multiple of the array width
          if (columnCount >= ElementLength) {
             if (columnCount % ElementLength != 0) return null;
-            return new[] { new HeaderRow(this, startingDataIndex - Start, columnCount) };
+            return new[] { new ColumnHeaderRow(this, startingDataIndex - Start, columnCount) };
          }
 
          // check if it's a divisor of the array width
          if (ElementLength % columnCount != 0) return null;
          var segments = ElementLength / columnCount;
-         return segments.Range().Select(i => new HeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount)).ToList();
+         return segments.Range().Select(i => new ColumnHeaderRow(this, columnCount * i + startingDataIndex - Start, columnCount)).ToList();
       }
 
       public ArrayRun Move(int newStart) {

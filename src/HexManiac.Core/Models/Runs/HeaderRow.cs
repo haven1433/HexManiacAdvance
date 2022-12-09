@@ -1,21 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
-   public class ColumnHeader {
+   public class ColumnHeader : ViewModelCore {
       public string ColumnTitle { get; }
       public int ByteWidth { get; }
-      public ColumnHeader(string title, int byteWidth = 1) => (ColumnTitle, ByteWidth) = (title, byteWidth);
+
+      private bool isSelected;
+      public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
+
+      public ColumnHeader(string title, int byteWidth = 1, bool isSelected = false) => (ColumnTitle, ByteWidth) = (title, byteWidth);
    }
 
    /// <summary>
    /// Represents a horizontal row of labels.
    /// Each entry is meant to label a column.
    /// </summary>
-   public class HeaderRow {
+   public class ColumnHeaderRow : ViewModelCore {
       public IReadOnlyList<ColumnHeader> ColumnHeaders { get; }
 
-      public HeaderRow(ArrayRun source, int byteStart, int length) {
+      public ColumnHeaderRow(ArrayRun source, int byteStart, int length) {
          var headers = new List<ColumnHeader>();
          // we know which 'byte' to start at, but we want to know what 'index' to start at
          // basically, count off each element to figure out how big it is
@@ -43,7 +48,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ColumnHeaders = headers;
       }
 
-      public HeaderRow(int start, int length) {
+      public ColumnHeaderRow(int start, int length) {
          while (start < 0) start += length;
          var hex = "0123456789ABCDEF";
          var headers = new ColumnHeader[length];
@@ -51,11 +56,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ColumnHeaders = headers;
       }
 
-      public static IReadOnlyList<HeaderRow> GetDefaultColumnHeaders(int columnCount, int startingDataIndex) {
-         if (columnCount > 0x10 && columnCount % 0x10 != 0) return new List<HeaderRow>();
-         if (columnCount < 0x10 && 0x10 % columnCount != 0) return new List<HeaderRow>();
-         if (columnCount >= 0x10) return new[] { new HeaderRow(startingDataIndex, columnCount) };
-         return (0x10 / columnCount).Range().Select(i => new HeaderRow(columnCount * i + startingDataIndex, columnCount)).ToList();
+      public static IReadOnlyList<ColumnHeaderRow> GetDefaultColumnHeaders(int columnCount, int startingDataIndex) {
+         if (columnCount > 0x10 && columnCount % 0x10 != 0) return new List<ColumnHeaderRow>();
+         if (columnCount < 0x10 && 0x10 % columnCount != 0) return new List<ColumnHeaderRow>();
+         if (columnCount >= 0x10) return new[] { new ColumnHeaderRow(startingDataIndex, columnCount) };
+         return (0x10 / columnCount).Range().Select(i => new ColumnHeaderRow(columnCount * i + startingDataIndex, columnCount)).ToList();
       }
    }
 }

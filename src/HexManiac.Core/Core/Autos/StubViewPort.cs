@@ -258,18 +258,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 return this.MaximumScroll.get();
             }
         }
-        public PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<string>> Headers = new PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<string>>();
+        public PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<RowHeader>> Headers = new PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<RowHeader>>();
         
-        System.Collections.ObjectModel.ObservableCollection<string> IViewPort.Headers
+        System.Collections.ObjectModel.ObservableCollection<RowHeader> IViewPort.Headers
         {
             get
             {
                 return this.Headers.get();
             }
         }
-        public PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<HavenSoft.HexManiac.Core.Models.Runs.HeaderRow>> ColumnHeaders = new PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<HavenSoft.HexManiac.Core.Models.Runs.HeaderRow>>();
+        public PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<HavenSoft.HexManiac.Core.Models.Runs.ColumnHeaderRow>> ColumnHeaders = new PropertyImplementation<System.Collections.ObjectModel.ObservableCollection<HavenSoft.HexManiac.Core.Models.Runs.ColumnHeaderRow>>();
         
-        System.Collections.ObjectModel.ObservableCollection<HavenSoft.HexManiac.Core.Models.Runs.HeaderRow> IViewPort.ColumnHeaders
+        System.Collections.ObjectModel.ObservableCollection<HavenSoft.HexManiac.Core.Models.Runs.ColumnHeaderRow> IViewPort.ColumnHeaders
         {
             get
             {

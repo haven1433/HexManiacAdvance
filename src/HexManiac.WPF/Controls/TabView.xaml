@@ -971,7 +971,7 @@
                         <ItemsControl.ItemTemplate>
                            <DataTemplate>
                               <Viewbox Height="{Binding CellHeight, ElementName=HexContent}" HorizontalAlignment="Right" Margin="0,0,2,0">
-                                 <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding}" FontFamily="Consolas" Padding="1"/>
+                                 <TextBlock Foreground="{DynamicResource Secondary}" Text="{Binding Content}" FontFamily="Consolas" Padding="1"/>
                               </Viewbox>
                            </DataTemplate>
                         </ItemsControl.ItemTemplate>

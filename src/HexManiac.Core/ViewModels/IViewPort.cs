@@ -32,8 +32,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       int MinimumScroll { get; }
       int ScrollValue { get; set; }
       int MaximumScroll { get; }
-      ObservableCollection<string> Headers { get; }
-      ObservableCollection<HeaderRow> ColumnHeaders { get; }
+      ObservableCollection<RowHeader> Headers { get; }
+      ObservableCollection<ColumnHeaderRow> ColumnHeaders { get; }
       int DataOffset { get; }
       ICommand Scroll { get; } // parameter: Direction to scroll
 
