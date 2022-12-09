@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -342,12 +343,65 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(19, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionEnd));
       }
 
-      // TODO include a 'nop' if needed for alignment
+      [Fact]
+      public void LongBranchLink_OddNumberOfCommands_NopInsertedBeforeLongBranchLinkCode() {
+         ThumbScript = "bl <C00000>; bx r0";
+         Assert.Equal(0, Model.ReadMultiByteValue(6, 2));
+      }
 
-      // TODO double-click to select should work even if there's a pointer run involved
+      [Fact]
+      public void LongBranchLinkOddNumberCommands_StartsAtMultipleOfTwo_NoNopInserted() {
+         ViewPort.Goto.Execute(2);
+         ThumbScript = "bl <C00000>; bx r0";
+         Assert.NotEqual(0, Model.ReadMultiByteValue(8, 2));
+      }
 
-      // TODO double-click to select should work even if there's an named-anchor at the starting address
+      [Fact]
+      public void CodeWithPointer_DoubleClick_SelectCodeAndPointer() {
+         ThumbScript = "push {lr}; ldr r0, =<800000>; pop {pc}";
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(12);
+         ThumbScript = "push {lr}";
 
-      // TODO cut should paste a UBL even if there's a pointer run involved
+         ViewPort.Goto.Execute(0);
+         ViewPort.ExpandSelection(0, 0);
+
+         Assert.IsType<PointerRun>(Model.GetNextRun(8));
+         Assert.Equal(11, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionEnd));
+      }
+
+      [Fact]
+      public void CodeWithPointer_ReplaceWithLongBranchLink_Success() {
+         ThumbScript = "push {lr}; ldr r0, =<800000>; pop {pc}";
+         ViewPort.Goto.Execute(12);
+         ThumbScript = "push {lr}";
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Cut(FileSystem);
+
+         // if we succeeded, then the value at 0x8 should be <null>
+         Assert.Equal(0, Model.ReadMultiByteValue(8, 4));
+      }
+
+      [Fact]
+      public void AnchorAtStart_ExpandSelectionToThumbRoutine_SelectionExpanded() {
+         ThumbScript = "push {lr}; pop {pc}; push {lr}";
+         ViewPort.Edit("^some.anchor ");
+
+         ViewPort.ExpandSelection(0, 0);
+
+         Assert.Equal(3, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionEnd));
+      }
+
+      [Fact]
+      public void ThumbRoutineWithPointer_Cut_RemovePointerFormat() {
+         ThumbScript = "push {lr}; nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; ldr r0, =<800000>; pop {pc}";
+
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Cut(FileSystem);
+
+         Assert.IsType<OffsetPointerRun>(Model.GetNextRun(8));
+         Assert.IsNotType<PointerRun>(Model.GetNextRun(0xC));
+      }
    }
 }

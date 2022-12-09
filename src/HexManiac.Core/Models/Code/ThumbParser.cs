@@ -1,13 +1,11 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using IronPython.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Reflection.Emit;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
@@ -330,6 +328,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          foreach (var token in longBranchTokens.Values) {
+            while ((start + result.Count) % 4 != 0) result.Add(0);
             token.Write(start + result.Count, result);
          }
 
@@ -393,26 +392,33 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public static bool IsThumbSelection(IDataModel data, int start, int length) {
-         var firstRun = data.GetNextRun(start);
-         if (firstRun.Start == start && firstRun is NoInfoRun && !string.IsNullOrEmpty(data.GetAnchorFromAddress(-1, start))) {
+         var run = data.GetNextRun(start);
+         if (run.Start == start && run is NoInfoRun && !string.IsNullOrEmpty(data.GetAnchorFromAddress(-1, start))) {
             // this is fine, but the next run may be a problem
-            firstRun = data.GetNextRun(start + 1);
+            run = data.GetNextRun(start + 1);
          }
-         if (firstRun.Start < start + length) {
-            return false; // no formatting is allowed
+         // only pointer formats are allowed
+         while (run.Start < start + length) {
+            if (run is not PointerRun) return false;
+            run = data.GetNextRun(run.Start + run.Length);
          }
          if (start < 0 || start + length > data.Count) return false;
          if (data[start + 1] != 0xB5) return false;
          if (start + length == data.Count) return true;
-         if (start + length + 1 == data.Count || data[start + length + 1] != 0xB5) return false;
-         return true;
+         if (start + length + 1 == data.Count) return false;
+         if (data[start + length] == 0xFF && data[start + length + 1] == 0xFF) return true;
+         return data[start + length + 1] == 0xB5;
       }
 
       public static int GetSelectionLength(IReadOnlyList<byte> data, int start) {
          if (start < 0 || start >= data.Count - 1) return -1;
          if (data[start + 1] != 0xB5) return -1;
          int i = start + 3;
-         while (i < data.Count && data[i] != 0xB5) i += 2;
+         while (i < data.Count) {
+            if (data[i] == 0xB5) break;
+            if (data.ReadMultiByteValue(i - 1, 2) == 0xFFFF) break;
+            i += 2;
+         }
          if (i >= data.Count) return -1;
          var length = i - 1 - start;
          if (length > 1000) return -1;
@@ -435,6 +441,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          data.ClearFormat(token, start, 1);
 
          // clear remaining bytes
+         if (length > write.Count + 4) data.ClearFormat(token, start + write.Count + 4, length - write.Count - 4);
          for (int i = write.Count + 4; i < length; i++) token.ChangeData(data, start + i, 0xFF);
          return true;
       }
