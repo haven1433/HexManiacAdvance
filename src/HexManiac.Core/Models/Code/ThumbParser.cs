@@ -1,11 +1,13 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using IronPython.Compiler;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
@@ -266,6 +268,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          var labelLibrary = new LabelLibrary(model, labels);
+         var longBranchTokens = new Dictionary<int, DeferredUniversalBranchLinkToken>();
 
          foreach (var rawLine in lines) {
             if (rawLine.EndsWith(":")) continue;   // don't compile labels
@@ -273,6 +276,21 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             bool foundMatch = false;
             foreach (var instruction in instructionTemplates) {
                if (!instruction.TryAssemble(line, conditionalCodes, start + result.Count, labelLibrary, out byte[] code)) continue;
+               if (line.StartsWith("bl ")) {
+                  var pointerContent = line.Substring(3).Trim();
+                  int address = 0;
+                  if (Instruction.ReadPointer(ref pointerContent, ref address, labelLibrary)) {
+                     if (!DeferredUniversalBranchLinkToken.CanBranch(start + result.Count, address)) {
+                        // TODO we can add to an existing deferral token if the address is the same, rather than making a new one
+                        address -= Pointer.NULL;
+                        if (!longBranchTokens.TryGetValue(address, out var ubl)) {
+                           ubl = new DeferredUniversalBranchLinkToken(address);
+                           longBranchTokens[address] = ubl;
+                        }
+                        ubl.InstructionAddresses.Add(start + result.Count);
+                     }
+                  }
+               }
                if (instruction.RequiresAlignment && (result.Count + start) % 4 != 0) result.AddRange(nop);
                if (instruction is not ByteInstruction && result.Count % 2 != 0) result.Add(0);
                result.AddRange(code);
@@ -309,6 +327,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                result.AddRange(new byte[] { 0, 0, 0, 0 }); // add space for the new word
                token.Write(start, result, result.Count - 4);
             }
+         }
+
+         foreach (var token in longBranchTokens.Values) {
+            token.Write(start + result.Count, result);
          }
 
          newRuns = addedRuns;
@@ -368,6 +390,53 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
             }
          }
+      }
+
+      public static bool IsThumbSelection(IDataModel data, int start, int length) {
+         var firstRun = data.GetNextRun(start);
+         if (firstRun.Start == start && firstRun is NoInfoRun && !string.IsNullOrEmpty(data.GetAnchorFromAddress(-1, start))) {
+            // this is fine, but the next run may be a problem
+            firstRun = data.GetNextRun(start + 1);
+         }
+         if (firstRun.Start < start + length) {
+            return false; // no formatting is allowed
+         }
+         if (start < 0 || start + length > data.Count) return false;
+         if (data[start + 1] != 0xB5) return false;
+         if (start + length == data.Count) return true;
+         if (start + length + 1 == data.Count || data[start + length + 1] != 0xB5) return false;
+         return true;
+      }
+
+      public static int GetSelectionLength(IReadOnlyList<byte> data, int start) {
+         if (start < 0 || start >= data.Count - 1) return -1;
+         if (data[start + 1] != 0xB5) return -1;
+         int i = start + 3;
+         while (i < data.Count && data[i] != 0xB5) i += 2;
+         if (i >= data.Count) return -1;
+         var length = i - 1 - start;
+         if (length > 1000) return -1;
+         return length;
+      }
+
+      public static bool TryWriteUniversalBranchLink(IDataModel data, ModelDelta token, int start, int length) {
+         var startRun = data.GetNextRun(start);
+         if (startRun is not NoInfoRun noInfo) return false;
+         var name = data.GetAnchorFromAddress(-1, start);
+         if (string.IsNullOrEmpty(name)) return false;
+
+         // write the UBL code
+         var write = "03 B4 01 49 01 91 02 BD".ToByteArray().ToList();
+         token.ChangeData(data, start, write);
+
+         // write the pointer to here (with offset), then the format, then clear the anchor, leaving a an offset-pointer to the name
+         data.WritePointer(token, start + write.Count, start + 1);
+         data.ObserveRunWritten(token, new OffsetPointerRun(start + write.Count, 1));
+         data.ClearFormat(token, start, 1);
+
+         // clear remaining bytes
+         for (int i = write.Count + 4; i < length; i++) token.ChangeData(data, start + i, 0xFF);
+         return true;
       }
 
       private string PatchInstruction(string line) {
@@ -797,20 +866,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // read a pointer
             if (template.StartsWith("#=pc")) {
-               if (line[0] == '<') line = line.Substring(1);
-               var content = line;
-               if (content.Contains('>')) content = content.Split('>')[0];
-               int extraLength = 0;
-               if (content.StartsWith("0x")) {
-                  content = content.Substring(2);
-                  extraLength += 2;
-               }
-               numeric = labels.ResolveLabel(content);
-               if (numeric == Pointer.NULL && !int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
-               if (line.Length < content.Length) return false;
-               if (numeric >= 0x08000000) numeric -= 0x08000000;
-               line = line.Substring(content.Length + extraLength);
-               if (line.StartsWith(">")) line = line.Substring(1);
+               if (!ReadPointer(ref line, ref numeric, labels)) return false;
                template = template.Substring(template.IndexOf('+') + 1);
                template = template.Substring(template.IndexOf('+') + 2);
                continue;
@@ -870,6 +926,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // Completed parsing the line. Should've used the entire template.
          return template.Length == 0 && line.Length == 0;
+      }
+
+      public static bool ReadPointer(ref string line, ref int numeric, LabelLibrary labels) {
+         if (line[0] == '<') line = line.Substring(1);
+         var content = line;
+         if (content.Contains('>')) content = content.Split('>')[0];
+         int extraLength = 0;
+         if (content.StartsWith("0x")) {
+            content = content.Substring(2);
+            extraLength += 2;
+         }
+         numeric = labels.ResolveLabel(content);
+         if (numeric == Pointer.NULL && !int.TryParse(content, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out numeric)) return false;
+         if (line.Length < content.Length) return false;
+         if (numeric >= 0x08000000) numeric -= 0x08000000;
+         line = line.Substring(content.Length + extraLength);
+         if (line.StartsWith(">")) line = line.Substring(1);
+         return true;
       }
 
       private static ushort ParseList(string list) {
@@ -1142,6 +1216,46 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             inlineWords.Enqueue(newToken);
          }
          return true;
+      }
+   }
+
+   public class DeferredUniversalBranchLinkToken {
+      public IList<int> InstructionAddresses { get; } // list of addresses that want to use this UBL
+      public int BranchTarget { get; }
+
+      public DeferredUniversalBranchLinkToken(int target) {
+         BranchTarget = target;
+         InstructionAddresses = new List<int>();
+      }
+
+      public void Write(int dataStart, IList<byte> data) {
+         // update the branch-link commands at the InstructionAddresses to link to here
+         for (int i = 0; i < InstructionAddresses.Count; i++) {
+            var offset = dataStart - InstructionAddresses[i];
+            var instruction1 = 0b11111_00000000000 | ((offset - 4) / 2);
+            var instruction2 = 0b11110_00000000000;
+            data[data.Count - offset + 0] = (byte)instruction2;
+            data[data.Count - offset + 1] = (byte)(instruction2 >> 8);
+            data[data.Count - offset + 2] = (byte)instruction1;
+            data[data.Count - offset + 3] = (byte)(instruction1 >> 8);
+         }
+
+         foreach (var b in "03 B4 01 49 01 91 02 BD".ToByteArray()) data.Add(b);
+         data.Add((byte)(BranchTarget + 1));
+         data.Add((byte)(BranchTarget >> 8));
+         data.Add((byte)(BranchTarget >> 16));
+         data.Add((byte)(BranchTarget >> 24));
+      }
+
+      public static bool CanBranch(int source, int destination) {
+         destination -= 4;
+         var diff = destination - source;
+         diff /= 2;
+
+         // can this number be represented in 22 bits?
+         // yes, only if the top 10 bits are all the same as the 11th bit (sign bit).
+         var sign = diff >> 21;
+         return sign == -1 || sign == 0;
       }
    }
 }

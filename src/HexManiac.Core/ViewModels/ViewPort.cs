@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -1040,9 +1041,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
             var left = Math.Min(selectionStart, selectionEnd);
             var right = Math.Max(selectionStart, selectionEnd);
+            var length = right - left + 1;
             var startRun = Model.GetNextRun(left);
             var endRun = Model.GetNextRun(right);
-            if (startRun == endRun && startRun.Start <= left && (startRun.Start < left || startRun.Start + startRun.Length - 1 > right) && startRun is ITableRun arrayRun) {
+            if (ThumbParser.IsThumbSelection(Model, left, length) && length >= 0xC && ThumbParser.TryWriteUniversalBranchLink(Model, history.CurrentChange, left, length)) {
+               // we cleared and we wrote the UBL, nothing else to do
+            } else if (startRun == endRun && startRun.Start <= left && (startRun.Start < left || startRun.Start + startRun.Length - 1 > right) && startRun is ITableRun arrayRun) {
                for (int i = 0; i < arrayRun.ElementCount; i++) {
                   var start = arrayRun.Start + arrayRun.ElementLength * i;
                   if (start + arrayRun.ElementLength <= left) continue;
@@ -1185,7 +1189,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (left < 0) {
                OnError?.Invoke(this, $"Cannot copy before the start of the data.");
             } else {
-               if (allowModelChanges) {
+               if (ThumbParser.IsThumbSelection(Model, left, length) && allowModelChanges) {
+                  var text = tools.CodeTool.Parser.Parse(Model, left, length);
+                  var nl = Environment.NewLine;
+                  var name = $"thumb.misc.{left:X6}";
+                  PokemonModel.UniquifyName(Model, left, ref name);
+                  filesystem.CopyText = $"^thumb.misc.{left:X6} .thumb{nl}{text}{nl}.end";
+                  Model.ObserveAnchorWritten(history.CurrentChange, name, new NoInfoRun(left));
+               } else if (allowModelChanges) {
                   filesystem.CopyText = Model.Copy(() => { usedHistory = true; return history.CurrentChange; }, left, length);
                } else {
                   filesystem.CopyText = Model.Copy(() => null, left, length);
@@ -2254,8 +2265,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void ExpandSelection(int x, int y) {
          var index = scroll.ViewPointToDataIndex(SelectionStart);
          var run = Model.GetNextRun(index);
-         if (run.Start > index) return;
-         if (run is ITableRun array) {
+         if (run.Start > index || run is NoInfoRun) {
+            var length = ThumbParser.GetSelectionLength(Model, index);
+            if (length == -1) return;
+            SelectionEnd = scroll.DataIndexToViewPoint(index + length - 1);
+            tools.SelectedTool = Tools.CodeTool;
+            tools.CodeTool.Mode = CodeMode.Thumb;
+         } else if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(index);
             if (array.ElementContent[offsets.SegmentIndex].Type == ElementContentType.Pointer) {
                FollowLink(x, y);

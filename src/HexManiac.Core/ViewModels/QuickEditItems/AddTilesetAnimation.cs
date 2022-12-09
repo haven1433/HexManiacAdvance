@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          name = SanitizeName(viewPort, name);
          var newTableName = $"graphics.maps.tilesets.animations.{name}.table";
          var tableAddress = model.FindFreeSpace(model.FreeSpaceStart, 16) + 4;
-         PokemonModel.UniquifyName(model, token, tableAddress, ref newTableName);
+         PokemonModel.UniquifyName(model, tableAddress, ref newTableName);
 
          // insert data/metadata for new table
          model.WritePointer(token, tableAddress - 4, Pointer.NULL); // null pointer for the first animation
@@ -62,7 +62,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var characters = name.ToCharArray().Where(char.IsLetterOrDigit).ToList();
          if (characters.Count == 0) characters.AddRange("temp");
          var candidate = new string(characters.ToArray()).ToLower();
-         PokemonModel.UniquifyName(viewPort.Model, viewPort.ChangeHistory.CurrentChange, viewPort.Model.FreeSpaceStart, ref candidate);
+         PokemonModel.UniquifyName(viewPort.Model, viewPort.Model.FreeSpaceStart, ref candidate);
          return candidate;
       }
 
@@ -141,7 +141,7 @@ long_branch:
 
          compiler.Compile(token, model, start, code.SplitLines());
 
-         PokemonModel.UniquifyName(model, token, start, ref callbackName);
+         PokemonModel.UniquifyName(model, start, ref callbackName);
          model.ObserveAnchorWritten(token, callbackName, new NoInfoRun(start + 1));
 
          return start;
@@ -209,7 +209,7 @@ pop   {{pc}}
 "; // 45
 
          compiler.Compile(token, model, start, code.SplitLines());
-         PokemonModel.UniquifyName(model, token, start, ref initName);
+         PokemonModel.UniquifyName(model, start, ref initName);
          model.ObserveAnchorWritten(token, initName, new NoInfoRun(start + 1));
 
          return start;

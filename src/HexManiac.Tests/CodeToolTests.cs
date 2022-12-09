@@ -3,7 +3,6 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using Xunit;
@@ -245,5 +244,110 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = Tool.ScriptParser.Parse(Model, 0, 9).SplitLines();
          Assert.Equal($"msgbox.{type} <000100>", lines[0].Trim());
       }
+
+      [Fact]
+      public void BranchlinkOutOfReach_ConvertToLongBranchLink() {
+         ThumbScript = "push {lr}; bl <C00000>; pop {pc}";
+
+         // we want to branch to C00000
+         // but that's beyond the maximum branch distance!
+         // install a 'universal-branch-link' command to allow it.
+
+         // the universal-branch-link is a normal branch-link,
+         // but instead of going where we want to go, it goes
+         // to a bit of long-jump code first.
+         // (1) push r0 for extra space, and push r1 so we can use the register.
+         // (2) fill r1 with the destination we want to branch to (+1)
+         // (3) store the value from r1 to the stack
+         // (4) pop to restore the value of r1, and also jump to the address on the stack
+
+         var expected = new byte[] {
+            00, 0b10110101,        // push {lr}
+            0x00, 0b11110_000, 0x01, 0b11111_000, // bl round4(pc+4+2*1)
+            0x00, 0xBD,            // pop {pc}
+            // the magic part
+            0b11, 0xB4,            // push {r0-r1}
+            0x01, 0b01001_001,     // ldr r1, pc+4+4* 1
+            0x01, 0b10010_001,     // str r1, sp+4*   1
+            0b10, 0xBD,            // pop {pc, r1}
+            0x01, 0x00, 0xC0, 0x08 // .word 0xC00000
+         };
+
+         var result = new byte[expected.Length];
+         Array.Copy(Model.RawData, 0, result, 0, result.Length);
+         Assert.All(result.Length.Range(), i => Assert.Equal(expected[i], result[i]));
+      }
+
+      [Fact]
+      public void BranchLinksOutOfReach_TwoDistinctAddresses_TwoLongBranchLinks() {
+         ThumbScript = "push {lr}; bl <C00000>; bl <D00000>; pop {pc}";
+
+         var expectedLength = 12 + 12 * 2; // 12 bytes for the initial command, 12 bytes for each long-branch-link
+         Assert.NotEqual(0xFF, Model.RawData[expectedLength - 1]);
+         Assert.Equal(0xFF, Model.RawData[expectedLength]);
+      }
+
+      [Fact]
+      public void BranchLinksOutOfReach_TwoIdenticalAddresses_OneLongBranchLink() {
+         ThumbScript = "push {lr}; bl <C00000>; bl <C00000>; pop {pc}";
+
+         var expectedLength = 12 + 12 * 1; // 12 bytes for the initial command, 12 bytes for a single long-branch-link
+         Assert.NotEqual(0xFF, Model.RawData[expectedLength - 1]);
+         Assert.Equal(0xFF, Model.RawData[expectedLength]);
+      }
+
+      [Fact]
+      public void ExactlyOneThumbRoutine_Cut_UniversalBranchLinkLeftBehind() {
+         ThumbScript = "push {lr}; nop; nop; nop; nop; nop; nop; nop; nop; pop {pc}; push {lr}";
+
+         ViewPort.SelectionStart = new Point(0, 0); // 2nd byte of selection is B5
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(0x13); // 2nd byte after selection is B5
+         ViewPort.Cut(FileSystem);
+
+         var text = FileSystem.CopyText.value;
+         var anchor = text.Split(' ')[0].Substring(1); // something like ^thumb.misc.000000
+         var expected = "03 B4 01 49 01 91 02 BD".ToByteArray();
+         Assert.Contains(".thumb", text);
+         Assert.Contains(".end", text);
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], Model[i]));
+         var run = (OffsetPointerRun)Model.GetNextRun(0x8);
+         Assert.Equal(1, run.Offset);
+         Assert.Equal(0x8, Model.GetUnmappedSourcesToAnchor(anchor).Single());
+      }
+
+      [Theory]
+      [InlineData(0)]
+      [InlineData(2)]
+      [InlineData(4)]
+      [InlineData(9 * 2)]
+      [InlineData(10 * 2)]
+      public void NotExactSelection_Cut_DataCleared(int start) {
+         ThumbScript = "nop; push {lr}; nop; nop; nop; nop; nop; nop; nop; nop; pop {pc}; push {lr}";
+         ViewPort.SelectionStart = ViewPort.ConvertAddressToViewPoint(start);
+         ViewPort.SelectionEnd = ViewPort.ConvertAddressToViewPoint(start + 3);
+
+         ViewPort.Cut(FileSystem);
+
+         var expected = "FF FF FF FF".ToByteArray();
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], Model[start + i]));
+      }
+
+      [Fact]
+      public void SelectStartOfThumbRoutine_ExpandSelection_SelectThumbRoutine() {
+         ThumbScript = "push {lr}; nop; nop; nop; nop; nop; nop; nop; nop; pop {pc}; push {lr}";
+
+         ViewPort.SelectionStart = new Point(0, 0);
+         ViewPort.ExpandSelection(0, 0);
+
+         Assert.Equal(19, ViewPort.ConvertViewPointToAddress(ViewPort.SelectionEnd));
+      }
+
+      // TODO include a 'nop' if needed for alignment
+
+      // TODO double-click to select should work even if there's a pointer run involved
+
+      // TODO double-click to select should work even if there's an named-anchor at the starting address
+
+      // TODO cut should paste a UBL even if there's a pointer run involved
    }
 }

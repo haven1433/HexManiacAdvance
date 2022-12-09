@@ -716,7 +716,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          errorInfo = ValidateAnchorNameAndFormat(model, runToWrite, name, format, dataIndex, allowAnchorOverwrite);
          if (!errorInfo.HasError) {
-            errorInfo = UniquifyName(model, changeToken, dataIndex, ref name);
+            errorInfo = UniquifyName(model, dataIndex, ref name);
             if (runToWrite.ContainsOnlyPointerToSelf()) {
                errorInfo = new ErrorInfo($"{name} could not be added at {dataIndex:X6} because no pointers were found.", true);
             } else {
@@ -727,8 +727,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          return errorInfo;
       }
 
-      public static ErrorInfo UniquifyName(IDataModel model, ModelDelta changeToken, int desiredAddressForName, ref string name) {
-         var address = model.GetAddressFromAnchor(changeToken, -1, name);
+      public static ErrorInfo UniquifyName(IDataModel model, int desiredAddressForName, ref string name) {
+         var address = model.GetAddressFromAnchor(null, -1, name);
          if (address == Pointer.NULL || address == desiredAddressForName) return ErrorInfo.NoError;
 
          var info = new ErrorInfo("Chosen name was in use. The new anchor has been renamed to avoid collisions.", isWarningLevel: true);
@@ -740,7 +740,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          // Append _copy to the end to avoid the collision.
          if (!name.Contains("_copy")) {
             name += "_copy";
-            UniquifyName(model, changeToken, desiredAddressForName, ref name);
+            UniquifyName(model, desiredAddressForName, ref name);
             return info;
          }
 
@@ -748,20 +748,20 @@ namespace HavenSoft.HexManiac.Core.Models {
          var number = name.Split("_copy").Last();
          if (number.Length == 0) {
             name += "2";
-            UniquifyName(model, changeToken, desiredAddressForName, ref name);
+            UniquifyName(model, desiredAddressForName, ref name);
             return info;
          }
 
          // It already had a number on the end of the _copy... ok, just increment it by 1.
          if (int.TryParse(number, out var result)) {
             name += result;
-            UniquifyName(model, changeToken, desiredAddressForName, ref name);
+            UniquifyName(model, desiredAddressForName, ref name);
             return info;
          }
 
          // It wasn't a number? Eh, just throw _copy on the end again, it'll be fine.
          name += "_copy";
-         UniquifyName(model, changeToken, desiredAddressForName, ref name);
+         UniquifyName(model, desiredAddressForName, ref name);
          return info;
       }
 
