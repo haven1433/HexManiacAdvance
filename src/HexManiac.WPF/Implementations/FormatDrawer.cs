@@ -160,7 +160,7 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
             } else if (format is LzUncompressed lzUncompressed) {
                collector.Collect<LzUncompressed>(format, x, 1, cell.Value.ToHexString());
             } else if (format is LzCompressed lzCompressed) {
-               collector.Collect<LzGroupHeader>(format, x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
+               collector.Collect<LzCompressed>(format, x, 2, $"{lzCompressed.RunLength}:{lzCompressed.RunOffset}");
             } else if (format is UncompressedPaletteColor color) {
                collector.Collect<UncompressedPaletteColor>(format, x, 2, color.ToString());
             } else if (format is Core.ViewModels.DataFormats.Tuple tuple) {
