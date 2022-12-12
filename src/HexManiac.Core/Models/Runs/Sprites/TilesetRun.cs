@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override string FormatString {
          get {
-            var format = $"`uct4x{TilesetFormat.Tiles}";
+            var format = $"`uct{TilesetFormat.BitsPerPixel}x{TilesetFormat.Tiles}";
             if (TilesetFormat.MaxTiles != -1) format += $"x{TilesetFormat.MaxTiles}";
             var hint = TilesetFormat.PaletteHint;
             format += (string.IsNullOrEmpty(hint) ? string.Empty : $"|{hint}");
@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (split.Length < 2 || split.Length > 3) return false;
          if (!int.TryParse(split[0], out int bits) || !int.TryParse(split[1], out int tiles)) return false;
          var maxTiles = -1;
-         if (split.Length == 3 && !int.TryParse(split[0], out maxTiles)) return false;
+         if (split.Length == 3 && !int.TryParse(split[2], out maxTiles)) return false;
          tilesetFormat = new TilesetFormat(bits, tiles, maxTiles, hint);
          return true;
       }
