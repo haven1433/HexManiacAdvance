@@ -205,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
             using (ModelCacheScope.CreateScope(model)) {
-               return enumSeg.ToText(model, valueAddress, false);
+               return enumSeg.ToText(model, valueAddress, false).Trim('"');
             }
          } else {
             throw new NotImplementedException();
@@ -253,13 +253,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public void SetEnumValue(string fieldName, string value) {
+      public void SetEnumValue(string fieldName, string valueText) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
-            enumSeg.Write(null, model, tokenFactory(), valueAddress, ref value);
-            table.NotifyChildren(Model, tokenFactory(), arrayIndex, table.ElementContent.IndexOf(seg));
+            if (enumSeg.TryParse(model, valueText, out int value)) {
+               model.WriteMultiByteValue(valueAddress, seg.Length, tokenFactory(), value);
+               table.NotifyChildren(Model, tokenFactory(), arrayIndex, table.ElementContent.IndexOf(seg));
+            }
          } else {
             throw new NotImplementedException();
          }
