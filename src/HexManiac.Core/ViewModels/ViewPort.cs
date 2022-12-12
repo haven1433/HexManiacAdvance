@@ -878,7 +878,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      if (AnchorText == AnchorStart.ToString()) Model.ClearFormat(token, run.Start, 1);
                      if (newRun is ArrayRun array) {
                         // if the format changed (ignoring length), run a goto to update the display width
-                        if (run is ArrayRun array2 && !array.HasSameSegments(array2)) {
+                        if (run is not ArrayRun array2 || !array.HasSameSegments(array2)) {
                            selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
                            Goto.Execute(index);
                            selection.PropertyChanged += SelectionPropertyChanged;
