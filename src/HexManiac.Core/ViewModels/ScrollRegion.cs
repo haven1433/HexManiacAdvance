@@ -123,6 +123,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ObservableCollection<RowHeader> Headers { get; } = new ObservableCollection<RowHeader>();
 
       public event EventHandler<int> ScrollChanged;
+      public event EventHandler HeadersChanged;
 
       public static bool DefaultHeaderStrategy(int address, out string header) { header = null; return false; }
 
@@ -233,11 +234,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (address >= DataLength) hexAddress = string.Empty;
 
             if (Headers.Count > i) {
-               Headers[i] = new RowHeader { Content = hexAddress };
+               Headers[i] = hexAddress;
             } else {
-               Headers.Add(new RowHeader { Content = hexAddress });
+               Headers.Add(hexAddress);
             }
          }
+
+         HeadersChanged.Raise(this);
       }
 
       /// <summary>

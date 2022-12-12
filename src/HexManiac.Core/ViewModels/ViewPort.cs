@@ -287,7 +287,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void SelectionPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(SelectionEnd)) history.ChangeCompleted();
+         if (e.PropertyName == nameof(SelectionEnd)) {
+            history.ChangeCompleted();
+            UpdateColumnHeaderSelection();
+         }
          NotifyPropertyChanged(e.PropertyName);
          var dataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          using (ModelCacheScope.CreateScope(Model)) {
@@ -3216,11 +3219,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          while (ColumnHeaders.Count > headers.Count) ColumnHeaders.RemoveAt(ColumnHeaders.Count - 1);
 
-         if (headers.Count == 1 && SelectionStart == SelectionEnd) {
+         UpdateColumnHeaderSelection();
+      }
+
+      private void UpdateColumnHeaderSelection() {
+         if (ColumnHeaders.Count == 1 && SelectionStart.Y == SelectionEnd.Y) {
+            var (left, right) = (SelectionStart.X, SelectionEnd.X);
+            if (left > right) (left, right) = (right, left);
             int offset = 0;
-            for (int i = 0; i < headers.Count; i++) {
-               headers[0].ColumnHeaders[i].IsSelected = SelectionStart.X == offset;
-               offset += headers[0].ColumnHeaders[i].ByteWidth;
+            for (int i = 0; i < ColumnHeaders[0].ColumnHeaders.Count; i++) {
+               ColumnHeaders[0].ColumnHeaders[i].IsSelected = left <= offset && offset <= right;
+               offset += ColumnHeaders[0].ColumnHeaders[i].ByteWidth;
+            }
+         } else {
+            for (int i = 0; i < ColumnHeaders.Count; i++) {
+               for (int j = 0; j < ColumnHeaders[i].ColumnHeaders.Count; j++) {
+                  ColumnHeaders[i].ColumnHeaders[j].IsSelected = false;
+               }
             }
          }
       }

@@ -66,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (start, end) = getSpan(rawSelectionStart);
             TryUpdate(ref selectionStart, start);
             TryUpdate(ref selectionEnd, end, nameof(SelectionEnd));
+            UpdateHeaderSelection();
          }
       }
 
@@ -83,6 +84,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             rawSelectionEnd = value;
             var startIndex = Scroll.ViewPointToDataIndex(rawSelectionStart);
             var endIndex = Scroll.ViewPointToDataIndex(rawSelectionEnd);
+
+            UpdateHeaderSelection();
 
             // case 1: start/end are the same
             if (startIndex == endIndex) {
@@ -105,6 +108,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                TryUpdate(ref selectionStart, getSpan(rawSelectionStart).end, nameof(SelectionStart));
                return;
             }
+         }
+      }
+
+      private void UpdateHeaderSelection() {
+         if (Scroll?.Headers == null) return;
+         for (int i = 0; i < Scroll.Headers.Count; i++) {
+            Scroll.Headers[i].IsSelected = i == rawSelectionStart.Y && i == rawSelectionEnd.Y;
          }
       }
 
@@ -144,6 +154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          this.getSpan = getSpan ?? GetDefaultSelectionSpan;
          Scroll = scrollRegion;
          Scroll.ScrollChanged += (sender, e) => ShiftSelectionFromScroll(e);
+         Scroll.HeadersChanged += (sender, e) => UpdateHeaderSelection();
 
          moveSelectionStart.CanExecute = args => true;
          moveSelectionStart.Execute = args => MoveSelectionStartExecuted((Direction)args);

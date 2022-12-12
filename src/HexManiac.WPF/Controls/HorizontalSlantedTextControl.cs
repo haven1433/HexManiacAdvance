@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
-using HavenSoft.HexManiac.WPF.Implementations;
 using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -28,9 +27,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void OnHeaderRowsChanged(DependencyPropertyChangedEventArgs e) {
          var oldCollection = (ObservableCollection<ColumnHeaderRow>)e.OldValue;
-         if (oldCollection != null) oldCollection.CollectionChanged -= HeaderRowsCollectionChanged;
+         if (oldCollection != null) {
+            oldCollection.CollectionChanged -= HeaderRowsCollectionChanged;
+         }
          var newCollection = (ObservableCollection<ColumnHeaderRow>)e.NewValue;
          if (newCollection != null) newCollection.CollectionChanged += HeaderRowsCollectionChanged;
+         foreach (var element in newCollection) {
+            foreach (var header in element.ColumnHeaders) header.PropertyChanged += (s1, e1) => InvalidateVisual();
+         }
          UpdateDesiredHeight();
          InvalidateVisual();
       }
@@ -38,6 +42,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void HeaderRowsCollectionChanged(object sender, NotifyCollectionChangedEventArgs e) {
          UpdateDesiredHeight();
          InvalidateVisual();
+         if (e.NewItems != null) {
+            foreach (var item in e.NewItems) {
+               if (item is ColumnHeaderRow element) {
+                  foreach (var header in element.ColumnHeaders) header.PropertyChanged += (s1, e1) => InvalidateVisual();
+               }
+            }
+         }
       }
 
       #endregion
@@ -120,12 +131,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          base.OnRender(drawingContext);
          if (HeaderRows == null) return;
 
+         var theme1 = nameof(Theme.Secondary);
+         var theme2 = nameof(Theme.Primary);
+
          // handle horizontal scrolling
          drawingContext.PushTransform(new TranslateTransform(-HorizontalOffset, 0));
 
          int maxLength = 1;
          if (HeaderRows.Count > 0) maxLength = HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
-         var sampleFormat = Format(new string('0', maxLength));
+         var sampleFormat = Format(new string('0', maxLength), theme1);
          var angle = SlantAngle * Math.PI / 180;
          var heightPerRow = Math.Max(sampleFormat.Width * Math.Sin(angle) + sampleFormat.Height * Math.Cos(angle), sampleFormat.Height);
          var angledTextHeight = sampleFormat.Height * Math.Cos(SlantAngle * Math.PI / 180);
@@ -144,7 +158,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
                xOffset += header.ByteWidth * ColumnWidth / 2;
 
-               var text = Format(header.ColumnTitle);
+               var text = Format(header.ColumnTitle, header.IsSelected ? theme2 : theme1);
                var additionalXOffsetForTilt = header.ColumnTitle.Length > 1 ? 3 : -2;
                var additionalYOffsetForTilt = header.ColumnTitle.Length > 1 ? angledTextHeight : sampleFormat.Height;
 
@@ -168,7 +182,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void UpdateDesiredHeight() {
          var maxLength = (HeaderRows?.Count ?? 0) == 0 ? 1 : HeaderRows.Max(row => row.ColumnHeaders.Max(header => header.ColumnTitle.Length));
-         var formattedText = Format(new string('0', maxLength));
+         var theme = nameof(Theme.Secondary);
+         var formattedText = Format(new string('0', maxLength), theme);
          var rows = HeaderRows?.Count ?? 1;
          var angle = SlantAngle * Math.PI / 180;
          var heightPerRow = Math.Max(formattedText.Width * Math.Sin(angle) + formattedText.Height * Math.Cos(angle), formattedText.Height);
@@ -176,7 +191,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Height = finalHeight;
       }
 
-      private FormattedText Format(string text) {
+      private FormattedText Format(string text, string theme) {
          var typeface = new Typeface("Consolas");
          return new FormattedText(
             text,
@@ -184,7 +199,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             FlowDirection.LeftToRight,
             typeface,
             FontSize * 3.0 / 4,
-            Brush(nameof(Theme.Secondary)),
+            Brush(theme),
             1.0);
       }
    }
