@@ -1299,6 +1299,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                   // the new run conflicts with the pointer that points to it
                   // don't add the new run
                   newRun = new NoInfoRun(newRun.Start, newRun.PointerSources);
+               } else if (newRun.Length <= 0) {
+                  // run has no length, something went wrong creating the new run.
+                  newRun = new NoInfoRun(newRun.Start, newRun.PointerSources);
                }
                var existingRun = GetNextRun(newRun.Start);
                if (existingRun.Start == newRun.Start) newRun = newRun.MergeAnchor(existingRun.PointerSources);
