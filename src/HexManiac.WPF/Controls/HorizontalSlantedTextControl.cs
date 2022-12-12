@@ -31,9 +31,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             oldCollection.CollectionChanged -= HeaderRowsCollectionChanged;
          }
          var newCollection = (ObservableCollection<ColumnHeaderRow>)e.NewValue;
-         if (newCollection != null) newCollection.CollectionChanged += HeaderRowsCollectionChanged;
-         foreach (var element in newCollection) {
-            foreach (var header in element.ColumnHeaders) header.PropertyChanged += (s1, e1) => InvalidateVisual();
+         if (newCollection != null) {
+            newCollection.CollectionChanged += HeaderRowsCollectionChanged;
+            foreach (var element in newCollection) {
+               foreach (var header in element.ColumnHeaders) header.PropertyChanged += (s1, e1) => InvalidateVisual();
+            }
          }
          UpdateDesiredHeight();
          InvalidateVisual();
