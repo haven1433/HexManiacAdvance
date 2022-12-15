@@ -518,13 +518,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private static readonly IReadOnlyList<byte> emptyByteList = new byte[0];
       private readonly List<string> documentation = new List<string>();
 
+      private bool hasShortForm;
+      private readonly Dictionary<int, int> shortIndexFromLongIndex = new();
+
       public IReadOnlyList<IScriptArg> Args { get; }
       public IReadOnlyList<byte> LineCode => emptyByteList;
       public IReadOnlyList<string> Documentation => documentation;
       public string LineCommand { get; }
       public bool IsEndingCommand => false;
       public bool IsValid { get; } = true;
-      public string Usage { get; }
+      public string Usage { get; private set; }
 
       public static bool IsMacroLine(string engineLine) {
          engineLine = engineLine.Trim();
@@ -539,7 +542,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var docSplit = engineLine.Split(new[] { '#' }, 2);
          if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
          engineLine = docSplit[0].Trim();
-         Usage = " ".Join(engineLine.Split(' ').Where(token => token.Length != 2 || !token.TryParseHex(out _)));
+         ExtractShortformInfo(ref engineLine);
+         if (!hasShortForm) {
+            Usage = " ".Join(engineLine.Split(' ').Where(token => token.Length != 2 || !token.TryParseHex(out _)));
+         }
 
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          var args = new List<IScriptArg>();
@@ -557,6 +563,29 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          Args = args;
+      }
+
+      private void ExtractShortformInfo(ref string engineLine) {
+         if (!engineLine.Contains("->")) return;
+         var parts = engineLine.Split("->");
+         if (parts.Length != 2) return;
+         engineLine = parts[1];
+         var shortTokens = parts[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+         var longTokens = parts[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
+         if (shortTokens[0] != longTokens[0]) return;
+         shortTokens = shortTokens.Skip(1).ToArray();
+         longTokens = longTokens.Skip(1).ToArray();
+
+         // for each entry in long, it shows up somewhere in short
+         // entries in long can appear multiple times
+         for (int i = 0; i < longTokens.Length; i++) {
+            var index = shortTokens.IndexOf(longTokens[i]);
+            if (index == -1) continue;
+            shortIndexFromLongIndex.Add(i, index);
+         }
+
+         hasShortForm = true;
+         Usage = parts[0];
       }
 
       public bool MatchesGame(string game) => true;
@@ -593,12 +622,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public string Decompile(IDataModel data, int start) {
          var builder = new StringBuilder(LineCommand);
          var streamContent = new List<string>();
+         var args = new List<string>();
          foreach (var arg in Args) {
             if (arg is ScriptArg sarg) {
-               builder.Append(" ");
-               sarg.Build(false, data, start, builder, streamContent);
+               var tempBuilder = new StringBuilder();
+               sarg.Build(false, data, start, tempBuilder, streamContent);
+               args.Add(tempBuilder.ToString());
             }
             start += arg.Length(data, start);
+         }
+         if (args.Count > 0) {
+            builder.Append(" ");
+            builder.Append(" ".Join(ConvertLongFormToShortForm(args.ToArray())));
          }
          foreach (var content in streamContent) {
             builder.AppendLine();
@@ -612,23 +647,27 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool CanCompile(string line) {
          var tokens = ScriptLine.Tokenize(line);
          if (tokens[0] != LineCommand) return false;
-         return tokens.Length == Args.Where(arg => arg is ScriptArg).Count() + 1;
+         var args = tokens.Skip(1).ToArray();
+         args = ConvertShortFormToLongForm(args);
+         return args.Length == Args.Where(arg => arg is ScriptArg).Count();
       }
 
       public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
          result = null;
          var tokens = ScriptLine.Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
+         var args = tokens.Skip(1).ToArray();
+         args = ConvertShortFormToLongForm(args);
          var commandText = LineCommand;
          var specifiedArgs = Args.Where(arg => arg is ScriptArg).Count();
-         if (specifiedArgs != tokens.Length - 1) {
-            return $"Command {commandText} expects {specifiedArgs} arguments, but received {tokens.Length - 1} instead.";
+         if (specifiedArgs != args.Length) {
+            return $"Command {commandText} expects {specifiedArgs} arguments, but received {args.Length} instead.";
          }
          var results = new List<byte>();
          var specifiedArgIndex = 0;
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg scriptArg) {
-               var token = tokens[1 + specifiedArgIndex];
+               var token = args[specifiedArgIndex];
                var message = scriptArg.Build(model, token, results, labels);
                if (message != null) return message;
                specifiedArgIndex += 1;
@@ -641,6 +680,29 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public void AddDocumentation(string doc) => documentation.Add(doc);
+
+      private string[] ConvertShortFormToLongForm(string[] args) {
+         if (!hasShortForm) return args;
+         // build long-form args from this short form
+         var longForm = new List<string>();
+         for (int i = 0; i < Args.Count; i++) {
+            if (Args[i] is SilentMatchArg) continue;
+            var shortIndex = shortIndexFromLongIndex[i];
+            if (shortIndex < args.Length) longForm.Add(args[shortIndex]);
+         }
+         return longForm.ToArray();
+      }
+
+      private string[] ConvertLongFormToShortForm(string[] args) {
+         if (!hasShortForm) return args;
+         var shortForm = new Dictionary<int, string>();
+         for (int i = 0; i < Args.Count; i++) {
+            if (Args[i] is SilentMatchArg) continue;
+            var shortIndex = shortIndexFromLongIndex[i];
+            shortForm[shortIndex] = args[shortForm.Count];
+         }
+         return shortForm.Count.Range(i => shortForm[i]).ToArray();
+      }
    }
 
    public enum ExpectedPointerType {
