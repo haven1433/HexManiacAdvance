@@ -403,5 +403,30 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.IsType<OffsetPointerRun>(Model.GetNextRun(8));
          Assert.IsNotType<PointerRun>(Model.GetNextRun(0xC));
       }
+
+      [Fact]
+      public void AutoPointer_CreateText_DirectlyAfterScript() {
+         Tool.Mode = CodeMode.Script;
+
+         EventScript = "loadpointer 0 <auto>;{;text;};end";
+
+         Assert.IsType<PCSRun>(Model.GetNextRun(7));
+      }
+
+      [Fact]
+      public void Text_DirectlyAfterScript_InterpretAsAutoPointer() {
+         ViewPort.Edit("0F 00 <007> 02 ^\"\" text\" @000 ^script.start`xse`");
+
+         var script = EventScript;
+
+         Assert.Contains("<auto>", script);
+      }
+
+      // TODO support auto for marts / movement
+      // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
+
+      // TODO include script content for scripts that point to directly following scripts as a single large script
+
+      // TODO do I want to make it be able to find "auto" pointers when the format is missing?
    }
 }

@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -70,14 +71,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int FindLength(IDataModel model, int address) {
          int length = 0;
          int consecutiveNops = 0;
+         var destinations = new Dictionary<int, int>();
 
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
             if (line == null) break;
             consecutiveNops = line.LineCommand.StartsWith("nop") ? consecutiveNops + 1 : 0;
             if (consecutiveNops > 16) return 0;
-            length += line.CompiledByteLength(model, address + length);
+            length += line.CompiledByteLength(model, address + length, destinations);
             if (line.IsEndingCommand) break;
+         }
+
+         // Include in the length any content that comes directly (or +1) after the script.
+         // This content should be considered part of the script.
+         while (true) {
+            if (destinations.TryGetValue(address + length, out int additionalLength)) {
+               length += additionalLength;
+               continue;
+            }
+            if (destinations.TryGetValue(address + length + 1, out additionalLength)) {
+               length += additionalLength + 1;
+               continue;
+            }
+
+            break;
          }
 
          return length;
@@ -233,7 +250,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
-      private record StreamInfo(int Source, int Destination);
+      private record StreamInfo(ExpectedPointerType PointerType, int Source, int Destination);
 
       /// <summary>
       /// Potentially edits the script text and returns a set of data repoints.
@@ -248,6 +265,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          movedData = new List<(int, int)>();
          var gameCode = model.GetGameCode().Substring(0, 4);
+         var deferredContent = new List<DeferredStreamToken>();
          var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
             .Where(line => !string.IsNullOrWhiteSpace(line))
@@ -278,8 +296,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // Let the stream run handle updating itself based on the stream content.
                if (streamInfo.Count > 0) {
                   var info = streamInfo[0];
-                  if (model.GetNextRun(info.Destination) is IStreamRun streamRun && streamRun.Start == info.Destination) {
-                     streamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we they never have parents/children.
+                  if (info.Destination == DeferredStreamToken.AutoSentinel) {
+                     var deferred = deferredContent[deferredContent.Count - streamInfo.Count];
+                     deferred.UpdateContent(model, info.PointerType, stream);
+                  } else if (model.GetNextRun(info.Destination) is IStreamRun streamRun && streamRun.Start == info.Destination) {
+                     streamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we know they never have parents/children.
                      // alter script content and compiled byte location based on stream move
                      if (streamRun.Start != info.Destination) {
                         script = script.Replace(info.Destination.ToAddress(), streamRun.Start.ToAddress());
@@ -352,9 +373,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var pointerOffset = command.LineCode.Count;
                foreach (var arg in command.Args) {
                   if (arg.Type == ArgType.Pointer && arg.PointerType != ExpectedPointerType.Unknown) {
-                     var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) - 0x8000000;
-                     if (destination >= 0) {
-                        streamInfo.Add(new(start + currentSize + pointerOffset, destination));
+                     var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) + Pointer.NULL;
+                     if (destination == DeferredStreamToken.AutoSentinel + Pointer.NULL) {
+                        streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
+                        (string format, byte[] defaultContent) = arg.PointerType switch {
+                           ExpectedPointerType.Text => ("^\"\"", new byte[] { 0xFF }),
+                           ExpectedPointerType.Mart => ($"^[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }),
+                           ExpectedPointerType.Movement => ($"[move.movementtypes]!FE", new byte[] { 0xFE }),
+                           _ => ("^", new byte[0])
+                        };
+                        deferredContent.Add(new(currentSize + pointerOffset, format, defaultContent));
+                     } else if (destination >= 0) {
+                        streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         if (arg.PointerType == ExpectedPointerType.Text) {
                            WriteTextStream(model, token, destination, start + currentSize + pointerOffset);
                         }
@@ -365,6 +395,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
                break;
             }
+         }
+
+         // done with script lines, now write deferred data
+         foreach (var deferred in deferredContent) {
+            deferred.WriteData(result, start);
          }
 
          if (result.Count == 0) result.Add(endToken); // end
@@ -458,10 +493,33 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return string.Join(Environment.NewLine, candidates.Select(line => line.Usage));
       }
 
+      public static int GetArgLength(IDataModel model, IScriptArg arg, int start) {
+         if (arg.Type == ArgType.Pointer && arg.PointerType != ExpectedPointerType.Unknown) {
+            var destination = model.ReadPointer(start);
+            if (destination >= 0 && destination < model.Count) {
+               var run = model.GetNextRun(destination);
+               if (run.Start == destination) {
+                  // we only want to add this run's length as part of the script if:
+                  // (1) the run has no name
+                  // (2) the run has only one source (the script)
+                  if (run.PointerSources.Count == 1 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, destination))) {
+                     return run.Length;
+                  }
+               } else if (arg.PointerType == ExpectedPointerType.Text) {
+                  // we didn't find a matching run, but this data claims to be simple text
+                  var textLength = PCSString.ReadString(model, destination, true);
+                  return textLength;
+               }
+            }
+         }
+         return -1;
+      }
+
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
          var gameCode = data.GetGameCode().Substring(0, 4);
          var nextAnchor = data.GetNextAnchor(index);
+         var destinations = new Dictionary<int, int>();
          while (length > 0) {
             if (index == nextAnchor.Start) {
                results.Add($"{nextAnchor.Start:X6}:");
@@ -475,12 +533,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                length -= 1;
             } else {
                results.Add("  " + line.Decompile(data, index));
-               var compiledByteLength = line.CompiledByteLength(data, index);
+               var compiledByteLength = line.CompiledByteLength(data, index, destinations);
                index += compiledByteLength;
                length -= compiledByteLength;
                if (line.IsEndingCommand) break;
             }
          }
+
+         // post processing: if a line has a pointer to this address and the length is big enough,
+         // change that pointer to be an -auto- pointer
+         while (length > 0) {
+            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{index:X6}>"));
+            var autoRun = data.GetNextRun(index);
+            if (autoRun.Start != index || autoRun.Length > length) break;
+            results[autoIndex] = results[autoIndex].Replace($"<{index:X6}>", "<auto>");
+            length -= autoRun.Length;
+            index += autoRun.Length;
+         }
+
          return results.ToArray();
       }
    }
@@ -495,7 +565,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool IsEndingCommand { get; }
 
       bool MatchesGame(string game);
-      int CompiledByteLength(IDataModel model, int start); // compile from the bytes in the model, at that start location
+      int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(IReadOnlyList<byte> data, int index);
       string Decompile(IDataModel data, int start);
@@ -589,13 +659,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public bool MatchesGame(string game) => true;
-      public int CompiledByteLength(IDataModel model, int start) {
+      public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
+            var argLength = ScriptParser.GetArgLength(model, arg, start + length);
+            if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
             length += arg.Length(default, -1);
          }
          return length;
       }
+
       public int CompiledByteLength(IDataModel model, string line) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
@@ -727,9 +800,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public virtual bool IsEndingCommand { get; }
 
-      public int CompiledByteLength(IDataModel model, int start) {
+      /// <param name="destinationLengths">If this line contains pointers, calculate the pointer data's lengths and include here.</param>
+      public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
+            var argLength = ScriptParser.GetArgLength(model, arg, start + length);
+            if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
             length += arg.Length(model, start + length);
          }
          return length;
@@ -1114,27 +1190,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          } else if (Type == ArgType.Pointer) {
             int value;
             if (token.StartsWith("<")) {
-               if (!token.EndsWith(">")) {
-                  return "Unmatched <>";
-               }
+               if (!token.EndsWith(">")) return "Unmatched <>";
                token = token.Substring(1, token.Length - 2);
-               if (labels.TryResolveLabel(token, out value)) {
-                  // resolved to an address
-               } else if (int.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out value)) {
-                  // pointer *is* an address: nothing else to do
-               } else {
-                  return $"Unable to parse {token} as a hex number.";
-               }
-               value -= Pointer.NULL;
-            } else {
-               if (labels.TryResolveLabel(token, out value)) {
-                  // resolved to an address
-               } else if (token.TryParseHex(out value)) {
-                  // pointer *is* an address: nothing else to do
-               } else {
-                  return $"Unable to parse {token} as a hex number.";
-               }
             }
+            if (token == "auto") {
+               value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
+            } else if (labels.TryResolveLabel(token, out value)) {
+               // resolved to an address
+            } else if (token.TryParseHex(out value)) {
+               // pointer *is* an address: nothing else to do
+            } else {
+               return $"Unable to parse {token} as a hex number.";
+            }
+            value -= Pointer.NULL;
             results.Add((byte)value);
             results.Add((byte)(value >> 0x8));
             results.Add((byte)(value >> 0x10));
@@ -1232,13 +1300,57 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, IDataModel model, int address) {
          int length = 0;
+         var destinations = new Dictionary<int, int>();
          while (true) {
             var line = self.GetMatchingLine(model, address + length);
             if (line == null) break;
-            length += line.CompiledByteLength(model, address + length);
+            length += line.CompiledByteLength(model, address + length, destinations);
             if (line.IsEndingCommand) break;
          }
          return length;
+      }
+   }
+
+   public class DeferredStreamToken {
+      public const int AutoSentinel = -0xAAAA;
+
+      private readonly int pointerOffset;
+      private readonly string format;
+      private byte[] content;
+
+      public int ContentLength => content.Length;
+
+      public DeferredStreamToken(int pointerOffset, string format, byte[] defaultContent) {
+         this.pointerOffset = pointerOffset;
+         this.format = format;
+         this.content = defaultContent;
+      }
+
+      // need the model not for insertion, but for text encoding
+      public void UpdateContent(IDataModel model, ExpectedPointerType type, string text) {
+         if (type == ExpectedPointerType.Text) {
+            content = model.TextConverter.Convert(text, out _).ToArray();
+         } else {
+            throw new NotImplementedException();
+         }
+      }
+
+      public void WriteData(IDataModel model, ModelDelta token, int scriptStart, int contentOffset) {
+         model.ClearFormat(token, scriptStart + pointerOffset, 4);
+         model.WritePointer(token, scriptStart + pointerOffset, scriptStart + contentOffset);
+         model.ObserveRunWritten(token, new PointerRun(scriptStart + pointerOffset));
+         token.ChangeData(model, scriptStart + contentOffset, content);
+         var strategy = new FormatRunFactory(default).GetStrategy(format);
+         strategy.TryAddFormatAtDestination(model, token, scriptStart + pointerOffset, scriptStart + contentOffset, default, default, default);
+      }
+
+      public void WriteData(IList<byte> data, int scriptStart) {
+         var address = scriptStart + data.Count - Pointer.NULL;
+         data[pointerOffset + 0] = (byte)(address >> 0);
+         data[pointerOffset + 1] = (byte)(address >> 8);
+         data[pointerOffset + 2] = (byte)(address >> 16);
+         data[pointerOffset + 3] = (byte)(address >> 24);
+         data.AddRange(content);
       }
    }
 }

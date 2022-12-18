@@ -169,11 +169,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             for (int i = 0; i < scriptsToCheck.Count; i++) {
                var address = scriptsToCheck[i];
                int currentScriptLength = 0;
+               var destinations = new Dictionary<int, int>();
                while (currentScriptLength < ScriptLengthLimit) {
                   IScriptLine line = parser.GetMacro(model, address);
                   if (line == null) line = parser.GetLine(model, address);
                   if (line == null) break;
-                  var length = line.CompiledByteLength(model, address);
+                  var length = line.CompiledByteLength(model, address, destinations);
                   if (filter.Contains(model[address])) yield return new(address, line);
 
                   var commandOffset = line.LineCode.Count;

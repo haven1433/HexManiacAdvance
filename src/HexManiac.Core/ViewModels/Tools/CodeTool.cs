@@ -557,13 +557,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
 
+      private bool ignoreEditorContentUpdates;
       public string Content {
          get => Editor.Content;
          set {
             if (Editor.Content != value) {
-               Editor.Content = value;
-               NotifyPropertyChanged();
-               ContentChanged.Raise(this);
+               using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
+                  Editor.Content = value;
+                  NotifyPropertyChanged();
+                  ContentChanged.Raise(this);
+               }
             }
          }
       }
@@ -573,6 +576,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public CodeBody() {
          Editor.Bind(nameof(Editor.Content), (sender, e) => {
+            if (ignoreEditorContentUpdates) return;
             NotifyPropertyChanged(nameof(Content));
             ContentChanged.Raise(this);
          });
