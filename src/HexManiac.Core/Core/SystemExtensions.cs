@@ -125,6 +125,11 @@ namespace HavenSoft.HexManiac.Core {
          for (int i = 0; i < list.Count; i++) array[index + i] = list[i];
       }
 
+      public static void AddShort(this IList<byte> data, int value) {
+         data.Add((byte)value);
+         data.Add((byte)(value >> 8));
+      }
+
       public static string Join(this string separator, IEnumerable<string> elements) => string.Join(separator, elements);
 
       public static string[] Split(this string self, string token) => self.Split(new[] { token }, StringSplitOptions.None);

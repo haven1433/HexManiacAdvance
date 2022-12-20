@@ -1,6 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
-using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -13,7 +12,10 @@ namespace HavenSoft.HexManiac.Tests {
       private CodeTool Tool => ViewPort.Tools.CodeTool;
       private string EventScript {
          get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
-         set => Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
+         set {
+            Tool.Mode = CodeMode.Script;
+            Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
+         }
       }
       private string ThumbScript {
          set => Tool.Content = value.Replace(";", Environment.NewLine);
@@ -422,11 +424,87 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Contains("<auto>", script);
       }
 
-      // TODO support auto for marts / movement
+      [Fact]
+      public void ScriptIfElseShape_Decompile_OneTextBoxWithFullScript() {
+         EventScript = @"
+if1 = <part2>
+  nop
+  goto <part3>
+part2:
+  nop
+part3:
+  nop
+  end
+";
+
+         var length = Tool.ScriptParser.GetScriptSegmentLength(Model, 0);
+         var content = Tool.ScriptParser.Parse(Model, 0, length);
+
+         Assert.Equal(15, length);
+         Assert.Single(Tool.Contents);
+         Assert.Contains("end", content);
+      }
+
+      [Fact]
+      public void Mart_Auto_Compiles() {
+         EventScript = @"
+pokemart <auto>
+{
+1
+2
+3
+}
+  end
+";
+
+         var run = Model.GetNextRun(6);
+         Assert.IsAssignableFrom<ITableRun>(run);
+         Assert.Equal(1, Model.ReadMultiByteValue(6, 2));
+         Assert.Equal(2, Model.ReadMultiByteValue(8, 2));
+         Assert.Equal(3, Model.ReadMultiByteValue(10, 2));
+         Assert.Equal(0, Model.ReadMultiByteValue(12, 2));
+      }
+
+      [Fact]
+      public void Mart_Decompile_Auto() {
+         ViewPort.Edit($"^some.script`xse` 86 <006> 02 01 00 02 00 03 00 00 00 @006 ^[item:{HardcodeTablesModel.ItemsTableName}]!0000");
+
+         ViewPort.Goto.Execute(0);
+         var script = EventScript;
+
+         Assert.Contains("<auto>", script);
+      }
+
+      [Fact]
+      public void Movement_Auto_Compiles() {
+         EventScript = @"
+applymovement 0 <auto>
+{
+1
+2
+3
+}
+  end
+";
+
+         var run = Model.GetNextRun(9);
+         Assert.IsAssignableFrom<ITableRun>(run);
+         Assert.Equal(1, Model[8]);
+         Assert.Equal(2, Model[9]);
+         Assert.Equal(3, Model[10]);
+         Assert.Equal(0xFE, Model[11]);
+      }
+
+      [Fact]
+      public void Movement_Decompile_Auto() {
+         ViewPort.Edit($"^some.script`xse` 4F 00 00 <008> 02 01 02 03 FE @008 ^[move.movementtypes]!FE");
+
+         ViewPort.Goto.Execute(0);
+         var script = EventScript;
+
+         Assert.Contains("<auto>", script);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
-
-      // TODO include script content for scripts that point to directly following scripts as a single large script
-
-      // TODO do I want to make it be able to find "auto" pointers when the format is missing?
    }
 }

@@ -296,7 +296,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // Let the stream run handle updating itself based on the stream content.
                if (streamInfo.Count > 0) {
                   var info = streamInfo[0];
-                  if (info.Destination == DeferredStreamToken.AutoSentinel) {
+                  if (info.Destination == DeferredStreamToken.AutoSentinel + Pointer.NULL) {
                      var deferred = deferredContent[deferredContent.Count - streamInfo.Count];
                      deferred.UpdateContent(model, info.PointerType, stream);
                   } else if (model.GetNextRun(info.Destination) is IStreamRun streamRun && streamRun.Start == info.Destination) {
@@ -377,8 +377,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      if (destination == DeferredStreamToken.AutoSentinel + Pointer.NULL) {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         (string format, byte[] defaultContent) = arg.PointerType switch {
-                           ExpectedPointerType.Text => ("^\"\"", new byte[] { 0xFF }),
-                           ExpectedPointerType.Mart => ($"^[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }),
+                           ExpectedPointerType.Text => ("\"\"", new byte[] { 0xFF }),
+                           ExpectedPointerType.Mart => ($"[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }),
                            ExpectedPointerType.Movement => ($"[move.movementtypes]!FE", new byte[] { 0xFE }),
                            _ => ("^", new byte[0])
                         };
@@ -498,7 +498,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var destination = model.ReadPointer(start);
             if (destination >= 0 && destination < model.Count) {
                var run = model.GetNextRun(destination);
-               if (run.Start == destination) {
+               if (run is IScriptStartRun scriptStart && scriptStart.Start == destination && scriptStart.Start > start) {
+                  return model.GetScriptLength(scriptStart);
+               } else if (run.Start == destination) {
                   // we only want to add this run's length as part of the script if:
                   // (1) the run has no name
                   // (2) the run has only one source (the script)
@@ -536,6 +538,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var compiledByteLength = line.CompiledByteLength(data, index, destinations);
                index += compiledByteLength;
                length -= compiledByteLength;
+               if (destinations.ContainsKey(index) && nextAnchor is IScriptStartRun && nextAnchor.Start == index) continue; // we point to the next byte, keep going
                if (line.IsEndingCommand) break;
             }
          }
@@ -1307,6 +1310,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             length += line.CompiledByteLength(model, address + length, destinations);
             if (line.IsEndingCommand) break;
          }
+         while (destinations.TryGetValue(address + length, out int argLength)) {
+            length += argLength;
+         }
          return length;
       }
    }
@@ -1330,6 +1336,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public void UpdateContent(IDataModel model, ExpectedPointerType type, string text) {
          if (type == ExpectedPointerType.Text) {
             content = model.TextConverter.Convert(text, out _).ToArray();
+         } else if (type == ExpectedPointerType.Mart) {
+            //   [item:{HardcodeTablesModel.ItemsTableName}]!0000
+            var data = new List<byte>();
+            foreach (var line in text.SplitLines()) {
+               if (string.IsNullOrWhiteSpace(line)) continue;
+               if (!ArrayRunEnumSegment.TryParse(HardcodeTablesModel.ItemsTableName, model, line, out int value)) continue;
+               data.AddShort(value);
+            }
+            data.AddShort(0);
+            content = data.ToArray();
+         } else if (type == ExpectedPointerType.Movement) {
+            //   $"[move.movementtypes]!FE",
+            var data = new List<byte>();
+            foreach (var line in text.SplitLines()) {
+               if (string.IsNullOrWhiteSpace(line)) continue;
+               if (!ArrayRunEnumSegment.TryParse("movementtypes", model, line, out int value)) continue;
+               data.Add((byte)value);
+            }
+            data.Add(0xFE);
+            content = data.ToArray();
          } else {
             throw new NotImplementedException();
          }

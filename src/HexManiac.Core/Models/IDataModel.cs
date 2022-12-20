@@ -1,7 +1,9 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using IronPython.Runtime.Operations;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -95,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       bool WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
       int ReadValue(int address);
+      int GetScriptLength(IScriptStartRun run);
 
       SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor);
       void SetUnmappedConstant(ModelDelta changeToken, string name, int value);
@@ -290,6 +293,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int index, int fullValue);
 
       public abstract void ClearPointer(ModelDelta currentChange, int source, int destination);
+
+      public virtual int GetScriptLength(IScriptStartRun run) => 1;
 
       public int ReadValue(int index) => BitConverter.ToInt32(RawData, index);
 

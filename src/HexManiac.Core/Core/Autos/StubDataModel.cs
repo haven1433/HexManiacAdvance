@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HavenSoft.AutoImplement.Delegation;
+using HavenSoft.HexManiac.Core.Models.Runs;
 
 // this file was created by AutoImplement
 namespace HavenSoft.HexManiac.Core.Models
@@ -751,6 +752,8 @@ namespace HavenSoft.HexManiac.Core.Models
                 return default(bool);
             }
         }
-        
+
+      public Func<IScriptStartRun, int> GetScriptLength;
+      int IDataModel.GetScriptLength(IScriptStartRun run) => GetScriptLength?.Invoke(run) ?? default;
     }
 }
