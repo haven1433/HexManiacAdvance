@@ -1553,19 +1553,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override int GetScriptLength(IScriptStartRun run) {
+      public override int GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths) {
          IReadOnlyList<IScriptLine> lines = null;
          if (run is XSERun) lines = singletons.ScriptLines;
          if (run is BSERun) lines = singletons.BattleScriptLines;
          if (run is ASERun) lines = singletons.AnimationScriptLines;
          if (run is TSERun) lines = singletons.BattleAIScriptLines;
-         return Math.Max(1, lines.GetScriptSegmentLength(this, run.Start));
+         return Math.Max(1, lines.GetScriptSegmentLength(this, run.Start, destinationLengths));
       }
 
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) {
          int currentLength = run.Length;
          if (run is IScriptStartRun scriptStart) {
-            currentLength = GetScriptLength(scriptStart);
+            currentLength = GetScriptLength(scriptStart, new Dictionary<int, int>());
          }
          if (minimumLength <= currentLength) return run;
          if (CanSafelyUse(run.Start + currentLength, run.Start + minimumLength)) return run;

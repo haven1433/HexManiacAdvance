@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public ScriptParser(IReadOnlyList<IScriptLine> engine, byte endToken) => (this.engine, this.endToken) = (engine, endToken);
 
-      public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address);
+      public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address, new Dictionary<int, int>());
 
       public string Parse(IDataModel data, int start, int length) {
          var builder = new StringBuilder();
@@ -493,13 +493,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return string.Join(Environment.NewLine, candidates.Select(line => line.Usage));
       }
 
-      public static int GetArgLength(IDataModel model, IScriptArg arg, int start) {
+      public static int GetArgLength(IDataModel model, IScriptArg arg, int start, IDictionary<int, int> destinationLengths) {
          if (arg.Type == ArgType.Pointer && arg.PointerType != ExpectedPointerType.Unknown) {
             var destination = model.ReadPointer(start);
             if (destination >= 0 && destination < model.Count) {
                var run = model.GetNextRun(destination);
                if (run is IScriptStartRun scriptStart && scriptStart.Start == destination && scriptStart.Start > start) {
-                  return model.GetScriptLength(scriptStart);
+                  return model.GetScriptLength(scriptStart, destinationLengths);
                } else if (run.Start == destination) {
                   // we only want to add this run's length as part of the script if:
                   // (1) the run has no name
@@ -665,7 +665,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            var argLength = ScriptParser.GetArgLength(model, arg, start + length);
+            var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
             if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
             length += arg.Length(default, -1);
          }
@@ -807,7 +807,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            var argLength = ScriptParser.GetArgLength(model, arg, start + length);
+            var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
             if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
             length += arg.Length(model, start + length);
          }
@@ -1301,16 +1301,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return (ScriptLine)self.FirstOrDefault(option => option is ScriptLine && option.Matches(data, start));
       }
 
-      public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, IDataModel model, int address) {
+      public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, IDataModel model, int address, IDictionary<int, int> destinationLengths) {
          int length = 0;
-         var destinations = new Dictionary<int, int>();
          while (true) {
             var line = self.GetMatchingLine(model, address + length);
             if (line == null) break;
-            length += line.CompiledByteLength(model, address + length, destinations);
+            length += line.CompiledByteLength(model, address + length, destinationLengths);
             if (line.IsEndingCommand) break;
          }
-         while (destinations.TryGetValue(address + length, out int argLength)) {
+         while (destinationLengths.TryGetValue(address + length, out int argLength)) {
             length += argLength;
          }
          return length;

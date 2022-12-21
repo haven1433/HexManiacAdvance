@@ -505,6 +505,38 @@ applymovement 0 <auto>
          Assert.Contains("<auto>", script);
       }
 
+      [Fact]
+      public void ScriptWithTextAfterBranch_Decompile_IncludedInLength() {
+         EventScript = @"
+  lock
+  msgbox.yesno <auto>
+{
+Is the answer yes?
+}
+  if.compare 0x800D = 1 <yes>
+  if.compare 0x800D = 0 <no>
+  release
+  end
+yes:
+  msgbox.default <auto>
+{
+You said yes!
+}
+  release
+  end
+no:
+  msgbox.default <auto>
+{
+You said no!
+}
+  release
+  end";
+
+         var length = Tool.ScriptParser.FindLength(Model, 0);
+
+         Assert.Equal(99, length);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

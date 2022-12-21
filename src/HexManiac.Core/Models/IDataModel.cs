@@ -97,7 +97,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       bool WriteValue(ModelDelta changeToken, int address, int value);
       int ReadPointer(int address);
       int ReadValue(int address);
-      int GetScriptLength(IScriptStartRun run);
+      int GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths);
 
       SortedSpan<int> GetUnmappedSourcesToAnchor(string anchor);
       void SetUnmappedConstant(ModelDelta changeToken, string name, int value);
@@ -294,7 +294,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearPointer(ModelDelta currentChange, int source, int destination);
 
-      public virtual int GetScriptLength(IScriptStartRun run) => 1;
+      public virtual int GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths) => 1;
 
       public int ReadValue(int index) => BitConverter.ToInt32(RawData, index);
 

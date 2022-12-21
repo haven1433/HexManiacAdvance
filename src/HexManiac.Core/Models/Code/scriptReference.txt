@@ -33,6 +33,7 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
                                                                                                               # followed by a standard 'put away' message.
 msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32
 register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08
+if.compare variable: condition.script_compare value: pointer<`xse`> -> if.compare 21 variable: value: 06 condition.script_compare pointer<`xse`>
 
 
 00 nop                                          # does nothing

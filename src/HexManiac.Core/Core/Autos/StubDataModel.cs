@@ -753,7 +753,7 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
 
-      public Func<IScriptStartRun, int> GetScriptLength;
-      int IDataModel.GetScriptLength(IScriptStartRun run) => GetScriptLength?.Invoke(run) ?? default;
+      public Func<IScriptStartRun, IDictionary<int, int>, int> GetScriptLength;
+      int IDataModel.GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths) => GetScriptLength?.Invoke(run, destinationLengths) ?? default;
     }
 }
