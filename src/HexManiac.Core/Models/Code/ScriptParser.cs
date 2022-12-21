@@ -41,9 +41,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          for (int i = 0; i < scripts.Count; i++) {
             address = scripts[i];
             int length = 0;
+            var destinations = new Dictionary<int, int>();
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
                if (line == null) break;
+               // normally we would just use this,
+               // but we want to track all the pointers that go to scripts separately.
+               // so just use this to get the child-sizes, so we can adjust the length after
+               line.CompiledByteLength(model, address + length, destinations);
                length += line.LineCode.Count;
                foreach (var arg in line.Args) {
                   if (arg.Type == ArgType.Pointer) {
@@ -61,6 +66,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.IsEndingCommand) break;
             }
 
+            while (destinations.TryGetValue(address + length, out int childLength)) length += childLength;
             scripts.RemoveAll(start => start > address && start < address + length);
             lengths.Add(length);
          }
@@ -673,6 +679,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public int CompiledByteLength(IDataModel model, string line) {
+         if (!CanCompile(line)) return 0;
          var length = LineCode.Count;
          foreach (var arg in Args) {
             length += arg.Length(default, -1);

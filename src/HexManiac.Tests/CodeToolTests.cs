@@ -537,6 +537,16 @@ You said no!
          Assert.Equal(99, length);
       }
 
+      [Fact]
+      public void ScriptBranchesToAnotherScriptDirectlyAfter_Decompile_OneContentBox() {
+         ViewPort.Edit("06 00 <007> 02 00 02");
+
+         Tool.Mode = CodeMode.Script;
+         ViewPort.Goto.Execute(0);
+
+         Assert.Single(Tool.Contents);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
