@@ -1585,14 +1585,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (FreeSpaceStart != 0) start = FreeSpaceStart;
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
          minimumLength += 0x40; // make sure there's plenty of room after, so that we're not in the middle of some other data set
+         var alignment = 0x40;
          lock (threadlock) {
             while (start < RawData.Length - minimumLength) {
                // catch the currentRun up to where we are
                var currentRun = GetNextRun(start);
                if (currentRun.Start <= start + minimumLength) {
                   start = currentRun.Start + currentRun.Length + FreeSpaceBuffer;
-                  var modulo = start % 4;
-                  if (modulo != 0) start += 4 - modulo;
+                  var modulo = start % alignment;
+                  if (modulo != 0) start += alignment - modulo;
                   continue;
                }
 
@@ -1606,8 +1607,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
                if (lastConflictingData != -1) {
                   start = lastConflictingData + Math.Max(4, FreeSpaceBuffer);
-                  var modulo = start % 4;
-                  if (modulo != 0) start += 4 - modulo;
+                  var modulo = start % alignment;
+                  if (modulo != 0) start += alignment - modulo;
                   continue;
                }
 
