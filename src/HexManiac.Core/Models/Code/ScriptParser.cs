@@ -599,6 +599,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private bool hasShortForm;
       private readonly Dictionary<int, int> shortIndexFromLongIndex = new();
+      private readonly IReadOnlyList<string> matchingGames;
 
       public IReadOnlyList<IScriptArg> Args { get; }
       public IReadOnlyList<byte> LineCode => emptyByteList;
@@ -621,6 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var docSplit = engineLine.Split(new[] { '#' }, 2);
          if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
          engineLine = docSplit[0].Trim();
+         matchingGames = ScriptLine.ExtractMatchingGames(ref engineLine);
          ExtractShortformInfo(ref engineLine);
          if (!hasShortForm) {
             Usage = " ".Join(engineLine.Split(' ').Where(token => token.Length != 2 || !token.TryParseHex(out _)));
@@ -667,7 +669,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          Usage = parts[0];
       }
 
-      public bool MatchesGame(string game) => true;
+      public bool MatchesGame(string game) => matchingGames?.Contains(game) ?? true;
+
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
@@ -858,7 +861,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          Args = args;
       }
 
-      private static IReadOnlyList<string> ExtractMatchingGames(ref string line) {
+      public static IReadOnlyList<string> ExtractMatchingGames(ref string line) {
          if (!line.StartsWith("[")) return null;
          var gamesEnd = line.IndexOf("]");
          if (gamesEnd == -1) return null;
@@ -867,9 +870,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return games.Split("_");
       }
 
-      public bool MatchesGame(string game) {
-         return matchingGames?.Contains(game) ?? true;
-      }
+      public bool MatchesGame(string game) => matchingGames?.Contains(game) ?? true;
 
       public void AddDocumentation(string doc) => documentation.Add(doc);
 

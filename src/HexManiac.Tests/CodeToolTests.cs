@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
@@ -545,6 +546,13 @@ You said no!
          ViewPort.Goto.Execute(0);
 
          Assert.Single(Tool.Contents);
+      }
+
+      [Fact]
+      public void Macro_GameSpecific_Compiles() {
+         var line = new MacroScriptLine("[BPRE_BPGE] some.command 01 varible: 33 # comment");
+         Assert.True(line.MatchesGame("BPRE"));
+         Assert.False(line.MatchesGame("BPEE"));
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
