@@ -955,5 +955,17 @@ namespace HavenSoft.HexManiac.Tests {
          editor.DecText = input;
          Assert.Equal(output, editor.HexText);
       }
+
+      [Fact]
+      public void FreeSpace_InsertNewText_ReasonableDefaultName() {
+         SetFullModel(0xFF);
+         SetGameCode("FAKE0");
+         ViewPort.Goto.Execute(0x10);
+
+         ViewPort.Tools.StringTool.InsertText.Execute();
+
+         var name = Model.GetAnchorFromAddress(-1, 0x10);
+         Assert.Equal("scripts.text.FAKE0000010", name);
+      }
    }
 }

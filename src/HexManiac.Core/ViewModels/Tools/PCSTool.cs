@@ -139,11 +139,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                OnError?.Invoke(this, $"Could not insert text at {address:X6}.{Environment.NewLine}The bytes must be unused (FF).");
                return;
             }
-            var gameCode = PokemonModel.ReadGameCode(model);
-            var initialAddress = address.ToString("X6");
+            var gameCode = model.GetGameCode();
             var newRun = new PCSRun(model, address, 1, null);
             history.CurrentChange.AddRun(newRun);
-            model.ObserveAnchorWritten(history.CurrentChange, gameCode + initialAddress, newRun);
+            model.ObserveAnchorWritten(history.CurrentChange, $"scripts.text.{gameCode}{address:X6}", newRun);
             ModelDataChanged?.Invoke(this, newRun);
             runner.Schedule(DataForCurrentRunChanged);
             Enabled = true;
