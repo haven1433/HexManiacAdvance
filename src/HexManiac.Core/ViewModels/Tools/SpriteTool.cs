@@ -14,6 +14,8 @@ using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
+   public enum ImageExportMode { None, Horizontal, Vertical }
+
    public class SpriteTool : ViewModelCore, IToolViewModel, IPixelViewModel {
       public const int MaxSpriteWidth = 500 - 17; // From UI: Panel Width - Scroll Bar Width
       private readonly ViewPort viewPort;
@@ -344,10 +346,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             new VisualOption { Index = 0, Option = "Horizontal", ShortDescription = "Left-Right", Description = "Stack the pages from left to right." },
             new VisualOption { Index = 1, Option = "Vertical", ShortDescription = "Up-Down", Description = "Stack the pages from top to bottom." });
 
+         ExecuteExportMany(fs, (ImageExportMode)(choice + 1));
+      }
+
+      public void ExecuteExportMany(IFileSystem fs, ImageExportMode choice) {
          int[,] manyPixels;
-         if (choice == 0) {
+         if (choice == ImageExportMode.Horizontal) {
             manyPixels = new int[PixelWidth * spritePages, PixelHeight];
-         } else if (choice == 1) {
+         } else if (choice == ImageExportMode.Vertical) {
             manyPixels = new int[PixelWidth, PixelHeight * spritePages];
          } else {
             return;
@@ -366,7 +372,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          for (int i = 0; i < spritePages; i++) {
-            var (xPageOffset, yPageOffset) = choice == 0 ? (i * PixelWidth, 0) : (0, i * PixelHeight);
+            var (xPageOffset, yPageOffset) = choice == ImageExportMode.Horizontal ? (i * PixelWidth, 0) : (0, i * PixelHeight);
             var pagePixels = run.GetPixels(model, i, -1);
             int palOffset = useMultiplePalette ? i * 16 : 0;
             for (int x = 0; x < PixelWidth; x++) {
@@ -379,7 +385,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (renderPalette.Count == 16) {
             fs.SaveImage(manyPixels, renderPalette);
          } else {
-            var rendered = Render(manyPixels, renderPalette, paletteFormat.InitialBlankPages, spritePage);
+            var rendered = Render(manyPixels, renderPalette, paletteFormat.InitialBlankPages, useMultiplePalette ? 0 : spritePage);
             fs.SaveImage(rendered, manyPixels.GetLength(0));
          }
       }

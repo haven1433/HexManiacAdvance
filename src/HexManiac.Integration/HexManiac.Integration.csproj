@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ImplicitUsings>false</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>annotations</Nullable>
+    <CodeGenDir>$(SolutionDir)artifacts\$(AssemblyName)\codegen\</CodeGenDir>
+    <AutoImplement>$(SolutionDir)artifacts\AutoImplement.Tool\bin\$(Configuration)\$(TargetFramework)\AutoImplement.Tool</AutoImplement>
+    <Platforms>AnyCPU</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="3.1.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
+    <ProjectReference Include="$(SolutionDir)src\HexManiac.Core\HexManiac.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="artifacts\HexManiac.Tests\obj\" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <PostBuildEvent>
+      mkdir "$(TargetDir)resources"
+      mkdir "$(TargetDir)resources\Scripts"
+      copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.txt"
+      copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.toml"
+      copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.hma"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\*.hma" "$(TargetDir)resources\Scripts"
+    </PostBuildEvent>
+  </PropertyGroup>
+
+</Project>
