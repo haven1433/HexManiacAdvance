@@ -540,7 +540,7 @@ You said no!
 
       [Fact]
       public void ScriptBranchesToAnotherScriptDirectlyAfter_Decompile_OneContentBox() {
-         ViewPort.Edit("06 00 <007> 02 00 02");
+         ViewPort.Edit("06 00 <007> 02 00 02 @007 ^`xse` ");
 
          Tool.Mode = CodeMode.Script;
          ViewPort.Goto.Execute(0);
