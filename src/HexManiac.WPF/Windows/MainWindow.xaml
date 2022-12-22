@@ -273,18 +273,18 @@
                   <MenuItem Header="_Tutorials" Click="WebLink" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials" />
                   <MenuItem Header="_Online Reference Content">
                      <MenuItem Header="Ruby">
-                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
-                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeruby/symbols/pokeruby.sym" />
                      </MenuItem>
                      <MenuItem Header="FireRed">
-                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/flags.h" />
-                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokefirered/symbols/pokefirered.sym" />
                      </MenuItem>
                      <MenuItem Header="Emerald">
-                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/flags.h" />
-                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/vars.h" />
+                        <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeemerald/symbols/pokeemerald.sym" />
                      </MenuItem>
                   </MenuItem>
