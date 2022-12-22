@@ -555,6 +555,13 @@ You said no!
          Assert.False(line.MatchesGame("BPEE"));
       }
 
+      [Fact]
+      public void PointerToUnformattedAnchor_ScriptExpected_NoAuto() {
+         ViewPort.Edit("05 <005> @000 ");
+         Tool.Mode = CodeMode.Script;
+         Assert.DoesNotContain("<auto>", EventScript);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

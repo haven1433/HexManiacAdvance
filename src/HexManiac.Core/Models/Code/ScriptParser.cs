@@ -510,6 +510,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   // we only want to add this run's length as part of the script if:
                   // (1) the run has no name
                   // (2) the run has only one source (the script)
+                  if (run is NoInfoRun) return -1;
                   if (run.PointerSources.Count == 1 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, destination))) {
                      return run.Length;
                   }
