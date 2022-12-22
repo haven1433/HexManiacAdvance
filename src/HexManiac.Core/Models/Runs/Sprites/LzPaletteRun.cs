@@ -74,7 +74,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public IPaletteRun SetPalette(IDataModel model, ModelDelta token, int page, IReadOnlyList<short> colors) {
-         var data = Decompress(model, Start);
+         var data = Decompress(model, Start, allowLengthErrors: true);
          var colorCount = (int)Math.Pow(2, PaletteFormat.Bits);
          var pageLength = colorCount * 2;
          page %= Pages;
