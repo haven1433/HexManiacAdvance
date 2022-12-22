@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 [assembly: System.Reflection.AssemblyTitle("HexTests")]
@@ -365,6 +366,16 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Goto.Execute(0x1F0);
          ViewPort.Edit(format);
          Assert.Single(Errors);
+      }
+
+      [Fact]
+      public void FormatWithinSelection_RightClick_CanClearFormat() {
+         ViewPort.Edit("@004 <null> @000 ");
+
+         ViewPort.SelectionEnd = new Point(11, 0);
+
+         var context = ViewPort.GetContextMenuItems(new Point(0, 0), FileSystem)[1];
+         Assert.Equal("Clear Format", context.Text);
       }
    }
 

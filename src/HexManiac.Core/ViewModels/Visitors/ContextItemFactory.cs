@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -78,7 +79,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
 
       public void Visit(None dataFormat, byte data) {
-
          Results.Add(new ContextItemGroup("Display As...") {
             new ContextItem("Text", ViewPort.Shortcuts.DisplayAsText.Execute) { ShortcutText = "Ctrl+D, T" },
             new ContextItem("Sprite", ViewPort.Shortcuts.DisplayAsSprite.Execute) { ShortcutText = "Ctrl+D, S" },
@@ -101,6 +101,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             // new ContextItem("Compressed Sprite", arg => { /* TODO what dimensions? */ }),
             // new ContextItem("Compressed Palette", arg => { /* TODO how many pages? */ }),
          });
+
+         var start = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionStart);
+         var end = ViewPort.ConvertViewPointToAddress(ViewPort.SelectionEnd);
+         if (start > end) (start, end) = (end, start);
+         if (ViewPort.Model.GetNextRun(start).Start < end) {
+            Results.AddRange(GetFormattedChildren());
+         }
       }
 
       public void Visit(UnderEdit dataFormat, byte data) { }
@@ -160,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          anchor.OriginalFormat.Visit(this, data);
 
-         if (anchor.OriginalFormat is None) {
+         if (anchor.OriginalFormat is None && !Results.Any(option => option is ContextItem item && item.Text == "Clear Format")) {
             Results.AddRange(GetFormattedChildren());
          }
       }

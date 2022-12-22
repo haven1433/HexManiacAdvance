@@ -1271,7 +1271,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             results.Add(new ContextItem("Deep Copy", DeepCopy.Execute) { ShortcutText = "Ctrl+Shift+C" });
          }
          results.Add(new ContextItem("Paste", arg => Edit(((IFileSystem)arg).CopyText)) { ShortcutText = "Ctrl+V" });
-         if (fileSystem != null && fileSystem.CopyText.All(c => AllHexCharacters.Contains(c) || char.IsWhiteSpace(c))) {
+         if (fileSystem != null && fileSystem.CopyText != null && fileSystem.CopyText.All(c => AllHexCharacters.Contains(c) || char.IsWhiteSpace(c))) {
             results.Add(new ContextItem("Paste Raw Bytes", arg => PasteRawBytes(((IFileSystem)arg).CopyText)));
          }
          results.Add(new ContextItem("Copy Address", arg => CopyAddressExecute((IFileSystem)arg)));
