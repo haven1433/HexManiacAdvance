@@ -2288,11 +2288,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var length = tools.CodeTool.ScriptParser.GetScriptSegmentLength(Model, run.Start);
             if (xse is BSERun) length = tools.CodeTool.BattleScriptParser.GetScriptSegmentLength(Model, run.Start);
             if (xse is ASERun) length = tools.CodeTool.AnimationScriptParser.GetScriptSegmentLength(Model, run.Start);
+            if (xse is TSERun) length = tools.CodeTool.BattleAIScriptParser.GetScriptSegmentLength(Model, run.Start);
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);
             SelectionEnd = scroll.DataIndexToViewPoint(run.Start + length - 1);
             tools.CodeTool.Mode = CodeMode.Script;
             if (xse is BSERun) tools.CodeTool.Mode = CodeMode.BattleScript;
             if (xse is ASERun) tools.CodeTool.Mode = CodeMode.AnimationScript;
+            if (xse is TSERun) tools.CodeTool.Mode = CodeMode.TrainerAiScript;
             tools.SelectedIndex = tools.IndexOf(tools.CodeTool);
          } else {
             SelectionStart = scroll.DataIndexToViewPoint(run.Start);

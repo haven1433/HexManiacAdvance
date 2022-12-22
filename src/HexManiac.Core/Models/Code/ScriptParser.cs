@@ -1032,7 +1032,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public class TSEScriptLine : ScriptLine {
       public TSEScriptLine(string engineLine) : base(engineLine) { }
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x5A);
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x59, 0x5A);
    }
 
    public interface IScriptArg {
@@ -1142,7 +1142,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
          if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
-            if (preferHex || Math.Abs(value) >= 0x4000) {
+            if (preferHex || value == int.MinValue || Math.Abs(value) >= 0x4000) {
                return "0x" + ((uint)value).ToString($"X{length * 2}");
             } else {
                return value.ToString();

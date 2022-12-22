@@ -69,6 +69,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          Func<string, IScriptLine> factory = line => new XSEScriptLine(line);
          if (typeof(TLine) == typeof(BSEScriptLine)) factory = line => new BSEScriptLine(line);
          if (typeof(TLine) == typeof(ASEScriptLine)) factory = line => new ASEScriptLine(line);
+         if (typeof(TLine) == typeof(TSEScriptLine)) factory = line => new TSEScriptLine(line);
 
          var lines = File.ReadAllLines(file);
          var scriptLines = new List<IScriptLine>();

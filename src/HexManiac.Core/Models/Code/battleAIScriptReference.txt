@@ -1,7 +1,7 @@
-﻿00 if_random_less_than percent., ptr<`tse`>
+﻿00 if_random_less_than percent. ptr<`tse`>
 01 if_random_greater_than percent. ptr<`tse`>
-02 if_random_equal ptr<`tse`>
-03 if_random_not_equal ptr<`tse`>
+02 if_random_equal percent. ptr<`tse`>
+03 if_random_not_equal percent. ptr<`tse`>
 04 score score.
 05 if_hp_less_than battler. percent. ptr<`tse`>
 06 if_hp_more_than battler. percent. ptr<`tse`>
