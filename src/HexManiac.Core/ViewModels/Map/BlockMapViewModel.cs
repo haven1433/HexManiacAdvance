@@ -807,7 +807,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (lastDrawX, lastDrawY) = (xx, yy);
          model.WriteMultiByteValue(modelAddress, 2, token, (high << 10) | low);
 
-         var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, pixelData);
+         var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight, PixelData);
          bool updateBlock = blockIndex >= 0 && blockIndex < blockRenders.Count;
          bool updateHighlight = collisionIndex == collisionHighlight && collisionHighlight != -1;
          (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);

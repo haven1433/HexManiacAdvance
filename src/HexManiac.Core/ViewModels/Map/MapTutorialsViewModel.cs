@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // additions
          {
-            Tutorials.Add(new("Remove", "Show Map Beneath", "Hold Spacebar to see the map from the Dive/Emerge connection. Double-click to switch to that map."));
+            Tutorials.Add(new("Remove", "Show Beneath", "Hold Spacebar to see the map from the Dive/Emerge connection. Double-click to switch to that map."));
          }
 
          Reset();
