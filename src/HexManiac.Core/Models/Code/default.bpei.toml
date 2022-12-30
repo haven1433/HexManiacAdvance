@@ -80,6 +80,54 @@ Format = '''[maps<[map<[layout<[width:: height:: borderblock<[border:|h]4> block
 DefaultHash = ''''''
 
 [[NamedAnchors]]
+Name = '''data.maps.names'''
+Address = 0x59DEE8
+Format = '''[x. y. width. height. name<"">]213'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
+Name = '''data.maps.layouts'''
+Address = 0x47EB18
+Format = '''[layout<>]441'''
+DefaultHash = '''B9FB1FCC'''
+
+[[NamedAnchors]]
+Name = '''data.maps.fly.spawn'''
+Address = 0x59BF00
+Format = '''[bank. map. x: y: unused:]22'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
+Name = '''data.maps.fly.connections'''
+Address = 0x59E8A8
+Format = '''[bank. map. flight.]data.maps.names-0-163'''
+DefaultHash = '''E8BB5031'''
+
+[[NamedAnchors]]
+Name = '''data.maps.theme.popup'''
+Address = 0x57BB48
+Format = '''[theme.mapnamepopuptheme]data.maps.names+0-109'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
+Name = '''graphics.maps.names.popup.palettes'''
+Address = 0x57BA68
+Format = '''`ucp4:012345`'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
+Name = '''graphics.maps.names.popup.outline'''
+Address = 0x57A3E8
+Format = '''`ucs4x6x30|graphics.maps.names.popup.palettes`'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
+Name = '''graphics.maps.names.popup.background'''
+Address = 0x578D68
+Format = '''`ucs4x10x18|graphics.maps.names.popup.palettes`'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
 Name = '''data.items.stats'''
 Address = 0x58000C
 Format = '''[name""13 unused. index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket.pocketid type.|s=pocket(0=itemtype|1=itemtype|3=itemtype|4=itemtype|5=itemtype) fieldeffect<> battleusage:: battleeffect<> battleextra::]377'''
@@ -1314,7 +1362,7 @@ Destination = '''data.items.stats'''
 [[GotoShortcut]]
 Name = '''Maps'''
 Image = '''data.maps.banks/0/maps/9/map/0/layout/0/blockmap/'''
-Destination = '''maps.0-9 (LITTLEROOT TOWN)'''
+Destination = '''maps.0-9 (ALBANOVA)'''
 
 #################################
 [[TableGroup]]
