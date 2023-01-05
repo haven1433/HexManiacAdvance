@@ -219,7 +219,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Refresh() {
-         VisibleMaps.Clear();
          format.Refresh();
          primaryMap.ClearCaches();
          UpdatePrimaryMap(primaryMap);
@@ -946,6 +945,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
          if (fillError) {
+            DrawMultipleTiles = false;
             tilesToDraw = null;
             UpdateHover(selectMovePosition.X, selectMovePosition.Y, 1, 1);
          } else {

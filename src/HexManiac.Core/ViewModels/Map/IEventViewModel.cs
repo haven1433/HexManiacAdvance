@@ -499,6 +499,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public IPixelViewModel DefaultOW { get; }
       public ObservableCollection<VisualComboOption> Options { get; } = new();
       public ObservableCollection<string> FacingOptions { get; } = new();
       public ObservableCollection<string> ClassOptions { get; } = new();
@@ -885,11 +886,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites, BerryInfo berries) : base(objectEvent, "objectCount") {
+      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
          this.parser = parser;
          this.gotoAddress = gotoAddress;
          this.berries = berries;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2));
+         DefaultOW = defaultSprite;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
@@ -911,19 +913,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             10 => 3,
             _ => 0,
          };
-         EventRender = Render(model, owTable, Graphics, facing);
+         EventRender = Render(model, owTable, DefaultOW, Graphics, facing);
          NotifyPropertyChanged(nameof(EventRender));
       }
 
       /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
-      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, int index, int facing) {
+      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing) {
          if (index >= owTable.Count) {
-            return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, null), new short[256], 0);
+            return defaultOW;
          }
          var element = owTable[index];
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites");
-         if (sprites == null) return new ReadonlyPixelViewModel(16, 16);
+         if (sprites == null) return defaultOW;
          bool flip = facing == 3;
          if (facing == 3) facing = 2;
          if (facing >= sprites.Count) facing = 0;
@@ -931,7 +933,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var graphicsAddress = sprite.GetAddress("sprite");
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          if (graphicsRun == null) {
-            return new ReadonlyPixelViewModel(16, 16);
+            return defaultOW;
          }
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
          if (flip) ow = ow.ReflectX();
