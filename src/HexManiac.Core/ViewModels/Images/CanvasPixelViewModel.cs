@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
                var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
                if (pixel == foreground.Transparent) continue;
                if (x + xx >= PixelWidth || y + yy >= PixelHeight) continue;
-               if (x + yy < 0 || y + yy < 0) continue;
+               if (x + xx < 0 || y + yy < 0) continue;
                int offset = PixelWidth * (y + yy) + (x + xx);
                PixelData[offset] = pixel;
             }
