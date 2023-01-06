@@ -181,7 +181,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void ClearCache() {
          wildDataIndex = int.MinValue;
-         NotifyPropertyChanged(nameof(HasWildData));
+         wildText = null;
+         NotifyPropertiesChanged(nameof(HasWildData), nameof(WildSummary));
       }
 
       private void InformRepoint(DataMovedEventArgs e) {

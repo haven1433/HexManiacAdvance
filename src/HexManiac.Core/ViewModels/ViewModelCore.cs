@@ -57,9 +57,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event PropertyChangedEventHandler PropertyChanged;
 
+      private ISet<string> deferredPropertyNotifications;
+
+      public IDisposable DeferPropertyNotifications() {
+         deferredPropertyNotifications = new HashSet<string>();
+         return new StubDisposable { Dispose = () => {
+            var properties = deferredPropertyNotifications.ToArray();
+            deferredPropertyNotifications = null;
+            NotifyPropertiesChanged(properties);
+         } };
+      }
+
       protected void NotifyPropertyChanged([CallerMemberName]string propertyName = null) {
          Debug.Assert(GetType().GetProperty(propertyName) != null, $"Expected {propertyName} to be a property on type {GetType().Name}!");
-         PropertyChanged.Notify(this, propertyName);
+         if (deferredPropertyNotifications != null) {
+            deferredPropertyNotifications.Add(propertyName);
+         } else {
+            PropertyChanged.Notify(this, propertyName);
+         }
       }
 
       protected void NotifyPropertyChanged<T>(T oldValue, [CallerMemberName]string propertyName = null) {

@@ -188,6 +188,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region IsSelected
+
+      // TODO why is the selection rect not showing up until the first move interaction?
+
+      private bool isSelected;
+      public bool IsSelected {
+         get => isSelected;
+         set => Set(ref isSelected, value, old => ClearPixelCache());
+      }
+
+      #endregion
+
       #region Position
 
       private int topEdge, leftEdge;
@@ -234,10 +246,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int CollisionHighlight {
          get => collisionHighlight;
          set {
-            Set(ref collisionHighlight, value, old => {
-               pixelData = null;
-               NotifyPropertyChanged(nameof(PixelData));
-            });
+            Set(ref collisionHighlight, value, old => ClearPixelCache());
          }
       }
 
@@ -258,6 +267,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
             return blockRenders;
          }
+      }
+
+      private void ClearPixelCache() {
+         pixelData = null;
+         NotifyPropertyChanged(nameof(PixelData));
       }
 
       #endregion
@@ -526,14 +540,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             oldBorderEditor.ShowBorderPanel = false;
             NotifyPropertyChanged(nameof(BorderEditor));
          }
+         ClearPixelCache();
          NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(BerryInfo));
          if (SelectedEvent != null) CycleActiveEvent(default, EventCycleDirection.None);
       }
 
       public void RedrawEvents() {
          eventRenders = null;
-         pixelData = null;
-         NotifyPropertiesChanged(nameof(PixelData), nameof(CanCreateFlyEvent));
+         NotifyPropertyChanged(nameof(CanCreateFlyEvent));
+         ClearPixelCache();
       }
 
       public void Scale(double x, double y, bool enlarge) {
@@ -798,7 +813,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
 
-         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         xx = xx.LimitToRange(0, width - 1);
+         yy = yy.LimitToRange(0, height - 1);
          if (lastDrawX == xx && lastDrawY == yy) return;
          var start = layout.GetAddress("blockmap");
 
@@ -840,10 +856,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
          }
-         if (changeCount > 0) {
-            pixelData = null;
-            NotifyPropertyChanged(nameof(PixelData));
-         }
+         if (changeCount > 0) ClearPixelCache();
       }
 
       public void RepeatBlock(Func<ModelDelta> futureToken, int block, int collision, int x, int y, int w, int h) {
@@ -866,10 +879,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
          }
-         if (changeCount > 0) {
-            pixelData = null;
-            NotifyPropertyChanged(nameof(PixelData));
-         }
+         if (changeCount > 0) ClearPixelCache();
       }
 
       public void RepeatBlocks(Func<ModelDelta> futureToken, int[,] blockValues, int x, int y, int w, int h) {
@@ -888,10 +898,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
          }
-         if (changeCount > 0) {
-            pixelData = null;
-            NotifyPropertyChanged(nameof(PixelData));
-         }
+         if (changeCount > 0) ClearPixelCache();
       }
 
       public int[,] ReadRectangle(int x, int y, int w, int h) {
@@ -927,8 +934,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PaintBlock(token, new(xx + 1, yy), size, start, change);
          PaintBlock(token, new(xx, yy - 1), size, start, change);
          PaintBlock(token, new(xx, yy + 1), size, start, change);
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         ClearPixelCache();
       }
 
       private void PaintBlock(ModelDelta token, Point p, Point size, int start, Point change) {
@@ -960,8 +966,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ev.X = xx;
          ev.Y = yy;
          SelectedEvent = ev;
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         ClearPixelCache();
       }
 
       public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
@@ -975,8 +980,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          if (autoSelect && SelectedEvent != last) {
             SelectedEvent = last;
-            pixelData = null;
-            NotifyPropertyChanged(nameof(PixelData));
+            ClearPixelCache();
          }
          return last;
       }
@@ -1004,8 +1008,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void DeselectEvent() {
          if (selectedEvent == null) return;
          SelectedEvent = null;
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         ClearPixelCache();
       }
 
       #endregion
@@ -1603,8 +1606,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          (pixelWidth, pixelHeight) = ((width + border.West + border.East) * 16, (height + border.North + border.South) * 16);
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         ClearPixelCache();
       }
 
       private void RefreshMapEvents() {
@@ -1658,8 +1660,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // draw the box for the selected event
+         var gray = UncompressedPaletteColor.Pack(6, 6, 6);
          if (selectedEvent != null && selectedEvent.X >= 0 && selectedEvent.X < width && selectedEvent.Y >= 0 && SelectedEvent.Y < height) {
-            canvas.DrawBox((selectedEvent.X + border.West) * 16, (selectedEvent.Y + border.North) * 16, 16, UncompressedPaletteColor.Pack(6, 6, 6));
+            canvas.DrawBox((selectedEvent.X + border.West) * 16, (selectedEvent.Y + border.North) * 16, 16, gray);
          }
 
          // now draw the events on top
@@ -1671,17 +1674,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
+         // finally, draw a one-pixel border around the entire map (but not the border blocks)
+         if (isSelected) {
+            var (borderW, borderH) = (border.West + border.East, border.North + border.South);
+            canvas.DarkenRect(border.West * 16, border.North * 16, pixelWidth - borderW * 16, pixelHeight - borderH * 16, 12);
+         }
+
          pixelData = canvas.PixelData;
       }
 
       private void HighlightCollision(short[] pixelData, int x, int y) {
          void Transform(int xx, int yy) {
             var p = (y + yy) * PixelWidth + x + xx;
-            var color = UncompressedPaletteColor.ToRGB(pixelData[p]);
-            color.r = (color.r - 8).LimitToRange(0, 31);
-            color.g = (color.g - 8).LimitToRange(0, 31);
-            color.b = (color.b - 8).LimitToRange(0, 31);
-            pixelData[p] = UncompressedPaletteColor.Pack(color.r, color.g, color.b);
+            pixelData[p] = CanvasPixelViewModel.Darken(pixelData[p], 8);
          }
          for (int i = 0; i < 15; i++) {
             Transform(i, 0);
@@ -1938,8 +1943,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             blockRenders.Clear();
          }
          blockPixels = null;
-         pixelData = null;
-         NotifyPropertiesChanged(nameof(BlockPixels), nameof(PixelData), nameof(BlockRenders));
+         ClearPixelCache();
+         NotifyPropertiesChanged(nameof(BlockPixels), nameof(BlockRenders));
          viewPort.ChangeHistory.ChangeCompleted();
       }
 
@@ -1949,9 +1954,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             blockRenders.Clear();
          }
          blockPixels = null;
-         pixelData = null;
          borderBlock = null;
-         NotifyPropertiesChanged(nameof(BlockPixels), nameof(PixelData), nameof(BlockRenders), nameof(BorderBlock));
+         ClearPixelCache();
+         NotifyPropertiesChanged(nameof(BlockPixels), nameof(BlockRenders), nameof(BorderBlock));
       }
 
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {

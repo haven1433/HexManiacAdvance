@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Images {
    public class CanvasPixelViewModel : ViewModelCore, IPixelViewModel {
@@ -44,13 +45,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public void DrawBox(int x, int y, int size, short color) {
-         for (int i = 0; i < size - 1; i++) {
+      public void DrawBox(int x, int y, int size, short color) => DrawRect(x, y, size, size, color);
+
+      public void DrawRect(int x, int y, int width, int height, short color) {
+         for (int i = 0; i < width - 1; i++) {
             PixelData[x + i + y * PixelWidth] = color;
-            PixelData[x + size - 1 - i + (y + size - 1) * PixelWidth] = color;
-            PixelData[x + (y + size - 1 - i) * PixelWidth] = color;
-            PixelData[x + size - 1 + (y + i) * PixelWidth] = color;
+            PixelData[x + width - 1 - i + (y + height - 1) * PixelWidth] = color;
          }
+         for (int i = 0; i < height - 1; i++) {
+            PixelData[x + (y + height - 1 - i) * PixelWidth] = color;
+            PixelData[x + width - 1 + (y + i) * PixelWidth] = color;
+         }
+      }
+
+      public void DarkenRect(int x, int y, int width, int height, int darkness) {
+         for (int i = 0; i < width - 1; i++) {
+            var (p1, p2) = (x + i + y * PixelWidth, x + width - 1 - i + (y + height - 1) * PixelWidth);
+            PixelData[p1] = Darken(PixelData[p1], darkness);
+            PixelData[p2] = Darken(PixelData[p2], darkness);
+         }
+         for (int i = 0; i < height - 1; i++) {
+            var (p1, p2) = (x + (y + height - 1 - i) * PixelWidth, x + width - 1 + (y + i) * PixelWidth);
+            PixelData[p1] = Darken(PixelData[p1], darkness);
+            PixelData[p2] = Darken(PixelData[p2], darkness);
+         }
+      }
+
+      public static short Darken(short color, int amount) {
+         var rgb = UncompressedPaletteColor.ToRGB(color);
+         rgb.r = (rgb.r - amount).LimitToRange(0, 31);
+         rgb.g = (rgb.g - amount).LimitToRange(0, 31);
+         rgb.b = (rgb.b - amount).LimitToRange(0, 31);
+         return UncompressedPaletteColor.Pack(rgb.r, rgb.g, rgb.b);
       }
    }
 }
