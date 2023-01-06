@@ -999,7 +999,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          position = new(position.X.LimitToRange(0, width - selectionWidth), position.Y.LimitToRange(0, height - selectionHeight));
 
          // offset based on primary map
-         position = new(position.X + (int)((map.LeftEdge - primaryMap.LeftEdge) / map.SpriteScale / 16), position.Y + (int)((map.TopEdge - primaryMap.TopEdge) / map.SpriteScale / 16));
+         var primarySize = primaryMap.GetBorderThickness();
+         var mapLeft = (int)((map.LeftEdge - primaryMap.LeftEdge) / map.SpriteScale / 16);
+         var mapTop = (int)((map.TopEdge - primaryMap.TopEdge) / map.SpriteScale / 16);
+         position = new(position.X + mapLeft + borders.West - primarySize.West, position.Y + mapTop + borders.North - primarySize.North);
+
          return position;
       }
 
@@ -1506,9 +1510,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var maps = bank.GetSubTable("maps");
             if (maps == null) continue;
             foreach (var entry in maps) {
-               var map = entry.GetSubTable("map")[0];
+               var mapTable = entry.GetSubTable("map");
+               if (mapTable == null) continue;
+               var map = mapTable[0];
                if (map == null) continue;
-               var layout = map.GetSubTable("layout")[0];
+               var layoutTable = map.GetSubTable("layout");
+               if (layoutTable == null) continue;
+               var layout = layoutTable[0];
                if (layout == null) continue;
                // width:: height:: blockmap<> blockdata1<> blockdata2<>
                var address1 = layout.GetAddress("blockdata1");

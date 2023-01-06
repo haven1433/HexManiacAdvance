@@ -833,7 +833,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool updateHighlight = collisionIndex == collisionHighlight && collisionHighlight != -1;
          (xx, yy) = ((xx + border.West) * 16, (yy + border.North) * 16);
          if (updateBlock) canvas.Draw(blockRenders[blockIndex], xx, yy);
-         if (updateHighlight && xx < pixelWidth && yy < pixelHeight) HighlightCollision(pixelData, xx, yy);
+         if (updateHighlight && xx < pixelWidth && yy < pixelHeight) HighlightCollision(PixelData, xx, yy);
          if (updateBlock || updateHighlight) NotifyPropertyChanged(nameof(PixelData));
          tutorials.Complete(Tutorial.LeftClickMap_DrawBlock);
       }
@@ -1160,42 +1160,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ConnectNewMap(ConnectionInfo info) {
-         var token = tokenFactory();
-         var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
-         tutorials.Complete(Tutorial.RightClick_CreateConnection);
-         var option = MapRepointer.GetMapBankForNewMap(
-            "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
-            + Environment.NewLine +
-            "Which map bank do you want to use for the new map?");
-         if (option == -1) return;
+         using (viewPort.ChangeHistory.ContinueCurrentTransaction()) {
+            var token = tokenFactory();
+            var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
+            tutorials.Complete(Tutorial.RightClick_CreateConnection);
+            var option = MapRepointer.GetMapBankForNewMap(
+               "Maps are organized into banks. The game doesn't care, so you can use the banks however you like."
+               + Environment.NewLine +
+               "Which map bank do you want to use for the new map?");
+            if (option == -1) return;
 
-         var map = GetMapModel();
-         var connectionsAndCount = map.GetSubTable("connections")[0];
-         var connections = connectionsAndCount.GetSubTable("connections").Run;
-         var originalConnectionStart = connections.Start;
-         connections = model.RelocateForExpansion(token, connections, connections.Length + connections.ElementLength);
-         if (connections.Start != originalConnectionStart) InformRepoint(new("Connections", connections.Start));
-         connectionsAndCount.SetValue("count", connections.ElementCount + 1);
-         var table = new ModelTable(model, connections.Start, tokenFactory, connections);
-         var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
-         newConnection.Offset = info.Offset;
-         newConnection.Direction = info.Direction;
+            var map = GetMapModel();
+            var connectionsAndCount = map.GetSubTable("connections")[0];
+            var connections = connectionsAndCount.GetSubTable("connections").Run;
+            var originalConnectionStart = connections.Start;
+            connections = model.RelocateForExpansion(token, connections, connections.Length + connections.ElementLength);
+            if (connections.Start != originalConnectionStart) InformRepoint(new("Connections", connections.Start));
+            connectionsAndCount.SetValue("count", connections.ElementCount + 1);
+            var table = new ModelTable(model, connections.Start, tokenFactory, connections);
+            var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
+            newConnection.Offset = info.Offset;
+            newConnection.Direction = info.Direction;
 
-         var (width, height) = (info.Size, info.Size);
-         var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
-         if (isZConnection) height = info.Offset;
-         var otherMap = CreateNewMap(token, option, width, height);
+            var (width, height) = (info.Size, info.Size);
+            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
+            if (isZConnection) height = info.Offset;
+            var otherMap = CreateNewMap(token, option, width, height);
 
-         newConnection.MapGroup = otherMap.group;
-         newConnection.MapNum = otherMap.map;
-         info = new ConnectionInfo(info.Size, isZConnection ? 0 : -info.Offset, info.OppositeDirection);
-         newConnection = otherMap.AddConnection(info);
-         newConnection.Offset = isZConnection ? 0 : info.Offset;
-         newConnection.MapGroup = MapID / 1000;
-         newConnection.MapNum = MapID % 1000;
+            newConnection.MapGroup = otherMap.group;
+            newConnection.MapNum = otherMap.map;
+            info = new ConnectionInfo(info.Size, isZConnection ? 0 : -info.Offset, info.OppositeDirection);
+            newConnection = otherMap.AddConnection(info);
+            newConnection.Offset = isZConnection ? 0 : info.Offset;
+            newConnection.MapGroup = MapID / 1000;
+            newConnection.MapNum = MapID % 1000;
 
-         RefreshMapSize();
-         NeighborsChanged.Raise(this);
+            RefreshMapSize();
+            NeighborsChanged.Raise(this);
+         }
          viewPort.ChangeHistory.ChangeCompleted();
       }
 
@@ -1811,7 +1813,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var map = GetMapModel();
          var results = new List<IEventViewModel>();
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+         var eventsTable = map.GetSubTable("events");
+         if (eventsTable == null) return results;
+         var eventElements = eventsTable[0];
+         if (eventElements == null) return results;
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
          events.DataMoved += HandleEventDataMoved;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
@@ -2014,7 +2020,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                                                             blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> block<> animation<> attributes<>]1>
                                                             borderwidth. borderheight. unused:]1>
                                                          events<[objectCount. warpCount. scriptCount. signpostCount.
-                                                            objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
+                                                            objects<[id. graphics. kind: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
                                                             warps<[x:500 y:500 elevation. warpID. map. bank.]/warps>
                                                             scripts<[x:500 y:500 elevation: trigger: index:: script<`xse`>]/scriptCount>
                                                             signposts<[x:500 y:500 elevation. kind. unused: arg::|h]/signposts>]1>

@@ -477,5 +477,23 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.True(ViewPort.ChangeHistory.IsSaved);
       }
+
+      [Fact]
+      public void Scope_NestScope_Works() {
+         using (history.ContinueCurrentTransaction()) {
+            history.CurrentChange.Add(0);
+            using (history.ContinueCurrentTransaction()) {
+               history.CurrentChange.Add(1);
+               history.ChangeCompleted();
+            }
+            history.ChangeCompleted();
+            history.CurrentChange.Add(2);
+         }
+         history.ChangeCompleted();
+
+         history.Undo.Execute();
+
+         Assert.Equal(3, recentChanges.Count);
+      }
    }
 }

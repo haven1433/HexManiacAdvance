@@ -366,6 +366,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      /// <summary>
+      /// FireRed Only.
+      /// Kind is either 0 or 255.
+      /// If it's 255, then this is an 'offscreen' object, which is a copy of an object in a connected map.
+      /// The trainerType and trainerRangeOrBerryID have the map and bank information, respectively.
+      /// </summary>
+      public bool HasKind => element.HasField("kind");
+      public bool Kind {
+         get => element.TryGetValue("kind", out int value) ? value != 0 : false;
+         set {
+            if (element.HasField("kind")) element.SetValue("kind", value ? 0xFF : 0);
+         }
+      }
+
       public int MoveType {
          get => element.GetValue("moveType");
          set {

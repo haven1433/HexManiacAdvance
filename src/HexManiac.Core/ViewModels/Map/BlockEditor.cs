@@ -378,8 +378,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          movementPermissions.Add("01 - Wall");
          movementPermissions.Add("02");
          movementPermissions.Add("03");
-         for (int i = 0; i < 13; i++) {
-            var start = i + 4;
+         for (int i = 1; i < 14; i++) {
+            var start = i * 4;
             movementPermissions.Add($"{start + 0:X2} - Elevation {i} Pass");
             movementPermissions.Add($"{start + 1:X2} - Elevation {i} Wall");
             movementPermissions.Add($"{start + 2:X2} - Elevation {i} Unused");
@@ -597,30 +597,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => (drawTile % TilesPerRow) * PixelPerTile;
          set {
             var (x, y) = (drawTile % TilesPerRow, drawTile / TilesPerRow);
-            x = value / PixelPerTile;
-            drawTile = y * TilesPerRow + x;
-            if (drawTile >= tiles.Length) drawTile = tiles.Length - 1;
-            NotifyPropertyChanged();
-            drawFlipH = drawFlipV = false;
-            tutorials.Complete(Tutorial.ClickTile_SelectTile);
-            UpdateDrawTileRender();
+            if (x != value / PixelPerTile) {
+               x = value / PixelPerTile;
+               drawTile = y * TilesPerRow + x;
+               if (drawTile >= tiles.Length) drawTile = tiles.Length - 1;
+               NotifyPropertyChanged();
+               drawFlipH = drawFlipV = false;
+               tutorials.Complete(Tutorial.ClickTile_SelectTile);
+               UpdateDrawTileRender();
+            }
          }
       }
       public int TileSelectionY {
          get => (drawTile / TilesPerRow) * PixelPerTile;
          set {
             var (x, y) = (drawTile % TilesPerRow, drawTile / TilesPerRow);
-            y = value / PixelPerTile;
-            drawTile = y * TilesPerRow + x;
-            if (drawTile >= tiles.Length) {
-               drawTile = tiles.Length - 1;
-               NotifyPropertiesChanged(nameof(TileSelectionX));
+            if (y != value / PixelPerTile) {
+               y = value / PixelPerTile;
+               drawTile = y * TilesPerRow + x;
+               if (drawTile >= tiles.Length) {
+                  drawTile = tiles.Length - 1;
+                  NotifyPropertiesChanged(nameof(TileSelectionX));
+               }
+               NotifyPropertyChanged();
+               drawFlipH = drawFlipV = false;
+               history.ChangeCompleted();
+               tutorials.Complete(Tutorial.ClickTile_SelectTile);
+               UpdateDrawTileRender();
             }
-            NotifyPropertyChanged();
-            drawFlipH = drawFlipV = false;
-            history.ChangeCompleted();
-            tutorials.Complete(Tutorial.ClickTile_SelectTile);
-            UpdateDrawTileRender();
          }
       }
       public int PaletteSelection {
