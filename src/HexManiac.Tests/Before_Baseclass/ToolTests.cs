@@ -413,6 +413,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("bl 0x08000200", 0xF8_7E_F0_00)]
       [InlineData("stmia  r0, {r1}", 0b11000_000_00000010)]
       [InlineData("stm   r0!, {r1}", 0b11000_000_00000010)]
+      [InlineData("mov\tr0, #7", 0b00100_000_00000111)]
       public void ThumbCompilerTests(string input, uint output) {
          var bytes = new List<byte> { (byte)output, (byte)(output >> 8) };
          var model = new PokemonModel(new byte[0x200]);

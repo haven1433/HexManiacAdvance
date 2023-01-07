@@ -736,7 +736,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public bool TryAssemble(string line, IReadOnlyList<ConditionCode> conditionCodes, int codeLocation, LabelLibrary labels, out byte[] results) {
-         line = line.ToLower();
+         line = line.ToLower().Replace('\t', ' ');
          uint result = 0;
          results = new byte[ByteLength];
          var thisTemplate = template;

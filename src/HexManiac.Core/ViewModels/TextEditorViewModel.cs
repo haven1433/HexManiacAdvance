@@ -70,11 +70,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var numeric = new MutableString(basic.Length);
          var comments = new MutableString(basic.Length);
          var text = new MutableString(basic.Length);
-         accent.CopyNewlines(basic);
-         constants.CopyNewlines(basic);
-         numeric.CopyNewlines(basic);
-         comments.CopyNewlines(basic);
-         text.CopyNewlines(basic);
+         accent.CopyWhitespace(basic);
+         constants.CopyWhitespace(basic);
+         numeric.CopyWhitespace(basic);
+         comments.CopyWhitespace(basic);
+         text.CopyWhitespace(basic);
 
          if (PreFormatter != null) {
             var pre = PreFormatter.Format(Content);
@@ -269,14 +269,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Clear(int index, int length) {
          for (int i = 0; i < length; i++) {
-            if (content[index + i] == '\n' || content[index + i] == '\r') continue;
+            if (content[index + i].IsAny('\n', '\r', '\t')) continue;
             content[index + i] = ' ';
          }
       }
 
-      public void CopyNewlines(MutableString other) {
+      public void CopyWhitespace(MutableString other) {
          for (int i = 0; i < content.Length; i++) {
-            if (other.content[i] == '\n' || other.content[i] == '\r') {
+            if (other.content[i].IsAny('\n', '\r', '\t')) {
                content[i] = other.content[i];
             }
          }
