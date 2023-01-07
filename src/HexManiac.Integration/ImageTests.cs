@@ -1,23 +1,14 @@
 ﻿using HavenSoft.HexManiac.Core;
-using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Xunit;
 
 
 namespace HavenSoft.HexManiac.Integration {
-   public class ImageTests {
-      public static Singletons singletons { get; } = new Singletons();
-      private static readonly string fireredName = "sampleFiles/Pokemon FireRed.gba";
-
-      public List<string> Errors { get; } = new();
-      public List<string> Messages { get; } = new();
-      public StubFileSystem FileSystem { get; } = new();
+   public class ImageTests : IntegrationTests {
 
       // for image import/export
       private short[] data;
@@ -36,28 +27,6 @@ namespace HavenSoft.HexManiac.Integration {
             for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) data[y * width + x] = palette[pixels[x, y]];
          };
          FileSystem.LoadImage = text => (data, width);
-      }
-
-      private static readonly Lazy<ViewPort> lazyFireRed;
-      static ImageTests() {
-         lazyFireRed = new Lazy<ViewPort>(() => {
-            var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(fireredName), new StoredMetadata(new string[0]));
-            return new ViewPort(fireredName, model, InstantDispatch.Instance, singletons);
-         });
-      }
-
-      private ViewPort LoadFireRed() {
-         Skip.IfNot(File.Exists(fireredName));
-         var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(fireredName), new StoredMetadata(new string[0]));
-         var vm = new ViewPort(fireredName, model, InstantDispatch.Instance, singletons);
-         vm.OnError += (sender, e) => Errors.Add(e);
-         vm.OnMessage += (sender, e) => Messages.Add(e);
-         return vm;
-      }
-
-      private ViewPort LoadReadOnlyFireRed() {
-         Skip.IfNot(File.Exists(fireredName));
-         return lazyFireRed.Value;
       }
 
       #endregion

@@ -1171,8 +1171,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (option == -1) return;
 
             var map = GetMapModel();
+
+            var connections = GetOrCreateConnections(map, token);
             var connectionsAndCount = map.GetSubTable("connections")[0];
-            var connections = connectionsAndCount.GetSubTable("connections").Run;
+
             var originalConnectionStart = connections.Start;
             connections = model.RelocateForExpansion(token, connections, connections.Length + connections.ElementLength);
             if (connections.Start != originalConnectionStart) InformRepoint(new("Connections", connections.Start));
@@ -1318,6 +1320,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private ConnectionModel AddConnection(ConnectionInfo info) {
          var token = tokenFactory();
          var map = GetMapModel();
+
+         var connections = GetOrCreateConnections(map, token);
+
+         var count = connections.ElementCount;
+         connections = connections.Append(token, 1);
+         model.ObserveRunWritten(token, connections);
+
+         var table = new ModelTable(model, connections.Start, tokenFactory, connections);
+         var newConnection = new ConnectionModel(table[count], group, this.map);
+         token.ChangeData(model, table[count].Start, new byte[12]);
+         newConnection.Direction = info.Direction;
+         return newConnection;
+      }
+
+      private ITableRun GetOrCreateConnections(ModelArrayElement map, ModelDelta token) {
          var connectionsAndCountTable = map.GetSubTable("connections");
          if (connectionsAndCountTable == null) {
             var newConnectionsAndCountTable = MapRepointer.CreateNewConnections(token);
@@ -1340,15 +1357,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else {
             connections = connectionsAndCount.GetSubTable("connections").Run;
          }
-         var count = connections.ElementCount;
-         connections = connections.Append(token, 1);
-         model.ObserveRunWritten(token, connections);
 
-         var table = new ModelTable(model, connections.Start, tokenFactory, connections);
-         var newConnection = new ConnectionModel(table[count], group, this.map);
-         token.ChangeData(model, table[count].Start, new byte[12]);
-         newConnection.Direction = info.Direction;
-         return newConnection;
+         return connections;
       }
 
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
