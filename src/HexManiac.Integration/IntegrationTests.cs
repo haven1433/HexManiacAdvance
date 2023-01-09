@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Integration {
       static IntegrationTests() {
          lazyFireRed = new Lazy<ViewPort>(() => {
             var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(fireredName), new StoredMetadata(new string[0]));
-            return new ViewPort(fireredName, model, InstantDispatch.Instance, singletons);
+            return new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), new StubFileSystem());
          });
       }
 

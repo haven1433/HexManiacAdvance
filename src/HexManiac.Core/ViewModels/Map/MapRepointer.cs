@@ -451,7 +451,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string ExpandPrimaryTilesetText {
          get {
             var (currentCount, maxCount) = EstimateTileCount(GetLayout().GetSubTable(Format.PrimaryBlockset)[0]);
-            return $"This primary blockset contains {currentCount} of {maxCount} tiles.";
+            return $"This primary tileset contains {currentCount} of {maxCount} tiles.";
          }
       }
 
@@ -462,7 +462,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string ExpandSecondaryTilesetText {
          get {
             var (currentCount, maxCount) = EstimateTileCount(GetLayout().GetSubTable(Format.SecondaryBlockset)[0]);
-            return $"This secondary blockset contains {currentCount} of {maxCount} tiles.";
+            return $"This secondary tileset contains {currentCount} of {maxCount} tiles.";
          }
       }
 
@@ -503,7 +503,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (blockset.GetValue("isSecondary") != 0) maxTiles = 1024 - maxTiles;
          int currentTiles = maxTiles;
          var tilesetAddress = blockset.GetAddress(Format.Tileset);
-         if (blockset.GetValue("isCompressed") != 0) {
+         if (blockset.GetValue("isCompressed") == 0) {
             BlocksetModel.EstimateTileCount(model, ref currentTiles, tilesetAddress);
          } else {
             var run = new LZRun(model, tilesetAddress);

@@ -18,5 +18,16 @@ namespace HavenSoft.HexManiac.Integration {
          var forest = firered.Model.GetTableModel("data.maps.banks/1/maps/0/map/");
          Assert.Equal(1, forest[0].GetSubTable("connections")[0].GetValue("count"));
       }
+
+      [SkippableFact]
+      public void MapRepointer_ExpandPrimaryTilesetText_HasMaxTiles() {
+         var firered = LoadReadOnlyFireRed();
+         firered.Goto.Execute("maps.3-0 Palette Town");
+         var repointer = firered.MapEditor.PrimaryMap.MapRepointer;
+
+         var text = repointer.ExpandPrimaryTilesetText;
+
+         Assert.Equal("This primary tileset contains 640 of 640 tiles.", text);
+      }
    }
 }
