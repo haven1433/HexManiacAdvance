@@ -1349,6 +1349,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Empty(Errors);
       }
 
+      [Fact]
+      public void TableWithInnerAnchors_ClearFormat_RemovePointersToInnerAnchors() {
+         ViewPort.Edit("^table^[a::]4 @100 <000> <004> ");
+
+         ViewPort.Goto.Execute(8);
+         var item = ViewPort.GetContextMenuItems(ViewPort.SelectionStart).Single(context => context.Text == "Clear Format");
+         item.Command.Execute();
+
+         Assert.Equal(0x100, Model.GetNextRun(0x100).Start);
+         Assert.NotInRange(Model.GetNextRun(0x104).Start, 0x100, 0x108);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

@@ -1787,6 +1787,18 @@ namespace HavenSoft.HexManiac.Core.Models {
                   changeToken.RemoveRun(run);
                   SetIndex(index, simpleRun);
                   changeToken.AddRun(simpleRun);
+                  // but we don't want to keep the inner-pointers
+                  if (run is ArrayRun array && array.SupportsInnerPointers) {
+                     for (int i = 1; i < array.PointerSourcesForInnerElements.Count; i++) {
+                        foreach (var source in array.PointerSourcesForInnerElements[i]) {
+                           index = BinarySearch(source);
+                           if (index >= 0 && runs[index] is PointerRun) {
+                              changeToken.RemoveRun(runs[index]);
+                              RemoveIndex(index);
+                           }
+                        }
+                     }
+                  }
                } else {
                   ClearAnchorFormat(changeToken, keepInitialAnchorPointers, run);
                }
