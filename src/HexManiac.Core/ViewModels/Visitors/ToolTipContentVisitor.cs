@@ -119,16 +119,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (segment is not ArrayRunEnumSegment enumSeg) return;
          var parentAddress = model.GetAddressFromAnchor(new(), -1, enumSeg.EnumName);
          if (model.GetNextRun(parentAddress) is not ArrayRun parentArray) return;
+         GetEnumImage(model, Content, enumValue, parentArray);
+      }
+
+      public static void GetEnumImage(IDataModel model, ObservableCollection<object> content, int enumValue, ArrayRun parentArray) {
          foreach (var array in model.GetRelatedArrays(parentArray)) {
             int segOffset = 0;
             foreach (var seg in array.ElementContent) {
                var itemIndex = enumValue + array.ParentOffset.BeginningMargin;
+               var source = array.Start + array.ElementLength * itemIndex + segOffset;
+               if (source < 0 || source >= model.Count) continue;
                var destination = model.ReadPointer(array.Start + array.ElementLength * itemIndex + segOffset);
                segOffset += seg.Length;
                if (seg.Type != ElementContentType.Pointer) continue;
                if (model.GetNextRun(destination) is not ISpriteRun spriteRun) continue;
                var paletteRuns = spriteRun.FindRelatedPalettes(model, array.Start + array.ElementLength * itemIndex);
-               Content.Add(ReadonlyPixelViewModel.Create(model, spriteRun, paletteRuns.FirstOrDefault(), true));
+               content.Add(ReadonlyPixelViewModel.Create(model, spriteRun, paletteRuns.FirstOrDefault(), true));
                return;
             }
          }
