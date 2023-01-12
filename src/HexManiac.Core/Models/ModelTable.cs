@@ -336,7 +336,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          if (valueAddress < 0 || valueAddress >= model.Count) return null;
-         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
+         if (seg == null) return null;
          if (seg is ArrayRunPointerSegment pointerSeg) {
             var destination = model.ReadPointer(valueAddress);
             if (destination < 0 || destination >= model.Count) return null;
