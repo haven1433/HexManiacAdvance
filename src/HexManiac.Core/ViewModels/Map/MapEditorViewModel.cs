@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -930,12 +931,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var height = Math.Abs(selectDownPosition.Y - selectMovePosition.Y) + 1;
          tilesToDraw = new int[width, height];
          if (width == 1 && height == 1) {
-            DrawMultipleTiles = false;
-            BlockEditorVisible = true;
-            tilesToDraw[0, 0] = drawBlockIndex | (collisionIndex << 10);
-            FillMultiTileRender();
-            AnimateBlockSelection();
-            UpdateHover(left, top, width, height);
+            SelectSingleBlock();
+            UpdateHover(left, top, 1, 1);
             Tutorials.Complete(Tutorial.RightClickMap_SelectBlock);
             return;
          }
@@ -964,6 +961,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             PrimaryMap.BlockEditor.ShowTiles = false;
             UpdateHover(left, top, width, height);
          }
+      }
+
+      private void SelectSingleBlock() {
+         DrawMultipleTiles = false;
+         BlockEditorVisible = true;
+         tilesToDraw[0, 0] = drawBlockIndex | (collisionIndex << 10);
+         FillMultiTileRender();
+         AnimateBlockSelection();
       }
 
       private void FillMultiTileRender() {
@@ -1491,6 +1496,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void ReadBorderBlock(double x, double y) {
          DrawBlockIndex = PrimaryMap.BorderEditor.GetBlock(x, y);
+         tilesToDraw = new int[1, 1];
+         AutoscrollBlocks.Raise(this);
+         SelectSingleBlock();
       }
 
       #endregion

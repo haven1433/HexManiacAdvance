@@ -19,14 +19,14 @@ namespace HavenSoft.HexManiac.Integration {
       static IntegrationTests() {
          lazyFireRed = new Lazy<ViewPort>(() => {
             var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(fireredName), new StoredMetadata(new string[0]));
-            return new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), new StubFileSystem());
+            return new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), new StubFileSystem()) { MaxDiffSegmentCount = 10 };
          });
       }
 
       protected ViewPort LoadFireRed() {
          Skip.IfNot(File.Exists(fireredName));
          var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(fireredName), new StoredMetadata(new string[0]));
-         var vm = new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), FileSystem);
+         var vm = new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), FileSystem) { MaxDiffSegmentCount = 10 };
          vm.OnError += (sender, e) => Errors.Add(e);
          vm.OnMessage += (sender, e) => Messages.Add(e);
          return vm;

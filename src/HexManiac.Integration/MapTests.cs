@@ -29,5 +29,31 @@ namespace HavenSoft.HexManiac.Integration {
 
          Assert.Equal("This primary tileset contains 640 of 640 tiles.", text);
       }
+
+      [SkippableFact]
+      public void FlowerBlock_EditBlockLayer_OneByteChangeInFile() {
+         var firered = LoadFireRed();
+         firered.Goto.Execute("maps.3-0 Palette Town");
+
+         firered.MapEditor.SelectBlock(0, 4);
+         firered.MapEditor.ReleaseBlock(0, 4);
+         firered.MapEditor.PrimaryMap.BlockEditor.Layer = 2;
+
+         firered.Diff.Execute();
+         Assert.Equal("1 changes found.", Messages.Single());
+      }
+
+      [SkippableFact]
+      public void EditBorderBlock_SelectBlock_UpdateSelectedBlock() {
+         var firered = LoadReadOnlyFireRed();
+         firered.Goto.Execute("maps.3-0 Palette Town");
+         var view = new StubView(firered.MapEditor);
+
+         firered.MapEditor.ReadBorderBlock(4, 3);
+
+         Assert.Contains(nameof(MapEditorViewModel.BlockSelectionToggle), view.PropertyNotifications);
+         Assert.True(firered.MapEditor.BlockEditorVisible);
+         Assert.Contains(nameof(firered.MapEditor.AutoscrollBlocks), view.EventNotifications);
+      }
    }
 }
