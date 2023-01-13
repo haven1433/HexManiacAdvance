@@ -138,6 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   LeafGreen1_1,
                   "BPRF0", // french firered
                   "BPEF0", // french emerald
+                  "BPEI0", // italian emerald
                   "ABCD0", // for tests
                };
 
