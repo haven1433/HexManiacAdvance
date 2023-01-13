@@ -121,9 +121,9 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    }
 
    public record BaseEventModel(ModelArrayElement Element) {
-      public int X => Element.GetValue("x");
-      public int Y => Element.GetValue("y");
-      public int Elevation => Element.GetValue("elevation");
+      public int X => Element.TryGetValue("x", out int x) ? x : 0;
+      public int Y => Element.TryGetValue("y", out int y) ? y : 0;
+      public int Elevation => Element.TryGetValue("elevation", out int elevation) ? elevation : 0;
    }
 
    public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element) {

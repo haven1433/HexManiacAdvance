@@ -103,7 +103,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class ExpansionSlider : MapSlider {
       private Action<MapDirection, int> resize;
 
-      public override string Tooltip => $"Drag to change the {(Icon == MapSliderIcons.LeftRight ? "width" : "height")} of the map." + Environment.NewLine +
+      public override string Tooltip => $"Drag to change the {(Icon.IsAny(MapSliderIcons.ExtendLeft, MapSliderIcons.ExtendRight) ? "width" : "height")} of the map." + Environment.NewLine +
          "Right-Click to add or remove a connection.";
 
       public ExpansionSlider(Action<MapDirection, int> resize, int id, MapSliderIcons icon, IEnumerable<IMenuCommand> contextItems, int left = int.MinValue, int top = int.MinValue, int right = int.MinValue, int bottom = int.MinValue) : base(id, icon, left, top, right, bottom) {
@@ -127,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (that is not ExpansionSlider other) return false;
          if (!base.TryUpdate(other)) return false;
          resize = other.resize;
+         NotifyPropertyChanged(nameof(Tooltip));
          return true;
       }
    }

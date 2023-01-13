@@ -675,8 +675,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-            if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
+            if (destinationLengths != null) {
+               var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
+               if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
+            }
             length += arg.Length(default, -1);
          }
          return length;
@@ -818,8 +820,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-            if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
+            if (destinationLengths != null) {
+               var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
+               if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
+            }
             length += arg.Length(model, start + length);
          }
          return length;

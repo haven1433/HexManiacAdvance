@@ -441,9 +441,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       public void WriteBlocks(byte[][] blocks, ModelDelta token) {
          int start = ReadPointer(12);
          for (int i = 0; i < blocks.Length; i++) {
-            for (int j = 0; j < blocks[i].Length; j++) {
-               token.ChangeData(model, start + i * blocks[i].Length + j, blocks[i][j]);
-            }
+            token.ChangeData(model, start + i * blocks[i].Length, blocks[i]);
          }
       }
 
@@ -463,14 +461,12 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
-      // TODO make it possible to exand attributes to their full size
+      // TODO make it possible to expand attributes to their full size
       public void WriteBlockAttributes(byte[][] attributes, ModelDelta token) {
          int attributeStart = ReadPointer(attributeOffset);
          for (int i = 0; i < attributes.Length; i++) {
-            attributes[i] = new byte[BytesPerAttribute];
-            for (int j = 0; j < attributes[i].Length; j++) {
-               token.ChangeData(model, attributeStart + i * attributes[i].Length + j, attributes[i][j]);
-            }
+            if (attributes[i] == null) continue;
+            token.ChangeData(model, attributeStart + i * attributes[i].Length, attributes[i]);
          }
       }
 
