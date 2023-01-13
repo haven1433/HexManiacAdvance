@@ -1361,6 +1361,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotInRange(Model.GetNextRun(0x104).Start, 0x100, 0x108);
       }
 
+      [Fact]
+      public void InvalidTextInTable_ReadTextFromTableModel_EscapedText() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^table[text\"\"8]2 Text");
+         Model[0] = 0x69;
+
+         var table = Model.GetTableModel("table");
+         var text = table[0].GetStringValue("text");
+
+         Assert.Equal("\\!69ext", text);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
