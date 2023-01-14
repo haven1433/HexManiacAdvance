@@ -43,6 +43,12 @@ Format = '''[name""11]412'''
 DefaultHash = ''''''
 
 [[NamedAnchors]]
+Name = '''data.pokemon.type.names'''
+Address = 0x31A7FC
+Format = '''^[name""7]data.pokemon.type.length'''
+DefaultHash = ''''''
+
+[[NamedAnchors]]
 Name = '''data.pokemon.moves.names'''
 Address = 0x319140
 Format = '''^[name""13]355'''
