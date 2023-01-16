@@ -67,6 +67,7 @@ scripts.newgame.starters.pointer,            ,       ,       ,       ,       ,  
 
 data.maps.names,                       0FB550, 0FB550, 0FB570, 0FB570,       ,       ,       ,       , 123B44, [x. y. width. height. name<"">]
 data.maps.names,                             ,       ,       ,       , 0C0C94, 0C0C68, 0C0CA8, 0C0C7C,       , [name<"">]
+data.maps.special.place.locations,        ,,,,                            ,,,,                         123EF0, [mapsec1:data.maps.names mapsec2:data.maps.names]!D500D500
 data.maps.theme.popup,                      ,,,, ,,,, 0D4C54, [theme.mapnamepopuptheme]data.maps.names+0-109 // the end of this table is wrong: the last 16 elements are from the end of the mapnames table, not the middle
 graphics.maps.names.popup.palettes,         ,,,, ,,,, 0D4CA0, `ucp4:012345`
 graphics.maps.names.popup.background,       ,,,, ,,,, 0D4CA4, `ucs4x10x18|graphics.maps.names.popup.palettes`
@@ -197,16 +198,18 @@ data.pokemon.moves.tutorcompatibility,       ,       ,       ,       , 120C30, 1
 data.pokemon.moves.tms,                06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125ADC, 1B6D10, [move:data.pokemon.moves.names]58
 data.pokemon.moves.tmcompatibility,    0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]data.pokemon.moves.tms]data.pokemon.names
 data.pokemon.moves.hms,                040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:data.pokemon.moves.names]8
-data.pokemon.moves.flash.radius,       0815DC, 0815DC, 0815FC, 0815FC, 07F070, 07F080, 07F084, 07F058, 0B00E4, [max: current:]1
-data.pokemon.moves.fallback.names,     120E1C, 120E1C, 120E3C, 120E3C, 0D7624, 0D75F8, 0D7638, 0D760C,       , [name<"">]data.pokemon.type.names
-data.pokemon.moves.fallback.names,           ,       ,       ,       ,       ,       ,       ,       , 14E530, [name""17]data.pokemon.type.names
+data.pokemon.moves.details.flash.radius,       0815DC, 0815DC, 0815FC, 0815FC, 07F070, 07F080, 07F084, 07F058, 0B00E4, [max: current:]1
+data.pokemon.moves.details.lowkick.power,      02AA50, 02AA50, 02AA50, 02AA50, 02C930, 02C930, 02C944, 02C944, 0556E8, [weight: basePower:]!FFFFFFFF
+data.pokemon.moves.details.singing,            075890, 075894, 0758B0, 0758B4, 0726E8, 0726E8, 0726FC, 0726FC, 0A3BA4, [move:data.pokemon.moves.names]!FFFF
+data.pokemon.moves.details.fallback.names,     120E1C, 120E1C, 120E3C, 120E3C, 0D7624, 0D75F8, 0D7638, 0D760C,       , [name<"">]data.pokemon.type.names
+data.pokemon.moves.details.fallback.names,           ,       ,       ,       ,       ,       ,       ,       , 14E530, [name""17]data.pokemon.type.names
 data.trainers.stats,                   00D890, 00D890, 00D890, 00D890, 00FC00, 00FC00, 00FC14, 00FC14, 03587C, [structType.trainerStructType class.data.trainers.classes.names introMusicAndGender.|t|music:::.|female. sprite.graphics.trainers.sprites.front name""12 prizeMoney|=4*(data.trainers.money/class=class)/moneyrate*pokemon/last/level item1:data.items.stats item2:data.items.stats item3:data.items.stats item4:data.items.stats doubleBattle::doublebattleflag ai|b[]traineraibits | pokemonCount:: pokemon<`tpt`>]
 data.trainers.money,                   024120, 024120, 024120, 024120,       ,       ,       ,       ,       , [class.data.trainers.classes.names moneyrate. unused:]55   // last element, FF, is 'catch all': the money rate for any other unspecified class
 data.trainers.money,                         ,       ,       ,       , 0259CC, 0259CC, 0259E0, 0259E0,       , [class.data.trainers.classes.names moneyrate. unused:]105  // last element, FF, is 'catch all': the money rate for any other unspecified class
 data.trainers.money,                         ,       ,       ,       ,       ,       ,       ,       , 04E6A8, [class.data.trainers.classes.names moneyrate. unused:]56   // last element, FF, is 'catch all': the money rate for any other unspecified class
 data.trainers.vsseeker,                      ,       ,       ,       , 10C7EC, 10C7C4, 10C864, 10C83C,       , [match1:data.trainers.stats match2:data.trainers.stats match3:data.trainers.stats match4:data.trainers.stats match5:data.trainers.stats match6:data.trainers.stats mapbank: map:]221
 data.trainers.multibattle.steven.team,       ,       ,       ,       ,       ,       ,       ,       , 165534, [species:data.pokemon.names iv. level. nature.data.pokemon.natures.names hpEV. atkEV. defEV. speedEV. spAtkEV. spDefEV. unused. [move:data.pokemon.moves.names]4]3
-data.decorations.stats,                0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price:: description<""> graphics<>]
+data.decorations.stats,                0B3AC8, 0B3AC8, 0B3AE8, 0B3AE8, 00014C, 00014C, 00014C, 00014C, 00014C, [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price: unused: description<""> graphics<>]
 data.pokemon.wild,                     084D9C, 084D9C, 084DBC, 084DBC, 082990, 082964, 0829A4, 082978, 0B4D48, [bank. map. unused: grass<[rate:: list<[lowLevel. highLevel. species:data.pokemon.names]12>]1> surf<[rate:: list<[lowLevel. highLevel. species:data.pokemon.names]5>]1> tree<[rate:: list<[lowLevel. highLevel. species:data.pokemon.names]5>]1> fish<[rate:: list<[lowLevel. highLevel. species:data.pokemon.names]10>]1>]!FFFF
 data.pokemon.trades,                   04D8D4, 04D8D4, 04D8F4, 04D8F4,       ,       ,       ,       ,       , [nickname""12 receive:data.pokemon.names hp. attack. defense. speed. spatk. spdef. abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:data.items.stats mailnum. trainername""11 trainergender.trainergender sheen. give::data.pokemon.names]3
 data.pokemon.trades,                         ,       ,       ,       , 053AD4, 053AD4, 053AE8, 053AE8,       , [nickname""12 receive:data.pokemon.names hp. attack. defense. speed. spatk. spdef. abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: helditem:data.items.stats mailnum. trainername""11 trainergender.trainergender sheen. give::data.pokemon.names]9
@@ -224,13 +227,19 @@ data.pokemon.type.chart,               01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 0
 data.pokemon.type.holdEffects,         03BCD0, 03BCD0, 03BCD0, 03BCD0, 03EF38, 03EF38, 03EF4C, 03EF4C, 069770, [effect. type.data.pokemon.type.names]data.pokemon.type.holdEffect.length
 data.pokemon.natures.stats,                  ,       ,       ,       , 0436D8, 0436D8, 0436EC, 0436EC,        , [attack.|z defense.|z speed.|z spAttack.|z spDefense.|z]data.pokemon.natures.names
 data.pokemon.swarm,                          ,       ,       ,       ,       ,       ,       ,       , 0ED800, [pokemon:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names level. location.]5
-
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
 scripts.moves.setupeffects,            ,,,, 1DBA96, 1DBA72, 1DBB06, 1DBAE2, , [effects.moveeffectoptions]!FF
 scripts.moves.setupeffects,            ,,,, ,,,, 2DDE7F,                      [effects.moveeffectoptions]!FF
+scripts.moves.animations.thumb,        075A00, 075A04, 075A20, 075A24, 072858, 072858, 07286C, 07286C, 0A3D14, [code<>]48
 scripts.specials.thumb,                      ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
 scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       ,       , [code<>]342
 scripts.specials.thumb,                      ,       ,       ,       ,       ,       ,       ,       , 099314, [code<>]527
+scripts.events.thumb,                  065570, 065574, 065590, 065594,       ,       ,       ,       ,       , [code<>]198
+scripts.events.thumb,                        ,       ,       ,       , 069A9C, 069A9C, 069AB0, 069AB0,       , [code<>]213
+scripts.events.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 098EB0, [code<>]227
+scripts.specials.vars,                 06923C, 069240, 06925C, 069260,       ,       ,       ,       ,       , [variable::|h]18
+scripts.specials.vars,                       ,       ,       ,       , 06E520, 06E520, 06E534, 06E534,       , [variable::|h]21
+scripts.specials.vars,                       ,       ,       ,       ,       ,       ,       ,       , 09D674, [variable::|h]22
 scripts.battle.thumb,                  012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
 scripts.battle.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
 scripts.battle.ai.thumb,               1073FC, 1073FC, 10741C, 10741C, 0C70E0, 0C70B4, 0C70F4, 0C70C8,       , [command<>]94
@@ -346,8 +355,10 @@ graphics.bag.inside3.palette,          ,,,, 09B108, 09B0DC, 09B11C, 09B0F0, , `l
 graphics.bag.inside3.tileset,          ,,,, 09B0B0, 09B084, 09B0C4, 09B098, , `lzt4|graphics.bag.inside3.palette`
 graphics.bag.inside3.tilemap1,         ,,,, 09B0B8, 09B08C, 09B0CC, 09B0A0, , `lzm4x32x32|graphics.bag.inside3.tileset`
 graphics.bag.inside3.tilemap2,         ,,,, 09B100, 09B0D4, 09B114, 09B0E8, , `lzm4x32x32|graphics.bag.inside3.tileset`
-graphics.bag.inside.palette,           0A35AC, 0A35AC, 0A35CC, 0A35CC, ,,,, , `lzp4`
-graphics.bag.inside.tileset,           0A3568, 0A3568, 0A3588, 0A3588, ,,,, , `lzt4|graphics.bag.inside.palette`
+graphics.bag.inside.palette.male,      0A35AC, 0A35AC, 0A35CC, 0A35CC, ,,,, , `lzp4`
+graphics.bag.inside.palette.female,    0A35BC, 0A35BC, 0A35DC, 0A35DC, ,,,, , `lzp4`
+
+graphics.bag.inside.tileset,           0A3568, 0A3568, 0A3588, 0A3588, ,,,, , `lzt4|graphics.bag.inside.palette.male`
 graphics.bag.inside.tilemap,           0A3580, 0A3580, 0A35A0, 0A35A0, ,,,, , `ucm4x32x32|graphics.bag.inside.tileset`
 
 graphics.menu.pokeball.palette,                  ,,,, 45A47C, 459E9C, 45A4DC, 459F0C, 615F00, `lzp4`
@@ -504,6 +515,7 @@ graphics.battle.animations.statchange.palette.p8, , , , , 0BB3C0, 0BB394, 0BB3D4
 graphics.battle.animations.statchange.tileset,  , , , , 0BB358, 0BB32C, 0BB36C, 0BB340, , `lzt4|graphics.battle.animations.statchange.palette.p1`
 graphics.battle.animations.statchange.tilemap1, , , , , 0BB308, 0BB2DC, 0BB31C, 0BB2F0, , `lzm4x32x32|graphics.battle.animations.statchange.tileset`
 graphics.battle.animations.statchange.tilemap2, , , , , 0BB354, 0BB328, 0BB368, 0BB33C, , `lzm4x32x32|graphics.battle.animations.statchange.tileset`
+graphics.battle.animations.misc,                 0316BC, 0316BC, 0316BC, 0316BC, 034238, 034238, 03424C, 03424C, 05DB24, [pointer<>]miscanimations
 graphics.battle.pokemon.shadow,                  1FAF24, 1FAEB4, 1FAF3C, 1FAECC, 250A0C, 2509EC, 250A7C, 250A5C, 31C6A0, `lzs4x4x1|graphics.battle.hud.palette`
 
 graphics.titlescreen.pokemon.palette,              07C298, 07C29C, 07C2B8, 07C2BC, ,,,, , `ucp4:EF`
@@ -739,8 +751,14 @@ graphics.text.font.blue.characters,  ,,,, 006920, 006920, 006934, 006934, , `ucs
 graphics.text.font.blue.width,       ,,,, 006928, 006928, 00693C, 00693C, , [width.]512
 graphics.text.font.red.characters,   ,,,, 006A8C, 006A8C, 006AA0, 006AA0, , `ucs2x2x1024`
 graphics.text.font.red.width,        ,,,, 006A94, 006A94, 006AA8, 006AA8, , [width.]512
+graphics.text.font.other.width,      004944, 004944, 004944, 004944, ,,,, , [width.]254
+graphics.text.font.black.width,      00495C, 00495C, 00495C, 00495C, ,,,, , [width.]220
+graphics.text.font.blue.width,       004930, 004930, 004930, 004930, ,,,, , [width.]256
+graphics.text.font.red.width,        004938, 004938, 004938, 004938, ,,,, , [width.]220
+
 graphics.text.font.characters,       095984, 095984, 0959A4, 0959A4, ,,,,, `ucs4x1x1236`
-graphics.text.font.width,            004930, 004930, 004930, 004930, ,,,,, [width.]256
+# graphics.text.font.width,            004930, 004930, 004930, 004930, ,,,,, [width.]256
+
 graphics.text.font.short.characters,          ,,,, 0064C4, 0064C4, 0064D8, 0064D8, , `ucs2x1x1024`
 graphics.text.font.short.width,               ,,,, 0064CC, 0064CC, 0064E0, 0064E0, , [width.]512
 graphics.text.font.short.japanese.characters, ,,,, 006488, 006488, 00649C, 00649C, , `ucs2x16x64`
@@ -762,6 +780,8 @@ graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
 graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
+
+
 data.text.menu.pokemon.battle,                                 , , , , 032C38, 032C38, 032C4C, 032C4C,       , ""
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
 data.text.menu.pokemon.options,        089CCC, 089CCC, 089CEC, 089CEC, 120F74, 120F4C, 120FEC, 120FC4, 1B32F8, [text<""> code<>]
@@ -770,7 +790,7 @@ data.text.menu.itemStorage,            139FAC, 139FAC, 139FCC, 139FCC, 0EBA84, 0
 sound.fanfares,                        074E64, 074E68, 074E84, 074E88,                            ,,,,       , [songID:          duration:]12
 sound.fanfares,                                                   ,,,, 071C08, 071C08, 071C1C, 071C1C,       , [songID:songnames duration:]14
 sound.fanfares,                                                   ,,,,                            ,,,, 0A308C, [songID:songnames duration:]18
-sound.tracks,                                                     ,,,, 1DD11C, 1DD0F8, 1DD18C, 1DD168, 2E0158, [pointer<> musicplayer: unknown:]songnames
+sound.tracks,                          1DDF20, 1DDEB0, 1DDF38, 1DDEC8, 1DD11C, 1DD0F8, 1DD18C, 1DD168, 2E0158, [pointer<> musicplayer: unknown:]songnames
 sound.musicplayer,                                                ,,,,                            ,,,, 2E010C, [info::|h track::|h num: unknown:]4
 sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24

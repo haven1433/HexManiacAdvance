@@ -68,7 +68,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             "data.menus.text.pcoptions",
             "data.menus.text.pokemon",
             "data.pokedex.habitat.names",
-            "data.pokemon.moves.fallback.names",
+            "data.pokemon.moves.details.fallback.names",
             "data.text.menu.pause",
             "data.text.menu.pokemon.options",
             "scripts.newgame.names.female",

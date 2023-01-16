@@ -46,10 +46,10 @@
 
 # Update move fallback names
 @!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
-@data.pokemon.moves.fallback.names/Fairy <null>
-@data.pokemon.moves.fallback.names/Fairy @{ "a FAIRY move" @}
+@data.pokemon.moves.details.fallback.names/Fairy <null>
+@data.pokemon.moves.details.fallback.names/Fairy @{ "a FAIRY move" @}
 @!game(BPEE0)
-@data.pokemon.moves.fallback.names/Fairy "a FAIRY move"
+@data.pokemon.moves.details.fallback.names/Fairy "a FAIRY move"
 @!game(All)
 
 # Update the type effectiveness chart

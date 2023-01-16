@@ -996,3 +996,15 @@ Name = '''varmacros'''
    '''MonBoxID''',
    '''MonBoxPosition''',
 ]
+
+[[List]]
+Name = '''miscanimations'''
+0 = [
+   '''LevelUp''',
+   '''SwitchOutPlayerPokémon''',
+   '''SwitchOutEnemyPokémon''',
+   '''ThrowPokéBall''',
+   '''ThrowPokéBallWithTrainer''',
+   '''SubstituteToPokémon''',
+   '''PokémonToSubstitute''',
+]

@@ -125,7 +125,12 @@
                <LineBreak />
                <Run Text="Click a block below to select it, or" />
                <LineBreak />
-               <Run Text="Right-Click the map to select a block." />
+               <Run Text="Right-Clicking a map cell to select a block." />
+               <LineBreak />
+               <LineBreak />
+               <Run Text="You can select a movement permission" FontStyle="Italic" />
+               <LineBreak />
+               <Run Text="without selecting a block." FontStyle="Italic" />
             </TextBlock>
          </Grid>
          <ScrollViewer Name="BlockViewer" Margin="0,0,-1,0">
