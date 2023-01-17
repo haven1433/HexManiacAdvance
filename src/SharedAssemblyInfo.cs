@@ -4,12 +4,12 @@ using System.Diagnostics.CodeAnalysis;
 // general info needed by all assemblies in the solution
 [assembly: AssemblyCompany("HavenSoft")]
 [assembly: AssemblyProduct("HavenSoft")]
-[assembly: AssemblyCopyright("Copyright © HavenSoft 2022")]
+[assembly: AssemblyCopyright("Copyright © HavenSoft 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("0.5.0.2")]
-[assembly: AssemblyFileVersion("0.5.0.2")]
+[assembly: AssemblyVersion("0.5.1")]
+[assembly: AssemblyFileVersion("0.5.1")]
 
 
 // AutoImplement style issues are expected, since it's compatible with earlier versions of C#.
