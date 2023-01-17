@@ -1,36 +1,47 @@
 #   callasm command code insertion
-#   Original ASM routine by Jambo51, port to Emerald by Xencleamas. HMA script by AGSMGMaster64.
+#   Original ASM inspiration by Jambo51, original ASM port to Emerald by Xencleamas. Tweak and HMA script by AGSMGMaster64.
 #   Manual TOML changes are needed after running this script! Open in a text editor for more details.
 
 #   More Details:
 #   Expands the battle script command table if necessary to implement the callasm command
-#   Make sure you change the Resources/battleScriptReference.txt from your HMA folder and add in a new line after "[BPEE] f8 trainerslideout battler." the text in the next line here
-#   f9 callasm ptr<>
+#   Make sure you change the Resources/battleScriptReference.txt from your HMA folder and add in a new line after
+#   "[BPEE] f8 trainerslideout battler." the text in the next line here:
+#   	f9 callasm asm<> arg<>
 
-# ---------------- All Games: Add in the callasm command ----------------
+#	This tweak of callasm is different from the original routine by Jambo51 in that it reads the ASM as a battle script
+#	command instead of just reading the ASM and continuing after.
+#	There is a failsafe implemented that allows you to read ASM intended for original callasm that will automatically
+#	jump to the next command if gBattlescriptCurrInstr hasn't been modified by the ASM called.
+
+#	To use callasm in its original form, use the command as such, with PointerToYourASM being the pointer to your ASM:
+#		callasm <PointerToYourASM+1> FFFFFFFF
+
+# ---------------- All Games: Add in the tweaked callasm command ----------------
 @!game(All)
-@thumb.battlescriptcommands.callasm(34) .thumb
+@thumb.battlescriptcommand.callasm(38) .thumb
 Main:
-    push  {lr}
-    push  {r1-r7}
-    ldr   r0, BattlescriptCurrInstr
-    ldr   r0, [r0, #0]
-    ldrb  r1, [r0, #1]
-    ldrb  r2, [r0, #2]
-    lsl   r2, r2, #8
-    orr   r1, r2
-    ldrb  r2, [r0, #3]
-    lsl   r2, r2, #16
-    orr   r1, r2
-    ldrb  r2, [r0, #4]
-    lsl   r2, r2, #24
-    orr   r1, r2
+    push  {r4-r5, lr}
+    ldr   r5, BattlescriptCurrInstr
+    ldr   r4, [r5, #0]
+    ldrb  r1, [r4, #1]
+    ldrb  r0, [r4, #2]
+    lsl   r0, r0, #8
+    orr   r1, r0
+    ldrb  r0, [r4, #3]
+    lsl   r0, r0, #16
+    orr   r1, r0
+    ldrb  r0, [r4, #4]
+    lsl   r0, r0, #24
+    orr   r1, r0
     bl    CallViaR1
-    ldr   r0, BattlescriptCurrInstr
-    ldr   r1, [r0, #0]
-    add   r1, r1, #5
-    str   r1, [r0, #0]
-    pop   {r1-r7}
+    ldr   r0, [r5, #0]
+    cmp   r4, r0
+    bne   End
+    mov   r0, r4
+    add   r0, r0, #9
+    str   r0, [r5, #0]
+End:
+    pop   {r4-r5}
     pop   {r0}
     bx    r0
 CallViaR1:
@@ -40,7 +51,7 @@ BattlescriptCurrInstr:
 .end
 
 # gBattlescriptCurrInstr is different for the other games
-@thumb.battlescriptcommands.callasm+30
+@thumb.battlescriptcommand.callasm+34
 @!game(AXVE0_AXPE0_AXVE1_AXPE1) 10 4C
 @!game(BPRE0_BPRE1_BPGE0_BPGE1) 74 3D
 
@@ -51,5 +62,4 @@ BattlescriptCurrInstr:
 
 @!game(All)
 @scripts.battle.thumb/249
-+ <thumb.battlescriptcommands.callasm+1>
-
++ <thumb.battlescriptcommand.callasm+1>
