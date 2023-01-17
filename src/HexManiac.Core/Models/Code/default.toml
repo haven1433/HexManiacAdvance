@@ -1008,3 +1008,49 @@ Name = '''miscanimations'''
    '''SubstituteToPokémon''',
    '''PokémonToSubstitute''',
 ]
+
+[[List]]
+Name = '''animationpan'''
+63 = '''sound_pan_target'''
+192 = '''sound_pan_attacker'''
+
+[[List]]
+Name = '''animationbanks'''
+0 = [
+   '''anim_attacker''',
+   '''anim_target''',
+   '''anim_atk_partner''',
+   '''anim_def_partner''',
+]
+
+[[List]]
+Name = '''animationbg'''
+0 = [
+   '''bg_none''',
+   '''bg_dark''',
+   '''bg_ghost''',
+   '''bg_psychic''',
+   '''bg_impact_opponent''',
+   '''bg_impact_player''',
+   '''bg_impact_contests''',
+   '''bg_drill''',
+   '''bg_drill_contests''',
+   '''bg_highspeed_opponent''',
+   '''bg_highspeed_player''',
+   '''bg_thunder''',
+   '''bg_guillotine_opponent''',
+   '''bg_guillotine_player''',
+   '''bg_guillotine_contests''',
+   '''bg_ice''',
+   '''bg_cosmic''',
+   '''bg_in_air''',
+   '''bg_sky''',
+   '''bg_sky_contests''',
+   '''bg_aurora''',
+   '''bg_fissure''',
+   '''bg_bug_opponent''',
+   '''bg_bug_player''',
+   '''bg_solar_beam_opponent''',
+   '''bg_solar_beam_player''',
+   '''bg_solar_beam_contests''',
+]
