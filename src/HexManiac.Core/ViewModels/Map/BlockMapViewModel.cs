@@ -500,6 +500,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
+      public bool UpdateFrom(BlockMapViewModel other) {
+         if (other == null) return false;
+         if (other == this) return true;
+         if (other.MapID == MapID) {
+            IncludeBorders = other.IncludeBorders;
+            SpriteScale = other.SpriteScale;
+            LeftEdge = other.LeftEdge;
+            TopEdge = other.TopEdge;
+            ZIndex = other.ZIndex;
+            IsSelected = other.IsSelected;
+            return true;
+         }
+         return false;
+      }
+
       public void GotoData() {
          var map = GetMapModel();
          viewPort.Goto.Execute(map.Start);

@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HexManiac.Core.Models.Runs.Sprites;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
@@ -12,7 +13,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using static IronPython.Modules._ast;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -357,6 +357,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (blockset == -1) return;
          if (blockset == Pointer.NULL) return;
          // update the primary map
+         if (VisibleMaps.FirstOrDefault(existing => existing.UpdateFrom(map)) is BlockMapViewModel loadedMap) map = loadedMap;
          if (primaryMap != map) {
             if (primaryMap != null) {
                primaryMap.NeighborsChanged -= PrimaryMapNeighborsChanged;
@@ -402,14 +403,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var newM in newMaps) {
             bool match = false;
             foreach (var existingM in VisibleMaps) {
-               if (existingM.MapID == newM.MapID) {
+               if (existingM.UpdateFrom(newM)) { 
                   match = true;
-                  existingM.IncludeBorders = newM.IncludeBorders;
-                  existingM.SpriteScale = newM.SpriteScale;
-                  existingM.LeftEdge = newM.LeftEdge;
-                  existingM.TopEdge = newM.TopEdge;
-                  existingM.ZIndex = newM.ZIndex;
-                  existingM.IsSelected = newM.IsSelected;
                   break;
                }
             }
