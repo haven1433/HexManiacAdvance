@@ -3,7 +3,6 @@ using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
-using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Implementations;
@@ -13,7 +12,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
@@ -29,7 +27,7 @@ using System.Windows.Navigation;
 using System.Windows.Threading;
 
 namespace HavenSoft.HexManiac.WPF.Windows {
-   partial class MainWindow {
+   public partial class MainWindow {
       private readonly List<Action> deferredActions = new();
       private ThemeSelector themeWindow;
 
