@@ -1078,10 +1078,20 @@ namespace HavenSoft.HexManiac.Core.Models {
                SetIndex(index, run);
             }
 
+            // we shortened a table that had inner anchors. Those inner anchors should not be cleared.
             if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers && arrayRun2.Length > run.Length) {
                for (int i = 0; i < arrayRun2.ElementCount; i++) {
                   if (arrayRun2.ElementLength * i < run.Length) continue;
-                  ObserveRunWritten(changeToken, new NoInfoRun(arrayRun2.Start + arrayRun2.ElementLength * i, arrayRun2.PointerSourcesForInnerElements[i]));
+                  var sources = arrayRun2.PointerSourcesForInnerElements[i];
+                  foreach (var source in sources) {
+                     if (GetNextRun(source).Start >= source + 4) {
+                        // there was a pointer here, it's probably valid so we should re-add it
+                        var pRun = new PointerRun(source);
+                        runs.Insert(~BinarySearch(source), pRun);
+                        changeToken.AddRun(pRun);
+                     }
+                  }
+                  ObserveRunWritten(changeToken, new NoInfoRun(arrayRun2.Start + arrayRun2.ElementLength * i, sources));
                }
             }
          }

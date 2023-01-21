@@ -14,5 +14,17 @@ namespace HavenSoft.HexManiac.Integration {
 
          // no crash = pass
       }
+
+      [SkippableFact]
+      public void FireRed_ChangeLengthOfTypeNamesToS_NoAssert() {
+         var firered = LoadFireRed();
+
+         firered.Goto.Execute(HardcodeTablesModel.TypesTableName);
+         var text = firered.AnchorText;
+         text = text.Split("]")[0] + ']';
+         firered.AnchorText = text + "s";
+
+         // no debug assert -> pass
+      }
    }
 }
