@@ -562,6 +562,18 @@ You said no!
          Assert.DoesNotContain("<auto>", EventScript);
       }
 
+      [Fact]
+      public void BranchToScriptAfterCurrentAddress_SecondScriptHasGoto_DestinationInNewScriptContent() {
+         Tool.Mode = CodeMode.Script;
+         EventScript = "if1 = <later>;end;later:;goto <000100>";
+         ViewPort.Goto.Execute(0x100);
+         EventScript = "nop;end";
+
+         ViewPort.Goto.Execute(0);
+
+         Assert.Equal(2, Tool.Contents.Count);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

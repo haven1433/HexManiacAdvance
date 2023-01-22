@@ -39,6 +39,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var lengths = new List<int>();
 
          for (int i = 0; i < scripts.Count; i++) {
+            while (i < scripts.Count && i.Range().Any(j => scripts[j] <= scripts[i] && scripts[i] < scripts[j] + lengths[j])) scripts.RemoveAt(i);
+            if (i == scripts.Count) break;
             address = scripts[i];
             int length = 0;
             var destinations = new Dictionary<int, int>();
@@ -69,6 +71,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             while (destinations.TryGetValue(address + length, out int childLength)) length += childLength;
             scripts.RemoveAll(start => start > address && start < address + length);
             lengths.Add(length);
+
+            // look for other scripts from destinations that we should care about but don't yet
+            scripts.AddRange(destinations.Keys.Where(d => lengths.Count.Range().All(j => scripts[j] > d || d >= scripts[j] + lengths[j])));
          }
 
          return scripts;
