@@ -12,6 +12,7 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
+      public const int MaxRepeates = 20;
       private readonly IReadOnlyList<IScriptLine> engine;
       private readonly byte endToken;
 
@@ -44,6 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             address = scripts[i];
             int length = 0;
             var destinations = new Dictionary<int, int>();
+            int lastCommand = -1, repeateLength = 0;
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
                if (line == null) break;
@@ -66,14 +68,27 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   length += arg.Length(model, address + length);
                }
                if (line.IsEndingCommand) break;
+
+               if (line.LineCode[0] != lastCommand) (lastCommand, repeateLength) = (line.LineCode[0], 1);
+               else repeateLength += 1;
+               if (line.Args.Count > 0) repeateLength = 0;
+               if (repeateLength > MaxRepeates) break; // same command lots of times in a row is fishy
             }
 
             while (destinations.TryGetValue(address + length, out int childLength)) length += childLength;
-            scripts.RemoveAll(start => start > address && start < address + length);
+            for (int j = lengths.Count - 1; j >= 0; j--) {
+               if (scripts[j] <= address || scripts[j] >= address + length) continue;
+               lengths.RemoveAt(j);
+               scripts.RemoveAt(j);
+            }
             lengths.Add(length);
 
             // look for other scripts from destinations that we should care about but don't yet
-            scripts.AddRange(destinations.Keys.Where(d => lengths.Count.Range().All(j => scripts[j] > d || d >= scripts[j] + lengths[j])));
+            scripts.AddRange(destinations.Keys.Where(d =>
+               model.GetNextRun(d) is IScriptStartRun scriptStart &&
+               scriptStart.Start == d &&
+               lengths.Count.Range().All(j => scripts[j] > d || d >= scripts[j] + lengths[j])
+               ));
          }
 
          return scripts;
@@ -83,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          int length = 0;
          int consecutiveNops = 0;
          var destinations = new Dictionary<int, int>();
-
+         int lastCommand = -1, repeateLength = 1;
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
             if (line == null) break;
@@ -91,6 +106,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (consecutiveNops > 16) return 0;
             length += line.CompiledByteLength(model, address + length, destinations);
             if (line.IsEndingCommand) break;
+
+            if (line.LineCode[0] != lastCommand) (lastCommand, repeateLength) = (line.LineCode[0], 1);
+            else repeateLength += 1;
+            if (line.Args.Count > 0) repeateLength = 0;
+            if (repeateLength > ScriptParser.MaxRepeates) break; // same command lots of times in a row is fishy
          }
 
          // Include in the length any content that comes directly (or +1) after the script.
@@ -515,7 +535,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   // we only want to add this run's length as part of the script if:
                   // (1) the run has no name
                   // (2) the run has only one source (the script)
-                  if (run is NoInfoRun) return -1;
+                  if (run is NoInfoRun || run.PointerSources == null) return -1;
                   if (run.PointerSources.Count == 1 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, destination))) {
                      return run.Length;
                   }
@@ -1321,11 +1341,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, IDataModel model, int address, IDictionary<int, int> destinationLengths) {
          int length = 0;
+         int lastCommand = -1, repeateLength = 1;
          while (true) {
             var line = self.GetMatchingLine(model, address + length);
             if (line == null) break;
             length += line.CompiledByteLength(model, address + length, destinationLengths);
             if (line.IsEndingCommand) break;
+
+            if (line.LineCode[0] != lastCommand) (lastCommand, repeateLength) = (line.LineCode[0], 1);
+            else repeateLength += 1;
+            if (line.Args.Count > 0) repeateLength = 0;
+            if (repeateLength > ScriptParser.MaxRepeates) break; // same command lots of times in a row is fishy
          }
          while (destinationLengths.TryGetValue(address + length, out int argLength)) {
             length += argLength;
