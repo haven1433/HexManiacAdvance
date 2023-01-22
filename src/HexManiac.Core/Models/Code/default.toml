@@ -1054,3 +1054,16 @@ Name = '''animationbg'''
    '''bg_solar_beam_player''',
    '''bg_solar_beam_contests''',
 ]
+
+[[List]]
+Name = '''messagevars'''
+0 = [
+     '''none''',
+     '''pokemonName''',
+     '''unused02''',
+     '''unused03''',
+     '''releasePokemon1''',
+     '''unused05''',
+     '''releasePokemon3''',
+     '''itemName''',
+]
