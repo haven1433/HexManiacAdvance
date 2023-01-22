@@ -5,6 +5,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -572,6 +573,20 @@ You said no!
          ViewPort.Goto.Execute(0);
 
          Assert.Equal(2, Tool.Contents.Count);
+      }
+
+      [Fact]
+      public void AnimationScript_PlaySeWithPan_CanDecode() {
+         var animationpan = new List<string>(192.Range<string>(i => null));
+         animationpan[63] = "sound_pan_target";
+         ViewPort.Model.SetList(nameof(animationpan), animationpan);
+
+         ViewPort.Edit("19 00 00 00 ");
+         Tool.Mode = CodeMode.AnimationScript;
+         ViewPort.Goto.Execute(0);
+         var help = Tool.AnimationScriptParser.GetHelp(ViewPort.Model, new HelpContext("playsewithpan mus_dummy 0", 25));
+
+         Assert.NotNull(help);
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
