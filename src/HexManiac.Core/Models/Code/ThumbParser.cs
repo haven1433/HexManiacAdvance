@@ -9,30 +9,6 @@ using System.Linq;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
-   public class LabelLibrary {
-      private readonly IDataModel model;
-      private readonly IDictionary<string, int> labels;
-      public LabelLibrary(IDataModel data, IDictionary<string, int> additionalLabels) => (model, labels) = (data, additionalLabels);
-      public int ResolveLabel(string label) {
-         var offset = 0;
-         if (label.Split("+") is string[] parts && parts.Length == 2) {
-            label = parts[0];
-            int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
-         }
-         if (labels.TryGetValue(label, out int result)) return result + offset;
-         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label);
-         if (address == Pointer.NULL) return address;
-         return address + offset;
-      }
-      public bool TryResolveLabel(string label, out int address) {
-         address = ResolveLabel(label);
-         return address >= 0;
-      }
-      public bool TryResolveValue(string title, out int value) {
-         return model.TryGetUnmappedConstant(title, out value);
-      }
-   }
-
    public class ThumbParser {
       private readonly List<ConditionCode> conditionalCodes = new List<ConditionCode>();
       private readonly List<IInstruction> instructionTemplates = new List<IInstruction>();

@@ -394,7 +394,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   }
                }
 
-               var error = command.Compile(model, start, line, labels, out var code);
+               var error = command.Compile(model, start + currentSize, line, labels, out var code);
                if (error == null) {
                   result.AddRange(code);
                } else {
@@ -427,6 +427,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                break;
             }
          }
+
+         // any labels that were used but not included, stick them on the end of the script
+         labels.ResolveUnresolvedLabels(start, result, endToken);
 
          // done with script lines, now write deferred data
          foreach (var deferred in deferredContent) {
@@ -782,7 +785,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg scriptArg) {
                var token = args[specifiedArgIndex];
-               var message = scriptArg.Build(model, token, results, labels);
+               var message = scriptArg.Build(model, start + results.Count, token, results, labels);
                if (message != null) return message;
                specifiedArgIndex += 1;
             } else if (Args[i] is SilentMatchArg silentArg) {
@@ -947,25 +950,31 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
          }
          var results = new List<byte>(LineCode);
+         start += LineCode.Count;
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg scriptArg) {
                var token = tokens[i + LineCode.Count];
-               var message = scriptArg.Build(model, token, results, labels);
+               var message = scriptArg.Build(model, start, token, results, labels);
                if (message != null) return message;
+               start += scriptArg.Length(model, start);
             } else if (Args[i] is ArrayArg arrayArg) {
                var values = arrayArg.ConvertMany(model, tokens.Skip(i + 1)).ToList();
                results.Add((byte)values.Count);
+               start += 1;
                foreach (var value in values) {
                   if (Args[i].Type == ArgType.Byte) {
                      results.Add((byte)value);
+                     start += 1;
                   } else if (Args[i].Type == ArgType.Short) {
                      results.Add((byte)value);
                      results.Add((byte)(value >> 8));
+                     start += 2;
                   } else if (Args[i].Type == ArgType.Word) {
                      results.Add((byte)value);
                      results.Add((byte)(value >> 0x8));
                      results.Add((byte)(value >> 0x10));
                      results.Add((byte)(value >> 0x18));
+                     start += 4;
                   } else {
                      throw new NotImplementedException();
                   }
@@ -1215,7 +1224,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return false;
       }
 
-      public string Build(IDataModel model, string token, IList<byte> results, LabelLibrary labels) {
+      public string Build(IDataModel model, int address, string token, IList<byte> results, LabelLibrary labels) {
          if (Type == ArgType.Byte) {
             results.Add((byte)Convert(model, token));
          } else if (Type == ArgType.Short) {
@@ -1241,7 +1250,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
             } else {
-               return $"Unable to parse {token} as a hex number.";
+               labels.AddUnresolvedLabel(token, address);
+               value = 0;
             }
             value -= Pointer.NULL;
             results.Add((byte)value);

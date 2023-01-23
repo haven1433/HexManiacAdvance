@@ -589,6 +589,14 @@ You said no!
          Assert.NotNull(help);
       }
 
+      [Fact]
+      public void Script_UnusedLabel_LabelAppendedToEndOfScript() {
+         EventScript = "if1 = <go1>;if1 = <go2>;end"; // the end is at 12
+
+         Assert.Equal(13, Model.ReadPointer(2));
+         Assert.Equal(14, Model.ReadPointer(8));
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
