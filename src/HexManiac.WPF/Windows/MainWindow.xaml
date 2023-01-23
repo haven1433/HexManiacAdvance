@@ -294,8 +294,8 @@
                         <Path Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                      </MenuItem.Icon>
                   </MenuItem>
-                  <MenuItem Header="Assist Development">
-                     <MenuItem Header="Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
+                  <MenuItem Header="A_ssist Development">
+                     <MenuItem Header="_Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
                   </MenuItem>
                   <MenuItem Header="_About" Click="AboutClick"/>
                </MenuItem>
