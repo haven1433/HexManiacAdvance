@@ -597,6 +597,26 @@ You said no!
          Assert.Equal(14, Model.ReadPointer(8));
       }
 
+      [Fact]
+      public void Script_EndsInLabel_AutoIncludeEndCommand() {
+         EventScript = "if1 = <go1>;end;go1:";
+
+         Assert.Equal(7, Model.ReadPointer(2));
+         Assert.Equal(2, Model[7]);
+      }
+
+      [Fact]
+      public void Script_Unfinished_EndsWithEndCommand() {
+         EventScript = "nop";
+         Assert.Equal(2, Model[1]);
+      }
+
+      [Fact]
+      public void Script_EndsWithGoto_DoesNotIncludeClosingEnd() {
+         EventScript = "goto <100>";
+         Assert.Equal(0xFF, Model[5]);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

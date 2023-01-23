@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class LabelLibrary {
@@ -54,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             script.Add(endCommand);
          }
          unresolvedLabels.Clear();
+         if (labels.Values.Any(address => address == scriptStart + script.Count)) script.Add(endCommand);
       }
    }
 }

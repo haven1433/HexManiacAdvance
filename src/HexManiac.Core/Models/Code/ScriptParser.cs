@@ -306,6 +306,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          var labels = ExtractLocalLabels(model, start, lines);
 
+         bool lastCommandIsEndCommand = false;
+
          for (var i = 0; i < lines.Length; i++) {
             var line = lines[i].Trim();
             if (line.EndsWith(":")) continue; // label, not code. Don't parse.
@@ -424,9 +426,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   pointerOffset += arg.Length(model, currentSize + pointerOffset);
                }
 
+               lastCommandIsEndCommand = command.IsEndingCommand;
                break;
             }
          }
+
+         if (!lastCommandIsEndCommand) result.Add(endToken);
 
          // any labels that were used but not included, stick them on the end of the script
          labels.ResolveUnresolvedLabels(start, result, endToken);
@@ -436,7 +441,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             deferred.WriteData(result, start);
          }
 
-         if (result.Count == 0) result.Add(endToken); // end
          return result.ToArray();
       }
 
