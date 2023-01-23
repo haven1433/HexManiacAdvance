@@ -1067,3 +1067,16 @@ Name = '''messagevars'''
      '''releasePokemon3''',
      '''itemName''',
 ]
+
+[[List]]
+Name = '''perstepcallbacks'''
+0 = [
+   '''Dummy''',
+   '''CollectAsh''',
+   '''FortreeBridge''',
+   '''PacifidlogBridge''',
+   '''SootopolisGymIce''',
+   '''EndTruckSequence''',
+   '''SecretBase''',
+   '''CrackedFloor''',
+]

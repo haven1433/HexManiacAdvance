@@ -795,3 +795,30 @@ sound.musicplayer,                                                ,,,,          
 sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.hoennconversion,     03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277
+
+// From Shiny Till Dawn:
+data.pokemon.moves.flail.chart,              02865C, 02865C, 02865C, 02865C, 02A4CC, 02A4CC, 02A4E0, 02A4E0, 053254, [hpbenchmark. power.]6 
+data.abilities.pickup.probabilities,               ,       ,       ,       ,       ,       ,       ,       , 055DF0, [cumulativeProb.]9
+data.maps.alteringcave.wild,                       ,       ,       ,       ,       ,       ,       ,       , 06EA54, [pokémon:data.pokemon.names item:data.items.stats]9
+scripts.trig.sinetable.radian,               040E04, 040E04, 040E24, 040E24, 044E48, 044E48, 044E5C, 044E5C, 02CE34, [sine:|z]320
+scripts.trig.sinetable.degree,               040E5C, 040E5C, 040E7C, 040E7C, 044EA0, 044EA0, 044EB4, 044EB4, 06F5A4, [sine:|z]180
+scripts.buffercommands.player,               02C058, 02C058, 02C058, 02C058, 02E3F8, 02E3F8, 02E40C, 02E40C, 057548, [thumb<>]57
+scripts.buffercommands.opponent,             032B40, 032B40, 032B40, 032B40, 035ADC, 035ADC, 035AF0, 035AF0, 05F1C4, [thumb<>]57
+scripts.buffercommands.linkopponent,         037570, 037570, 037570, 037570, 03A6C8, 03A6C8, 03A6DC, 03A6DC, 0643F4, [thumb<>]57
+scripts.events.onstep.callbacks,                   ,       ,       ,       , 06E838, 06E838, 06E84C, 06E84C, 09D8B4, [thumb<>]perstepcallbacks
+scripts.weather.coordevent.functions,        069428, 06942C, 069448, 06944C,       ,       ,       ,       , 09D878, [mapweather:: thumb<>]13
+scripts.weather.functions,                   07C97C,       , 07C99C,       , 079D54,       , 079D68,       , 0AB0F8, [thumb<>]60
+scripts.text.stringvars,                     0673B8, 0673BC, 0673D8, 0673DC, 06BCC0, 06BCC0, 06BCD4, 06BCD4, 09AFF4, [ram::|h]3
+graphics.items.ball.trade.palette,           215954, 2158E4, 21596C, 2158FC, 26CDDC, 26CDBC, 26CE4C, 26CE2C, 338D20, `ucp4`
+graphics.items.ball.trade.sprite,            21594C, 2158DC, 215964, 2158F4, 26CDD4, 26CDB4, 26CE44, 26CE24, 338D18, `ucs4x2x24|graphics.items.ball.trade.palette`
+scripts.text.daycare.compatibility.messages, 042544, 042544, 042564, 042564, 0466C4, 0466C4, 0466D8, 0466D8, 070EC8, [pointer<"">]4
+graphics.pokemon.palettes.egg,               20A3C0, 20A350, 20A3D8, 20A368, 26012C, 26010C, 26019C, 26017C, 32BFF4, `ucp4`
+graphics.pokemon.sprites.egg,                20A3B0, 20A340, 20A3C8, 20A358, 26011C, 2600FC, 26018C, 26016C, 32BFE4, `ucs4x4x17|graphics.pokemon.palettes.egg`
+data.text.trade.messages,                          ,       ,       ,       , 124570, 124548, 1245E8, 1245C0, 07A1EC, [text<"">]9
+graphics.menus.trade.windowtemplates.others,       ,       ,       ,       ,       ,       ,       ,       , 0773A8, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]!FF00000000000000
+graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,       ,       ,       ,       , 078EEC, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]1
+
+// From Soup
+data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578,       ,       ,       ,       ,       , [numerator. divisor. unused:]13
+data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8,       ,       ,       ,       ,       , [rate:]6
+data.pokemon.moves.NaturePower,      029FAC, 029FAC, 029FAC, 029FAC,       ,       ,       ,       ,       , [move:data.pokemon.moves.names]10
