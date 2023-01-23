@@ -79,8 +79,18 @@ CC_10 = 2 # play sound effects
 
 [player]       FD 01
 [rival]        FD 06
+[resetfont]    FC 07
 [pause]        FC 09  # pause until a button is pressed
 [wait_sound]   FC 0A  # wait for sound effect to finish
+[escape]       FC 0C
+[shift_right]  FC 0D  # a nop in Ruby/Sapphire
+[shift_down]   FC 0E
+[fill_window]  FC 0F  # clear window text lines in Ruby/Sapphire
+[clear]        FC 11
+[skip]         FC 12
+[japanese]     FC 15
+[latin]        FC 16
+
 [pause_music]  FC 17
 [resume_music] FC 18
 
