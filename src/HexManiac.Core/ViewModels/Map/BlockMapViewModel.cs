@@ -1005,7 +1005,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          const int SizeX = 7, SizeY = 7;
          var map = GetMapModel();
+         if (map == null) return null;
          var layout = GetLayout(map);
+         if (layout == null) return null;
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
          if (events.Warps.Count <= warpID) return null;
