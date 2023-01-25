@@ -617,6 +617,16 @@ You said no!
          Assert.Equal(0xFF, Model[5]);
       }
 
+      [Fact]
+      public void ApplyMovementWithEmptyMovementStream_NoopEdit_MovementStreamStillEmpty() {
+         EventScript = "applymovement 0 <??????>";
+
+         EventScript += " ";
+
+         var address = Model.ReadPointer(3);
+         Assert.Equal(0xFE, Model[address]);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
