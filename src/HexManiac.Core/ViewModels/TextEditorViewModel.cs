@@ -233,20 +233,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return content.Length;
       }
 
+      private static readonly char[] hexLetters = "ABCDEF".ToCharArray();
       public (int, int) IndexOfNumber(int start) {
          for (int i = start; i < content.Length; i++) {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue;
-            if (!char.IsDigit(content[i])) continue;
+            if (!char.IsDigit(content[i]) && !content[i].IsAny(hexLetters)) continue;
             int length = 1;
-            bool isHex = false;
             while (true) {
                if (i + length >= content.Length) break;
                if (length == 1 && content[i + length] == 'x') {
-                  isHex = true;
                   length++;
                   continue;
                }
-               if (content[i+length].IsAny('A','B','C','D','E','F') && isHex) {
+               if (content[i+length].IsAny(hexLetters)) {
                   length++;
                   continue;
                }
