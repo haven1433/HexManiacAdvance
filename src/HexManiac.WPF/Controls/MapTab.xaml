@@ -786,7 +786,7 @@
                            </local:AngleMenuItem>
                         </Menu>
                         <local:AngleButton Content="Repoint Blockmap" Direction="Out" Grid.Row="2" Grid.ColumnSpan="7" Width="200"
-                                           ToolTip="{Binding RepointBlockMap}" Command="{Binding RepointBlockMap}" />
+                                           ToolTip="{Binding RepointBlockMapText}" Command="{Binding RepointBlockMap}" />
                         <!-- Primary / Secondary lables -->
                         <local:AngleBorder Content="Primary" Direction="Left" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" />
                         <local:AngleBorder Content="Secondary" Direction="Right" Grid.Row="3" Grid.Column="4" Grid.ColumnSpan="3" />

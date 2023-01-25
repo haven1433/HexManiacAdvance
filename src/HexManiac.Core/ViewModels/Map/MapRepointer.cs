@@ -182,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ExportBytes(layout.GetAddress(Format.BorderBlock), count * 2);
       }
 
-      public string RepointBlockMapText => $"This BlockMap is used by {CountLayoutMemberSources(Format.BlockMap)} layouts.";
+      public string RepointBlockMapText => $"This Blockmap is used by {CountLayoutMemberSources(Format.BlockMap)} layouts.";
 
       private bool CanRepointBlockMap() => CountLayoutMemberSources(Format.BlockMap) > 1;
 
