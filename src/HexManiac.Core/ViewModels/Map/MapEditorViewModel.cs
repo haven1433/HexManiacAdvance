@@ -961,6 +961,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void SelectSingleBlock() {
          DrawMultipleTiles = false;
          BlockEditorVisible = true;
+         if (tilesToDraw == null) tilesToDraw = new int[1, 1];
          tilesToDraw[0, 0] = drawBlockIndex | (collisionIndex << 10);
          FillMultiTileRender();
          AnimateBlockSelection();
@@ -1103,6 +1104,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   tips.Add(text);
                }
             } else if (model[spot.Address] == 0x1A && itemStats != null) {
+               // copyvarifnotzero (item)
                var itemAddress = EventTemplate.GetItemAddress(model, spot.Address);
                if (itemAddress == Pointer.NULL) continue;
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
