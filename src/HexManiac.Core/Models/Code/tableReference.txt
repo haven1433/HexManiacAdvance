@@ -461,8 +461,7 @@ graphics.moves.tmcase.palette2,         ,,,, 1338FC, 1338D4, 133974, 13394C, , `
 graphics.moves.tmcase.palettemap,       ,,,, 133788, 133760, 133800, 1337D8, , [offset:|t|::|page::::]data.pokemon.type.names
 data.pokemon.type.camouflage,           ,,,, 02D268, 02D268, 02D27C, 02D27C, , [type.data.pokemon.type.names]terrains
 data.pokemon.type.camouflage,           ,,,, ,,,, 056134, [type.data.pokemon.type.names]terrains
-data.pokemon.moves.naturepower.list,    ,,,, 02BE74, 02BE74, 02BE88, 02BE88, , [move:data.pokemon.moves.names]terrains
-data.pokemon.moves.naturepower.list,    ,,,, ,,,, 054C48, [move:data.pokemon.moves.names]terrains
+data.pokemon.moves.naturepower.list,    029FAC, 029FAC, 029FAC, 029FAC, 02BE74, 02BE74, 02BE88, 02BE88, 054C48, [move:data.pokemon.moves.names]terrains
 
 graphics.gamecorner.game.palette,  ,,,, 1413BC, 141394, 141434, 14140C, , `ucp4:01234`
 graphics.gamecorner.game.tileset,  ,,,, 1413AC, 141384, 141424, 1413FC, , `lzt4|graphics.gamecorner.game.palette`
@@ -821,4 +820,3 @@ graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,    
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578,       ,       ,       ,       ,       , [numerator. divisor. unused:]13
 data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8,       ,       ,       ,       ,       , [rate:]6
-data.pokemon.moves.NaturePower,      029FAC, 029FAC, 029FAC, 029FAC,       ,       ,       ,       ,       , [move:data.pokemon.moves.names]10
