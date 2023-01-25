@@ -627,6 +627,43 @@ You said no!
          Assert.Equal(0xFE, Model[address]);
       }
 
+      [Fact]
+      public void ScriptPointingToFreeSpace_EditScript_2CodeSections() {
+         EventScript = "if1 = <100>";
+         Assert.Equal(2, Tool.Contents.Count);
+      }
+
+      [Fact]
+      public void Script_MultipleIfsEachWithGoto_ContentSectionsAddedForEachGoto() {
+         EventScript = @"if1 = <label1>;if1 = <label2>;end
+label1:;goto <000040>;end
+label2:;goto <000050>;end"; // label2 gets included even though there's an extra `end` command
+
+         Assert.Equal(3, Tool.Contents.Count); // main script, label2, 040, and 050
+      }
+
+      [Fact]
+      public void SubscriptsWithEndAfterGoto_Decompile_DecompileFullScriptWithoutEndCommands() {
+         EventScript = @"if1 = <label1>;if1 = <label2>;end
+label1:;goto <000040>;end
+label2:;goto <000050>;end";
+
+         ViewPort.SelectionStart = new(0, 3);
+         ViewPort.SelectionStart = new(0, 0);
+
+         // should contain 2 if statements and 2 gotos
+         var script = EventScript.Split(";").TrimAll().ToList();
+         Assert.Equal(2, script.Count(line => line.Contains("if1")));
+         Assert.Equal(2, script.Count(line => line.Contains("goto")));
+      }
+
+      [Fact]
+      public void TrianerBattleCommand_01_PointerToAfterScriptHasCorrectAddress() {
+         EventScript = "trainerbattle 01 0 0 <000020> <000030> <part2>;end;part2:;end";
+         var destination = Model.ReadPointer(0x0E);
+         Assert.Equal(0x13, destination);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

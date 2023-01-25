@@ -75,20 +75,35 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (repeateLength > MaxRepeates) break; // same command lots of times in a row is fishy
             }
 
-            while (destinations.TryGetValue(address + length, out int childLength)) length += childLength;
+            // append child scripts that come directly after this script
+            while (true) {
+               // child script starts directly after this script
+               if (destinations.TryGetValue(address + length, out int childLength)) {
+                  length += childLength;
+                  continue;
+               }
+               // child script has a 1-byte margin (probably an end after a goto)
+               if (destinations.TryGetValue(address + length + 1, out childLength)) {
+                  length += childLength + 1;
+                  continue;
+               }
+               break;
+            }
+
+            lengths.Add(length);
             for (int j = lengths.Count - 1; j >= 0; j--) {
                if (scripts[j] <= address || scripts[j] >= address + length) continue;
                lengths.RemoveAt(j);
                scripts.RemoveAt(j);
             }
-            lengths.Add(length);
 
             // look for other scripts from destinations that we should care about but don't yet
-            scripts.AddRange(destinations.Keys.Where(d =>
-               model.GetNextRun(d) is IScriptStartRun scriptStart &&
-               scriptStart.Start == d &&
-               lengths.Count.Range().All(j => scripts[j] > d || d >= scripts[j] + lengths[j])
-               ));
+            foreach (var d in destinations.Keys) {
+               if (scripts.Contains(d)) continue; // destination is already in queue
+               if (model.GetNextRun(d) is not IScriptStartRun scriptStart || scriptStart.Start != d) continue; // destination isn't formatted as a script
+               if (lengths.Count().Range().Any(j => scripts[j] <= d && d < scripts[j] + lengths[j])) continue; // destination is included within exsting script
+               scripts.Add(d);
+            }
          }
 
          return scripts;
@@ -357,6 +372,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.Contains("<??????>")) {
                   int newAddress = -1;
                   if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Movement)) {
+                     if (model.FreeSpaceStart == start) model.FreeSpaceStart += model.FreeSpaceBuffer;
                      newAddress = model.FindFreeSpace(0, 0x10);
                      token.ChangeData(model, newAddress, 0xFE);
                      WriteMovementStream(model, token, newAddress, -1);
@@ -454,7 +470,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
             foreach (var command in engine) {
-               if (!(line + " ").StartsWith(command.LineCommand + " ")) continue;
+               if (!command.CanCompile(line)) continue;
                length += command.CompiledByteLength(model, line);
                break;
             }
@@ -563,6 +579,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var destinations = new Dictionary<int, int>();
          while (length > 0) {
             if (index == nextAnchor.Start) {
+               if (results.Count > 0) results.Add(string.Empty);
                results.Add($"{nextAnchor.Start:X6}:");
                nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
             }
@@ -577,7 +594,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var compiledByteLength = line.CompiledByteLength(data, index, destinations);
                index += compiledByteLength;
                length -= compiledByteLength;
-               if (destinations.ContainsKey(index) && nextAnchor is IScriptStartRun && nextAnchor.Start == index) continue; // we point to the next byte, keep going
+
+               // if we point to shortly after, keep going
+               if (destinations.ContainsKey(index) && nextAnchor is IScriptStartRun && nextAnchor.Start == index) continue;
+               if (destinations.ContainsKey(index + 1) && nextAnchor is IScriptStartRun && nextAnchor.Start == index + 1) continue;
+
+               // if we're at an end command, don't keep going
                if (line.IsEndingCommand) break;
             }
          }
@@ -1367,9 +1389,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (line.Args.Count > 0) repeateLength = 0;
             if (repeateLength > ScriptParser.MaxRepeates) break; // same command lots of times in a row is fishy
          }
-         while (destinationLengths.TryGetValue(address + length, out int argLength)) {
-            length += argLength;
+
+         // concatenate destinations directly after the current script
+         while (true) {
+            if (destinationLengths.TryGetValue(address + length, out int argLength)) {
+               length += argLength;
+               continue;
+            }
+            if (destinationLengths.TryGetValue(address + length + 1, out argLength)) {
+               length += argLength + 1;
+               continue;
+            }
+            break;
          }
+
          return length;
       }
    }

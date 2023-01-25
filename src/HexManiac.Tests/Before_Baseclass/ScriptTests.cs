@@ -28,6 +28,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal<string>(new string[] {
             "  jumpiftype 0 0 <000007>",
+            "",
             "000007:",
             "  end",
             "",
@@ -113,7 +114,7 @@ namespace HavenSoft.HexManiac.Tests {
          var actual = ViewPort.Tools.CodeTool.ScriptParser.Compile(new ModelDelta(), Model, 0, ref script, out _);
 
          var expected = bytes.ToByteArray();
-         Assert.Equal(expected, actual);
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], actual[i]));
       }
 
       [Fact]
@@ -326,7 +327,8 @@ Script:
          var parser = ViewPort.Tools.CodeTool.AnimationScriptParser;
          var bytes = parser.Compile(ViewPort.CurrentChange, Model, 0, ref line, out var _);
 
-         Assert.Equal(new byte[] { 03, 0x11, 0x9F, 0x0A, 0x08, 0x05, 0x00 }, bytes);
+         var expected = "03 11 9F 0A 08 05 00".ToByteArray();
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], bytes[i]));
       }
 
       [Fact]

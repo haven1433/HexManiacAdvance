@@ -226,7 +226,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          for (int i = 0; i < scripts.Count; i++) {
             var scriptStart = scripts[i];
             if (scriptStart == currentScriptStart && Contents.Count > i && Contents[i].Address == scriptStart) continue;
-            if (scriptStart > currentScriptStart && scriptStart < currentScriptStart + currentScriptLength) {
+            if (currentScriptStart < scriptStart && scriptStart < currentScriptStart + currentScriptLength) {
                // this script is included inside the current under-edit script
                // it doesn't need its own content
                skippedScripts += 1;
@@ -387,7 +387,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         availableLength++;
                         continue;
                      }
-                     if (model.GetNextRun(i) is IScriptStartRun scriptRun) {
+                     if (model.GetNextRun(i) is IScriptStartRun scriptRun && scriptRun.Start == i) {
                         // the next byte is a script... maybe it's ok to overwrite it
                         // we can overwrite it if it passes 2 checks
                         // (1) the only pointers to that script are contained within the script we're currently compiling
