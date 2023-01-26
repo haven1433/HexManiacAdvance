@@ -213,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
             int x = i % tileWidth;
             if (y >= tileHeight) break;
             if (previousTiles.Count <= originalTilemap[i]) break;
-            if (TilesMatch(previousTiles[originalTilemap[i]], tileData[x, y].pixels, flipPossible: false) == TileMatchType.Normal) tilesToKeep.Add(i);
+            if (TilesMatch(previousTiles[originalTilemap[i]], tileData[x, y].pixels, flipPossible: false) == TileMatchType.Normal) tilesToKeep.Add(originalTilemap[i]);
          }
 
          tiles = MergeTilesets(previousTiles, tilesToKeep, tiles, run.BytesPerTile == 2);
