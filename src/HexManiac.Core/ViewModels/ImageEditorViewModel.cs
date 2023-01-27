@@ -897,6 +897,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          private Point selectionStart;
          private int selectionWidth, selectionHeight;
+         private bool[,] underMask;
          private int[,] underPixels; // the pixels that are 'under' the current selection. As the selection moves, this changes.
 
          public bool HasSelection => underPixels != null;
@@ -973,12 +974,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          public void ToolHover(Point screenPosition) { }
 
          public void ToolUp(Point point) {
+            var cache = new PaletteCache(parent);
             if (underPixels != null) {
                parent.UpdateSpriteModel();
             } else {
                (selectionStart, selectionWidth, selectionHeight) = BuildRect(selectionStart, selectionWidth, selectionHeight, 1);
                if (selectionWidth > 1 || selectionHeight > 1) {
                   underPixels = new int[selectionWidth, selectionHeight];
+                  underMask = new bool[selectionWidth, selectionHeight];
+                  // copy the mask
+                  for (int x = 0; x < selectionWidth; x++) {
+                     for (int y = 0; y < selectionHeight; y++) {
+                        var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
+                        underMask[x, y] = parent.pixels[xx, yy] != cache.InitialBlankPages * 16;
+                     }
+                  }
                } else {
                   selectionWidth = selectionHeight = 0;
                }
@@ -1018,6 +1028,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void ClearSelection() {
             underPixels = null;
+            underMask = null;
             selectionWidth = selectionHeight = 0;
          }
 
@@ -1050,6 +1061,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
             for (int x = 0; x < selectionWidth; x++) {
                for (int y = 0; y < selectionHeight; y++) {
+                  if (!underMask[x, y]) continue;
                   var (xx, yy) = (selectionStart.X + x, selectionStart.Y + y);
 
                   var page = 0;
@@ -1123,9 +1135,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          public void SetUnderPixels(int[,] values) {
-            Debug.Assert(underPixels.GetLength(0) == values.GetLength(0));
-            Debug.Assert(underPixels.GetLength(1) == values.GetLength(1));
+            var (width, height) = (underPixels.GetLength(0), underPixels.GetLength(1));
+            Debug.Assert(width == values.GetLength(0));
+            Debug.Assert(height == values.GetLength(1));
             underPixels = values;
+            var cache = new PaletteCache(parent);
+            for (int x = 0; x < width; x++) {
+               for (int y = 0; y < height; y++) {
+                  underMask[x, y] = underPixels[x, y] != cache.InitialBlankPages * 16;
+               }
+            }
          }
 
          private int[,] CachePixels() {
