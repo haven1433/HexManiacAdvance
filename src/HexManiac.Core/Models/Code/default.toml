@@ -126,6 +126,18 @@ Name = '''maptypes'''
 ]
 
 [[List]]
+Name = '''mapdirections'''
+0 = [
+   '''None''',
+   '''Down''',
+   '''Up''',
+   '''Left''',
+   '''Right''',
+   '''Dive''',
+   '''Emerge''',
+]
+
+[[List]]
 Name = '''egggroups'''
 0 = [
    '''None''',
