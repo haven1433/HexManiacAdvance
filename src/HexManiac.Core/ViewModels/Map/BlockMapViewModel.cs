@@ -1795,9 +1795,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          if (table == null) return null;
          var mapBanks = new ModelTable(model, table.Start, tokenFactory);
-         var bank = mapBanks[group].GetSubTable("maps");
+         if (mapBanks.Count <= group) return null;
+         var bank = mapBanks[group]?.GetSubTable("maps");
          if (bank == null) return null;
-         var mapTable = bank[map].GetSubTable("map");
+         if (bank.Count <= map) return null;
+         var mapTable = bank[map]?.GetSubTable("map");
          if (mapTable == null) return null;
          return mapTable[0];
       }

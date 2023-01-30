@@ -352,7 +352,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {
-         if (!map.IsValidMap) return;
+         if (!map.IsValidMap) {
+            if (primaryMap.IsValidMap) return;
+            map = VisibleMaps.FirstOrDefault(vis => vis.IsValidMap);
+            if (map == null) {
+               OnError.Raise(this, "Couldn't find a valid visible map.");
+               Close.Execute();
+               return;
+            }
+         }
          blockset = UpdateBlockset(map.MapID);
          if (blockset == -1) return;
          if (blockset == Pointer.NULL) return;
