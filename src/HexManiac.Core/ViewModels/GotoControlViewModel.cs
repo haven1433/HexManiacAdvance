@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
-using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -387,7 +386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var parts = content.Split(".");
          var firstPart = parts[0];
          for (int i = 1; i < parts.Length; i++) {
-            if (!parts[i].StartsWith(" ")) return firstPart;
+            if (parts[i].Length > 0 && char.IsLetterOrDigit(parts[i][0])) return firstPart;
             firstPart += "." + parts[i];
          }
          return firstPart;
