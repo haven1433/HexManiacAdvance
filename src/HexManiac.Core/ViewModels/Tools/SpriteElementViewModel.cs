@@ -141,18 +141,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
                name = $"{folder}/{tableName}_{i}_{name}.png";
                if (!fs.Exists(name)) {
-                  bool simpleImage = false;
-                  var imagePixels = sRun.GetPixels(Model, 0, -1);
-                  if (imagePixels != null) {
-                     var colors = palette?.AllColors(Model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sRun.SpriteFormat.BitsPerPixel));
-                     if (colors.Count == 16) {
-                        simpleImage = true;
-                        fs.SaveImage(imagePixels, colors, name);
-                     }
-                  }
-                  if (!simpleImage) {
-                     var pixels = ReadonlyPixelViewModel.Create(Model, sRun, palette);
-                     fs.SaveImage(pixels.PixelData, pixels.PixelWidth, name);
+                  var imagePixels = sRun.GetPixels(Model, sRun.Pages > CurrentPage ? CurrentPage : 0, -1);
+                  var colors = palette?.AllColors(Model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sRun.SpriteFormat.BitsPerPixel));
+                  if (imagePixels != null && colors.Count == 16) {
+                     fs.SaveImage(imagePixels, colors, name);
+                  } else {
+                     var pixels = SpriteTool.Render(imagePixels, colors, palette?.PaletteFormat.InitialBlankPages ?? 0, 0);
+                     fs.SaveImage(pixels, imagePixels.GetLength(0), name);
                   }
                } else {
                   ErrorText = $"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}Another image with that named exists.";
