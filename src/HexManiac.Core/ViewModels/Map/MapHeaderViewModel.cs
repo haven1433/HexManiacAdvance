@@ -106,6 +106,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       private void UpdateBlocksets() {
          var map = new MapModel(this.map);
+         if (map.Layout.Element == null) return;
          if (PrimaryOptions[primaryIndex].TryParseHex(out int prim)) {
             map.Layout.Element.SetAddress(Format.PrimaryBlockset, prim);
          }

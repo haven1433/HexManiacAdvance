@@ -104,6 +104,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.model = blockmap.ViewPort.Model;
          this.changeHistory = blockmap.ViewPort.ChangeHistory;
          var layout = blockmap.GetLayout();
+         if (layout == null) return;
          HasBorderDimensions = layout.HasField("borderwidth") && layout.HasField("borderheight");
       }
 
@@ -159,6 +160,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RenderBorder(ModelArrayElement layout) {
+         if (layout == null) return;
          int width = Width, height = Height;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = 3 };
          var borderStart = layout.GetAddress("borderblock");

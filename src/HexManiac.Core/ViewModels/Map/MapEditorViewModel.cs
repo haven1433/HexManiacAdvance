@@ -528,6 +528,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (prevW, prevH) = (highlightCursorWidth, highlightCursorHeight);
 
          var border = primaryMap.GetBorderThickness();
+         if (border == null) return false;
          ShowHighlightCursor = true;
          HighlightCursorX = (left + border.West + width / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
          HighlightCursorY = (top + border.North + height / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
@@ -541,7 +542,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DragDown(double x, double y) {
-         PrimaryMap.BlockEditor.ShowTiles = false;
+         if (primaryMap.BlockEditor != null) PrimaryMap.BlockEditor.ShowTiles = false;
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
@@ -821,6 +822,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          eventCreationType = EventCreationType.None;
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
+            if (objectEvent == null) return;
             templates.ApplyTemplate(objectEvent, history.CurrentChange);
             SelectedEvent = objectEvent;
             if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
@@ -834,21 +836,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             }
             SelectedEvent = primaryMap.CreateWarpEvent(desiredMap.bank, desiredMap.map);
+            if (SelectedEvent == null) return;
             Tutorials.Complete(Tutorial.ToolbarTemplate_CreateEvent);
          } else if (type == EventCreationType.Script) {
             SelectedEvent = primaryMap.CreateScriptEvent();
+            if (SelectedEvent == null) return;
             Tutorials.Complete(Tutorial.ToolbarTemplate_CreateEvent);
          } else if (type == EventCreationType.Signpost) {
             var signpost = primaryMap.CreateSignpostEvent();
             templates.ApplyTemplate(signpost, history.CurrentChange);
             SelectedEvent = signpost;
+            if (SelectedEvent == null) return;
             Tutorials.Complete(Tutorial.ToolbarTemplate_CreateEvent);
             // TODO primaryMap.InformCreate if we created a script
          } else if (type == EventCreationType.Fly) {
             var flySpot = primaryMap.CreateFlyEvent();
-            if (flySpot != null) {
-               SelectedEvent = flySpot;
-            }
+            if (flySpot != null) SelectedEvent = flySpot;
          } else {
             throw new NotImplementedException();
          }
@@ -992,6 +995,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private Point ToBoundedMapTilePosition(BlockMapViewModel map, double x, double y, int selectionWidth, int selectionHeight) {
          (x, y) = ((x - map.LeftEdge) / map.SpriteScale / 16, (y - map.TopEdge) / map.SpriteScale / 16);
          var borders = map.GetBorderThickness();
+         if (borders == null) return new(0, 0);
          var position = new Point((int)Math.Floor(x) - borders.West, (int)Math.Floor(y) - borders.North);
 
          // limit to within the content of this map
@@ -1328,7 +1332,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          BlockEditorVisible = false;
          tilesToDraw = null;
          if (primaryMap != null) {
-            primaryMap.BlockEditor.ShowTiles = false;
+            if (primaryMap.BlockEditor != null) primaryMap.BlockEditor.ShowTiles = false;
             primaryMap.BorderEditor.ShowBorderPanel = false;
          }
       }
@@ -1645,7 +1649,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          foreach (var bank in AllMapsModel.Create(model, null)) {
             foreach (var map in bank) {
+               if (map == null) continue;
                var layout = map.Layout;
+               if (layout == null) continue;
                if (layout.PrimaryBlockset != null) primary.Add(layout.PrimaryBlockset.Start);
                if (layout.SecondaryBlockset != null) secondary.Add(layout.SecondaryBlockset.Start);
             }

@@ -400,6 +400,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Signpost
 
       public void ApplyTemplate(SignpostEventViewModel signpost, ModelDelta token) {
+         if (signpost == null) return;
          signpost.Elevation = 0;
          signpost.Kind = 0;
 

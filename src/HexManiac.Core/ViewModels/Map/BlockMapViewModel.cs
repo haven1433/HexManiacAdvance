@@ -327,7 +327,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var offset = model.IsFRLG() ? 0x58 : 0;
             var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
             var maps = banks[group].GetSubTable("maps");
-            var self = maps[map].GetSubTable("map")[0];
+            var map = maps[this.map];
+            if (map == null) return -1;
+            var subTable = map.GetSubTable("map");
+            if (subTable == null) return -1;
+            var self = subTable[0];
             if (!self.HasField("regionSectionID")) return -1;
             return self.GetValue("regionSectionID") - offset;
          }
@@ -335,6 +339,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var offset = model.IsFRLG() ? 0x58 : 0;
             var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable, tokenFactory);
             var maps = banks[group].GetSubTable("maps");
+            var mapTable = maps[map];
+            var subTable = mapTable.GetSubTable("map");
+            if (subTable == null) return;
+            var mapElement = subTable[0];
             var self = maps[map].GetSubTable("map")[0];
             if (!self.HasField("regionSectionID")) return;
             self.SetValue("regionSectionID", value + offset);
@@ -358,6 +366,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get {
             if (blockEditor == null) {
                var layout = GetLayout();
+               if (layout == null) return null;
                var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
                var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
                if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
@@ -382,6 +391,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                borderEditor = new BorderEditor(this, tutorials);
                borderEditor.BorderChanged += HandleBorderChanged;
                borderEditor.Bind(nameof(borderEditor.ShowBorderPanel), (editor, args) => {
+                  if (BlockEditor == null) return;
                   BlockEditor.ShowTiles &= !editor.ShowBorderPanel;
                   HideSidePanels.Raise(this);
                });
@@ -539,11 +549,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             BlockEditor.AutoscrollTiles -= HandleAutoscrollTiles;
             var oldBlockEditor = blockEditor;
             blockEditor = null;
-            BlockEditor.BlockIndex = oldBlockEditor.BlockIndex;
-            (BlockEditor.TileSelectionX, BlockEditor.TileSelectionY) = (oldBlockEditor.TileSelectionX, oldBlockEditor.TileSelectionY);
-            BlockEditor.PaletteSelection = oldBlockEditor.PaletteSelection;
-            BlockEditor.ShowTiles = oldBlockEditor.ShowTiles;
-            oldBlockEditor.ShowTiles = false;
+            if (BlockEditor != null && oldBlockEditor != null) {
+               BlockEditor.BlockIndex = oldBlockEditor.BlockIndex;
+               (BlockEditor.TileSelectionX, BlockEditor.TileSelectionY) = (oldBlockEditor.TileSelectionX, oldBlockEditor.TileSelectionY);
+               BlockEditor.PaletteSelection = oldBlockEditor.PaletteSelection;
+               BlockEditor.ShowTiles = oldBlockEditor.ShowTiles;
+            }
+            if (oldBlockEditor != null) oldBlockEditor.ShowTiles = false;
             NotifyPropertyChanged(nameof(BlockEditor));
          }
          if (borderEditor != null) {
@@ -972,6 +984,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (lastDrawX, lastDrawY) = (-1, -1);
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
+         if (border == null) return;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          var (xx, yy) = ((int)(x / 16) - border.West, (int)(y / 16) - border.North);
          if (ev.X == xx && ev.Y == yy) return;
@@ -1138,6 +1151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var token = tokenFactory();
          var map = GetMapModel();
          var layout = GetLayout(map);
+         if (layout == null) return;
          var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
          if (run == null) return;
          var borderWidth = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
@@ -1290,6 +1304,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          var newConnection = AddConnection(info);
+         if (newConnection == null) return;
          newConnection.Offset = info.Offset;
          newConnection.Direction = info.Direction;
          newConnection.MapGroup = choice / 1000;
@@ -1339,6 +1354,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = GetMapModel();
 
          var connections = GetOrCreateConnections(map, token);
+         if (connections == null) return null;
 
          var count = connections.ElementCount;
          connections = connections.Append(token, 1);
@@ -1352,6 +1368,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private ITableRun GetOrCreateConnections(ModelArrayElement map, ModelDelta token) {
+         if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
          if (connectionsAndCountTable == null) {
             var newConnectionsAndCountTable = MapRepointer.CreateNewConnections(token);
@@ -1381,6 +1398,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
          var token = tokenFactory();
          var map = GetMapModel();
+         if (map == null) return null;
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
@@ -1405,6 +1423,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public WarpEventViewModel CreateWarpEvent(int bank, int map) {
          var mapModel = GetMapModel();
+         if (mapModel == null) return null;
          var events = mapModel.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "warpCount", "warps");
          var newEvent = new WarpEventViewModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = element.ArrayIndex + 1 };
@@ -1414,6 +1433,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ScriptEventViewModel CreateScriptEvent() {
          var map = GetMapModel();
+         if (map == null) return null;
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "scriptCount", "scripts");
          var newEvent = new ScriptEventViewModel(GotoAddress, element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
@@ -1423,6 +1443,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public SignpostEventViewModel CreateSignpostEvent() {
          var map = GetMapModel();
+         if (map == null) return null;
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "signpostCount", "signposts");
          var newEvent = new SignpostEventViewModel(element, GotoAddress) { X = 0, Y = 0, Elevation = 0, Kind = 0, Pointer = Pointer.NULL };
@@ -1433,6 +1454,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool CanCreateFlyEvent {
          get {
             var map = GetMapModel();
+            if (map == null) return false;
             var region = map.GetValue(Format.RegionSection);
             if (model.IsFRLG()) region -= 88;
             var connections = model.GetTableModel(HardcodeTablesModel.FlyConnections);
@@ -1542,6 +1564,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private (int width, int height) GetBlockSize(ModelArrayElement layout = null) {
          var border = GetBorderThickness(layout);
+         if (border == null) return (0, 0);
          return (pixelWidth / 16 - border.West - border.East, pixelHeight / 16 - border.North - border.South);
       }
 
@@ -1616,6 +1639,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blocks == null || tiles == null || palettes == null) {
             if (layout == null) layout = GetLayout();
+            if (layout == null) return;
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
@@ -1886,7 +1910,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var availableSpace = dimensionLength.Range().ToList();
 
          // can't add a connection where there already is one
-         for (int i = 0; i < connections.Count; i++) {
+         for (int i = 0; i < (connections?.Count ?? 0); i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
                var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) {

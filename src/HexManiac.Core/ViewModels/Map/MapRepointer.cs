@@ -361,6 +361,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private (int currentCount, int maxCount) EstimateBlockCount(ModelArrayElement layout, bool primary) {
          var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+         if (layout == null) return (0, 0);
          var blockset = layout.GetSubTable(blocksetName)[0];
          var blockCount = model.IsFRLG() ? 640 : 512;
          if (!primary) blockCount = 1024 - blockCount;
@@ -450,7 +451,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string ExpandPrimaryTilesetText {
          get {
-            var (currentCount, maxCount) = EstimateTileCount(GetLayout().GetSubTable(Format.PrimaryBlockset)[0]);
+            var layout = GetLayout();
+            var (currentCount, maxCount) = layout == null ? (0, 0) : EstimateTileCount(layout.GetSubTable(Format.PrimaryBlockset)[0]);
             return $"This primary tileset contains {currentCount} of {maxCount} tiles.";
          }
       }
@@ -461,7 +463,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string ExpandSecondaryTilesetText {
          get {
-            var (currentCount, maxCount) = EstimateTileCount(GetLayout().GetSubTable(Format.SecondaryBlockset)[0]);
+            var layout = GetLayout();
+            var (currentCount, maxCount) = layout == null ? (0, 0) : EstimateTileCount(layout.GetSubTable(Format.SecondaryBlockset)[0]);
             return $"This secondary tileset contains {currentCount} of {maxCount} tiles.";
          }
       }
@@ -472,6 +475,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool CanExpandTileset(string blocksetName) {
          var layout = GetLayout();
+         if (layout == null) return false;
          var blockset = layout.GetSubTable(blocksetName)[0];
          var (currentTiles, maxTiles) = EstimateTileCount(blockset);
          return currentTiles < maxTiles;
@@ -499,6 +503,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private (int, int) EstimateTileCount(ModelArrayElement blockset) {
+         if (blockset == null) return (0, 0);
          int maxTiles = model.IsFRLG() ? 640 : 512;
          if (blockset.GetValue("isSecondary") != 0) maxTiles = 1024 - maxTiles;
          int currentTiles = maxTiles;
