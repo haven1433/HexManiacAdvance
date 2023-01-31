@@ -314,7 +314,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryTiles = isFRLG ? 640 : 512;
          this.format = new Format(model);
 
-         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, 3, 19);
+         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, 3, 0);
          templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
@@ -353,7 +353,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {
          if (!map.IsValidMap) {
-            if (primaryMap.IsValidMap) return;
+            if (primaryMap != null && primaryMap.IsValidMap) return;
             map = VisibleMaps.FirstOrDefault(vis => vis.IsValidMap);
             if (map == null) {
                OnError.Raise(this, "Couldn't find a valid visible map.");
