@@ -64,6 +64,8 @@ namespace HavenSoft.HexManiac.Tests {
          }
 
          foreach (var matchedWord in upgradedMetadata.MatchedWords) {
+            if (matchedWord.Name == "scripts.newgame.start.bank") continue; // address moved
+            if (matchedWord.Name == "scripts.newgame.start.map") continue;  // address moved
             var newMatchedWord = freshMetadata.MatchedWords.Single(freshMatchedWord => freshMatchedWord.Address == matchedWord.Address);
             Assert.Equal(newMatchedWord.Name, matchedWord.Name);
             Assert.Equal(newMatchedWord.AddOffset, matchedWord.AddOffset);
