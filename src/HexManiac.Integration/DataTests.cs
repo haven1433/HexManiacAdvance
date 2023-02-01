@@ -58,12 +58,27 @@ namespace HavenSoft.HexManiac.Integration {
 
       [SkippableFact]
       public void DefaultMetadata_DefaultHashesForAllAnchors() {
-         var firered = LoadFireRed();
-         var refTable = singletons.GameReferenceTables[firered.Model.GetGameCode()];
+         var firered = LoadReadOnlyFireRed();
 
+         var refTable = singletons.GameReferenceTables[firered.Model.GetGameCode()];
          var metadata = firered.Model.ExportMetadata(refTable, singletons.MetadataInfo);
 
          Assert.All(metadata.NamedAnchors, anchor => Assert.NotEmpty(anchor.Hash));
+      }
+
+      [SkippableFact]
+      public void UpdateList_UpgradeVersion_ListKeepsChanges() {
+         var firered = LoadFireRed();
+         firered.Model.TryGetList("owfootprints", out var list); // 3 items
+         list.Add("custom");
+         firered.Model.SetList(firered.CurrentChange, "owfootprints", list, list.StoredHash);
+
+         var refTable = singletons.GameReferenceTables[firered.Model.GetGameCode()];
+         var metadata = firered.Model.ExportMetadata(refTable, singletons.MetadataInfo);
+         var newModel = new PokemonModel(firered.Model.RawData, metadata, singletons);
+
+         newModel.TryGetList("owfootprints", out list);
+         Assert.Equal("custom", list[3]);
       }
    }
 }
