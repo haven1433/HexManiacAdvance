@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
+using System.IO;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Integration {
@@ -38,6 +40,30 @@ namespace HavenSoft.HexManiac.Integration {
          var lastAddress = firered.ConvertViewPointToAddress(firered.SelectionEnd);
          var length = lastAddress - firstAddress + 1;
          Assert.Equal(171, length);
+      }
+
+      [SkippableFact]
+      public void UseTypeSwapScript_UpgradeVersion_TableStillIncluded() {
+         var contents = File.ReadAllBytes("resources/scripts/ability_type_swaps.hma");
+         var firered = LoadFireRed();
+         firered.TryImport(new("script.hma", contents), FileSystem);
+
+         var refTable = singletons.GameReferenceTables[firered.Model.GetGameCode()];
+         var metadata = firered.Model.ExportMetadata(refTable, new StubMetadataInfo { VersionNumber = "0.5" });
+         var newModel = new PokemonModel(firered.Model.RawData, metadata, singletons);
+
+         var table = newModel.GetTableModel("data.abilities.typeswaps");
+         Assert.NotNull(table);
+      }
+
+      [SkippableFact]
+      public void DefaultMetadata_DefaultHashesForAllAnchors() {
+         var firered = LoadFireRed();
+         var refTable = singletons.GameReferenceTables[firered.Model.GetGameCode()];
+
+         var metadata = firered.Model.ExportMetadata(refTable, singletons.MetadataInfo);
+
+         Assert.All(metadata.NamedAnchors, anchor => Assert.NotEmpty(anchor.Hash));
       }
    }
 }

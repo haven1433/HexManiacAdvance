@@ -199,22 +199,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                lists[list.Name] = new ValidationList(list.Hash, list);
             }
             var anchorHashes = new Dictionary<string, string>();
-            foreach (var anchor in metadata.NamedAnchors) {
-               // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
-               // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
-               using (ModelCacheScope.CreateScope(this)) {
-                  ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
-                  anchorHashes[anchor.Name] = anchor.Hash;
-               }
-            }
-            foreach (var unmappedPointer in metadata.UnmappedPointers) {
-               sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
-               if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = SortedSpan<int>.None;
-               unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
-               if (GetNextRun(unmappedPointer.Address).Start >= unmappedPointer.Address + 4 && ReadPointer(unmappedPointer.Address) == Pointer.NULL) {
-                  ObserveRunWritten(noChange, new PointerRun(unmappedPointer.Address));
-               }
-            }
+
+            // load MatchedWords before loading NamedAnchors, since some tables may have length based on constants (like type names)
             foreach (var word in metadata.MatchedWords) {
                if (word.Address + word.Length >= Count) continue;
                if (!matchedWords.ContainsKey(word.Name)) matchedWords.Add(word.Name, new HashSet<int>());
@@ -230,6 +216,23 @@ namespace HavenSoft.HexManiac.Core.Models {
                   ClearFormat(noChange, word.Address, word.Length);
                   ObserveRunWritten(noChange, newRun);
                   CompleteCellEdit.UpdateAllWords(this, newRun, noChange, this.ReadMultiByteValue(word.Address, word.Length), true);
+               }
+            }
+
+            foreach (var anchor in metadata.NamedAnchors) {
+               // since we're loading metadata, we're pretty sure that the anchors in the metadata are right.
+               // therefore, allow those anchors to overwrite anything we found during the initial quick-search phase.
+               using (ModelCacheScope.CreateScope(this)) {
+                  ApplyAnchor(this, noChange, anchor.Address, AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
+                  anchorHashes[anchor.Name] = anchor.Hash;
+               }
+            }
+            foreach (var unmappedPointer in metadata.UnmappedPointers) {
+               sourceToUnmappedName[unmappedPointer.Address] = unmappedPointer.Name;
+               if (!unmappedNameToSources.ContainsKey(unmappedPointer.Name)) unmappedNameToSources[unmappedPointer.Name] = SortedSpan<int>.None;
+               unmappedNameToSources[unmappedPointer.Name] = unmappedNameToSources[unmappedPointer.Name].Add1(unmappedPointer.Address);
+               if (GetNextRun(unmappedPointer.Address).Start >= unmappedPointer.Address + 4 && ReadPointer(unmappedPointer.Address) == Pointer.NULL) {
+                  ObserveRunWritten(noChange, new PointerRun(unmappedPointer.Address));
                }
             }
             RemoveMatchedWordsThatDoNotMatch(noChange);
@@ -432,8 +435,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (runs[i] is IStreamRun streamRun && streamRun.DependsOn(reference.Name)) {
                   // clear/observe is heavy-handed, but it clears any stray pointers
                   var newRun = streamRun.Duplicate(streamRun.Start, streamRun.PointerSources);
-                  ClearFormat(noChange, newRun.Start, newRun.Length);
-                  ObserveRunWritten(noChange, newRun);
+                  if (anchorForAddress.TryGetValue(streamRun.Start, out var anchorName)) {
+                     ClearFormat(noChange, newRun.Start, newRun.Length);
+                     ObserveAnchorWritten(noChange, anchorName, newRun);
+                  } else {
+                     ClearFormat(noChange, newRun.Start, newRun.Length);
+                     ObserveRunWritten(noChange, newRun);
+                  }
                }
             }
          }
@@ -2243,7 +2251,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // We want to know the hash from the reference table,
                // because we only want to update the table if the hash matches the format
                var refTable = references == null ? null : references[name];
-               string hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : string.Empty;
+               string hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : StoredList.GenerateHash(new[] { format });
                anchors.Add(new StoredAnchor(address, name, format, hash));
             }
          }
