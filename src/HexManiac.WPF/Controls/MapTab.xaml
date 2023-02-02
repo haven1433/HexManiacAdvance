@@ -181,19 +181,23 @@
                <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
             </ToggleButton>
          </Grid>
-         <Grid DockPanel.Dock="Top" Name="EventCategorySelector" Height="24">
+         <Grid DockPanel.Dock="Top" Name="EventCategorySelector" Height="30">
             <Grid.ColumnDefinitions>
                <ColumnDefinition />
                <ColumnDefinition />
                <ColumnDefinition />
             </Grid.ColumnDefinitions>
-            <local:AngleButton Grid.Column="0" Margin="2,0" Content="Prev Group" Direction="Left" VerticalAlignment="Bottom"
+            <local:AngleButton Grid.Column="0" Margin="2,0" Content="Prev Group" Direction="Left" VerticalAlignment="Bottom" Height="24"
                   Command="{Binding SelectedEvent.CycleEventCommand}" CommandParameter="{x:Static map:EventCycleDirection.PreviousCategory}" />
-            <TextBlock Grid.Column="1" TextAlignment="Center" Text="{Binding SelectedEvent.EventType}" />
-            <local:AngleButton Grid.Column="2" Margin="2,0" Content="Next Group" Direction="Right" VerticalAlignment="Bottom"
+            <TextBlock Grid.Column="1" TextAlignment="Center">
+               <Run Text="{Binding SelectedEvent.EventType, Mode=OneWay}" />
+               <LineBreak />
+               <Run Text="{Binding SelectedEvent.EventIndex, Mode=OneWay}" />
+            </TextBlock>
+            <local:AngleButton Grid.Column="2" Margin="2,0" Content="Next Group" Direction="Right" VerticalAlignment="Bottom" Height="24"
                   Command="{Binding SelectedEvent.CycleEventCommand}" CommandParameter="{x:Static map:EventCycleDirection.NextCategory}" />
          </Grid>
-         <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding PrimaryMap.EventSelectors}" HorizontalAlignment="Center">
+         <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding PrimaryMap.EventSelectors}" HorizontalAlignment="Center" Width="190">
             <ItemsControl.ItemsPanel>
                <ItemsPanelTemplate>
                   <WrapPanel HorizontalAlignment="Center"/>
@@ -535,7 +539,7 @@
                         <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="(bank, map):"/>
+                           <TextBlock Text="Target (bank, map):"/>
                         </local:AngleBorder>
                         <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2">
                            <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap, UpdateSourceTrigger=PropertyChanged}" />
@@ -543,7 +547,7 @@
                         </StackPanel>
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="Warp Number:"/>
+                           <TextBlock Text="Target Warp:"/>
                         </local:AngleBorder>
                         <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding WarpID, UpdateSourceTrigger=PropertyChanged}" />
                      </Grid>
