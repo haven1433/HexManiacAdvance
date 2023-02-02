@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool IsMetadataOnlyChange => false;
       public ICommand Save => viewPort.Save;
       public ICommand SaveAs => viewPort.SaveAs;
-      public ICommand ExportBackup => null;
+      public ICommand ExportBackup => viewPort.ExportBackup;
       public ICommand Undo => StubCommand(ref undo,
          () => {
             history.Undo.Execute();
