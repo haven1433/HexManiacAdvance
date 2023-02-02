@@ -3183,7 +3183,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             if (FindBytes != null) {
                var fullLength = Width * Height;
-               for (int i = 0; i < fullLength - FindBytes.Length - 1; i++) {
+               for (int i = 0; i < fullLength; i++) {
                   bool possibleMatch = FindBytes.Length > 0;
                   for (int j = 0; j < FindBytes.Length; j++) {
                      var (x, y) = ((i + j) % Width, (i + j) / Width);
