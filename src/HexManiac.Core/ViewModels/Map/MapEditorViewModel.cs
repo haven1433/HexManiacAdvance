@@ -1089,6 +1089,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public const int TextSummaryLimit = 60;
       private IEnumerable<object> SummarizeScript(int address) {
+         var renderedAddresses = new HashSet<int>();
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
          var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x67, 0x1A, 0x5C, 0x86); // loadpointer, preparemsg, copyvarifnotzero, trainerbattle, mart
          var tips = new List<object>();
@@ -1099,6 +1100,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
          var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
          foreach (var spot in scriptSpots) {
+            if (renderedAddresses.Contains(spot.Address)) continue;
             if (model[spot.Address] == 0x0F) {
                // loadpointer (text)
                var textStart = model.ReadPointer(spot.Address + 2);
@@ -1106,6 +1108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  renderedAddresses.Add(spot.Address);
                }
             } else if (model[spot.Address] == 0x67) {
                // preparemsg (text)
@@ -1114,6 +1117,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  renderedAddresses.Add(spot.Address);
                }
             } else if (model[spot.Address] == 0x1A && itemStats != null) {
                // copyvarifnotzero (item)
@@ -1122,6 +1126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
                if (itemID < 0 || itemID >= itemStats.Count || !itemStats[0].HasField("name")) continue;
                tips.Add(itemStats[itemID].GetStringValue("name"));
+               renderedAddresses.Add(spot.Address);
             } else if (
                model[spot.Address] == 0x5C &&
                trainerTable != null &&
@@ -1138,6 +1143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  renderedAddresses.Add(spot.Address);
                }
 
                var trainerID = model.ReadMultiByteValue(spot.Address + 2, 2);
@@ -1146,6 +1152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var trainer = AggregateTrainerImages(trainerID, pokemon, items);
                if (trainer == null) continue;
                tips.Add(BuildTrainerSummaryImage(trainer, pokemon, items));
+               renderedAddresses.Add(spot.Address);
 
                if (spot.Address + 1 == 0x03) {
                   // 5C ** trainer: arg: playerwin<>
@@ -1154,6 +1161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                      var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                      if (text.Length >= TextSummaryLimit) text += "...";
                      tips.Add(text + Environment.NewLine);
+                     renderedAddresses.Add(spot.Address);
                   }
                } else {
                   // 5C ** trainer: arg: start<> playerwin<>
@@ -1162,6 +1170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                      var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                      if (text.Length >= TextSummaryLimit) text += "...";
                      tips.Add(text + Environment.NewLine);
+                     renderedAddresses.Add(spot.Address);
                   }
                }
             } else if (model[spot.Address] == 0x86 && itemStats != null) {
@@ -1176,6 +1185,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (id < 0 || id >= itemStats.Count) continue;
                   var name = itemStats[id].GetStringValue("name");
                   tips.Add(name);
+                  renderedAddresses.Add(spot.Address);
                   itemCount++;
                }
             }
