@@ -9,7 +9,7 @@ using System.Windows.Input;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class NavigationTests {
+   public class NavigationTests : BaseViewModelTestClass {
       [Fact]
       public void AddressesAreCorrect() {
          var viewPort = new ViewPort(new LoadedFile("test.txt", new byte[0x200])) { Width = 0x10, Height = 0x10 };
@@ -268,9 +268,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void CanResetAlignment() {
-         var fileSystem = new StubFileSystem();
          StandardSetup(out var data, out var model, out var viewPort);
-         var editor = new EditorViewModel(fileSystem);
+         var editor = New.EditorViewModel();
          editor.Add(viewPort);
 
          viewPort.Goto.Execute("10");

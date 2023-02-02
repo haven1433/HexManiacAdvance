@@ -10,13 +10,13 @@ using System.Windows.Input;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
-   public class GeneralAppTests {
+   public class GeneralAppTests : BaseViewModelTestClass {
       private readonly EditorViewModel editor;
       private readonly StubFileSystem fileSystem;
 
       public GeneralAppTests() {
-         fileSystem = new StubFileSystem();
-         editor = new EditorViewModel(fileSystem);
+         fileSystem = FileSystem;
+         editor = New.EditorViewModel();
       }
 
       [Fact]

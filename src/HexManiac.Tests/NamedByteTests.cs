@@ -33,7 +33,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Goto_ByteNamePartialText_ReturnsByteRunName() {
-         var editor = new EditorViewModel(new StubFileSystem());
+         var editor = New.EditorViewModel();
          editor.Add(ViewPort);
          ViewPort.Edit(".some.counter ");
 
@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ByteName_Goto_CreatesNewTab() {
-         var editor = new EditorViewModel(new StubFileSystem());
+         var editor = New.EditorViewModel();
          editor.Add(ViewPort);
          ViewPort.Edit(".some.counter @02 .some.counter ");
 

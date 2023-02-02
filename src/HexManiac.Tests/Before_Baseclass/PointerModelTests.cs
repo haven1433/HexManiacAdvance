@@ -379,7 +379,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void FindAllSourcesWorks() {
          var viewPort = ViewPort;
-         var editor = new EditorViewModel(new StubFileSystem());
+         var editor = New.EditorViewModel();
          editor.Add(viewPort);
 
          viewPort.SelectionStart = new Point(4, 1);

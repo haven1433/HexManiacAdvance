@@ -647,7 +647,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ExpandableTutorsWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
-         var editor = new EditorViewModel(fileSystem, allowLoadingMetadata: false);
+         var editor = new New(fileSystem,fixture.Singletons).EditorViewModel();
          var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
          var expandTutors = editor.QuickEditsExpansion.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
