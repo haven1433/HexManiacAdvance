@@ -530,7 +530,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             { tab => tab.SaveAs, (sender, e) => saveAs.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.ExportBackup, (sender, e) => exportBackup.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Close, (sender, e) => close.CanExecuteChanged.Invoke(this, e) },
-            { tab => tab.Undo, (sender, e) => undo.CanExecuteChanged.Invoke(this, e) },
+            { tab => tab.Undo, (sender, e) => workDispatcher.DispatchWork(() => undo.CanExecuteChanged.Invoke(this, e)) }, // refreshing undo from the background thread isn't allowed
             { tab => tab.Redo, (sender, e) => redo.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Back, (sender, e) => back.CanExecuteChanged.Invoke(this, e) },
             { tab => tab.Forward, (sender, e) => forward.CanExecuteChanged.Invoke(this, e) },
