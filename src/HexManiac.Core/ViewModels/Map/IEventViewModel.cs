@@ -312,6 +312,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       protected int SetText(int pointer, string text, [CallerMemberName] string propertyName = null) {
+         if (pointer == Pointer.NULL) return Pointer.NULL;
          var address = element.Model.ReadPointer(pointer);
          if (address < 0 || address >= element.Model.Count) return -1;
          if (element.Model.GetNextRun(address) is not PCSRun pcs) return -1;
@@ -319,6 +320,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          element.Model.ObserveRunWritten(element.Token, newRun);
          NotifyPropertyChanged(propertyName);
          return newRun.Start != pcs.Start ? newRun.Start : -1;
+      }
+
+      protected string GetAddressText(int address, ref string field) {
+         if (field == null) {
+            field = $"<{address.ToAddress()}>";
+            if (address == Pointer.NULL) field = "<null>";
+         }
+         return field;
+      }
+
+      protected void SetAddressText(string value, ref string field, string fieldName) {
+         field = value;
+         value = field.Trim("<nul> ".ToCharArray());
+         element.SetAddress(fieldName, value.TryParseHex(out int result) ? result : Pointer.NULL);
       }
 
       public static IPixelViewModel BuildEventRender(short color) {
@@ -474,16 +489,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string ScriptAddressText {
          get {
             var value = element.GetAddress("script");
-            if (scriptAddressText == null) {
-               scriptAddressText = $"<{value.ToAddress()}>";
-               if (value == Pointer.NULL) scriptAddressText = "<null>";
-            }
-            return scriptAddressText;
+            return GetAddressText(value, ref scriptAddressText);
          }
          set {
-            scriptAddressText = value;
-            value = value.Trim("<null>".ToCharArray());
-            element.SetAddress("script", value.TryParseHex(out int result) ? result : Pointer.NULL);
+            SetAddressText(value, ref scriptAddressText, "script");
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(ScriptAddress));
          }
@@ -1069,15 +1078,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void GotoScript() => gotoAddress(ScriptAddress);
 
       private string scriptAddressText;
-
       public string ScriptAddressText {
          get {
-            if (scriptAddressText == null) scriptAddressText = element.GetAddress("script").ToAddress();
-            return scriptAddressText;
+            var value = element.GetAddress("script");
+            return GetAddressText(value, ref scriptAddressText);
          }
          set {
-            scriptAddressText = value;
-            element.SetAddress("script", value.TryParseHex(out int result) ? result : Pointer.NULL);
+            SetAddressText(value, ref scriptAddressText, "script");
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(ScriptAddress));
          }
       }
 
@@ -1189,19 +1198,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string pointerText;
       public string PointerText {
          get {
-            if (pointerText != null) return pointerText;
-            var address = element.GetValue("arg") + DataFormats.Pointer.NULL;
-            pointerText = AddressFieldStrategy.ConvertAddressToText(address);
-            return pointerText;
+            var value = element.GetAddress("arg");
+            return GetAddressText(value, ref pointerText);
          }
          set {
-            pointerText = value;
-            if (AddressFieldStrategy.TryParse(pointerText, out var address)) {
-               ClearDestinationFormat();
-               element.SetValue("arg", address - DataFormats.Pointer.NULL);
-               SetDestinationFormat();
-               NotifyPropertyChanged(nameof(PointerText), nameof(CanGotoScript));
-            }
+            ClearDestinationFormat();
+            SetAddressText(value, ref pointerText, "arg");
+            SetDestinationFormat();
+            NotifyPropertyChanged(nameof(PointerText), nameof(CanGotoScript));
          }
       }
 
