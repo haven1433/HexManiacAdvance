@@ -1097,7 +1097,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public class TSEScriptLine : ScriptLine {
       public TSEScriptLine(string engineLine) : base(engineLine) { }
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x59, 0x5A);
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x45, 0x47, 0x59, 0x5A);
    }
 
    public interface IScriptArg {
