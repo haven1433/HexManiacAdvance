@@ -163,7 +163,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 5F endtrainerbattle2                         # same as 5E?
 60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated, set 800D to 1
 61 cleartrainerflag trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
-62 settrainerflag   trainer:                 # set flag 0x500+trainer to 0. That trainer now counts as active.
+62 settrainerflag   trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
 64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
 65 spritebehave npc: behavior.               # ???
