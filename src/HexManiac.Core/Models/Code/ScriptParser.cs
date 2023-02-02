@@ -95,6 +95,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (scripts[j] <= address || scripts[j] >= address + length) continue;
                lengths.RemoveAt(j);
                scripts.RemoveAt(j);
+               i--;
             }
 
             // look for other scripts from destinations that we should care about but don't yet
