@@ -1220,8 +1220,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             int originalColorIndex = parent.pixels[a.X, a.Y];
             var originalPaletteIndex = parent.PaletteIndex(originalColorIndex);
             if (parent.SpriteOnlyExpects16Colors() && parent.PalettePages > 1) originalPaletteIndex = originalColorIndex;
-            if (originalPaletteIndex >= parent.Palette.Elements.Count) return;
-            if (parent.PalettePage < 0) return;
+            if (parent.CanEditTilePalettes) {
+               // don't allow fill if the current tile doesn't have the same palette as the current selected palette
+               if (originalColorIndex / 16 != paletteInfo.initialBlankPages + parent.PalettePage) return;
+            }
             var direction = Math.Sign(parent.Palette.SelectionEnd - parent.Palette.SelectionStart);
             var targetColors = new List<int> { parent.Palette.SelectionStart };
             for (int i = parent.Palette.SelectionStart + direction; i != parent.Palette.SelectionEnd; i += direction) {

@@ -1160,9 +1160,9 @@ namespace HavenSoft.HexManiac.Tests {
          model.WritePointer(history.CurrentChange, 0x168, PaletteStart);
 
          InsertCompressedData(TilemapStart, new byte[] {
-            0x00, 0x20, // use 2 tiles with the 1st palette
+            0x00, 0x20, // use 2 tiles with the 1st palette (page 2)
             0x01, 0x20,
-            0x02, 0x30, // use 2 tiles with the 2nd palette
+            0x02, 0x30, // use 2 tiles with the 2nd palette (page 3)
             0x03, 0x30
          }); // 2000 is page 2, tile 0
          InsertCompressedData(TilesetStart, new byte[0x20 * 4]);      // 4 tile
@@ -1174,6 +1174,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor = new ImageEditorViewModel(history, model, TilemapStart);
          editor.SpriteScale = 1;
+
+         // everything is black, split between 2 palettes where all 16 colors are black
       }
 
       [Fact]
@@ -1457,14 +1459,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void FillTool_FillTileWithDifferentPalette_NothingHappens() {
+         // page 3, color 0 = white
          editor.PalettePage = 1;
          editor.Palette.Elements[0].Color = Rgb(31, 31, 31);
+
+         // fill with page 2, color 0 (black)
          editor.PalettePage = 0;
          editor.SelectedTool = ImageEditorTools.Fill;
-
          editor.ToolDown(5, 5);
          editor.ToolUp(5, 5);
 
+         // tile was using palette page 3, so the color wasn't changed
          Assert.Equal(Rgb(31, 31, 31), editor.PixelData[editor.PixelIndex(13, 13)]);
       }
 
