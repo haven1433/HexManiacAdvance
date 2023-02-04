@@ -607,12 +607,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void PrimaryMove(double x, double y) {
          if (interactionType == PrimaryInteractionType.Draw) DrawMove(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) RectangleDrawMove(x, y);
+         if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventMove(x, y);
       }
 
       public void PrimaryUp(double x, double y) {
          if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
+         if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventUp(x, y);
          interactionType = PrimaryInteractionType.None;
       }
@@ -621,6 +623,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void DrawDown(double x, double y, PrimaryInteractionStart click) {
          interactionType = PrimaryInteractionType.Draw;
          if (click == PrimaryInteractionStart.ControlClick) interactionType = PrimaryInteractionType.RectangleDraw;
+         if (click == PrimaryInteractionStart.ShiftClick) interactionType = PrimaryInteractionType.Draw9Grid;
          var map = MapUnderCursor(x, y);
          if (click == PrimaryInteractionStart.DoubleClick) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
@@ -638,6 +641,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             lastDraw = drawSource;
             if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
             if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
+            if (click == PrimaryInteractionStart.ShiftClick) Draw9Grid(x, y);
          }
       }
 
@@ -678,6 +682,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             FillRect();
             UpdateHover(Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
          }
+      }
+
+      private void Draw9Grid(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         map.Draw9Grid(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+         Hover(x, y);
       }
 
       private void DrawUp(double x, double y) {
@@ -770,7 +780,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (left > right) (left, right) = (right, left);
          if (top > bottom) (top, bottom) = (bottom, top);
          var (width, height) = (right - left + 1, bottom - top + 1);
-         primaryMap.RepeatBlocks(() => history.CurrentChange, rectangleBackup, left, top, width, height);
+         primaryMap.RepeatBlocks(() => history.CurrentChange, rectangleBackup, left, top, width, height, false);
       }
 
       /// <summary>
@@ -796,17 +806,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (right - left + 1, bottom - top + 1);
 
          if (tilesToDraw == null) {
-            primaryMap.RepeatBlock(() => history.CurrentChange, drawBlockIndex, collisionIndex, left, top, width, height);
+            primaryMap.RepeatBlock(() => history.CurrentChange, drawBlockIndex, collisionIndex, left, top, width, height, true);
          } else {
-            primaryMap.RepeatBlocks(() => history.CurrentChange, tilesToDraw, left, top, width, height);
+            primaryMap.RepeatBlocks(() => history.CurrentChange, tilesToDraw, left, top, width, height, true);
          }
       }
 
       private void SwapBlocks(Point a, Point b) {
          var p1 = primaryMap.ReadRectangle(a.X, a.Y, 1, 1);
          var p2 = primaryMap.ReadRectangle(b.X, b.Y, 1, 1);
-         primaryMap.RepeatBlocks(() => history.CurrentChange, p1, b.X, b.Y, 1, 1);
-         primaryMap.RepeatBlocks(() => history.CurrentChange, p2, a.X, a.Y, 1, 1);
+         primaryMap.RepeatBlocks(() => history.CurrentChange, p1, b.X, b.Y, 1, 1, false);
+         primaryMap.RepeatBlocks(() => history.CurrentChange, p2, a.X, a.Y, 1, 1, true);
          if (a != b) Tutorials.Complete(Tutorial.DragMap_SwapBlock);
       }
 
@@ -1654,8 +1664,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 
-   public enum PrimaryInteractionStart { None, Click, DoubleClick, ControlClick }
-   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw }
+   public enum PrimaryInteractionStart { None, Click, DoubleClick, ControlClick, ShiftClick }
+   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid }
 
    public record BlocksetCache(ObservableCollection<string> Primary, ObservableCollection<string> Secondary) {
       public void CalculateBlocksetOptions(IDataModel model) {

@@ -167,11 +167,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int PixelWidth { get => pixelWidth; private set => Set(ref pixelWidth, value); }
       public int PixelHeight { get => pixelHeight; private set => Set(ref pixelHeight, value); }
 
+      private readonly object pixelWriteLock = new();
       private short[] pixelData; // picture of the map
       public short[] PixelData {
          get {
-            if (pixelData == null) FillMapPixelData();
-            return pixelData;
+            lock (pixelWriteLock) {
+               if (pixelData == null) FillMapPixelData();
+               return pixelData;
+            }
          }
       }
 
@@ -865,6 +868,93 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.LeftClickMap_DrawBlock);
       }
 
+      public void Draw9Grid(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         Draw9Grid(token, blockIndex, collisionIndex, xx, yy);
+      }
+
+      public void Draw9Grid(ModelDelta token, int blockIndex, int collisionIndex, int xx, int yy) {
+         var blockHeight = (int)Math.Ceiling((double)blockRenders.Count / BlocksPerRow);
+
+         // find all neighbor blocks with blockIndex +/- 1 +/- BlocksPerRow
+         // arrange these blocks into a grid so we can use them
+         var grid = new int[3, 3]; // TODO fill the grid
+         var targets = new List<int> { blockIndex };
+         if (blockIndex >= BlocksPerRow) {
+            if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1 - BlocksPerRow);
+            grid[0, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 - BlocksPerRow : blockIndex - BlocksPerRow;
+            targets.Add(blockIndex - BlocksPerRow);
+            grid[0, 1] = blockIndex - BlocksPerRow;
+            if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1 - BlocksPerRow);
+            grid[0, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 - BlocksPerRow : blockIndex - BlocksPerRow;
+         } else {
+            grid[0, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
+            grid[0, 1] = blockIndex;
+            grid[0, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
+         }
+         if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1);
+         grid[1, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
+         grid[1, 1] = blockIndex;
+         if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1);
+         grid[1, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
+         if (blockIndex / BlocksPerRow < blockHeight - 1) {
+            if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1 + BlocksPerRow);
+            grid[2, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 + BlocksPerRow : blockIndex + BlocksPerRow;
+            targets.Add(blockIndex + BlocksPerRow);
+            grid[2, 1] = blockIndex + BlocksPerRow;
+            if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1 + BlocksPerRow);
+            grid[2, 2] = blockIndex % BlocksPerRow > 0 ? blockIndex + 1 + BlocksPerRow : blockIndex + BlocksPerRow;
+         } else {
+            grid[2, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
+            grid[2, 1] = blockIndex;
+            grid[2, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
+         }
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+
+         int get(Point p) => p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height ? -1 : model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2) & 0x3FF;
+         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, (block & 0x3FF) + (collisionIndex << 10));
+
+         // change all connected blocks based on the grid
+         var todo = new List<Point> { new(xx, yy), new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1) };
+         lock (pixelWriteLock) {
+            set(todo[0], blockIndex);
+            foreach (var cell in todo) {
+               var cellValue = get(cell);
+               if (!targets.Contains(cellValue)) continue;
+
+               var north = targets.Contains(get(new(cell.X, cell.Y - 1)));
+               var south = targets.Contains(get(new(cell.X, cell.Y + 1)));
+               var west = targets.Contains(get(new(cell.X - 1, cell.Y)));
+               var east = targets.Contains(get(new(cell.X + 1, cell.Y)));
+               var aggregate = (north ? "N" : " ") + (east ? "E" : " ") + (south ? "S" : " ") + (west ? "W" : " ");
+
+               var block = aggregate switch {
+                  " ES " => grid[0, 0],
+                  " ESW" => grid[0, 1],
+                  "  SW" => grid[0, 2],
+                  "NES " => grid[1, 0],
+                  "NESW" => grid[1, 1],
+                  "N SW" => grid[1, 2],
+                  "NE  " => grid[2, 0],
+                  "NE W" => grid[2, 1],
+                  "N  W" => grid[2, 2],
+                  _ => grid[1, 1],
+               };
+               set(cell, block);
+            }
+         }
+
+         ClearPixelCache();
+      }
+
       public void DrawBlocks(ModelDelta token, int[,] tiles, Point source, Point destination) {
          while (Math.Abs(destination.X - source.X) % tiles.GetLength(0) != 0) destination -= new Point(1, 0);
          while (Math.Abs(destination.Y - source.Y) % tiles.GetLength(1) != 0) destination -= new Point(0, 1);
@@ -873,59 +963,66 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
          int changeCount = 0;
-         for (int x = 0; x < tiles.GetLength(0); x++) {
-            for (int y = 0; y < tiles.GetLength(1); y++) {
-               if (destination.X + x < 0 || destination.Y + y < 0 || destination.X + x >= width || destination.Y + y >= height) continue;
-               var address = start + ((destination.Y + y) * width + destination.X + x) * 2;
-               if (model.ReadMultiByteValue(address, 2) != tiles[x, y]) {
-                  model.WriteMultiByteValue(address, 2, token, tiles[x, y]);
-                  changeCount++;
+         lock (pixelWriteLock) {
+            for (int x = 0; x < tiles.GetLength(0); x++) {
+               for (int y = 0; y < tiles.GetLength(1); y++) {
+                  if (destination.X + x < 0 || destination.Y + y < 0 || destination.X + x >= width || destination.Y + y >= height) continue;
+                  var address = start + ((destination.Y + y) * width + destination.X + x) * 2;
+                  if (model.ReadMultiByteValue(address, 2) != tiles[x, y]) {
+                     model.WriteMultiByteValue(address, 2, token, tiles[x, y]);
+                     changeCount++;
+                  }
                }
             }
          }
+
          if (changeCount > 0) ClearPixelCache();
       }
 
-      public void RepeatBlock(Func<ModelDelta> futureToken, int block, int collision, int x, int y, int w, int h) {
+      public void RepeatBlock(Func<ModelDelta> futureToken, int block, int collision, int x, int y, int w, int h, bool refreshScreen) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
          int changeCount = 0;
-         for (int xx = 0; xx < w; xx++) {
-            for (int yy = 0; yy < h; yy++) {
-               if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
-               var address = start + ((yy + y) * width + xx + x) * 2;
-               // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
-               var blockValue = model.ReadMultiByteValue(address, 2);
-               var originalBlockValue = blockValue;
-               if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
-               if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
-               if (blockValue != originalBlockValue) {
-                  model.WriteMultiByteValue(address, 2, futureToken(), blockValue);
-                  changeCount++;
+         lock (pixelWriteLock) {
+            for (int xx = 0; xx < w; xx++) {
+               for (int yy = 0; yy < h; yy++) {
+                  if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
+                  var address = start + ((yy + y) * width + xx + x) * 2;
+                  // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
+                  var blockValue = model.ReadMultiByteValue(address, 2);
+                  var originalBlockValue = blockValue;
+                  if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
+                  if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
+                  if (blockValue != originalBlockValue) {
+                     model.WriteMultiByteValue(address, 2, futureToken(), blockValue);
+                     changeCount++;
+                  }
                }
             }
          }
-         if (changeCount > 0) ClearPixelCache();
+         if (changeCount > 0 && refreshScreen) ClearPixelCache();
       }
 
-      public void RepeatBlocks(Func<ModelDelta> futureToken, int[,] blockValues, int x, int y, int w, int h) {
+      public void RepeatBlocks(Func<ModelDelta> futureToken, int[,] blockValues, int x, int y, int w, int h, bool refreshScreen) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
          int changeCount = 0;
-         for (int xx = 0; xx < w; xx++) {
-            for (int yy = 0; yy < h; yy++) {
-               if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
-               var address = start + ((yy + y) * width + xx + x) * 2;
-               var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
-               if (model.ReadMultiByteValue(address, 2) != block) {
-                  model.WriteMultiByteValue(address, 2, futureToken(), block);
-                  changeCount++;
+         lock (pixelWriteLock) {
+            for (int xx = 0; xx < w; xx++) {
+               for (int yy = 0; yy < h; yy++) {
+                  if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
+                  var address = start + ((yy + y) * width + xx + x) * 2;
+                  var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
+                  if (model.ReadMultiByteValue(address, 2) != block) {
+                     model.WriteMultiByteValue(address, 2, futureToken(), block);
+                     changeCount++;
+                  }
                }
             }
          }
-         if (changeCount > 0) ClearPixelCache();
+         if (changeCount > 0 && refreshScreen) ClearPixelCache();
       }
 
       public int[,] ReadRectangle(int x, int y, int w, int h) {
@@ -957,10 +1054,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var size = new Point(width, height);
          if (collisionIndex < 0) collisionIndex = lastDrawVal >> 10;
          var change = new Point(lastDrawVal, (collisionIndex << 10) | blockIndex);
-         PaintBlock(token, new(xx - 1, yy), size, start, change);
-         PaintBlock(token, new(xx + 1, yy), size, start, change);
-         PaintBlock(token, new(xx, yy - 1), size, start, change);
-         PaintBlock(token, new(xx, yy + 1), size, start, change);
+         lock (pixelWriteLock) {
+            PaintBlock(token, new(xx - 1, yy), size, start, change);
+            PaintBlock(token, new(xx + 1, yy), size, start, change);
+            PaintBlock(token, new(xx, yy - 1), size, start, change);
+            PaintBlock(token, new(xx, yy + 1), size, start, change);
+         }
          ClearPixelCache();
       }
 

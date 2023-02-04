@@ -123,6 +123,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             withinMapInteraction = MouseButton.Left;
             var interactionStart = PrimaryInteractionStart.Click;
             if (e.ClickCount == 2) interactionStart = PrimaryInteractionStart.DoubleClick;
+            if (Keyboard.Modifiers == ModifierKeys.Shift) interactionStart = PrimaryInteractionStart.ShiftClick;
             if (Keyboard.Modifiers == ModifierKeys.Control) interactionStart = PrimaryInteractionStart.ControlClick;
             vm.PrimaryDown(p.X, p.Y, interactionStart);
          } else if (e.MiddleButton == MouseButtonState.Pressed) {
