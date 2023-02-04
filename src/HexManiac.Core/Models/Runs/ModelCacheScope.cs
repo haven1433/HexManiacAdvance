@@ -26,8 +26,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
 
       public IReadOnlyList<string> GetOptions(string table) {
-         if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
-         return cachedOptions[table];
+         lock (cachedOptions) {
+            if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
+            return cachedOptions[table];
+         }
       }
 
       public static string QuoteIfNeeded(string text) {
