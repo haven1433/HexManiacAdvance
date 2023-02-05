@@ -33,6 +33,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int zIndex;
       public int ZIndex { get => zIndex; set => Set(ref zIndex, value); }
 
+      public event EventHandler RequestClearMapCaches;
+
       public IEditableViewPort ViewPort => viewPort;
 
       #region SelectedEvent
@@ -2098,14 +2100,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
          var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          BlockmapRun.WriteBlocks(tokenFactory(), blockModel1, blockModel2, blocks);
-         this.blocks = null;
-         lock (blockRenders) {
-            blockRenders.Clear();
-         }
-         blockPixels = null;
-         ClearPixelCache();
-         NotifyPropertiesChanged(nameof(BlockPixels), nameof(BlockRenders));
          viewPort.ChangeHistory.ChangeCompleted();
+         RequestClearMapCaches.Raise(this);
       }
 
       private void HandleBorderChanged(object sender, EventArgs e) {

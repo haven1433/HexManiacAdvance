@@ -374,6 +374,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.AutoscrollTiles -= HandleAutoscrollTiles;
                primaryMap.HideSidePanels -= HandleHideSidePanels;
                primaryMap.RequestChangeMap -= HandleMapChangeRequest;
+               primaryMap.RequestClearMapCaches -= HandleClearMapCaches;
                primaryMap.DeselectEvent();
                primaryMap.ShowBeneath = false;
                primaryMap.IsSelected = false;
@@ -388,6 +389,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                primaryMap.AutoscrollTiles += HandleAutoscrollTiles;
                primaryMap.HideSidePanels += HandleHideSidePanels;
                primaryMap.RequestChangeMap += HandleMapChangeRequest;
+               primaryMap.RequestClearMapCaches += HandleClearMapCaches;
                primaryMap.ShowBeneath = ShowBeneath;
                primaryMap.IsSelected = true;
             }
@@ -1646,6 +1648,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void HandleMapChangeRequest(object sender, ChangeMapEventArgs e) {
          NavigateTo(e.Bank, e.Map);
+      }
+
+      private void HandleClearMapCaches(object sender, EventArgs e) {
+         foreach (var map in VisibleMaps) map.ClearCaches();
       }
 
       private int GetPreferredCollision(int tile) {
