@@ -396,6 +396,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler AutoscrollTiles;
       public event EventHandler<byte[][]> BlocksChanged;
       public event EventHandler<byte[][]> BlockAttributesChanged;
+      public event EventHandler<string> SendMessage;
 
       private IPixelViewModel tileRender;
       public IPixelViewModel TileRender => tileRender;
@@ -463,6 +464,66 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Copy/Paste Foreground / Background
+
+      private int[,] copyTiles = new int[2, 2];
+      private int[,] copyPalettes = new int[2, 2];
+      private bool[,] copyFlipVs = new bool[2, 2];
+      private bool[,] copyFlipHs = new bool[2, 2];
+
+      public void CopyBackground() {
+         (copyPalettes[0, 0], copyFlipHs[0, 0], copyFlipVs[0, 0], copyTiles[0, 0]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 0, 2);
+         (copyPalettes[1, 0], copyFlipHs[1, 0], copyFlipVs[1, 0], copyTiles[1, 0]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 1, 2);
+         (copyPalettes[0, 1], copyFlipHs[0, 1], copyFlipVs[0, 1], copyTiles[0, 1]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 2, 2);
+         (copyPalettes[1, 1], copyFlipHs[1, 1], copyFlipVs[1, 1], copyTiles[1, 1]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 3, 2);
+         SendMessage.Raise(this, "Copied Block Background");
+      }
+
+      public void CopyForeground() {
+         (copyPalettes[0, 0], copyFlipHs[0, 0], copyFlipVs[0, 0], copyTiles[0, 0]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 4, 2);
+         (copyPalettes[1, 0], copyFlipHs[1, 0], copyFlipVs[1, 0], copyTiles[1, 0]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 5, 2);
+         (copyPalettes[0, 1], copyFlipHs[0, 1], copyFlipVs[0, 1], copyTiles[0, 1]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 6, 2);
+         (copyPalettes[1, 1], copyFlipHs[1, 1], copyFlipVs[1, 1], copyTiles[1, 1]) = LzTilemapRun.ReadTileData(blocks[blockIndex], 7, 2);
+         SendMessage.Raise(this, "Copied Block Foreground");
+      }
+
+      public void PasteBackground() {
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 0, copyPalettes[0, 0], copyFlipHs[0, 0], copyFlipVs[0, 0], copyTiles[0, 0]);
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 1, copyPalettes[1, 0], copyFlipHs[1, 0], copyFlipVs[1, 0], copyTiles[1, 0]);
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 2, copyPalettes[0, 1], copyFlipHs[0, 1], copyFlipVs[0, 1], copyTiles[0, 1]);
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 3, copyPalettes[1, 1], copyFlipHs[1, 1], copyFlipVs[1, 1], copyTiles[1, 1]);
+         for (int i = 0; i < 4; i++) {
+            var newImage = BlocksetModel.Read(blocks[blockIndex], i, tiles, palettes);
+            images[i].Fill(newImage.PixelData);
+         }
+         BlocksChanged?.Invoke(this, blocks);
+         tutorials.Complete(Tutorial.ClickBlock_DrawTile);
+         SendMessage.Raise(this, "Pasted Block Background");
+      }
+
+      public void PasteForeground() {
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 4, copyPalettes[0, 0], copyFlipHs[0, 0], copyFlipVs[0, 0], copyTiles[0, 0]);
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 5, copyPalettes[1, 0], copyFlipHs[1, 0], copyFlipVs[1, 0], copyTiles[1, 0]);
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 6, copyPalettes[0, 1], copyFlipHs[0, 1], copyFlipVs[0, 1], copyTiles[0, 1]);
+         LzTilemapRun.WriteTileData(blocks[blockIndex], 7, copyPalettes[1, 1], copyFlipHs[1, 1], copyFlipVs[1, 1], copyTiles[1, 1]);
+         for (int i = 4; i < 8; i++) {
+            var newImage = BlocksetModel.Read(blocks[blockIndex], i, tiles, palettes);
+            images[i].Fill(newImage.PixelData);
+         }
+         BlocksChanged?.Invoke(this, blocks);
+         tutorials.Complete(Tutorial.ClickBlock_DrawTile);
+         SendMessage.Raise(this, "Pasted Block Foreground");
+      }
+
+      public void LoadClipboard(BlockEditor other) {
+         copyPalettes = other.copyPalettes;
+         copyFlipHs = other.copyFlipHs;
+         copyFlipVs = other.copyFlipVs;
+         copyTiles = other.copyTiles;
+      }
+
+      #endregion
+
       public void EnterTile(IPixelViewModel tile) {
          FlipVVisible = true;
          FlipHVisible = true;
@@ -480,7 +541,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          images[hoverTile].Fill(newImage.PixelData);
          BlocksChanged?.Invoke(this, blocks);
          tutorials.Complete(Tutorial.ClickBlock_DrawTile);
-
       }
 
       public void GetSelectionFromTile(IPixelViewModel tileImage) {

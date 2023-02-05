@@ -73,6 +73,19 @@
                   <local:PixelImage x:Name="LeftBottomFront"  DataContext="{Binding LeftBottomFront}"  Canvas.Top="24" Canvas.Left="0"  MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
                   <local:PixelImage x:Name="RightBottomBack"  DataContext="{Binding RightBottomBack}"  Canvas.Top="72" Canvas.Left="72" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
                   <local:PixelImage x:Name="RightBottomFront" DataContext="{Binding RightBottomFront}" Canvas.Top="24" Canvas.Left="24" MouseEnter="MouseEnterTile" MouseLeftButtonDown="MouseClickTile" MouseRightButtonDown="MouseGrabTile" />
+
+                  <Button Width="16" Height="16" Command="{res:MethodCommand CopyForeground}" Canvas.Left="56" Canvas.Top="8" ToolTip="Copy Foreground Tiles">
+                     <Path Data="{res:Icon Copy}" />
+                  </Button>
+                  <Button Width="16" Height="16" Command="{res:MethodCommand PasteForeground}" Canvas.Left="72" Canvas.Top="24" ToolTip="Paste Foreground Tiles">
+                     <Path Data="{res:Icon Paste}" />
+                  </Button>
+                  <Button Width="16" Height="16" Command="{res:MethodCommand CopyBackground}" Canvas.Left="8" Canvas.Top="56" ToolTip="Copy Background Tiles">
+                     <Path Data="{res:Icon Copy}" />
+                  </Button>
+                  <Button Width="16" Height="16" Command="{res:MethodCommand PasteBackground}" Canvas.Left="24" Canvas.Top="72" ToolTip="Paste Background Tiles">
+                     <Path Data="{res:Icon Paste}" />
+                  </Button>
                </Canvas>
                <ControlTemplate.Resources>
                   <Storyboard x:Key="AnimateToSplitView">

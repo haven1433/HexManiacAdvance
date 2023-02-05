@@ -380,6 +380,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                blockEditor.BlocksChanged += HandleBlocksChanged;
                blockEditor.BlockAttributesChanged += HandleBlockAttributesChanged;
                blockEditor.AutoscrollTiles += HandleAutoscrollTiles;
+               BlockEditor.SendMessage += (sender, e) => viewPort.RaiseMessage(e);
                blockEditor.Bind(nameof(blockEditor.ShowTiles), (editor, args) => BorderEditor.ShowBorderPanel &= !editor.ShowTiles);
                blockEditor.Bind(nameof(blockEditor.BlockIndex), (editor, args) => lastDrawX = lastDrawY = -1);
             }
@@ -557,6 +558,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                (BlockEditor.TileSelectionX, BlockEditor.TileSelectionY) = (oldBlockEditor.TileSelectionX, oldBlockEditor.TileSelectionY);
                BlockEditor.PaletteSelection = oldBlockEditor.PaletteSelection;
                BlockEditor.ShowTiles = oldBlockEditor.ShowTiles;
+               BlockEditor.LoadClipboard(oldBlockEditor);
             }
             if (oldBlockEditor != null) oldBlockEditor.ShowTiles = false;
             NotifyPropertyChanged(nameof(BlockEditor));
