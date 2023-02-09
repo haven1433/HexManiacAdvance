@@ -198,7 +198,7 @@ data.pokemon.moves.tutorcompatibility,       ,       ,       ,       , 120C30, 1
 data.pokemon.moves.tms,                06F038, 06F03C, 06F058, 06F05C, 125A8C, 125A64, 125B04, 125ADC, 1B6D10, [move:data.pokemon.moves.names]58
 data.pokemon.moves.tmcompatibility,    0403B0, 0403B0, 0403D0, 0403D0, 043C68, 043C68, 043C7C, 043C7C, 06E048, [moves|b[]data.pokemon.moves.tms]data.pokemon.names
 data.pokemon.moves.hms,                040A24, 040A24, 040A44, 040A44, 0441DC, 0441DC, 0441F0, 0441F0, 06E828, [move:data.pokemon.moves.names]8
-data.pokemon.moves.details.flash.radius,       0815DC, 0815DC, 0815FC, 0815FC, 07F070, 07F080, 07F084, 07F058, 0B00E4, [max: current:]1
+data.pokemon.moves.details.flash.radius,       0815DC, 0815DC, 0815FC, 0815FC, 07F070, 07F080, 07F084, 07F058, 0B00E4, [current:]scripts.moves.flash.maxlevel
 data.pokemon.moves.details.lowkick.power,      02AA50, 02AA50, 02AA50, 02AA50, 02C930, 02C930, 02C944, 02C944, 0556E8, [weight: basePower:]!FFFFFFFF
 data.pokemon.moves.details.singing,            075890, 075894, 0758B0, 0758B4, 0726E8, 0726E8, 0726FC, 0726FC, 0A3BA4, [move:data.pokemon.moves.names]!FFFF
 data.pokemon.moves.details.fallback.names,     120E1C, 120E1C, 120E3C, 120E3C, 0D7624, 0D75F8, 0D7638, 0D760C,       , [name<"">]data.pokemon.type.names

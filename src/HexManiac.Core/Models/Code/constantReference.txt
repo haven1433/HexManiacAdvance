@@ -388,3 +388,10 @@ BPRE0.data.abilities.pickup.length-2 02CEEC
 BPGE0.data.abilities.pickup.length-2 02CEEC
 BPRE1.data.abilities.pickup.length-2 02CF00
 BPGE1.data.abilities.pickup.length-2 02CF00
+
+# maximum flash level
+BPEE0.scripts.moves.flash.maxlevel-1 0854E8
+BPRE0.scripts.moves.flash.maxlevel-1 055D04
+BPGE0.scripts.moves.flash.maxlevel-1 055D04
+AXVE0.scripts.moves.flash.maxlevel-1 053CE0
+AXPE0.scripts.moves.flash.maxlevel-1 053CE0
