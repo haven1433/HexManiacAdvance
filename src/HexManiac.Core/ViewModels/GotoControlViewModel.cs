@@ -386,8 +386,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var parts = content.Split(".");
          var firstPart = parts[0];
          for (int i = 1; i < parts.Length; i++) {
-            if (parts[i].Length > 0 && char.IsLetterOrDigit(parts[i][0])) return firstPart;
-            firstPart += "." + parts[i];
+            if (parts[i].Length == 0 || parts[i][0] == ' ' || firstPart.Count('"') % 2 != 0) {
+               firstPart += "." + parts[i];
+            } else {
+               break;
+            }
          }
          return firstPart;
       }
