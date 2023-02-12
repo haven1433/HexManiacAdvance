@@ -658,7 +658,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (currentRun.Start > memoryLocation) currentRun = null;
          bool inArray = currentRun is ITableRun && currentRun.Start <= memoryLocation;
          var sources = currentRun?.PointerSources;
-         var previousDestination = Model.ReadPointer(memoryLocation);
+         var previousRawDestination = Model.ReadValue(memoryLocation) - BaseModel.PointerOffset; // we care what the bytes are, not the logical destination
 
          if (!inArray) {
             Model.ClearFormat(CurrentChange, memoryLocation, 4);
@@ -666,8 +666,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          var (destinationValue, offset) = ParseDestination(destination);
-         if (destinationValue + offset != previousDestination) {
-            Model.ClearPointer(CurrentChange, memoryLocation, previousDestination);
+         if (destinationValue + offset != previousRawDestination) {
+            Model.ClearPointer(CurrentChange, memoryLocation, previousRawDestination);
             Model.ClearData(CurrentChange, memoryLocation, 4);
          }
 
