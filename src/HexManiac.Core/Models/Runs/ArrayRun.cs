@@ -561,7 +561,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          Length = ElementLength * ElementCount;
-         if (SupportsInnerPointers) PointerSourcesForInnerElements = ElementCount.Range().Select(i => SortedSpan<int>.None).ToList();
+         if (SupportsInnerPointers) {
+            var innerPointers = ElementCount.Range().Select(i => SortedSpan<int>.None).ToList();
+            innerPointers[0] = PointerSources;
+            PointerSourcesForInnerElements = innerPointers;
+         }
       }
 
       private ArrayRun(IDataModel data, string format, string lengthFromAnchor, ParentOffset parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {

@@ -1373,6 +1373,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal("\\!69ext", text);
       }
 
+      [Fact]
+      public void TableWithLengthFromParent_AddNameViaAnchorText_DoesNotChangeLength() {
+         ViewPort.Edit("<100> 03 @000 ^parent[child<[content:]/length> length::]1 ");
+
+         ViewPort.Goto.Execute("100");
+         ViewPort.AnchorText = ViewPort.AnchorText.Replace("^", "^name");
+
+         var child = (ITableRun)Model.GetNextRun(0x100);
+         Assert.Equal(3, child.ElementCount);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

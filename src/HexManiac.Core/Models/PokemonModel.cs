@@ -1014,6 +1014,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          Debug.Assert(run.Length > 0, $"Writing metadata run length 0 at {run.Start:X6}"); // writing a run of length zero is stupid.
          lock (threadlock) {
             if (run is ArrayRun array) {
+               if (array.SupportsInnerPointers && array.ElementCount > 0) {
+                  Debug.Assert(array.PointerSourcesForInnerElements[0].SequenceEqual(array.PointerSources),
+                     $"Expected inner pointers to item[0] to match pointers to table: {run.Start:X6}");
+               }
                // update any words who's name matches this array's name
                if (anchorForAddress.TryGetValue(run.Start, out var anchorName)) {
                   if (matchedWords.TryGetValue(anchorName, out var words) && !(changeToken is NoDataChangeDeltaModel)) {
