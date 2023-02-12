@@ -55,7 +55,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 0E setbyte byte.                                # sets a predefined address to the specified byte value
 0F loadpointer bank.4 pointer<"">               # loads a pointer into script RAM so other commands can use it
 10 setbyte2 bank.4 value.                       # sets a memory bank to the specified byte value.
-11 writebytetooffset value. offset<>            # store the byte 'value' at the RAM address 'offset'
+11 writebytetooffset value. offset::|h          # store the byte 'value' at the RAM address 'offset'
 12 loadbytefrompointer bank.4 pointer<>         # load a byte value from a RAM address into the specified memory bank
 13 setfarbyte bank.4 pointer<>                  # stores the least-significant byte in the bank to a RAM address
 14 copyscriptbanks destination.4 source.4       # copies the value in source to destination
