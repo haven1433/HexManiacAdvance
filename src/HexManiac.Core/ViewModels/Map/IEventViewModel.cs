@@ -919,8 +919,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this));
       }
 
-      public override int TopOffset => 16 - EventRender.PixelHeight;
-      public override int LeftOffset => (16 - EventRender.PixelWidth) / 2;
+      public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
+      public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
       public override void Render(IDataModel model) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);

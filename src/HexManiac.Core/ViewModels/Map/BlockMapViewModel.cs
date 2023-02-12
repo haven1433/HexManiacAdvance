@@ -1825,8 +1825,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventRenders == null) RefreshMapEvents();
          if (eventRenders != null) {
             foreach (var obj in eventRenders) {
-               var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-               canvas.Draw(obj.EventRender, x, y);
+               if (obj.EventRender != null) {
+                  var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+                  canvas.Draw(obj.EventRender, x, y);
+               }
             }
          }
 

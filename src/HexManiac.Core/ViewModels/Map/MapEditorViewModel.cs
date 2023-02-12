@@ -1211,6 +1211,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var pokemonSprites = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
          var trainerSprites = model.GetTableModel(HardcodeTablesModel.TrainerSpritesName);
          var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+         if (trainerTable == null || pokemonSprites == null || trainerSprites == null || itemSprites == null) return null;
 
          if (trainerID < 0 || trainerID >= trainerTable.Count) return null;
          var trainerSpriteID = trainerTable[trainerID].GetValue("sprite");
