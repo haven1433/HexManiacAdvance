@@ -267,6 +267,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
       }
 
+      private void BlockBagMouseDown(object sender, MouseButtonEventArgs e) {
+         if (Keyboard.Modifiers != ModifierKeys.Control) return;
+         ViewModel.ClearBlockBag();
+      }
+
       private void BlocksDown(object sender, MouseButtonEventArgs e) {
          var element = (FrameworkElement)sender;
          if (element.IsMouseCaptured) return;
@@ -275,6 +280,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var p = e.GetPosition(element);
          p.X /= 16;
          p.Y /= 16;
+         if (Keyboard.Modifiers == ModifierKeys.Control) {
+            mainModel.ToggleBlockInBag((int)p.X, (int)p.Y);
+         }
          mainModel.SelectBlock((int)p.X, (int)p.Y);
          e.Handled = true;
       }
@@ -282,6 +290,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void BlocksMove(object sender, MouseEventArgs e) {
          var element = (FrameworkElement)sender;
          if (!element.IsMouseCaptured) return;
+         if (Keyboard.Modifiers == ModifierKeys.Control) return;
          var mainModel = ViewModel;
          var p = e.GetPosition(element);
          p.X /= 16;

@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -283,6 +284,11 @@ namespace HavenSoft.HexManiac.Core {
 
       public static byte[] ToByteArray(this string content) {
          return content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(t => (byte)int.Parse(t, NumberStyles.HexNumber)).ToArray();
+      }
+
+      public static T From<T>(this Random rnd, IReadOnlyList<T> list) {
+         var index = rnd.Next(list.Count);
+         return list[index];
       }
    }
 

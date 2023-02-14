@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
-using HexManiac.Core.Models.Runs.Sprites;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
@@ -26,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly Singletons singletons;
       private readonly EventTemplate templates;
+      private readonly Random rnd = new();
 
       public IViewPort ViewPort => viewPort;
       public IFileSystem FileSystem => fileSystem;
@@ -429,6 +429,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = MapButtons.Count; i < newButtons.Count; i++) MapButtons.Add(newButtons[i]);
          while (MapButtons.Count > newButtons.Count) MapButtons.RemoveAt(MapButtons.Count - 1);
 
+         UpdateBlockBagVisual();
          IsValidState = true;
       }
 
@@ -633,7 +634,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                interactionType = PrimaryInteractionType.None;
             } else {
                if (map != null && !drawMultipleTiles) {
-                  map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+                  if (blockBag.Contains(drawBlockIndex)) {
+                     map.PaintBlockBag(history.CurrentChange, blockBag, collisionIndex, x, y);
+                  } else {
+                     map.PaintBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+                  }
                   Tutorials.Complete(Tutorial.DoubleClick_PaintBlock);
                }
             }
@@ -663,6 +668,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                         FillBackup();
                         SwapBlocks(lastDraw, drawSource);
                      }
+                  } else if (blockBag.Contains(drawBlockIndex)) {
+                     map.DrawBlock(history.CurrentChange, rnd.From(blockBag), collisionIndex, x, y);
                   } else {
                      map.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
                   }
@@ -1399,6 +1406,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Blocks Interection
 
+      private readonly List<int> blockBag = new();
       private bool selectionFromBlock = false;
       private Point blockInteractionStart;
 
@@ -1460,6 +1468,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          FillMultiTileRender();
          DrawMultipleTiles = true;
          BlockEditorVisible = false;
+      }
+
+      public void ToggleBlockInBag(int x, int y) {
+         while (y * BlockMapViewModel.BlocksPerRow + x > PrimaryMap.BlockRenders.Count) y -= 1;
+         var blockIndex = y * BlockMapViewModel.BlocksPerRow + x;
+         if (blockBag.Contains(blockIndex)) {
+            blockBag.Remove(blockIndex);
+         } else {
+            blockBag.Add(blockIndex);
+         }
+         UpdateBlockBagVisual();
+      }
+
+      public void ClearBlockBag() {
+         blockBag.Clear();
+         UpdateBlockBagVisual();
+      }
+
+      public IPixelViewModel BlockBag { get; private set; }
+      private void UpdateBlockBagVisual() {
+         var canvas = new CanvasPixelViewModel(16 * blockBag.Count, 16);
+         var offset = 0;
+         foreach (var block in blockBag) {
+            var render = PrimaryMap.BlockRenders[block];
+            canvas.Draw(render, offset, 0);
+            offset += 16;
+         }
+         BlockBag = canvas;
+         NotifyPropertyChanged(nameof(BlockBag));
       }
 
       #endregion

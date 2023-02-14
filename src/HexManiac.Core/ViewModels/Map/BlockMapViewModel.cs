@@ -1057,26 +1057,59 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var size = new Point(width, height);
          if (collisionIndex < 0) collisionIndex = lastDrawVal >> 10;
-         var change = new Point(lastDrawVal, (collisionIndex << 10) | blockIndex);
+         var (before, after) = (lastDrawVal, (collisionIndex << 10) | blockIndex);
          lock (pixelWriteLock) {
-            PaintBlock(token, new(xx - 1, yy), size, start, change);
-            PaintBlock(token, new(xx + 1, yy), size, start, change);
-            PaintBlock(token, new(xx, yy - 1), size, start, change);
-            PaintBlock(token, new(xx, yy + 1), size, start, change);
+            PaintBlock(token, new(xx - 1, yy), size, start, before, after);
+            PaintBlock(token, new(xx + 1, yy), size, start, before, after);
+            PaintBlock(token, new(xx, yy - 1), size, start, before, after);
+            PaintBlock(token, new(xx, yy + 1), size, start, before, after);
          }
          ClearPixelCache();
       }
 
-      private void PaintBlock(ModelDelta token, Point p, Point size, int start, Point change) {
-         if (change.X == change.Y) return;
+      private void PaintBlock(ModelDelta token, Point p, Point size, int start, int before, int after) {
+         if (before == after) return;
          if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) return;
          var address = start + (p.Y * size.X + p.X) * 2;
-         if (model.ReadMultiByteValue(address, 2) != change.X) return;
-         model.WriteMultiByteValue(address, 2, token, change.Y);
-         PaintBlock(token, p + new Point(-1, 0), size, start, change);
-         PaintBlock(token, p + new Point(1, 0), size, start, change);
-         PaintBlock(token, p + new Point(0, -1), size, start, change);
-         PaintBlock(token, p + new Point(0, 1), size, start, change);
+         if (model.ReadMultiByteValue(address, 2) != before) return;
+         model.WriteMultiByteValue(address, 2, token, after);
+         PaintBlock(token, p + new Point(-1, 0), size, start, before, after);
+         PaintBlock(token, p + new Point(1, 0), size, start, before, after);
+         PaintBlock(token, p + new Point(0, -1), size, start, before, after);
+         PaintBlock(token, p + new Point(0, 1), size, start, before, after);
+      }
+
+      public void PaintBlockBag(ModelDelta token, List<int> blockIndexes, int collisionIndex, double x, double y) {
+         if (blockIndexes.Count < 1) return;
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         var start = layout.GetAddress("blockmap");
+
+         var complete = new HashSet<Point> { new(xx, yy) };
+         var check = new List<Point> { new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1) };
+         var targets = blockIndexes.Select(bi => (collisionIndex << 10) | bi).ToList();
+         var rnd = new Random();
+         lock (pixelWriteLock) {
+            while (check.Count > 0) {
+               var p = check[check.Count - 1];
+               check.RemoveAt(check.Count - 1);
+               if (p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height) continue;
+               if (complete.Contains(p)) continue;
+               complete.Add(p);
+
+               var address = start + (p.Y * width + p.X) * 2;
+               if (model.ReadMultiByteValue(address, 2) != lastDrawVal) continue;
+               model.WriteMultiByteValue(address, 2, token, rnd.From(targets));
+
+               check.AddRange(new Point[] { new(p.X - 1, p.Y), new(p.X + 1, p.Y), new(p.X, p.Y - 1), new(p.X, p.Y + 1) });
+            }
+         }
+         ClearPixelCache();
       }
 
       #endregion
