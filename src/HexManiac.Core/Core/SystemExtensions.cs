@@ -290,6 +290,20 @@ namespace HavenSoft.HexManiac.Core {
          var index = rnd.Next(list.Count);
          return list[index];
       }
+
+      public static T Ensure<T>(this IList<T> list, Func<T, bool> predicate, T element) {
+         var existing = list.FirstOrDefault(predicate);
+         if (existing != null) return existing;
+         list.Add(element);
+         return element;
+      }
+
+      public static V Ensure<K, V>(this IDictionary<K, V> dict, K key, Func<V> valueFactory) {
+         if (dict.TryGetValue(key, out var result)) return result;
+         var value = valueFactory();
+         dict[key] = value;
+         return value;
+      }
    }
 
    public static class NativeProcess {

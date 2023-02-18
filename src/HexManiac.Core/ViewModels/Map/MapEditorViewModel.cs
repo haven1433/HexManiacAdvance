@@ -93,6 +93,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public EventTemplate Templates => templates;
 
+      private int PrimaryBlocks { get; }
       private int PrimaryTiles { get; }
 
       private string hoverPoint, zoomLevel;
@@ -312,6 +313,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          history.Bind(nameof(history.HasDataChange), (sender, e) => NotifyPropertyChanged(nameof(Name)));
          var isFRLG = model.IsFRLG();
          PrimaryTiles = isFRLG ? 640 : 512;
+         PrimaryBlocks = PrimaryTiles;
          this.format = new Format(model);
 
          var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, 3, 0);
@@ -625,15 +627,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       Point drawSource, lastDraw;
       private void DrawDown(double x, double y, PrimaryInteractionStart click) {
          interactionType = PrimaryInteractionType.Draw;
-         if (click == PrimaryInteractionStart.ControlClick) interactionType = PrimaryInteractionType.RectangleDraw;
+         if ((click & PrimaryInteractionStart.ControlClick) != 0) interactionType = PrimaryInteractionType.RectangleDraw;
          if (click == PrimaryInteractionStart.ShiftClick) interactionType = PrimaryInteractionType.Draw9Grid;
          var map = MapUnderCursor(x, y);
-         if (click == PrimaryInteractionStart.DoubleClick) {
+         if ((click & PrimaryInteractionStart.DoubleClick) != 0) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
                // nothing to paint
                interactionType = PrimaryInteractionType.None;
             } else {
-               if (map != null && !drawMultipleTiles) {
+               if (interactionType == PrimaryInteractionType.RectangleDraw && map != null) {
+                  map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithColision);
+               } else if (map != null && !drawMultipleTiles) {
                   if (blockBag.Contains(drawBlockIndex)) {
                      map.PaintBlockBag(history.CurrentChange, blockBag, collisionIndex, x, y);
                   } else {
@@ -1572,6 +1576,172 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Wave Function Collapse
+
+      public record CollapseProbability(int Block) { public int Count { get; set; } };
+      public record WaveNeighbors(List<CollapseProbability> Left, List<CollapseProbability> Right, List<CollapseProbability> Up, List<CollapseProbability> Down);
+      Dictionary<long, WaveNeighbors[]> waveFunctionPrimary;
+      Dictionary<long, WaveNeighbors[]> waveFunctionSecondary;
+      Dictionary<long, WaveNeighbors[]> waveFunctionMixed;
+
+      private void CalculateWaveCollapseProbabilities() {
+         waveFunctionPrimary = new();
+         waveFunctionSecondary = new();
+         waveFunctionMixed = new();
+         foreach (var bank in AllMapsModel.Create(model, () => history.CurrentChange)) {
+            foreach (var map in bank) {
+               var cells = map.Blocks;
+               var primary = map.Layout.PrimaryBlockset.Start;
+               var secondary = map.Layout.SecondaryBlockset.Start;
+               var mixed = ((long)primary << 32) + secondary;
+               var primaryWaveNeighbors = waveFunctionPrimary.Ensure(primary, () => new WaveNeighbors[PrimaryBlocks]);
+               var secondaryWaveNeighbors = waveFunctionSecondary.Ensure(secondary, () => new WaveNeighbors[TotalBlocks - PrimaryBlocks]);
+               var mixedWaveNeighbors = waveFunctionMixed.Ensure(mixed, () => new WaveNeighbors[TotalBlocks]);
+
+               for (int x = 0; x < cells.Width; x++) {
+                  for (int y = 0; y < cells.Height; y++) {
+                     var center = cells[x, y];
+                     if (IsPrimaryBlock(center)) {
+                        CheckPrimary(cells, x - 1, y, center, primaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Left);
+                        CheckPrimary(cells, x + 1, y, center, primaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Right);
+                        CheckPrimary(cells, x, y - 1, center, primaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Up);
+                        CheckPrimary(cells, x, y + 1, center, primaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Down);
+                     } else {
+                        CheckSecondary(cells, x - 1, y, center, secondaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Left);
+                        CheckSecondary(cells, x + 1, y, center, secondaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Right);
+                        CheckSecondary(cells, x, y - 1, center, secondaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Up);
+                        CheckSecondary(cells, x, y + 1, center, secondaryWaveNeighbors, mixedWaveNeighbors, wn => wn.Down);
+                     }
+                  }
+               }
+            }
+         }
+      }
+
+      private int RunWaveFunctionCollapseWithColision(int xx, int yy) {
+         var blockIndex = RunWaveFunctionCollapse(xx, yy);
+         var preferredCollision = GetPreferredCollision(blockIndex);
+         return (preferredCollision << 10) | blockIndex;
+      }
+
+      private int RunWaveFunctionCollapse(int xx, int yy) {
+         if (waveFunctionPrimary == null) CalculateWaveCollapseProbabilities();
+         var layout = new LayoutModel(PrimaryMap.GetLayout());
+         var primary = layout.PrimaryBlockset.Start;
+         var secondary = layout.SecondaryBlockset.Start;
+         var mixed = ((long)primary << 32) + secondary;
+         var primaryWaveNeighbors = waveFunctionPrimary.Ensure(primary, () => new WaveNeighbors[PrimaryBlocks]);
+         var secondaryWaveNeighbors = waveFunctionSecondary.Ensure(secondary, () => new WaveNeighbors[TotalBlocks - PrimaryBlocks]);
+         var mixedWaveNeighbors = waveFunctionMixed.Ensure(mixed, () => new WaveNeighbors[TotalBlocks]);
+
+         var cells = layout.BlockMap;
+         var probabilities = new List<List<CollapseProbability>>();
+         AddProbabilities(probabilities, cells, xx - 1, yy, primaryWaveNeighbors, secondaryWaveNeighbors, mixedWaveNeighbors, wv => wv.Right);
+         AddProbabilities(probabilities, cells, xx + 1, yy, primaryWaveNeighbors, secondaryWaveNeighbors, mixedWaveNeighbors, wv => wv.Left);
+         AddProbabilities(probabilities, cells, xx, yy - 1, primaryWaveNeighbors, secondaryWaveNeighbors, mixedWaveNeighbors, wv => wv.Down);
+         AddProbabilities(probabilities, cells, xx, yy + 1, primaryWaveNeighbors, secondaryWaveNeighbors, mixedWaveNeighbors, wv => wv.Up);
+
+         // remove all the empty probability sets (they're not adding any restrictions)
+         for (int i = probabilities.Count - 1; i >= 0; i--) {
+            if (probabilities[i].Count == 0) probabilities.RemoveAt(i);
+         }
+
+         // the block is constricted in options based on its neighbors
+         // if the neighbor can only be A/B based on the left and only B/C based on the top, it must be B.
+         while (probabilities.Count > 1) {
+            var last = probabilities[probabilities.Count - 1];
+            var next = probabilities[probabilities.Count - 2];
+            probabilities.RemoveAt(probabilities.Count - 1);
+            probabilities.RemoveAt(probabilities.Count - 1);
+
+            var merged = new List<CollapseProbability>();
+            foreach (var cp1 in last) {
+               var cp2 = next.FirstOrDefault(match => match.Block == cp1.Block);
+               if (cp2 == null) continue; // no match
+               merged.Add(new(cp1.Block) { Count = cp1.Count + cp2.Count });
+            }
+            if (merged.Count == 0) {
+               // couldn't find a match
+               // matching one is better than matching neither
+               probabilities.Add(rnd.Next(2) == 0 ? last : next);
+            } else {
+               probabilities.Add(merged);
+            }
+         }
+
+         if (probabilities.Count == 0 || probabilities[0].Count == 0) {
+            // no restriction, pick any block
+            var (availableBlocks, _) = PrimaryMap.MapRepointer.EstimateBlockCount(layout.Element, true);
+            return rnd.Next(availableBlocks);
+         } else if (probabilities[0].Count == 1) {
+            // only one option, go with that
+            return probabilities[0][0].Block;
+         }
+         // pick one block from among the available blocks at random (weighted based on use)
+         var totalOptions = probabilities[0].Sum(cp => cp.Count);
+         var selection = rnd.Next(totalOptions);
+         var index = 0;
+         while (selection > probabilities[0][index].Count) {
+            selection -= probabilities[0][index].Count;
+            index += 1;
+         }
+         return probabilities[0][index].Block;
+      }
+
+      private void AddProbabilities(List<List<CollapseProbability>> probabilities, BlockCells cells, int xx, int yy, WaveNeighbors[] primaryWaveNeighbors, WaveNeighbors[] secondaryWaveNeighbors, WaveNeighbors[] mixedWaveNeighbors, Func<WaveNeighbors, List<CollapseProbability>> reverse) {
+         if (xx < 0 || yy < 0 || xx >= cells.Width || yy >= cells.Height) return;
+         var edge = cells[xx, yy].Tile;
+         if (edge == 0) return;
+         if (IsPrimaryBlock(cells[xx, yy])) {
+            var mergedProbabilities = new List<CollapseProbability>();
+            if (primaryWaveNeighbors[edge] != null) mergedProbabilities.AddRange(reverse(primaryWaveNeighbors[edge]));
+            if (mixedWaveNeighbors[edge] != null) mergedProbabilities.AddRange(reverse(mixedWaveNeighbors[edge]));
+            probabilities.Add(mergedProbabilities);
+         } else {
+            var mergedProbabilities = new List<CollapseProbability>();
+            if (secondaryWaveNeighbors[edge - PrimaryBlocks] != null) mergedProbabilities.AddRange(reverse(secondaryWaveNeighbors[edge - PrimaryBlocks]));
+            if (mixedWaveNeighbors[edge] != null) mergedProbabilities.AddRange(reverse(mixedWaveNeighbors[edge]));
+            probabilities.Add(mergedProbabilities);
+         }
+      }
+
+      private void CheckPrimary(BlockCells cells, int x, int y, BlockCell center, WaveNeighbors[] primaryWaveNeighbors, WaveNeighbors[] mixedWaveNeighbors, Func<WaveNeighbors, List<CollapseProbability>> direction) {
+         var primaryElement = primaryWaveNeighbors[center.Tile];
+         var mixedElement = mixedWaveNeighbors[center.Tile];
+         if (x < 0 || x >= cells.Width || y < 0 || y >= cells.Height) return;
+         var edge = cells[x, y];
+         if (IsPrimaryBlock(edge)) {
+            if (primaryElement == null) primaryElement = primaryWaveNeighbors[center.Tile] = new(new(), new(), new(), new());
+            var collapse = direction(primaryElement).Ensure(cp => cp.Block == edge.Tile, new CollapseProbability(edge.Tile));
+            collapse.Count += 1;
+         } else {
+            if (mixedElement == null) mixedElement = mixedWaveNeighbors[center.Tile] = new(new(), new(), new(), new());
+            var collapse = direction(mixedElement).Ensure(cp => cp.Block == edge.Tile, new CollapseProbability(edge.Tile));
+            collapse.Count += 1;
+         }
+      }
+
+      private void CheckSecondary(BlockCells cells, int x, int y, BlockCell center, WaveNeighbors[] secondaryWaveNeighbors, WaveNeighbors[] mixedWaveNeighbors, Func<WaveNeighbors, List<CollapseProbability>> direction) {
+         var secondaryElement = secondaryWaveNeighbors[center.Tile - PrimaryBlocks];
+         var mixedElement = mixedWaveNeighbors[center.Tile];
+         if (x < 0 || x >= cells.Width || y < 0 || y >= cells.Height) return;
+         var edge = cells[x, y];
+         if (IsPrimaryBlock(edge)) {
+            if (secondaryElement == null) secondaryElement = secondaryWaveNeighbors[center.Tile - PrimaryBlocks] = new(new(), new(), new(), new());
+            var collapse = direction(secondaryElement).Ensure(cp => cp.Block == edge.Tile, new CollapseProbability(edge.Tile));
+            collapse.Count += 1;
+         } else {
+            if (mixedElement == null) mixedElement = mixedWaveNeighbors[center.Tile] = new(new(), new(), new(), new());
+            var collapse = direction(mixedElement).Ensure(cp => cp.Block == edge.Tile, new CollapseProbability(edge.Tile));
+            collapse.Count += 1;
+         }
+      }
+
+      private bool IsPrimaryBlock(BlockCell cell) => cell.Tile < PrimaryBlocks;
+      private int TotalBlocks => 1024;
+
+      #endregion
+
       private Dictionary<long, int[]> preferredCollisionsPrimary;
       private Dictionary<long, int[]> preferredCollisionsSecondary;
       private void CountCollisionForBlocks() {
@@ -1708,7 +1878,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
 
-   public enum PrimaryInteractionStart { None, Click, DoubleClick, ControlClick, ShiftClick }
+   [Flags]
+   public enum PrimaryInteractionStart {
+      None = 0,
+      Click = 1,
+      DoubleClick = 2,
+      ControlClick = 4,
+      ShiftClick = 8,
+   }
    public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid }
 
    public record BlocksetCache(ObservableCollection<string> Primary, ObservableCollection<string> Secondary) {

@@ -995,10 +995,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var address = start + ((yy + y) * width + xx + x) * 2;
                   // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
                   var blockValue = model.ReadMultiByteValue(address, 2);
-                  var originalBlockValue = blockValue;
+                  lastDrawVal = blockValue;
                   if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
                   if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
-                  if (blockValue != originalBlockValue) {
+                  if (blockValue != lastDrawVal) {
                      model.WriteMultiByteValue(address, 2, futureToken(), blockValue);
                      changeCount++;
                   }
@@ -1109,6 +1109,49 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                check.AddRange(new Point[] { new(p.X - 1, p.Y), new(p.X + 1, p.Y), new(p.X, p.Y - 1), new(p.X, p.Y + 1) });
             }
          }
+         ClearPixelCache();
+      }
+
+      public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, int> wave) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         var start = layout.GetAddress("blockmap");
+
+         // first pass: set all the effected spaces to 0 so they won't count
+         var toDraw = new Queue<Point>();
+         toDraw.Enqueue(new(xx, yy));
+         var drawn = new List<Point>();
+         lock (pixelWriteLock) {
+            while (toDraw.Count > 0) {
+               var p = toDraw.Dequeue();
+               if (drawn.Contains(p)) continue;
+               var address = start + (p.Y * width + (p.X - 1)) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X - 1, p.Y));
+               address = start + (p.Y * width + (p.X + 1)) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X + 1, p.Y));
+               address = start + ((p.Y - 1) * width + p.X) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y - 1));
+               address = start + ((p.Y + 1) * width + p.X) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y + 1));
+               address = start + (p.Y * width + p.X) * 2;
+               model.WriteMultiByteValue(address, 2, token, 0);
+               drawn.Add(p);
+            }
+
+            // second pass: wave-fill in the reverse order (outside in)
+            drawn.Reverse();
+            foreach (var p in drawn) {
+               var targetVal = wave(p.X, p.Y);
+               var address = start + (p.Y * width + p.X) * 2;
+               model.WriteMultiByteValue(address, 2, token, targetVal);
+            }
+         }
+
          ClearPixelCache();
       }
 
