@@ -935,6 +935,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public ModelTable this[string name] => Model.GetTableModel(name, () => CurrentChange);
+
       public IDataModel Model { get; }
       public IDataModel ModelFor(Point p) => Model;
 

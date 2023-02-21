@@ -3,7 +3,6 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using IronPython.Runtime.Operations;
 using System;
 using System.Collections;
 using System.Collections.Generic;

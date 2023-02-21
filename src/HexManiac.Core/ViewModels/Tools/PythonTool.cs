@@ -16,6 +16,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public PythonTool(EditorViewModel editor) {
          this.editor = editor;
          engine = IronPython.Hosting.Python.CreateEngine();
+         var paths = engine.GetSearchPaths();
+         paths.Add(Environment.CurrentDirectory);
+         engine.SetSearchPaths(paths);
+
          scope = engine.CreateScope();
          scope.SetVariable("editor", editor);
          scope.SetVariable("table", new TableGetter(editor));

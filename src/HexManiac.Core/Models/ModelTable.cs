@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models {
@@ -241,8 +242,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          set {
             var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-            if (seg is ArrayRunEnumSegment) SetEnumValue(fieldName, (string)value);
-            else if (seg.Type == ElementContentType.Pointer) {
+            if (seg is ArrayRunEnumSegment) {
+               if (value is string str) SetEnumValue(fieldName, str);
+               else if (value is BigInteger big) SetValue(fieldName, (int)big);
+               else SetValue(fieldName, (int)value);
+            } else if (seg.Type == ElementContentType.Pointer) {
                if (value is string str) {
                   SetStringValue(fieldName, str);
                } else {
