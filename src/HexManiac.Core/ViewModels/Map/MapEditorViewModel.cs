@@ -636,7 +636,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                interactionType = PrimaryInteractionType.None;
             } else {
                if (interactionType == PrimaryInteractionType.RectangleDraw && map != null) {
-                  map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithColision);
+                  map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
                } else if (map != null && !drawMultipleTiles) {
                   if (blockBag.Contains(drawBlockIndex)) {
                      map.PaintBlockBag(history.CurrentChange, blockBag, collisionIndex, x, y);
@@ -1578,8 +1578,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Wave Function Collapse
 
-      public record CollapseProbability(int Block) { public int Count { get; set; } };
-      public record WaveNeighbors(List<CollapseProbability> Left, List<CollapseProbability> Right, List<CollapseProbability> Up, List<CollapseProbability> Down);
       Dictionary<long, WaveNeighbors[]> waveFunctionPrimary;
       Dictionary<long, WaveNeighbors[]> waveFunctionSecondary;
       Dictionary<long, WaveNeighbors[]> waveFunctionMixed;
@@ -1618,13 +1616,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private int RunWaveFunctionCollapseWithColision(int xx, int yy) {
-         var blockIndex = RunWaveFunctionCollapse(xx, yy);
-         var preferredCollision = GetPreferredCollision(blockIndex);
-         return (preferredCollision << 10) | blockIndex;
+      private WaveCell RunWaveFunctionCollapseWithCollision(int xx, int yy) {
+         var probabilities = RunWaveFunctionCollapse(xx, yy);
+         return new(probabilities, GetPreferredCollision);
       }
 
-      private int RunWaveFunctionCollapse(int xx, int yy) {
+      // wave function collapse algorithm:
+      // for every block that we want to collapse, set the block to 0 and the collapse options to null (no restrictions)
+      // for every block that has neighbors, find restrictions/odds based on those neighbors
+      // repeate:
+      //    find the current block with the tightest restriction, and pick an option based on the (weighted) options
+      //    propogate new restrictions to neighboring unset blocks
+
+      // if we ever get to a block that's restricted to 0 options, skip it until the end. Once there's onl 0-options choices left,
+      // recalculate available options but only accounting for 3 sides at random, then 2 sides, then 1 side.
+      // if we still can't find a neighbor after that, leave it blank.
+
+      private IList<CollapseProbability> RunWaveFunctionCollapse(int xx, int yy) {
          if (waveFunctionPrimary == null) CalculateWaveCollapseProbabilities();
          var layout = new LayoutModel(PrimaryMap.GetLayout());
          var primary = layout.PrimaryBlockset.Start;
@@ -1672,20 +1680,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (probabilities.Count == 0 || probabilities[0].Count == 0) {
             // no restriction, pick any block
             var (availableBlocks, _) = PrimaryMap.MapRepointer.EstimateBlockCount(layout.Element, true);
-            return rnd.Next(availableBlocks);
-         } else if (probabilities[0].Count == 1) {
-            // only one option, go with that
-            return probabilities[0][0].Block;
+            return availableBlocks.Range().Select(i => new CollapseProbability(i)).ToList();
          }
+
+         // old version that returned just a single block
+         //else if (probabilities[0].Count == 1) {
+         //   // only one option, go with that
+         //   return probabilities[0][0].Block;
+         //}
          // pick one block from among the available blocks at random (weighted based on use)
-         var totalOptions = probabilities[0].Sum(cp => cp.Count);
-         var selection = rnd.Next(totalOptions);
-         var index = 0;
-         while (selection > probabilities[0][index].Count) {
-            selection -= probabilities[0][index].Count;
-            index += 1;
-         }
-         return probabilities[0][index].Block;
+         //var totalOptions = probabilities[0].Sum(cp => cp.Count);
+         //var selection = rnd.Next(totalOptions);
+         //var index = 0;
+         //while (selection > probabilities[0][index].Count) {
+         //   selection -= probabilities[0][index].Count;
+         //   index += 1;
+         //}
+         //return probabilities[0][index].Block;
+
+         // new version that returns the current probabilities, which need collapsing
+         return probabilities[0];
       }
 
       private void AddProbabilities(List<List<CollapseProbability>> probabilities, BlockCells cells, int xx, int yy, WaveNeighbors[] primaryWaveNeighbors, WaveNeighbors[] secondaryWaveNeighbors, WaveNeighbors[] mixedWaveNeighbors, Func<WaveNeighbors, List<CollapseProbability>> reverse) {
@@ -1871,6 +1885,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (preferredCollisionsSecondary.TryGetValue(blockset2, out preference)) return preference[tile];
          }
          return -1;
+      }
+   }
+
+   public record CollapseProbability(int Block) { public int Count { get; set; } };
+   public record WaveNeighbors(List<CollapseProbability> Left, List<CollapseProbability> Right, List<CollapseProbability> Up, List<CollapseProbability> Down);
+   public record WaveCell(IList<CollapseProbability> Probabilities, Func<int, int> GetCollision) {
+      public int Collapse(Random rnd) {
+         var totalOptions = Probabilities.Sum(cp => cp.Count);
+         var selection = rnd.Next(totalOptions);
+         var index = 0;
+         while (selection > Probabilities[index].Count) {
+            selection -= Probabilities[index].Count;
+            index += 1;
+         }
+         var block = Probabilities[index].Block;
+         var collision = GetCollision(block);
+         return (collision << 10) | block;
       }
    }
 

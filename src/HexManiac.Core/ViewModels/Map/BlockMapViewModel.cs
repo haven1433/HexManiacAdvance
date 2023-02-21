@@ -1112,7 +1112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
-      public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, int> wave) {
+      public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
          var layout = GetLayout();
@@ -1126,6 +1126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var toDraw = new Queue<Point>();
          toDraw.Enqueue(new(xx, yy));
          var drawn = new List<Point>();
+         var rnd = new Random();
          lock (pixelWriteLock) {
             while (toDraw.Count > 0) {
                var p = toDraw.Dequeue();
@@ -1146,7 +1147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             // second pass: wave-fill in the reverse order (outside in)
             drawn.Reverse();
             foreach (var p in drawn) {
-               var targetVal = wave(p.X, p.Y);
+               var targetVal = wave(p.X, p.Y).Collapse(rnd);
                var address = start + (p.Y * width + p.X) * 2;
                model.WriteMultiByteValue(address, 2, token, targetVal);
             }
