@@ -1018,6 +1018,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 1; i < ElementCount; i++) results.Add(SortedSpan<int>.None);
 
          foreach (var source in sources) {
+            // if the source is within the table and isn't aligned as a pointer format,
+            // then it's not a real pointer and we should ignore it
+            if (Start <= source && source < Start + Length) {
+               bool skip = false;
+               var offset = this.ConvertByteOffsetToArrayOffset(source);
+               if (offset.SegmentOffset != 0) skip = true;
+               else if (ElementContent[offset.SegmentIndex].Type != ElementContentType.Pointer) skip = true;
+
+               if (skip) {
+                  owner.ClearFormat(changeToken, source, 1);
+                  continue;
+               }
+            }
+
             var destination = owner.ReadPointer(source);
             int destinationIndex = (destination - Start) / ElementLength;
             // destinationIndex is expected to be within the table
