@@ -485,7 +485,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
          if (!Singletons.MetadataInfo.IsPublicRelease) {
             // beta features
-            expansionUtils.Add(new MakePokemonExpandable());
+            // expansionUtils.Add(new MakePokemonExpandable());
          }
          QuickEditsExpansion = expansionUtils.Select(edit => new EditItemWrapper(edit)).ToList();
          QuickEditsMisc = new List<IQuickEditItem> {
