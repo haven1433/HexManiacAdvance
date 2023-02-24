@@ -76,7 +76,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void HandleException(object sender, DispatcherUnhandledExceptionEventArgs e) {
          var text = new StringBuilder();
-         text.AppendLine("Version Number:" + ViewModel.Singletons.MetadataInfo.VersionNumber);
+         text.AppendLine("Version Number: " + ViewModel.Singletons.MetadataInfo.VersionNumber);
 #if DEBUG
          text.AppendLine("Debug Version");
 #else
