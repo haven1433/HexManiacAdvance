@@ -1133,16 +1133,32 @@ namespace HavenSoft.HexManiac.Core.Models {
          var shorterTable = Math.Min(arrayRun.ElementCount, previousTable?.ElementCount ?? arrayRun.ElementCount);
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
-            if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
+            var segment = arrayRun.ElementContent[i];
+
+            // record segments _might_ be pointers... sometimes. Need to check every element
+            if (segment is ArrayRunRecordSegment recordSeg) {
+               for (int j = 0; j < elementCount; j++) {
+                  // segment=recordSeg.CreateConcrete(this,segmentOffset)
+                  var start = segmentOffset + arrayRun.ElementLength * j;
+                  segment = recordSeg.CreateConcrete(this, start);
+                  if (segment.Type == ElementContentType.Pointer) {
+                     if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
+                     changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, j, changeToken, start);
+                  }
+               }
+               segmentOffset += segment.Length;
+               continue;
+            }
+            if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += segment.Length; continue; }
             // for a pointer segment, j loops over all the elements in the array
             var range = elementCount.Range();
-            if (arrayRun.ElementContent[i] is ArrayRunPointerSegment pSeg && pSeg.InnerFormat.EndsWith("?")) range = range.Reverse();
+            if (segment is ArrayRunPointerSegment pSeg && pSeg.InnerFormat.EndsWith("?")) range = range.Reverse();
             foreach (int j in range) {
                if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
-               changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, j, changeToken, start);
+               changeAnchors(segment, arrayRun.ElementContent, j, changeToken, start);
             }
-            segmentOffset += arrayRun.ElementContent[i].Length;
+            segmentOffset += segment.Length;
          }
       }
 
@@ -1300,6 +1316,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <param name="changeToken"></param>
       /// <param name="start"></param>
       private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
+         if (segment is ArrayRunRecordSegment recordSeg) segment = recordSeg.CreateConcrete(this, start);
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
          var index = BinarySearch(destination);

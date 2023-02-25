@@ -2043,17 +2043,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
+      public EventGroupModel EventGroup {
+         get {
+            if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
+            if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
+            var map = GetMapModel();
+            var eventsTable = map.GetSubTable("events");
+            if (eventsTable == null) return null;
+            var eventElements = eventsTable[0];
+            if (eventElements == null) return null;
+            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+            events.DataMoved += HandleEventDataMoved;
+            return events;
+         }
+      }
+
       private IReadOnlyList<IEventViewModel> GetEvents() {
-         if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
-         var map = GetMapModel();
          var results = new List<IEventViewModel>();
-         var eventsTable = map.GetSubTable("events");
-         if (eventsTable == null) return results;
-         var eventElements = eventsTable[0];
-         if (eventElements == null) return results;
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
-         events.DataMoved += HandleEventDataMoved;
+         var events = EventGroup;
+         if (events == null) return results;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);

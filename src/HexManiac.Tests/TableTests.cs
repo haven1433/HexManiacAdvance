@@ -1384,6 +1384,94 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(3, child.ElementCount);
       }
 
+      [Fact]
+      public void TableWithPointerRecord_GetConcrete_ReturnsPointerFormat() {
+         ViewPort.Edit("^parent[arg:: target::|s=arg(2=<>)]2 ");
+
+         ViewPort.Edit("2 ");
+         var table = Model.GetTable("parent");
+         var raw = (ArrayRunRecordSegment)table.ElementContent[1];
+         var segment = raw.CreateConcrete(Model, 4);
+
+         Assert.Equal(ElementContentType.Pointer, segment.Type);
+         Assert.IsType<Pointer>(ViewPort[ViewPort.ConvertAddressToViewPoint(4)].Format);
+      }
+
+      [Fact]
+      public void TableWithPointerRecord_DestinationKnowsAboutRecord() {
+         ViewPort.Edit("^parent[target::|s=arg(0=<>) arg::]1 ");
+         ViewPort.Edit("<100>");
+         Model.ResolveConflicts();
+         var source = Model.GetNextRun(0x100).PointerSources.Single();
+         Assert.Equal(0, source);
+      }
+
+      [Fact]
+      public void RecordPointer_BecomesPointer_PointerAddedToExistingAnchor() {
+         SetFullModel(0xFF);
+         "00 00 00 00 00 01 00 08".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("^parent[arg:: target::|s=arg(2=<>)]1 @080 <100>");
+
+         ViewPort.Edit("@000 2 ");
+
+         Assert.Equal(2, Model.GetNextRun(0x100).PointerSources.Count);
+      }
+
+      [Fact]
+      public void RecordPointer_BecomesPointer_CreateNewAnchor() {
+         SetFullModel(0xFF);
+         "00 00 00 00 00 01 00 08".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("^parent[arg:: target::|s=arg(2=<>)]1 ");
+
+         ViewPort.Edit("@000 2 ");
+
+         Assert.Equal(4, Model.GetNextRun(0x100).PointerSources.Single());
+      }
+
+      [Fact]
+      public void RecordPointer_CreateAsPointer_CreateNewAnchor() {
+         SetFullModel(0xFF);
+         "02 00 00 00 00 01 00 08".ToByteArray().WriteInto(Model.RawData, 0);
+
+         ViewPort.Edit("@000 ^parent[arg:: target::|s=arg(2=<>)]1 ");
+
+         Assert.Equal(4, Model.GetNextRun(0x100).PointerSources.Single());
+      }
+
+      [Fact]
+      public void RecordPointer_CreateAsPointer_PointerAddedToExistingAnchor() {
+         SetFullModel(0xFF);
+         "02 00 00 00 00 01 00 08".ToByteArray().WriteInto(Model.RawData, 0);
+
+         ViewPort.Edit("@080 <100> @000 ^parent[arg:: target::|s=arg(2=<>)]1 ");
+
+         Assert.Equal(2, Model.GetNextRun(0x100).PointerSources.Count);
+      }
+
+      [Fact]
+      public void RecordPointer_CeaseBeingPointer_PointerRemovedFromExistingAnchor() {
+         SetFullModel(0xFF);
+         "02 00 00 00 00 01 00 08".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("@080 <100> @000 ^parent[arg:: target::|s=arg(2=<>)]1 ");
+
+         ViewPort.Edit("@000 0 ");
+
+         Assert.Single(Model.GetNextRun(0x100).PointerSources);
+      }
+
+      [Fact]
+      public void RecordPointerToText_RepointText_UpdateRecord() {
+         SetFullModel(0xFF);
+         "00 00 00 00 00 00 00 00".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("^parent[arg:: target::|s=arg(2=<\"\">)]1 2 <100> @100 Hello\" @108 dead");
+
+         // cause the repoint
+         ViewPort.Edit("@100 Hello World!");
+
+         var destination = Model.ReadPointer(4);
+         Assert.NotEqual(0x100, destination);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

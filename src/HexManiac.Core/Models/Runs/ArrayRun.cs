@@ -165,10 +165,35 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
+      private static void UpdateRecordType(ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex, ArrayRunRecordSegment recordSegment, int previousValue) {
+         var offset = self.ElementContent.Take(segmentIndex).Sum(seg => seg.Length);
+         var sourceSegment = self.ElementContent[segmentIndex];
+         var elementStart = self.Start + self.ElementLength * elementIndex;
+         var newValue = model.ReadMultiByteValue(elementStart + offset, sourceSegment.Length);
+
+         if (previousValue == newValue) return;
+         var previousConcrete = recordSegment.CreateConcrete(model.FormatRunFactory, model.TextConverter, previousValue);
+         var newConcrete = recordSegment.CreateConcrete(model.FormatRunFactory, model.TextConverter, newValue);
+         if ((previousConcrete.Type == ElementContentType.Pointer) == (newConcrete.Type == ElementContentType.Pointer)) return;
+         var pointerOffset = self.ElementContent.Until(seg => seg == recordSegment).Sum(seg => seg.Length);
+         var pointerDestination = model.ReadPointer(elementStart + pointerOffset);
+         if (previousConcrete.Type == ElementContentType.Pointer) {
+            // not a pointer anymore, remove format from destination
+            model.ClearPointer(token, elementStart + pointerOffset, pointerDestination);
+         }
+         if (newConcrete.Type == ElementContentType.Pointer) {
+            // now a pointer, add format to destination
+            model.UpdateArrayPointer(token, newConcrete, self.ElementContent, elementIndex, elementStart + pointerOffset, pointerDestination);
+         }
+      }
+
+      public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex, int previousValue = 0xDedBeef) {
          int offset = 0;
          var info = ErrorInfo.NoError;
          foreach (var segment in self.ElementContent) {
+            if (previousValue != 0xDedBeef && segment is ArrayRunRecordSegment recordSegment && recordSegment.MatchField == self.ElementContent[segmentIndex].Name) {
+               UpdateRecordType(self, model, token, elementIndex, segmentIndex, recordSegment, previousValue);
+            }
             if (segment is ArrayRunPointerSegment pointerSegment) {
                var pointerSource = self.Start + elementIndex * self.ElementLength + offset;
                var destination = model.ReadPointer(pointerSource);
