@@ -3190,8 +3190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int i = 0; i < fullLength; i++) {
                   bool possibleMatch = FindBytes.Length > 0;
                   for (int j = 0; j < FindBytes.Length; j++) {
-                     var (x, y) = ((i + j) % Width, (i + j) / Width);
-                     if (currentView[x, y].Value != FindBytes[j]) {
+                     if (DataOffset + i + j >= Model.Count || Model[DataOffset + i + j] != FindBytes[j]) {
                         possibleMatch = false;
                         break;
                      }
