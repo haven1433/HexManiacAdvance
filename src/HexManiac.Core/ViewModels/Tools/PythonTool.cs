@@ -27,9 +27,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Text = @"print('''
    Put python code here.
    Use 'editor' to access the EditorViewModel.
-   Use 'table' to access tables from the current tab.
+   Use a table name to access tables from the current tab.
    For example, try printing:
-      table['data.pokemon.names'][1]['name']
+      data.pokemon.names[1].name
+   Or try changing a table using a loop:
+
+   for mon in data.pokemon.stats:
+     mon.hp = 100
 ''')";
       }
 
