@@ -471,8 +471,10 @@
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.ItemTemplate>
                                                    <DataTemplate>
-                                                      <CheckBox Margin="3,1,0,1" Width="112" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}" KeyUp="CheckboxKeyUp"
-                                                                Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" />
+                                                      <CheckBox Margin="3,1,0,1" Width="112" IsChecked="{Binding IsChecked}" KeyUp="CheckboxKeyUp"
+                                                                Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                                         <TextBlock Text="{Binding BitLabel}" />
+                                                      </CheckBox>
                                                    </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                              </ItemsControl>
