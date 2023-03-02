@@ -53,13 +53,13 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 0C jumpram                                      # executes a script from the default RAM location (???)
 0D killscript                                   # kill the script, reset script RAM
 0E setbyte byte.                                # sets a predefined address to the specified byte value
-0F loadpointer bank.4 pointer<"">               # loads a pointer into script RAM so other commands can use it
+0F loadpointer bank.4 pointer<>                 # loads a pointer into script RAM so other commands can use it
 10 setbyte2 bank.4 value.                       # sets a memory bank to the specified byte value.
-11 writebytetooffset value. offset<>            # store the byte 'value' at the RAM address 'offset'
-12 loadbytefrompointer bank.4 pointer<>         # load a byte value from a RAM address into the specified memory bank
-13 setfarbyte bank.4 pointer<>                  # stores the least-significant byte in the bank to a RAM address
+11 writebytetooffset value. offset::|h          # store the byte 'value' at the RAM address 'offset'
+12 loadbytefrompointer bank.4 pointer::|h       # load a byte value from a RAM address into the specified memory bank
+13 setfarbyte bank.4 pointer::|h                # stores the least-significant byte in the bank to a RAM address
 14 copyscriptbanks destination.4 source.4       # copies the value in source to destination
-15 copybyte destination<> source<>              # copies the value from the source RAM address to the destination RAM address
+15 copybyte destination::|h source::|h          # copies the value from the source RAM address to the destination RAM address
 16 setvar variable: value:                      # sets the given variable to the given value
 17 addvar variable: value:                      # variable += value
 18 subvar variable: value:                      # variable -= value
@@ -68,14 +68,14 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
                                                 # (if source isn't a valid variable, it's read as a value)
 1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the values in the two banks
 1C comparebanktobyte bank.4 value.              # sets the condition variable
-1D compareBankTofarbyte bank.4 pointer<>        # compares the bank value to the value stored in the RAM address
-1E compareFarByteToBank pointer<> bank.4        # opposite of 1D
-1F compareFarByteToByte pointer<> value.        # compares the value at the RAM address to the value
+1D compareBankTofarbyte bank.4 pointer::|h      # compares the bank value to the value stored in the RAM address
+1E compareFarByteToBank pointer::|h bank.4      # opposite of 1D
+1F compareFarByteToByte pointer::|h value.      # compares the value at the RAM address to the value
 20 compareFarBytes a<> b<>                      # compares the two values at the two RAM addresses
 21 compare variable: value:
 22 comparevars var1: var2:
 23 callasm code<>
-24 setcode pointer<>                                    # puts a pointer to some assembly code at a specific place in RAM
+24 setcode pointer::|h                                  # puts a pointer to some assembly code at a specific place in RAM
 
 25 special function:specials                            # calls a piece of ASM code from a table
 26 special2 variable: function:specials                 # calls a special and puts the ASM's return value in the variable you listed
