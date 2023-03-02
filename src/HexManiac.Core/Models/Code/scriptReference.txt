@@ -59,7 +59,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 12 loadbytefrompointer bank.4 pointer<>         # load a byte value from a RAM address into the specified memory bank
 13 setfarbyte bank.4 pointer<>                  # stores the least-significant byte in the bank to a RAM address
 14 copyscriptbanks destination.4 source.4       # copies the value in source to destination
-15 copybyte destination<> source<>              # copies the value from the source RAM address to the destination RAM address
+15 copybyte destination::|h source::|h          # copies the value from the source RAM address to the destination RAM address
 16 setvar variable: value:                      # sets the given variable to the given value
 17 addvar variable: value:                      # variable += value
 18 subvar variable: value:                      # variable -= value
