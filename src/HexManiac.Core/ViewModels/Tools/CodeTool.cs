@@ -130,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Editor.Keywords.AddRange(set);
 
          Editor.Constants.Clear();
-         for (int i = 0; i <= 12; i++) Editor.Constants.Add($"r{i}");
+         for (int i = 0; i <= 15; i++) Editor.Constants.Add($"r{i}");
          Editor.Constants.AddRange(new[] { "lr", "sp", "pc" });
       }
 
