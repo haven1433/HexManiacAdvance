@@ -34,8 +34,16 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
                                                                                                               # followed by a standard 'put away' message.
 msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32
 register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08
-if.compare variable: condition.script_compare value: pointer<`xse`> -> if.compare 21 variable: value: 06 condition.script_compare pointer<`xse`>
-if.flagset       2B flag:|h 06 01 pointer<`xse`>
+if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>
+if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>
+if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>
+if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>
+if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>
+if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>
+if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>
+if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>
+if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>
+if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 
 
 00 nop                                          # does nothing
@@ -162,8 +170,8 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 5E endtrainerbattle                          # returns from the trainerbattle screen without starting message
 5F endtrainerbattle2                         # same as 5E?
 60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated, set 800D to 1
-61 cleartrainerflag trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
-62 settrainerflag   trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
+61 defeatedtrainer  trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
+62 readytrainer     trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
 64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
 65 spritebehave npc: behavior.               # ???
