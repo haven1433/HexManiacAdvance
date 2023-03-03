@@ -209,7 +209,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 84 bufferstd buffer.3 index:                 # gets one of the standard strings and pushes it into a buffer
 85 bufferstring buffer.3 pointer<>           # copies the string into the buffer.
 86 pokemart products<`mart`>                 # products is a list of 2-byte items, terminated with 0000
-87 pokemart2 products<`mart`>                # clone
+87 decorationmart products<`decor`>          # same as pokemart, but with decorations instead of items
 88 pokemart3 products<`mart`>                # clone
 89 pokecasino index:
 [BPRE_BPGE] 8A nop8A
