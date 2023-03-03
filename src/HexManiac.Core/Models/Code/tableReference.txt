@@ -225,7 +225,7 @@ data.abilities.soundproof.moves,       018ABC, 018ABC, 018ABC, 018ABC, 01A67C, 0
 data.pokemon.moves.egg,                041B44, 041B44, 041B64, 041B64, 045C50, 045C50, 045C64, 045C64, 0703F0, `egg`
 data.pokemon.type.chart,               01CDC8, 01CDC8, 01CDC8, 01CDC8, 01E944, 01E944, 01E958, 01E958, 047134, [attack.data.pokemon.type.names defend.data.pokemon.type.names strength.effectiveness]!FFFF00
 data.pokemon.type.holdEffects,         03BCD0, 03BCD0, 03BCD0, 03BCD0, 03EF38, 03EF38, 03EF4C, 03EF4C, 069770, [effect. type.data.pokemon.type.names]data.pokemon.type.holdEffect.length
-data.pokemon.natures.stats,                  ,       ,       ,       , 0436D8, 0436D8, 0436EC, 0436EC,        , [attack.|z defense.|z speed.|z spAttack.|z spDefense.|z]data.pokemon.natures.names
+data.pokemon.natures.stats,            03FCB4, 03FCB4, 03FCB4, 03FCB4, 0436D8, 0436D8, 0436EC, 0436EC, 06D914, [attack.|z defense.|z speed.|z spAttack.|z spDefense.|z]data.pokemon.natures.names
 data.pokemon.swarm,                          ,       ,       ,       ,       ,       ,       ,       , 0ED800, [pokemon:data.pokemon.names move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names level. location.]5
 scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 016364, 016378, 016378, 03E854, [effect<`bse`>]moveeffectoptions
 scripts.moves.setupeffects,            ,,,, 1DBA96, 1DBA72, 1DBB06, 1DBAE2, , [effects.moveeffectoptions]!FF
