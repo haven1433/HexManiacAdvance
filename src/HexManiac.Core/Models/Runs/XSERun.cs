@@ -10,8 +10,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string FormatString => SharedFormatString;
 
-      public XSERun(int start, SortedSpan<int> sources = null) : base(start, sources) {
-      }
+      public XSERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
 
