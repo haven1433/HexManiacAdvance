@@ -192,10 +192,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address) where TSERun : IScriptStartRun {
+      public void FormatScript<SERun>(ModelDelta token, IDataModel model, int address) where SERun : IScriptStartRun {
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
-         if (typeof(TSERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
-         if (typeof(TSERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
+         if (typeof(SERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
+         if (typeof(SERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
+         if (typeof(SERun) == typeof(TSERun)) constructor = (a, s) => new TSERun(a, s);
 
          var processed = new List<int>();
          var toProcess = new List<int> { address };
@@ -229,8 +230,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   } else {
                      var destination = model.ReadPointer(address + length);
                      if (destination >= 0 && destination < model.Count) {
-                        model.ClearFormat(token, address + length, 4);
-                        model.ObserveRunWritten(token, new PointerRun(address + length));
+                        if (model.GetNextRun(address + length) is PointerRun pointerRun && pointerRun.Start == address + length) {
+                           // no need to clear/update
+                        } else {
+                           model.ClearFormat(token, address + length, 4);
+                           model.ObserveRunWritten(token, new PointerRun(address + length));
+                        }
                         if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
                         if (arg.PointerType == ExpectedPointerType.Text) {
                            WriteTextStream(model, token, destination, address + length);
@@ -263,6 +268,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (existingTextRun.Start != destination) {
                model.ClearFormat(token, destination, destinationLength);
                model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(source)));
+            } else if (existingTextRun is PCSRun && destinationLength == existingTextRun.Length) {
+               // length and format is correct, nothing to do
             } else {
                model.ClearAnchor(token, destination + existingTextRun.Length, destinationLength - existingTextRun.Length); // assuming that the old run ends before the new run, clear the difference
                model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(source)));

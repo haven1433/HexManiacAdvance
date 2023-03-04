@@ -19,6 +19,13 @@ namespace HavenSoft.HexManiac.Tests {
             Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
          }
       }
+      private string TrainerAiScript {
+         get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
+         set {
+            Tool.Mode = CodeMode.TrainerAiScript;
+            Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
+         }
+      }
       private string ThumbScript {
          set => Tool.Content = value.Replace(";", Environment.NewLine);
       }
@@ -662,6 +669,28 @@ label2:;goto <000050>;end";
          EventScript = "trainerbattle 01 0 0 <000020> <000030> <part2>;end;part2:;end";
          var destination = Model.ReadPointer(0x0E);
          Assert.Equal(0x13, destination);
+      }
+
+      [Fact]
+      public void Script_NoopChange_NoChange() {
+         ViewPort.Edit("^script`xse`");
+         EventScript = "msgbox.npc <auto>;{;text;};";
+         ViewPort.ChangeHistory.TagAsSaved();
+
+         EventScript = "msgbox.npc  <auto>;{;text;};";
+         Assert.False(ViewPort.ChangeHistory.CurrentChange.HasAnyChange);
+      }
+
+      [Fact]
+      public void TrainerAIScript_NoOpEditCreatesPointersToScripts_NoOrphansAndPointsToTrainerAIScript() {
+         "37 01 00 01 00 08 5A".ToByteArray().WriteInto(Model.RawData, 0);
+         "5A".ToByteArray().WriteInto(Model.RawData, 0x100);
+         ViewPort.Edit("^script`tse`");
+
+         TrainerAiScript += " ";
+
+         Assert.All(Model.Anchors, anchor => Assert.DoesNotContain("orphan", anchor));
+         Assert.IsType<TSERun>(Model.GetNextRun(0x100));
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer

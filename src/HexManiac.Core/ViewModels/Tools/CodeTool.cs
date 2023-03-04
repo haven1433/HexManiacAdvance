@@ -232,12 +232,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                skippedScripts += 1;
                continue;
             }
-            var scriptLength = parser.FindLength(model, scriptStart);
             var label = scriptStart.ToString("X6");
-            var content = parser.Parse(model, scriptStart, scriptLength);
-            var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = scriptLength };
+            var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart);
+            var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = info.Length };
             parser.AddKeywords(model, body);
-            body.Content = content;
+            body.Content = info.Content;
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
@@ -427,9 +426,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             if (changeStart < code.Length) model.ClearFormat(history.CurrentChange, start + changeStart, code.Length - changeStart);
 
-            history.CurrentChange.ChangeData(model, start, code);
-            body.CompiledLength = code.Length;
-            model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
+            var anyChanges = history.CurrentChange.ChangeData(model, start, code);
+            if (anyChanges || body.CompiledLength != code.Length) {
+               body.CompiledLength = code.Length;
+               model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
+            }
             parser.FormatScript<TSERun>(history.CurrentChange, model, start);
             if (sources != null) {
                foreach (var source in sources) {
