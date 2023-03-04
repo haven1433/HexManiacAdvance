@@ -104,6 +104,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region Script Cache
 
+      // stores only the start and length
+      public Dictionary<int, int> ScriptDestinations { get; } = new();
+
+      // stores start, length, and contents
       private readonly Dictionary<int, ScriptInfo> cachedScripts = new();
 
       public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart) {
@@ -111,6 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var scriptLength = parser.FindLength(model, scriptStart);
          var content = parser.Parse(model, scriptStart, scriptLength);
          scriptInfo = new ScriptInfo(scriptStart, scriptLength, content);
+         ScriptDestinations[scriptStart] = scriptLength;
          cachedScripts.Add(scriptStart, scriptInfo);
          return scriptInfo;
       }

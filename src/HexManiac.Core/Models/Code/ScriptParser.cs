@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (i == scripts.Count) break;
             address = scripts[i];
             int length = 0;
-            var destinations = new Dictionary<int, int>();
+            var destinations = model.CurrentCacheScope.ScriptDestinations;
             int lastCommand = -1, repeateLength = 0;
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int FindLength(IDataModel model, int address) {
          int length = 0;
          int consecutiveNops = 0;
-         var destinations = new Dictionary<int, int>();
+         var destinations = model.CurrentCacheScope.ScriptDestinations;
          int lastCommand = -1, repeateLength = 1;
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
@@ -896,9 +896,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            if (destinationLengths != null) {
+            var destination = model.ReadPointer(start + length);
+            if (destinationLengths != null && !destinationLengths.ContainsKey(destination)) {
                var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-               if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
+               if (argLength > 0) destinationLengths[destination] = argLength;
             }
             length += arg.Length(model, start + length);
          }
