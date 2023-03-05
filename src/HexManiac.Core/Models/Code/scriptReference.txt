@@ -71,7 +71,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 1D compareBankTofarbyte bank.4 pointer::|h      # compares the bank value to the value stored in the RAM address
 1E compareFarByteToBank pointer::|h bank.4      # opposite of 1D
 1F compareFarByteToByte pointer::|h value.      # compares the value at the RAM address to the value
-20 compareFarBytes a<> b<>                      # compares the two values at the two RAM addresses
+20 compareFarBytes a::|h b::|h                  # compares the two values at the two RAM addresses
 21 compare variable: value:
 22 comparevars var1: var2:
 23 callasm code<>
@@ -89,7 +89,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 [AXPE_AXVE_BPEE] 2C initclock hour: minute:
 2D checkdailyflags                           # nop in firered. Does some flag checking in R/S/E based on real-time-clock
 2E resetvars                                 # sets x8000, x8001, and x8002 to 0
-2F sound number:                             # 0000 mutes the music
+2F sound number:songnames                    # 0000 mutes the music
 30 waitsound                                 # blocks script execution until any playing sounds finish
 31 fanfare song:songnames                    # plays a song from the song list as a fanfare
 32 waitfanfare                               # blocks script execution until any playing fanfair finishes
