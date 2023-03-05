@@ -2,19 +2,19 @@
 01 if_random_greater_than percent. ptr<`tse`>
 02 if_random_equal percent. ptr<`tse`>
 03 if_random_not_equal percent. ptr<`tse`>
-04 score score.
-05 if_hp_less_than battler. percent. ptr<`tse`>
-06 if_hp_more_than battler. percent. ptr<`tse`>
-07 if_hp_equal battler. percent. ptr<`tse`>
-08 if_hp_not_equal battler. percent. ptr<`tse`>
-09 if_status battler. status:: ptr<`tse`>
-0a if_not_status battler. status:: ptr<`tse`>
-0b if_status2 battler. status:: ptr<`tse`>
-0c if_not_status2 battler. status:: ptr<`tse`>
-0d if_status3 battler. status:: ptr<`tse`>
-0e if_not_status3 battler. status:: ptr<`tse`>
-0f if_side_affecting battler. status:: ptr<`tse`>
-10 if_not_side_affecting battler. status:: ptr<`tse`>
+04 score score.|z
+05 if_hp_less_than battler.AI_targets percent. ptr<`tse`>
+06 if_hp_more_than battler.AI_targets percent. ptr<`tse`>
+07 if_hp_equal battler.AI_targets percent. ptr<`tse`>
+08 if_hp_not_equal battler.AI_targets percent. ptr<`tse`>
+09 if_status battler.AI_targets status:: ptr<`tse`>
+0a if_not_status battler.AI_targets status:: ptr<`tse`>
+0b if_status2 battler.AI_targets status:: ptr<`tse`>
+0c if_not_status2 battler.AI_targets status:: ptr<`tse`>
+0d if_status3 battler.AI_targets status:: ptr<`tse`>
+0e if_not_status3 battler.AI_targets status:: ptr<`tse`>
+0f if_side_affecting battler.AI_targets status:: ptr<`tse`>
+10 if_not_side_affecting battler.AI_targets status:: ptr<`tse`>
 11 if_less_than value. ptr<`tse`>
 12 if_more_than value. ptr<`tse`>
 13 if_equal value. ptr<`tse`>
@@ -23,8 +23,8 @@
 16 if_more_than_ptr value:: ptr<`tse`>
 17 if_equal_ptr value:: ptr<`tse`>
 18 if_not_equal_ptr value:: ptr<`tse`>
-19 if_move move: ptr<`tse`>
-1a if_not_move move: ptr<`tse`>
+19 if_move move:data.pokemon.moves.names ptr<`tse`>
+1a if_not_move move:data.pokemon.moves.names ptr<`tse`>
 1b if_in_bytes list:: ptr<`tse`>
 1c if_not_in_bytes list:: ptr<`tse`>
 1d if_in_hwords list:: ptr<`tse`>
@@ -35,51 +35,51 @@
 22 get_type index.
 23 get_considered_move_power
 24 get_how_powerful_move_is
-25 get_last_used_move battler.
-26 if_equal_ type. ptr<`tse`>
-27 if_not_equal_ type. ptr<`tse`>
-28 if_would_go_first battler. ptr<`tse`>
-29 if_would_not_go_first battler. ptr<`tse`>
+25 get_last_used_move battler.AI_targets
+26 if_equal_ type.data.pokemon.type.names ptr<`tse`>
+27 if_not_equal_ type.data.pokemon.type.names ptr<`tse`>
+28 if_would_go_first battler.AI_targets ptr<`tse`>
+29 if_would_not_go_first battler.AI_targets ptr<`tse`>
 2a ai_2a
 2b ai_2b
-2c count_alive_pokemon battler.
+2c count_alive_pokemon battler.AI_targets
 2d get_considered_move
 2e get_considered_move_effect
-2f get_ability battler.
+2f get_ability battler.AI_targets
 30 get_highest_type_effectiveness
-31 if_type_effectiveness effectiveness. ptr<`tse`>
+31 if_type_effectiveness effectiveness.AI_type_matchups ptr<`tse`>
 32 ai_32
 33 ai_33
-34 if_status_in_party battler. status:: ptr<`tse`>
-35 if_status_not_in_party battler. status:: ptr<`tse`>
+34 if_status_in_party battler.AI_targets status:: ptr<`tse`>
+35 if_status_not_in_party battler.AI_targets status:: ptr<`tse`>
 36 get_weather
-37 if_effect byte. ptr<`tse`>
-38 if_not_effect byte. ptr<`tse`>
-39 if_stat_level_less_than battler. stat. level. ptr<`tse`>
-3a if_stat_level_more_than battler. stat. level. ptr<`tse`>
-3b if_stat_level_equal battler. stat. level. ptr<`tse`>
-3c if_stat_level_not_equal battler. stat. level. ptr<`tse`>
+37 if_effect byte.moveeffectoptions ptr<`tse`>
+38 if_not_effect byte.moveeffectoptions ptr<`tse`>
+39 if_stat_level_less_than battler.AI_targets stat. level. ptr<`tse`>
+3a if_stat_level_more_than battler.AI_targets stat. level. ptr<`tse`>
+3b if_stat_level_equal battler.AI_targets stat. level. ptr<`tse`>
+3c if_stat_level_not_equal battler.AI_targets stat. level. ptr<`tse`>
 3d if_can_faint ptr<`tse`>
 3e if_cant_faint ptr<`tse`>
-3f if_has_move battler. move: ptr<`tse`>
-40 if_doesnt_have_move battler. move: ptr<`tse`>
-41 if_has_move_with_effect battler. effect. ptr<`tse`>
-42 if_doesnt_have_move_with_effect battler. effect. ptr<`tse`>
-43 if_any_move_disabled_or_encored battler. byte. ptr<`tse`>
-44 if_curr_move_disabled_or_encored battler. ptr<`tse`>
+3f if_has_move battler.AI_targets move:data.pokemon.moves.names ptr<`tse`>
+40 if_doesnt_have_move battler.AI_targets move:data.pokemon.moves.names ptr<`tse`>
+41 if_has_move_with_effect battler.AI_targets effect.moveeffectoptions ptr<`tse`>
+42 if_doesnt_have_move_with_effect battler.AI_targets effect.moveeffectoptions ptr<`tse`>
+43 if_any_move_disabled_or_encored battler.AI_targets byte. ptr<`tse`>
+44 if_curr_move_disabled_or_encored battler.AI_targets ptr<`tse`>
 45 flee
 46 if_random_safari_flee ptr<`tse`>
 47 watch
-48 get_hold_effect battler.
-49 get_gender battler.
-4a is_first_turn_for battler.
-4b get_stockpile_count battler.
+48 get_hold_effect battler.AI_targets
+49 get_gender battler.AI_targets
+4a is_first_turn_for battler.AI_targets
+4b get_stockpile_count battler.AI_targets
 4c is_double_battle
-4d get_used_held_item battler.
+4d get_used_held_item battler.AI_targets
 4e get_move_type_from_result
 4f get_move_power_from_result
 50 get_move_effect_from_result
-51 get_protect_count battler.
+51 get_protect_count battler.AI_targets
 52 ai_52
 53 ai_53
 54 ai_54
@@ -93,8 +93,8 @@
 5c if_target_taunted ptr<`tse`>
 5d if_target_not_taunted ptr<`tse`>
 5e if_target_is_ally ptr<`tse`>
-5f is_of_type battler. type.
-60 check_ability battler. ability.data.pokemon.type.names
-61 if_flash_fired battler. ptr<`tse`>
-62 if_holds_item battler. item:data.items.stats ptr<`tse`>
+5f is_of_type battler.AI_targets type.data.pokemon.type.names
+60 check_ability battler.AI_targets ability.data.pokemon.type.names
+61 if_flash_fired battler.AI_targets ptr<`tse`>
+62 if_holds_item battler.AI_targets item:data.items.stats ptr<`tse`>
 

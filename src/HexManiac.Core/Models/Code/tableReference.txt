@@ -169,7 +169,7 @@ graphics.moves.surf.opponent,               0D39A4, 0D39A4, 0D39C4, 0D39C4, 0AB4
 graphics.moves.surf.player,                 0D39B4, 0D39B4, 0D39D4, 0D39D4, 0AB414, 0AB3E8, 0AB428, 0AB3FC,       , `lzm4x32x64|graphics.moves.surf.tileset`
 graphics.moves.surf.contest,                0D39F0, 0D39F0, 0D3A10, 0D3A10, 0AB458, 0AB42C, 0AB46C, 0AB440,       , `lzm4x32x64|graphics.moves.surf.tileset`
 
-graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: a b]12
+graphics.items.ball.sprites,                0473BC, 0473BC, 0473DC, 0473DC, 0001D0, 0001D0, 0001D0, 0001D0, 0001D0, [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: tag:]12
 graphics.items.ball.palettes,               0473C0, 0473C0, 0473E0, 0473E0, 0001D4, 0001D4, 0001D4, 0001D4, 0001D4, [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
 graphics.items.ball.trade.sprite,                 ,       ,       ,       , 26CDD4, 26CDB4, 26CE44, 26CE24,       , `ucs4x2x24|graphics.items.ball.trade.palette`
 graphics.items.ball.trade.palette,                ,       ,       ,       , 26CDDC, 26CDBC, 26CE4C, 26CE2C,       , `ucp4`
@@ -750,10 +750,6 @@ graphics.text.font.blue.characters,  ,,,, 006920, 006920, 006934, 006934, , `ucs
 graphics.text.font.blue.width,       ,,,, 006928, 006928, 00693C, 00693C, , [width.]512
 graphics.text.font.red.characters,   ,,,, 006A8C, 006A8C, 006AA0, 006AA0, , `ucs2x2x1024`
 graphics.text.font.red.width,        ,,,, 006A94, 006A94, 006AA8, 006AA8, , [width.]512
-graphics.text.font.other.width,      004944, 004944, 004944, 004944, ,,,, , [width.]254
-graphics.text.font.black.width,      00495C, 00495C, 00495C, 00495C, ,,,, , [width.]220
-graphics.text.font.blue.width,       004930, 004930, 004930, 004930, ,,,, , [width.]256
-graphics.text.font.red.width,        004938, 004938, 004938, 004938, ,,,, , [width.]220
 
 graphics.text.font.characters,       095984, 095984, 0959A4, 0959A4, ,,,,, `ucs4x1x1236`
 # graphics.text.font.width,            004930, 004930, 004930, 004930, ,,,,, [width.]256
@@ -769,17 +765,29 @@ graphics.text.font.japan3.width,              ,,,, 00688C, 00688C, 0068A0, 0068A
 graphics.text.font.japan4.characters,         ,,,, 0069F0, 0069F0, 006A04, 006A04, , `ucs2x16x128`
 graphics.text.font.japan4.width,              ,,,, 0069F8, 0069F8, 006A0C, 006A0C, , [width.]280
 graphics.text.font.japan5.characters,         ,,,, 006B08, 006B08, 006B1C, 006B1C, , `ucs2x32x16`
-graphics.text.font.short.characters,          ,,,, ,,,, 0066C4, `ucs2x2x512`
+graphics.text.font.short.characters,          ,,,, ,,,, 0066C4, `ucs2x2x1024`
 graphics.text.font.short.characters2,         ,,,, ,,,, 0064F4, `ucs2x2x1024`
-graphics.text.font.short.width,               ,,,, ,,,, 0064FC, [width.]512
-graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x512`
+graphics.text.font.short.width, 	      ,,,, ,,,, 0066CC, [width.]512
+graphics.text.font.short.width2,              ,,,, ,,,, 0064FC, [width.]512
+graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x1024`
 graphics.text.font.bag.width,                 ,,,, ,,,, 0065E4, [width.]512
 graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
 graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
 graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
-
+data.fonts, 				003A54, 003A54, 003A54, 003A54, , , , , , [fontType:: glyphs<> size: lowerTileOffset:]14
+graphics.text.font.latin0.characters, 	1E6B88, 1E6B18, 1E6BA0, 1E6B30, , , , , , `ucs1x1x511`
+graphics.text.font.latin0.width, 	004944, 004944, 004944, 004944, , , , , , [width.]254
+graphics.text.font.latin1.characters, 	002B88, 002B88, 002B88, 002B88, , , , , , `ucs1x1x256`
+graphics.text.font.latin1.width, 	00495C, 00495C, 00495C, 00495C, , , , , , [width.]220
+graphics.text.font.default.characters,  095984, 095984, 0959A4, 0959A4, , , , , , `ucs4x1x508`
+graphics.text.font.default.width, 	004930, 004930, 004930, 004930, , , , , , [width.]254
+graphics.text.font.short.width, 	004938, 004938, 004938, 004938, , , , , , [width.]220
+graphics.text.font.japan3.characters, 	1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , , `ucs4x16x31`
+graphics.text.font.japan4.characters, 	1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
+graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
+graphics.text.font.palette, 		002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
 
 data.text.menu.pokemon.battle,                                 , , , , 032C38, 032C38, 032C4C, 032C4C,       , ""
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
