@@ -98,6 +98,11 @@ namespace HavenSoft.HexManiac.Core {
             throw new InvalidOperationException($"Enumerable did not contain any {typeof(T)} elements.");
       }
 
+      public static bool IsNullOrEmpty<T>(this IEnumerable<T> list) {
+         if (list == null) return true;
+         return !list.Any();
+      }
+
       public static void Sort<T>(this List<T> list, Func<T, T, int> compare) {
          list.Sort(new StubComparer<T> { Compare = compare });
       }

@@ -522,8 +522,8 @@ applymovement 0 <auto>
 {
 Is the answer yes?
 }
-  if.compare 0x800D = 1 <yes>
-  if.compare 0x800D = 0 <no>
+  if.compare.goto 0x800D = 1 <yes>
+  if.compare.goto 0x800D = 0 <no>
   release
   end
 yes:

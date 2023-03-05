@@ -446,7 +446,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var orphans = oldScripts.Except(newScripts).ToList();
             foreach (var orphan in orphans) {
                var orphanRun = model.GetNextRun(orphan);
-               if (orphanRun.Start == orphan && orphanRun.PointerSources.Count == 0 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
+               if (orphanRun.Start == orphan && orphanRun.PointerSources.IsNullOrEmpty() && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
                   parser.FormatScript<SERun>(history.CurrentChange, model, orphan);
                   if (typeof(SERun) == typeof(XSERun)) {
                      model.ObserveAnchorWritten(history.CurrentChange, $"orphans.xse{orphan:X6}", new XSERun(orphan));

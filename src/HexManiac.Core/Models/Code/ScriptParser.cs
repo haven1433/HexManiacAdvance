@@ -132,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // Include in the length any content that comes directly (or +1) after the script.
          // This content should be considered part of the script.
          while (true) {
-            if (destinations.TryGetValue(address + length, out int additionalLength)) {
+            if (destinations.TryGetValue(address + length, out int additionalLength) && additionalLength > 0) {
                length += additionalLength;
                continue;
             }
@@ -205,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             toProcess.RemoveAt(toProcess.Count - 1);
             if (processed.Contains(address)) continue;
             var existingRun = model.GetNextRun(address);
-            if (!(existingRun is TSERun) && existingRun.Start == address) {
+            if (!(existingRun is SERun) && existingRun.Start == address) {
                var anchorName = model.GetAnchorFromAddress(-1, address);
                model.ObserveAnchorWritten(token, anchorName, constructor(address, existingRun.PointerSources));
             }
@@ -1419,7 +1419,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // concatenate destinations directly after the current script
          while (true) {
-            if (destinationLengths.TryGetValue(address + length, out int argLength)) {
+            if (destinationLengths.TryGetValue(address + length, out int argLength) && argLength > 0) {
                length += argLength;
                continue;
             }
