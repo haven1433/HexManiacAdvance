@@ -693,6 +693,8 @@ label2:;goto <000050>;end";
          Assert.IsType<TSERun>(Model.GetNextRun(0x100));
       }
 
+      // TODO trainer ai script change -> no auto repoint?
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

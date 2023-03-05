@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (i == scripts.Count) break;
             address = scripts[i];
             int length = 0;
-            var destinations = model.CurrentCacheScope.ScriptDestinations;
+            var destinations = new Dictionary<int, int>();
             int lastCommand = -1, repeateLength = 0;
             while (true) {
                var line = engine.GetMatchingLine(model, address + length);
@@ -78,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // append child scripts that come directly after this script
             while (true) {
                // child script starts directly after this script
-               if (destinations.TryGetValue(address + length, out int childLength)) {
+               if (destinations.TryGetValue(address + length, out int childLength) && childLength > 0) {
                   length += childLength;
                   continue;
                }

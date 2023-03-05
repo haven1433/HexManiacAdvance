@@ -346,11 +346,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private TSERun Construct<TSERun>(int start, SortedSpan<int> sources) where TSERun : IScriptStartRun {
-         if (typeof(TSERun) == typeof(XSERun)) return (TSERun)(IScriptStartRun)new XSERun(start, sources);
-         if (typeof(TSERun) == typeof(ASERun)) return (TSERun)(IScriptStartRun)new ASERun(start, sources);
-         if (typeof(TSERun) == typeof(BSERun)) return (TSERun)(IScriptStartRun)new BSERun(start, sources);
-         if (typeof(TSERun) == typeof(Models.Runs.TSERun)) return (TSERun)(IScriptStartRun)new Models.Runs.TSERun(start, sources);
+      private SERun Construct<SERun>(int start, SortedSpan<int> sources) where SERun : IScriptStartRun {
+         if (typeof(SERun) == typeof(XSERun)) return (SERun)(IScriptStartRun)new XSERun(start, sources);
+         if (typeof(SERun) == typeof(ASERun)) return (SERun)(IScriptStartRun)new ASERun(start, sources);
+         if (typeof(SERun) == typeof(BSERun)) return (SERun)(IScriptStartRun)new BSERun(start, sources);
+         if (typeof(SERun) == typeof(TSERun)) return (SERun)(IScriptStartRun)new TSERun(start, sources);
          throw new NotImplementedException();
       }
 
@@ -361,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return new StubDisposable { Dispose = () => ignoreContentUpdates = false };
       }
 
-      private void CompileScriptChanges<TSERun>(CodeBody body, IFormattedRun run, ref string codeContent, ScriptParser parser, bool updateSelection) where TSERun : IScriptStartRun {
+      private void CompileScriptChanges<SERun>(CodeBody body, IFormattedRun run, ref string codeContent, ScriptParser parser, bool updateSelection) where SERun : IScriptStartRun {
          ShowErrorText = false;
          ErrorText = string.Empty;
          var sources = run?.PointerSources ?? null;
@@ -405,7 +405,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      return;
                   }
                } else {
-                  if (run is NoInfoRun) run = Construct<TSERun>(run.Start, run.PointerSources);
+                  if (run is NoInfoRun) run = Construct<SERun>(run.Start, run.PointerSources);
                   run = model.RelocateForExpansion(history.CurrentChange, run, code.Length);
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
@@ -431,7 +431,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.CompiledLength = code.Length;
                model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             }
-            parser.FormatScript<TSERun>(history.CurrentChange, model, start);
+            parser.FormatScript<SERun>(history.CurrentChange, model, start);
             if (sources != null) {
                foreach (var source in sources) {
                   var existingRun = model.GetNextRun(source);
@@ -443,18 +443,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             // this change may have orphaned some existing scripts. Don't lose them!
             var newScripts = parser.CollectScripts(model, start);
-            foreach (var orphan in oldScripts.Except(newScripts)) {
+            var orphans = oldScripts.Except(newScripts).ToList();
+            foreach (var orphan in orphans) {
                var orphanRun = model.GetNextRun(orphan);
-               if (orphanRun.Start == orphan && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
-                  parser.FormatScript<TSERun>(history.CurrentChange, model, orphan);
-                  if (typeof(TSERun) == typeof(XSERun)) {
+               if (orphanRun.Start == orphan && orphanRun.PointerSources.Count == 0 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, orphan))) {
+                  parser.FormatScript<SERun>(history.CurrentChange, model, orphan);
+                  if (typeof(SERun) == typeof(XSERun)) {
                      model.ObserveAnchorWritten(history.CurrentChange, $"orphans.xse{orphan:X6}", new XSERun(orphan));
-                  } else if (typeof(TSERun) == typeof(BSERun)) {
+                  } else if (typeof(SERun) == typeof(BSERun)) {
                      model.ObserveAnchorWritten(history.CurrentChange, $"orphans.bse{orphan:X6}", new BSERun(orphan));
-                  } else if (typeof(TSERun) == typeof(ASERun)) {
+                  } else if (typeof(SERun) == typeof(ASERun)) {
                      model.ObserveAnchorWritten(history.CurrentChange, $"orphans.ase{orphan:X6}", new ASERun(orphan));
-                  } else if (typeof(TSERun) == typeof(Models.Runs.TSERun)) {
-                     model.ObserveAnchorWritten(history.CurrentChange, $"orphans.tse{orphan:X6}", new Models.Runs.TSERun(orphan));
+                  } else if (typeof(SERun) == typeof(TSERun)) {
+                     model.ObserveAnchorWritten(history.CurrentChange, $"orphans.tse{orphan:X6}", new TSERun(orphan));
                   } else {
                      throw new NotImplementedException();
                   }
