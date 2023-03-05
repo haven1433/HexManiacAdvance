@@ -34,8 +34,16 @@ msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A
                                                                                                               # followed by a standard 'put away' message.
 msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32
 register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08
-if.compare variable: condition.script_compare value: pointer<`xse`> -> if.compare 21 variable: value: 06 condition.script_compare pointer<`xse`>
-if.flagset       2B flag:|h 06 01 pointer<`xse`>
+if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>
+if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>
+if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>
+if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>
+if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>
+if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>
+if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>
+if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>
+if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>
+if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 
 
 00 nop                                          # does nothing
@@ -53,11 +61,11 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 0C jumpram                                      # executes a script from the default RAM location (???)
 0D killscript                                   # kill the script, reset script RAM
 0E setbyte byte.                                # sets a predefined address to the specified byte value
-0F loadpointer bank.4 pointer<>                 # loads a pointer into script RAM so other commands can use it
+0F loadpointer bank.4 pointer<"">               # loads a pointer into script RAM so other commands can use it
 10 setbyte2 bank.4 value.                       # sets a memory bank to the specified byte value.
 11 writebytetooffset value. offset::|h          # store the byte 'value' at the RAM address 'offset'
 12 loadbytefrompointer bank.4 pointer::|h       # load a byte value from a RAM address into the specified memory bank
-13 setfarbyte bank.4 pointer::|h                # stores the least-significant byte in the bank to a RAM address
+13 setfarbyte bank.4 pointer::h                 # stores the least-significant byte in the bank to a RAM address
 14 copyscriptbanks destination.4 source.4       # copies the value in source to destination
 15 copybyte destination::|h source::|h          # copies the value from the source RAM address to the destination RAM address
 16 setvar variable: value:                      # sets the given variable to the given value
@@ -75,7 +83,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 21 compare variable: value:
 22 comparevars var1: var2:
 23 callasm code<>
-24 setcode pointer::|h                                  # puts a pointer to some assembly code at a specific place in RAM
+24 setcode pointer<>                                    # puts a pointer to some assembly code at a specific place in RAM
 
 25 special function:specials                            # calls a piece of ASM code from a table
 26 special2 variable: function:specials                 # calls a special and puts the ASM's return value in the variable you listed
@@ -162,8 +170,8 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 5E endtrainerbattle                          # returns from the trainerbattle screen without starting message
 5F endtrainerbattle2                         # same as 5E?
 60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated, set 800D to 1
-61 cleartrainerflag trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
-62 settrainerflag   trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
+61 defeatedtrainer  trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
+62 readytrainer     trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
 64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
 65 spritebehave npc: behavior.               # ???
@@ -209,7 +217,7 @@ if.flagset       2B flag:|h 06 01 pointer<`xse`>
 84 bufferstd buffer.3 index:                 # gets one of the standard strings and pushes it into a buffer
 85 bufferstring buffer.3 pointer<>           # copies the string into the buffer.
 86 pokemart products<`mart`>                 # products is a list of 2-byte items, terminated with 0000
-87 pokemart2 products<`mart`>                # clone
+87 decorationmart products<`decor`>          # same as pokemart, but with decorations instead of items
 88 pokemart3 products<`mart`>                # clone
 89 pokecasino index:
 [BPRE_BPGE] 8A nop8A
