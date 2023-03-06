@@ -1229,14 +1229,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`decor`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
       }
 
-      public string Convert(IDataModel model, int value) {
+      public string Convert(IDataModel model, int value, int bytes) {
          var preferHex = EnumTableName?.EndsWith("|h") ?? false;
+         var preferSign = EnumTableName?.EndsWith("|z") ?? false;
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
          if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
             if (preferHex || value == int.MinValue || Math.Abs(value) >= 0x4000) {
                return "0x" + ((uint)value).ToString($"X{length * 2}");
             } else {
+               if (bytes == 1 && preferSign) value = (sbyte)value;
+               if (bytes == 2 && preferSign) value = (short)value;
                return value.ToString();
             }
          }
@@ -1257,9 +1260,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent) {
          if (allFillerIsZero && Name == "filler") return true;
-         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start]));
-         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2)));
-         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4)));
+         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start], 1));
+         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2), 2));
+         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4), 4));
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
