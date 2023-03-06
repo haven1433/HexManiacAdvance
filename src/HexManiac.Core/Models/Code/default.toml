@@ -1095,7 +1095,6 @@ Name = '''perstepcallbacks'''
 
 [[List]]
 Name = '''directions'''
-DefaultHash = '''99999999'''
 0 = '''0'''
 1 = '''South'''
 1 = '''Down'''
@@ -1114,7 +1113,6 @@ DefaultHash = '''99999999'''
 
 [[List]]
 Name = '''AI_targets'''
-DefaultHash = ''''''
 0 = [
     '''target''',
     '''user''',
@@ -1124,7 +1122,6 @@ DefaultHash = ''''''
 
 [[List]]
 Name = '''AI_type_matchups'''
-DefaultHash = ''''''
 0 = '''NoEffect'''
 10 = '''DoubleNotVeryEffective'''
 20 = '''NotVeryEffective'''

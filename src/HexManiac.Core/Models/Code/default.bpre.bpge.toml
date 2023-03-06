@@ -1058,7 +1058,6 @@ Name = '''MapAttributeBehaviors'''
 
 [[List]]
 Name = '''floors'''
-DefaultHash = '''DEADBEEF'''
 0 = [
 '''N/A''',
 '''floor 1''',
