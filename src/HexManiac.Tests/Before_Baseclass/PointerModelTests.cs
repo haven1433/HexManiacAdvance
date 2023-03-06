@@ -1010,6 +1010,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x101, Model.ReadPointer(0));
       }
 
+      [Fact]
+      public void OffsetPointer_UpdateToDifferentComboSameTotal_MetadataOnlyChange() {
+         ViewPort.Edit("<000102+4>");
+         ViewPort.ChangeHistory.TagAsSaved();
+
+         ViewPort.Edit("@000 <000104+2>");
+
+         Assert.False(ViewPort.ChangeHistory.CurrentChange.HasDataChange);
+      }
+
       private void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);

@@ -995,10 +995,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var address = start + ((yy + y) * width + xx + x) * 2;
                   // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
                   var blockValue = model.ReadMultiByteValue(address, 2);
-                  var originalBlockValue = blockValue;
+                  lastDrawVal = blockValue;
                   if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
                   if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
-                  if (blockValue != originalBlockValue) {
+                  if (blockValue != lastDrawVal) {
                      model.WriteMultiByteValue(address, 2, futureToken(), blockValue);
                      changeCount++;
                   }
@@ -1057,26 +1057,103 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var size = new Point(width, height);
          if (collisionIndex < 0) collisionIndex = lastDrawVal >> 10;
-         var change = new Point(lastDrawVal, (collisionIndex << 10) | blockIndex);
+         var (before, after) = (lastDrawVal, (collisionIndex << 10) | blockIndex);
          lock (pixelWriteLock) {
-            PaintBlock(token, new(xx - 1, yy), size, start, change);
-            PaintBlock(token, new(xx + 1, yy), size, start, change);
-            PaintBlock(token, new(xx, yy - 1), size, start, change);
-            PaintBlock(token, new(xx, yy + 1), size, start, change);
+            PaintBlock(token, new(xx - 1, yy), size, start, before, after);
+            PaintBlock(token, new(xx + 1, yy), size, start, before, after);
+            PaintBlock(token, new(xx, yy - 1), size, start, before, after);
+            PaintBlock(token, new(xx, yy + 1), size, start, before, after);
          }
          ClearPixelCache();
       }
 
-      private void PaintBlock(ModelDelta token, Point p, Point size, int start, Point change) {
-         if (change.X == change.Y) return;
+      private void PaintBlock(ModelDelta token, Point p, Point size, int start, int before, int after) {
+         if (before == after) return;
          if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) return;
          var address = start + (p.Y * size.X + p.X) * 2;
-         if (model.ReadMultiByteValue(address, 2) != change.X) return;
-         model.WriteMultiByteValue(address, 2, token, change.Y);
-         PaintBlock(token, p + new Point(-1, 0), size, start, change);
-         PaintBlock(token, p + new Point(1, 0), size, start, change);
-         PaintBlock(token, p + new Point(0, -1), size, start, change);
-         PaintBlock(token, p + new Point(0, 1), size, start, change);
+         if (model.ReadMultiByteValue(address, 2) != before) return;
+         model.WriteMultiByteValue(address, 2, token, after);
+         PaintBlock(token, p + new Point(-1, 0), size, start, before, after);
+         PaintBlock(token, p + new Point(1, 0), size, start, before, after);
+         PaintBlock(token, p + new Point(0, -1), size, start, before, after);
+         PaintBlock(token, p + new Point(0, 1), size, start, before, after);
+      }
+
+      public void PaintBlockBag(ModelDelta token, List<int> blockIndexes, int collisionIndex, double x, double y) {
+         if (blockIndexes.Count < 1) return;
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         var start = layout.GetAddress("blockmap");
+
+         var complete = new HashSet<Point> { new(xx, yy) };
+         var check = new List<Point> { new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1) };
+         var targets = blockIndexes.Select(bi => (collisionIndex << 10) | bi).ToList();
+         var rnd = new Random();
+         lock (pixelWriteLock) {
+            while (check.Count > 0) {
+               var p = check[check.Count - 1];
+               check.RemoveAt(check.Count - 1);
+               if (p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height) continue;
+               if (complete.Contains(p)) continue;
+               complete.Add(p);
+
+               var address = start + (p.Y * width + p.X) * 2;
+               if (model.ReadMultiByteValue(address, 2) != lastDrawVal) continue;
+               model.WriteMultiByteValue(address, 2, token, rnd.From(targets));
+
+               check.AddRange(new Point[] { new(p.X - 1, p.Y), new(p.X + 1, p.Y), new(p.X, p.Y - 1), new(p.X, p.Y + 1) });
+            }
+         }
+         ClearPixelCache();
+      }
+
+      public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         if (xx < 0 || yy < 0 || xx > width || yy > height) return;
+         var start = layout.GetAddress("blockmap");
+
+         // first pass: set all the effected spaces to 0 so they won't count
+         var toDraw = new Queue<Point>();
+         toDraw.Enqueue(new(xx, yy));
+         var drawn = new List<Point>();
+         var rnd = new Random();
+         lock (pixelWriteLock) {
+            while (toDraw.Count > 0) {
+               var p = toDraw.Dequeue();
+               if (drawn.Contains(p)) continue;
+               var address = start + (p.Y * width + (p.X - 1)) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X - 1, p.Y));
+               address = start + (p.Y * width + (p.X + 1)) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X + 1, p.Y));
+               address = start + ((p.Y - 1) * width + p.X) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y - 1));
+               address = start + ((p.Y + 1) * width + p.X) * 2;
+               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y + 1));
+               address = start + (p.Y * width + p.X) * 2;
+               model.WriteMultiByteValue(address, 2, token, 0);
+               drawn.Add(p);
+            }
+
+            // second pass: wave-fill in the reverse order (outside in)
+            drawn.Reverse();
+            foreach (var p in drawn) {
+               var targetVal = wave(p.X, p.Y).Collapse(rnd);
+               var address = start + (p.Y * width + p.X) * 2;
+               model.WriteMultiByteValue(address, 2, token, targetVal);
+            }
+         }
+
+         ClearPixelCache();
       }
 
       #endregion
@@ -1825,8 +1902,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventRenders == null) RefreshMapEvents();
          if (eventRenders != null) {
             foreach (var obj in eventRenders) {
-               var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-               canvas.Draw(obj.EventRender, x, y);
+               if (obj.EventRender != null) {
+                  var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+                  canvas.Draw(obj.EventRender, x, y);
+               }
             }
          }
 
@@ -1964,17 +2043,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return list;
       }
 
+      public EventGroupModel EventGroup {
+         get {
+            if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
+            if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
+            var map = GetMapModel();
+            var eventsTable = map.GetSubTable("events");
+            if (eventsTable == null) return null;
+            var eventElements = eventsTable[0];
+            if (eventElements == null) return null;
+            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+            events.DataMoved += HandleEventDataMoved;
+            return events;
+         }
+      }
+
       private IReadOnlyList<IEventViewModel> GetEvents() {
-         if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
-         if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
-         var map = GetMapModel();
          var results = new List<IEventViewModel>();
-         var eventsTable = map.GetSubTable("events");
-         if (eventsTable == null) return results;
-         var eventElements = eventsTable[0];
-         if (eventElements == null) return results;
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
-         events.DataMoved += HandleEventDataMoved;
+         var events = EventGroup;
+         if (events == null) return results;
          results.AddRange(events.Objects);
          results.AddRange(events.Warps);
          results.AddRange(events.Scripts);

@@ -1092,3 +1092,39 @@ Name = '''perstepcallbacks'''
    '''SecretBase''',
    '''CrackedFloor''',
 ]
+
+[[List]]
+Name = '''directions'''
+0 = '''0'''
+1 = '''South'''
+1 = '''Down'''
+2 = '''North'''
+2 = '''Up'''
+3 = '''West'''
+3 = '''Left'''
+4 = '''East'''
+4 = '''Right'''
+5 = [
+'''Southwest''',
+'''Southeast''',
+'''Northwest''',
+'''Northeast''',
+]
+
+[[List]]
+Name = '''AI_targets'''
+0 = [
+    '''target''',
+    '''user''',
+    '''targetPartner''',
+    '''userPartner''',
+]
+
+[[List]]
+Name = '''AI_type_matchups'''
+0 = '''NoEffect'''
+10 = '''DoubleNotVeryEffective'''
+20 = '''NotVeryEffective'''
+40 = '''Neutral'''
+80 = '''SuperEffective'''
+160 = '''DoubleSuperEffective'''

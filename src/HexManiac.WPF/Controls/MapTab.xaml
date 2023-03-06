@@ -88,6 +88,21 @@
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block" x:Name="EditBlockButton"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
+            <local:PixelImage DataContext="{Binding BlockBag}" VerticalAlignment="Bottom" HorizontalAlignment="Center"
+                              MouseDown="BlockBagMouseDown"
+                              Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
+               <local:PixelImage.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
+                        <Bold>Block Bag</Bold>
+                        <LineBreak />
+                        Drawing and painting treat these blocks as equivalent.
+                        <LineBreak />
+                        Ctrl+Click to clear the block bag.
+                     </TextBlock>
+                  </ToolTip>
+               </local:PixelImage.ToolTip>
+            </local:PixelImage>
             <Decorator HorizontalAlignment="Center" VerticalAlignment="Center">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
                <Decorator.Style>

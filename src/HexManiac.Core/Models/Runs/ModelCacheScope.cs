@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+﻿using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
@@ -101,6 +102,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return results;
       }
 
+      #region Script Cache
+
+      // stores only the start and length
+      public Dictionary<int, int> ScriptDestinations { get; } = new();
+
+      // stores start, length, and contents
+      private readonly Dictionary<int, ScriptInfo> cachedScripts = new();
+
+      public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart) {
+         if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo)) return scriptInfo;
+         var scriptLength = parser.FindLength(model, scriptStart);
+         var content = parser.Parse(model, scriptStart, scriptLength);
+         scriptInfo = new ScriptInfo(scriptStart, scriptLength, content);
+         ScriptDestinations[scriptStart] = scriptLength;
+         cachedScripts.Add(scriptStart, scriptInfo);
+         return scriptInfo;
+      }
+
+      #endregion
+
       private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
          if (model.TryGetList(enumName, out var nameArray)) return nameArray;
 
@@ -173,4 +194,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public record MapInfo(int Group, int Map, string Name);
+
+   public record ScriptInfo(int Start, int Length, string Content) : ISearchTreePayload;
 }

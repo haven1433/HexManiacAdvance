@@ -40,7 +40,7 @@
             <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="10,0,0,0">
                <TextBlock Text="Address:" />
             </hsg3hv:AngleBorder>
-            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="60" Direction="Out" TextBinding="{Binding SelectedAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
+            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="70" Direction="Out" TextBinding="{Binding SelectedAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
             <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="5,0,0,0">
                <TextBlock Text="Length:" />
             </hsg3hv:AngleBorder>
@@ -471,8 +471,10 @@
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.ItemTemplate>
                                                    <DataTemplate>
-                                                      <CheckBox Margin="3,1,0,1" Width="112" IsChecked="{Binding IsChecked}" Content="{Binding BitLabel}" KeyUp="CheckboxKeyUp"
-                                                                Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" />
+                                                      <CheckBox Margin="3,1,0,1" Width="112" IsChecked="{Binding IsChecked}" KeyUp="CheckboxKeyUp"
+                                                                Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                                         <TextBlock Text="{Binding BitLabel}" />
+                                                      </CheckBox>
                                                    </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                              </ItemsControl>

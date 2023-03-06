@@ -19,6 +19,13 @@ namespace HavenSoft.HexManiac.Tests {
             Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
          }
       }
+      private string TrainerAiScript {
+         get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
+         set {
+            Tool.Mode = CodeMode.TrainerAiScript;
+            Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
+         }
+      }
       private string ThumbScript {
          set => Tool.Content = value.Replace(";", Environment.NewLine);
       }
@@ -515,8 +522,8 @@ applymovement 0 <auto>
 {
 Is the answer yes?
 }
-  if.compare 0x800D = 1 <yes>
-  if.compare 0x800D = 0 <no>
+  if.compare.goto 0x800D = 1 <yes>
+  if.compare.goto 0x800D = 0 <no>
   release
   end
 yes:
@@ -663,6 +670,43 @@ label2:;goto <000050>;end";
          var destination = Model.ReadPointer(0x0E);
          Assert.Equal(0x13, destination);
       }
+
+      [Fact]
+      public void Script_NoopChange_NoChange() {
+         ViewPort.Edit("^script`xse`");
+         EventScript = "msgbox.npc <auto>;{;text;};";
+         ViewPort.ChangeHistory.TagAsSaved();
+
+         EventScript = "msgbox.npc  <auto>;{;text;};";
+         Assert.False(ViewPort.ChangeHistory.CurrentChange.HasAnyChange);
+      }
+
+      [Fact]
+      public void TrainerAIScript_NoOpEditCreatesPointersToScripts_NoOrphansAndPointsToTrainerAIScript() {
+         "37 01 00 01 00 08 5A".ToByteArray().WriteInto(Model.RawData, 0);
+         "5A".ToByteArray().WriteInto(Model.RawData, 0x100);
+         ViewPort.Edit("^script`tse`");
+
+         TrainerAiScript += " ";
+
+         Assert.All(Model.Anchors, anchor => Assert.DoesNotContain("orphan", anchor));
+         Assert.IsType<TSERun>(Model.GetNextRun(0x100));
+      }
+
+      [Fact]
+      public void UnformattedScriptWithInnerAnchor_FormatThenExpand_Repoint() {
+         SetFullModel(0xFF);
+         "06 00 07 00 00 08 02 02".ToByteArray().WriteInto(Model.RawData, 0);
+         Model.ObserveAnchorWritten(Token, "parent", new XSERun(0));
+         Tool.Mode = CodeMode.Script;
+
+         EventScript += " ";
+         EventScript += ";end";
+
+         Assert.Single(Messages);
+      }
+
+      // TODO trainer ai script change -> no auto repoint?
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }

@@ -359,7 +359,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          DataMoved.Raise(this, new("Block", blockStart));
       }
 
-      private (int currentCount, int maxCount) EstimateBlockCount(ModelArrayElement layout, bool primary) {
+      public (int currentCount, int maxCount) EstimateBlockCount(ModelArrayElement layout, bool primary) {
          var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
          if (layout == null) return (0, 0);
          var blockset = layout.GetSubTable(blocksetName)[0];

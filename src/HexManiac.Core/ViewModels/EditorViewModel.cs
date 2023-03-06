@@ -485,7 +485,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
          if (!Singletons.MetadataInfo.IsPublicRelease) {
             // beta features
-            expansionUtils.Add(new MakePokemonExpandable());
+            // expansionUtils.Add(new MakePokemonExpandable());
          }
          QuickEditsExpansion = expansionUtils.Select(edit => new EditItemWrapper(edit)).ToList();
          QuickEditsMisc = new List<IQuickEditItem> {
@@ -1025,6 +1025,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          results = null;
          var parsed = new List<byte>();
          foreach (var token in text.Split(" ".ToCharArray(), StringSplitOptions.RemoveEmptyEntries)) {
+            if (token.Length != 2) return false;
             if (!byte.TryParse(token, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var result)) return false;
             parsed.Add(result);
          }

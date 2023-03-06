@@ -510,6 +510,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                return;
             }
          }
+         var previousValue = Model.ReadMultiByteValue(integer.Source, integer.Length);
          Model.WriteMultiByteValue(integer.Source, integer.Length, CurrentChange, result);
          if (result >= Math.Pow(2L, integer.Length * 8)) ErrorText = $"Warning: number was too big to fit in the available space.";
          int runIndex = integer.Source - run.Start;
@@ -519,7 +520,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
          if (run is ITableRun tableRun) {
             var offset = tableRun.ConvertByteOffsetToArrayOffset(integer.Source);
-            var info = tableRun.NotifyChildren(Model, CurrentChange, offset.ElementIndex, offset.SegmentIndex);
+            var info = tableRun.NotifyChildren(Model, CurrentChange, offset.ElementIndex, offset.SegmentIndex, previousValue);
             scroll.DataLength = Model.Count;
             if (info != null && info.IsWarning) MessageText = info.ErrorMessage;
          }
@@ -658,7 +659,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (currentRun.Start > memoryLocation) currentRun = null;
          bool inArray = currentRun is ITableRun && currentRun.Start <= memoryLocation;
          var sources = currentRun?.PointerSources;
-         var previousDestination = Model.ReadPointer(memoryLocation);
+         var previousRawDestination = Model.ReadValue(memoryLocation) - BaseModel.PointerOffset; // we care what the bytes are, not the logical destination
 
          if (!inArray) {
             Model.ClearFormat(CurrentChange, memoryLocation, 4);
@@ -666,8 +667,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          }
 
          var (destinationValue, offset) = ParseDestination(destination);
-         if (destinationValue + offset != previousDestination) {
-            Model.ClearPointer(CurrentChange, memoryLocation, previousDestination);
+         if (destinationValue + offset != previousRawDestination) {
+            Model.ClearPointer(CurrentChange, memoryLocation, previousRawDestination);
             Model.ClearData(CurrentChange, memoryLocation, 4);
          }
 
@@ -1040,6 +1041,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       private void UpdateArrayPointer(ITableRun run, int pointerDestination) {
          var offsets = run.ConvertByteOffsetToArrayOffset(memoryLocation);
          var segment = run.ElementContent[offsets.SegmentIndex];
+         if (segment is ArrayRunRecordSegment recordSeg) segment = recordSeg.CreateConcrete(Model, offsets.SegmentStart);
          if (segment is ArrayRunPointerSegment pointerSegment) {
             if (!pointerSegment.DestinationDataMatchesPointerFormat(Model, CurrentChange, offsets.SegmentStart, pointerDestination, run.ElementContent, -1)) {
                ErrorText = $"This pointer must point to {pointerSegment.InnerFormat} data.";

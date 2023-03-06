@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using System;
 using System.Linq;
 using Xunit;
 
@@ -66,6 +67,20 @@ namespace HavenSoft.HexManiac.Integration {
 
          var editor = firered.MapEditor;
          Assert.Contains(editor.PrimaryMap, editor.VisibleMaps);
+      }
+
+      [SkippableFact]
+      public void OakLabSignpost_RepointScript_UpdateSignpostScriptField() {
+         var firered = LoadFireRed();
+         var address1 = firered.Maps[3][0].Events.Signposts[0].Arg;
+
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.PrimaryMap.EventGroup.Signposts[0].GotoScript();
+         var script = firered.Tools.CodeTool.Contents[0];
+         script.Content = "nop" + Environment.NewLine + script.Content; // causes repoint
+
+         var address2 = firered.Maps[3][0].Events.Signposts[0].Arg;
+         Assert.NotEqual(address1, address2);
       }
    }
 }

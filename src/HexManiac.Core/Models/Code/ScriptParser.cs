@@ -78,7 +78,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // append child scripts that come directly after this script
             while (true) {
                // child script starts directly after this script
-               if (destinations.TryGetValue(address + length, out int childLength)) {
+               if (destinations.TryGetValue(address + length, out int childLength) && childLength > 0) {
                   length += childLength;
                   continue;
                }
@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int FindLength(IDataModel model, int address) {
          int length = 0;
          int consecutiveNops = 0;
-         var destinations = new Dictionary<int, int>();
+         var destinations = model.CurrentCacheScope.ScriptDestinations;
          int lastCommand = -1, repeateLength = 1;
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);
@@ -132,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // Include in the length any content that comes directly (or +1) after the script.
          // This content should be considered part of the script.
          while (true) {
-            if (destinations.TryGetValue(address + length, out int additionalLength)) {
+            if (destinations.TryGetValue(address + length, out int additionalLength) && additionalLength > 0) {
                length += additionalLength;
                continue;
             }
@@ -192,10 +192,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript<TSERun>(ModelDelta token, IDataModel model, int address) where TSERun : IScriptStartRun {
+      public void FormatScript<SERun>(ModelDelta token, IDataModel model, int address) where SERun : IScriptStartRun {
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
-         if (typeof(TSERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
-         if (typeof(TSERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
+         if (typeof(SERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
+         if (typeof(SERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
+         if (typeof(SERun) == typeof(TSERun)) constructor = (a, s) => new TSERun(a, s);
 
          var processed = new List<int>();
          var toProcess = new List<int> { address };
@@ -204,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             toProcess.RemoveAt(toProcess.Count - 1);
             if (processed.Contains(address)) continue;
             var existingRun = model.GetNextRun(address);
-            if (!(existingRun is TSERun) && existingRun.Start == address) {
+            if (!(existingRun is SERun) && existingRun.Start == address) {
                var anchorName = model.GetAnchorFromAddress(-1, address);
                model.ObserveAnchorWritten(token, anchorName, constructor(address, existingRun.PointerSources));
             }
@@ -229,8 +230,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   } else {
                      var destination = model.ReadPointer(address + length);
                      if (destination >= 0 && destination < model.Count) {
-                        model.ClearFormat(token, address + length, 4);
-                        model.ObserveRunWritten(token, new PointerRun(address + length));
+                        if (model.GetNextRun(address + length) is PointerRun pointerRun && pointerRun.Start == address + length) {
+                           // no need to clear/update
+                        } else {
+                           model.ClearFormat(token, address + length, 4);
+                           model.ObserveRunWritten(token, new PointerRun(address + length));
+                        }
                         if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
                         if (arg.PointerType == ExpectedPointerType.Text) {
                            WriteTextStream(model, token, destination, address + length);
@@ -238,6 +243,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                            WriteMovementStream(model, token, destination, address + length);
                         } else if (arg.PointerType == ExpectedPointerType.Mart) {
                            WriteMartStream(model, token, destination, address + length);
+                        } else if (arg.PointerType == ExpectedPointerType.Decor) {
+                           WriteDecorStream(model, token, destination, address + length);
                         } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
                            WriteSpriteTemplateStream(model, token, destination, address + length);
                         }
@@ -261,6 +268,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (existingTextRun.Start != destination) {
                model.ClearFormat(token, destination, destinationLength);
                model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(source)));
+            } else if (existingTextRun is PCSRun && destinationLength == existingTextRun.Length) {
+               // length and format is correct, nothing to do
             } else {
                model.ClearAnchor(token, destination + existingTextRun.Length, destinationLength - existingTextRun.Length); // assuming that the old run ends before the new run, clear the difference
                model.ObserveRunWritten(token, new PCSRun(model, destination, destinationLength, SortedSpan.One(source)));
@@ -276,6 +285,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public void WriteMartStream(IDataModel model, ModelDelta token, int start, int source) {
          var format = $"[item:{HardcodeTablesModel.ItemsTableName}]!0000";
+         WriteStream(model, token, start, source, format);
+      }
+
+      public void WriteDecorStream(IDataModel model, ModelDelta token, int start, int source) {
+         var format = $"[item:{HardcodeTablesModel.DecorationsTableName}]!0000";
          WriteStream(model, token, start, source, format);
       }
 
@@ -391,6 +405,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      token.ChangeData(model, newAddress, 0x00);
                      token.ChangeData(model, newAddress + 1, 0x00);
                      WriteMartStream(model, token, newAddress, -1);
+                  } else if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.Decor)) {
+                     newAddress = model.FindFreeSpace(0, 0x10);
+                     token.ChangeData(model, newAddress, 0x00);
+                     token.ChangeData(model, newAddress + 1, 0x00);
+                     WriteDecorStream(model, token, newAddress, -1);
                   } else if (command.Args.Any(arg => arg.PointerType == ExpectedPointerType.SpriteTemplate)) {
                      newAddress = model.FindFreeSpace(0, 0x18);
                      for (int j = 0; j < 0x18; j++) token.ChangeData(model, newAddress + j, 0x00);
@@ -429,6 +448,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         (string format, byte[] defaultContent) = arg.PointerType switch {
                            ExpectedPointerType.Text => ("\"\"", new byte[] { 0xFF }),
                            ExpectedPointerType.Mart => ($"[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }),
+                           ExpectedPointerType.Decor => ($"[item:{HardcodeTablesModel.DecorationsTableName}]!0000", new byte[] { 0, 0 }),
                            ExpectedPointerType.Movement => ($"[move.movementtypes]!FE", new byte[] { 0xFE }),
                            _ => ("^", new byte[0])
                         };
@@ -455,7 +475,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // done with script lines, now write deferred data
          foreach (var deferred in deferredContent) {
-            deferred.WriteData(result, start);
+             deferred.WriteData(result, start);
          }
 
          return result.ToArray();
@@ -855,6 +875,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       Text,
       Movement,
       Mart,
+      Decor,
       SpriteTemplate,
    }
 
@@ -875,9 +896,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            if (destinationLengths != null) {
+            var destination = model.ReadPointer(start + length);
+            if (destinationLengths != null && !destinationLengths.ContainsKey(destination)) {
                var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-               if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
+               if (argLength > 0) destinationLengths[destination] = argLength;
             }
             length += arg.Length(model, start + length);
          }
@@ -1148,6 +1170,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var (type, length) = (ArgType.Pointer, 4);
             var name = token.Split(new[] { "<`mart`>" }, StringSplitOptions.None).First();
             return (type, ExpectedPointerType.Mart, name, default, length);
+         } else if (token.Contains("<`decor`>")) {
+            var (type, length) = (ArgType.Pointer, 4);
+            var name = token.Split(new[] { "<`decor`>" }, StringSplitOptions.None).First();
+            return (type, ExpectedPointerType.Decor, name, default, length);
          } else if (token.Contains("<`move`>")) {
             var (type, length) = (ArgType.Pointer, 4);
             var name = token.Split(new[] { "<`move`>" }, StringSplitOptions.None).First();
@@ -1200,17 +1226,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public static bool IsValidToken(string token) {
-         return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
+         return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`decor`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
       }
 
-      public string Convert(IDataModel model, int value) {
+      public string Convert(IDataModel model, int value, int bytes) {
          var preferHex = EnumTableName?.EndsWith("|h") ?? false;
+         var preferSign = EnumTableName?.EndsWith("|z") ?? false;
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
          if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
             if (preferHex || value == int.MinValue || Math.Abs(value) >= 0x4000) {
                return "0x" + ((uint)value).ToString($"X{length * 2}");
             } else {
+               if (bytes == 1 && preferSign) value = (sbyte)value;
+               if (bytes == 2 && preferSign) value = (short)value;
                return value.ToString();
             }
          }
@@ -1231,9 +1260,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent) {
          if (allFillerIsZero && Name == "filler") return true;
-         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start]));
-         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2)));
-         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4)));
+         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start], 1));
+         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2), 2));
+         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4), 4));
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
@@ -1393,7 +1422,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // concatenate destinations directly after the current script
          while (true) {
-            if (destinationLengths.TryGetValue(address + length, out int argLength)) {
+            if (destinationLengths.TryGetValue(address + length, out int argLength) && argLength > 0) {
                length += argLength;
                continue;
             }
@@ -1433,6 +1462,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             foreach (var line in text.SplitLines()) {
                if (string.IsNullOrWhiteSpace(line)) continue;
                if (!ArrayRunEnumSegment.TryParse(HardcodeTablesModel.ItemsTableName, model, line, out int value)) continue;
+               data.AddShort(value);
+            }
+            data.AddShort(0);
+            content = data.ToArray();
+         } else if (type == ExpectedPointerType.Mart) {
+            //   [item:{HardcodeTablesModel.DecorationsTableName}]!0000
+            var data = new List<byte>();
+            foreach (var line in text.SplitLines()) {
+               if (string.IsNullOrWhiteSpace(line)) continue;
+               if (!ArrayRunEnumSegment.TryParse(HardcodeTablesModel.DecorationsTableName, model, line, out int value)) continue;
                data.AddShort(value);
             }
             data.AddShort(0);

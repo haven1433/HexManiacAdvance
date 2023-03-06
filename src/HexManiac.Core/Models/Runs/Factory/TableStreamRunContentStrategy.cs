@@ -52,6 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var pointerSources = model.GetUnmappedSourcesToAnchor(name);
          pointerSources = new SortedSpan<int>(pointerSources.Where(source => model.ReadValue(source) == 0).ToList());
+         if (run != null && run.PointerSources != null) pointerSources = pointerSources.Add(run.PointerSources);
          var errorInfo = ArrayRun.TryParse(model, name, Format, dataIndex, pointerSources, out var arrayRun);
          if (errorInfo == ErrorInfo.NoError) {
             run = arrayRun;

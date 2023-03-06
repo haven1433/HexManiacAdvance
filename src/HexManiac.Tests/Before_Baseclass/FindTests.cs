@@ -568,6 +568,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(results, 0x10);
       }
 
+      [Fact]
+      public void ThreeF_ParseBytes_NoMatch() {
+         Assert.False(EditorViewModel.TryParseBytes("FF F", out var _));
+      }
+
+      [Fact]
+      public void SearchBytes_MatchPartiallyOffscreen_NoError() {
+         var test = new BaseViewModelTestClass();
+         test.ViewPort.FindBytes = new byte[] { 0x00, 0x01 };
+         // no crash -> pass
+      }
+
       private static ViewPort Create(string name, params int[] changeAddresses) {
          var metadata = new StoredMetadata(new string[0]);
          var singletons = BaseViewModelTestClass.Singletons;

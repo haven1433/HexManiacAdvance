@@ -9,7 +9,7 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.Models.Map {
 
    public record AllMapsModel(ModelTable Table) : IEnumerable<MapBankModel> {
-      public static AllMapsModel Create(IDataModel model, Func<ModelDelta> tokenFactory) => new(model.GetTableModel("data.maps.banks", tokenFactory));
+      public static AllMapsModel Create(IDataModel model, Func<ModelDelta> tokenFactory = null) => new(model.GetTableModel("data.maps.banks", tokenFactory));
 
       public IEnumerator<MapBankModel> GetEnumerator() => Enumerate().GetEnumerator();
 
@@ -118,6 +118,13 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return warps.Select(obj => new WarpEventModel(obj)).ToList();
          }
       }
+      public List<SignpostEventModel> Signposts {
+         get {
+            if (Element == null) return new();
+            if (!Element.TryGetSubTable(Format.Signposts, out var signposts)) return new();
+            return signposts.Select(sp => new SignpostEventModel(sp)).ToList();
+         }
+      }
    }
 
    public record BaseEventModel(ModelArrayElement Element) {
@@ -143,6 +150,11 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int WarpID => Element.GetValue("warpID");
       public int Bank => Element.GetValue("bank");
       public int Map => Element.GetValue("map");
+   }
+
+   public record SignpostEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
+      public int Kind => Element.GetValue("kind");
+      public int Arg => Element.GetValue("arg");
    }
 
    public class Format {

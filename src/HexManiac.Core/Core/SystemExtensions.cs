@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -95,6 +96,11 @@ namespace HavenSoft.HexManiac.Core {
       public static T FirstOfType<T>(this IEnumerable list) where T : class {
          return list.FirstOfTypeOrDefault<T>() ??
             throw new InvalidOperationException($"Enumerable did not contain any {typeof(T)} elements.");
+      }
+
+      public static bool IsNullOrEmpty<T>(this IEnumerable<T> list) {
+         if (list == null) return true;
+         return !list.Any();
       }
 
       public static void Sort<T>(this List<T> list, Func<T, T, int> compare) {
@@ -283,6 +289,25 @@ namespace HavenSoft.HexManiac.Core {
 
       public static byte[] ToByteArray(this string content) {
          return content.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(t => (byte)int.Parse(t, NumberStyles.HexNumber)).ToArray();
+      }
+
+      public static T From<T>(this Random rnd, IReadOnlyList<T> list) {
+         var index = rnd.Next(list.Count);
+         return list[index];
+      }
+
+      public static T Ensure<T>(this IList<T> list, Func<T, bool> predicate, T element) {
+         var existing = list.FirstOrDefault(predicate);
+         if (existing != null) return existing;
+         list.Add(element);
+         return element;
+      }
+
+      public static V Ensure<K, V>(this IDictionary<K, V> dict, K key, Func<V> valueFactory) {
+         if (dict.TryGetValue(key, out var result)) return result;
+         var value = valueFactory();
+         dict[key] = value;
+         return value;
       }
    }
 

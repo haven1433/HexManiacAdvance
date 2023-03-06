@@ -165,10 +165,35 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex) {
+      private static void UpdateRecordType(ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex, ArrayRunRecordSegment recordSegment, int previousValue) {
+         var offset = self.ElementContent.Take(segmentIndex).Sum(seg => seg.Length);
+         var sourceSegment = self.ElementContent[segmentIndex];
+         var elementStart = self.Start + self.ElementLength * elementIndex;
+         var newValue = model.ReadMultiByteValue(elementStart + offset, sourceSegment.Length);
+
+         if (previousValue == newValue) return;
+         var previousConcrete = recordSegment.CreateConcrete(model.FormatRunFactory, model.TextConverter, previousValue);
+         var newConcrete = recordSegment.CreateConcrete(model.FormatRunFactory, model.TextConverter, newValue);
+         if ((previousConcrete.Type == ElementContentType.Pointer) == (newConcrete.Type == ElementContentType.Pointer)) return;
+         var pointerOffset = self.ElementContent.Until(seg => seg == recordSegment).Sum(seg => seg.Length);
+         var pointerDestination = model.ReadPointer(elementStart + pointerOffset);
+         if (previousConcrete.Type == ElementContentType.Pointer) {
+            // not a pointer anymore, remove format from destination
+            model.ClearPointer(token, elementStart + pointerOffset, pointerDestination);
+         }
+         if (newConcrete.Type == ElementContentType.Pointer) {
+            // now a pointer, add format to destination
+            model.UpdateArrayPointer(token, newConcrete, self.ElementContent, elementIndex, elementStart + pointerOffset, pointerDestination);
+         }
+      }
+
+      public static ErrorInfo NotifyChildren(this ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex, int previousValue = 0xDedBeef) {
          int offset = 0;
          var info = ErrorInfo.NoError;
          foreach (var segment in self.ElementContent) {
+            if (previousValue != 0xDedBeef && segment is ArrayRunRecordSegment recordSegment && recordSegment.MatchField == self.ElementContent[segmentIndex].Name) {
+               UpdateRecordType(self, model, token, elementIndex, segmentIndex, recordSegment, previousValue);
+            }
             if (segment is ArrayRunPointerSegment pointerSegment) {
                var pointerSource = self.Start + elementIndex * self.ElementLength + offset;
                var destination = model.ReadPointer(pointerSource);
@@ -561,7 +586,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          Length = ElementLength * ElementCount;
-         if (SupportsInnerPointers) PointerSourcesForInnerElements = ElementCount.Range().Select(i => SortedSpan<int>.None).ToList();
+         if (SupportsInnerPointers) {
+            var innerPointers = ElementCount.Range().Select(i => SortedSpan<int>.None).ToList();
+            innerPointers[0] = PointerSources;
+            PointerSourcesForInnerElements = innerPointers;
+         }
       }
 
       private ArrayRun(IDataModel data, string format, string lengthFromAnchor, ParentOffset parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
@@ -1014,6 +1043,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 1; i < ElementCount; i++) results.Add(SortedSpan<int>.None);
 
          foreach (var source in sources) {
+            // if the source is within the table and isn't aligned as a pointer format,
+            // then it's not a real pointer and we should ignore it
+            if (Start <= source && source < Start + Length) {
+               bool skip = false;
+               var offset = this.ConvertByteOffsetToArrayOffset(source);
+               if (offset.SegmentOffset != 0) skip = true;
+               else if (ElementContent[offset.SegmentIndex].Type != ElementContentType.Pointer) skip = true;
+
+               if (skip) {
+                  owner.ClearFormat(changeToken, source, 1);
+                  continue;
+               }
+            }
+
             var destination = owner.ReadPointer(source);
             int destinationIndex = (destination - Start) / ElementLength;
             // destinationIndex is expected to be within the table

@@ -377,7 +377,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (matchFieldOffset == table.ElementLength) return defaultConcrete;
          var offsets = table.ConvertByteOffsetToArrayOffset(offset);
          var matchFieldValue = model.ReadMultiByteValue(table.Start + offsets.ElementIndex * table.ElementLength + matchFieldOffset, table.ElementContent[matchFieldIndex].Length);
+         return CreateConcrete(model.FormatRunFactory, model.TextConverter, matchFieldValue);
+      }
+
+      public ArrayRunElementSegment CreateConcrete(IFormatRunFactory formatRunFactory, ITextConverter textConverter, int matchFieldValue) {
+         var defaultConcrete = new ArrayRunElementSegment(Name, ElementContentType.Integer, Length, TextConverter);
          if (!EnumForValue.TryGetValue(matchFieldValue, out var enumName)) return defaultConcrete;
+
+         if (enumName.StartsWith("<") && enumName.EndsWith(">")) {
+            enumName = enumName.Substring(1, enumName.Length - 2);
+            if (enumName.Length > 0) return new ArrayRunPointerSegment(formatRunFactory, Name, enumName);
+            return new ArrayRunElementSegment(Name, ElementContentType.Pointer, 4, textConverter);
+         }
+
          return new ArrayRunEnumSegment(Name, Length, enumName);
       }
 

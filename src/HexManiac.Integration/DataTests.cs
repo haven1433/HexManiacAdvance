@@ -1,12 +1,11 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System.IO;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Integration {
-   public class DataTests : IntegrationTests{
+   public class DataTests : IntegrationTests {
       [SkippableFact]
       public void PokemonNameEnum_3ByteValue_NoTooltipError() {
          var firered = LoadReadOnlyFireRed();

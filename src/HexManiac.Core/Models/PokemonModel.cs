@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -1014,6 +1015,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          Debug.Assert(run.Length > 0, $"Writing metadata run length 0 at {run.Start:X6}"); // writing a run of length zero is stupid.
          lock (threadlock) {
             if (run is ArrayRun array) {
+               if (array.SupportsInnerPointers && array.ElementCount > 0) {
+                  Debug.Assert(array.PointerSourcesForInnerElements[0].SequenceEqual(array.PointerSources),
+                     $"Expected inner pointers to item[0] to match pointers to table: {run.Start:X6}");
+               }
                // update any words who's name matches this array's name
                if (anchorForAddress.TryGetValue(run.Start, out var anchorName)) {
                   if (matchedWords.TryGetValue(anchorName, out var words) && !(changeToken is NoDataChangeDeltaModel)) {
@@ -1129,16 +1134,32 @@ namespace HavenSoft.HexManiac.Core.Models {
          var shorterTable = Math.Min(arrayRun.ElementCount, previousTable?.ElementCount ?? arrayRun.ElementCount);
          // i loops over the different segments in the array
          for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
-            if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += arrayRun.ElementContent[i].Length; continue; }
+            var segment = arrayRun.ElementContent[i];
+
+            // record segments _might_ be pointers... sometimes. Need to check every element
+            if (segment is ArrayRunRecordSegment recordSeg) {
+               for (int j = 0; j < elementCount; j++) {
+                  // segment=recordSeg.CreateConcrete(this,segmentOffset)
+                  var start = segmentOffset + arrayRun.ElementLength * j;
+                  segment = recordSeg.CreateConcrete(this, start);
+                  if (segment.Type == ElementContentType.Pointer) {
+                     if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
+                     changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, j, changeToken, start);
+                  }
+               }
+               segmentOffset += segment.Length;
+               continue;
+            }
+            if (arrayRun.ElementContent[i].Type != ElementContentType.Pointer) { segmentOffset += segment.Length; continue; }
             // for a pointer segment, j loops over all the elements in the array
             var range = elementCount.Range();
-            if (arrayRun.ElementContent[i] is ArrayRunPointerSegment pSeg && pSeg.InnerFormat.EndsWith("?")) range = range.Reverse();
+            if (segment is ArrayRunPointerSegment pSeg && pSeg.InnerFormat.EndsWith("?")) range = range.Reverse();
             foreach (int j in range) {
                if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
-               changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, j, changeToken, start);
+               changeAnchors(segment, arrayRun.ElementContent, j, changeToken, start);
             }
-            segmentOffset += arrayRun.ElementContent[i].Length;
+            segmentOffset += segment.Length;
          }
       }
 
@@ -1296,6 +1317,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <param name="changeToken"></param>
       /// <param name="start"></param>
       private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
+         if (segment is ArrayRunRecordSegment recordSeg) segment = recordSeg.CreateConcrete(this, start);
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
          var index = BinarySearch(destination);
@@ -1595,6 +1617,22 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                ExpandData(changeToken, RawData.Length + minimumLength);
                return MoveRun(changeToken, run, currentLength, RawData.Length - minimumLength - 1);
+            }
+         }
+      }
+
+      public override T RelocateForExpansion<T>(ModelDelta token, T run, int currentLength, int desiredLength) {
+         if (currentLength < 1) currentLength = 1;
+         if (desiredLength <= currentLength) return run;
+         if (CanSafelyUse(run.Start + currentLength, run.Start + desiredLength)) return run;
+
+         var freeSpace = FindFreeSpace(0x100, desiredLength);
+         lock (threadlock) {
+            if (freeSpace >= 0) {
+               return MoveRun(token, run, currentLength, freeSpace);
+            } else {
+               ExpandData(token, RawData.Length + desiredLength);
+               return MoveRun(token, run, currentLength, RawData.Length - desiredLength - 1);
             }
          }
       }

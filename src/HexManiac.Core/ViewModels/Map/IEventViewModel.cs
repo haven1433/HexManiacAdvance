@@ -919,8 +919,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this));
       }
 
-      public override int TopOffset => 16 - EventRender.PixelHeight;
-      public override int LeftOffset => (16 - EventRender.PixelWidth) / 2;
+      public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
+      public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
       public override void Render(IDataModel model) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
@@ -1132,7 +1132,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (!ShowPointer) return;
          var destinationRun = new XSERun(Pointer, SortedSpan<int>.None);
          var existingRun = element.Model.GetNextRun(destinationRun.Start);
-         if (existingRun.Start <= destinationRun.Start) return; // don't erase existing runs for this
+         if (existingRun.Start < destinationRun.Start) return; // don't erase existing runs for this
+         if (existingRun.Start == destinationRun.Start && existingRun is not NoInfoRun) return;
          element.Model.ObserveRunWritten(new ModelDelta(), destinationRun); // don't track this change
       }
 
@@ -1210,7 +1211,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public bool CanGotoScript => 0 <= Pointer && Pointer < element.Model.Count;
-      public void GotoScript() => gotoAddress(Pointer);
+      public void GotoScript() {
+         SetDestinationFormat();
+         gotoAddress(Pointer);
+      }
 
       #endregion
 

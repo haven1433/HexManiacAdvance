@@ -162,7 +162,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       public static int GetMaxUsedBlock(IReadOnlyList<byte> model, int start, int width, int height, int maxCheck) {
-         return (width * height).Range(i => model.ReadMultiByteValue(start + i * 2, 2) & 0x3FF).Where(i => maxCheck > i).Aggregate(0, Math.Max);
+         return (width * height).Range(i => (start + i * 2 < model.Count - 2 ? model.ReadMultiByteValue(start + i * 2, 2) : 0) & 0x3FF).Where(i => maxCheck > i).Aggregate(0, Math.Max);
       }
 
       int lastFormatRequested = int.MaxValue;
