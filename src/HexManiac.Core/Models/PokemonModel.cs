@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -1616,6 +1617,22 @@ namespace HavenSoft.HexManiac.Core.Models {
             } else {
                ExpandData(changeToken, RawData.Length + minimumLength);
                return MoveRun(changeToken, run, currentLength, RawData.Length - minimumLength - 1);
+            }
+         }
+      }
+
+      public override T RelocateForExpansion<T>(ModelDelta token, T run, int currentLength, int desiredLength) {
+         if (currentLength < 1) currentLength = 1;
+         if (desiredLength <= currentLength) return run;
+         if (CanSafelyUse(run.Start + currentLength, run.Start + desiredLength)) return run;
+
+         var freeSpace = FindFreeSpace(0x100, desiredLength);
+         lock (threadlock) {
+            if (freeSpace >= 0) {
+               return MoveRun(token, run, currentLength, freeSpace);
+            } else {
+               ExpandData(token, RawData.Length + desiredLength);
+               return MoveRun(token, run, currentLength, RawData.Length - desiredLength - 1);
             }
          }
       }

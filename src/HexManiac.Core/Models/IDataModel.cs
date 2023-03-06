@@ -78,6 +78,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
          IReadOnlyDictionary<string, ValidationList> listsToRemove, IReadOnlyDictionary<string, ValidationList> listsToAdd);
       T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
+      T RelocateForExpansion<T>(ModelDelta token, T run, int currentLength, int desiredLength) where T : IFormattedRun;
       int FindFreeSpace(int start, int length);
       void ClearAnchor(ModelDelta changeToken, int start, int length);
       void ClearFormat(ModelDelta changeToken, int start, int length);
@@ -284,6 +285,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<string, ValidationList> listsToAdd);
 
       public abstract T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : IFormattedRun;
+      public abstract T RelocateForExpansion<T>(ModelDelta token, T run, int currentLength, int desiredLength) where T : IFormattedRun;
 
       public abstract int FindFreeSpace(int start, int length);
 
@@ -868,6 +870,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          IReadOnlyDictionary<string, int> unmappedConstantsToRemove, IReadOnlyDictionary<string, int> unmappedConstantsToAdd,
          IReadOnlyDictionary<string, ValidationList> listsToRemove, IReadOnlyDictionary<string, ValidationList> listsToAdd) { }
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) => throw new NotImplementedException();
+      public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int currentLength, int desiredLength) => throw new NotImplementedException();
       public override int FindFreeSpace(int start, int length) => throw new NotImplementedException();
       public override void ClearAnchor(ModelDelta changeToken, int start, int length) { }
       public override void ClearFormat(ModelDelta changeToken, int start, int length) { }

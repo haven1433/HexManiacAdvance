@@ -163,11 +163,17 @@ namespace HavenSoft.HexManiac.Core.Models
         }
         
         public delegate T RelocateForExpansionDelegate_ModelDelta_T_int<T>(ModelDelta changeToken, T run, int minimumLength) where T : Runs.IFormattedRun;
+        public delegate T RelocateForExpansionDelegate_ModelDelta_T_int_int<T>(ModelDelta changeToken, T run, int currentLength, int desiredLength) where T : Runs.IFormattedRun;
         private readonly Dictionary<Type[], object> RelocateForExpansionDelegates_ModelDelta_T_int = new Dictionary<Type[], object>(new EnumerableEqualityComparer<Type>());
+        private readonly Dictionary<Type[], object> RelocateForExpansionDelegates_ModelDelta_T_int_int = new(new EnumerableEqualityComparer<Type>());
         public void ImplementRelocateForExpansion<T>(RelocateForExpansionDelegate_ModelDelta_T_int<T> implementation) where T : Runs.IFormattedRun
         {
             var key = new Type[] { typeof(T) };
             RelocateForExpansionDelegates_ModelDelta_T_int[key] = implementation;
+        }
+        public void ImplementRelocateForExpansion<T>(RelocateForExpansionDelegate_ModelDelta_T_int_int<T> implementation)where T : Runs.IFormattedRun {
+         var key = new Type[] { typeof(T) };
+         RelocateForExpansionDelegates_ModelDelta_T_int_int[key] = implementation;
         }
         public T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) where T : Runs.IFormattedRun
         {
@@ -182,6 +188,15 @@ namespace HavenSoft.HexManiac.Core.Models
                 return default(T);
             }
         }
+      public T RelocateForExpansion<T>(ModelDelta changeToken, T run, int currentLength, int desiredLength) where T : Runs.IFormattedRun {
+         var key = new Type[] { typeof(T) };
+         object implementation;
+         if (RelocateForExpansionDelegates_ModelDelta_T_int_int.TryGetValue(key, out implementation)) {
+            return ((RelocateForExpansionDelegate_ModelDelta_T_int_int<T>)implementation).Invoke(changeToken, run, currentLength, desiredLength);
+         } else {
+            return default(T);
+         }
+      }
         
         public Func<int, int, int> FindFreeSpace { get; set; }
         

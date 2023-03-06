@@ -406,7 +406,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   }
                } else {
                   if (run is NoInfoRun) run = Construct<SERun>(run.Start, run.PointerSources);
-                  run = model.RelocateForExpansion(history.CurrentChange, run, code.Length);
+                  run = model.RelocateForExpansion(history.CurrentChange, run, body.CompiledLength, code.Length);
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;

@@ -693,6 +693,19 @@ label2:;goto <000050>;end";
          Assert.IsType<TSERun>(Model.GetNextRun(0x100));
       }
 
+      [Fact]
+      public void UnformattedScriptWithInnerAnchor_FormatThenExpand_Repoint() {
+         SetFullModel(0xFF);
+         "06 00 07 00 00 08 02 02".ToByteArray().WriteInto(Model.RawData, 0);
+         Model.ObserveAnchorWritten(Token, "parent", new XSERun(0));
+         Tool.Mode = CodeMode.Script;
+
+         EventScript += " ";
+         EventScript += ";end";
+
+         Assert.Single(Messages);
+      }
+
       // TODO trainer ai script change -> no auto repoint?
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
