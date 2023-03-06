@@ -160,7 +160,7 @@ BPEE0.scripts.ev.cap.vitamins-1 06CA54
 BPEE0.scripts.ev.cap.vitamins   06CA5C,06CA62
 BPEE0.scripts.ev.cap.stat       06DC48,06DC4E
 
-- Money cap: how much money can have from vitamins, or how many EVs you can have in any stat. -----------------------------------
+- Money cap: The maximum amount of money the player can carry at once. -----------------------------------
 BPEE0::scripts.money.cap        0E5188
 
 
