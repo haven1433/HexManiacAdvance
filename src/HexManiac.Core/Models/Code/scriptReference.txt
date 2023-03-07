@@ -267,10 +267,10 @@ AF setdooropened2 x: y:                      # clone
 B0 setdoorclosed2 x: y:                      # clone
 [AXVE_AXPE] B1 nopB1                         # ???
 [BPRE_BPGE] B1 nopB1
-B1 addelevmenuitem                           # ???
+[BPEE] B1 addelevmenuitem                    # ???
 [AXVE_AXPE] B2 nopB2
 [BPRE_BPGE] B2 nopB2
-B2 showelevmenu
+[BPEE] B2 showelevmenu
 B3 checkcoins output:                        # your number of coins is stored to the given variable
 B4 givecoins count:
 B5 removecoins count:
