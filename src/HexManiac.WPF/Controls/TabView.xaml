@@ -589,8 +589,20 @@
                                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
                                              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out"/>
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out">
+												<hsg3hv:AngleButton.ToolTip>
+                                                   <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                                      <TextBlock TextAlignment="Left" Text="Sets all Pokémon's movesets to<LineBreak/>the last 4 level-up moves." />
+                                                   </ToolTip>
+                                                </hsg3hv:AngleButton.ToolTip>
+												</hsg3hv:AngleButton>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out">
+												<hsg3hv:AngleButton.ToolTip>
+                                                   <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                                      <TextBlock TextAlignment="Left" Text="Removes all Pokémon's held items." />
+                                                   </ToolTip>
+                                                </hsg3hv:AngleButton.ToolTip>
+												</hsg3hv:AngleButton>
                                              </StackPanel>
                                           </StackPanel>
                                        </DataTemplate>
