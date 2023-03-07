@@ -76,6 +76,13 @@ namespace HavenSoft.HexManiac.Tests {
          // every anchor in the fresh metadata should be represented in the upgrade case
          var upgradeAnchorNames = upgradedMetadata.NamedAnchors.Select(na => na.Name).ToList();
          foreach (var namedAnchor in freshMetadata.NamedAnchors) {
+            if (tomlName == "_0.4.4.7.toml") {
+               if (namedAnchor.Name.IsAny(
+                  "graphics.text.font.short.width" // legitimate name change
+               )) {
+                  continue;
+               }
+            }
             Assert.Contains(namedAnchor.Name, upgradeAnchorNames);
          }
          // every anchor in the upgraded metadata should have the right address and format to match the fresh versions
