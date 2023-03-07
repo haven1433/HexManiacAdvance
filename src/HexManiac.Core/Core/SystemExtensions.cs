@@ -28,6 +28,10 @@ namespace HavenSoft.HexManiac.Core {
          return value;
       }
 
+      public static bool InRange<T>(this T value, T min, T max) where T : IComparable<T> {
+         return min.CompareTo(value) <= 0 && value.CompareTo(max) < 0;
+      }
+
       public static bool TryParseInt(this string str, out int result) {
          if (str.StartsWith("0x") && int.TryParse(str.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return true;
          if (int.TryParse(str, out result)) return true;
