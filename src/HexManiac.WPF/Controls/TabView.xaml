@@ -592,7 +592,9 @@
                                                 <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out">
 												<hsg3hv:AngleButton.ToolTip>
                                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                                      <TextBlock TextAlignment="Left" Text="Sets all Pokémon's movesets to<LineBreak/>the last 4 level-up moves." />
+                                                         <TextBlock TextAlignment="Left">
+                                                            Sets all Pokémon's movesets to<LineBreak />the last 4 level-up moves.
+                                                         </TextBlock>
                                                    </ToolTip>
                                                 </hsg3hv:AngleButton.ToolTip>
 												</hsg3hv:AngleButton>
