@@ -47,6 +47,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 0; i < Math.Min(left.Count, right.Count); i++) {
             startOfNextSegment.Add(startOfNextSegment[i] + 1 + Math.Max(left[i].Height, right[i].Height));
          }
+
+         foreach (var child in left) child.RefreshHeaders();
+         foreach (var child in right) child.RefreshHeaders();
       }
 
       public int LeftHeight(int index) => left[index].Height;

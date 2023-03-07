@@ -191,11 +191,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   };
                }
                maxScrollValue += combo.Height - previousHeight;
+               combo.RefreshHeaders();
                NotifyCollectionChanged();
                return;
             }
          }
 
+         child.RefreshHeaders();
          children.Add(child);
          childrenSelection.Add(range);
          maxScrollValue += child.Height;

@@ -2,5 +2,6 @@
    public interface IChildViewPort : IViewPort {
       int PreferredWidth { get; set; }
       IViewPort Parent { get; }
+      void RefreshHeaders();
    }
 }
