@@ -601,7 +601,7 @@
                                                 <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out">
                                                    <hsg3hv:AngleButton.ToolTip>
                                                       <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
-                                                         <TextBlock TextAlignment="Left" Text="Removes all Pokémon's held items." />
+                                                         <TextBlock TextAlignment="Left" Text="Removes all Pokémon's custom held items." />
                                                       </ToolTip>
                                                    </hsg3hv:AngleButton.ToolTip>
                                                 </hsg3hv:AngleButton>
