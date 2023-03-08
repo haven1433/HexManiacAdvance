@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private bool autoAdjustDataWidth = true, allowMultipleElementsPerLine = true;
+      private bool autoAdjustDataWidth = true, allowMultipleElementsPerLine = false;
       public bool AutoAdjustDataWidth { get => autoAdjustDataWidth; set => Set(ref autoAdjustDataWidth, value); }
       public bool AllowMultipleElementsPerLine { get => allowMultipleElementsPerLine; set => Set(ref allowMultipleElementsPerLine, value); }
 
