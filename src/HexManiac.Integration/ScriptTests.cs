@@ -1,7 +1,7 @@
 ﻿using HavenSoft.HexManiac.Integration;
 using Xunit;
 
-namespace HexManiac.Integration {
+namespace HavenSoft.HexManiac.Integration {
    public class ScriptTests : IntegrationTests {
       [SkippableFact]
       public void AIScript_NoChangeEdit_NoOrphans() {
