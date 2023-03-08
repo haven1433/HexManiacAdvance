@@ -767,6 +767,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void RefreshTabCommands() {
          diffLeft?.RaiseCanExecuteChanged();
          diffRight?.RaiseCanExecuteChanged();
+         NotifyPropertiesChanged(nameof(CanIpsPatchRight), nameof(CanUpsPatchRight));
       }
 
       #endregion
