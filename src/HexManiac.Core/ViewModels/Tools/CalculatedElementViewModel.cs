@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          (segment, dataStart) = (that.segment, that.dataStart);
          Operands.Clear();
          foreach (var operand in that.Operands) Operands.Add(operand);
-         NotifyPropertyChanged(nameof(CalculatedValue));
+         NotifyPropertiesChanged(nameof(Name), nameof(CalculatedValue), nameof(Operator), nameof(HasOperator));
          return true;
       }
 

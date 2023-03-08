@@ -19,9 +19,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public IViewPort Parent { get; }
 
       public ChildViewPort(IViewPort viewPort, IWorkDispatcher dispatcher, Singletons singletons) : base(viewPort.FileName, viewPort.Model, dispatcher, singletons, null, null, null, viewPort.ChangeHistory) {
+         ScrollRegion.DeferHeader();
          Parent = viewPort;
          Width = Parent.Width;
       }
+
+      public void RefreshHeaders() => ScrollRegion.UpdateDeferedHeader();
    }
 
    public class CompositeChildViewPort : List<IChildViewPort>, IChildViewPort {
@@ -44,6 +47,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          result.Add(b);
          return true;
       }
+
+      public void RefreshHeaders() => this[0].RefreshHeaders();
 
       public static int GetFirstVisibleSelectedAddress(IViewPort viewPort) {
          for (int y = 0; y < viewPort.Height; y++) {
@@ -79,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public int PreferredWidth { get => this[0].PreferredWidth; set => ForEach(child => child.PreferredWidth = value); }
       public int Width { get => this[0].Width; set => ForEach(child => child.Width = value); }
-      public int Height { get => this[0].Height; set => ForEach(child => child.Height = value); }
+      public int Height { get => this[0].Height; set => this[0].Height = value; }
       public bool AutoAdjustDataWidth { get => this[0].AutoAdjustDataWidth; set => ForEach(child => child.AutoAdjustDataWidth = value); }
       public bool StretchData { get => this[0].StretchData; set => ForEach(child => child.StretchData = value); }
       public bool AllowMultipleElementsPerLine { get => this[0].AllowMultipleElementsPerLine; set => ForEach(child => child.AllowMultipleElementsPerLine = value); }

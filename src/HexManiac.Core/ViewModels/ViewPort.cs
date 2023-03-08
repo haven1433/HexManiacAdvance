@@ -94,6 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Scrolling Properties
 
       private readonly ScrollRegion scroll;
+      protected ScrollRegion ScrollRegion => scroll;
 
       public event EventHandler PreviewScrollChanged;
 
@@ -766,6 +767,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void RefreshTabCommands() {
          diffLeft?.RaiseCanExecuteChanged();
          diffRight?.RaiseCanExecuteChanged();
+         NotifyPropertiesChanged(nameof(CanIpsPatchRight), nameof(CanUpsPatchRight));
       }
 
       #endregion
@@ -1018,17 +1020,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
          Shortcuts = new Shortcuts(this);
 
-         Model.InitializationWorkload.ContinueWith(task => {
-            // if we're sharing history with another viewmodel, our model has already been updated like this.
+         Action setupCompletion = () => {
             if (changeHistory == null) CascadeScripts();
-            InitializationWorkload = dispatcher.DispatchWork(() => {
-               RefreshBackingData();
-               ValidateMatchedWords();
-               if (fs != null) {
-                  if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) mapper = null;
-               }
-            });
-         }, TaskContinuationOptions.ExecuteSynchronously);
+            RefreshBackingData();
+            if (fs != null) {
+               if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) mapper = null;
+            }
+         };
+
+         // defer the remaining setup until the model's been fully loaded
+         if (model.InitializationWorkload.IsCompleted) {
+            InitializationWorkload = model.InitializationWorkload;
+            setupCompletion();
+         } else {
+            model.InitializationWorkload.ContinueWith(task => {
+               // if we're sharing history with another viewmodel, our model has already been updated like this.
+               InitializationWorkload = dispatcher.DispatchWork(() => {
+                  ValidateMatchedWords(); // only need to validate matched words if this is an initial model load
+                  setupCompletion();
+               });
+            }, TaskContinuationOptions.ExecuteSynchronously);
+         }
       }
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }
@@ -2194,7 +2206,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (run is ArrayRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(startAddress);
             var lineStart = array.Start + array.ElementLength * offsets.ElementIndex;
-            child.Goto.Execute(lineStart.ToString("X2"));
+            child.Goto.Execute(lineStart);
             child.SelectionStart = child.ConvertAddressToViewPoint(startAddress);
             var endPoint = child.ConvertAddressToViewPoint(endAddress);
             if (endPoint.Y - child.SelectionStart.Y > 3) child.Height = endPoint.Y - child.SelectionStart.Y + 1;
@@ -3179,8 +3191,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         var format = run is BaseRun baseRun ? baseRun.CreateDataFormat(Model, index, x == 0, Width) : run.CreateDataFormat(Model, index);
                         format = Model.WrapFormat(run, format, index);
                         currentView[x, y] = new HexElement(Model[index], edited, format);
-                     } else {
+                     } else if (index >= 0 && index < Model.Count) {
                         currentView[x, y] = new HexElement(Model[index], edited, None.Instance);
+                     } else {
+                        currentView[x, y] = new HexElement(0, false, Undefined.Instance);
                      }
                   }
                }

@@ -229,24 +229,31 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      }
                   } else {
                      var destination = model.ReadPointer(address + length);
-                     if (destination >= 0 && destination < model.Count) {
-                        if (model.GetNextRun(address + length) is PointerRun pointerRun && pointerRun.Start == address + length) {
-                           // no need to clear/update
+                     if (destination.InRange(0, model.Count) && !destination.InRange(address + length, address + length + 4)) {
+                        var destinationRun = model.GetNextRun(destination);
+                        if (destinationRun.Start < destination) {
+                           // we're trying to point into already formatted data
+                           // don't add the pointer source or destination
                         } else {
-                           model.ClearFormat(token, address + length, 4);
-                           model.ObserveRunWritten(token, new PointerRun(address + length));
-                        }
-                        if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
-                        if (arg.PointerType == ExpectedPointerType.Text) {
-                           WriteTextStream(model, token, destination, address + length);
-                        } else if (arg.PointerType == ExpectedPointerType.Movement) {
-                           WriteMovementStream(model, token, destination, address + length);
-                        } else if (arg.PointerType == ExpectedPointerType.Mart) {
-                           WriteMartStream(model, token, destination, address + length);
-                        } else if (arg.PointerType == ExpectedPointerType.Decor) {
-                           WriteDecorStream(model, token, destination, address + length);
-                        } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
-                           WriteSpriteTemplateStream(model, token, destination, address + length);
+                           var pointerSource = model.GetNextRun(address + length);
+                           if (pointerSource is PointerRun pointerRun && pointerRun.Start == address + length) {
+                              // no need to clear/update
+                           } else {
+                              model.ClearFormat(token, address + length, 4);
+                              model.ObserveRunWritten(token, new PointerRun(address + length));
+                           }
+                           if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
+                           if (arg.PointerType == ExpectedPointerType.Text) {
+                              WriteTextStream(model, token, destination, address + length);
+                           } else if (arg.PointerType == ExpectedPointerType.Movement) {
+                              WriteMovementStream(model, token, destination, address + length);
+                           } else if (arg.PointerType == ExpectedPointerType.Mart) {
+                              WriteMartStream(model, token, destination, address + length);
+                           } else if (arg.PointerType == ExpectedPointerType.Decor) {
+                              WriteDecorStream(model, token, destination, address + length);
+                           } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
+                              WriteSpriteTemplateStream(model, token, destination, address + length);
+                           }
                         }
                      }
                   }

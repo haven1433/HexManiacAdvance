@@ -10,6 +10,7 @@ namespace HavenSoft.HexManiac.Integration {
    public class IntegrationTests {
       public static Singletons singletons { get; } = new Singletons();
       private static readonly string fireredName = "sampleFiles/Pokemon FireRed.gba";
+      private static readonly string emeraldName = "sampleFiles/Pokemon Emerald.gba";
       private static readonly Lazy<IDataModel> lazyFireRed;
 
       public StubFileSystem FileSystem { get; } = new();
@@ -26,6 +27,15 @@ namespace HavenSoft.HexManiac.Integration {
          Skip.IfNot(File.Exists(fireredName));
          var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(fireredName), new StoredMetadata(new string[0]));
          var vm = new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), FileSystem) { MaxDiffSegmentCount = 10 };
+         vm.OnError += (sender, e) => Errors.Add(e);
+         vm.OnMessage += (sender, e) => Messages.Add(e);
+         return vm;
+      }
+
+      protected ViewPort LoadEmerald() {
+         Skip.IfNot(File.Exists(emeraldName));
+         var model = new HardcodeTablesModel(singletons, File.ReadAllBytes(emeraldName), new StoredMetadata(new string[0]));
+         var vm = new ViewPort(emeraldName, model, InstantDispatch.Instance, singletons, new(), FileSystem) { MaxDiffSegmentCount = 10 };
          vm.OnError += (sender, e) => Errors.Add(e);
          vm.OnMessage += (sender, e) => Messages.Add(e);
          return vm;

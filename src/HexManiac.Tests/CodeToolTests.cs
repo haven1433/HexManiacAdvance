@@ -706,7 +706,48 @@ label2:;goto <000050>;end";
          Assert.Single(Messages);
       }
 
-      // TODO trainer ai script change -> no auto repoint?
+      [Theory]
+      [InlineData("02")]
+      [InlineData("03")]
+      [InlineData("04")]
+      [InlineData("05")]
+      public void ScriptWithPointerToPointer_Format_NoPointerFormat(string destination) {
+         SetFullModel(0xFF);
+         $"06 00 {destination} 00 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("^script`xse`");
+
+         EventScript += " "; // force formatting
+
+         var run = Model.GetNextRun(1);
+         Assert.Equal(int.MaxValue, run.Start);
+      }
+
+      [Theory]
+      [InlineData("09")]
+      [InlineData("0A")]
+      [InlineData("0B")]
+      public void ScriptWithPointerToFuturePointer_Format_OnlySecondPointerKept(string destination) {
+         SetFullModel(0xFF);
+         $"06 00 {destination} 00 00 08 06 00 00 01 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("^script`xse`");
+
+         EventScript += " "; // force formatting
+
+         var run = Model.GetNextRun(1);
+         Assert.Equal(8, run.Start);
+      }
+
+      [Fact]
+      public void ScriptWithPointerIntoExistingData_Format_DoNotFormatPointer() {
+         SetFullModel(0xFF);
+         CreateTextTable("names", 0x100, "Adam", "Brad", "Carl", "Dave", "Eric", "Fred");
+         "06 00 02 01 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
+         ViewPort.Edit("@000 ^script`xse`");
+
+         EventScript += " "; // force formatting
+
+         Model.ResolveConflicts(); // no conflicts = pass
+      }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }

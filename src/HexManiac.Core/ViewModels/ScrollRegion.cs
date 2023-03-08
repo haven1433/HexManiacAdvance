@@ -221,7 +221,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      bool headerNeedsUpdate, deferHeader;
+      public void DeferHeader() => deferHeader = true;
+      public void UpdateDeferedHeader() {
+         deferHeader = false;
+         if (headerNeedsUpdate) UpdateHeaders();
+      }
+
       public void UpdateHeaders() {
+         headerNeedsUpdate = deferHeader;
+         if (deferHeader) return;
          while (Headers.Count > Height) Headers.RemoveAt(Headers.Count - 1);
          for (int i = 0; i < Height; i++) {
             var address = dataIndex + i * Width;
