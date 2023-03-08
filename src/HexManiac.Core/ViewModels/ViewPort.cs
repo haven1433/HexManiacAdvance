@@ -3191,8 +3191,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         var format = run is BaseRun baseRun ? baseRun.CreateDataFormat(Model, index, x == 0, Width) : run.CreateDataFormat(Model, index);
                         format = Model.WrapFormat(run, format, index);
                         currentView[x, y] = new HexElement(Model[index], edited, format);
-                     } else {
+                     } else if (index >= 0 && index < Model.Count) {
                         currentView[x, y] = new HexElement(Model[index], edited, None.Instance);
+                     } else {
+                        currentView[x, y] = new HexElement(0, false, Undefined.Instance);
                      }
                   }
                }
