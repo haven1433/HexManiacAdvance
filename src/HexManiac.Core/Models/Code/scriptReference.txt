@@ -146,7 +146,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 58 spritevisible npc: bank. map.             # shows the sprite on the given map
 59 spriteinvisible npc: bank. map.           # hides the sprite on the given map
 5A faceplayer                                # if the script was called by a person event, make that person face the player
-5B spriteface npc: direction.
+5B spriteface npc: direction.directions
 
 5C trainerbattle 00 trainer:data.trainers.stats arg: start<""> playerwin<"">
 5C trainerbattle 01 trainer:data.trainers.stats arg: start<""> playerwin<""> winscript<`xse`>         # doesn't play encounter music, continues with winscript
@@ -218,7 +218,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 85 bufferstring buffer.3 pointer<>           # copies the string into the buffer.
 86 pokemart products<`mart`>                 # products is a list of 2-byte items, terminated with 0000
 87 decorationmart products<`decor`>          # same as pokemart, but with decorations instead of items
-88 pokemart3 products<`mart`>                # clone
+88 decorationmart2 products<`decor`>         # near-clone of decorationmart, but with slightly changed dialogue
 89 pokecasino index:
 [BPRE_BPGE] 8A nop8A
 [AXPE_AXVE_BPEE] 8A setberrytree plantID. berryID.data.items.berry.stats+1 growth.    # sets a specific berry-growing spot on the map with the specific berry and growth level.
@@ -257,7 +257,7 @@ A5 doweather                                 # actually does the weather change 
 A6 changewalktile method.                    # used with ash-grass(1), breaking ice(4), and crumbling floor (7). Complicated.
 A7 setmapfooter footer:                      # updates the current map's footer.
 A8 spritelevelup npc: bank. map. unknown.    # the chosen npc goes 'up one level'
-A9 restorespritelevel ncp: bank. map.        # the chosen npc is restored to its original level
+A9 restorespritelevel npc: bank. map.        # the chosen npc is restored to its original level
 AA createsprite sprite. virtualNPC. x: y: behavior. facing.
 AB spriteface2 virtualNPC. facing.
 AC setdooropened x: y:                       # queues the animation, but doesn't do it
@@ -265,8 +265,12 @@ AD setdoorclosed x: y:                       # queues the animation, but doesn't
 AE doorchange                                # runs the animation from the queue
 AF setdooropened2 x: y:                      # clone
 B0 setdoorclosed2 x: y:                      # clone
-B1 nopB1
-B2 nopB2
+[AXVE_AXPE] B1 nopB1                         # ???
+[BPRE_BPGE] B1 nopB1
+[BPEE] B1 addelevmenuitem                    # ???
+[AXVE_AXPE] B2 nopB2
+[BPRE_BPGE] B2 nopB2
+[BPEE] B2 showelevmenu
 B3 checkcoins output:                        # your number of coins is stored to the given variable
 B4 givecoins count:
 B5 removecoins count:
@@ -284,7 +288,7 @@ C0 showcoins x. y.
 C1 hidecoins x. y.
 C2 updatecoins x. y.
 C3 incrementhiddenvalue a.                   # example: pokecenter nurse uses variable 0xF after you pick yes
-C4 warp6 mapbank. map. warp. x: y:           # clone of warp. sometimes does nothing.
+C4 warp6 mapbank. map. warp. x: y:           # sets a particular map to warp to upon using an escape rope/teleport
 C5 waitcry                                   # used after cry, it pauses the script
 C6 bufferboxname buffer.3 box:               # box can be a variable or a literal
 C7 textcolor color.                          # 00=blue, 01=red, FF=default, XX=black. Only in FR/LG
@@ -295,8 +299,8 @@ CB normalmsg                                 # ends the effect of signmsg. Textb
 CC comparehiddenvar a. value::               # compares a hidden value to a given value.
 CD setobedience slot:                        # a pokemon in your party becomes obedient (no longer disobeys)
 CE checkobedience slot:                      # if the pokemon is disobedient, 800D=1. If obedient (or empty), 800D=0
-CF executeram                                # weird. Shouldn't use. Script execution jumps to another location sometimes
-D0 setworldmapflag flag:                     # This lets the player fly to a given map, if the map has a flight spot
+CF executeram                                # Tries a wonder card script.
+D0 setworldmapflag flag:                     # This lets the player fly to a given map, if the map has a flight spot (nop in Emerald)
 D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
 D2 setcatchlocation slot: location.          # changes the catch location of a pokemon in your party (0-5)
 
@@ -308,14 +312,15 @@ D2 setcatchlocation slot: location.          # changes the catch location of a p
 # there is no D5 in ruby
 [BPRE_BPGE] D5 nopD5
 [BPEE] D5 initrotatingtilepuzzle isTrickHouse:
-
-D6 cmdD6                                     # unknown
-D7 warp7 mapbank. map. warp. x: y:           # unknown
+[BPEE] D6 freerotatingtilepuzzle
+[AXVE_AXPE] D6 cmdD6                         # unknown
+[BPRE_BPGE] D6 cmdD6
+D7 warp7 mapbank. map. warp. x: y:           # used in Mossdeep City's gym
 D8 cmdD8                                     # unknown
 D9 cmdD9                                     # unknown
-DA hidebox2                                  # hides a displayed textbox. Only for Emerald
-DB preparemsg3 pointer<>                     # unknown
-DC fadescreen3 unknown.                      # fades the screen in or out. Emerald only.
+DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
+DB preparemsg3 pointer<>                     # shows a text box with text appearing instantaneously.
+DC fadescreen3 unknown.                      # fades the screen in or out, swapping buffers. Emerald only.
 DD buffertrainerclass buffer.3 class:        # stores a trainer class into a specific buffer (Emerald only)
 DE buffertrainername buffer.3 trainer:       # stores a trainer name into a specific buffer  (Emerald only)
 DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)

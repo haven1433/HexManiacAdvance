@@ -40,7 +40,7 @@
             <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="10,0,0,0">
                <TextBlock Text="Address:" />
             </hsg3hv:AngleBorder>
-            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="70" Direction="Out" TextBinding="{Binding SelectedAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
+            <hsg3hv:AngleTextBox DockPanel.Dock="Left" Width="71" Direction="Out" TextBinding="{Binding SelectedAddress, UpdateSourceTrigger=PropertyChanged}" Margin="0"/>
             <hsg3hv:AngleBorder DockPanel.Dock="Left" Direction="Left" Margin="5,0,0,0">
                <TextBlock Text="Length:" />
             </hsg3hv:AngleBorder>
@@ -589,8 +589,22 @@
                                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
                                              <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,2,0,0">
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out"/>
-                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out"/>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultMoves}" Margin="0,0,4,0" Content="Default Moves" Direction="Out">
+                                                   <hsg3hv:AngleButton.ToolTip>
+                                                      <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                                         <TextBlock TextAlignment="Left">
+                                                            Sets all Pokémon's movesets to<LineBreak />the last 4 level-up moves.
+                                                         </TextBlock>
+                                                      </ToolTip>
+                                                   </hsg3hv:AngleButton.ToolTip>
+                                                </hsg3hv:AngleButton>
+                                                <hsg3hv:AngleButton Command="{Binding SetDefaultItems}" Content="Default Items" Direction="Out">
+                                                   <hsg3hv:AngleButton.ToolTip>
+                                                      <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
+                                                         <TextBlock TextAlignment="Left" Text="Removes all Pokémon's custom held items." />
+                                                      </ToolTip>
+                                                   </hsg3hv:AngleButton.ToolTip>
+                                                </hsg3hv:AngleButton>
                                              </StackPanel>
                                           </StackPanel>
                                        </DataTemplate>
