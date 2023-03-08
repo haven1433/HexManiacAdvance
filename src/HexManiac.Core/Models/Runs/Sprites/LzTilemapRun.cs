@@ -37,10 +37,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public bool SupportsImport {
          get {
             var tilesetAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
-            var tileset = Model.GetNextRun(tilesetAddress) as ITilesetRun;
+            var tileset = Model.GetNextRun(tilesetAddress) as ISpriteRun;
             if (tileset == null) {
                if (arrayTilesetAddress == 0) FindMatchingTileset(Model);
-               tileset = Model.GetNextRun(arrayTilesetAddress) as ITilesetRun;
+               tileset = Model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
             }
             return tileset != null;
          }
