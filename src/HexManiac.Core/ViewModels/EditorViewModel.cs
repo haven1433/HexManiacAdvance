@@ -551,7 +551,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
          StretchData = !metadata.Contains("StretchData = False");
          IsNewVersionAvailable = metadata.Contains("IsNewVersionAvailable = True");
-         AllowMultipleElementsPerLine = !metadata.Contains("AllowMultipleElementsPerLine = True");
+         AllowMultipleElementsPerLine = metadata.Contains("AllowMultipleElementsPerLine = True");
          TutorialsAcknowledged = metadata.Contains("AcknowledgeTutorials = True");
          Base10Length = metadata.Contains("Base10Length = True");
          var lastUpdateCheckLine = metadata.FirstOrDefault(line => line.StartsWith("LastUpdateCheck = "));
