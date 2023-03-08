@@ -193,7 +193,7 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public static bool MatchesPartial(this string full, string partial, bool onlyCheckLettersAndDigits = false) {
-         if (full == null) return false;
+         if (full == null || partial == null) return false;
          return MatchLength(full, partial, onlyCheckLettersAndDigits) == partial.Length;
       }
 
