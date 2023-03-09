@@ -1051,10 +1051,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (offset.SegmentOffset != 0) skip = true;
                else if (ElementContent[offset.SegmentIndex].Type != ElementContentType.Pointer) skip = true;
 
-               if (skip) {
-                  owner.ClearFormat(changeToken, source, 1);
-                  continue;
-               }
+               // this is within the current table, clear the pointer format regardless of if we're skipping this pointer
+               owner.ClearFormat(changeToken, source, 1);
+               if (skip) continue;
             }
 
             var destination = owner.ReadPointer(source);
