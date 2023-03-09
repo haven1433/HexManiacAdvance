@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Tests {
          this.singletons = singletons;
       }
 
-      public EditorViewModel EditorViewModel() => new EditorViewModel(fs, singletons.WorkDispatcher, false);
+      public EditorViewModel EditorViewModel() => new EditorViewModel(fs, singletons.WorkDispatcher, false) { AllowMultipleElementsPerLine = true };
 
       public IDataModel PokemonModel(byte[] data, StoredMetadata metadata) => new PokemonModel(data, metadata, singletons);
 

@@ -1,16 +1,15 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public class ViewPortCursorTests {
+      private ViewPort NewViewPort(LoadedFile file) => new ViewPort(file) { AllowMultipleElementsPerLine = true, Width = 5, Height = 5 };
+
       [Fact]
       public void CursorCanMoveAllFourDirections() {
          var loadedFile = new LoadedFile("test", new byte[25]);
@@ -106,7 +105,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ScrollingUpdatesSelection() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = NewViewPort(loadedFile);
 
          viewPort.SelectionStart = new Point(0, 2);
          viewPort.SelectionEnd = new Point(4, 2);
@@ -119,7 +118,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ForwardSelectionWorks() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = NewViewPort(loadedFile);
 
          viewPort.SelectionStart = new Point(2, 1);
          viewPort.SelectionEnd = new Point(3, 3);
@@ -130,7 +129,7 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void BackSelectionWorks() {
          var loadedFile = new LoadedFile("test", new byte[25]);
-         var viewPort = new ViewPort(loadedFile) { Width = 5, Height = 5 };
+         var viewPort = NewViewPort(loadedFile);
 
          viewPort.SelectionStart = new Point(3, 3);
          viewPort.SelectionEnd = new Point(2, 1);
