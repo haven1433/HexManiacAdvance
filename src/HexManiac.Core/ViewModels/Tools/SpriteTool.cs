@@ -745,7 +745,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return false;
       }
 
-      private void ImportSpriteAndPalette(IFileSystem fileSystem) {
+      public void ImportSpriteAndPalette(IFileSystem fileSystem) {
          (short[] image, int width) = fileSystem.LoadImage();
          ImportSpriteAndPalette(fileSystem, image, width);
       }
@@ -1554,7 +1554,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return new Point(width, height);
       }
 
-      private void ExportSpriteAndPalette(IFileSystem fileSystem) {
+      public void ExportSpriteAndPalette(IFileSystem fileSystem) {
          var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
          var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
          if (spriteRun != null && paletteRun != null && spriteRun.SpriteFormat.BitsPerPixel == 4 && paletteRun.AllColors(model).Count == 16) {
