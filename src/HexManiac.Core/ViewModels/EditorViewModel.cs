@@ -371,7 +371,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool stretchData = true;
       public bool StretchData { get => stretchData; set => Set(ref stretchData, value); }
 
-      private bool allowMultipleElementsPerLine = true;
+      private bool allowMultipleElementsPerLine = false;
       public bool AllowMultipleElementsPerLine { get => allowMultipleElementsPerLine; set => Set(ref allowMultipleElementsPerLine, value); }
 
       private bool tutorialsAcknowledged, newVersionAcknowledged;
@@ -551,7 +551,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          AutoAdjustDataWidth = !metadata.Contains("AutoAdjustDataWidth = False");
          StretchData = !metadata.Contains("StretchData = False");
          IsNewVersionAvailable = metadata.Contains("IsNewVersionAvailable = True");
-         AllowMultipleElementsPerLine = !metadata.Contains("AllowMultipleElementsPerLine = False");
+         AllowMultipleElementsPerLine = metadata.Contains("AllowMultipleElementsPerLine = True");
          TutorialsAcknowledged = metadata.Contains("AcknowledgeTutorials = True");
          Base10Length = metadata.Contains("Base10Length = True");
          var lastUpdateCheckLine = metadata.FirstOrDefault(line => line.StartsWith("LastUpdateCheck = "));
