@@ -104,7 +104,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 33 playsong song:songnames mode.songloopoptions       # plays a song once or loop
 34 playsong2 song:songnames                           # seems buggy?
 35 fadedefault                               # fades the music back to the default song
-36 fadesong song:                            # fades the music into the given song
+36 fadesong song:songnames                   # fades the music into the given song
 37 fadeout speed.                            # fades out the current song to silent
 38 fadein speed.                             # fades in the current song from silent
 39 warp mapbank. map. warp. x: y:            # sends player to mapbank/map at tile 'warp'. If warp is FF, uses x/y instead
@@ -127,11 +127,11 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 48 checkitemtype item:data.items.stats           # 800D is set to the bag pocket number of the item
 49 addpcitem item:data.items.stats quantity:     # adds 'quantity' of 'item' into the PC
 4A checkpcitem item:data.items.stats quantity:   # 800D is set to 1 if the PC has at least 'quantity' of 'item'
-4B adddecoration decoration:                 # adds a decoration to the player's PC in FR/LG, this is a NOP
-                                             # decoration can be either a literal or a variable
-4C removedecoration decoration:              # removes a decoration to the player's PC in FR/LG, this is a NOP
-4D testdecoration decoration:                # 800D is set to 1 if the PC could store at least 1 more of that decoration
-4E checkdecoration decoration:               # 800D is set to 1 if the PC has at least 1 of that decoration
+4B adddecoration decoration:data.decorations.stats                 # adds a decoration to the player's PC in FR/LG, this is a NOP
+                                                                   # decoration can be either a literal or a variable
+4C removedecoration decoration:data.decorations.stats              # removes a decoration to the player's PC in FR/LG, this is a NOP
+4D testdecoration decoration:data.decorations.stats                # 800D is set to 1 if the PC could store at least 1 more of that decoration
+4E checkdecoration decoration:data.decorations.stats               # 800D is set to 1 if the PC has at least 1 of that decoration
 4F applymovement npc: data<`move`>           # has character 'npc' move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
@@ -201,7 +201,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
                                              # 800D=1 if it was put in the PC
                                              # 800D=2 if there was no room
                                              # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
-7A giveEgg species:
+7A giveEgg species:data.pokemon.names
 7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokemon in your party to have a specific move.
                                              # Slots range 0-4 and 0-3.
 7C checkattack move:data.pokemon.moves.names # 800D=n, where n is the index of the pokemon that knows the move.
@@ -248,7 +248,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 9E checkanimation animation:                 # if the given animation is playing, pause the script until the animation completes
 9F sethealingplace flightspot:               # where does the player warp when they die?
 A0 checkgender                               # if male, 800D=0. If female, 800D=1
-A1 cry species: effect:                      # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
+A1 cry species:data.pokemon.names effect:    # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
 A2 setmaptile x: y: tile: isWall:            # sets the tile at x/y to be the given tile: with the attribute.
                                              # 0 = passable (false), 1 = impassable (true)
 A3 resetweather                              # queues a weather change to the map's default weather
@@ -302,7 +302,7 @@ CE checkobedience slot:                      # if the pokemon is disobedient, 80
 CF executeram                                # Tries a wonder card script.
 D0 setworldmapflag flag:                     # This lets the player fly to a given map, if the map has a flight spot (nop in Emerald)
 D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
-D2 setcatchlocation slot: location.          # changes the catch location of a pokemon in your party (0-5)
+D2 setcatchlocation slot: location.data.maps.names          # changes the catch location of a pokemon in your party (0-5)
 
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
 [BPRE_BPGE] D3 braillelength pointer<>       # sets variable 8004 based on th ebraille string's length
@@ -321,12 +321,12 @@ D9 cmdD9                                     # unknown
 DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
 DB preparemsg3 pointer<>                     # shows a text box with text appearing instantaneously.
 DC fadescreen3 unknown.                      # fades the screen in or out, swapping buffers. Emerald only.
-DD buffertrainerclass buffer.3 class:        # stores a trainer class into a specific buffer (Emerald only)
-DE buffertrainername buffer.3 trainer:       # stores a trainer name into a specific buffer  (Emerald only)
+DD buffertrainerclass buffer.3 class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
+DE buffertrainername buffer.3 trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
 DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
 E0 warp8 bank. map. exit. x: y:              # unknown
 E1 buffercontesttype buffer.3 contest:       # stores the contest type name in a buffer. (Emerald Only)
-E2 bufferitems2 buffer.3 item: quantity:     # stores pluralized item name in a buffer. (Emerald Only)
+E2 bufferitems2 buffer.3 item:data.items.stats quantity:     # stores pluralized item name in a buffer. (Emerald Only)
 
 
 # XX msgbox text<> type.                       # multicommand, 8 bytes total
