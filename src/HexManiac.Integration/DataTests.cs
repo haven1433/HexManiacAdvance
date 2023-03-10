@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System.IO;
 using Xunit;
@@ -89,6 +90,21 @@ namespace HavenSoft.HexManiac.Integration {
          emerald.Goto.Execute(0x2DA6B9);
          var text = emerald.Tools.CodeTool.Contents[0];
          text.Content = text.Content.Replace("setbyte 0x0202448E 21", "setbyte 0x0202448E 2");
+
+         ((PokemonModel)emerald.Model).ResolveConflicts();
+      }
+
+      [SkippableFact]
+      public void Duplicate_Trainer_Debug_Assert() {
+         var emerald = LoadEmerald();
+         emerald.Goto.Execute("data.trainers.stats/33");
+         emerald.SelectionStart = new Point(0, 0); // from Haven
+         emerald.SelectionEnd = new Point(emerald.Width - 1, 0); // The row width at the trainer stats table defaults to 40 (base X)
+         emerald.Copy.Execute(FileSystem);
+         string copy = FileSystem.CopyText;
+
+         emerald.Goto.Execute("data.trainers.stats/34");
+         emerald.Edit(copy);
 
          ((PokemonModel)emerald.Model).ResolveConflicts();
       }
