@@ -122,7 +122,7 @@ namespace HavenSoft.HexManiac.Integration {
 
          firered.Tools.SpriteTool.ExportSpriteAndPalette(FileSystem);
          var afterImport = data;
-         Assert.Equal(originalExport, afterImport);
+         Assert.All(originalExport.Length.Range(), i => Assert.Equal(originalExport[i], afterImport[i]));
       }
    }
 }
