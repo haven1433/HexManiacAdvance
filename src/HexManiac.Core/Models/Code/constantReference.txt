@@ -399,3 +399,9 @@ BPRE0.scripts.moves.flash.maxlevel-1 3C68E0
 BPGE0.scripts.moves.flash.maxlevel-1 3C671C
 BPRE1.scripts.moves.flash.maxlevel-1 3C6950
 BPGE1.scripts.moves.flash.maxlevel-1 3C678C
+
+# overworld table limiters (credit to phoenixbound)
+BPRE0.graphics.overworld.tablelength-1 052FE0
+BPRE1.graphics.overworld.tablelength-1 05F2F4
+BPGE0.graphics.overworld.tablelength-1 052FE0
+BPGE1.graphics.overworld.tablelength-1 05F2F4
