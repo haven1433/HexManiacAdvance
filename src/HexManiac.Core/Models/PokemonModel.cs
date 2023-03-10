@@ -582,7 +582,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
 
                // for every TPTRun, make sure something points to it
-               if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
+               if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no sources long-term.");
 
                // for ever NoInfoRun, something points to it
                if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
@@ -1806,6 +1806,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                SetIndex(index, new PointerRun(newRun.Start));
                if (newRun is OffsetPointerRun opr) SetIndex(index, new OffsetPointerRun(newRun.Start, opr.Offset));
                currentChange.AddRun(runs[index]);
+            } else if (newRun is TrainerPokemonTeamRun tpt && newRun.PointerSources.Count == 0) {
+               // trainer pokemon teams get their length from their parent.
+               // if there is no parent, then there's no concept of length.
+               // just remove it
+               RemoveIndex(index);
             } else {
                SetIndex(index, newRun);
                currentChange.AddRun(newRun);
