@@ -574,7 +574,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
                      Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
                      if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
-                  } else if (run.Start != destination) {
+                  } else if (run.Start < destination) {
+                     // pointer points into the middle of a run. Such a pointer is an error, but is not a metadata inconsistency.
+                  } else if (run.Start > destination) {
                      Debug.Fail($"Pointer at {pointerRun.Start:X6} expected a run at {destination:X6} but the next run was at {run.Start:X6}.");
                   } else if (run != NoInfoRun.NullRun) {
                      Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start), $"Expected run at {run.Start:X6} to know about pointer at {pointerRun.Start:X6}, but it did not.");

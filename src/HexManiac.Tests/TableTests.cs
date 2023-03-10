@@ -1479,6 +1479,8 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@100 <006> ");
 
          Model.ResolveConflicts();
+         var p = (Pointer)ViewPort[ViewPort.ConvertAddressToViewPoint(0x100)].Format;
+         Assert.True(p.HasError);
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
