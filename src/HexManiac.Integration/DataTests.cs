@@ -79,5 +79,18 @@ namespace HavenSoft.HexManiac.Integration {
          newModel.TryGetList("owfootprints", out list);
          Assert.Equal("custom", list[3]);
       }
+
+      [SkippableFact]
+      public void NamedAnchor_EditScript_NoAssert() {
+         var emerald = LoadEmerald();
+         emerald.Goto.Execute(0x2DA71D);
+         emerald.Edit("^some_name ");
+
+         emerald.Goto.Execute(0x2DA6B9);
+         var text = emerald.Tools.CodeTool.Contents[0];
+         text.Content = text.Content.Replace("setbyte 0x0202448E 21", "setbyte 0x0202448E 2");
+
+         ((PokemonModel)emerald.Model).ResolveConflicts();
+      }
    }
 }

@@ -583,6 +583,19 @@ Script:
          Assert.Equal(int.MaxValue, run.Start);
       }
 
+      [Fact]
+      public void ScriptWithPointerSlightlyAfterScript_NoopEdit_NoDataChange() {
+         SetFullModel(0xFF);
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("msgbox.autoclose <00000A>", "{", "text", "}", "end");
+         ViewPort.Refresh();
+         ViewPort.ChangeHistory.TagAsSaved();
+
+         ViewPort.Tools.CodeTool.Contents[0].Content += " ";
+
+         Assert.True(ViewPort.ChangeHistory.IsSaved);
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

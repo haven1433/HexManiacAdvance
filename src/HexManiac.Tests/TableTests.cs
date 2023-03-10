@@ -1472,6 +1472,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0x100, destination);
       }
 
+      [Fact]
+      public void TextTable_PointerIntoTable_NoAssert() {
+         ViewPort.Edit("^table[a: b:]20 ");
+
+         ViewPort.Edit("@100 <006> ");
+
+         Model.ResolveConflicts();
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
