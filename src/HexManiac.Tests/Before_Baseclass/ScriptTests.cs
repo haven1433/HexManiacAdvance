@@ -587,13 +587,15 @@ Script:
       public void ScriptWithPointerSlightlyAfterScript_NoopEdit_NoDataChange() {
          SetFullModel(0xFF);
          ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
-         ViewPort.Tools.CodeTool.Contents[0].Content = Script("msgbox.autoclose <00000A>", "{", "text", "}", "end");
-         ViewPort.Refresh();
+         ViewPort.Tools.CodeTool.Contents[0].Content = Script("msgbox.npc <00000A>", "{", "text", "}", "end");
          ViewPort.ChangeHistory.TagAsSaved();
 
+         ViewPort.SelectionStart = new(0, 1);
+         ViewPort.SelectionStart = new(0, 0); // should load as an auto
          ViewPort.Tools.CodeTool.Contents[0].Content += " ";
 
-         Assert.True(ViewPort.ChangeHistory.IsSaved);
+         var text = Model.TextConverter.Convert(Model, 9, 5); // should move the text based on the auto
+         Assert.Equal("\"text\"", text);
       }
 
       private string Script(params string[] lines) => lines.CombineLines();
