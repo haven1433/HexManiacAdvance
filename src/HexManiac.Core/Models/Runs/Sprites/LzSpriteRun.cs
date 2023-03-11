@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          page %= Pages;
 
          var pageLength = SpriteFormat.TileWidth * SpriteFormat.TileHeight * 8 * SpriteFormat.BitsPerPixel;
-         if (SpriteFormat.BitsPerPixel == 4 && pixels[0,0]>=0x10) {
+         if (SpriteFormat.BitsPerPixel == 4 && pixels[0, 0] >= 0x10) {
             // this is a sprite, not a tileset/tilemap
             // erase the palette page data before inserting the colors
             var (width, height) = (pixels.GetLength(0), pixels.GetLength(1));

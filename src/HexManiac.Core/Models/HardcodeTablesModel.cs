@@ -207,9 +207,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (destination < 0 || destination > RawData.Length) return;
 
          var interruptingSourceRun = GetNextRun(source);
-         if (interruptingSourceRun.Start < source && interruptingSourceRun.Start + interruptingSourceRun.Length > source && interruptingSourceRun is not ITableRun) {
-            // the source isn't actually a pointer, we shouldn't write anything
-            return;
+         if (interruptingSourceRun.Start < source && interruptingSourceRun.Start + interruptingSourceRun.Length > source) {
+            if (interruptingSourceRun is ITableRun tableRun) {
+               var tableOffset = tableRun.ConvertByteOffsetToArrayOffset(source);
+               if (tableOffset.SegmentOffset != 0) return;
+               if (tableRun.ElementContent[tableOffset.SegmentIndex].Type != ElementContentType.Pointer) return;
+            } else {
+               // the source isn't actually a pointer, we shouldn't write anything
+               return;
+            }
          }
 
          var interruptingRun = GetNextRun(destination);

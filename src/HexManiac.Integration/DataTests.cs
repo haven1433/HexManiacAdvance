@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System.IO;
 using Xunit;
@@ -78,6 +79,34 @@ namespace HavenSoft.HexManiac.Integration {
 
          newModel.TryGetList("owfootprints", out list);
          Assert.Equal("custom", list[3]);
+      }
+
+      [SkippableFact]
+      public void NamedAnchor_EditScript_NoAssert() {
+         var emerald = LoadEmerald();
+         emerald.Goto.Execute(0x2DA71D);
+         emerald.Edit("^some_name ");
+
+         emerald.Goto.Execute(0x2DA6B9);
+         var text = emerald.Tools.CodeTool.Contents[0];
+         text.Content = text.Content.Replace("setbyte 0x0202448E 21", "setbyte 0x0202448E 2");
+
+         ((PokemonModel)emerald.Model).ResolveConflicts();
+      }
+
+      [SkippableFact]
+      public void Emerald_DuplicateTrainer_NoAssert() {
+         var emerald = LoadEmerald();
+         emerald.Goto.Execute("data.trainers.stats/33");
+         emerald.SelectionStart = new Point(0, 0);
+         emerald.SelectionEnd = new Point(emerald.Width - 1, 0);
+         emerald.Copy.Execute(FileSystem);
+         string copy = FileSystem.CopyText;
+
+         emerald.Goto.Execute("data.trainers.stats/34");
+         emerald.Edit(copy);
+
+         ((PokemonModel)emerald.Model).ResolveConflicts();
       }
    }
 }
