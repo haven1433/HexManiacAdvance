@@ -7,10 +7,6 @@ launchSettings.json
 # example binary files
 sampleFiles/
 
-# in development build system
-bump.py
-release.sh
-
 # Build results
 artifacts/
 obj/
