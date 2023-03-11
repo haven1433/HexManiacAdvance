@@ -79,6 +79,7 @@
       del "$(TargetDir)Models\Code\*.toml"
       copy "$(TargetDir)Scripts\*.*" "$(TargetDir)resources/Scripts"
       copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+      copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
       del "$(TargetDir)Scripts\*.hma"
       del "$(TargetDir)Scripts\*.png"
       del "$(TargetDir)Scripts\*.txt"
