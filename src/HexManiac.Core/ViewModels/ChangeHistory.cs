@@ -112,6 +112,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          currentChange = null;
       }
 
+      /// <summary>
+      /// Inserts a custom change token into the undo stack.
+      /// Any in-progress changes are considered complete.
+      /// Calling for CurrentChange or ChangeComplete will complete this custom token.
+      /// Returns the new in-progress change token, which you can use for your custom change.
+      /// </summary>
       public T InsertCustomChange(T change) {
          if (continueCurrentTransaction) throw new InvalidOperationException("Inserting a change during a CurrentTransactionScope will cause changes to be lost.");
          ChangeCompleted();

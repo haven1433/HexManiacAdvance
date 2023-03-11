@@ -424,7 +424,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                changeStart = Math.Max(1, i); // changeStart should never be zero: we don't want to clear the script anchor
                break;
             }
-            if (changeStart < code.Length) model.ClearFormat(history.CurrentChange, start + changeStart, code.Length - changeStart);
+            if (changeStart < code.Length) {
+               // use a nodatachange token here: we want to keep bytes, not anchor names
+               var change = history.InsertCustomChange(new NoDataChangeDeltaModel());
+               model.ClearFormat(change, start + changeStart, code.Length - changeStart);
+            }
 
             var anyChanges = history.CurrentChange.ChangeData(model, start, code);
             if (anyChanges || body.CompiledLength != code.Length) {
