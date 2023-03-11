@@ -2402,7 +2402,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenDexReorderTab(string dexTableName) {
-         var newTab = new DexReorderTab(Name, history, Model, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
+         var newTab = new DexReorderTab(this, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
          RequestTabChange(this, new(newTab));
       }
 
