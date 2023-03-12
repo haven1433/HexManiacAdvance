@@ -1232,15 +1232,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var trainerSprite = ReadonlyPixelViewModel.Create(model, trainerSpriteRun, true);
 
          var pokemonData = trainerTable[trainerID].GetSubTable("pokemon");
-         foreach (var mon in pokemonData) {
-            if (!mon.TryGetValue("mon", out var species)) continue;
-            if (species < 0 || species >= pokemonSprites.Count) continue;
-            var iconStart = pokemonSprites[species].GetAddress("icon");
-            var iconRun = model.GetNextRun(iconStart) as ISpriteRun;
-            if (iconRun == null) continue;
-            var p = ReadonlyPixelViewModel.Create(model, iconRun, true);
-            p = ReadonlyPixelViewModel.Crop(p, 0, 0, 32, 32);
-            pokemon.Add(p);
+         if (pokemonData != null) {
+            foreach (var mon in pokemonData) {
+               if (!mon.TryGetValue("mon", out var species)) continue;
+               if (species < 0 || species >= pokemonSprites.Count) continue;
+               var iconStart = pokemonSprites[species].GetAddress("icon");
+               var iconRun = model.GetNextRun(iconStart) as ISpriteRun;
+               if (iconRun == null) continue;
+               var p = ReadonlyPixelViewModel.Create(model, iconRun, true);
+               p = ReadonlyPixelViewModel.Crop(p, 0, 0, 32, 32);
+               pokemon.Add(p);
+            }
          }
 
          // item sprites are optional (they don't even exist for R/S)
