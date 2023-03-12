@@ -2043,7 +2043,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var ows = new ModelTable(model, run.Start, null, run);
          var defaultImage = GetDefaultOW(model);
          for (int i = 0; i < ows.Count; i++) {
-            list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, 0));
+            list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1));
          }
          return list;
       }

@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -952,13 +953,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool flip = facing == 3;
          if (facing == 3) facing = 2;
          if (facing >= sprites.Count) facing = 0;
-         var sprite = sprites[facing];
-         var graphicsAddress = sprite.GetAddress("sprite");
-         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
-         if (graphicsRun == null) {
-            return defaultOW;
+         var graphicsAddress = sprites.Run.Start;
+         var pointerAddress = data.Start;
+         if (facing != -1) {
+            var sprite = sprites[facing];
+            graphicsAddress = sprite.GetAddress("sprite");
+            pointerAddress = sprite.Start;
          }
-         var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
+         if (graphicsRun == null) return defaultOW;
+         var paletteRun = graphicsRun.FindRelatedPalettes(model, pointerAddress).FirstOrDefault();
+         if (paletteRun == null) return defaultOW;
+         var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
          if (flip) ow = ow.ReflectX();
          return ow;
       }
