@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
@@ -81,6 +82,19 @@ namespace HavenSoft.HexManiac.Integration {
 
          var address2 = firered.Maps[3][0].Events.Signposts[0].Arg;
          Assert.NotEqual(address1, address2);
+      }
+
+      [SkippableFact]
+      public void AddMapScript_Undo_NoMetadataIssues() {
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.PrimaryMap.MapScriptCollection.AddScript();
+         firered.MapEditor.PrimaryMap.MapScriptCollection.Scripts[2].ScriptTypeIndex = 3;
+
+         while (!firered.ChangeHistory.IsSaved)
+            firered.Undo.Execute();
+
+         AssertNoConflicts(firered);
       }
    }
 }
