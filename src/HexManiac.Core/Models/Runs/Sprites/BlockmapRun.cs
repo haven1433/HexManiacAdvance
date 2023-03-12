@@ -9,6 +9,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 
 /*
  layout<[
@@ -21,7 +22,7 @@ using System.Linq;
  */
 
 namespace HexManiac.Core.Models.Runs.Sprites {
-   public class BlockmapRun : BaseRun, IUpdateFromParentRun {
+   public class BlockmapRun : BaseRun, IUpdateFromParentRun, IAppendToBuilderRun {
       private readonly IDataModel model;
 
       private static int TotalTiles => 1024;
@@ -279,6 +280,18 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          var borderWidth = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
          var borderHeight = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
          return TryChangeSize(() => token, 0, 0, dx, dy, borderWidth, borderHeight);
+      }
+
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+         for (int i = 0; i < length; i += 2) {
+            var pair = model.ReadMultiByteValue(start + i, 2);
+            builder.Append(pair.ToString("X4"));
+            if (i < length) builder.Append(" ");
+         }
+      }
+
+      public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
+         for (int i = 0; i < length; i += 2) model.WriteMultiByteValue(start + i, 2, changeToken, 0);
       }
    }
 
