@@ -242,7 +242,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 98 fadescreendelay effect. delay.
 99 darken flashSize:                         # makes the screen go dark. Related to flash? Call from a level script.
 9A lighten flashSize.                        # lightens an area around the player?
-9B preparemsg2 pointer<>                     # unknown
+9B preparemsg2 pointer<"">                   # unknown
 9C doanimation animation:                    # executes field move animation
 9D setanimation animation. slot:             # which party pokemon to use for the next field animation?
 9E checkanimation animation:                 # if the given animation is playing, pause the script until the animation completes
@@ -319,12 +319,12 @@ D7 warp7 mapbank. map. warp. x: y:           # used in Mossdeep City's gym
 D8 cmdD8                                     # unknown
 D9 cmdD9                                     # unknown
 DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
-DB preparemsg3 pointer<>                     # shows a text box with text appearing instantaneously.
+DB preparemsg3 pointer<"">                   # shows a text box with text appearing instantaneously.
 DC fadescreen3 unknown.                      # fades the screen in or out, swapping buffers. Emerald only.
 DD buffertrainerclass buffer.3 class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
 DE buffertrainername buffer.3 trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
 DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
-E0 warp8 bank. map. exit. x: y:              # unknown
+E0 warp8 bank. map. exit. x: y:              # warps the player while fading the screen to white
 E1 buffercontesttype buffer.3 contest:       # stores the contest type name in a buffer. (Emerald Only)
 E2 bufferitems2 buffer.3 item:data.items.stats quantity:     # stores pluralized item name in a buffer. (Emerald Only)
 
