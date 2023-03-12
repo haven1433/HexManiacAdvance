@@ -1105,10 +1105,10 @@ Name = '''directions'''
 4 = '''East'''
 4 = '''Right'''
 5 = [
-'''Southwest''',
-'''Southeast''',
-'''Northwest''',
-'''Northeast''',
+   '''Southwest''',
+   '''Southeast''',
+   '''Northwest''',
+   '''Northeast''',
 ]
 
 [[List]]
@@ -1128,3 +1128,15 @@ Name = '''AI_type_matchups'''
 40 = '''Neutral'''
 80 = '''SuperEffective'''
 160 = '''DoubleSuperEffective'''
+
+[[List]]
+Name = '''voiceGroupTypes'''
+0 = [
+   '''DirectSound''',
+   '''SquareWave1''',
+   '''SquareWave2''',
+   '''WaveMemory''',
+   '''Noise''',
+]
+64 = '''MultiSample'''
+128 = '''DrumPart'''
