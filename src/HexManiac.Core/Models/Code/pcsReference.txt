@@ -78,9 +78,9 @@ CC_10 = 2 # play sound effects
 # macros
 
 [player]       FD 01
-[buffer 1]     FD 02  # These buffers can store various data in string form.
-[buffer 2]     FD 03  # Used with buffernumber, bufferPokemon, etc.
-[buffer 3]     FD 04
+[buffer1]     FD 02  # These buffers can store various data in string form.
+[buffer2]     FD 03  # Used with buffernumber, bufferPokemon, etc.
+[buffer3]     FD 04
 [rival]        FD 06
 [resetfont]    FC 07
 [pause]        FC 09  # pause until a button is pressed
