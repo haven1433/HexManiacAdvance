@@ -71,17 +71,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IPixelViewModel GetImage(ISpriteRun run) {
-         if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
-         pixels = SpriteDecorator.BuildSprite(model, run);
-         cachedImages[run.Start] = pixels;
-         return pixels;
+         lock (cachedImages) {
+            if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
+            pixels = SpriteDecorator.BuildSprite(model, run);
+            cachedImages[run.Start] = pixels;
+            return pixels;
+         }
       }
 
       public IPixelViewModel GetImage(BlockmapRun run) {
-         if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
-         pixels = SpriteDecorator.BuildSprite(model, run);
-         cachedImages[run.Start] = pixels;
-         return pixels;
+         lock (cachedImages) {
+            if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
+            pixels = SpriteDecorator.BuildSprite(model, run);
+            cachedImages[run.Start] = pixels;
+            return pixels;
+         }
       }
 
       public IReadOnlyList<MapInfo> GetAllMaps() {
