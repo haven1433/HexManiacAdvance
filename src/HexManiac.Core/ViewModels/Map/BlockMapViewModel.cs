@@ -624,6 +624,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var maps = new List<MapModel>();
          foreach (var map in GetAllMaps()) {
+            if (map == null) continue;
             if (map.Layout.PrimaryBlockset.Start != primaryBlocksetAddress && blockIndex < PrimaryBlocks) continue;
             if (map.Layout.SecondaryBlockset.Start != secondaryBlocksetAddress && blockIndex >= PrimaryBlocks) continue;
             maps.Add(map);
@@ -771,25 +772,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (blockMap[0, 0], blockMap[8, 0], blockMap[0, 8], blockMap[8, 8]) = (topLeftTile, topRightTile, bottomLeftTile, bottomRightTile);
 
          // find the door tile
-         var map0 = warps[0].TargetMap;
-         var matchingWarp0 = map0.Events.Warps[warps[0].WarpID];
-         var warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
-         if (warpIsAgainstWall) {
-            blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
-            blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
-            blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
+         bool warpIsAgainstWall = true;
+         if (warps.Count > 0) {
+            var map0 = warps[0].TargetMap;
+            var matchingWarp0 = map0.Events.Warps[warps[0].WarpID];
+            warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
+            if (warpIsAgainstWall) {
+               blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
+               blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
+               blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
 
-            blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-            blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-            blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
-         } else {
-            blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-            blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-            blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+               blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+               blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+               blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+            } else {
+               blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+               blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+               blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
 
-            blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
-            blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
-            blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+               blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
+               blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
+               blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+            }
          }
 
          // draw the map
