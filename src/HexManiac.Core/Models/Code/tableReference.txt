@@ -138,6 +138,7 @@ graphics.trainers.elite4.mugshots.wallace.palette, , , , , , , , , 5C8F7C, `ucp4
 graphics.trainers.elite4.mugshots.boy.palette,     , , , , , , , , 5C8F9C, `ucp4`
 graphics.trainers.elite4.mugshots.girl.palette,    , , , , , , , , 5C8FBC, `ucp4`
 
+scripts.pokemon.animations.back.natureMod         ,       ,       ,       ,       ,       ,       ,       , 17F604, [animIntensity.]data.pokemon.natures.names // Each nature "decides" which (out of a group of 3) Pokémon back animation to use in a given slot of the "graphics.pokemon.animations.options.back" table.
 graphics.pokemon.animations.options.front,        ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]
 graphics.pokemon.animations.options.back,         ,       ,       ,       ,       ,       ,       ,       , 17F608, [extremeAnim.graphics.pokemon.animations.options.front mediumAnim.graphics.pokemon.animations.options.front mildAnim.graphics.pokemon.animations.options.front]25 // The game uses 3 front animations per back animation. The one picked depends on the Pokémon's nature.
 graphics.pokemon.animations.front,                ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options.front]data.pokemon.names-1
@@ -798,7 +799,7 @@ data.text.menu.itemStorage,            139FAC, 139FAC, 139FCC, 139FCC, 0EBA84, 0
 sound.fanfares,                        074E64, 074E68, 074E84, 074E88,                            ,,,,       , [songID:          duration:]12
 sound.fanfares,                                                   ,,,, 071C08, 071C08, 071C1C, 071C1C,       , [songID:songnames duration:]14
 sound.fanfares,                                                   ,,,,                            ,,,, 0A308C, [songID:songnames duration:]18
-sound.tracks,                          1DDF20, 1DDEB0, 1DDF38, 1DDEC8, 1DD11C, 1DD0F8, 1DD18C, 1DD168, 2E0158, [pointer<> musicplayer: unknown:]songnames
+sound.tracks,                          1DDF20, 1DDEB0, 1DDF38, 1DDEC8, 1DD11C, 1DD0F8, 1DD18C, 1DD168, 2E0158, [header<[numTracks. numBlocks. priority. reverb. voicegroup<>]1> musicplayer: unknown:]songnames
 sound.musicplayer,                                                ,,,,                            ,,,, 2E010C, [info::|h track::|h num: unknown:]4
 sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 072104, 072118, 072118, 0A35DC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
