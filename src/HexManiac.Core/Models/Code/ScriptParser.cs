@@ -635,12 +635,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // post processing: if a line has a pointer to this address and the length is big enough,
          // change that pointer to be an -auto- pointer
          while (length > 0) {
-            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{index:X6}>"));
+            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{index:X6}>") || results[i].Contains($"<{index + 1:X6}>"));
             var autoRun = data.GetNextRun(index);
-            if (autoRun.Start != index || autoRun.Length > length) break;
-            results[autoIndex] = results[autoIndex].Replace($"<{index:X6}>", "<auto>");
-            length -= autoRun.Length;
-            index += autoRun.Length;
+            var runStartsNoGap = autoRun.Start == index && autoRun.Length <= length;
+            var runStartsGap = autoRun.Start == index + 1 && autoRun.Length < length;
+
+            if (runStartsNoGap) {
+               results[autoIndex] = results[autoIndex].Replace($"<{index:X6}>", "<auto>");
+               length -= autoRun.Length;
+               index += autoRun.Length;
+            } else if (runStartsGap) {
+               results[autoIndex] = results[autoIndex].Replace($"<{index + 1:X6}>", "<auto>");
+               length -= autoRun.Length + 1;
+               index += autoRun.Length + 1;
+            } else {
+               break;
+            }
          }
 
          return results.ToArray();

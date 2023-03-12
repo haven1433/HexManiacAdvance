@@ -1157,7 +1157,7 @@ namespace HavenSoft.HexManiac.Tests {
       private static void StandardSetup(out byte[] data, out PokemonModel model, out ViewPort viewPort) {
          data = new byte[0x200];
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.txt", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { Width = 0x10, Height = 0x10 };
+         viewPort = new ViewPort("file.txt", model, InstantDispatch.Instance, BaseViewModelTestClass.Singletons) { AllowMultipleElementsPerLine = true, Width = 0x10, Height = 0x10 };
       }
 
       private static void WriteStrings(byte[] buffer, int start, params string[] content) {

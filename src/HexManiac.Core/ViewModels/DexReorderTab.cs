@@ -34,8 +34,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public bool IsMetadataOnlyChange => false;
-      public ICommand Save { get; } = new StubCommand();
-      public ICommand SaveAs { get; } = new StubCommand();
+      public ICommand Save { get; }
+      public ICommand SaveAs { get; }
       public ICommand ExportBackup { get; } = new StubCommand();
       public ICommand Undo => undo;
       public ICommand Redo => redo;
@@ -87,13 +87,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public DexReorderTab(string filename, ChangeHistory<ModelDelta> history, IDataModel model, string dexOrder, string dexInfo, bool isNational) {
-         FullFileName = filename;
-         this.history = history;
-         this.model = model;
+      public DexReorderTab(ViewPort viewPort, string dexOrder, string dexInfo, bool isNational) {
+         FullFileName = viewPort.Name;
+         this.history = viewPort.ChangeHistory;
+         this.model = viewPort.Model;
          this.dexOrder = dexOrder;
          this.dexInfo = dexInfo;
          this.isNational = isNational;
+         this.Save = viewPort.Save;
+         this.SaveAs = viewPort.SaveAs;
 
          undo = new StubCommand {
             CanExecute = history.Undo.CanExecute,

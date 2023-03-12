@@ -101,5 +101,28 @@ namespace HavenSoft.HexManiac.Integration {
          vp.Tools.SpriteTool.ExecuteExportMany(FileSystem, ImageExportMode.Vertical);
          Assert.All(data.Length.Range(), i => Assert.Equal(reference[i], data[i]));
       }
+
+      [SkippableFact]
+      public void ExportTilesetWithPalette2_EditTileset_ImportTilesetWithPalette2_DataMatches() {
+         var blocks = "data.maps.banks/0/maps/9/map/0/layout/0/blockdata1/0";
+         var tileset = $"{blocks}/tileset/";
+         var palette = $"{blocks}/pal/";
+         var firered = LoadFireRed();
+         firered.Goto.Execute(palette);
+         firered.Goto.Execute(tileset);
+         firered.Tools.SpriteTool.PalettePage = 2;
+         firered.Edit("^`lzs4x16x32`");
+         firered.Refresh();
+         firered.Tools.SpriteTool.ExportSpriteAndPalette(FileSystem);
+         var originalExport = data;
+
+         firered.Goto.Execute($"{tileset}+40");
+         firered.Edit("00 ");
+         firered.Tools.SpriteTool.ImportSpriteAndPalette(FileSystem);
+
+         firered.Tools.SpriteTool.ExportSpriteAndPalette(FileSystem);
+         var afterImport = data;
+         Assert.All(originalExport.Length.Range(), i => Assert.Equal(originalExport[i], afterImport[i]));
+      }
    }
 }

@@ -12,8 +12,9 @@ artifacts/
 obj/
 *.coverage
 
-# Visual Studio 2015 cache/options directory
+# cache/options directory
 .vs/
+__pycache__/
 
 # local downloaded nuget packages
 packages/

@@ -68,7 +68,8 @@
     <Resource Include="Resources\AppImage.png" />
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>      if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
+    <PostBuildEvent>
+      if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
       if not exist "$(TargetDir)resources\Scripts" mkdir "$(TargetDir)resources\Scripts"
       copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.txt"
@@ -77,6 +78,8 @@
       copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.toml"
       copy "$(TargetDir)Scripts\*.*" "$(TargetDir)resources/Scripts"
+      copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+      copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
       del "$(TargetDir)Scripts\*.hma"
       del "$(TargetDir)Scripts\*.png"
       del "$(TargetDir)Scripts\*.txt"
@@ -86,6 +89,6 @@
       del "$(TargetDir)IronPython.SQLite.dll"
       del "$(TargetDir)Mono.Unix.dll"
       rmdir "$(TargetDir)runtimes" /s /q
-</PostBuildEvent>
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

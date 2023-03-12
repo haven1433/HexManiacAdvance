@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       public NestedTablesTests() {
          model = new PokemonModel(data);
-         viewPort = new ViewPort("file.txt", model, InstantDispatch.Instance) { Width = 0x10, Height = 0x10 };
+         viewPort = new ViewPort("file.txt", model, InstantDispatch.Instance) { AllowMultipleElementsPerLine = true, Width = 0x10, Height = 0x10 };
          viewPort.OnError += (sender, e) => errors.Add(e);
          viewPort.OnMessage += (sender, e) => messages.Add(e);
       }

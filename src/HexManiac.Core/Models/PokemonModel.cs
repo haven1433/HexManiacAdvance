@@ -574,7 +574,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                      var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
                      Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
                      if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
-                  } else if (run.Start != destination) {
+                  } else if (run.Start < destination) {
+                     // pointer points into the middle of a run. Such a pointer is an error, but is not a metadata inconsistency.
+                  } else if (run.Start > destination) {
                      Debug.Fail($"Pointer at {pointerRun.Start:X6} expected a run at {destination:X6} but the next run was at {run.Start:X6}.");
                   } else if (run != NoInfoRun.NullRun) {
                      Debug.Assert(run.PointerSources != null && run.PointerSources.Contains(pointerRun.Start), $"Expected run at {run.Start:X6} to know about pointer at {pointerRun.Start:X6}, but it did not.");
@@ -582,7 +584,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
 
                // for every TPTRun, make sure something points to it
-               if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no content long-term.");
+               if (runs[i] is TrainerPokemonTeamRun) Debug.Assert(runs[i].PointerSources.Count > 0, "TPTRuns must not exist with no sources long-term.");
 
                // for ever NoInfoRun, something points to it
                if ((runs[i] is NoInfoRun || runs[i] is PointerRun) && !anchorForAddress.ContainsKey(runs[i].Start)) {
@@ -1806,6 +1808,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                SetIndex(index, new PointerRun(newRun.Start));
                if (newRun is OffsetPointerRun opr) SetIndex(index, new OffsetPointerRun(newRun.Start, opr.Offset));
                currentChange.AddRun(runs[index]);
+            } else if (newRun is TrainerPokemonTeamRun tpt && newRun.PointerSources.Count == 0) {
+               // trainer pokemon teams get their length from their parent.
+               // if there is no parent, then there's no concept of length.
+               // just remove it
+               RemoveIndex(index);
             } else {
                SetIndex(index, newRun);
                currentChange.AddRun(newRun);

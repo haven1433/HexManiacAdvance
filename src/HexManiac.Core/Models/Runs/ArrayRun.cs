@@ -85,23 +85,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var destination = data.ReadPointer(offsets.SegmentStart);
             var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
             var destinationRun = data.GetNextRun(destination);
-            var hasError = false;
-            if (destination >= 0 && destination < data.Count) {
-               if (destinationRun is ArrayRun arrayRun && arrayRun.SupportsInnerPointers) {
-                  // it's an error unless the arrayRun starts before the destination and the destination is the start of one of the elements
-                  hasError = !(arrayRun.Start <= destination && (destination - arrayRun.Start) % arrayRun.ElementLength == 0);
-               } else {
-                  IFormattedRun run = destinationRun;
-                  hasError = destinationRun.Start != destination;
-                  // if the run isn't a ITableRun, parse the data to see if it's valid
-                  // if it _is_ an ITableRun, skip this step
-                  if (currentSegment is ArrayRunPointerSegment pointerSegment && !(run is ITableRun)) {
-                     hasError |= data.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
-                  }
-               }
-            } else {
-               hasError = true;
-            }
+            var hasError = data.PointerHasError(destination, destinationRun, currentSegment);
 
             return new Pointer(offsets.SegmentStart, position, destination, 0, destinationName, hasError);
          }
@@ -117,6 +101,27 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          throw new NotImplementedException();
+      }
+
+      public static bool PointerHasError(this IDataModel data, int destination, IFormattedRun destinationRun, ArrayRunElementSegment currentSegment = null) {
+         var hasError = false;
+         if (destination >= 0 && destination < data.Count) {
+            if (destinationRun is ArrayRun arrayRun && arrayRun.SupportsInnerPointers) {
+               // it's an error unless the arrayRun starts before the destination and the destination is the start of one of the elements
+               hasError = !(arrayRun.Start <= destination && (destination - arrayRun.Start) % arrayRun.ElementLength == 0);
+            } else {
+               IFormattedRun run = destinationRun;
+               hasError = destinationRun.Start != destination;
+               // if the run isn't a ITableRun, parse the data to see if it's valid
+               // if it _is_ an ITableRun, skip this step
+               if (currentSegment is ArrayRunPointerSegment pointerSegment && !(run is ITableRun)) {
+                  hasError |= data.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
+               }
+            }
+         } else {
+            hasError = true;
+         }
+         return hasError;
       }
 
       public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length, bool deep) {
@@ -1051,10 +1056,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (offset.SegmentOffset != 0) skip = true;
                else if (ElementContent[offset.SegmentIndex].Type != ElementContentType.Pointer) skip = true;
 
-               if (skip) {
-                  owner.ClearFormat(changeToken, source, 1);
-                  continue;
-               }
+               // this is within the current table, clear the pointer format regardless of if we're skipping this pointer
+               owner.ClearFormat(changeToken, source, 1);
+               if (skip) continue;
             }
 
             var destination = owner.ReadPointer(source);
