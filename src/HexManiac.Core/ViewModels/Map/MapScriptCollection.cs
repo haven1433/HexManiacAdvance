@@ -72,6 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, new XSERun(newScript));
          Scripts.Add(new(viewPort, address + Scripts.Count * 5));
          AddDeleteHandler(Scripts.Count - 1);
+         viewPort.ChangeHistory.ChangeCompleted();
       }
 
       private void AddDeleteHandler(int index) {
@@ -95,6 +96,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Scripts[index].DeleteMe -= HandleDelete;
          Scripts.RemoveAt(index);
          e.Success = true;
+         viewPort.ChangeHistory.ChangeCompleted();
       }
    }
 
@@ -189,7 +191,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public int ScriptTypeIndex {
-         get => scriptType - 1; set => Set(ref scriptType, value + 1, arg => {
+         get => scriptType - 1;
+         set => Set(ref scriptType, value + 1, arg => {
             NotifyPropertyChanged(nameof(HasSubScripts));
             var model = viewPort.Model;
             var token = viewPort.ChangeHistory.CurrentChange;
@@ -223,6 +226,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
             viewPort.ChangeHistory.CurrentChange.ChangeData(viewPort.Model, start, (byte)scriptType);
             NotifyPropertyChanged(nameof(HasSubScripts));
+            viewPort.ChangeHistory.ChangeCompleted();
          });
       }
 
