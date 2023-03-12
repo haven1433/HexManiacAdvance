@@ -17,7 +17,7 @@
 // <>         pointer
 // `asc`10    10 ascii characters
 // `ucp`      uncompressed palette
-// `lzp4`     compessed palette
+// `lzp4`     compressed palette
 // `lzs4`     compressed sprite
 // `lzt4`     compressed tiles
 // `lzm4`     compressed tilemap
@@ -128,7 +128,7 @@ graphics.trainers.sprites.back.throw,             ,       ,       ,       ,     
 graphics.trainers.coordinates.back,               ,       ,       ,       , 03240C, 03240C, 032420, 032420,       , [x. y. unused:]graphics.trainers.sprites.back.enter
 graphics.trainers.palettes.back,                  ,       ,       ,       , 0335D4, 0335D4, 0335E8, 0335E8, 05DFDC, [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter
 graphics.trainers.palettes.back,            030E14, 030E14, 030E14, 030E14,       ,       ,       ,       ,       , [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.throw
-graphics.trainers.emotes.sprites,                 ,       ,       ,       , 3C7394, 3C71D0, 3C7404, 3C7240,       , [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> lengeth::]15
+graphics.trainers.emotes.sprites,                 ,       ,       ,       , 3C7394, 3C71D0, 3C7404, 3C7240,       , [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> length::]15
 
 graphics.trainers.elite4.mugshots.sidney.palette,  , , , , , , , , 5C8EFC, `ucp4`
 graphics.trainers.elite4.mugshots.phoebe.palette,  , , , , , , , , 5C8F1C, `ucp4`
