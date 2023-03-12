@@ -503,13 +503,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("flag", value);
             NotifyPropertyChanged();
+            flagText = null;
             NotifyPropertyChanged(nameof(FlagText));
          }
       }
 
+      string flagText;
       public string FlagText {
-         get => element.GetValue("flag").ToString("X4");
+         get {
+            if (flagText == null) flagText = element.GetValue("flag").ToString("X4");
+            return flagText;
+         }
          set {
+            flagText = value;
             element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(Flag));
