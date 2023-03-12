@@ -955,14 +955,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (facing >= sprites.Count) facing = 0;
          var graphicsAddress = sprites.Run.Start;
          var pointerAddress = data.Start;
+         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
+         var paletteRun = graphicsRun.FindRelatedPalettes(model, pointerAddress).FirstOrDefault();
          if (facing != -1) {
             var sprite = sprites[facing];
             graphicsAddress = sprite.GetAddress("sprite");
-            pointerAddress = sprite.Start;
+            graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          }
-         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          if (graphicsRun == null) return defaultOW;
-         var paletteRun = graphicsRun.FindRelatedPalettes(model, pointerAddress).FirstOrDefault();
          if (paletteRun == null) return defaultOW;
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
          if (flip) ow = ow.ReflectX();
