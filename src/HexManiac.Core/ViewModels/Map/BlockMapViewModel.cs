@@ -575,6 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged(nameof(BorderEditor));
          }
          ClearPixelCache();
+         if (!MapScriptCollection.Unloaded) MapScriptCollection.Load(GetMapModel());
          NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(BerryInfo));
          if (SelectedEvent != null) CycleActiveEvent(default, EventCycleDirection.None);
       }
