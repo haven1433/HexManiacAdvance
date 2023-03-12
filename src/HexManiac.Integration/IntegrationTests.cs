@@ -60,5 +60,9 @@ namespace HavenSoft.HexManiac.Integration {
          return vm;
       }
 
+      protected static void AssertNoConflicts(IViewPort viewPort) {
+         var model = viewPort.Model as PokemonModel;
+         model.ResolveConflicts();
+      }
    }
 }

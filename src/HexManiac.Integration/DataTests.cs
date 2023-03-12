@@ -91,7 +91,7 @@ namespace HavenSoft.HexManiac.Integration {
          var text = emerald.Tools.CodeTool.Contents[0];
          text.Content = text.Content.Replace("setbyte 0x0202448E 21", "setbyte 0x0202448E 2");
 
-         ((PokemonModel)emerald.Model).ResolveConflicts();
+         AssertNoConflicts(emerald);
       }
 
       [SkippableFact]
@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Integration {
          emerald.Goto.Execute("data.trainers.stats/34");
          emerald.Edit(copy);
 
-         ((PokemonModel)emerald.Model).ResolveConflicts();
+         AssertNoConflicts(emerald);
       }
    }
 }
