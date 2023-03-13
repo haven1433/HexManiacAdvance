@@ -282,7 +282,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void ExecuteRepointPrimaryBlocks() {
          var layout = GetLayout();
-         var attributeSize = model.IsFRLG() ? 2 : 1;
+         var attributeSize = model.IsFRLG() ? 4 : 2;
          var (blockCount, _) = EstimateBlockCount(layout, true);
          RepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks, blockCount * 16);
          RepointBlocksetMember(Format.PrimaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointPrimaryBlocks);
@@ -294,10 +294,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void ExecuteRepointSecondaryBlocks() {
          var layout = GetLayout();
-         var attributeSize = model.IsFRLG() ? 2 : 1;
+         var attributeSize = model.IsFRLG() ? 4 : 2;
          var (blockCount, _) = EstimateBlockCount(layout, false);
-         RepointBlocksetMember(Format.PrimaryBlockset, Format.Blocks, blockCount * 16);
-         RepointBlocksetMember(Format.PrimaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointPrimaryBlocks);
+         RepointBlocksetMember(Format.SecondaryBlockset, Format.Blocks, blockCount * 16);
+         RepointBlocksetMember(Format.SecondaryBlockset, Format.BlockAttributes, blockCount * attributeSize, repointSecondaryBlocks);
       }
 
       public string ExpandPrimaryBlocksText {
@@ -430,7 +430,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool CanRepointSecondaryTileset() => CountBlocksetMemberSources(Format.SecondaryBlockset, Format.Tileset) > 1;
 
-      private void ExecuteRepointSecondaryTileset() => RepointTileset(Format.PrimaryBlockset, repointSecondaryTileset);
+      private void ExecuteRepointSecondaryTileset() => RepointTileset(Format.SecondaryBlockset, repointSecondaryTileset);
 
       private void RepointTileset(string blocksetName, StubCommand command) {
          var maxTileCount = model.IsFRLG() ? 640 : 512;
