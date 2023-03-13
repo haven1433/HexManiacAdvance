@@ -32,6 +32,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       }
 
       public void Draw(IPixelViewModel foreground, int x, int y) {
+         if (foreground == null) return;
          for (int yy = 0; yy < foreground.PixelHeight; yy++) {
             for (int xx = 0; xx < foreground.PixelWidth; xx++) {
                var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
