@@ -138,10 +138,11 @@ graphics.trainers.elite4.mugshots.wallace.palette, , , , , , , , , 5C8F7C, `ucp4
 graphics.trainers.elite4.mugshots.boy.palette,     , , , , , , , , 5C8F9C, `ucp4`
 graphics.trainers.elite4.mugshots.girl.palette,    , , , , , , , , 5C8FBC, `ucp4`
 
+scripts.pokemon.animations.back.natureMod,        ,       ,       ,       ,       ,       ,       ,       , 17F604, [animIntensity.]data.pokemon.natures.names // Each nature "decides" which (out of a group of 3) Pokémon back animation to use in a given slot of the "graphics.pokemon.animations.options.back" table.
 graphics.pokemon.animations.options.front,        ,       ,       ,       ,       ,       ,       ,       , 17F53C, [thumb<>]
 graphics.pokemon.animations.options.back,         ,       ,       ,       ,       ,       ,       ,       , 17F608, [extremeAnim.graphics.pokemon.animations.options.front mediumAnim.graphics.pokemon.animations.options.front mildAnim.graphics.pokemon.animations.options.front]25 // The game uses 3 front animations per back animation. The one picked depends on the Pokémon's nature.
 graphics.pokemon.animations.front,                ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options.front]data.pokemon.names-1
-graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.]data.pokemon.names
+graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.graphics.pokemon.animations.options.back]data.pokemon.names
 graphics.pokemon.animations.frames,               ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (expcept Spinda), and some have 3.
 graphics.pokedex.habitats,                        ,       ,       ,       , 102F44, 102F1C, 102FBC, 102F94,       , [sprite<`lzs4x8x6`> pal<`ucp4`>]data.pokedex.habitat.names+6
 graphics.pokedex.minibox,                         ,       ,       ,       , 104E6C, 104E44, 104EE4, 104EBC,       , `lzs4x8x4|graphics.townmap.catchmap.palette`
