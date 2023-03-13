@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -503,13 +504,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             element.SetValue("flag", value);
             NotifyPropertyChanged();
+            flagText = null;
             NotifyPropertyChanged(nameof(FlagText));
          }
       }
 
+      string flagText;
       public string FlagText {
-         get => element.GetValue("flag").ToString("X4");
+         get {
+            if (flagText == null) flagText = element.GetValue("flag").ToString("X4");
+            return flagText;
+         }
          set {
+            flagText = value;
             element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(Flag));
@@ -946,13 +953,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool flip = facing == 3;
          if (facing == 3) facing = 2;
          if (facing >= sprites.Count) facing = 0;
-         var sprite = sprites[facing];
-         var graphicsAddress = sprite.GetAddress("sprite");
+         var graphicsAddress = sprites.Run.Start;
+         var pointerAddress = data.Start;
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
-         if (graphicsRun == null) {
-            return defaultOW;
+         var paletteRun = graphicsRun.FindRelatedPalettes(model, pointerAddress).FirstOrDefault();
+         if (facing != -1) {
+            var sprite = sprites[facing];
+            graphicsAddress = sprite.GetAddress("sprite");
+            graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          }
-         var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, true);
+         if (graphicsRun == null) return defaultOW;
+         if (paletteRun == null) return defaultOW;
+         var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
          if (flip) ow = ow.ReflectX();
          return ow;
       }
