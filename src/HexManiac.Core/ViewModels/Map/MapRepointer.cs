@@ -333,7 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void ExecuteExpandSecondaryBlocks() {
          ExpandBlocks(false);
-         expandPrimaryBlocks.RaiseCanExecuteChanged();
+         expandSecondaryBlocks.RaiseCanExecuteChanged();
       }
 
       private void ExpandBlocks(bool primary) {
@@ -342,21 +342,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var token = history.CurrentChange;
          var layout = GetLayout();
          var (blockCount, maxBlockCount) = EstimateBlockCount(layout, primary);
-         var attributeSize = model.IsFRLG() ? 2 : 1;
-         // (1) copy all block/attribute data into a temp array
+         var attributeSize = model.IsFRLG() ? 4 : 2;
          var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
+
+         // (1) copy/repoint/paste the blocks
          var blockStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.Blocks);
-         var attributeStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.BlockAttributes);
          var blockData = Cut(blockStart, blockCount * 16);
-         var attributeData = Cut(attributeStart, blockCount * attributeSize);
-         // (2) repoint blocks/attrbutes
          blockStart = model.RelocateForExpansion(token, model.GetNextRun(blockStart), maxBlockCount * 16).Start;
-         attributeStart = model.RelocateForExpansion(token, model.GetNextRun(attributeStart), maxBlockCount * attributeSize).Start;
-         // (3) paste old data and expand
          Paste(blockStart, blockData, maxBlockCount * 16);
+
+         // (2) copy/repoint/paste the attributes
+         var attributeStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.BlockAttributes);
+         var attributeData = Cut(attributeStart, blockCount * attributeSize);
+         attributeStart = model.RelocateForExpansion(token, model.GetNextRun(attributeStart), maxBlockCount * attributeSize).Start;
          Paste(attributeStart, attributeData, maxBlockCount * attributeSize);
 
          DataMoved.Raise(this, new("Block", blockStart));
+         history.ChangeCompleted();
       }
 
       public (int currentCount, int maxCount) EstimateBlockCount(ModelArrayElement layout, bool primary) {
@@ -459,7 +461,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool CanExpandPrimaryTileset() => CanExpandTileset(Format.PrimaryBlockset);
 
-      private void ExecuteExpandPrimaryTileset() => ExpandTileset(Format.PrimaryBlockset);
+      private void ExecuteExpandPrimaryTileset() {
+         ExpandTileset(Format.PrimaryBlockset);
+         expandPrimaryTileset.RaiseCanExecuteChanged();
+      }
 
       public string ExpandSecondaryTilesetText {
          get {
@@ -471,7 +476,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool CanExpandSecondaryTileset() => CanExpandTileset(Format.SecondaryBlockset);
 
-      private void ExecuteExpandSecondaryTileset() => ExpandTileset(Format.SecondaryBlockset);
+      private void ExecuteExpandSecondaryTileset() {
+         ExpandTileset(Format.SecondaryBlockset);
+         expandSecondaryTileset.RaiseCanExecuteChanged();
+      }
 
       private bool CanExpandTileset(string blocksetName) {
          var layout = GetLayout();
@@ -495,11 +503,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var newCompressedData = LZRun.Compress(newData).ToArray();
             var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), newCompressedData.Length);
             Paste(newRun.Start, newCompressedData, newCompressedData.Length);
+            start = newRun.Start;
          } else {
             var data = Cut(start, currentTiles * 0x20);
             var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), maxTiles * 0x20);
             Paste(newRun.Start, data, maxTiles * 0x20);
+            start = newRun.Start;
          }
+
+         DataMoved.Raise(this, new("Tileset", start));
+         history.ChangeCompleted();
       }
 
       private (int, int) EstimateTileCount(ModelArrayElement blockset) {
