@@ -230,13 +230,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          });
       }
 
-      public string Address { get => displayAddress; set => Set(ref displayAddress, value, arg => {
-         if (displayAddress.TryParseHex(out var result)) {
-            address = result;
-            viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, default, start + 1, address);
-            Load();
-         }
-      }); }
+      public string Address {
+         get => displayAddress;
+         set => Set(ref displayAddress, value, arg => {
+            var text = displayAddress.Trim('<', '>');
+            if (text.TryParseHex(out var result)) {
+               address = result;
+               viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, default, start + 1, address);
+               Load();
+            }
+         });
+      }
 
       public IReadOnlyCollection<int> GetScripts() {
          var results = new List<int>();
