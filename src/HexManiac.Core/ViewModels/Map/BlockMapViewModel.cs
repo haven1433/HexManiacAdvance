@@ -550,6 +550,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          WildPokemon.ClearCache();
          RefreshMapSize();
          if (blockEditor != null) {
+            RefreshBlockAttributeCache();
             blockEditor.BlocksChanged -= HandleBlocksChanged;
             blockEditor.BlockAttributesChanged -= HandleBlockAttributesChanged;
             BlockEditor.AutoscrollTiles -= HandleAutoscrollTiles;
