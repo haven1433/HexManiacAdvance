@@ -323,7 +323,7 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPEE] D9 lockfortrainer                            # unknown
 [BPEE] DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
 [BPEE] DB preparemsg3 pointer<"">                   # shows a text box with text appearing instantaneously.
-[BPEE] DC fadescreen3 unknown.                      # fades the screen in or out, swapping buffers. Emerald only.
+[BPEE] DC fadescreen3 mode.screenfades              # fades the screen in or out, swapping buffers. Emerald only.
 [BPEE] DD buffertrainerclass buffer.3 class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
 [BPEE] DE buffertrainername buffer.3 trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
 [BPEE] DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
