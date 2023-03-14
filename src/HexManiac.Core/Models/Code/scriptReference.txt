@@ -102,7 +102,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 31 fanfare song:songnames                    # plays a song from the song list as a fanfare
 32 waitfanfare                               # blocks script execution until any playing fanfair finishes
 33 playsong song:songnames mode.songloopoptions       # plays a song once or loop
-34 playsong2 song:songnames                           # seems buggy?
+34 playsong2 song:songnames                           # seems buggy? (saves the background music)
 35 fadedefault                               # fades the music back to the default song
 36 fadesong song:songnames                   # fades the music into the given song
 37 fadeout speed.                            # fades out the current song to silent
@@ -290,43 +290,46 @@ C2 updatecoins x. y.
 C3 incrementhiddenvalue a.                   # example: pokecenter nurse uses variable 0xF after you pick yes
 C4 warp6 mapbank. map. warp. x: y:           # sets a particular map to warp to upon using an escape rope/teleport
 C5 waitcry                                   # used after cry, it pauses the script
-C6 bufferboxname buffer.3 box:               # box can be a variable or a literal
-C7 textcolor color.                          # 00=blue, 01=red, FF=default, XX=black. Only in FR/LG
-C8 helptext pointer<>                        # something with helptext? Does some tile loading, which can glitch textboxes
-C9 helptext2                                 # related to help-text box that appears in the opened Main Menu
-CA signmsg                                   # makes message boxes look like signposts
-CB normalmsg                                 # ends the effect of signmsg. Textboxes look like normal textboxes.
-CC comparehiddenvar a. value::               # compares a hidden value to a given value.
-CD setobedience slot:                        # a pokemon in your party becomes obedient (no longer disobeys)
-CE checkobedience slot:                      # if the pokemon is disobedient, 800D=1. If obedient (or empty), 800D=0
-CF executeram                                # Tries a wonder card script.
-D0 setworldmapflag flag:                     # This lets the player fly to a given map, if the map has a flight spot (nop in Emerald)
-D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
-D2 setcatchlocation slot: location.data.maps.names          # changes the catch location of a pokemon in your party (0-5)
-
+[BPRE_BPGE_BPEE] C6 bufferboxname buffer.3 box:               # box can be a variable or a literal
+[BPRE_BPGE] C7 textcolor color.              # 00=blue, 01=red, FF=default, XX=black. Only in FR/LG
+[BPEE] C7 nopC7
+[BPRE_BPGE] C8 helptext pointer<>            # something with helptext? Does some tile loading, which can glitch textboxes
+[BPEE] C8 nopC8
+[BPRE_BPGE] C9 helptext2                     # related to help-text box that appears in the opened Main Menu
+[BPEE] C9 nopC9
+[BPRE_BPGE] CA signmsg                       # makes message boxes look like signposts
+[BPEE] CA nopCA
+[BPRE_BPGE] CB normalmsg                     # ends the effect of signmsg. Textboxes look like normal textboxes.
+[BPEE] CB nopCB
+[BPRE_BPGE] CC comparehiddenvar a. value::   # compares a hidden value to a given value.
+[BPEE] CC nopCC
+[BPRE_BPGE_BPEE] CD setobedience slot:       # a pokemon in your party becomes obedient (no longer disobeys)
+[BPRE_BPGE_BPEE] CE checkobedience slot:     # if the pokemon is disobedient, 800D=1. If obedient (or empty), 800D=0
+[BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
+[BPRE_BPGE] D0 setworldmapflag flag:         # This lets the player fly to a given map, if the map has a flight spot
+[BPEE] D0 nopD0                              # (nop in Emerald)
+[BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
+[BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names          # changes the catch location of a pokemon in your party (0-5)
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
-[BPRE_BPGE] D3 braillelength pointer<>       # sets variable 8004 based on th ebraille string's length
+[BPRE_BPGE] D3 braillelength pointer<>       # sets variable 8004 based on the braille string's length
                                              # call this, then special 0x1B2 to make a cursor appear at the end of the text
-[BPRE_BPGE] D4 bufferitems buffer.3 item: quantity:      # buffers the item name, but possibly pluralized if quantity is 2 or more
+[BPRE_BPGE] D4 bufferitems2 buffer.3 item: quantity:     # buffers the item name, but pluralized if quantity is 2 or more
 [BPEE] D4 turnrotatingtileobjects
-# there is no D5 in ruby
-[BPRE_BPGE] D5 nopD5
+# there is no D5 in ruby nor firered
 [BPEE] D5 initrotatingtilepuzzle isTrickHouse:
 [BPEE] D6 freerotatingtilepuzzle
-[AXVE_AXPE] D6 cmdD6                         # unknown
-[BPRE_BPGE] D6 cmdD6
-D7 warp7 mapbank. map. warp. x: y:           # used in Mossdeep City's gym
-D8 cmdD8                                     # unknown
-D9 cmdD9                                     # unknown
-DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
-DB preparemsg3 pointer<"">                   # shows a text box with text appearing instantaneously.
-DC fadescreen3 unknown.                      # fades the screen in or out, swapping buffers. Emerald only.
-DD buffertrainerclass buffer.3 class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
-DE buffertrainername buffer.3 trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
-DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
-E0 warp8 bank. map. exit. x: y:              # warps the player while fading the screen to white
-E1 buffercontesttype buffer.3 contest:       # stores the contest type name in a buffer. (Emerald Only)
-E2 bufferitems2 buffer.3 item:data.items.stats quantity:     # stores pluralized item name in a buffer. (Emerald Only)
+[BPEE] D7 warp7 mapbank. map. warp. x: y:           # used in Mossdeep City's gym
+[BPEE] D8 selectapproachingtrainer                  # unknown
+[BPEE] D9 lockfortrainer                            # unknown
+[BPEE] DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
+[BPEE] DB preparemsg3 pointer<"">                   # shows a text box with text appearing instantaneously.
+[BPEE] DC fadescreen3 unknown.                      # fades the screen in or out, swapping buffers. Emerald only.
+[BPEE] DD buffertrainerclass buffer.3 class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
+[BPEE] DE buffertrainername buffer.3 trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
+[BPEE] DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
+[BPEE] E0 warp8 bank. map. exit. x: y:              # warps the player while fading the screen to white
+[BPEE] E1 buffercontesttype buffer.3 contest:       # stores the contest type name in a buffer. (Emerald Only)
+[BPEE] E2 bufferitems2 buffer.3 item:data.items.stats quantity:     # stores pluralized item name in a buffer. (Emerald Only)
 
 
 # XX msgbox text<> type.                       # multicommand, 8 bytes total
