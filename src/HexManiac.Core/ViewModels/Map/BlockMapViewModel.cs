@@ -625,9 +625,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var maps = new List<MapModel>();
          foreach (var map in GetAllMaps()) {
-            if (map == null) continue;
-            if (map.Layout.PrimaryBlockset.Start != primaryBlocksetAddress && blockIndex < PrimaryBlocks) continue;
-            if (map.Layout.SecondaryBlockset.Start != secondaryBlocksetAddress && blockIndex >= PrimaryBlocks) continue;
+            if (map?.Layout?.PrimaryBlockset?.Start != primaryBlocksetAddress && blockIndex < PrimaryBlocks) continue;
+            if (map?.Layout?.SecondaryBlockset?.Start != secondaryBlocksetAddress && blockIndex >= PrimaryBlocks) continue;
             maps.Add(map);
          }
 
