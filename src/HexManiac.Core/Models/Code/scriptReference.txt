@@ -130,8 +130,8 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 4B adddecoration decoration:data.decorations.stats                 # adds a decoration to the player's PC in FR/LG, this is a NOP
                                                                    # decoration can be either a literal or a variable
 4C removedecoration decoration:data.decorations.stats              # removes a decoration to the player's PC in FR/LG, this is a NOP
-4D testdecoration decoration:data.decorations.stats                # 800D is set to 1 if the PC could store at least 1 more of that decoration
-4E checkdecoration decoration:data.decorations.stats               # 800D is set to 1 if the PC has at least 1 of that decoration
+4D testdecoration decoration:data.decorations.stats                # 800D is set to 1 if the PC could store at least 1 more of that decoration (not in FR/LG)
+4E checkdecoration decoration:data.decorations.stats               # 800D is set to 1 if the PC has at least 1 of that decoration (not in FR/LG)
 4F applymovement npc: data<`move`>           # has character 'npc' move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
@@ -139,7 +139,7 @@ if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
 51 waitmovement npc:                         # block further script execution until the npc movement is completed
 52 waitmovementpos npc: x. y.                # seems bugged. x/y do nothing, only works for FF (the player). Do not use.
 53 hidesprite npc:                           # hides an NPC, but only if they have a Person ID. Doesn't work on the player.
-54 hidespritepos npc: x. y.                  # do not use
+54 hidespritepos npc: x. y.                  # removes the object at the specified coordinates. Do not use.
 55 showsprite npc:                           # opposite of hidesprite
 56 showspritepos npc: x. y.                  # shows a previously hidden sprite, then moves it to (x,y)
 57 movesprite npc: x: y:
