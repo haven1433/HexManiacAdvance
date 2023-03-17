@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Linq;
 using Xunit;
@@ -95,6 +96,18 @@ namespace HavenSoft.HexManiac.Integration {
             firered.Undo.Execute();
 
          AssertNoConflicts(firered);
+      }
+
+      [SkippableFact]
+      public void MapsWithSameLayout_RepointViaTableTool_NewLayout() {
+         var firered = LoadFireRed();
+         firered.Goto.Execute("data.maps.banks/5/maps/4/map/0/"); // viridian city pokemon center
+
+         var group = (StreamElementViewModel)firered.Tools.TableTool.Groups[1].Members[0];
+         group.Repoint.Execute();
+
+         var layouts = firered.Model.GetTableModel("data.maps.layouts");
+         Assert.Equal(384, layouts.Count);
       }
    }
 }
