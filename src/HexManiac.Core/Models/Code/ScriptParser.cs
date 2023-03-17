@@ -320,6 +320,27 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private record StreamInfo(ExpectedPointerType PointerType, int Source, int Destination);
 
+      public static string InsertMissingClosers(string script) {
+         int checkStart = 0;
+         while (true) {
+            var openIndex = script.Substring(checkStart).IndexOf("{");
+            if (openIndex == -1) break;
+            checkStart += openIndex;
+
+            var closeIndex = script.Substring(checkStart).IndexOf("}");
+            if (closeIndex == -1) {
+               // insert match
+               var start = script.Substring(0, checkStart + 1);
+               var end = script.Substring(checkStart + 1);
+               script = start + Environment.NewLine + "}" + end;
+            } else {
+               checkStart += closeIndex;
+            }
+         }
+
+         return script;
+      }
+
       /// <summary>
       /// Potentially edits the script text and returns a set of data repoints.
       /// The data is moved, but the script itself has not written by this method.
@@ -334,6 +355,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          movedData = new List<(int, int)>();
          var gameCode = model.GetGameCode().Substring(0, 4);
          var deferredContent = new List<DeferredStreamToken>();
+         script = InsertMissingClosers(script);
          var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
             .Where(line => !string.IsNullOrWhiteSpace(line))

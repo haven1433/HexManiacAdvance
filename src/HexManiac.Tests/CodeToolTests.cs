@@ -749,6 +749,15 @@ label2:;goto <000050>;end";
          Model.ResolveConflicts(); // no conflicts = pass
       }
 
+      [Fact]
+      public void Script_AddOpenBrace_AutoAddCloseBrace() {
+         EventScript = "loadpointer 0 <100>;end";
+
+         EventScript = "loadpointer 0 <100>;{;end";
+
+         Assert.Equal("loadpointer 0 <100>;{;};end", EventScript);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
