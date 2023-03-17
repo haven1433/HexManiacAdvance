@@ -313,6 +313,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // no need to update the format, the format already matches what we want
             } else {
                model.ClearFormat(token, tsRun.Start, tsRun.Length);
+               if (tsRun.ElementCount == 0) {
+                  // write the end token
+                  tsRun.DeserializeRun(string.Empty, token, out var _, out var _);
+               }
                model.ObserveRunWritten(token, tsRun);
             }
          }
@@ -486,6 +490,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         if (arg.PointerType == ExpectedPointerType.Text) {
                            WriteTextStream(model, token, destination, start + currentSize + pointerOffset);
+                        } else if (arg.PointerType == ExpectedPointerType.Movement) {
+                           WriteMovementStream(model, token, destination, start + currentSize + pointerOffset);
                         }
                      }
                   }

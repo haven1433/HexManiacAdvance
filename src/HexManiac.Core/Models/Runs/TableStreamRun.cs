@@ -216,6 +216,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
             start += ElementLength;
          }
+         if (endStream is EndCodeStreamStrategy endCode1 && token is not NoDataChangeDeltaModel) token.ChangeData(model, start, endCode1.EndCode);
          changedOffsets = changedAddresses;
          movedChildren = new List<int>();
          return newRun;

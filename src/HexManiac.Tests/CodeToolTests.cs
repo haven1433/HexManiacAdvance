@@ -758,6 +758,15 @@ label2:;goto <000050>;end";
          Assert.Equal("loadpointer 0 <100>;{;};end", EventScript);
       }
 
+      [Fact]
+      public void ApplyMovement_UseFreespaceAddress_AutoWriteEmptyContent() {
+         SetFullModel(0xFF);
+
+         EventScript = "applymovement 0 <000080>;end";
+
+         Assert.Equal(0xFE, Model[0x80]);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
