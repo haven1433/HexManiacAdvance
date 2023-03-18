@@ -225,9 +225,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      }
                   }
 
+                  // goto prioritizes the map editor
+                  // but only if the search is specific enough to match only one map name
+                  // (multiple maps can have the same map name)
                   var maps = Model.GetMatchingMaps(str);
-                  if (maps.Count > 1) maps = maps.Where(map => map.Name == str).ToList();
-                  if (maps.Count == 1 && mapper != null && !str.TryParseHex(out _)) {
+                  if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(m.Name.Split('(', ')')[1])) && mapper != null && !str.TryParseHex(out _)) {
                      var previousMap = mapper.PrimaryMap;
                      mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, mapper.Tutorials, this, mapper.Format, maps[0].Group, maps[0].Map);
                      args = new TabChangeRequestedEventArgs(mapper);
