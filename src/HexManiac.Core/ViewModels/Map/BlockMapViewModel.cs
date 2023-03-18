@@ -2189,9 +2189,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void GotoAddress(int address) {
-         if (model.GetNextRun(address).Start > address) {
-            viewPort.Tools.SelectedTool = viewPort.Tools.CodeTool;
-            viewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         var nextRun = model.GetNextRun(address);
+         var tool = viewPort.Tools.CodeTool;
+         if (nextRun.Start > address) {
+            viewPort.Tools.SelectedTool = tool;
+            tool.Mode = CodeMode.Script;
+         } else if (nextRun.Start == address && nextRun is XSERun) {
+            tool.ScriptParser.FormatScript<XSERun>(new NoDataChangeDeltaModel(), viewPort.Model, address);
          }
          viewPort.Goto.Execute(address);
       }
