@@ -396,16 +396,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      var deferred = deferredContent[deferredContent.Count - streamInfo.Count];
                      deferred.UpdateContent(model, info.PointerType, stream);
                   } else if (model.GetNextRun(info.Destination) is IStreamRun streamRun && streamRun.Start == info.Destination) {
-                     streamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we know they never have parents/children.
+                     var newStreamRun = streamRun.DeserializeRun(stream, token, out var _, out var _); // we don't notify parents/children based on script-stream changes: we know they never have parents/children.
                      // alter script content and compiled byte location based on stream move
-                     if (streamRun.Start != info.Destination) {
-                        script = script.Replace(info.Destination.ToAddress(), streamRun.Start.ToAddress());
-                        result[info.Source - start + 0] = (byte)(streamRun.Start >> 0);
-                        result[info.Source - start + 1] = (byte)(streamRun.Start >> 8);
-                        result[info.Source - start + 2] = (byte)(streamRun.Start >> 16);
-                        result[info.Source - start + 3] = (byte)((streamRun.Start >> 24) + 0x08);
-                        ((List<(int, int)>)movedData).Add((info.Destination, streamRun.Start));
+                     if (newStreamRun.Start != info.Destination) {
+                        script = script.Replace(info.Destination.ToAddress(), newStreamRun.Start.ToAddress());
+                        result[info.Source - start + 0] = (byte)(newStreamRun.Start >> 0);
+                        result[info.Source - start + 1] = (byte)(newStreamRun.Start >> 8);
+                        result[info.Source - start + 2] = (byte)(newStreamRun.Start >> 16);
+                        result[info.Source - start + 3] = (byte)((newStreamRun.Start >> 24) + 0x08);
+                        ((List<(int, int)>)movedData).Add((info.Destination, newStreamRun.Start));
                      }
+                     if (newStreamRun != streamRun) model.ObserveRunWritten(token, newStreamRun);
                   }
                   streamInfo.RemoveAt(0);
                }
