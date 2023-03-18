@@ -161,7 +161,7 @@ Name = '''egggroups'''
 [[List]]
 Name = '''FacingOptions'''
 0 = [
-   '''DoNotUse''',
+   '''NoMovement''',
    '''LookAround''',
    '''WanderAround''',
    '''WanderUpAndDown''',
@@ -172,7 +172,7 @@ Name = '''FacingOptions'''
    '''FaceDown''',
    '''FaceLeft''',
    '''FaceRight''',
-   '''Player''',
+   '''CausesGlitches''',
    '''BerryTreeGrowth''',
    '''FaceDownAndUp''',
    '''FaceLeftAndRight''',
