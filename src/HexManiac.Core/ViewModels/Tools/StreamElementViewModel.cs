@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -190,9 +191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecuteRepoint(object arg) {
          ViewPort.RepointToNewCopy(Start);
-         ViewPort.Refresh();
-         UsageCount = 1;
-         dataChanged?.Invoke(this, EventArgs.Empty);
+         RefreshCount();
       }
 
       private void ExecuteRepointAll(object arg) {
@@ -200,9 +199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var sources = Model.GetNextRun(destination).PointerSources.Skip(1).ToList();
          RepointAllAsync(sources).ContinueWith(completedTask => {
             ViewPort.ClearProgress();
-            ViewPort.Refresh();
-            UsageCount = 1;
-            dataChanged?.Invoke(this, EventArgs.Empty);
+            RefreshCount();
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
@@ -222,9 +219,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void ExecuteCreateNew(object arg) {
          ViewPort.RepointToNewCopy(Start);
+         RefreshCount();
+      }
+
+      private void RefreshCount() {
          ViewPort.Refresh();
          UsageCount = 1;
          dataChanged?.Invoke(this, EventArgs.Empty);
+
+         // Random code that shouldn't live here, but this is the trigger that people expect.
+         // In response to the "Repoint" button in the table tool, we need to update the layout table.
+         // Do a bunch of checks to make sure that this is the case we're interested in.
+         if (this.ParentName != "layout") return;
+         var mapRun = Model.GetNextRun(Start) as TableStreamRun;
+         if (mapRun == null || mapRun.ElementCount != 1 || mapRun.PointerSources == null || mapRun.PointerSources.Count != 1) return;
+         var bankRun = Model.GetNextRun(mapRun.PointerSources[0]) as TableStreamRun;
+         if (bankRun == null || bankRun.PointerSources == null || bankRun.PointerSources.Count != 1) return;
+         var mapTable = Model.GetNextRun(bankRun.PointerSources[0]) as ITableRun;
+         if (mapTable != Model.GetNextAnchor(HardcodeTablesModel.MapBankTable)) return;
+
+         // look up the bank/map and update the layoutID
+         int bankNumber = mapTable.ConvertByteOffsetToArrayOffset(bankRun.PointerSources[0]).ElementIndex;
+         var mapNumber = bankRun.ConvertByteOffsetToArrayOffset(mapRun.PointerSources[0]).ElementIndex;
+         var repointInfo = BlockMapViewModel.UpdateLayoutID(Model, bankNumber, mapNumber, () => ViewPort.CurrentChange);
+         if (repointInfo != null) {
+            ViewPort.RaiseMessage($"{repointInfo.Type} moved to {repointInfo.Address:X6}");
+         }
       }
    }
 }

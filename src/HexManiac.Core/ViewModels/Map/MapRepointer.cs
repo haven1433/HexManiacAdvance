@@ -6,7 +6,6 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
-using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;

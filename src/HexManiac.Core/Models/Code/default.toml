@@ -1130,6 +1130,15 @@ Name = '''AI_type_matchups'''
 160 = '''DoubleSuperEffective'''
 
 [[List]]
+Name = '''screenfades'''
+0 = [
+   '''FromBlack''',
+   '''ToBlack''',
+   '''FromWhite''',
+   '''ToWhite''',
+]
+
+[[List]]
 Name = '''move_particles'''
 0 = '''NotSet'''
 10000 = [

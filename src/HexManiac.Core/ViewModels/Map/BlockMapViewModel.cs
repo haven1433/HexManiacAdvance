@@ -1721,26 +1721,35 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void UpdateLayoutID() {
+         var message = UpdateLayoutID(model, group, map, tokenFactory);
+         if (message != null) {
+            InformRepoint(message);
+         }
+      }
+
+      public static DataMovedEventArgs UpdateLayoutID(IDataModel model, int groupID, int mapID, Func<ModelDelta> tokenFactory) {
          // step 1: test if we need to update the layout id
          var layoutTable = model.GetTable(HardcodeTablesModel.MapLayoutTable);
-         var map = GetMapModel();
+         var map = GetMapModel(model, groupID, mapID, tokenFactory);
          var layoutID = map.GetValue("layoutID") - 1;
          var addressFromMap = map.GetAddress("layout");
          var addressFromTable = model.ReadPointer(layoutTable.Start + layoutTable.ElementLength * layoutID);
-         if (addressFromMap == addressFromTable) return;
+         if (addressFromMap == addressFromTable) return null;
 
          var matches = layoutTable.ElementCount.Range().Where(i => model.ReadPointer(layoutTable.Start + layoutTable.ElementLength * i) == addressFromMap).ToList();
          var token = tokenFactory();
+         DataMovedEventArgs result = null;
          if (matches.Count == 0) {
             var originalLayoutTableStart = layoutTable.Start;
             layoutTable = model.RelocateForExpansion(token, layoutTable, layoutTable.Length + 4);
             layoutTable = layoutTable.Append(token, 1);
             model.ObserveRunWritten(token, layoutTable);
             model.UpdateArrayPointer(token, layoutTable.ElementContent[0], layoutTable.ElementContent, -1, layoutTable.Start + layoutTable.ElementLength * (layoutTable.ElementCount - 1), addressFromMap);
-            if (originalLayoutTableStart != layoutTable.Start) InformRepoint(new("Layout Table", layoutTable.Start));
+            if (originalLayoutTableStart != layoutTable.Start) result = new("Layout Table", layoutTable.Start);
             matches.Add(layoutTable.ElementCount - 1);
          }
          map.SetValue("layoutID", matches[0] + 1);
+         return result;
       }
 
       #endregion

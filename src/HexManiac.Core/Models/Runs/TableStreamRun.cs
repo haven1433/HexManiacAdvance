@@ -567,6 +567,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int GetCount(TableStreamRun run, int start, int elementLength, IReadOnlyList<int> pointerSources) {
          var segments = this.segments ?? run.ElementContent;
          Debug.Assert(elementLength == segments.Sum(seg => seg.Length), "ElementLength is expected to be the sum of the segments.");
+         var forceEnd = int.MaxValue;
          for (int i = 0; true; i++) {
             // verify that there's enough room for another element
             var existingRun = model.GetNextRun(start);
@@ -575,9 +576,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (!string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, existingRun.Start))) return i; // break if it's an anchor
             }
 
+            // if this is just a table of pointers, track the next pointer destination after the table
+            if (run.ElementContent.Count == 1 && run.ElementContent[0].Type == ElementContentType.Pointer) {
+               var destination = model.ReadPointer(start);
+               if (destination >= start) forceEnd = Math.Min(destination, forceEnd);
+            }
+
             // verify that the data matches the expected format
             if (!segments.DataFormatMatches(model, start, i, deepCheck: false)) return i;
 
+            // if we read a pointer while getting the count, verify that we haven't passed it
+            if (start >= forceEnd) return i;
             start += elementLength;
          }
       }
