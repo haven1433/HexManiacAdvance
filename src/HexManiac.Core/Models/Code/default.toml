@@ -172,7 +172,7 @@ Name = '''FacingOptions'''
    '''FaceDown''',
    '''FaceLeft''',
    '''FaceRight''',
-   '''CausesGlitches''',
+   '''Player''',
    '''BerryTreeGrowth''',
    '''FaceDownAndUp''',
    '''FaceLeftAndRight''',
