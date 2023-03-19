@@ -378,8 +378,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
-            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData);
-            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length);
+            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData, out int ignoreCharacterCount);
+            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount);
             if (code == null) {
                return;
             }
@@ -417,7 +417,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
-                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData); // recompile for the new location. Could update pointers.
+                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData, out var _); // recompile for the new location. Could update pointers.
                      sources = run.PointerSources;
                   }
                }

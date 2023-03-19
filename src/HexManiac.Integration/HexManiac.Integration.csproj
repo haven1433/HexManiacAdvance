@@ -24,6 +24,7 @@
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" Version="1.4.13" />
     <ProjectReference Include="$(SolutionDir)src\HexManiac.Core\HexManiac.Core.csproj" />
+    <ProjectReference Include="..\HexManiac.Tests\HexManiac.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

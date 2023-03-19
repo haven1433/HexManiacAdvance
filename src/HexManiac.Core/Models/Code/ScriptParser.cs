@@ -353,9 +353,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// <param name="model"></param>
       /// <param name="start"></param>
       /// <param name="script"></param>
-      /// <param name="movedData"></param>
+      /// <param name="movedData">Related data runs that moved during compilation.</param>
+      /// <param name="ignoreCharacterCount">Number of new characters added that should be ignored by the caret.</param>
       /// <returns></returns>
-      public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
+      public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {
+         ignoreCharacterCount = 0;
          movedData = new List<(int, int)>();
          var gameCode = model.GetGameCode().Substring(0, 4);
          var deferredContent = new List<DeferredStreamToken>();
@@ -460,6 +462,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      } else if (script.IndexOf(originalLine) != script.IndexOf($"{originalLine}{Environment.NewLine}{{{Environment.NewLine}")) {
                         script = script.ReplaceOne(originalLine, $"{line}{Environment.NewLine}{{{Environment.NewLine}}}");
+                        ignoreCharacterCount += Environment.NewLine.Length * 2 + 2;
                      } else {
                         script = script.ReplaceOne("<??????>", $"<{newAddress:X6}>");
                      }

@@ -581,7 +581,7 @@ failed:
          // maybe just expect a `callstd 5` after it, since it's the only one after infoStart that has that in both FR and Em
 
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 109);
-         var content = parser.Compile(token, model, scriptStart, ref script, out var _);
+         var content = parser.Compile(token, model, scriptStart, ref script, out var _, out var _);
          token.ChangeData(model, scriptStart, content);
 
          objectEventViewModel.Graphics = trainerGraphics;
@@ -728,7 +728,7 @@ wrongspecies:
 ";
 
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 160);
-         var content = parser.Compile(token, model, scriptStart, ref script, out var _);
+         var content = parser.Compile(token, model, scriptStart, ref script, out var _, out var _);
          token.ChangeData(model, scriptStart, content);
 
          objectEventViewModel.Graphics = trainerGraphics;
