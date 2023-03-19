@@ -276,6 +276,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          int length = parser.FindLength(model, body.Address);
          using (ModelCacheScope.CreateScope(model)) {
+            var initialStart = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+            var initialEnd = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
+            if (initialStart > initialEnd) (initialStart, initialEnd) = (initialEnd, initialStart);
+
             if (mode == CodeMode.Script) {
                CompileScriptChanges<XSERun>(body, run, ref codeContent, e.OldValue, parser, body == Contents[0]);
             } else if (mode == CodeMode.AnimationScript) {
@@ -296,7 +300,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
             var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
             if (start > end) (start, end) = (end, start);
-            if (start == body.Address) length = end - start + 1;
+            if (initialStart == body.Address) {
+               length = end - start + 1;
+               body.Address = start; // in case of the code getting repointed
+            }
             UpdateContents(start, parser, body.Address, length);
          }
       }
