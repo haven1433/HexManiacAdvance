@@ -185,6 +185,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          editor.Constants.AddRange(constantCache);
          editor.Keywords.AddRange(keywordCache);
+         editor.Keywords.Add("auto"); // for the auto-pointer feature
       }
 
       public void ClearConstantCache() {
