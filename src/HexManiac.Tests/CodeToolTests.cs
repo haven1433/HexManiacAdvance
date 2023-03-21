@@ -767,6 +767,15 @@ label2:;goto <000050>;end";
          Assert.Equal(0xFE, Model[0x80]);
       }
 
+      [Fact]
+      public void Script_PointerToScriptDirectlyAfter_NoAuto() {
+         SetFullModel(0xFF);
+
+         EventScript = "goto <auto>";
+
+         Assert.True(Tool.ShowErrorText);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

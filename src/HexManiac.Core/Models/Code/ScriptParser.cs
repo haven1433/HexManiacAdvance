@@ -672,12 +672,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var autoRun = data.GetNextRun(index);
             var runStartsNoGap = autoRun.Start == index && autoRun.Length <= length;
             var runStartsGap = autoRun.Start == index + 1 && autoRun.Length < length;
+            var runIsStream = autoRun is IStreamRun;
 
-            if (runStartsNoGap) {
+            if (runStartsNoGap && runIsStream) {
                results[autoIndex] = results[autoIndex].Replace($"<{index:X6}>", "<auto>");
                length -= autoRun.Length;
                index += autoRun.Length;
-            } else if (runStartsGap) {
+            } else if (runStartsGap && runIsStream) {
                results[autoIndex] = results[autoIndex].Replace($"<{index + 1:X6}>", "<auto>");
                length -= autoRun.Length + 1;
                index += autoRun.Length + 1;
@@ -1350,6 +1351,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                token = token.Substring(1, token.Length - 2);
             }
             if (token == "auto") {
+               if(PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
+                  return "<auto> only supported for text/data.";
+               }
                value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
             } else if (labels.TryResolveLabel(token, out value)) {
                // resolved to an address
