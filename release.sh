@@ -1,5 +1,5 @@
 
-version=`python -m bump`
+version=`python -m bump $1`
 git commit -a -m "version bump"
 git tag v$version
 
