@@ -161,7 +161,7 @@ Name = '''egggroups'''
 [[List]]
 Name = '''FacingOptions'''
 0 = [
-   '''DoNotUse''',
+   '''NoMovement''',
    '''LookAround''',
    '''WanderAround''',
    '''WanderUpAndDown''',
