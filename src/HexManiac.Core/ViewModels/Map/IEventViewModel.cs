@@ -489,6 +489,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string scriptAddressText;
       public string ScriptAddressText {
          get {
+            if (scriptAddressText != null) return scriptAddressText;
             var value = element.GetAddress("script");
             return GetAddressText(value, ref scriptAddressText);
          }
@@ -1092,6 +1093,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string scriptAddressText;
       public string ScriptAddressText {
          get {
+            if (scriptAddressText != null) return scriptAddressText;
             var value = element.GetAddress("script");
             return GetAddressText(value, ref scriptAddressText);
          }
@@ -1211,6 +1213,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string pointerText;
       public string PointerText {
          get {
+            if (pointerText != null) return pointerText;
             var value = element.GetAddress("arg");
             return GetAddressText(value, ref pointerText);
          }
@@ -1282,9 +1285,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool ShowSignpostText => EventTemplate.GetSignpostTextPointer(element.Model, this) != DataFormats.Pointer.NULL;
 
+      private string signpostText;
       public string SignpostText {
-         get => GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
+         get {
+            if (signpostText != null) return signpostText;
+            signpostText = GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
+            return signpostText;
+         }
          set {
+            signpostText = value;
             var newAddress = SetText(EventTemplate.GetSignpostTextPointer(element.Model, this), value);
             if (newAddress >= 0) DataMoved.Raise(this, new("Text", newAddress));
          }
