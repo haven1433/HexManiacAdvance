@@ -776,6 +776,16 @@ label2:;goto <000050>;end";
          Assert.True(Tool.ShowErrorText);
       }
 
+      [Fact]
+      public void PokeMart_FreespaceAddress_InsertReasonableScript() {
+         SetFullModel(0xFF);
+         Model.WriteMultiByteValue(0x100, 2, Token, 0); // correct end token so that it looks _just barely_ like mart data
+         EventScript = "pokemart <0000C0>;{;1;};end";
+
+         var martData = (TableStreamRun)Model.GetNextRun(0xC0);
+         Assert.Equal(4, martData.Length);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }

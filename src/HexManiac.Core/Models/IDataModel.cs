@@ -834,6 +834,13 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, null);
 
+      public static bool IsFreespace(this IDataModel model, int start, int length) {
+         for (int i = 0; i < length; i++) {
+            if (model[start + i] != 0xFF) return false;
+         }
+         return true;
+      }
+
       public static byte[] Cut(this IDataModel model, ModelDelta token, int start, int length) {
          var result = new byte[length];
 

@@ -310,7 +310,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var sources = source >= 0 ? SortedSpan.One(source) : SortedSpan<int>.None;
          TableStreamRun.TryParseTableStream(model, start, sources, string.Empty, format, null, out var tsRun);
          if (tsRun != null) {
-            if (model.GetNextRun(tsRun.Start) is ITableRun existingRun && existingRun.Start == tsRun.Start && tsRun.DataFormatMatches(existingRun)) {
+            var endTokenLength = tsRun.Length - tsRun.ElementLength * tsRun.ElementCount;
+            if (endTokenLength > 0 && model.IsFreespace(start, endTokenLength)) {
+               // freespace: write the end token
+               model.ClearFormat(token, tsRun.Start, endTokenLength);
+               tsRun = tsRun.DeserializeRun(string.Empty, token, out var _, out var _);
+               model.ObserveRunWritten(token, tsRun);
+            } else if (model.GetNextRun(tsRun.Start) is ITableRun existingRun && existingRun.Start == tsRun.Start && tsRun.DataFormatMatches(existingRun)) {
                // no need to update the format, the format already matches what we want
             } else {
                model.ClearFormat(token, tsRun.Start, tsRun.Length);
