@@ -638,10 +638,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var gameCode = data.GetGameCode().Substring(0, 4);
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
+
+         var labels = new DecompileLabelLibrary(index, length);
+
          while (length > 0) {
             if (index == nextAnchor.Start) {
                if (results.Count > 0) results.Add(string.Empty);
-               results.Add($"{nextAnchor.Start:X6}:");
+               results.Add($"{labels.AddressToLabel(nextAnchor.Start)}: # {nextAnchor.Start:X6}");
                nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
             }
 
@@ -651,7 +654,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                index += 1;
                length -= 1;
             } else {
-               results.Add("  " + line.Decompile(data, index));
+               results.Add("  " + line.Decompile(data, index, labels));
                var compiledByteLength = line.CompiledByteLength(data, index, destinations);
                index += compiledByteLength;
                length -= compiledByteLength;
@@ -668,18 +671,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // post processing: if a line has a pointer to this address and the length is big enough,
          // change that pointer to be an -auto- pointer
          while (length > 0) {
-            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{index:X6}>") || results[i].Contains($"<{index + 1:X6}>"));
+            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{labels.AddressToLabel(index)}>") || results[i].Contains($"<{labels.AddressToLabel(index + 1)}>"));
             var autoRun = data.GetNextRun(index);
             var runStartsNoGap = autoRun.Start == index && autoRun.Length <= length;
             var runStartsGap = autoRun.Start == index + 1 && autoRun.Length < length;
             var runIsStream = autoRun is IStreamRun;
 
             if (runStartsNoGap && runIsStream) {
-               results[autoIndex] = results[autoIndex].Replace($"<{index:X6}>", "<auto>");
+               results[autoIndex] = results[autoIndex].Replace($"<{labels.AddressToLabel(index)}>", "<auto>");
                length -= autoRun.Length;
                index += autoRun.Length;
             } else if (runStartsGap && runIsStream) {
-               results[autoIndex] = results[autoIndex].Replace($"<{index + 1:X6}>", "<auto>");
+               results[autoIndex] = results[autoIndex].Replace($"<{labels.AddressToLabel(index + 1)}>", "<auto>");
                length -= autoRun.Length + 1;
                index += autoRun.Length + 1;
             } else {
@@ -704,7 +707,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(IReadOnlyList<byte> data, int index);
-      string Decompile(IDataModel data, int start);
+      string Decompile(IDataModel data, int start, DecompileLabelLibrary labels);
 
       bool CanCompile(string line);
       string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
@@ -834,14 +837,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return true;
       }
 
-      public string Decompile(IDataModel data, int start) {
+      public string Decompile(IDataModel data, int start, DecompileLabelLibrary labels) {
          var builder = new StringBuilder(LineCommand);
          var streamContent = new List<string>();
          var args = new List<string>();
          foreach (var arg in Args) {
             if (arg is ScriptArg sarg) {
                var tempBuilder = new StringBuilder();
-               sarg.Build(false, data, start, tempBuilder, streamContent);
+               sarg.Build(false, data, start, tempBuilder, streamContent, labels);
                args.Add(tempBuilder.ToString());
             }
             start += arg.Length(data, start);
@@ -1085,7 +1088,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return null;
       }
 
-      public string Decompile(IDataModel data, int start) {
+      public string Decompile(IDataModel data, int start, DecompileLabelLibrary labels) {
          for (int i = 0; i < LineCode.Count; i++) {
             if (LineCode[i] != data[start + i]) throw new ArgumentException($"Data at {start:X6} does not match the {LineCommand} command.");
          }
@@ -1100,7 +1103,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          foreach (var arg in Args) {
             builder.Append(" ");
             if (arg is ScriptArg scriptArg) {
-               if (scriptArg.Build(allFillerIsZero, data, start, builder, streamContent)) continue;
+               if (scriptArg.Build(allFillerIsZero, data, start, builder, streamContent, labels)) continue;
             } else if (arg is ArrayArg arrayArg) {
                builder.Append(arrayArg.ConvertMany(data, start));
             } else {
@@ -1309,7 +1312,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return 0;
       }
 
-      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent) {
+      /// <summary>
+      /// Build from compiled bytes to text.
+      /// </summary>
+      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent, DecompileLabelLibrary labels) {
          if (allFillerIsZero && Name == "filler") return true;
          if (Type == ArgType.Byte) builder.Append(Convert(data, data[start], 1));
          if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2), 2));
@@ -1317,10 +1323,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
-               builder.Append($"{address:X6}");
+               builder.Append(labels.AddressToLabel(address));
             } else {
                address -= 0x8000000;
-               builder.Append($"<{address:X6}>");
+               builder.Append($"<{labels.AddressToLabel(address)}>");
                if (PointerType != ExpectedPointerType.Unknown) {
                   if (data.GetNextRun(address) is IStreamRun stream && stream.Start == address) {
                      streamContent.Add(stream.SerializeRun());
@@ -1331,6 +1337,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return false;
       }
 
+      /// <summary>
+      /// Build from text to compiled bytes.
+      /// </summary>
       public string Build(IDataModel model, int address, string token, IList<byte> results, LabelLibrary labels) {
          if (Type == ArgType.Byte) {
             results.Add((byte)Convert(model, token));

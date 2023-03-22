@@ -711,7 +711,7 @@ label2:;goto <000050>;end";
       [InlineData("03")]
       [InlineData("04")]
       [InlineData("05")]
-      public void ScriptWithPointerToPointer_Format_NoPointerFormat(string destination) {
+      public void ScriptWithPointerToPointer_Format_FixBrokenPointer(string destination) {
          SetFullModel(0xFF);
          $"06 00 {destination} 00 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
          ViewPort.Edit("^script`xse`");
@@ -719,14 +719,14 @@ label2:;goto <000050>;end";
          EventScript += " "; // force formatting
 
          var run = Model.GetNextRun(1);
-         Assert.Equal(int.MaxValue, run.Start);
+         Assert.Equal(7, Model.ReadPointer(2)); // auto-update pointer to something reasonable
       }
 
       [Theory]
       [InlineData("09")]
       [InlineData("0A")]
       [InlineData("0B")]
-      public void ScriptWithPointerToFuturePointer_Format_OnlySecondPointerKept(string destination) {
+      public void ScriptWithPointerToFuturePointer_Format_FixBrokenPointer(string destination) {
          SetFullModel(0xFF);
          $"06 00 {destination} 00 00 08 06 00 00 01 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
          ViewPort.Edit("^script`xse`");
@@ -734,7 +734,7 @@ label2:;goto <000050>;end";
          EventScript += " "; // force formatting
 
          var run = Model.GetNextRun(1);
-         Assert.Equal(8, run.Start);
+         Assert.Equal(13, Model.ReadPointer(2)); // auto-update pointer to something reasonable
       }
 
       [Fact]

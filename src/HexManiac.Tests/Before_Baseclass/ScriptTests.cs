@@ -27,9 +27,9 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = battle.Parse(Model, 0, code.Length).SplitLines();
 
          Assert.Equal<string>(new string[] {
-            "  jumpiftype 0 0 <000007>",
+            "  jumpiftype 0 0 <section0>",
             "",
-            "000007:",
+            "section0: # 000007",
             "  end",
             "",
          }, lines);
