@@ -124,6 +124,9 @@ namespace HavenSoft.HexManiac.Tests {
             var newOffsetPointer = freshMetadata.OffsetPointers.Single(pointer => pointer.Address == offsetPointer.Address);
             Assert.Equal(newOffsetPointer.Offset, offsetPointer.Offset);
          }
+
+         // correct number of default goto shortcuts after upgrade
+         Assert.Equal(5, upgradedMetadata.GotoShortcuts.Count);
       }
 
       [SkippableTheory]
