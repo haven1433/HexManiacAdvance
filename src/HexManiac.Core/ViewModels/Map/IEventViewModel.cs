@@ -737,7 +737,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (martContent.Value == null) return null;
             var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
             if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
-            return martContentText = stream.SerializeRun();
+            var lines = stream.SerializeRun().SplitLines().Select(line => line.Trim('"'));
+            return martContentText = Environment.NewLine.Join(lines);
          }
          set {
             martContentText = value;
