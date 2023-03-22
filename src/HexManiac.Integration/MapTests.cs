@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core;
-using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -108,6 +107,20 @@ namespace HavenSoft.HexManiac.Integration {
 
          var layouts = firered.Model.GetTableModel("data.maps.layouts");
          Assert.Equal(384, layouts.Count);
+      }
+
+      [SkippableFact]
+      public void SelectBlock_SelectEvent_NoBlockSelected() {
+         var firered = LoadReadOnlyFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.SelectBlock(2, 2);
+         firered.MapEditor.ReleaseBlock(2, 2);
+
+         var ev = firered.MapEditor.PrimaryMap.EventGroup.Objects[0];
+         firered.MapEditor.EventDown(ev, PrimaryInteractionStart.None);
+         firered.MapEditor.EventUp();
+
+         Assert.False(firered.MapEditor.BlockEditorVisible);
       }
    }
 }

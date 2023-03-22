@@ -62,10 +62,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(ShowEventPanel));
             ShowHeaderPanel = false;
-            if (selectedEvent == null) primaryMap.DeselectEvent();
             primaryMap.BlockEditor.ShowTiles = false;
             DrawBlockIndex = -1;
             CollisionIndex = -1;
+            DrawMultipleTiles = false;
+            BlockEditorVisible = false;
+            tilesToDraw = null;
+            if (selectedEvent == null) primaryMap.DeselectEvent();
          }
       }
 
@@ -594,7 +597,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var prevEvent = SelectedEvent;
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
-            EventDown(x, y, ev, click);
+            EventDown(ev, click);
             return;
          } else {
             if (prevEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
@@ -620,7 +623,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.Event) EventUp(x, y);
+         if (interactionType == PrimaryInteractionType.Event) EventUp();
          interactionType = PrimaryInteractionType.None;
       }
 
@@ -710,7 +713,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          primaryMap.RedrawEvents(); // editing blocks in a map can draw over events, we need to redraw events now that we have new blocks
       }
 
-      private void EventDown(double x, double y, IEventViewModel ev, PrimaryInteractionStart click) {
+      public void EventDown(IEventViewModel ev, PrimaryInteractionStart click) {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventViewModel warp && click == PrimaryInteractionStart.DoubleClick) {
             var banks = AllMapsModel.Create(warp.Element.Model, default);
@@ -764,7 +767,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Hover(x, y);
       }
 
-      private void EventUp(double x, double y) {
+      public void EventUp() {
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;

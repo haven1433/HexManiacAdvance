@@ -275,8 +275,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ClearPixelCache() {
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         lock (pixelWriteLock) {
+            pixelData = null;
+            NotifyPropertyChanged(nameof(PixelData));
+         }
       }
 
       #endregion
