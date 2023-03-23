@@ -1582,11 +1582,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return connections;
       }
 
+      private ModelTable CreateEventTable(ModelArrayElement map) {
+         // create some blank event data: 0 events for each of the four categories
+         var token = tokenFactory();
+         var eventAddress = MapRepointer.CreateNewEvents(token);
+         model.UpdateArrayPointer(token, map.Table.ElementContent[1], map.Table.ElementContent, 0, map.Start + 4, eventAddress);
+         return map.GetSubTable("events");
+      }
+
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
          var token = tokenFactory();
          var map = GetMapModel();
          if (map == null) return null;
-         var events = map.GetSubTable("events")[0];
+         var eventsTable = map.GetSubTable("events");
+         if (eventsTable == null) eventsTable = CreateEventTable(map);
+         var events = eventsTable[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);

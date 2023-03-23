@@ -761,8 +761,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = MapUnderCursor(x, y);
          if (map == primaryMap) {
             CreateEventForCreationInteraction(eventCreationType);
-            map.UpdateEventLocation(selectedEvent, x, y);
-            Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
+            if (selectedEvent != null) {
+               map.UpdateEventLocation(selectedEvent, x, y);
+               Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
+            }
          }
          Hover(x, y);
       }
