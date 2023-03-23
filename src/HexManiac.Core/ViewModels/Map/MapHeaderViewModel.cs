@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Map;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -75,21 +76,52 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (element.Model.TryGetList("maptypes", out var mapTypes)) {
             foreach (var name in mapTypes) MapTypeOptions.Add(name);
          }
-
-         var layout = element.GetSubTable(Format.Layout)[0];
-         var primaryAddress = layout.GetAddress(Format.PrimaryBlockset).ToAddress();
-         var secondaryAddress = layout.GetAddress(Format.SecondaryBlockset).ToAddress();
-         primaryIndex = PrimaryOptions.IndexOf(primaryAddress);
-         secondaryIndex = SecondaryOptions.IndexOf(secondaryAddress);
+         Refresh();
       }
 
-      public ObservableCollection<string> PrimaryOptions => format.BlocksetCache.Primary;
-      public ObservableCollection<string> SecondaryOptions => format.BlocksetCache.Secondary;
+      public void UpdateFromModel() {
+         if (primaryIndex == -1 || secondaryIndex == -1) return; // only way this can ever be set is later in this same method (recursion guard)
+         var layout = map.GetSubTable(Format.Layout)[0];
+         var primaryAddress = layout.GetAddress(Format.PrimaryBlockset).ToAddress();
+         var secondaryAddress = layout.GetAddress(Format.SecondaryBlockset).ToAddress();
+
+         // if this is a no-op, skip
+         var newPrimary = format.BlocksetCache.Primary.IndexOf(primaryAddress);
+         var newSecondary = format.BlocksetCache.Secondary.IndexOf(secondaryAddress);
+         if (
+            PrimaryOptions.SequenceEqual(format.BlocksetCache.Primary) &&
+            SecondaryOptions.SequenceEqual(format.BlocksetCache.Secondary) &&
+            primaryIndex == newPrimary &&
+            secondaryIndex == newSecondary) {
+            // already in a good state
+            // don't actually notify, since there's no changes
+            return;
+         }
+
+         PrimaryOptions.Clear();
+         SecondaryOptions.Clear();
+         foreach (var item in format.BlocksetCache.Primary) PrimaryOptions.Add(item);
+         foreach (var item in format.BlocksetCache.Secondary) SecondaryOptions.Add(item);
+
+         // force refresh for primary/secondary index
+         (primaryIndex, secondaryIndex) = (-1, -1);
+         NotifyPropertiesChanged(nameof(PrimaryIndex), nameof(SecondaryIndex));
+         (primaryIndex, secondaryIndex) = (newPrimary, newSecondary);
+         NotifyPropertiesChanged(nameof(PrimaryIndex), nameof(SecondaryIndex));
+      }
+
+      public void Refresh() {
+         format.Refresh();
+         UpdateFromModel();
+      }
+
+      public ObservableCollection<string> PrimaryOptions { get; } = new();
+      public ObservableCollection<string> SecondaryOptions { get; } = new();
       private int primaryIndex, secondaryIndex;
       public int PrimaryIndex {
          get => primaryIndex;
          set {
-            if (primaryIndex == value) return;
+            if (primaryIndex == value || value == -1) return;
             primaryIndex = value;
             UpdateBlocksets();
             NotifyPropertyChanged();
@@ -98,7 +130,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int SecondaryIndex {
          get => secondaryIndex;
          set {
-            if (secondaryIndex == value) return;
+            if (secondaryIndex == value || value == -1) return;
             secondaryIndex = value;
             UpdateBlocksets();
             NotifyPropertyChanged();

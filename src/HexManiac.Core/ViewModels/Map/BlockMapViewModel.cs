@@ -467,7 +467,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          mapScriptCollection = new(viewPort);
          mapScriptCollection.NewMapScriptsCreated += (sender, e) => GetMapModel().SetAddress("mapscripts", e.Address);
 
-         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID);
+         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => Header.Refresh());
          mapRepointer.ChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
          mapRepointer.DataMoved += (sender, e) => {
             ClearCaches();
@@ -577,6 +577,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             oldBorderEditor.ShowBorderPanel = false;
             NotifyPropertyChanged(nameof(BorderEditor));
          }
+         Header.UpdateFromModel();
          ClearPixelCache();
          if (!MapScriptCollection.Unloaded) MapScriptCollection.Load(GetMapModel());
          NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(BerryInfo));
@@ -1885,26 +1886,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          lock (blockRenders) {
             if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
          }
-         if (borderBlock == null) RefreshBorderRender();
+         var borderBlockCopy = borderBlock; // race condition: borderblock might be erased while we're drawing
+         if (borderBlockCopy == null) borderBlockCopy = RefreshBorderRender();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var start = layout.GetAddress("blockmap");
 
          var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight);
-         var (borderWidth, borderHeight) = (borderBlock.PixelWidth / 16, borderBlock.PixelHeight / 16);
+         var (borderWidth, borderHeight) = (borderBlockCopy.PixelWidth / 16, borderBlockCopy.PixelHeight / 16);
          for (int y = 0; y < height + border.North + border.South; y++) {
             for (int x = 0; x < width + border.West + border.East; x++) {
                if (y < border.North || x < border.West || y >= border.North + height || x >= border.West + width) {
                   var (xEdge, yEdge) = (x - border.West - width, y - border.North - height);
                   var (rightEdge, bottomEdge) = (xEdge >= 0, yEdge >= 0);
                   // top/left
-                  if (!rightEdge && !bottomEdge && x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (!rightEdge && !bottomEdge && x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   // right edge
-                  if (rightEdge && !bottomEdge && xEdge % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (rightEdge && !bottomEdge && xEdge % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   // bottom edge
-                  if (!rightEdge && bottomEdge && x % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (!rightEdge && bottomEdge && x % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   // bottom right corner
-                  if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   continue;
                }
                var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
@@ -1977,7 +1979,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = canvas;
       }
 
-      private void RefreshBorderRender(ModelArrayElement layout = null) {
+      private IPixelViewModel RefreshBorderRender(ModelArrayElement layout = null) {
          if (layout == null) layout = GetLayout();
          lock (blockRenders) {
             if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
@@ -1995,7 +1997,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
-         BorderBlock = canvas;
+         return BorderBlock = canvas;
       }
 
       private ModelArrayElement GetMapModel() => GetMapModel(model, group, map, tokenFactory);

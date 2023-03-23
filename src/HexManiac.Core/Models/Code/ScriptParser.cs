@@ -311,7 +311,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          TableStreamRun.TryParseTableStream(model, start, sources, string.Empty, format, null, out var tsRun);
          if (tsRun != null) {
             var endTokenLength = tsRun.Length - tsRun.ElementLength * tsRun.ElementCount;
-            if (endTokenLength > 0 && model.IsFreespace(start, endTokenLength)) {
+            if (endTokenLength > 0 && model.IsFreespace(start, endTokenLength) && token is not NoDataChangeDeltaModel) {
                // freespace: write the end token
                model.ClearFormat(token, tsRun.Start, endTokenLength);
                tsRun = tsRun.DeserializeRun(string.Empty, token, out var _, out var _);

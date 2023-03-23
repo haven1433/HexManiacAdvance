@@ -23,6 +23,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly int mapID; // bank * 1000 + map
 
+      private readonly Action refreshHeader;
+
       #region Commands
 
       private StubCommand
@@ -73,13 +75,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<DataMovedEventArgs> DataMoved; // also works as a "data changed" (request refresh) if the arg is null
       public event EventHandler<ChangeMapEventArgs> ChangeMap;
 
-      public MapRepointer(Format format, IFileSystem fileSystem, IEditableViewPort viewPort, ChangeHistory<ModelDelta> history, int mapID) {
+      public MapRepointer(Format format, IFileSystem fileSystem, IEditableViewPort viewPort, ChangeHistory<ModelDelta> history, int mapID, Action refreshHeader) {
          this.format = format;
          this.fileSystem = fileSystem;
          this.viewPort = viewPort;
          this.model = viewPort.Model;
          this.history = history;
          this.mapID = mapID;
+         this.refreshHeader = refreshHeader;
       }
 
       public void Refresh() {
@@ -265,6 +268,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          var start = DuplicateData(layout.GetAddress(member), length);
          layout.SetAddress(member, start);
+         refreshHeader?.Invoke();
          DataMoved.Raise(this, new(char.ToUpper(member[0]) + member.Substring(1), start));
          foreach (var command in commands) command.RaiseCanExecuteChanged();
       }
