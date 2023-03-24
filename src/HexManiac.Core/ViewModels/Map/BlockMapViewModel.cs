@@ -195,8 +195,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region IsSelected
 
-      // TODO why is the selection rect not showing up until the first move interaction?
-
       private bool isSelected;
       public bool IsSelected {
          get => isSelected;

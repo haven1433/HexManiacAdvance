@@ -370,6 +370,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (blockset == -1) return;
          if (blockset == Pointer.NULL) return;
          // update the primary map
+         map.IsSelected = true;
          if (VisibleMaps.FirstOrDefault(existing => existing.UpdateFrom(map)) is BlockMapViewModel loadedMap) map = loadedMap;
          if (primaryMap != map) {
             if (primaryMap != null) {
@@ -518,12 +519,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                while (Math.Abs(p.X - drawSource.X) % tilesToDraw.GetLength(0) != 0) p -= new Point(1, 0);
                while (Math.Abs(p.Y - drawSource.Y) % tilesToDraw.GetLength(1) != 0) p -= new Point(0, 1);
             }
-            UpdateHover(p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
+            UpdateHover(map, p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
             HoverPoint = string.Empty;
          } else {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
-            map.HoverPoint = ToPixelPosition(x, y);
-            if (UpdateHover(p.X, p.Y, 1, 1)) {
+            map.HoverPoint = ToPixelPosition(map, x, y);
+            if (UpdateHover(map, p.X, p.Y, 1, 1)) {
                HoverPoint = $"({p.X}, {p.Y})";
                if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
                   return ShowEventHover(ev);
@@ -539,17 +540,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// <summary>
       /// returns true if the hover changed
       /// </summary>
-      private bool UpdateHover(int left, int top, int width, int height) {
+      private bool UpdateHover(BlockMapViewModel map, int left, int top, int width, int height) {
          var (prevX, prevY) = (highlightCursorX, highlightCursorY);
          var (prevW, prevH) = (highlightCursorWidth, highlightCursorHeight);
 
-         var border = primaryMap.GetBorderThickness();
+         var border = map.GetBorderThickness();
          if (border == null) return false;
          ShowHighlightCursor = true;
-         HighlightCursorX = (left + border.West + width / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
-         HighlightCursorY = (top + border.North + height / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
-         HighlightCursorWidth = width * 16 * primaryMap.SpriteScale + 4;
-         HighlightCursorHeight = height * 16 * primaryMap.SpriteScale + 4;
+
+         // limit selection right/bottom to the map
+         var mapWidth = map.PixelWidth / 16 - border.West - border.East;
+         var mapHeight = map.PixelHeight / 16 - border.North - border.South;
+         while (left + width > mapWidth && width > 1) width--;
+         while (top + height > mapHeight && height > 1) height--;
+
+         HighlightCursorX = (left + border.West + width / 2.0) * 16 * map.SpriteScale + map.LeftEdge;
+         HighlightCursorY = (top + border.North + height / 2.0) * 16 * map.SpriteScale + map.TopEdge;
+         HighlightCursorWidth = width * 16 * map.SpriteScale + 4;
+         HighlightCursorHeight = height * 16 * map.SpriteScale + 4;
 
          if (prevX != highlightCursorX) return true;
          if (prevY != highlightCursorY) return true;
@@ -696,7 +704,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (lastDraw != drawSource) Tutorials.Complete(Tutorial.ControlClick_FillRect);
             FillBackup();
             FillRect();
-            UpdateHover(Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
+            UpdateHover(map, Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
          }
       }
 
@@ -925,7 +933,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (blockIndex, collisionIndex) = map.GetBlock(x, y);
          SelectedEvent = null;
          selectDownPosition = ToBoundedMapTilePosition(map, x, y, 1, 1);
-         UpdateHover(selectDownPosition.X, selectDownPosition.Y, 1, 1);
+         UpdateHover(PrimaryMap, selectDownPosition.X, selectDownPosition.Y, 1, 1);
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
             ShowEventContextMenu(ev);
@@ -949,7 +957,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var top = Math.Min(selectDownPosition.Y, selectMovePosition.Y);
          var width = Math.Abs(selectDownPosition.X - selectMovePosition.X) + 1;
          var height = Math.Abs(selectDownPosition.Y - selectMovePosition.Y) + 1;
-         UpdateHover(left, top, width, height);
+         UpdateHover(map, left, top, width, height);
       }
 
       public void SelectUp(double x, double y) {
@@ -966,7 +974,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tilesToDraw = new int[width, height];
          if (width == 1 && height == 1) {
             SelectSingleBlock();
-            UpdateHover(left, top, 1, 1);
+            UpdateHover(map, left, top, 1, 1);
             Tutorials.Complete(Tutorial.RightClickMap_SelectBlock);
             return;
          }
@@ -986,14 +994,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (fillError) {
             DrawMultipleTiles = false;
             tilesToDraw = null;
-            UpdateHover(selectMovePosition.X, selectMovePosition.Y, 1, 1);
+            UpdateHover(map, selectMovePosition.X, selectMovePosition.Y, 1, 1);
          } else {
             Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
             FillMultiTileRender();
             DrawMultipleTiles = true;
             BlockEditorVisible = false;
             PrimaryMap.BlockEditor.ShowTiles = false;
-            UpdateHover(left, top, width, height);
+            UpdateHover(map, left, top, width, height);
          }
       }
 
@@ -1037,20 +1045,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // limit to within the content of this map
          var width = map.PixelWidth / 16 - borders.West - borders.East;
          var height = map.PixelHeight / 16 - borders.North - borders.South;
-         position = new(position.X.LimitToRange(0, width - selectionWidth), position.Y.LimitToRange(0, height - selectionHeight));
-
-         // offset based on primary map
-         var primarySize = primaryMap.GetBorderThickness();
-         var mapLeft = (int)((map.LeftEdge - primaryMap.LeftEdge) / map.SpriteScale / 16);
-         var mapTop = (int)((map.TopEdge - primaryMap.TopEdge) / map.SpriteScale / 16);
-         position = new(position.X + mapLeft + borders.West - primarySize.West, position.Y + mapTop + borders.North - primarySize.North);
+         position = new(position.X.LimitToRange(0, width - 1), position.Y.LimitToRange(0, height - 1));
 
          return position;
       }
 
-      private ImageLocation ToPixelPosition(double x, double y) {
-         (x, y) = ((x - primaryMap.LeftEdge) / primaryMap.SpriteScale, (y - primaryMap.TopEdge) / primaryMap.SpriteScale);
-         return new ImageLocation(x / primaryMap.PixelWidth, y / primaryMap.PixelHeight);
+      private ImageLocation ToPixelPosition(BlockMapViewModel map, double x, double y) {
+         (x, y) = ((x - map.LeftEdge) / map.SpriteScale, (y - map.TopEdge) / map.SpriteScale);
+         return new ImageLocation(x / map.PixelWidth, y / map.PixelHeight);
       }
 
       private (double, double) ToMapPosition(int x, int y) {
