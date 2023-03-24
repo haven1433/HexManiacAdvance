@@ -122,5 +122,18 @@ namespace HavenSoft.HexManiac.Integration {
 
          Assert.False(firered.MapEditor.BlockEditorVisible);
       }
+
+      [SkippableFact]
+      public void Door_CreateNewMap_NewMapWarpConnectsToSourceWarp() {
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         var warp = firered.MapEditor.PrimaryMap.EventGroup.Warps[1];
+
+         FileSystem.ShowOptions = (_, _, _, _) => 0;
+         firered.MapEditor.CreateMapForWarp(warp);
+
+         warp = firered.MapEditor.PrimaryMap.EventGroup.Warps[0];
+         Assert.Equal(2, warp.WarpID);
+      }
    }
 }

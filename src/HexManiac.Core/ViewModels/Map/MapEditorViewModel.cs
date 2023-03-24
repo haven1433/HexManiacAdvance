@@ -982,8 +982,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool fillError = false;
          for (int xx = 0; xx < width; xx++) {
             for (int yy = 0; yy < height; yy++) {
-               var (tX, tY) = ToMapPosition(left + xx, top + yy);
-               var block = primaryMap.GetBlock(tX, tY);
+               var (tX, tY) = ToMapPosition(map, left + xx, top + yy);
+               var block = map.GetBlock(tX, tY);
                if (block.blockIndex == -1 || block.collisionIndex == -1) {
                   fillError = true;
                   break;
@@ -1055,10 +1055,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return new ImageLocation(x / map.PixelWidth, y / map.PixelHeight);
       }
 
-      private (double, double) ToMapPosition(int x, int y) {
-         var borders = primaryMap.GetBorderThickness();
-         var pX = (x + borders.West) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
-         var pY = (y + borders.North) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
+      public (double x, double y) ToMapPosition(BlockMapViewModel map, int x, int y) {
+         var borders = map.GetBorderThickness();
+         var pX = (x + borders.West) * 16 * map.SpriteScale + map.LeftEdge;
+         var pY = (y + borders.North) * 16 * map.SpriteScale + map.TopEdge;
          return (pX, pY);
       }
 
@@ -1296,6 +1296,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void CreateMapForWarp() {
          if (eventContext is not WarpEventViewModel warpContext) return;
          eventContext = null;
+         CreateMapForWarp(warpContext);
+      }
+
+      public void CreateMapForWarp(WarpEventViewModel warpContext) {
          Tutorials.Complete(Tutorial.RightClick_WarpNewMap);
          BlockMapViewModel newMap = primaryMap.CreateMapForWarp(warpContext);
          if (newMap == null) return;

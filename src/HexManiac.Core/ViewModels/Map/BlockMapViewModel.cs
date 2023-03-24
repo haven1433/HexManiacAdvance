@@ -724,7 +724,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // place reverse warp at bottom heading back
          (warp.Bank, warp.Map, warp.WarpID) = (newMap.group, newMap.map, 1);
          var returnWarp = newMap.CreateWarpEvent(group, map);
-         returnWarp.WarpID = GetEvents().Where(e => e is WarpEventViewModel).Until(e => e.Equals(warp)).Count();
+         returnWarp.WarpID = warp.Element.ArrayIndex + 1;
          (returnWarp.X, returnWarp.Y) = (4, 8);
          if (!warpIsBottomSquare) (returnWarp.X, returnWarp.Y) = (4, 7);
 
