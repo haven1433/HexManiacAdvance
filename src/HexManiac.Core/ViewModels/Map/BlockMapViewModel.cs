@@ -1376,7 +1376,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void ConnectNewMap(ConnectionInfo info) {
+      public void ConnectNewMap(ConnectionInfo info) {
          using (viewPort.ChangeHistory.ContinueCurrentTransaction()) {
             var token = tokenFactory();
             var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
