@@ -2400,7 +2400,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (gotoStart, gotoEnd) = gotoSelection[i];
             newTab.Add(CreateChildView(showStart, showEnd), gotoStart, gotoEnd);
          }
-         RequestTabChange(this, new(newTab));
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted && MapEditor?.IsValidState == true) {
+            // maybe I'm not the current tab
+            // try again from my map editor
+            RequestTabChange(MapEditor, args);
+         }
       }
 
       public void OpenDexReorderTab(string dexTableName) {
