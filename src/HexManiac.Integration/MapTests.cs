@@ -135,5 +135,33 @@ namespace HavenSoft.HexManiac.Integration {
          warp = firered.MapEditor.PrimaryMap.EventGroup.Warps[0];
          Assert.Equal(2, warp.WarpID);
       }
+
+      [SkippableFact]
+      public void CreateNewMapFromWarp_Undo_NoError() {
+         int close = 0;
+         FileSystem.ShowOptions = (_, _, _, _) => 0;
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.CreateMapForWarp(firered.MapEditor.PrimaryMap.EventGroup.Warps[1]);
+         firered.MapEditor.Closed += (sender, e) => close++;
+
+         firered.MapEditor.Undo.Execute();
+
+         Assert.Single(Errors);
+         Assert.Equal(1, close);
+      }
+
+      [SkippableFact]
+      public void CreateNewMapFromConnection_Undo_NoError() {
+         FileSystem.ShowOptions = (_, _, _, _) => 0;
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.PrimaryMap.ConnectNewMap(new(10, 0, MapDirection.Right));
+         firered.MapEditor.PrimaryMap = firered.MapEditor.VisibleMaps.Last(); // should be the map that was just inserted
+
+         firered.MapEditor.Undo.Execute();
+
+         Assert.Equal(3000, firered.MapEditor.PrimaryMap.MapID);
+      }
    }
 }

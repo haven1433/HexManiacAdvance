@@ -29,6 +29,8 @@ namespace HavenSoft.HexManiac.Integration {
          var vm = new ViewPort(fireredName, model, InstantDispatch.Instance, singletons, new(), FileSystem) { MaxDiffSegmentCount = 10 };
          vm.OnError += (sender, e) => Errors.Add(e);
          vm.OnMessage += (sender, e) => Messages.Add(e);
+         vm.MapEditor.OnError += (sender, e) => Errors.Add(e);
+         vm.MapEditor.OnMessage += (sender, e) => Messages.Add(e);
          return vm;
       }
 
@@ -38,6 +40,8 @@ namespace HavenSoft.HexManiac.Integration {
          var vm = new ViewPort(emeraldName, model, InstantDispatch.Instance, singletons, new(), FileSystem) { MaxDiffSegmentCount = 10 };
          vm.OnError += (sender, e) => Errors.Add(e);
          vm.OnMessage += (sender, e) => Messages.Add(e);
+         vm.MapEditor.OnError += (sender, e) => Errors.Add(e);
+         vm.MapEditor.OnMessage += (sender, e) => Messages.Add(e);
          return vm;
       }
 
@@ -57,6 +61,8 @@ namespace HavenSoft.HexManiac.Integration {
          };
          vm.OnError += (sender, e) => Errors.Add(e);
          vm.OnMessage += (sender, e) => Messages.Add(e);
+         vm.MapEditor.OnError += (sender, e) => Errors.Add(e);
+         vm.MapEditor.OnMessage += (sender, e) => Messages.Add(e);
          return vm;
       }
 

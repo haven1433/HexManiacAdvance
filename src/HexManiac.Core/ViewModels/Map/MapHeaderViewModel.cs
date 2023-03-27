@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void UpdateFromModel() {
          if (primaryIndex == -1 || secondaryIndex == -1) return; // only way this can ever be set is later in this same method (recursion guard)
+         if (map == null) return;
          var layout = map.GetSubTable(Format.Layout)[0];
          var primaryAddress = layout.GetAddress(Format.PrimaryBlockset).ToAddress();
          var secondaryAddress = layout.GetAddress(Format.SecondaryBlockset).ToAddress();

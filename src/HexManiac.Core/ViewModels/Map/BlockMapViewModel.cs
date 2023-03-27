@@ -1830,6 +1830,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RefreshBlockAttributeCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
             if (layout == null) layout = GetLayout();
+            if (layout == null) return;
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
