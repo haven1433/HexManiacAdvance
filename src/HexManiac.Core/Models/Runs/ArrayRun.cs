@@ -362,7 +362,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (self.ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
                for (int j = 0; j < self.ElementCount; j++) {
                   var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
-                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index) continue;
+                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index + segment.ValueOffset) continue;
                   yield return (segmentStart, segmentStart + segment.Length - 1);
                }
             }
