@@ -1117,12 +1117,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return tips.ToArray();
       }
 
-      public const int TextSummaryLimit = 60;
+      public const int TextSummaryLimit = 60, TextCountLimit = 5;
       private IEnumerable<object> SummarizeScript(int address) {
          var renderedAddresses = new HashSet<int>();
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
          var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x67, 0x1A, 0x5C, 0x86); // loadpointer, preparemsg, copyvarifnotzero, trainerbattle, mart
          var tips = new List<object>();
+         int textIncluded = 0; // prevent the tooltip from getting too long
 
          var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
          var icons = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
@@ -1134,19 +1135,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (model[spot.Address] == 0x0F) {
                // loadpointer (text)
                var textStart = model.ReadPointer(spot.Address + 2);
-               if (0 <= textStart && textStart < model.Count) {
+               if (0 <= textStart && textStart < model.Count && textIncluded < TextCountLimit) {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
             } else if (model[spot.Address] == 0x67) {
                // preparemsg (text)
                var textStart = model.ReadPointer(spot.Address + 1);
-               if (0 <= textStart && textStart < model.Count) {
+               if (0 <= textStart && textStart < model.Count && textIncluded < TextCountLimit) {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
             } else if (model[spot.Address] == 0x1A && itemStats != null) {
@@ -1173,6 +1176,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
 
@@ -1187,19 +1191,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (spot.Address + 1 == 0x03) {
                   // 5C ** trainer: arg: playerwin<>
                   var textStart = model.ReadPointer(spot.Address + 6);
-                  if (textStart >= 0 && textStart < model.Count) {
+                  if (textStart >= 0 && textStart < model.Count && textIncluded < TextCountLimit) {
                      var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                      if (text.Length >= TextSummaryLimit) text += "...";
                      tips.Add(text + Environment.NewLine);
+                     textIncluded++;
                      renderedAddresses.Add(spot.Address);
                   }
                } else {
                   // 5C ** trainer: arg: start<> playerwin<>
                   var textStart = model.ReadPointer(spot.Address + 10);
-                  if (textStart >= 0 && textStart < model.Count) {
+                  if (textStart >= 0 && textStart < model.Count && textIncluded < TextCountLimit) {
                      var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                      if (text.Length >= TextSummaryLimit) text += "...";
                      tips.Add(text + Environment.NewLine);
+                     textIncluded++;
                      renderedAddresses.Add(spot.Address);
                   }
                }
