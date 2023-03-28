@@ -2414,13 +2414,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange(this, new(newTab));
       }
 
-      public void OpenImageEditorTab(int address, int spritePage, int palettePage) {
+      public void OpenImageEditorTab(int address, int spritePage, int palettePage, int preferredTileWidth = -1) {
          try {
             var newTab = new ImageEditorViewModel(history, Model, address, Save, tools.SpriteTool.PaletteAddress) {
                SpritePage = spritePage,
                PalettePage = palettePage,
             };
-            RequestTabChange(this, new(newTab));
+            var args = new TabChangeRequestedEventArgs(newTab);
+            RequestTabChange(this, args);
+            if (!args.RequestAccepted && MapEditor.IsValidState) {
+               // trying to open from the image editor?
+               RequestTabChange(MapEditor, args);
+            }
+            if (preferredTileWidth != -1 && newTab.CanEditTilesetWidth) {
+               newTab.CurrentTilesetWidth = preferredTileWidth.LimitToRange(newTab.MinimumTilesetWidth, newTab.MaximumTilesetWidth);
+            }
          } catch (ImageEditorViewModelCreationException e) {
             RaiseError(e.Message);
          }

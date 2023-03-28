@@ -1192,10 +1192,24 @@
             <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,10" DockPanel.Dock="Top" Height="115">
                <local:SelectedBlockEditor x:Name="BlockEditor" DataContext="{Binding PrimaryMap.BlockEditor}" HorizontalAlignment="Center" Width="300"/>
             </Decorator>
-            <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" DockPanel.Dock="Top" />
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center" DataContext="{Binding PrimaryMap}">
+               <local:AngleButton Direction="Left" Width="90" Height="30" Margin="4" Command="{res:MethodCommand EditTileset}" CommandParameter="Primary">
+                  <StackPanel Orientation="Horizontal">
+                     <Path Data="{res:Icon Pencil}" Stretch="Uniform" Fill="{DynamicResource Primary}" />
+                     <TextBlock Text="Primary" FontSize="11" />
+                  </StackPanel>
+               </local:AngleButton>
+               <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" />
+               <local:AngleButton Direction="Right" Width="90" Height="30" Margin="4" Command="{res:MethodCommand EditTileset}" CommandParameter="Secondary">
+                  <StackPanel Orientation="Horizontal">
+                     <Path Data="{res:Icon Pencil}" Stretch="Uniform" Fill="{DynamicResource Primary}" />
+                     <TextBlock Text="Secondary" FontSize="11" />
+                  </StackPanel>
+               </local:AngleButton>
+            </StackPanel>
             <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4" DataContext="{Binding PrimaryMap.BlockEditor}">
-               <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0"/>
-               <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center">
+               <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0" Width="100" TextAlignment="Right" />
+               <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center" HorizontalAlignment="Left">
                   <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
                </Border>
                <TextBlock VerticalAlignment="Center" Margin="5,0" TextAlignment="Center">

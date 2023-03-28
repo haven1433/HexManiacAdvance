@@ -1589,6 +1589,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return map.GetSubTable("events");
       }
 
+      public void EditTileset(string type) {
+         var model = new MapModel(GetMapModel(), group, map);
+         if (type == "Primary") {
+            ViewPort.Tools.SpriteTool.SpriteAddress = model.Layout.PrimaryBlockset.TilesetAddress;
+            ViewPort.Tools.SpriteTool.PaletteAddress = model.Layout.PrimaryBlockset.PaletteAddress;
+         } else {
+            ViewPort.Tools.SpriteTool.SpriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
+            ViewPort.Tools.SpriteTool.PaletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
+         }
+         ViewPort.OpenImageEditorTab(ViewPort.Tools.SpriteTool.SpriteAddress, 0, 0, 16);
+      }
+
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
          var token = tokenFactory();
          var map = GetMapModel();

@@ -92,8 +92,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    public record LayoutModel(ModelArrayElement? Element) {
       public int Width => Element?.GetValue("width") ?? -1;
       public int Height => Element?.GetValue("height") ?? -1;
-      public ModelArrayElement PrimaryBlockset => Element?.TryGetSubTable(Format.PrimaryBlockset, out var table) ?? false ? table[0] : null;
-      public ModelArrayElement SecondaryBlockset => Element?.TryGetSubTable(Format.SecondaryBlockset, out var table) ?? false ? table[0] : null;
+      public MiniBlocksetModel PrimaryBlockset => Element?.TryGetSubTable(Format.PrimaryBlockset, out var table) ?? false ? new(table[0]) : null;
+      public MiniBlocksetModel SecondaryBlockset => Element?.TryGetSubTable(Format.SecondaryBlockset, out var table) ?? false ? new(table[0]) : null;
       public int BorderBlockAddress => Element?.GetAddress(Format.BorderBlock) ?? Pointer.NULL;
       public BlockCells BlockMap {
          get {
@@ -101,6 +101,13 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return new(Element.Model, start, Width, Height);
          }
       }
+   }
+
+   public record MiniBlocksetModel(ModelArrayElement? Element) {
+      public int Start => Element?.Start ?? Pointer.NULL;
+      public int BlocksAddress => Element?.GetAddress(Format.Blocks) ?? Pointer.NULL;
+      public int TilesetAddress => Element?.GetAddress(Format.Tileset) ?? Pointer.NULL;
+      public int PaletteAddress => Element?.GetAddress(Format.Palette) ?? Pointer.NULL;
    }
 
    public record EventGroupModel(ModelArrayElement? Element) {
