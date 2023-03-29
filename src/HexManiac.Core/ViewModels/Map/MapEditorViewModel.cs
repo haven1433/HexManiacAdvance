@@ -325,6 +325,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
 
          ZoomLevel = "1x Zoom";
+         FixLayoutTable(); // quick 1-time check for adding unknown layouts
       }
 
       #endregion
@@ -1772,6 +1773,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool IsPrimaryBlock(BlockCell cell) => cell.Tile < PrimaryBlocks;
       private int TotalBlocks => 1024;
+
+      #endregion
+
+      #region Layout Table Fixing (for maps added via another tool)
+
+      public void FixLayoutTable() {
+         var token = new NoDataChangeDeltaModel();
+         if (model.GetTable(HardcodeTablesModel.MapLayoutTable) is not ArrayRun layouts) return;
+         var layoutFormat = layouts.ElementContent[0] is ArrayRunPointerSegment pSeg ? pSeg.InnerFormat : null;
+         if (layoutFormat == null) return;
+         var excess = 0;
+         while (true) {
+            var start = layouts.Start + layouts.Length + 4 * excess;
+            if (model.GetNextRun(start) is not PointerRun pRun) break;
+            if (pRun.Start != start) break;
+            var destination = model.ReadPointer(start);
+            if (!destination.InRange(0, model.Count)) break;
+            if (model.GetNextRun(destination) is not ITableRun tRun) break;
+            if (tRun.FormatString != layoutFormat) break;
+            excess++;
+         }
+         model.ClearFormat(token, layouts.Start + layouts.Length, excess * 4);
+         model.ObserveRunWritten(token, layouts.ResizeMetadata(layouts.ElementCount + excess));
+      }
 
       #endregion
 

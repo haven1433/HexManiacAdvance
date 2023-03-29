@@ -721,6 +721,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, start, ElementCount, segments, pointerSources, PointerSourcesForInnerElements);
       }
 
+      public ArrayRun ResizeMetadata(int newCount) {
+         var format = ElementContent.Select(segment => segment.SerializeFormat).Aggregate((a, b) => a + " " + b);
+         format = $"[{format}]{newCount}";
+         return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, Start, newCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
+      }
+
       private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength, Func<IFormattedRun, bool> runFilter) {
          int bestAddress = Pointer.NULL;
          bestLength = 0;
@@ -1499,7 +1505,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var options = enumSegment.GetOptions(owner).ToList();
                   // don't verify enums that are based on lists.
                   // There could be more elements in use than elements in the list, especially for edited ROMs with default lists.
-                  if (options.Count == 0) return true; // unrecognized, so just allow anything
+                  if (options.Count == 0 || parentIndex == 0) return true; // unrecognized, so just allow anything
                   if (owner.TryGetList(enumSegment.EnumName, out var _)) return true;
                   var modelValue = owner.ReadMultiByteValue(start, segment.Length);
                   if (segment.Length == 2 && (short)modelValue == -2) return true; // allow FFFE short tokens: they often have special meaning

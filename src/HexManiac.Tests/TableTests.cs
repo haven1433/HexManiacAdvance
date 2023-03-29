@@ -1483,6 +1483,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.True(p.HasError);
       }
 
+      [Fact]
+      public void Singletons_BanksFormat_ContainsLayoutFormat() {
+         Assert.All(Singletons.GameReferenceTables.Keys, key => {
+            var refTables = Singletons.GameReferenceTables[key];
+            var layoutReference = refTables[HardcodeTablesModel.MapLayoutTable];
+            var bankReference = refTables[HardcodeTablesModel.MapBankTable];
+            var innerFormat = layoutReference.Format.Trim("[]0123456789".ToCharArray());
+            Assert.Contains(innerFormat, bankReference.Format);
+         });
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());
