@@ -259,6 +259,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public abstract class TileAttribute {
       public int Behavior { get; set; }
       public int Layer { get; set; }
+      public string ErrorInfo { get; protected init; }
       public abstract byte[] Serialize();
       public static TileAttribute Create(byte[] data) {
          if (data.Length == 2) return new AttributeRSE(data);
@@ -284,7 +285,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Terrain = data[1] >> 1;
          Encounter = data[3] & 3;
          Layer = data[3] >> 5;
-         Debug.Assert((data.ReadMultiByteValue(0, 4) & 0x9CFFF900) == 0, "Expected attribute mask 9CFFF900 to be zero!");
+         if ((data.ReadMultiByteValue(0, 4) & 0x9CFFF900) != 0) {
+            ErrorInfo = "Warning: Expected attribute mask 9CFFF900 to be zero.";
+         }
       }
       public override byte[] Serialize() {
          var result = new byte[4];
@@ -304,7 +307,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public AttributeRSE(byte[] data) {
          Behavior = data[0];
          Layer = data[1] >> 4;
-         Debug.Assert((data[1] & 0xF) == 0, "Expected attribute mask 0F00 to be zero!");
+         if ((data[1] & 0xF) != 0) {
+            ErrorInfo = "Warning: Expected attribute mask 0F00 to be zero.";
+         }
       }
       public override byte[] Serialize() {
          var result = new byte[2];
@@ -570,6 +575,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int Terrain { get => terrain; set => Set(ref terrain, value, SaveAttributes); }
       public int Encounter { get => encounter; set => Set(ref encounter, value, SaveAttributes); }
 
+      private string errorText;
+      public bool HasError => errorText != null;
+      public string ErrorText => errorText;
+
       public ObservableCollection<string> BehaviorOptions { get; } = new();
       public ObservableCollection<string> LayerOptions { get; } = new() { "Normal", "Covered", "Split", };
       public ObservableCollection<string> TerrainOptions { get; } = new() { "Normal", "Grass", "Water" };
@@ -586,7 +595,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             terrain = fr.Terrain;
             encounter = fr.Encounter;
          }
-         new List<string> { nameof(Behavior), nameof(Layer), nameof(Terrain), nameof(Encounter) }.ForEach(NotifyPropertyChanged);
+         errorText = attributes.ErrorInfo;
+         NotifyPropertiesChanged(nameof(Behavior), nameof(Layer), nameof(Terrain), nameof(Encounter), nameof(HasError), nameof(ErrorText));
       }
 
       private void SaveAttributes(int arg = default) {
