@@ -733,8 +733,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             } else if (banks[warp.Bank] == null) {
                OnError.Raise(this, $"Could not load map bank {warp.Bank}");
             } else if (warp.Bank < banks.Count) {
-               NavigateTo(warp.Bank, warp.Map);
-               Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+               if (warp.Map >= banks[warp.Bank].Count || banks[warp.Bank][warp.Map] == null) {
+                  OnError.Raise(this, $"Could not load map {warp.Map} in bank {warp.Bank}");
+               } else {
+                  NavigateTo(warp.Bank, warp.Map);
+                  Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+               }
             }
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             if (0 <= obj.ScriptAddress && obj.ScriptAddress < model.Count) {
