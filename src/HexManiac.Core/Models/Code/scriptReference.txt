@@ -27,6 +27,12 @@ msgbox.sign      0F 00 ptr<""> 09 03
 msgbox.default   0F 00 ptr<""> 09 04
 msgbox.yesno     0F 00 ptr<""> 09 05
 msgbox.autoclose 0F 00 ptr<""> 09 06
+msgbox.instant.autoclose 6A DB ptr<""> 66 6D 68 6C
+msgbox.autoclose.instant 6A DB ptr<""> 66 6D 68 6C                # possible alias
+msgbox.instant.npc       6A 5A DB ptr<""> 66 6D 68 6C
+msgbox.npc.instant       6A 5A DB ptr<""> 66 6D 68 6C             # possible alias
+msgbox.instant.default   6A DB ptr<""> 66 6D 6C
+msgbox.default.instant   6A DB ptr<""> 66 6D 6C                   # possible alias
 wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7
 give.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01 
 msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
