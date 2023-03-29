@@ -1902,6 +1902,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var start = layout.GetAddress("blockmap");
+         var blockHighlight = blockEditor?.BlockIndex ?? -1;
 
          var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight);
          var (borderWidth, borderHeight) = (borderBlockCopy.PixelWidth / 16, borderBlockCopy.PixelHeight / 16);
@@ -1927,6 +1928,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
                if (collisionHighlight == -1 && selectedEvent is ObjectEventViewModel obj && obj.ShouldHighlight(x - border.West, y - border.North)) {
                   HighlightCollision(canvas.PixelData, x * 16, y * 16);
+               }
+               if (collisionHighlight != -1 && blockHighlight != -1 && collision != collisionHighlight && data == blockHighlight) {
+                  // this matches the chosen block, but not the chosen collision
+                  HighlightBlock(canvas.PixelData, x * 16, y * 16);
                }
             }
          }
@@ -1961,6 +1966,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          void Transform(int xx, int yy) {
             var p = (y + yy) * PixelWidth + x + xx;
             pixelData[p] = CanvasPixelViewModel.Darken(pixelData[p], 8);
+         }
+         for (int i = 0; i < 15; i++) {
+            Transform(i, 0);
+            Transform(15 - i, 15);
+            Transform(0, 15 - i);
+            Transform(15, i);
+         }
+      }
+
+      private void HighlightBlock(short[] pixelData, int x, int y) {
+         void Transform(int xx, int yy) {
+            var p = (y + yy) * PixelWidth + x + xx;
+            pixelData[p] = CanvasPixelViewModel.ShiftTowards(pixelData[p], (31, 31, 0), 8); // yellow
          }
          for (int i = 0; i < 15; i++) {
             Transform(i, 0);
