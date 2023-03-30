@@ -872,9 +872,6 @@
                         <!-- Duplicate Map (Using Same Layout) -->
                         <local:AngleButton Content="Duplicate Map" Direction="Out" Grid.Row="9" Grid.ColumnSpan="4" Width="150"
                                            ToolTip="{Binding DuplicateMapText}" Command="{Binding DuplicateMap}" />
-                        <!--Set Start Map-->
-                        <local:AngleButton Content="This As Starting Map" Direction="Out" Grid.Row="9" Grid.Column="3" Grid.ColumnSpan="4" Width="200"
-                                           ToolTip="{Binding ThisAsStarterMapText}" />
                      </Grid>
                   </Border>
                </Popup>
