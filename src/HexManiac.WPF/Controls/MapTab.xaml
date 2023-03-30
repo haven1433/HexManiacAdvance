@@ -558,7 +558,7 @@
                         </local:AngleBorder>
                         <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2">
                            <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap, UpdateSourceTrigger=PropertyChanged}" />
-                           <TextBlock Text="{Binding TargetMapName}" />
+                           <TextBlock Text="{Binding TargetMapName}" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
