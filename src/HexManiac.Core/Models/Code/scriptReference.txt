@@ -33,12 +33,9 @@ npc.item         1A 00 80 item:data.items.stats 1A 01 80 count: 09 00           
 msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
                                                                                                               # followed by a standard 'put away' message.
                                                                                                               # loadpointer, copyvarifnotzero (item, count, song), callstd 9
-msgbox.instant.autoclose          6A DB ptr<""> 66 6D 68 6C
-msgbox.autoclose.instant          6A DB ptr<""> 66 6D 68 6C                # possible alias
-msgbox.instant.npc                6A 5A DB ptr<""> 66 6D 68 6C
-msgbox.npc.instant                6A 5A DB ptr<""> 66 6D 68 6C             # possible alias
-msgbox.instant.default            6A DB ptr<""> 66 6D 6C
-msgbox.default.instant            6A DB ptr<""> 66 6D 6C                   # possible alias
+msgbox.instant.autoclose          6A DB ptr<""> 66 6D 68 6C     #Skips the typewriter effect
+msgbox.instant.npc                6A 5A DB ptr<""> 66 6D 68 6C  #Skips the typewriter effect
+msgbox.instant.default            6A DB ptr<""> 66 6D 6C        #Skips the typewriter effect
 msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32                                                                                                            # fanfare, preparemsg, waitmsg
 register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08  # setvar, special 0xEA, copyvarifnotzero, callstd 8
 if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # compare, if1
