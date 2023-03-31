@@ -7,6 +7,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -749,28 +750,24 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // Append _copy to the end to avoid the collision.
          if (!name.Contains("_copy")) {
-            name += "_copy";
+            name += $"_copy1";
             UniquifyName(model, desiredAddressForName, ref name);
             return info;
          }
-
-         // It already had _copy on the end... fine, append the number '2'.
-         var number = name.Split("_copy").Last();
-         if (number.Length == 0) {
-            name += "2";
+         // It already had _copy on the end... fine, append a number or increment it.
+         if (char.IsDigit(name[name.Length - 1])) {
+            int digit = 0;
+            string number = "";
+            for (int i = name.Length - 1; i >= 0 && char.IsDigit(name[i]); i--) number = name[i] + number;
+            digit = Convert.ToInt32(number);
+            name = name.Replace(number, digit.ToString());
+            name = name.Remove(name.IndexOf(digit.ToString()));
+            name += $"{digit + 1}";
             UniquifyName(model, desiredAddressForName, ref name);
             return info;
-         }
-
-         // It already had a number on the end of the _copy... ok, just increment it by 1.
-         if (int.TryParse(number, out var result)) {
-            name += result;
-            UniquifyName(model, desiredAddressForName, ref name);
-            return info;
-         }
-
-         // It wasn't a number? Eh, just throw _copy on the end again, it'll be fine.
-         name += "_copy";
+          }
+         // It wasn't a number? Eh, just throw _copy1 on the end again, it'll be fine.
+         name += "_copy1";
          UniquifyName(model, desiredAddressForName, ref name);
          return info;
       }

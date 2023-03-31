@@ -377,6 +377,18 @@ namespace HavenSoft.HexManiac.Tests {
          var context = ViewPort.GetContextMenuItems(new Point(0, 0), FileSystem)[1];
          Assert.Equal("Clear Format", context.Text);
       }
+
+      [Fact]
+      public void CopyPastedAnchor_AlreadyExists_RenamedUnique() {
+         ViewPort.SelectionStart = new(4, 0);
+         ViewPort.Edit("^anchor.data_copy179 ");
+
+         ViewPort.SelectionStart = new(4, 1);
+         ViewPort.Edit("^anchor.data_copy179 ");
+
+         Assert.Equal("^anchor.data_copy180", ViewPort.AnchorText);
+         Assert.NotEmpty(Messages); // test that the user was informed about the auto-name change
+      }
    }
 
 }
