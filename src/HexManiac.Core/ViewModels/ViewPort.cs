@@ -2422,7 +2422,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             };
             var args = new TabChangeRequestedEventArgs(newTab);
             RequestTabChange(this, args);
-            if (!args.RequestAccepted && MapEditor.IsValidState) {
+            if (!args.RequestAccepted && MapEditor?.IsValidState == true) {
                // trying to open from the image editor?
                RequestTabChange(MapEditor, args);
             }
