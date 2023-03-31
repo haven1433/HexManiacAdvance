@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -162,6 +163,14 @@ namespace HavenSoft.HexManiac.Integration {
          firered.MapEditor.Undo.Execute();
 
          Assert.Equal(3000, firered.MapEditor.PrimaryMap.MapID);
+      }
+
+      [SkippableFact]
+      public void FireRed_LoadStartingMap_SignpostsLoadCorrectly() {
+         var firered = LoadReadOnlyFireRed();
+         var table = firered.Model.GetTable("data.maps.banks/3/maps/0/map/0/events/");
+         var format = (Pointer)table.CreateDataFormat(firered.Model, table.Start + table.Length - 1);
+         Assert.False(format.HasError);
       }
    }
 }

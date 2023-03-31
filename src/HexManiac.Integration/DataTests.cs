@@ -108,5 +108,15 @@ namespace HavenSoft.HexManiac.Integration {
 
          AssertNoConflicts(emerald);
       }
+
+      [SkippableFact]
+      public void Emerald_ChangeTrainerPokemonPointerToUsedAddress_NoAssert() {
+         var emerald = LoadEmerald();
+
+         emerald.Goto.Execute("data.trainers.stats/marcel/pokemon");
+         emerald.Edit("<00030B>");
+
+         // no debug assert = pass
+      }
    }
 }
