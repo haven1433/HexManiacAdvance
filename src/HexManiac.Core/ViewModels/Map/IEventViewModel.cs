@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int X { get; set; }
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
-      void Render(IDataModel model);
+      void Render(IDataModel model, LayoutModel layout);
       bool Delete();
    }
 
@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return X == fly.X && Y == fly.Y && flySpot.Start == fly.flySpot.Start;
       }
 
-      public void Render(IDataModel model) {
+      public void Render(IDataModel model, LayoutModel layout) {
          EventRender = BaseEventViewModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 31, 0));
       }
    }
@@ -250,7 +250,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return bem.element.Start == element.Start;
       }
 
-      public abstract void Render(IDataModel model);
+      public abstract void Render(IDataModel model, LayoutModel layout);
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
@@ -337,11 +337,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          element.SetAddress(fieldName, value.TryParseHex(out int result) ? result : Pointer.NULL);
       }
 
-      public static IPixelViewModel BuildEventRender(short color) {
+      private static readonly Point[] focalPoints = new[] { new Point(0, 7), new Point(7, 0), new Point(15, 8), new Point(8, 15) };
+      public static IPixelViewModel BuildEventRender(short color, bool indentSides = false) {
          var pixels = new short[256];
+         
          for (int x = 1; x < 15; x++) {
             for (int y = 1; y < 15; y++) {
                if (((x + y) & 1) != 0) continue;
+               if (indentSides && focalPoints.Any(p => Math.Abs(p.X - x) + Math.Abs(p.Y - y) < 4)) continue;
                pixels[y * 16 + x] = color;
                y++;
             }
@@ -931,7 +934,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
       public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
          var facing = MoveType switch {
             7 => 1,
@@ -1051,8 +1054,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
+         if (WarpIsOnWarpTile(model, layout)) return;
+         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
+      }
+
+      public bool WarpIsOnWarpTile(IDataModel model, LayoutModel layout) {
+         if (!model.TryGetList("MapAttributeBehaviors", out var list)) return false;
+
+         int primaryBlockCount = model.IsFRLG() ? 640 : 512;
+         var cell = layout.BlockMap[X, Y];
+         var tile = cell.Tile;
+         var blockset = layout.PrimaryBlockset;
+         if (tile >= primaryBlockCount) {
+            tile -= primaryBlockCount;
+            blockset = layout.SecondaryBlockset;
+         }
+
+         var behavior = blockset.Attribute(tile).Behavior;
+         if (list.Count <= behavior) return false;
+         return list[behavior].Contains("Warp") || list[behavior].Contains("Door");
       }
    }
 
@@ -1105,7 +1127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
       }
    }
@@ -1280,7 +1302,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
       }
 

@@ -6,7 +6,6 @@ using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 /*
       #define MB_NORMAL 0x00
@@ -263,6 +262,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public abstract byte[] Serialize();
       public static TileAttribute Create(byte[] data) {
          if (data.Length == 2) return new AttributeRSE(data);
+         return new AttributeFRLG(data);
+      }
+      public static TileAttribute Create(byte[] fullData, int start, int length) {
+         var data = new byte[length];
+         Array.Copy(fullData, start, data, 0, length);
+         if (length == 2) return new AttributeRSE(data);
          return new AttributeFRLG(data);
       }
    }

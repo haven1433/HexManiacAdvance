@@ -7,11 +7,23 @@
              Background="{DynamicResource Background}">
    <ItemsControl Name="ToolTipContent" ItemsSource="{Binding}">
       <ItemsControl.Resources>
+         <hshmwpfc:TextStyleConverter x:Key="TextStyle" />
          <DataTemplate DataType="{x:Type images:ReadonlyPixelViewModel}">
             <hshmwpfc:PixelImage SnapsToDevicePixels="True" TransparentBrush="{DynamicResource Background}" />
          </DataTemplate>
          <DataTemplate DataType="{x:Type sys:String}">
-            <TextBlock Text="{Binding}" MaxWidth="400" TextWrapping="Wrap" />
+            <TextBlock Text="{Binding}" MaxWidth="400" TextWrapping="Wrap">
+               <TextBlock.Style>
+                  <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding Converter={StaticResource TextStyle}}" Value="Reminder">
+                           <Setter Property="Foreground" Value="{DynamicResource Secondary}" />
+                           <Setter Property="FontStyle" Value="Italic" />
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </TextBlock.Style>
+            </TextBlock>
          </DataTemplate>
       </ItemsControl.Resources>
    </ItemsControl>

@@ -528,7 +528,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
                HoverPoint = $"({p.X}, {p.Y})";
                if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
-                  return ShowEventHover(ev);
+                  return ShowEventHover(map, ev);
                } else {
                   return EmptyTooltip;
                }
@@ -1093,9 +1093,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private object[] ShowEventHover(BaseEventViewModel ev) {
+      private object[] ShowEventHover(BlockMapViewModel map, BaseEventViewModel ev) {
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
          if (ev is WarpEventViewModel warp) {
+            if (!warp.WarpIsOnWarpTile(model, new LayoutModel(map.GetLayout()))) {
+               tips.Add($"(This block's Behavior doesn't allow warping.)");
+            }
             tips.Add(warp.TargetMapName);
             var banks = AllMapsModel.Create(warp.Element.Model, default);
             if (banks[warp.Bank] == null) return tips.ToArray();

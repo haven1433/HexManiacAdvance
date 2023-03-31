@@ -1880,12 +1880,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
-      private void RefreshMapEvents() {
+      private void RefreshMapEvents(ModelArrayElement layout) {
          if (eventRenders != null) return;
+         var layoutModel = new LayoutModel(layout);
          var list = new List<IEventViewModel>();
          var events = GetEvents();
          foreach (var obj in events) {
-            obj.Render(model);
+            obj.Render(model, layoutModel);
             list.Add(obj);
          }
          eventRenders = list;
@@ -1943,7 +1944,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         if (eventRenders == null) RefreshMapEvents();
+         if (eventRenders == null) RefreshMapEvents(layout);
          if (eventRenders != null) {
             foreach (var obj in eventRenders) {
                if (obj.EventRender != null) {
