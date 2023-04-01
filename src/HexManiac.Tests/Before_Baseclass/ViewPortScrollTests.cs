@@ -381,12 +381,24 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void CopyPastedAnchor_AlreadyExists_RenamedUnique() {
          ViewPort.SelectionStart = new(4, 0);
-         ViewPort.Edit("^anchor.data_copy179 ");
+         ViewPort.Edit("^anchor.data ");
 
          ViewPort.SelectionStart = new(4, 1);
-         ViewPort.Edit("^anchor.data_copy179 ");
+         ViewPort.Edit("^anchor.data ");
 
-         Assert.Equal("^anchor.data_copy180", ViewPort.AnchorText);
+         Assert.Equal("^anchor.data_copy1", ViewPort.AnchorText);
+         Assert.NotEmpty(Messages); // test that the user was informed about the auto-name change
+      }
+
+      [Fact]
+      public void CopyPastedAnchor_AlreadyExists_UniqueIncrement() {
+         ViewPort.SelectionStart = new(4, 0);
+         ViewPort.Edit("^anchor.data_copy999 ");
+
+         ViewPort.SelectionStart = new(4, 1);
+         ViewPort.Edit("^anchor.data_copy999 ");
+
+         Assert.Equal("^anchor.data_copy1000", ViewPort.AnchorText);
          Assert.NotEmpty(Messages); // test that the user was informed about the auto-name change
       }
    }
