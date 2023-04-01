@@ -636,6 +636,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                .Select(tRun => tRun.ElementContent)
                .FirstOrDefault();
          }
+         if (sourceSegments == null && pointerSources?.Count == 1 && data.GetNextRun(pointerSources[0]) is ITableRun parentTable) {
+            sourceSegments = parentTable.ElementContent;
+            if (name == string.Empty) name = parentTable.ElementContent[parentTable.ConvertByteOffsetToArrayOffset(pointerSources[0]).SegmentIndex].Name;
+         }
 
          var (singleSegment, margins, tilemapLength) = ParseTilemapTable(data, format, length);
          if (singleSegment is ArrayRunElementSegment) {
@@ -1474,6 +1478,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, bool deepCheck = true) {
          if (start < 0 || start >= owner.Count - segment.Length) return false;
          Debug.Assert(sourceSegments.Contains(segment), "Expected segment to be one among sourceSegments.");
+
+         // if it's a record, we want to check the match against the concrete form
+         if (segment is ArrayRunRecordSegment recSeg) {
+            var segmentOffset = sourceSegments.Until(seg => seg == segment).Sum(seg => seg.Length);
+            var matchOffset = sourceSegments.Until(seg => seg.Name == recSeg.MatchField).Sum(seg => seg.Length);
+            var matchLength = sourceSegments.FirstOrDefault(seg => seg.Name == recSeg.MatchField)?.Length ?? 1;
+            var matchValue = owner.ReadMultiByteValue(start + matchOffset - segmentOffset, matchLength);
+            segment = recSeg.CreateConcrete(owner.FormatRunFactory, owner.TextConverter, matchValue);
+         }
+
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);

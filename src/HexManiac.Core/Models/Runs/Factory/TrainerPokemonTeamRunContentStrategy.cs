@@ -16,7 +16,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          var length = teamRun.Length;
          if (length < 2) return false;
 
-         if (!(token is NoDataChangeDeltaModel)) owner.ObserveRunWritten(token, teamRun);
+         if (token is not NoDataChangeDeltaModel) {
+            var existingRun = owner.GetNextRun(teamRun.Start);
+            if (existingRun.Start >= teamRun.Start + teamRun.Length || existingRun is NoInfoRun || existingRun is PointerRun) {
+               // safe to overwrite
+               owner.ClearFormat(token, teamRun.Start, teamRun.Length);
+               owner.ObserveRunWritten(token, teamRun);
+            } else {
+               // don't overwrite this run
+               return false;
+            }
+         }
 
          return true;
       }
