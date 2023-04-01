@@ -1056,11 +1056,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
-         if (WarpIsOnWarpableTile(model, layout)) return;
+         if (WarpIsOnWarpableBlock(model, layout)) return;
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
       }
 
-      public bool WarpIsOnWarpableTile(IDataModel model, LayoutModel layout) {
+      public bool WarpIsOnWarpableBlock(IDataModel model, LayoutModel layout) {
          if (!model.TryGetList("MapAttributeBehaviors", out var list)) return false;
 
          int primaryBlockCount = model.IsFRLG() ? 640 : 512;

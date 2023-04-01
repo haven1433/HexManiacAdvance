@@ -1096,7 +1096,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private object[] ShowEventHover(BlockMapViewModel map, BaseEventViewModel ev) {
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
          if (ev is WarpEventViewModel warp) {
-            if (!warp.WarpIsOnWarpableTile(model, new LayoutModel(map.GetLayout()))) {
+            if (!warp.WarpIsOnWarpableBlock(model, new LayoutModel(map.GetLayout()))) {
                tips.Add($"(This block's Behavior doesn't allow warping.)");
             }
             tips.Add(warp.TargetMapName);
