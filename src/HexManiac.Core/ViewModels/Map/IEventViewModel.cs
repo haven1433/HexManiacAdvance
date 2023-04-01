@@ -1056,11 +1056,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
-         if (WarpIsOnWarpTile(model, layout)) return;
+         if (WarpIsOnWarpableTile(model, layout)) return;
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
       }
 
-      public bool WarpIsOnWarpTile(IDataModel model, LayoutModel layout) {
+      public bool WarpIsOnWarpableTile(IDataModel model, LayoutModel layout) {
          if (!model.TryGetList("MapAttributeBehaviors", out var list)) return false;
 
          int primaryBlockCount = model.IsFRLG() ? 640 : 512;
@@ -1074,7 +1074,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var behavior = blockset.Attribute(tile).Behavior;
          if (list.Count <= behavior) return false;
-         return list[behavior].Contains("Warp") || list[behavior].Contains("Door");
+         return list[behavior].Contains("Warp") || list[behavior].Contains("Door") || list[behavior].Contains("Stairs");
       }
    }
 
