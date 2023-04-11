@@ -787,7 +787,10 @@ graphics.text.font.latin1.characters, 	002B88, 002B88, 002B88, 002B88, , , , , ,
 graphics.text.font.latin1.width, 	00495C, 00495C, 00495C, 00495C, , , , , , [width.]220
 graphics.text.font.default.characters,  095984, 095984, 0959A4, 0959A4, , , , , , `ucs4x1x508`
 graphics.text.font.default.width, 	004930, 004930, 004930, 004930, , , , , , [width.]254
+graphics.text.font.short.characters,    1E6BB8, 1E6B48, 1E6BD0, 1E6B60, , , , , , `ucs4x20x11`
 graphics.text.font.short.width, 	004938, 004938, 004938, 004938, , , , , , [width.]220
+graphics.text.font.japan0.characters,   1E6B34, 1E6AC4, 1E6B4C, 1E6ADC, , , , , , `ucs1x1x480` // AXVE0
+graphics.text.font.japan1.characters,   1E6B40, 1E6AD0, 1E6B58, 1E6AE8, , , , , , `ucs1x16x16` 
 graphics.text.font.japan3.characters, 	1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , , `ucs4x16x31`
 graphics.text.font.japan4.characters, 	1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
 graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
