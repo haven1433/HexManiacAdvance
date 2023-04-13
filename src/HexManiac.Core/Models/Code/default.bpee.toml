@@ -9,6 +9,26 @@ Name = '''sound.newgame.titlescreen.song'''
 Address = 0x0AAAE8
 Format = '''[track::songnames]1'''
 
+[[NamedAnchors]]
+Name = '''graphics.text.font.japan4.characters'''
+Address = 0x65C4E4
+Format = '''`ucs2x16x128`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.japan4.width'''
+Address = 0x6644E4
+Format = '''[width.]512'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.japan5.characters'''
+Address = 0x6646E4
+Format = '''`ucs2x16x128`'''
+
+[[NamedAnchors]]
+Name = '''graphics.text.font.japan5.width'''
+Address = 0x66C6E4
+Format = '''[width.]512'''
+
 [[OffsetPointer]]
 Address = 0x038850
 Offset = 0x000004
