@@ -776,7 +776,7 @@ graphics.text.font.short.width2,              ,,,, ,,,, 0064FC, [width.]512
 graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x1024`
 graphics.text.font.bag.width,                 ,,,, ,,,, 0065E4, [width.]512
 graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
-graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
+graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x64`
 graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
