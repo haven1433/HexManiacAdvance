@@ -2,8 +2,13 @@
 
 # Founded by Jaizu
 # .hma Script written by Shiny
+
 @!game(BPEE)
-
 @1BF98E 02
-
 @1BF9B2 02
+
+@!game(AXVE0)
+@09D948 02
+@09D972 02
+@09D9A0 02
+@09D9C6 02
