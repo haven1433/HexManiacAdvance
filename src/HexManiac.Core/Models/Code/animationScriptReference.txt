@@ -1,7 +1,7 @@
 ﻿
 
-00 loadspritegfx tag:|h
-01 unloadspritegfx tag:|h
+00 loadspritegfx tag:move_particles+10000
+01 unloadspritegfx tag:move_particles+10000
 02 createsprite template<`oam`> subpriority_offset. [argv:]
 03 createvisualtask address<> priority. [argv:]
 04 delay time.
