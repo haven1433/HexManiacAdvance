@@ -1,0 +1,9 @@
+# Remove Contest Moves Tab from Emerald's Summary Screen
+
+# Founded by Jaizu
+# .hma Script written by Shiny
+@!game(BPEE)
+
+@1BF98E 02
+
+@1BF9B2 02
