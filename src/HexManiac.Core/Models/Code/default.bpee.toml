@@ -1227,13 +1227,13 @@ Name = '''allFonts'''
    '''short2''',
    '''other''',
    '''black''',
-   '''?''',
-   '''?''',
-   '''?''',
+   '''black-03''',
+   '''black-04''',
+   '''black-05''',
    '''braille''',
    '''bag''',
    '''short''',
-   '''japan6,'''
+   '''japan6''',
 ]
 
 [[GotoShortcut]]
