@@ -747,17 +747,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (Operator) {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
-            case "÷":
-               try {
-                  return values.Aggregate((a, b) => (double) a / b);
-               }
-               catch (...) {
-                  throw new ArrayRunParseException("Caught a division by zero.");
-               }
-               finally {
-                  return values = 0;
-               }
-                    
+            case "÷": return values.Aggregate((a, b) => b == 0 ? 0 : (double) a / b);
             default:  return values.First();
          }
       }
