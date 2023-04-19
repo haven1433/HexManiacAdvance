@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var builder = new StringBuilder("@{ ");
                recursionStopper = true;
                if (run is ArrayRun arrayRun && arrayRun.SupportsInnerPointers && arrayRun.ElementContent.Count == 1 && arrayRun.ElementContent[0].Type == ElementContentType.PCS) {
-                  // special case: if the pointer in this arrya is to a specific element of a text array, only copy that one element rather than the whole array.
+                  // special case: if the pointer in this array is to a specific element of a text array, only copy that one element rather than the whole array.
                   run.AppendTo(rawData, builder, address, arrayRun.ElementLength, deep: false);
                } else {
                   run.AppendTo(rawData, builder, run.Start, run.Length, deep);
