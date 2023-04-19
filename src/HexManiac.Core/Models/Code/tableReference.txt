@@ -256,6 +256,7 @@ scripts.battle.ai.hpaware.discourage.when.target.medium, 1DBFD5, 1DBF65, 1DBFED,
 scripts.battle.ai.hpaware.discourage.when.target.low,    1DBFB7, 1DBF47, 1DBFCF, 1DBF5F, 1DBB8F, 1DBB6B, 1DBBFF, 1DBBDB, 2DE1EB, [effect.moveeffectoptions]!FF
 scripts.battle.ai.trainer,                               1DA01C, 1DA02C, 1DA034, 1D9FC4, 0C70B8, 0C708C, 0C70CC, 0C70A0, 130FC8, [ai<`tse`>]traineraibits
 scripts.battle.animation.thumb,        37F4B8, 37F448, 37F4D0, 37F460, 3ADF5C, 3ADF3C, 3ADFCC, 3ADFAC, 525E98, [code<>]48
+scripts.battle.statStageRatios,        013104, 013104, 013104, 013104, 014ED4, 014ED4, 014EE8, 014EE8, 03D024, [numerator. denominator.]13
 scripts.newgame.setflags,              052F58, 052F58, 052F78, 052F78, 054B6C, 054B6C, 054B80, 054B80, 0845C8, `xse`
 scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0EB680, 0EB6BC, 0EB694, 16AE54, [item:data.items.stats count:]!00000000
 scripts.credits.panmap,                                           ,,,, 0F3BC0, 0F3B98, 0F3C38, 0F3C10,       , [data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13
