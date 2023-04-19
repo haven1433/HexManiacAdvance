@@ -731,7 +731,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else if (contract.Contains("÷")) {
             var parts = contract.Split('÷');
             Operands = parts;
-            Operator = "÷"; // This might need to be changed to the fwd. slash.
+            Operator = "÷";
          } else {
             Operands = new[] { contract };
             Operator = string.Empty;
@@ -747,7 +747,17 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (Operator) {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
-            case "÷": return values.Aggregate((a, b) => a / b);
+            case "÷":
+               try {
+                  return values.Aggregate((a, b) => a / b);
+               }
+               catch (...) {
+                  throw new ArrayRunParseException("Caught a division by zero.");
+               }
+               finally {
+                  return values = 0;
+               }
+                    
             default:  return values.First();
          }
       }
