@@ -738,7 +738,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public int CalculatedValue(int index) {
+      public double CalculatedValue(int index) {
          if (string.IsNullOrEmpty(Operands[0])) return 0;
          var table = (ITableRun)Model.GetNextRun(index);
          var offset = table.ConvertByteOffsetToArrayOffset(index);
@@ -749,7 +749,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case "*": return values.Aggregate((a, b) => a * b);
             case "÷":
                try {
-                  return values.Aggregate((a, b) => a / b);
+                  return values.Aggregate((a, b) => (double) a / b);
                }
                catch (...) {
                   throw new ArrayRunParseException("Caught a division by zero.");
