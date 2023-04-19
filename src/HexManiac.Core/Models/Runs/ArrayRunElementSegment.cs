@@ -743,11 +743,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var table = (ITableRun)Model.GetNextRun(index);
          var offset = table.ConvertByteOffsetToArrayOffset(index);
 
-         var values = Operands.Select(operand => ParseValue(Model, table, offset.ElementIndex, operand));
+         var values = Operands.Select(operand => (double)ParseValue(Model, table, offset.ElementIndex, operand));
          switch (Operator) {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
-            case "÷": return values.Aggregate((a, b) => b == 0 ? 0 : (double) a / b);
+            case "÷": return values.Aggregate((a, b) => b == 0 ? 0 : a / b);
             default:  return values.First();
          }
       }
