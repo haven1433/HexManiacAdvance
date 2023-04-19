@@ -781,7 +781,8 @@ graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 graphics.text.font.japan6.characters,         ,,,, ,,,, 00696C, `ucs2x16x32`
 
-data.fonts, 				003A54, 003A54, 003A54, 003A54, , , , , , [fontType:: glyphs<> size: lowerTileOffset:]14
+data.fonts,                            	003A54, 003A54, 003A54, 003A54, , , , ,       , [fontType:: glyphs<> size: lowerTileOffset:]allFonts
+data.fonts,                            	      ,       ,       ,       , , , , , 006374, [function<> maxWidth. maxHeight. letterSpacing. lineSpacing. colors:|t|unused::|foreground::|background::|shadow:: padding:]allFonts
 graphics.text.font.latin0.characters, 	1E6B88, 1E6B18, 1E6BA0, 1E6B30, , , , , , `ucs1x1x511`
 graphics.text.font.latin0.width, 	004944, 004944, 004944, 004944, , , , , , [width.]254
 graphics.text.font.latin1.characters, 	002B88, 002B88, 002B88, 002B88, , , , , , `ucs1x1x256`
