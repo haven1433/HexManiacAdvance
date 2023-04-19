@@ -728,6 +728,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var parts = contract.Split('+');
             Operands = parts;
             Operator = "+";
+         } else if (contract.Contains("÷")) {
+            var parts = contract.Split('÷');
+            Operands = parts;
+            Operator = "÷"; // This might need to be changed to the fwd. slash.
          } else {
             Operands = new[] { contract };
             Operator = string.Empty;
