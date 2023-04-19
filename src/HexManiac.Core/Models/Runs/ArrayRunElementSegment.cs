@@ -747,6 +747,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          switch (Operator) {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
+            case "÷": return values.Aggregate((a, b) => a / b);
             default:  return values.First();
          }
       }
