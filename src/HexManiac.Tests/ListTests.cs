@@ -248,7 +248,6 @@ DefaultHash = '''0BEEDA92'''
          ViewPort.Refresh();
 
          var item = ViewPort.Tools.TableTool.Groups[0].Members.Single<ComboBoxArrayElementViewModel>();
-         item.IsFiltering = true;
          item.FilterText = "r";
 
          Assert.Equal(new[] { "zero", "three" }, item.Options.Select(option => option.Text));

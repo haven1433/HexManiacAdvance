@@ -389,7 +389,7 @@
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                                          <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" PreviewKeyDown="ComboBoxArrayElementViewKeyDown">
+                                          <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                              <Grid.ColumnDefinitions>
                                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                                 <ColumnDefinition Width="*"/>
@@ -398,10 +398,12 @@
                                              <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleComboBox SelectedIndex="{Binding SelectedIndex}" ItemsSource="{Binding Options}" Grid.Column="1" Direction="Out"
-                                                    PreviewMouseDown="HandleComboClick"
-                                                    LostKeyboardFocus="ComboElementLostKeyboardFocus" IsEditable="{Binding CanFilter}" Text="{Binding FilterText}"
-                                                    IsTextSearchEnabled="False" PreviewTextInput="ComboBoxArrayElementViewTextInput">
+                                             <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" Grid.Column="1" Direction="Out" IsTextSearchEnabled="False"
+                                                   SelectedIndex="{Binding SelectedIndex}"
+                                                   ItemsSource="{Binding FilteredOptions}"
+                                                   IsEditable="{Binding CanFilter}"
+                                                   Text="{Binding DisplayText}"
+                                                   IsDropDownOpen="{Binding DropDownIsOpen}">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
                                                       <hsg3hv:PixelImage />

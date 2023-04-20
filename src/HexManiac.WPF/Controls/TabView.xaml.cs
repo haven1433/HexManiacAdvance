@@ -522,23 +522,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          FocusElement.Raise(ToolPanel);
       }
 
-      private void ComboBoxArrayElementViewTextInput(object sender, TextCompositionEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
-         var keyString = e.Text;
-         var filter = false;
-         if (keyString.Length == 1 && char.IsLetterOrDigit(keyString[0])) filter = true;
-         else if (keyString.Length == 1 && keyString[0].IsAny(" '?\"-_".ToCharArray())) filter = true;
-         viewModel.IsFiltering = filter;
-         if (element is ComboBox cb) cb.IsDropDownOpen |= filter;
-      }
-
-      private void ComboElementLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
-         var element = (FrameworkElement)sender;
-         if (element.DataContext is not ComboBoxArrayElementViewModel viewModel) return;
-         viewModel.IsFiltering = false;
-      }
-
       private void ComboBoxTupleElementTextInput(object sender, TextCompositionEventArgs e) {
          var element = (FrameworkElement)sender;
          var viewModel = (EnumTupleElementViewModel)element.DataContext;
@@ -554,12 +537,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var element = (FrameworkElement)sender;
          var viewModel = (EnumTupleElementViewModel)element.DataContext;
          viewModel.IsFiltering = false;
-      }
-
-      private void ComboBoxArrayElementViewKeyDown(object sender, KeyEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (ComboBoxArrayElementViewModel)element.DataContext;
-         if (e.Key == Key.Enter) viewModel.ConfirmSelection();
       }
 
       private void ComboBoxTupleElementViewKeyDown(object sender, KeyEventArgs e) {

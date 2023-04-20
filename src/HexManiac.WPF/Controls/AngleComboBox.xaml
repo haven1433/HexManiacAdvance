@@ -1,8 +1,7 @@
 ﻿<ComboBox x:Class="HavenSoft.HexManiac.WPF.Controls.AngleComboBox"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls"
-             PreviewKeyDown="KeyDownToViewModel">
+             xmlns:hsg3hv="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
    <ComboBox.Resources>
       <ControlTemplate x:Key="ComboBoxToggleButton" TargetType="{x:Type ToggleButton}">
          <Border x:Name="Border"
