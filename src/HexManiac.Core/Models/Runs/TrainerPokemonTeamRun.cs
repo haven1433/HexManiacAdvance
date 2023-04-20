@@ -71,7 +71,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       private IReadOnlyList<ArrayRunElementSegment> Initialize() {
          var segments = new List<ArrayRunElementSegment> {
-            showFullIVByteRange ? new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2) : new ArrayRunTupleSegment("ivSpread", "|:.|each::.", 2),
+            new ArrayRunElementSegment("ivSpread", ElementContentType.Integer, 2),
+            new ArrayRunCalculatedSegment(model,"scaledIV","ivSpread*.12156"),
             new ArrayRunElementSegment("level", ElementContentType.Integer, 2),
             new ArrayRunEnumSegment("mon", 2, HardcodeTablesModel.PokemonNameTable)
          };

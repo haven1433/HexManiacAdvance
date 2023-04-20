@@ -785,16 +785,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var destination = table.ReadPointer(model, elementIndex, parts[0]);
             var childTable = model.GetNextRun(destination) as ITableRun;
             if (childTable == null) return Pointer.NULL;
-            var childTableIndex = ParseValue(model, childTable, elementIndex, parts[1]);
+            var childTableIndex = (int)ParseValue(model, childTable, elementIndex, parts[1]);
             return CalculateSource(model, childTable, childTableIndex, parts[2]);
          }
 
          return Pointer.NULL;
       }
 
-      public static int ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
+      public static double ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
          if (string.IsNullOrEmpty(content)) return 0;
-         if (int.TryParse(content, out int simpleValue)) return simpleValue;
+         if (double.TryParse(content, out var simpleValue)) return simpleValue;
          if (content == "last") return table.ElementCount - 1;
 
          if (table != null && table.ElementContent.Any(seg => seg.Name == content)) {
@@ -827,7 +827,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (destination == Pointer.NULL) return 0;
             var childTable = model.GetNextRun(destination) as ITableRun;
             if (childTable == null) throw new NotImplementedException(message);
-            var childTableIndex = ParseValue(model, childTable, elementIndex, parts[1]);
+            var childTableIndex = (int)ParseValue(model, childTable, elementIndex, parts[1]);
             return ParseValue(model, childTable, childTableIndex, parts[2]);
          }
          

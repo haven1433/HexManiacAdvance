@@ -112,6 +112,7 @@ namespace HavenSoft.HexManiac.Tests {
                   "data.trainers.multibattle.steven.team",      // use repeated field macro for steven's moves
                   "scripts.specials.thumb",                     // length was wrong
                   "graphics.townmap.catchmap.conversion.kanto", // added +88 offset for elements from data.maps.names (FireRed)
+                  "graphics.text.font.japan2.characters",       // format changed by Shiny
                }.Contains(namedAnchor.Name);
             }
 

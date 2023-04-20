@@ -313,9 +313,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
          var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
-            return calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength);
+            return (int)Math.Round(calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength));
          }
          return model.ReadMultiByteValue(self.Start + self.ElementLength * elementIndex + fieldOffset, self.ElementContent[fieldIndex].Length);
+      }
+
+      public static double ReadCalculatedValue(this ITableRun self, int elementIndex, int calculatedSegmentFieldIndex) {
+         var calcSeg = (ArrayRunCalculatedSegment)self.ElementContent[calculatedSegmentFieldIndex];
+         return calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength);
       }
 
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, string fieldName) {

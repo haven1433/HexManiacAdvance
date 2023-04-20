@@ -662,7 +662,7 @@
                                                    <ColumnDefinition Width="*"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
-                                                <TextBlock Text="{Binding CalculatedValue}" HorizontalAlignment="Right" Grid.Column="1"/>
+                                                <TextBlock Text="{Binding CalculatedValue, StringFormat=N2}" HorizontalAlignment="Right" Grid.Column="1"/>
                                              </Grid>
                                              <Expander Margin="20,0,0,5" HorizontalAlignment="Left">
                                                 <Expander.Header>

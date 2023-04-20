@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int dataStart;
 
       public string Name => segment.Name;
-      public int CalculatedValue {
+      public double CalculatedValue {
          get {
             var table = segment.Model.GetNextRun(dataStart) as ITableRun;
             if (table == null) return 0;
