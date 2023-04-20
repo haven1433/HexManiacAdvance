@@ -157,8 +157,8 @@ graphics.pokedex.menu.tilemap.menu2,      ,,,, ,,,, 0BC668, `lzm4x32x12|graphics
 graphics.pokedex.menu.palette,            ,,,, ,,,, 55D27C, `ucp4:0123456789ABCDEF`
 
 graphics.pokemon.moves.animations,          075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<`ase`>]data.pokemon.moves.names
-graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
-graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites
+graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:move_particles+10000]move_particles
+graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index:move_particles+10000 unused:]graphics.moves.particles.sprites
 graphics.moves.backgrounds.all,             076E54, 076E58, 076E74, 076E78, 073960, 073960, 073974, 073974,       , [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27
 graphics.moves.backgrounds.psychic,         37F3A0, 37F330, 37F3B8, 37F348, 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all`
 graphics.moves.backgrounds.impact.opponent, 37F3AC, 37F33C, 37F3C4, 37F354, 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all`
@@ -776,7 +776,7 @@ graphics.text.font.short.width2,              ,,,, ,,,, 0064FC, [width.]512
 graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x1024`
 graphics.text.font.bag.width,                 ,,,, ,,,, 0065E4, [width.]512
 graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
-graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
+graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x64`
 graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
@@ -787,7 +787,10 @@ graphics.text.font.latin1.characters, 	002B88, 002B88, 002B88, 002B88, , , , , ,
 graphics.text.font.latin1.width, 	00495C, 00495C, 00495C, 00495C, , , , , , [width.]220
 graphics.text.font.default.characters,  095984, 095984, 0959A4, 0959A4, , , , , , `ucs4x1x508`
 graphics.text.font.default.width, 	004930, 004930, 004930, 004930, , , , , , [width.]254
+graphics.text.font.short.characters,    1E6BB8, 1E6B48, 1E6BD0, 1E6B60, , , , , , `ucs4x20x11`
 graphics.text.font.short.width, 	004938, 004938, 004938, 004938, , , , , , [width.]220
+graphics.text.font.japan0.characters,   1E6B34, 1E6AC4, 1E6B4C, 1E6ADC, , , , , , `ucs1x1x480`
+graphics.text.font.japan1.characters,   1E6B40, 1E6AD0, 1E6B58, 1E6AE8, , , , , , `ucs1x16x16` 
 graphics.text.font.japan3.characters, 	1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , , `ucs4x16x31`
 graphics.text.font.japan4.characters, 	1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
 graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`

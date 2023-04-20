@@ -1,0 +1,21 @@
+# Remove Contest Moves Tab from Ruby's, Sapphire's,
+# and Emerald's Summary Screen
+
+# Founded by Jaizu
+# .hma Script written by Shiny
+
+@!game(BPEE)
+@1BF98E 02
+@1BF9B2 02
+
+@!game(AXVE0_AXPE0)
+@09D948 02
+@09D972 02
+@09D9A0 02
+@09D9C6 02
+
+@!game(AXVE1_AXPE1)
+@09D968 02
+@09D992 02
+@09D9C0 02
+@09D9E6 02
