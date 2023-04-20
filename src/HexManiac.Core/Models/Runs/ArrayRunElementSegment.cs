@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var builder = new StringBuilder("@{ ");
                recursionStopper = true;
                if (run is ArrayRun arrayRun && arrayRun.SupportsInnerPointers && arrayRun.ElementContent.Count == 1 && arrayRun.ElementContent[0].Type == ElementContentType.PCS) {
-                  // special case: if the pointer in this arrya is to a specific element of a text array, only copy that one element rather than the whole array.
+                  // special case: if the pointer in this array is to a specific element of a text array, only copy that one element rather than the whole array.
                   run.AppendTo(rawData, builder, address, arrayRun.ElementLength, deep: false);
                } else {
                   run.AppendTo(rawData, builder, run.Start, run.Length, deep);
@@ -728,21 +728,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var parts = contract.Split('+');
             Operands = parts;
             Operator = "+";
+         } else if (contract.Contains("÷")) {
+            var parts = contract.Split('÷');
+            Operands = parts;
+            Operator = "÷";
          } else {
             Operands = new[] { contract };
             Operator = string.Empty;
          }
       }
 
-      public int CalculatedValue(int index) {
+      public double CalculatedValue(int index) {
          if (string.IsNullOrEmpty(Operands[0])) return 0;
          var table = (ITableRun)Model.GetNextRun(index);
          var offset = table.ConvertByteOffsetToArrayOffset(index);
 
-         var values = Operands.Select(operand => ParseValue(Model, table, offset.ElementIndex, operand));
+         var values = Operands.Select(operand => (double)ParseValue(Model, table, offset.ElementIndex, operand));
          switch (Operator) {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
+            case "÷": return values.Aggregate((a, b) => b == 0 ? 0 : a / b);
             default:  return values.First();
          }
       }
