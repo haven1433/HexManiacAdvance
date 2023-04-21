@@ -830,8 +830,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var childTableIndex = (int)ParseValue(model, childTable, elementIndex, parts[1]);
             return ParseValue(model, childTable, childTableIndex, parts[2]);
          }
-         
-         throw new NotImplementedException();
+
+         // failed to find a match for the content
+         return 0;
       }
    }
 
