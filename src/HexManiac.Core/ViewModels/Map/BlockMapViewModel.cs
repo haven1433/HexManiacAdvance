@@ -1170,7 +1170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (lastDrawX, lastDrawY) = (-1, -1);
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
-         if (border == null) return;
+         if (border == null || ev == null) return;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          var (xx, yy) = ((int)(x / 16) - border.West, (int)(y / 16) - border.North);
          if (ev.X == xx && ev.Y == yy) return;
