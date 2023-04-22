@@ -289,7 +289,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             CurrentElementName = "The Table tool only works if your cursor is on table data.";
             Groups.Clear();
             UsageChildren.Clear();
-            NotifyPropertyChanged(nameof(TableSections));
+            using (Scope(ref dataForCurrentRunChangeUpdate, true, val => dataForCurrentRunChangeUpdate = val)) {
+               NotifyPropertyChanged(nameof(TableSections));
+            }
             return;
          }
 
