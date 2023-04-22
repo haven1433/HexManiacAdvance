@@ -935,7 +935,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
       public override void Render(IDataModel model, LayoutModel layout) {
-         var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
+         var ows = model.GetTable(HardcodeTablesModel.OverworldSprites);
+         var owTable = ows == null ? null : new ModelTable(model, ows.Start);
          var facing = MoveType switch {
             7 => 1,
             9 => 2,
