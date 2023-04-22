@@ -128,7 +128,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }));
          } else {
             var destination = ViewPort.Model.GetNextRun(pointerDestination);
-            if (!(destination is NoInfoRun) && destination.PointerSources.Count > 1) {
+            if (destination is not NoInfoRun && destination.PointerSources != null && destination.PointerSources.Count > 1) {
                group.Add(new ContextItem("Repoint to New Copy", arg => {
                   ViewPort.RepointToNewCopy(pointerAddress);
                   ViewPort.Refresh();

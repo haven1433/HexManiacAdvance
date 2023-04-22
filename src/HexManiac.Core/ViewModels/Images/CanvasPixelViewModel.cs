@@ -79,5 +79,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          rgb.b = (rgb.b - amount).LimitToRange(0, 31);
          return UncompressedPaletteColor.Pack(rgb.r, rgb.g, rgb.b);
       }
+      public static short ShiftTowards(short color, (int r, int g, int b) targetColor, int amount) {
+         var rgb = UncompressedPaletteColor.ToRGB(color);
+         var dr = Math.Sign(targetColor.r - rgb.r);
+         var dg = Math.Sign(targetColor.g - rgb.g);
+         var db = Math.Sign(targetColor.b - rgb.b);
+
+         rgb.r = (rgb.r + amount * dr).LimitToRange(0, 31);
+         rgb.g = (rgb.g + amount * dg).LimitToRange(0, 31);
+         rgb.b = (rgb.b + amount * db).LimitToRange(0, 31);
+         return UncompressedPaletteColor.Pack(rgb.r, rgb.g, rgb.b);
+      }
    }
 }

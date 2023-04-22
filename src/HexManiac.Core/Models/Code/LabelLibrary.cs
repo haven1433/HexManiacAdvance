@@ -58,4 +58,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (labels.Values.Any(address => address == scriptStart + script.Count)) script.Add(endCommand);
       }
    }
+
+   public record DecompileLabelLibrary(int Start, int Length) {
+      private readonly Dictionary<int, string> labels = new();
+      public string AddressToLabel(int address) {
+         if (labels.TryGetValue(address, out var label)) return label;
+         if (address.InRange(Start, Start + Length)) {
+            label = "section" + labels.Count;
+            labels[address] = label;
+            return label;
+         }
+         return address.ToAddress();
+      }
+   }
 }

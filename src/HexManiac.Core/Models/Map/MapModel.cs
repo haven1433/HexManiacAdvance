@@ -92,14 +92,28 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    public record LayoutModel(ModelArrayElement? Element) {
       public int Width => Element?.GetValue("width") ?? -1;
       public int Height => Element?.GetValue("height") ?? -1;
-      public ModelArrayElement PrimaryBlockset => Element?.TryGetSubTable(Format.PrimaryBlockset, out var table) ?? false ? table[0] : null;
-      public ModelArrayElement SecondaryBlockset => Element?.TryGetSubTable(Format.SecondaryBlockset, out var table) ?? false ? table[0] : null;
+      public MiniBlocksetModel PrimaryBlockset => Element?.TryGetSubTable(Format.PrimaryBlockset, out var table) ?? false ? new(table[0]) : null;
+      public MiniBlocksetModel SecondaryBlockset => Element?.TryGetSubTable(Format.SecondaryBlockset, out var table) ?? false ? new(table[0]) : null;
       public int BorderBlockAddress => Element?.GetAddress(Format.BorderBlock) ?? Pointer.NULL;
       public BlockCells BlockMap {
          get {
             var start = Element?.GetAddress(Format.BlockMap) ?? Pointer.NULL;
             return new(Element.Model, start, Width, Height);
          }
+      }
+   }
+
+   public record MiniBlocksetModel(ModelArrayElement? Element) {
+      public int Start => Element?.Start ?? Pointer.NULL;
+      public int BlocksAddress => Element?.GetAddress(Format.Blocks) ?? Pointer.NULL;
+      public int TilesetAddress => Element?.GetAddress(Format.Tileset) ?? Pointer.NULL;
+      public int PaletteAddress => Element?.GetAddress(Format.Palette) ?? Pointer.NULL;
+      public int AttributeAddress => Element?.GetAddress(Format.BlockAttributes) ?? Pointer.NULL;
+      public TileAttribute Attribute(int index) {
+         var start = AttributeAddress;
+         if (start == Pointer.NULL) return null;
+         var length = Element.Model.IsFRLG() ? 4 : 2;
+         return TileAttribute.Create(Element.Model.RawData, start + length * index, length);
       }
    }
 

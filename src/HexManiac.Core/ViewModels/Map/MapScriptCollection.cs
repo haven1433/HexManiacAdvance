@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Load(ModelArrayElement owner) {
          Scripts.Clear();
          this.owner = owner;
+         if (owner == null) return;
          address = owner.GetAddress("mapscripts");
          if (address == Pointer.NULL) return;
          var model = viewPort.Model;

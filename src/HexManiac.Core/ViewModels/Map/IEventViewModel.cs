@@ -28,7 +28,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int X { get; set; }
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
-      void Render(IDataModel model);
+      void Render(IDataModel model, LayoutModel layout);
       bool Delete();
    }
 
@@ -161,7 +161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return X == fly.X && Y == fly.Y && flySpot.Start == fly.flySpot.Start;
       }
 
-      public void Render(IDataModel model) {
+      public void Render(IDataModel model, LayoutModel layout) {
          EventRender = BaseEventViewModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 31, 0));
       }
    }
@@ -250,7 +250,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return bem.element.Start == element.Start;
       }
 
-      public abstract void Render(IDataModel model);
+      public abstract void Render(IDataModel model, LayoutModel layout);
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
@@ -337,11 +337,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          element.SetAddress(fieldName, value.TryParseHex(out int result) ? result : Pointer.NULL);
       }
 
-      public static IPixelViewModel BuildEventRender(short color) {
+      private static readonly Point[] focalPoints = new[] { new Point(0, 7), new Point(7, 0), new Point(15, 8), new Point(8, 15) };
+      public static IPixelViewModel BuildEventRender(short color, bool indentSides = false) {
          var pixels = new short[256];
+         
          for (int x = 1; x < 15; x++) {
             for (int y = 1; y < 15; y++) {
                if (((x + y) & 1) != 0) continue;
+               if (indentSides && focalPoints.Any(p => Math.Abs(p.X - x) + Math.Abs(p.Y - y) < 4)) continue;
                pixels[y * 16 + x] = color;
                y++;
             }
@@ -489,6 +492,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string scriptAddressText;
       public string ScriptAddressText {
          get {
+            if (scriptAddressText != null) return scriptAddressText;
             var value = element.GetAddress("script");
             return GetAddressText(value, ref scriptAddressText);
          }
@@ -736,7 +740,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (martContent.Value == null) return null;
             var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
             if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
-            return martContentText = stream.SerializeRun();
+            var lines = stream.SerializeRun().SplitLines().Select(line => line.Trim('"'));
+            return martContentText = Environment.NewLine.Join(lines);
          }
          set {
             martContentText = value;
@@ -929,8 +934,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
       public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
-      public override void Render(IDataModel model) {
-         var owTable = new ModelTable(model, model.GetTable(HardcodeTablesModel.OverworldSprites).Start);
+      public override void Render(IDataModel model, LayoutModel layout) {
+         var ows = model.GetTable(HardcodeTablesModel.OverworldSprites);
+         var owTable = ows == null ? null : new ModelTable(model, ows.Start);
          var facing = MoveType switch {
             7 => 1,
             9 => 2,
@@ -943,9 +949,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
       public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing) {
-         if (index >= owTable.Count) {
-            return defaultOW;
-         }
+         if (owTable == null || index >= owTable.Count) return defaultOW;
          var element = owTable[index];
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites");
@@ -1049,8 +1053,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
+         if (WarpIsOnWarpableBlock(model, layout)) return;
+         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
+      }
+
+      public bool WarpIsOnWarpableBlock(IDataModel model, LayoutModel layout) {
+         if (!model.TryGetList("MapAttributeBehaviors", out var list)) return false;
+
+         int primaryBlockCount = model.IsFRLG() ? 640 : 512;
+         var cell = layout.BlockMap[X, Y];
+         var tile = cell.Tile;
+         var blockset = layout.PrimaryBlockset;
+         if (tile >= primaryBlockCount) {
+            tile -= primaryBlockCount;
+            blockset = layout.SecondaryBlockset;
+         }
+
+         var behavior = blockset.Attribute(tile).Behavior;
+         if (list.Count <= behavior) return false;
+         return list[behavior].Contains("Warp") || list[behavior].Contains("Door") || list[behavior].Contains("Stairs");
       }
    }
 
@@ -1092,6 +1115,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string scriptAddressText;
       public string ScriptAddressText {
          get {
+            if (scriptAddressText != null) return scriptAddressText;
             var value = element.GetAddress("script");
             return GetAddressText(value, ref scriptAddressText);
          }
@@ -1102,7 +1126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
       }
    }
@@ -1211,6 +1235,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private string pointerText;
       public string PointerText {
          get {
+            if (pointerText != null) return pointerText;
             var value = element.GetAddress("arg");
             return GetAddressText(value, ref pointerText);
          }
@@ -1276,15 +1301,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public override void Render(IDataModel model) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
       }
 
       public bool ShowSignpostText => EventTemplate.GetSignpostTextPointer(element.Model, this) != DataFormats.Pointer.NULL;
 
+      private string signpostText;
       public string SignpostText {
-         get => GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
+         get {
+            if (signpostText != null) return signpostText;
+            signpostText = GetText(EventTemplate.GetSignpostTextPointer(element.Model, this));
+            return signpostText;
+         }
          set {
+            signpostText = value;
             var newAddress = SetText(EventTemplate.GetSignpostTextPointer(element.Model, this), value);
             if (newAddress >= 0) DataMoved.Raise(this, new("Text", newAddress));
          }

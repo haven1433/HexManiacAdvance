@@ -74,6 +74,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void RaiseMessage(string message) => OnMessage?.Invoke(this, message);
 
+      public void RaiseError(string message) => OnError?.Invoke(this, message);
+
       private void ExecuteUndo() {
          var selectionStart = Palette.SelectionStart;
          var selectionEnd = Palette.SelectionEnd;
@@ -1041,7 +1043,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   result[y * selectionWidth + x] = parent.PixelData[index];
                }
             }
-            fs.CopyImage = (result, selectionWidth);
+            try {
+               fs.CopyImage = (result, selectionWidth);
+            } catch {
+               parent.RaiseError("Failed to copy image.");
+            }
          }
 
          private void RaiseRefreshSelection() {

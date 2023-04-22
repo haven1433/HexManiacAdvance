@@ -1,5 +1,9 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.Tools;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using System;
+using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
@@ -99,10 +103,46 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
-      public AngleComboBox() => InitializeComponent();
+      public AngleComboBox() {
+         DataContextChanged += (sender, e) => {
+            if (e.OldValue is FilteringComboOptions oldVM) {
+               oldVM.PropertyChanged -= HandleVMTextChanged;
+            }
+            if (e.NewValue is FilteringComboOptions newVM) {
+               newVM.PropertyChanged += HandleVMTextChanged;
+            }
+         };
+         InitializeComponent();
+      }
+
+      protected override void OnPreviewKeyDown(KeyEventArgs e) {
+         KeyDownToViewModel(this, e);
+         if (!e.Handled) base.OnPreviewKeyDown(e);
+      }
+
+      protected override void OnDropDownOpened(EventArgs e) {
+         base.OnDropDownOpened(e);
+         ClearSelection();
+      }
+
+      private void HandleVMTextChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName != nameof(FilteringComboOptions.DisplayText)) return;
+         ClearSelection();
+      }
+
+      private void ClearSelection() {
+         if (Template.FindName("PART_EditableTextBox", this) is not TextBox tb) return;
+         tb.SelectionStart = tb.SelectionStart + tb.SelectionLength;
+      }
 
       private void KeyDownToViewModel(object sender, KeyEventArgs e) {
          var element = (FrameworkElement)sender;
+         if (element.DataContext is FilteringComboOptions vm) {
+            if (e.Key == Key.Up) vm.SelectUp();
+            if (e.Key == Key.Down) vm.SelectDown();
+            if (e.Key == Key.Enter) vm.SelectConfirm();
+            if (e.Key.IsAny(Key.Up, Key.Down, Key.Enter)) e.Handled = true;
+         }
          if (element.DataContext is not IndexComboBoxViewModel viewModel) return;
          if (e.Key == Key.Enter) viewModel.CompleteFilterInteraction();
       }

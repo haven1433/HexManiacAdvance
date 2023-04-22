@@ -447,11 +447,11 @@
                               </Style>
                            </StackPanel.Resources>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Greeting:" />
-                           <TextBox Text="{Binding MartHello, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding MartHello, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Shop:" />
-                           <TextBox Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Goodbye:" />
-                           <TextBox Text="{Binding MartGoodbye, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding MartGoodbye, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowTutorContent, Converter={StaticResource BoolToVisibility}}">
@@ -464,9 +464,9 @@
                               </Style>
                            </StackPanel.Resources>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Info:" />
-                           <TextBox Text="{Binding TutorInfoText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TutorInfoText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Which Pokemon:" />
-                           <TextBox Text="{Binding TutorWhichPokemonText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TutorWhichPokemonText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
 
                            <Grid Margin="0,10,0,0">
                               <Grid.ColumnDefinitions>
@@ -483,9 +483,9 @@
                            </Grid>
 
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Sucess:" />
-                           <TextBox Text="{Binding TutorSucessText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TutorSucessText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Fail:" />
-                           <TextBox Text="{Binding TutorFailedText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TutorFailedText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowTradeContent, Converter={StaticResource BoolToVisibility}}">
@@ -498,7 +498,7 @@
                               </Style>
                            </StackPanel.Resources>
                            <local:AngleBorder Content="Info:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeInitialText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TradeInitialText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
 
                            <Grid Margin="0,10,0,0">
                               <Grid.ColumnDefinitions>
@@ -515,16 +515,16 @@
                            </Grid>
 
                            <local:AngleBorder Content="Cancel:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeFailedText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TradeFailedText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
 
                            <local:AngleBorder Content="Wrong Pokemon:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeWrongSpeciesText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TradeWrongSpeciesText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
 
                            <local:AngleBorder Content="Success:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeThanksText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TradeThanksText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
 
                            <local:AngleBorder Content="After Trade:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeSuccessText, UpdateSourceTrigger=PropertyChanged}" />
+                           <TextBox Text="{Binding TradeSuccessText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                         </StackPanel>
 
                      </Grid>
@@ -558,7 +558,7 @@
                         </local:AngleBorder>
                         <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2">
                            <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap, UpdateSourceTrigger=PropertyChanged}" />
-                           <TextBlock Text="{Binding TargetMapName}" />
+                           <TextBlock Text="{Binding TargetMapName}" TextWrapping="Wrap"/>
                         </StackPanel>
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
@@ -1192,10 +1192,24 @@
             <Decorator Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}" Margin="0,10" DockPanel.Dock="Top" Height="115">
                <local:SelectedBlockEditor x:Name="BlockEditor" DataContext="{Binding PrimaryMap.BlockEditor}" HorizontalAlignment="Center" Width="300"/>
             </Decorator>
-            <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" DockPanel.Dock="Top" />
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Top" HorizontalAlignment="Center" DataContext="{Binding PrimaryMap}">
+               <local:AngleButton Direction="Left" Width="90" Height="30" Margin="4" Command="{res:MethodCommand EditTileset}" CommandParameter="Primary">
+                  <StackPanel Orientation="Horizontal">
+                     <Path Data="{res:Icon Pencil}" Stretch="Uniform" Fill="{DynamicResource Primary}" />
+                     <TextBlock Text="Primary" FontSize="11" />
+                  </StackPanel>
+               </local:AngleButton>
+               <local:AngleBorder HorizontalAlignment="Center" HorizontalContentAlignment="Center" Width="100" Content="Tiles" Direction="Out" />
+               <local:AngleButton Direction="Right" Width="90" Height="30" Margin="4" Command="{res:MethodCommand EditTileset}" CommandParameter="Secondary">
+                  <StackPanel Orientation="Horizontal">
+                     <Path Data="{res:Icon Pencil}" Stretch="Uniform" Fill="{DynamicResource Primary}" />
+                     <TextBlock Text="Secondary" FontSize="11" />
+                  </StackPanel>
+               </local:AngleButton>
+            </StackPanel>
             <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4" DataContext="{Binding PrimaryMap.BlockEditor}">
-               <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0"/>
-               <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center">
+               <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0" Width="100" TextAlignment="Right" />
+               <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center" HorizontalAlignment="Left">
                   <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
                </Border>
                <TextBlock VerticalAlignment="Center" Margin="5,0" TextAlignment="Center">

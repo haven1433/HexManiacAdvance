@@ -1,6 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
-using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
@@ -108,6 +108,69 @@ namespace HavenSoft.HexManiac.Integration {
 
          var layouts = firered.Model.GetTableModel("data.maps.layouts");
          Assert.Equal(384, layouts.Count);
+      }
+
+      [SkippableFact]
+      public void SelectBlock_SelectEvent_NoBlockSelected() {
+         var firered = LoadReadOnlyFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.SelectBlock(2, 2);
+         firered.MapEditor.ReleaseBlock(2, 2);
+
+         var ev = firered.MapEditor.PrimaryMap.EventGroup.Objects[0];
+         firered.MapEditor.EventDown(ev, PrimaryInteractionStart.None);
+         firered.MapEditor.EventUp();
+
+         Assert.False(firered.MapEditor.BlockEditorVisible);
+      }
+
+      [SkippableFact]
+      public void Door_CreateNewMap_NewMapWarpConnectsToSourceWarp() {
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         var warp = firered.MapEditor.PrimaryMap.EventGroup.Warps[1];
+
+         FileSystem.ShowOptions = (_, _, _, _) => 0;
+         firered.MapEditor.CreateMapForWarp(warp);
+
+         warp = firered.MapEditor.PrimaryMap.EventGroup.Warps[0];
+         Assert.Equal(2, warp.WarpID);
+      }
+
+      [SkippableFact]
+      public void CreateNewMapFromWarp_Undo_NoError() {
+         int close = 0;
+         FileSystem.ShowOptions = (_, _, _, _) => 0;
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.CreateMapForWarp(firered.MapEditor.PrimaryMap.EventGroup.Warps[1]);
+         firered.MapEditor.Closed += (sender, e) => close++;
+
+         firered.MapEditor.Undo.Execute();
+
+         Assert.Single(Errors);
+         Assert.Equal(1, close);
+      }
+
+      [SkippableFact]
+      public void CreateNewMapFromConnection_Undo_NoError() {
+         FileSystem.ShowOptions = (_, _, _, _) => 0;
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         firered.MapEditor.PrimaryMap.ConnectNewMap(new(10, 0, MapDirection.Right));
+         firered.MapEditor.PrimaryMap = firered.MapEditor.VisibleMaps.Last(); // should be the map that was just inserted
+
+         firered.MapEditor.Undo.Execute();
+
+         Assert.Equal(3000, firered.MapEditor.PrimaryMap.MapID);
+      }
+
+      [SkippableFact]
+      public void FireRed_LoadStartingMap_SignpostsLoadCorrectly() {
+         var firered = LoadReadOnlyFireRed();
+         var table = firered.Model.GetTable("data.maps.banks/3/maps/0/map/0/events/");
+         var format = (Pointer)table.CreateDataFormat(firered.Model, table.Start + table.Length - 1);
+         Assert.False(format.HasError);
       }
    }
 }

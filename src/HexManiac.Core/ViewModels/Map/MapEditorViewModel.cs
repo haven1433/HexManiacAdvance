@@ -62,10 +62,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
             NotifyPropertyChanged(nameof(ShowEventPanel));
             ShowHeaderPanel = false;
-            if (selectedEvent == null) primaryMap.DeselectEvent();
             primaryMap.BlockEditor.ShowTiles = false;
             DrawBlockIndex = -1;
             CollisionIndex = -1;
+            DrawMultipleTiles = false;
+            BlockEditorVisible = false;
+            tilesToDraw = null;
+            if (selectedEvent == null) primaryMap.DeselectEvent();
          }
       }
 
@@ -322,6 +325,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
 
          ZoomLevel = "1x Zoom";
+         FixLayoutTable(); // quick 1-time check for adding unknown layouts
       }
 
       #endregion
@@ -367,6 +371,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (blockset == -1) return;
          if (blockset == Pointer.NULL) return;
          // update the primary map
+         map.IsSelected = true;
          if (VisibleMaps.FirstOrDefault(existing => existing.UpdateFrom(map)) is BlockMapViewModel loadedMap) map = loadedMap;
          if (primaryMap != map) {
             if (primaryMap != null) {
@@ -515,15 +520,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                while (Math.Abs(p.X - drawSource.X) % tilesToDraw.GetLength(0) != 0) p -= new Point(1, 0);
                while (Math.Abs(p.Y - drawSource.Y) % tilesToDraw.GetLength(1) != 0) p -= new Point(0, 1);
             }
-            UpdateHover(p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
+            UpdateHover(map, p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
             HoverPoint = string.Empty;
          } else {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
-            map.HoverPoint = ToPixelPosition(x, y);
-            if (UpdateHover(p.X, p.Y, 1, 1)) {
+            map.HoverPoint = ToPixelPosition(map, x, y);
+            if (UpdateHover(map, p.X, p.Y, 1, 1)) {
                HoverPoint = $"({p.X}, {p.Y})";
                if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
-                  return ShowEventHover(ev);
+                  return ShowEventHover(map, ev);
                } else {
                   return EmptyTooltip;
                }
@@ -536,17 +541,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// <summary>
       /// returns true if the hover changed
       /// </summary>
-      private bool UpdateHover(int left, int top, int width, int height) {
+      private bool UpdateHover(BlockMapViewModel map, int left, int top, int width, int height) {
          var (prevX, prevY) = (highlightCursorX, highlightCursorY);
          var (prevW, prevH) = (highlightCursorWidth, highlightCursorHeight);
 
-         var border = primaryMap.GetBorderThickness();
+         var border = map.GetBorderThickness();
          if (border == null) return false;
          ShowHighlightCursor = true;
-         HighlightCursorX = (left + border.West + width / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
-         HighlightCursorY = (top + border.North + height / 2.0) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
-         HighlightCursorWidth = width * 16 * primaryMap.SpriteScale + 4;
-         HighlightCursorHeight = height * 16 * primaryMap.SpriteScale + 4;
+
+         // limit selection right/bottom to the map
+         var mapWidth = map.PixelWidth / 16 - border.West - border.East;
+         var mapHeight = map.PixelHeight / 16 - border.North - border.South;
+         while (left + width > mapWidth && width > 1) width--;
+         while (top + height > mapHeight && height > 1) height--;
+
+         HighlightCursorX = (left + border.West + width / 2.0) * 16 * map.SpriteScale + map.LeftEdge;
+         HighlightCursorY = (top + border.North + height / 2.0) * 16 * map.SpriteScale + map.TopEdge;
+         HighlightCursorWidth = width * 16 * map.SpriteScale + 4;
+         HighlightCursorHeight = height * 16 * map.SpriteScale + 4;
 
          if (prevX != highlightCursorX) return true;
          if (prevY != highlightCursorY) return true;
@@ -594,7 +606,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var prevEvent = SelectedEvent;
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
-            EventDown(x, y, ev, click);
+            EventDown(ev, click);
             return;
          } else {
             if (prevEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
@@ -620,7 +632,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
          if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.Event) EventUp(x, y);
+         if (interactionType == PrimaryInteractionType.Event) EventUp();
          interactionType = PrimaryInteractionType.None;
       }
 
@@ -693,7 +705,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (lastDraw != drawSource) Tutorials.Complete(Tutorial.ControlClick_FillRect);
             FillBackup();
             FillRect();
-            UpdateHover(Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
+            UpdateHover(map, Math.Min(drawSource.X, lastDraw.X), Math.Min(drawSource.Y, lastDraw.Y), Math.Abs(drawSource.X - lastDraw.X) + 1, Math.Abs(drawSource.Y - lastDraw.Y) + 1);
          }
       }
 
@@ -710,7 +722,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          primaryMap.RedrawEvents(); // editing blocks in a map can draw over events, we need to redraw events now that we have new blocks
       }
 
-      private void EventDown(double x, double y, IEventViewModel ev, PrimaryInteractionStart click) {
+      public void EventDown(IEventViewModel ev, PrimaryInteractionStart click) {
          SelectedEvent = ev;
          if (SelectedEvent is WarpEventViewModel warp && click == PrimaryInteractionStart.DoubleClick) {
             var banks = AllMapsModel.Create(warp.Element.Model, default);
@@ -721,8 +733,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             } else if (banks[warp.Bank] == null) {
                OnError.Raise(this, $"Could not load map bank {warp.Bank}");
             } else if (warp.Bank < banks.Count) {
-               NavigateTo(warp.Bank, warp.Map);
-               Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+               if (warp.Map >= banks[warp.Bank].Count || banks[warp.Bank][warp.Map] == null) {
+                  OnError.Raise(this, $"Could not load map {warp.Map} in bank {warp.Bank}");
+               } else {
+                  NavigateTo(warp.Bank, warp.Map);
+                  Tutorials.Complete(Tutorial.DoubleClick_FollowWarp);
+               }
             }
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             if (0 <= obj.ScriptAddress && obj.ScriptAddress < model.Count) {
@@ -758,13 +774,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var map = MapUnderCursor(x, y);
          if (map == primaryMap) {
             CreateEventForCreationInteraction(eventCreationType);
-            map.UpdateEventLocation(selectedEvent, x, y);
-            Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
+            if (selectedEvent != null) {
+               map.UpdateEventLocation(selectedEvent, x, y);
+               Tutorials.Complete(Tutorial.DragEvent_MoveEvent);
+            }
          }
          Hover(x, y);
       }
 
-      private void EventUp(double x, double y) {
+      public void EventUp() {
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
@@ -920,7 +938,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (blockIndex, collisionIndex) = map.GetBlock(x, y);
          SelectedEvent = null;
          selectDownPosition = ToBoundedMapTilePosition(map, x, y, 1, 1);
-         UpdateHover(selectDownPosition.X, selectDownPosition.Y, 1, 1);
+         UpdateHover(PrimaryMap, selectDownPosition.X, selectDownPosition.Y, 1, 1);
          var ev = map.EventUnderCursor(x, y);
          if (ev != null) {
             ShowEventContextMenu(ev);
@@ -944,7 +962,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var top = Math.Min(selectDownPosition.Y, selectMovePosition.Y);
          var width = Math.Abs(selectDownPosition.X - selectMovePosition.X) + 1;
          var height = Math.Abs(selectDownPosition.Y - selectMovePosition.Y) + 1;
-         UpdateHover(left, top, width, height);
+         UpdateHover(map, left, top, width, height);
       }
 
       public void SelectUp(double x, double y) {
@@ -961,7 +979,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tilesToDraw = new int[width, height];
          if (width == 1 && height == 1) {
             SelectSingleBlock();
-            UpdateHover(left, top, 1, 1);
+            UpdateHover(map, left, top, 1, 1);
             Tutorials.Complete(Tutorial.RightClickMap_SelectBlock);
             return;
          }
@@ -969,8 +987,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool fillError = false;
          for (int xx = 0; xx < width; xx++) {
             for (int yy = 0; yy < height; yy++) {
-               var (tX, tY) = ToMapPosition(left + xx, top + yy);
-               var block = primaryMap.GetBlock(tX, tY);
+               var (tX, tY) = ToMapPosition(map, left + xx, top + yy);
+               var block = map.GetBlock(tX, tY);
                if (block.blockIndex == -1 || block.collisionIndex == -1) {
                   fillError = true;
                   break;
@@ -981,14 +999,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (fillError) {
             DrawMultipleTiles = false;
             tilesToDraw = null;
-            UpdateHover(selectMovePosition.X, selectMovePosition.Y, 1, 1);
+            UpdateHover(map, selectMovePosition.X, selectMovePosition.Y, 1, 1);
          } else {
             Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
             FillMultiTileRender();
             DrawMultipleTiles = true;
             BlockEditorVisible = false;
             PrimaryMap.BlockEditor.ShowTiles = false;
-            UpdateHover(left, top, width, height);
+            UpdateHover(map, left, top, width, height);
          }
       }
 
@@ -1032,26 +1050,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // limit to within the content of this map
          var width = map.PixelWidth / 16 - borders.West - borders.East;
          var height = map.PixelHeight / 16 - borders.North - borders.South;
-         position = new(position.X.LimitToRange(0, width - selectionWidth), position.Y.LimitToRange(0, height - selectionHeight));
-
-         // offset based on primary map
-         var primarySize = primaryMap.GetBorderThickness();
-         var mapLeft = (int)((map.LeftEdge - primaryMap.LeftEdge) / map.SpriteScale / 16);
-         var mapTop = (int)((map.TopEdge - primaryMap.TopEdge) / map.SpriteScale / 16);
-         position = new(position.X + mapLeft + borders.West - primarySize.West, position.Y + mapTop + borders.North - primarySize.North);
+         position = new(position.X.LimitToRange(0, width - 1), position.Y.LimitToRange(0, height - 1));
 
          return position;
       }
 
-      private ImageLocation ToPixelPosition(double x, double y) {
-         (x, y) = ((x - primaryMap.LeftEdge) / primaryMap.SpriteScale, (y - primaryMap.TopEdge) / primaryMap.SpriteScale);
-         return new ImageLocation(x / primaryMap.PixelWidth, y / primaryMap.PixelHeight);
+      private ImageLocation ToPixelPosition(BlockMapViewModel map, double x, double y) {
+         (x, y) = ((x - map.LeftEdge) / map.SpriteScale, (y - map.TopEdge) / map.SpriteScale);
+         return new ImageLocation(x / map.PixelWidth, y / map.PixelHeight);
       }
 
-      private (double, double) ToMapPosition(int x, int y) {
-         var borders = primaryMap.GetBorderThickness();
-         var pX = (x + borders.West) * 16 * primaryMap.SpriteScale + primaryMap.LeftEdge;
-         var pY = (y + borders.North) * 16 * primaryMap.SpriteScale + primaryMap.TopEdge;
+      public (double x, double y) ToMapPosition(BlockMapViewModel map, int x, int y) {
+         var borders = map.GetBorderThickness();
+         var pX = (x + borders.West) * 16 * map.SpriteScale + map.LeftEdge;
+         var pY = (y + borders.North) * 16 * map.SpriteScale + map.TopEdge;
          return (pX, pY);
       }
 
@@ -1081,9 +1093,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private object[] ShowEventHover(BaseEventViewModel ev) {
+      private object[] ShowEventHover(BlockMapViewModel map, BaseEventViewModel ev) {
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
          if (ev is WarpEventViewModel warp) {
+            if (!warp.WarpIsOnWarpableBlock(model, new LayoutModel(map.GetLayout()))) {
+               tips.Add($"(This block's Behavior doesn't allow warping.)");
+            }
             tips.Add(warp.TargetMapName);
             var banks = AllMapsModel.Create(warp.Element.Model, default);
             if (banks[warp.Bank] == null) return tips.ToArray();
@@ -1110,12 +1125,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return tips.ToArray();
       }
 
-      public const int TextSummaryLimit = 60;
+      public const int TextSummaryLimit = 60, TextCountLimit = 5;
       private IEnumerable<object> SummarizeScript(int address) {
          var renderedAddresses = new HashSet<int>();
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
          var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x67, 0x1A, 0x5C, 0x86); // loadpointer, preparemsg, copyvarifnotzero, trainerbattle, mart
          var tips = new List<object>();
+         int textIncluded = 0; // prevent the tooltip from getting too long
 
          var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
          var icons = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
@@ -1127,19 +1143,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (model[spot.Address] == 0x0F) {
                // loadpointer (text)
                var textStart = model.ReadPointer(spot.Address + 2);
-               if (0 <= textStart && textStart < model.Count) {
+               if (0 <= textStart && textStart < model.Count && textIncluded < TextCountLimit) {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
             } else if (model[spot.Address] == 0x67) {
                // preparemsg (text)
                var textStart = model.ReadPointer(spot.Address + 1);
-               if (0 <= textStart && textStart < model.Count) {
+               if (0 <= textStart && textStart < model.Count && textIncluded < TextCountLimit) {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
             } else if (model[spot.Address] == 0x1A && itemStats != null) {
@@ -1166,6 +1184,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                   if (text.Length >= TextSummaryLimit) text += "...";
                   tips.Add(text);
+                  textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
 
@@ -1180,19 +1199,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (spot.Address + 1 == 0x03) {
                   // 5C ** trainer: arg: playerwin<>
                   var textStart = model.ReadPointer(spot.Address + 6);
-                  if (textStart >= 0 && textStart < model.Count) {
+                  if (textStart >= 0 && textStart < model.Count && textIncluded < TextCountLimit) {
                      var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                      if (text.Length >= TextSummaryLimit) text += "...";
                      tips.Add(text + Environment.NewLine);
+                     textIncluded++;
                      renderedAddresses.Add(spot.Address);
                   }
                } else {
                   // 5C ** trainer: arg: start<> playerwin<>
                   var textStart = model.ReadPointer(spot.Address + 10);
-                  if (textStart >= 0 && textStart < model.Count) {
+                  if (textStart >= 0 && textStart < model.Count && textIncluded < TextCountLimit) {
                      var text = model.TextConverter.Convert(model, textStart, TextSummaryLimit);
                      if (text.Length >= TextSummaryLimit) text += "...";
                      tips.Add(text + Environment.NewLine);
+                     textIncluded++;
                      renderedAddresses.Add(spot.Address);
                   }
                }
@@ -1289,6 +1310,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void CreateMapForWarp() {
          if (eventContext is not WarpEventViewModel warpContext) return;
          eventContext = null;
+         CreateMapForWarp(warpContext);
+      }
+
+      public void CreateMapForWarp(WarpEventViewModel warpContext) {
          Tutorials.Complete(Tutorial.RightClick_WarpNewMap);
          BlockMapViewModel newMap = primaryMap.CreateMapForWarp(warpContext);
          if (newMap == null) return;
@@ -1755,6 +1780,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool IsPrimaryBlock(BlockCell cell) => cell.Tile < PrimaryBlocks;
       private int TotalBlocks => 1024;
+
+      #endregion
+
+      #region Layout Table Fixing (for maps added via another tool)
+
+      public void FixLayoutTable() {
+         var token = new NoDataChangeDeltaModel();
+         if (model.GetTable(HardcodeTablesModel.MapLayoutTable) is not ArrayRun layouts) return;
+         var layoutFormat = layouts.ElementContent[0] is ArrayRunPointerSegment pSeg ? pSeg.InnerFormat : null;
+         if (layoutFormat == null) return;
+         var excess = 0;
+         while (true) {
+            var start = layouts.Start + layouts.Length + 4 * excess;
+            if (model.GetNextRun(start) is not PointerRun pRun) break;
+            if (pRun.Start != start) break;
+            var destination = model.ReadPointer(start);
+            if (!destination.InRange(0, model.Count)) break;
+            if (model.GetNextRun(destination) is not ITableRun tRun) break;
+            if (tRun.FormatString != layoutFormat) break;
+            excess++;
+         }
+         model.ClearFormat(token, layouts.Start + layouts.Length, excess * 4);
+         model.ObserveRunWritten(token, layouts.ResizeMetadata(layouts.ElementCount + excess));
+      }
 
       #endregion
 

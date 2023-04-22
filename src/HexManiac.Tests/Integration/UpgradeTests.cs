@@ -112,6 +112,7 @@ namespace HavenSoft.HexManiac.Tests {
                   "data.trainers.multibattle.steven.team",      // use repeated field macro for steven's moves
                   "scripts.specials.thumb",                     // length was wrong
                   "graphics.townmap.catchmap.conversion.kanto", // added +88 offset for elements from data.maps.names (FireRed)
+                  "graphics.text.font.japan2.characters",       // format changed by Shiny
                }.Contains(namedAnchor.Name);
             }
 
@@ -124,6 +125,9 @@ namespace HavenSoft.HexManiac.Tests {
             var newOffsetPointer = freshMetadata.OffsetPointers.Single(pointer => pointer.Address == offsetPointer.Address);
             Assert.Equal(newOffsetPointer.Offset, offsetPointer.Offset);
          }
+
+         // correct number of default goto shortcuts after upgrade
+         Assert.Equal(5, upgradedMetadata.GotoShortcuts.Count);
       }
 
       [SkippableTheory]

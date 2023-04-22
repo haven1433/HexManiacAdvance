@@ -313,9 +313,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, int fieldIndex = 0) {
          var fieldOffset = self.ElementContent.Take(fieldIndex).Sum(seg => seg.Length);
          if (self.ElementContent[fieldIndex].Length == 0 && self.ElementContent[fieldIndex] is ArrayRunCalculatedSegment calcSeg) {
-            return calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength);
+            return (int)Math.Round(calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength));
          }
          return model.ReadMultiByteValue(self.Start + self.ElementLength * elementIndex + fieldOffset, self.ElementContent[fieldIndex].Length);
+      }
+
+      public static double ReadCalculatedValue(this ITableRun self, int elementIndex, int calculatedSegmentFieldIndex) {
+         var calcSeg = (ArrayRunCalculatedSegment)self.ElementContent[calculatedSegmentFieldIndex];
+         return calcSeg.CalculatedValue(self.Start + elementIndex * self.ElementLength);
       }
 
       public static int ReadValue(this ITableRun self, IDataModel model, int elementIndex, string fieldName) {
@@ -362,7 +367,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (self.ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
                for (int j = 0; j < self.ElementCount; j++) {
                   var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
-                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index) continue;
+                  if (model.ReadMultiByteValue(segmentStart, segment.Length) != index + segment.ValueOffset) continue;
                   yield return (segmentStart, segmentStart + segment.Length - 1);
                }
             }
@@ -636,6 +641,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                .Select(tRun => tRun.ElementContent)
                .FirstOrDefault();
          }
+         if (sourceSegments == null && pointerSources?.Count == 1 && data.GetNextRun(pointerSources[0]) is ITableRun parentTable) {
+            sourceSegments = parentTable.ElementContent;
+            if (name == string.Empty) name = parentTable.ElementContent[parentTable.ConvertByteOffsetToArrayOffset(pointerSources[0]).SegmentIndex].Name;
+         }
 
          var (singleSegment, margins, tilemapLength) = ParseTilemapTable(data, format, length);
          if (singleSegment is ArrayRunElementSegment) {
@@ -719,6 +728,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          format = $"[{format}]{LengthFromAnchor}";
          if (string.IsNullOrEmpty(LengthFromAnchor)) format += ElementCount;
          return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, start, ElementCount, segments, pointerSources, PointerSourcesForInnerElements);
+      }
+
+      public ArrayRun ResizeMetadata(int newCount) {
+         var format = ElementContent.Select(segment => segment.SerializeFormat).Aggregate((a, b) => a + " " + b);
+         format = $"[{format}]{newCount}";
+         return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, Start, newCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
       private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength, Func<IFormattedRun, bool> runFilter) {
@@ -1468,6 +1483,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static bool DataMatchesSegmentFormat(IDataModel owner, int start, ArrayRunElementSegment segment, FormatMatchFlags flags, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, bool deepCheck = true) {
          if (start < 0 || start >= owner.Count - segment.Length) return false;
          Debug.Assert(sourceSegments.Contains(segment), "Expected segment to be one among sourceSegments.");
+
+         // if it's a record, we want to check the match against the concrete form
+         if (segment is ArrayRunRecordSegment recSeg) {
+            var segmentOffset = sourceSegments.Until(seg => seg == segment).Sum(seg => seg.Length);
+            var matchOffset = sourceSegments.Until(seg => seg.Name == recSeg.MatchField).Sum(seg => seg.Length);
+            var matchLength = sourceSegments.FirstOrDefault(seg => seg.Name == recSeg.MatchField)?.Length ?? 1;
+            var matchValue = owner.ReadMultiByteValue(start + matchOffset - segmentOffset, matchLength);
+            segment = recSeg.CreateConcrete(owner.FormatRunFactory, owner.TextConverter, matchValue);
+         }
+
          switch (segment.Type) {
             case ElementContentType.PCS:
                int readLength = PCSString.ReadString(owner, start, true, segment.Length);
@@ -1499,7 +1524,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var options = enumSegment.GetOptions(owner).ToList();
                   // don't verify enums that are based on lists.
                   // There could be more elements in use than elements in the list, especially for edited ROMs with default lists.
-                  if (options.Count == 0) return true; // unrecognized, so just allow anything
+                  if (options.Count == 0 || parentIndex == 0) return true; // unrecognized, so just allow anything
                   if (owner.TryGetList(enumSegment.EnumName, out var _)) return true;
                   var modelValue = owner.ReadMultiByteValue(start, segment.Length);
                   if (segment.Length == 2 && (short)modelValue == -2) return true; // allow FFFE short tokens: they often have special meaning

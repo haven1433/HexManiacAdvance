@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
@@ -7,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public static class TestExtensions {
@@ -38,5 +40,16 @@ namespace HavenSoft.HexManiac.Tests {
       public static T Single<T>(this ObservableCollection<IArrayElementViewModel> self) => (T)self.Single(item => item is T);
 
       public static StoredMetadata ExportMetadata(this IDataModel model, IMetadataInfo info) => model.ExportMetadata(null, info);
+
+      public static TRun Get<TRun>(this IDataModel model, string name) {
+         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, name);
+         var run = model.GetNextRun(address);
+         Assert.Equal(run.Start, address);
+         return (TRun)run;
+      }
+
+      public static byte[] Compile(this ScriptParser parser, ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
+         return parser.Compile(token, model, start, ref script, out movedData, out var _);
+      }
    }
 }

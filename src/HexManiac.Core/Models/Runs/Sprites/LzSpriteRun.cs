@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {

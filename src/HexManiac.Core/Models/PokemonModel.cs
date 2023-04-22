@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -636,8 +635,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                            // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
                         } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
                            var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
-                           if (offsets.SegmentOffset == 0) {
-                              Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start));
+                           if (offsets.SegmentOffset == 0 && offsets.SegmentIndex == 0) {
+                              Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(start), $"Expected InnerPointer to {start:X6} (from {arrayRun1.Start:X6}[{offsets.ElementIndex}])");
                               if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(start));
                            } else {
                               // pointer points into an element (not the beginning). This is an error, but is not a metadata inconsistency.
@@ -750,28 +749,24 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // Append _copy to the end to avoid the collision.
          if (!name.Contains("_copy")) {
-            name += "_copy";
+            name += $"_copy1";
             UniquifyName(model, desiredAddressForName, ref name);
             return info;
          }
-
-         // It already had _copy on the end... fine, append the number '2'.
-         var number = name.Split("_copy").Last();
-         if (number.Length == 0) {
-            name += "2";
+         // It already had _copy on the end... fine, append a number or increment it.
+         if (char.IsDigit(name[name.Length - 1])) {
+            int digit = 0;
+            string number = "";
+            for (int i = name.Length - 1; i >= 0 && char.IsDigit(name[i]); i--) number = name[i] + number;
+            digit = Convert.ToInt32(number);
+            name = name.Replace(number, digit.ToString());
+            name = name.Remove(name.IndexOf(digit.ToString()));
+            name += $"{digit + 1}";
             UniquifyName(model, desiredAddressForName, ref name);
             return info;
-         }
-
-         // It already had a number on the end of the _copy... ok, just increment it by 1.
-         if (int.TryParse(number, out var result)) {
-            name += result;
-            UniquifyName(model, desiredAddressForName, ref name);
-            return info;
-         }
-
-         // It wasn't a number? Eh, just throw _copy on the end again, it'll be fine.
-         name += "_copy";
+          }
+         // It wasn't a number? Eh, just throw _copy1 on the end again, it'll be fine.
+         name += "_copy1";
          UniquifyName(model, desiredAddressForName, ref name);
          return info;
       }
@@ -1060,7 +1055,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                run = run.MergeAnchor(existingRun.PointerSources);
                if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
                if (existingRun is ITableRun arrayRun1 && run is ITableRun tableRun1) {
-                  ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+                  if (arrayRun1.ElementLength != tableRun1.ElementLength) {
+                     // we need to clear all the pointers, the element length changed
+                     ModifyAnchorsFromPointerArray(changeToken, arrayRun1, null, arrayRun1.ElementCount, ClearPointerFormat);
+                  } else {
+                     ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+                  }
                   index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
                }
                SetIndex(index, run);
@@ -1448,9 +1448,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                ClearFormat(changeToken, location, run.Length);
             } else if (!(run is NoInfoRun)) {
                // a format starts exactly at this anchor.
-               // but the new format may extend further. If so, clear the excess space.
                if (existingRun.Length < run.Length) {
+                  // the new format may extend further. Clear excess space to make room for the longer format.
                   ClearFormatAndAnchors(changeToken, existingRun.Start + existingRun.Length, run.Length - existingRun.Length);
+               } else if (existingRun.Length > run.Length) {
+                  // clear pointers from the end of the run?
                }
             }
 

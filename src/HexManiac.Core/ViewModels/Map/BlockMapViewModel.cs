@@ -195,8 +195,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region IsSelected
 
-      // TODO why is the selection rect not showing up until the first move interaction?
-
       private bool isSelected;
       public bool IsSelected {
          get => isSelected;
@@ -275,8 +273,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void ClearPixelCache() {
-         pixelData = null;
-         NotifyPropertyChanged(nameof(PixelData));
+         lock (pixelWriteLock) {
+            pixelData = null;
+            NotifyPropertyChanged(nameof(PixelData));
+         }
       }
 
       #endregion
@@ -465,7 +465,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          mapScriptCollection = new(viewPort);
          mapScriptCollection.NewMapScriptsCreated += (sender, e) => GetMapModel().SetAddress("mapscripts", e.Address);
 
-         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID);
+         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => Header.Refresh());
          mapRepointer.ChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
          mapRepointer.DataMoved += (sender, e) => {
             ClearCaches();
@@ -575,6 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             oldBorderEditor.ShowBorderPanel = false;
             NotifyPropertyChanged(nameof(BorderEditor));
          }
+         Header.UpdateFromModel();
          ClearPixelCache();
          if (!MapScriptCollection.Unloaded) MapScriptCollection.Load(GetMapModel());
          NotifyPropertiesChanged(nameof(BlockRenders), nameof(BlockPixels), nameof(BerryInfo));
@@ -723,7 +724,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // place reverse warp at bottom heading back
          (warp.Bank, warp.Map, warp.WarpID) = (newMap.group, newMap.map, 1);
          var returnWarp = newMap.CreateWarpEvent(group, map);
-         returnWarp.WarpID = GetEvents().Where(e => e is WarpEventViewModel).Until(e => e.Equals(warp)).Count();
+         returnWarp.WarpID = warp.Element.ArrayIndex + 1;
          (returnWarp.X, returnWarp.Y) = (4, 8);
          if (!warpIsBottomSquare) (returnWarp.X, returnWarp.Y) = (4, 7);
 
@@ -1169,7 +1170,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (lastDrawX, lastDrawY) = (-1, -1);
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
-         if (border == null) return;
+         if (border == null || ev == null) return;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          var (xx, yy) = ((int)(x / 16) - border.West, (int)(y / 16) - border.North);
          if (ev.X == xx && ev.Y == yy) return;
@@ -1375,7 +1376,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void ConnectNewMap(ConnectionInfo info) {
+      public void ConnectNewMap(ConnectionInfo info) {
          using (viewPort.ChangeHistory.ContinueCurrentTransaction()) {
             var token = tokenFactory();
             var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
@@ -1580,11 +1581,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return connections;
       }
 
+      private ModelTable CreateEventTable(ModelArrayElement map) {
+         // create some blank event data: 0 events for each of the four categories
+         var token = tokenFactory();
+         var eventAddress = MapRepointer.CreateNewEvents(token);
+         model.UpdateArrayPointer(token, map.Table.ElementContent[1], map.Table.ElementContent, 0, map.Start + 4, eventAddress);
+         return map.GetSubTable("events");
+      }
+
+      public void EditTileset(string type) {
+         var model = new MapModel(GetMapModel(), group, map);
+         if (type == "Primary") {
+            ViewPort.Tools.SpriteTool.SpriteAddress = model.Layout.PrimaryBlockset.TilesetAddress;
+            ViewPort.Tools.SpriteTool.PaletteAddress = model.Layout.PrimaryBlockset.PaletteAddress;
+         } else {
+            ViewPort.Tools.SpriteTool.SpriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
+            ViewPort.Tools.SpriteTool.PaletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
+         }
+         ViewPort.OpenImageEditorTab(ViewPort.Tools.SpriteTool.SpriteAddress, 0, 0, 16);
+      }
+
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
          var token = tokenFactory();
          var map = GetMapModel();
          if (map == null) return null;
-         var events = map.GetSubTable("events")[0];
+         var eventsTable = map.GetSubTable("events");
+         if (eventsTable == null) eventsTable = CreateEventTable(map);
+         var events = eventsTable[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
@@ -1819,6 +1842,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void RefreshBlockAttributeCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
          if (blockModel1 == null || blockModel2 == null) {
             if (layout == null) layout = GetLayout();
+            if (layout == null) return;
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
@@ -1856,12 +1880,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
-      private void RefreshMapEvents() {
+      private void RefreshMapEvents(ModelArrayElement layout) {
          if (eventRenders != null) return;
+         var layoutModel = new LayoutModel(layout);
          var list = new List<IEventViewModel>();
          var events = GetEvents();
          foreach (var obj in events) {
-            obj.Render(model);
+            obj.Render(model, layoutModel);
             list.Add(obj);
          }
          eventRenders = list;
@@ -1873,26 +1898,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          lock (blockRenders) {
             if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
          }
-         if (borderBlock == null) RefreshBorderRender();
+         var borderBlockCopy = borderBlock; // race condition: borderblock might be erased while we're drawing
+         if (borderBlockCopy == null) borderBlockCopy = RefreshBorderRender();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          var start = layout.GetAddress("blockmap");
+         var blockHighlight = blockEditor?.BlockIndex ?? -1;
 
          var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight);
-         var (borderWidth, borderHeight) = (borderBlock.PixelWidth / 16, borderBlock.PixelHeight / 16);
+         var (borderWidth, borderHeight) = (borderBlockCopy.PixelWidth / 16, borderBlockCopy.PixelHeight / 16);
          for (int y = 0; y < height + border.North + border.South; y++) {
             for (int x = 0; x < width + border.West + border.East; x++) {
                if (y < border.North || x < border.West || y >= border.North + height || x >= border.West + width) {
                   var (xEdge, yEdge) = (x - border.West - width, y - border.North - height);
                   var (rightEdge, bottomEdge) = (xEdge >= 0, yEdge >= 0);
                   // top/left
-                  if (!rightEdge && !bottomEdge && x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (!rightEdge && !bottomEdge && x % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   // right edge
-                  if (rightEdge && !bottomEdge && xEdge % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (rightEdge && !bottomEdge && xEdge % borderWidth == 0 && y % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   // bottom edge
-                  if (!rightEdge && bottomEdge && x % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (!rightEdge && bottomEdge && x % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   // bottom right corner
-                  if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlock, x * 16, y * 16);
+                  if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   continue;
                }
                var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
@@ -1902,6 +1929,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
                if (collisionHighlight == -1 && selectedEvent is ObjectEventViewModel obj && obj.ShouldHighlight(x - border.West, y - border.North)) {
                   HighlightCollision(canvas.PixelData, x * 16, y * 16);
+               }
+               if (collisionHighlight != -1 && blockHighlight != -1 && collision != collisionHighlight && data == blockHighlight) {
+                  // this matches the chosen block, but not the chosen collision
+                  HighlightBlock(canvas.PixelData, x * 16, y * 16);
                }
             }
          }
@@ -1913,7 +1944,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         if (eventRenders == null) RefreshMapEvents();
+         if (eventRenders == null) RefreshMapEvents(layout);
          if (eventRenders != null) {
             foreach (var obj in eventRenders) {
                if (obj.EventRender != null) {
@@ -1945,6 +1976,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private void HighlightBlock(short[] pixelData, int x, int y) {
+         void Transform(int xx, int yy) {
+            var p = (y + yy) * PixelWidth + x + xx;
+            pixelData[p] = CanvasPixelViewModel.ShiftTowards(pixelData[p], (31, 31, 0), 8); // yellow
+         }
+         for (int i = 0; i < 15; i++) {
+            Transform(i, 0);
+            Transform(15 - i, 15);
+            Transform(0, 15 - i);
+            Transform(15, i);
+         }
+      }
+
       public const int BlocksPerRow = 8;
       private void FillBlockPixelData() {
          var layout = GetLayout();
@@ -1965,7 +2009,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          blockPixels = canvas;
       }
 
-      private void RefreshBorderRender(ModelArrayElement layout = null) {
+      private IPixelViewModel RefreshBorderRender(ModelArrayElement layout = null) {
          if (layout == null) layout = GetLayout();
          lock (blockRenders) {
             if (blockRenders.Count == 0) RefreshBlockRenderCache(layout);
@@ -1983,7 +2027,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
-         BorderBlock = canvas;
+         return BorderBlock = canvas;
       }
 
       private ModelArrayElement GetMapModel() => GetMapModel(model, group, map, tokenFactory);
@@ -2049,9 +2093,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static List<IPixelViewModel> RenderOWs(IDataModel model) {
          var list = new List<IPixelViewModel>();
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
-         var ows = new ModelTable(model, run.Start, null, run);
+         var ows = run == null ? null : new ModelTable(model, run.Start, null, run);
          var defaultImage = GetDefaultOW(model);
-         for (int i = 0; i < ows.Count; i++) {
+         for (int i = 0; i < (ows?.Count ?? 1); i++) {
             list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1));
          }
          return list;
@@ -2189,9 +2233,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void GotoAddress(int address) {
-         if (model.GetNextRun(address).Start > address) {
-            viewPort.Tools.SelectedTool = viewPort.Tools.CodeTool;
-            viewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         var nextRun = model.GetNextRun(address);
+         var tool = viewPort.Tools.CodeTool;
+         if (nextRun.Start > address) {
+            viewPort.Tools.SelectedTool = tool;
+            tool.Mode = CodeMode.Script;
+         } else if (nextRun.Start == address && nextRun is XSERun) {
+            tool.ScriptParser.FormatScript<XSERun>(new NoDataChangeDeltaModel(), viewPort.Model, address);
          }
          viewPort.Goto.Execute(address);
       }

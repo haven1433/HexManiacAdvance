@@ -260,7 +260,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private void ScriptChanged(object viewModel, EventArgs e) {
+      private void ScriptChanged(object viewModel, ExtendedPropertyChangedEventArgs<string> e) {
          var parser = mode switch {
             CodeMode.Script => script,
             CodeMode.BattleScript => battleScript,
@@ -276,14 +276,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          int length = parser.FindLength(model, body.Address);
          using (ModelCacheScope.CreateScope(model)) {
+            var initialStart = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
+            var initialEnd = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
+            if (initialStart > initialEnd) (initialStart, initialEnd) = (initialEnd, initialStart);
+
             if (mode == CodeMode.Script) {
-               CompileScriptChanges<XSERun>(body, run, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<XSERun>(body, run, ref codeContent, e.OldValue, parser, body == Contents[0]);
             } else if (mode == CodeMode.AnimationScript) {
-               CompileScriptChanges<ASERun>(body, run, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<ASERun>(body, run, ref codeContent, e.OldValue, parser, body == Contents[0]);
             } else if (mode == CodeMode.BattleScript) {
-               CompileScriptChanges<BSERun>(body, run, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<BSERun>(body, run, ref codeContent, e.OldValue, parser, body == Contents[0]);
             } else if (mode == CodeMode.TrainerAiScript) {
-               CompileScriptChanges<TSERun>(body, run, ref codeContent, parser, body == Contents[0]);
+               CompileScriptChanges<TSERun>(body, run, ref codeContent, e.OldValue, parser, body == Contents[0]);
             }
 
             body.ContentChanged -= ScriptChanged;
@@ -296,7 +300,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
             var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
             if (start > end) (start, end) = (end, start);
-            if (start == body.Address) length = end - start + 1;
+            if (initialStart == body.Address) {
+               length = end - start + 1;
+               body.Address = start; // in case of the code getting repointed
+            }
             UpdateContents(start, parser, body.Address, length);
          }
       }
@@ -361,7 +368,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return new StubDisposable { Dispose = () => ignoreContentUpdates = false };
       }
 
-      private void CompileScriptChanges<SERun>(CodeBody body, IFormattedRun run, ref string codeContent, ScriptParser parser, bool updateSelection) where SERun : IScriptStartRun {
+      private void CompileScriptChanges<SERun>(CodeBody body, IFormattedRun run, ref string codeContent, string previousText, ScriptParser parser, bool updateSelection) where SERun : IScriptStartRun {
          ShowErrorText = false;
          ErrorText = string.Empty;
          var sources = run?.PointerSources ?? null;
@@ -371,8 +378,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
-            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData);
-            if (originalCodeContent != codeContent) body.SaveCaret();
+            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData, out int ignoreCharacterCount);
+            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount);
             if (code == null) {
                return;
             }
@@ -410,7 +417,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
-                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData); // recompile for the new location. Could update pointers.
+                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData, out var _); // recompile for the new location. Could update pointers.
                      sources = run.PointerSources;
                   }
                }
@@ -512,7 +519,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class CodeBody : ViewModelCore {
-      public event EventHandler ContentChanged;
+      public event EventHandler<ExtendedPropertyChangedEventArgs<string>> ContentChanged;
 
       public event EventHandler<HelpContext> HelpSourceChanged;
 
@@ -537,13 +544,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public int CaretPosition {
          get => Editor.CaretIndex;
          set {
-            if (savedCaret >= 0) {
-               value = savedCaret;
-               savedCaret = -1;
-               Editor.PushCaretUpdate(value);
-               return;
-            }
             if (Editor.CaretIndex == value) return;
+            Editor.CaretIndex = value;
             var lines = Content.Split('\r', '\n').ToList();
             var contentBoundaryCount = 0;
             while (value > lines[0].Length) {
@@ -552,8 +554,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                value -= lines[0].Length + 1;
                lines.RemoveAt(0);
             }
-
-            Editor.CaretIndex = value;
 
             // only show help if we're not within content curlies.
             if (contentBoundaryCount != 0) HelpContent = string.Empty;
@@ -569,9 +569,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (Editor.Content != value) {
                using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
+                  var previousValue = Editor.Content;
                   Editor.Content = value;
                   NotifyPropertyChanged();
-                  ContentChanged.Raise(this);
+                  ContentChanged.Raise(this, new(previousValue, nameof(Content)));
                }
             }
          }
@@ -584,17 +585,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Editor.Bind(nameof(Editor.Content), (sender, e) => {
             if (ignoreEditorContentUpdates) return;
             NotifyPropertyChanged(nameof(Content));
-            ContentChanged.Raise(this);
+            ContentChanged.Raise(this, (ExtendedPropertyChangedEventArgs<string>) e);
          });
          Editor.Bind(nameof(Editor.CaretIndex), (sender, e) => {
             NotifyPropertyChanged(nameof(CaretPosition));
          });
       }
 
-      private int savedCaret = -1;
-      public void SaveCaret() {
-         savedCaret = CaretPosition + 1;
-      }
+      public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
    }
 
    public record HelpContext(string Line, int Index);

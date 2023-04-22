@@ -146,6 +146,7 @@
             </ControlTemplate>
          </ContentControl.Template>
       </ContentControl>
-
+      <TextBlock Grid.ColumnSpan="2" Height="20" HorizontalAlignment="Center" VerticalAlignment="Top" Margin="0,-15"
+                 Foreground="{DynamicResource Error}" Text="{Binding ErrorText}" Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
    </Grid>
 </UserControl>

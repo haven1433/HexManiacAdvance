@@ -225,9 +225,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      }
                   }
 
+                  // goto prioritizes the map editor
+                  // but only if the search is specific enough to match only one map name
+                  // (multiple maps can have the same map name)
                   var maps = Model.GetMatchingMaps(str);
-                  if (maps.Count > 1) maps = maps.Where(map => map.Name == str).ToList();
-                  if (maps.Count == 1 && mapper != null && !str.TryParseHex(out _)) {
+                  if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(m.Name.Split('(', ')')[1])) && mapper != null && !str.TryParseHex(out _)) {
                      var previousMap = mapper.PrimaryMap;
                      mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, mapper.Tutorials, this, mapper.Format, maps[0].Group, maps[0].Map);
                      args = new TabChangeRequestedEventArgs(mapper);
@@ -2398,7 +2400,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var (gotoStart, gotoEnd) = gotoSelection[i];
             newTab.Add(CreateChildView(showStart, showEnd), gotoStart, gotoEnd);
          }
-         RequestTabChange(this, new(newTab));
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted && MapEditor?.IsValidState == true) {
+            // maybe I'm not the current tab
+            // try again from my map editor
+            RequestTabChange(MapEditor, args);
+         }
       }
 
       public void OpenDexReorderTab(string dexTableName) {
@@ -2406,13 +2414,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestTabChange(this, new(newTab));
       }
 
-      public void OpenImageEditorTab(int address, int spritePage, int palettePage) {
+      public void OpenImageEditorTab(int address, int spritePage, int palettePage, int preferredTileWidth = -1) {
          try {
             var newTab = new ImageEditorViewModel(history, Model, address, Save, tools.SpriteTool.PaletteAddress) {
                SpritePage = spritePage,
                PalettePage = palettePage,
             };
-            RequestTabChange(this, new(newTab));
+            var args = new TabChangeRequestedEventArgs(newTab);
+            RequestTabChange(this, args);
+            if (!args.RequestAccepted && MapEditor?.IsValidState == true) {
+               // trying to open from the image editor?
+               RequestTabChange(MapEditor, args);
+            }
+            if (preferredTileWidth != -1 && newTab.CanEditTilesetWidth) {
+               newTab.CurrentTilesetWidth = preferredTileWidth.LimitToRange(newTab.MinimumTilesetWidth, newTab.MaximumTilesetWidth);
+            }
          } catch (ImageEditorViewModelCreationException e) {
             RaiseError(e.Message);
          }

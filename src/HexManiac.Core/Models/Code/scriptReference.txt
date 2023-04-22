@@ -22,28 +22,32 @@
 # you can write individual bytes into set locations in the RAM. Examples?
 
 # macros
-msgbox.npc       0F 00 ptr<""> 09 02
-msgbox.sign      0F 00 ptr<""> 09 03
-msgbox.default   0F 00 ptr<""> 09 04
-msgbox.yesno     0F 00 ptr<""> 09 05
-msgbox.autoclose 0F 00 ptr<""> 09 06
-wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7
-give.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01
-npc.item         1A 00 80 item:data.items.stats 1A 01 80 count: 09 00
+msgbox.npc       0F 00 ptr<""> 09 02  # loadpointer, callstd 2
+msgbox.sign      0F 00 ptr<""> 09 03  # loadpointer, callstd 3
+msgbox.default   0F 00 ptr<""> 09 04  # loadpointer, callstd 4
+msgbox.yesno     0F 00 ptr<""> 09 05  # loadpointer, callstd 5
+msgbox.autoclose 0F 00 ptr<""> 09 06  # loadpointer, callstd 6
+wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7  # setwildbattle, dowildbattle
+give.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01           # copyvarifnotzero (item and count), callstd 1
+npc.item         1A 00 80 item:data.items.stats 1A 01 80 count: 09 00           # copyvarifnotzero (item and count), callstd 0
 msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
                                                                                                               # followed by a standard 'put away' message.
-msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32
-register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08
-if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>
-if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>
-if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>
-if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>
-if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>
-if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>
-if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>
-if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>
-if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>
-if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>
+                                                                                                              # loadpointer, copyvarifnotzero (item, count, song), callstd 9
+msgbox.instant.autoclose          6A DB ptr<""> 66 6D 68 6C     #Skips the typewriter effect
+msgbox.instant.npc                6A 5A DB ptr<""> 66 6D 68 6C  #Skips the typewriter effect
+msgbox.instant.default            6A DB ptr<""> 66 6D 6C        #Skips the typewriter effect
+msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32                                                                                                            # fanfare, preparemsg, waitmsg
+register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08  # setvar, special 0xEA, copyvarifnotzero, callstd 8
+if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # compare, if1
+if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # compare, if2
+if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # checkflag, if1
+if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>                                                                                                             # checkflag, if2
+if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>                                                                                                             # checkflag, if1
+if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>                                                                                                             # checkflag, if2
+if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>                                                                                   # checktrainerflag, if1
+if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>                                                                                   # checktrainerflag, if2
+if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>                                                                                   # checktrainerflag, if1
+if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>                                                                                   # checktrainerflag, if2
 
 
 00 nop                                          # does nothing

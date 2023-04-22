@@ -75,9 +75,9 @@ graphics.maps.names.popup.outline,          ,,,, ,,,, 0D4C58, `ucs4x6x30|graphic
 data.maps.banks,                       053324, 053324, 053344, 053344,       ,       ,       ,       ,       , [maps<[map<[layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1>]1> events<[objectCount.100 warpCount.100 scriptCount.100 signpostCount.100 objects<[id. graphics. unused:1 x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount> warps<[x:|z y:|z elevation.10 warpID. map. bank.]/warpCount> scripts<[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/scriptCount> signposts<[x:|z y:|z elevation.10 kind. unused:1 arg::|s=kind(0=<>|1=<>|2=<>|3=<>|4=<>)]/signpostCount>]1> mapscripts<[type. pointer<>]!00> connections<[count:: connections<[direction::mapdirections offset:: mapGroup. mapNum. unused:]/count>]1> music:songnames layoutID:data.maps.layouts+1 regionSectionID.data.maps.names cave. weather. mapType. unused. allowEscaping. showMapName. battleType.]1>]?>]34
 data.maps.banks,                             ,       ,       ,       ,       ,       ,       ,       , 084AA4, [maps<[map<[layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1>]1> events<[objectCount.100 warpCount.100 scriptCount.100 signpostCount.100 objects<[id. graphics. unused:1 x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount> warps<[x:|z y:|z elevation.10 warpID. map. bank.]/warpCount> scripts<[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/scriptCount> signposts<[x:|z y:|z elevation.10 kind. unused:1 arg::|s=kind(0=<>|1=<>|2=<>|3=<>|4=<>)]/signpostCount>]1> mapscripts<[type. pointer<>]!00> connections<[count:: connections<[direction::mapdirections offset:: mapGroup. mapNum. unused:]/count>]1> music:songnames layoutID:data.maps.layouts+1 regionSectionID.data.maps.names cave. weather. mapType. unused: flags.|t|allowBiking.|allowEscaping.|allowRunning.|showMapName. battleType.]1>]?>]34
 data.maps.banks,                             ,       ,       ,       , 05524C, 05524C, 055260, 055260,       , [maps<[map<[layout<[width:: height:: borderblock<> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> borderwidth. borderheight. unused:]1> events<[objectCount.100 warpCount.100 scriptCount.100 signpostCount.100 objects<[id. graphics. kind: x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount> warps<[x:|z y:|z elevation.10 warpID. map. bank.]/warpCount> scripts<[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/scriptCount> signposts<[x:|z y:|z elevation.10 kind. unused:1 arg::|s=kind(0=<>|1=<>|2=<>|3=<>|4=<>)]/signpostCount>]1> mapscripts<[type. pointer<>]!00> connections<[count:: connections<[direction::mapdirections offset:: mapGroup. mapNum. unused:]/count>]1> music:songnames layoutID:data.maps.layouts+1 regionSectionID.data.maps.names+88 cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName. floorNum. battleType.]1>]?>]43
-data.maps.layouts,                     05326C, 05326C, 05328C, 05328C,       ,       ,       ,       ,       , [layout<>]332
-data.maps.layouts,                           ,       ,       ,       , 055194, 055194, 0551A8, 0551A8,       , [layout<>]383
-data.maps.layouts,                           ,       ,       ,       ,       ,       ,       ,       , 0849CC, [layout<>]441
+data.maps.layouts,                     05326C, 05326C, 05328C, 05328C,       ,       ,       ,       ,       , [layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1>]1>]332
+data.maps.layouts,                           ,       ,       ,       , 055194, 055194, 0551A8, 0551A8,       , [layout<[width:: height:: borderblock<> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> borderwidth. borderheight. unused:]1>]383
+data.maps.layouts,                           ,       ,       ,       ,       ,       ,       ,       , 0849CC, [layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1>]1>]441
 data.maps.dungeons.stats,                    ,       ,       ,       , 0C1904, 0C18D8, 0C18EC, 0C18EC,       , [id:: name<""> description<"">]19
 
 data.maps.heal.map,                          ,       ,       ,       , 0BFD80, 0BFD54, 0BFD94, 0BFD68,       , [bank: map:]20
@@ -157,8 +157,8 @@ graphics.pokedex.menu.tilemap.menu2,      ,,,, ,,,, 0BC668, `lzm4x32x12|graphics
 graphics.pokedex.menu.palette,            ,,,, ,,,, 55D27C, `ucp4:0123456789ABCDEF`
 
 graphics.pokemon.moves.animations,          075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<`ase`>]data.pokemon.moves.names
-graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:]289
-graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index: unused:]graphics.moves.particles.sprites
+graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:move_particles+10000]move_particles
+graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index:move_particles+10000 unused:]graphics.moves.particles.sprites
 graphics.moves.backgrounds.all,             076E54, 076E58, 076E74, 076E78, 073960, 073960, 073974, 073974,       , [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27
 graphics.moves.backgrounds.psychic,         37F3A0, 37F330, 37F3B8, 37F348, 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all`
 graphics.moves.backgrounds.impact.opponent, 37F3AC, 37F33C, 37F3C4, 37F354, 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all`
@@ -636,7 +636,7 @@ graphics.newgame.menu.naming.palette2,   , , , , 3E2704, 3E2540, 3E2774, 3E25B0,
 graphics.newgame.menu.naming.palette3,   , , , , 09F8FC, 09F8D0, 09F910, 09F8E4, , `ucp4`
 graphics.newgame.menu.naming.sprite1,    , , , , 3E268C, 3E24C8, 3E26FC, 3E2538, , `ucs4x5x18|graphics.newgame.menu.naming.palette2`
 graphics.newgame.menu.naming.sprite2,    , , , , 3E2534, 3E2370, 3E25A4, 3E23E0, , `ucs4x2x6|graphics.newgame.menu.naming.palette1`
-graphics.newgame.menu.naming.tileset,    , , , , 09F8AC, 09F880, 09F8C0, 09F894, , `lzs4x6x6|graphics.newgame.menu.naming.palette1`
+graphics.newgame.menu.naming.tileset,    , , , , 09F8AC, 09F880, 09F8C0, 09F894, , `lzt4|graphics.newgame.menu.naming.palette1`         // must be a tileset to edit tilemap.m2
 // graphics.newgame.menu.naming.tilemap.m1, , , , , 09DF08, 09DEDC, 09DF1C, 09DEF0, , `lzm4x32x20|graphics.newgame.menu.naming.tileset` // has palette issue: wants to use palette 15?
 graphics.newgame.menu.naming.tilemap.m2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
@@ -776,7 +776,7 @@ graphics.text.font.short.width2,              ,,,, ,,,, 0064FC, [width.]512
 graphics.text.font.bag.characters,            ,,,, ,,,, 0065DC, `ucs2x2x1024`
 graphics.text.font.bag.width,                 ,,,, ,,,, 0065E4, [width.]512
 graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
-graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x324`
+graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x64`
 graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
 
@@ -787,7 +787,10 @@ graphics.text.font.latin1.characters, 	002B88, 002B88, 002B88, 002B88, , , , , ,
 graphics.text.font.latin1.width, 	00495C, 00495C, 00495C, 00495C, , , , , , [width.]220
 graphics.text.font.default.characters,  095984, 095984, 0959A4, 0959A4, , , , , , `ucs4x1x508`
 graphics.text.font.default.width, 	004930, 004930, 004930, 004930, , , , , , [width.]254
+graphics.text.font.short.characters,    1E6BB8, 1E6B48, 1E6BD0, 1E6B60, , , , , , `ucs4x20x11`
 graphics.text.font.short.width, 	004938, 004938, 004938, 004938, , , , , , [width.]220
+graphics.text.font.japan0.characters,   1E6B34, 1E6AC4, 1E6B4C, 1E6ADC, , , , , , `ucs1x1x480`
+graphics.text.font.japan1.characters,   1E6B40, 1E6AD0, 1E6B58, 1E6AE8, , , , , , `ucs1x16x16` 
 graphics.text.font.japan3.characters, 	1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , , `ucs4x16x31`
 graphics.text.font.japan4.characters, 	1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
 graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`

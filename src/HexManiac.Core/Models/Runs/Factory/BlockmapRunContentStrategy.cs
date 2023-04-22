@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HexManiac.Core.Models.Runs.Sprites;
 using System.Collections.Generic;
+using System.Linq;
 
 /*
  layout<[
@@ -37,9 +38,17 @@ namespace HexManiac.Core.Models.Runs.Factory {
          return ErrorInfo.NoError;
       }
 
+      /// <summary>
+      /// Try to add a new BlockmapRun.
+      /// But fail to do so if the BlockmapRun would run over any of its pointers.
+      /// </summary>
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var sanitySize = 100000;
          var runAttempt = new BlockmapRun(model, run.Start, run.PointerSources);
+         if (run.PointerSources != null && run.PointerSources.Any(source => runAttempt.Start <= source && source < runAttempt.Start + runAttempt.Length)) {
+            // one of the expected pointer sources is contained within the new run.
+            return;
+         }
          if (runAttempt.Length > 0 && runAttempt.BlockWidth <= sanitySize && runAttempt.BlockHeight <= sanitySize) {
             run = runAttempt.MergeAnchor(run.PointerSources);
             model.ClearFormat(token, run.Start, run.Length);

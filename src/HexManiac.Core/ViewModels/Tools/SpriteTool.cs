@@ -1138,9 +1138,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (WeightedPalette.Update(model, viewPort.CurrentChange, sprite, palettes, newPalettes, initialBlankPages).Start != sprite.Start) otherSpritesMoved = true;
             }
          }
+         var spritePages = spriteRun.Pages; // cache pages in case the sprite moves during the Update operation
          var currentSpriteRun = spriteRun;
-         if (spriteRun.Pages != paletteRun.Pages) {
-            for (int page = 0; page < spriteRun.Pages; page++) {
+         if (spritePages != paletteRun.Pages) {
+            for (int page = 0; page < spritePages; page++) {
                if (page == spritePage) continue;
                currentSpriteRun = WeightedPalette.Update(model, viewPort.CurrentChange, currentSpriteRun, palettes, newPalettes, initialBlankPages, page);
             }
@@ -1557,7 +1558,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void ExportSpriteAndPalette(IFileSystem fileSystem) {
          var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
          var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         if (spriteRun != null && paletteRun != null && spriteRun.SpriteFormat.BitsPerPixel == 4 && paletteRun.AllColors(model).Count == 16) {
+         bool export4bitImage = false;
+         if (spriteRun != null && paletteRun != null) {
+            bool spriteIs16Color = spriteRun.SpriteFormat.BitsPerPixel == 4 && spriteRun is not ITilemapRun tmap;
+            bool palIs16Color = paletteRun.AllColors(model).Count == 16;
+            export4bitImage = spriteIs16Color || palIs16Color;
+         }
+
+         if (export4bitImage) {
             var pixels = spriteRun.GetPixels(model, SpritePage, -1);
             var palette = paletteRun.GetPalette(model, PalettePage);
             fileSystem.SaveImage(pixels, palette);

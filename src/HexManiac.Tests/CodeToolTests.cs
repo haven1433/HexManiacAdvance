@@ -711,7 +711,7 @@ label2:;goto <000050>;end";
       [InlineData("03")]
       [InlineData("04")]
       [InlineData("05")]
-      public void ScriptWithPointerToPointer_Format_NoPointerFormat(string destination) {
+      public void ScriptWithPointerToPointer_Format_FixBrokenPointer(string destination) {
          SetFullModel(0xFF);
          $"06 00 {destination} 00 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
          ViewPort.Edit("^script`xse`");
@@ -719,14 +719,14 @@ label2:;goto <000050>;end";
          EventScript += " "; // force formatting
 
          var run = Model.GetNextRun(1);
-         Assert.Equal(int.MaxValue, run.Start);
+         Assert.Equal(7, Model.ReadPointer(2)); // auto-update pointer to something reasonable
       }
 
       [Theory]
       [InlineData("09")]
       [InlineData("0A")]
       [InlineData("0B")]
-      public void ScriptWithPointerToFuturePointer_Format_OnlySecondPointerKept(string destination) {
+      public void ScriptWithPointerToFuturePointer_Format_FixBrokenPointer(string destination) {
          SetFullModel(0xFF);
          $"06 00 {destination} 00 00 08 06 00 00 01 00 08 02".ToByteArray().WriteInto(Model.RawData, 0);
          ViewPort.Edit("^script`xse`");
@@ -734,7 +734,7 @@ label2:;goto <000050>;end";
          EventScript += " "; // force formatting
 
          var run = Model.GetNextRun(1);
-         Assert.Equal(8, run.Start);
+         Assert.Equal(13, Model.ReadPointer(2)); // auto-update pointer to something reasonable
       }
 
       [Fact]
@@ -747,6 +747,43 @@ label2:;goto <000050>;end";
          EventScript += " "; // force formatting
 
          Model.ResolveConflicts(); // no conflicts = pass
+      }
+
+      [Fact]
+      public void Script_AddOpenBrace_AutoAddCloseBrace() {
+         EventScript = "loadpointer 0 <100>;end";
+
+         EventScript = "loadpointer 0 <100>;{;end";
+
+         Assert.Equal("loadpointer 0 <100>;{;};end", EventScript);
+      }
+
+      [Fact]
+      public void ApplyMovement_UseFreespaceAddress_AutoWriteEmptyContent() {
+         SetFullModel(0xFF);
+
+         EventScript = "applymovement 0 <000080>;end";
+
+         Assert.Equal(0xFE, Model[0x80]);
+      }
+
+      [Fact]
+      public void Script_PointerToScriptDirectlyAfter_NoAuto() {
+         SetFullModel(0xFF);
+
+         EventScript = "goto <auto>";
+
+         Assert.True(Tool.ShowErrorText);
+      }
+
+      [Fact]
+      public void PokeMart_FreespaceAddress_InsertReasonableScript() {
+         SetFullModel(0xFF);
+         Model.WriteMultiByteValue(0x100, 2, Token, 0); // correct end token so that it looks _just barely_ like mart data
+         EventScript = "pokemart <0000C0>;{;1;};end";
+
+         var martData = (TableStreamRun)Model.GetNextRun(0xC0);
+         Assert.Equal(4, martData.Length);
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer

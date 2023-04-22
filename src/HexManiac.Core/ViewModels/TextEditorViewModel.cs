@@ -32,14 +32,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get => content;
          set {
             if (content == value) return;
+            var oldContent = content;
             content = value;
             UpdateLayers();
-            NotifyPropertyChanged();
+            NotifyPropertyChanged(oldContent, nameof(Content));
          }
       }
 
-      private int caretIndex;
-      public int CaretIndex { get => caretIndex; set => Set(ref caretIndex, value); }
+      public void SaveCaret(int lengthDelta) => savedCaret = caretIndex + lengthDelta;
+
+      private int caretIndex, savedCaret = int.MinValue;
+      public int CaretIndex {
+         get => caretIndex;
+         set {
+            if (savedCaret != int.MinValue) {
+               value = savedCaret;
+               savedCaret = int.MinValue;
+               PushCaretUpdate(value);
+               return;
+            }
+            Set(ref caretIndex, value);
+         }
+      }
 
       public string AccentContent { get; private set; } = string.Empty;
       public string PlainContent { get; private set; } = string.Empty;

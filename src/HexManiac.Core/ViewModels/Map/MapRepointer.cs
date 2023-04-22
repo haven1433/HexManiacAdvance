@@ -23,6 +23,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly int mapID; // bank * 1000 + map
 
+      private readonly Action refreshHeader;
+
       #region Commands
 
       private StubCommand
@@ -73,13 +75,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<DataMovedEventArgs> DataMoved; // also works as a "data changed" (request refresh) if the arg is null
       public event EventHandler<ChangeMapEventArgs> ChangeMap;
 
-      public MapRepointer(Format format, IFileSystem fileSystem, IEditableViewPort viewPort, ChangeHistory<ModelDelta> history, int mapID) {
+      public MapRepointer(Format format, IFileSystem fileSystem, IEditableViewPort viewPort, ChangeHistory<ModelDelta> history, int mapID, Action refreshHeader) {
          this.format = format;
          this.fileSystem = fileSystem;
          this.viewPort = viewPort;
          this.model = viewPort.Model;
          this.history = history;
          this.mapID = mapID;
+         this.refreshHeader = refreshHeader;
       }
 
       public void Refresh() {
@@ -168,7 +171,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             count = Math.Max(4, layout.GetValue(Format.BorderWidth) * layout.GetValue(Format.BorderHeight));
          }
 
-         if (ImportBytes(layout.GetAddress(Format.BorderBlock), count * 2)) DataMoved.Raise(this, null);
+         if (ImportBytes(layout.GetAddress(Format.BorderBlock), count * 2, -1)) DataMoved.Raise(this, null);
       }
 
       public void ExportBorderBlock() {
@@ -197,7 +200,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var size = width * height * 2;
          var address = layout.GetAddress(Format.BlockMap);
 
-         if (ImportBytes(address, size)) DataMoved.Raise(this, null);
+         if (ImportBytes(address, size, -1)) DataMoved.Raise(this, null);
       }
 
       public void ExportBlockMap() {
@@ -265,6 +268,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          var start = DuplicateData(layout.GetAddress(member), length);
          layout.SetAddress(member, start);
+         refreshHeader?.Invoke();
          DataMoved.Raise(this, new(char.ToUpper(member[0]) + member.Substring(1), start));
          foreach (var command in commands) command.RaiseCanExecuteChanged();
       }
@@ -388,9 +392,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var blockStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.Blocks);
          var attributeStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.BlockAttributes);
          var attributeSize = model.IsFRLG() ? 2 : 1;
-         if (ExportBytes(blockStart, blockCount * 16)) {
-            ExportBytes(attributeStart, blockCount * attributeSize);
-         }
+
+         var exportData = new byte[(16 + attributeSize) * blockCount];
+         Array.Copy(model.RawData, blockStart, exportData, 0, blockCount * 16);
+         Array.Copy(model.RawData, attributeStart, exportData, blockCount * 16, blockCount * attributeSize);
+         ExportBytes(exportData);
       }
 
       private void ImportBlocks(bool primary) {
@@ -400,9 +406,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var blockStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.Blocks);
          var attributeStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.BlockAttributes);
          var attributeSize = model.IsFRLG() ? 2 : 1;
-         if (ImportBytes(blockStart, blockCount * 16)) {
-            if (ImportBytes(attributeStart, blockCount * attributeSize)) {
-               DataMoved.Raise(this, null);
+
+         var file = fileSystem.OpenFile("Byte File", "bin");
+         if (file == null) return;
+         var bytes = file.Contents;
+         var unitLength = 16 + attributeSize;
+         if (bytes.Length % unitLength != 0) {
+            viewPort.RaiseError($"Import data should be a multiple of {unitLength} bytes, but was {bytes.Length} bytes.");
+            return;
+         }
+         var unitCount = bytes.Length / unitLength;
+         var blockData = new byte[unitCount * 16];
+         var attributeData = new byte[attributeSize * unitCount];
+         Array.Copy(bytes, blockData, blockData.Length);
+         Array.Copy(bytes, blockData.Length, attributeData, 0, attributeData.Length);
+
+         if (ImportBytes(blockStart, blockCount * 16, maxBlockCount * 16, blockData)) {
+            if (ImportBytes(attributeStart, blockCount * attributeSize, maxBlockCount * attributeSize, attributeData)) {
+               blockStart = layout.GetSubTable(blocksetName)[0].GetAddress(Format.Blocks);
+               DataMoved.Raise(this, new("Blockset", blockStart));
             }
          }
       }
@@ -574,8 +596,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             } else {
                DataMoved.Raise(this, null);
             }
+            for (int i = file.Contents.Length; i < existingRun.Length; i++) {
+               history.CurrentChange.ChangeData(model, newRun.Start + i, 0xFF);
+            }
          } else {
-            if (ImportBytes(start, currentTiles * 0x20)) {
+            if (ImportBytes(start, currentTiles * 0x20, maxTiles * 0x20)) {
                DataMoved.Raise(this, null);
             }
          }
@@ -892,22 +917,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, NoInfoRun.FromPointer(model, source));
       }
 
-      private bool ImportBytes(int address, int size) {
-         var file = fileSystem.OpenFile("Byte File", "bin");
-         if (file == null) return false;
-         var bytes = file.Contents;
+      private bool ImportBytes(int address, int currentSize, int maxSize, byte[] bytes = null) {
+         if (bytes == null) {
+            var file = fileSystem.OpenFile("Byte File", "bin");
+            if (file == null) return false;
+            bytes = file.Contents;
+         }
+         var minSize = 0;
+         if (maxSize < 0) (minSize, maxSize) = (currentSize, currentSize);
 
-         if (size != bytes.Length) {
-            viewPort.RaiseError($"Expected a file with {size} bytes, but got {bytes.Length} instead.");
+         if (bytes.Length > maxSize) {
+            viewPort.RaiseError($"Expected a file with no more than {maxSize} bytes, but got {bytes.Length} instead.");
             return false;
          }
-         viewPort.ChangeHistory.CurrentChange.ChangeData(model, address, bytes);
+         if (bytes.Length < minSize) {
+            viewPort.RaiseError($"Expected a file with no less than {minSize} bytes, but got {bytes.Length} instead.");
+            return false;
+         }
+         var token = viewPort.ChangeHistory.CurrentChange;
+         var newRun = model.RelocateForExpansion(token, model.GetNextRun(address), currentSize, bytes.Length);
+         token.ChangeData(model, newRun.Start, bytes);
+         for (int i = bytes.Length; i < currentSize; i++) token.ChangeData(model, newRun.Start + i, 0xFF);
          return true;
       }
 
       private bool ExportBytes(int address, int size) {
          var content = new byte[size];
          Array.Copy(model.RawData, address, content, 0, size);
+         return ExportBytes(content);
+      }
+
+      private bool ExportBytes(byte[] content) {
          var newName = fileSystem.RequestNewName(string.Empty, "Byte File", "bin");
          if (newName == null) return false;
          return fileSystem.Save(new(newName, content));
