@@ -147,10 +147,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      fs.SaveImage(imagePixels, colors, name);
                   } else {
                      var pixels = SpriteTool.Render(imagePixels, colors, palette?.PaletteFormat.InitialBlankPages ?? 0, 0);
-                     fs.SaveImage(pixels, imagePixels.GetLength(0), name);
+                     if (pixels.Length > 0 && imagePixels != null) {
+                        fs.SaveImage(pixels, imagePixels.GetLength(0), name);
+                     } else {
+                        ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}The sprite couldn't be recognized.");
+                     }
                   }
                } else {
-                  ErrorText = $"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}Another image with that named exists.";
+                  ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}Another image with that named exists.");
                }
             }
          }
