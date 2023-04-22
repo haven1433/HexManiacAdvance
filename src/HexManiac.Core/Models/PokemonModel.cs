@@ -1055,7 +1055,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                run = run.MergeAnchor(existingRun.PointerSources);
                if (run is NoInfoRun) run = existingRun.MergeAnchor(run.PointerSources); // when writing an anchor with no format, keep the existing format.
                if (existingRun is ITableRun arrayRun1 && run is ITableRun tableRun1) {
-                  ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+                  if (arrayRun1.ElementLength != tableRun1.ElementLength) {
+                     // we need to clear all the pointers, the element length changed
+                     ModifyAnchorsFromPointerArray(changeToken, arrayRun1, null, arrayRun1.ElementCount, ClearPointerFormat);
+                  } else {
+                     ModifyAnchorsFromPointerArray(changeToken, tableRun1, arrayRun1, arrayRun1.ElementCount, ClearPointerFormat);
+                  }
                   index = BinarySearch(run.Start); // have to recalculate index, because ClearPointerFormat can removed runs.
                }
                SetIndex(index, run);
@@ -1443,9 +1448,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                ClearFormat(changeToken, location, run.Length);
             } else if (!(run is NoInfoRun)) {
                // a format starts exactly at this anchor.
-               // but the new format may extend further. If so, clear the excess space.
                if (existingRun.Length < run.Length) {
+                  // the new format may extend further. Clear excess space to make room for the longer format.
                   ClearFormatAndAnchors(changeToken, existingRun.Start + existingRun.Length, run.Length - existingRun.Length);
+               } else if (existingRun.Length > run.Length) {
+                  // clear pointers from the end of the run?
                }
             }
 
