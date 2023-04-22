@@ -2093,9 +2093,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static List<IPixelViewModel> RenderOWs(IDataModel model) {
          var list = new List<IPixelViewModel>();
          var run = model.GetTable(HardcodeTablesModel.OverworldSprites);
-         var ows = new ModelTable(model, run.Start, null, run);
+         var ows = run == null ? null : new ModelTable(model, run.Start, null, run);
          var defaultImage = GetDefaultOW(model);
-         for (int i = 0; i < ows.Count; i++) {
+         for (int i = 0; i < (ows?.Count ?? 1); i++) {
             list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1));
          }
          return list;

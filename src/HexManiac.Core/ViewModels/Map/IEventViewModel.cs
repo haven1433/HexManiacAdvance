@@ -948,9 +948,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
       public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing) {
-         if (index >= owTable.Count) {
-            return defaultOW;
-         }
+         if (owTable == null || index >= owTable.Count) return defaultOW;
          var element = owTable[index];
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites");
