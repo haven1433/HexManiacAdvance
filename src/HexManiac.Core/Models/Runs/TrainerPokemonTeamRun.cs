@@ -354,8 +354,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<IPixelViewModel> Visualizations {
          get {
             var list = new List<IPixelViewModel>();
-            var monOffset = ElementContent.Take(2).Sum(seg => seg.Length);
-            var monSeg = ElementContent[2];
+            var monOffset = ElementContent.Take(3).Sum(seg => seg.Length);
+            var monSeg = ElementContent[3];
             if (!(model.GetTable(HardcodeTablesModel.FrontSpritesTable) is ITableRun sprites)) return list;
             for (int i = 0; i < ElementCount; i++) {
                var index = model.ReadMultiByteValue(Start + ElementLength * i + monOffset, monSeg.Length);
