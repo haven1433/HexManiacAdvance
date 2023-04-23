@@ -1297,7 +1297,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void PasteRawBytes(string text) {
-         text = text.Replace(" ", "").Replace("\n", "").Replace("\r", "");
+         text = text.Replace(" ", "").Replace("\n", "").Replace("\r", "").ToUpper();
          var index = Math.Min(ConvertViewPointToAddress(SelectionStart), ConvertViewPointToAddress(SelectionEnd));
          Model.ExpandData(CurrentChange, index + text.Length / 2);
          scroll.DataLength = Model.Count;
