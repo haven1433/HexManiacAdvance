@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          // if this is the start of a text segment, crop off the leading " before trying to convert to a byte
          if (pcs.Position == 0 && currentText[0] == StringDelimeter) currentText = currentText.Substring(1);
 
-         Result = PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + Input)) ||
+         Result = (currentText + Input).StartsWith("\\!") || PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + Input)) ||
             Model.TextConverter.AnyMacroStartsWith(currentText + Input);
       }
 

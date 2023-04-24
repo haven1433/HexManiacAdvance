@@ -113,6 +113,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          } else if (PCSString.PCS.Any(str => str == currentText)) {
             CompleteCharacterEdit(pcs);
             Result = true;
+         } else if (currentText.StartsWith("\\!") && currentText.Length == 4) {
+            // raw code
+            var raw = currentText.Substring(2).ToUpper();
+            if (raw.TryParseHex(out int bytes)) {
+               HandleLastCharacterChange(memoryLocation, Model.GetNextRun(memoryLocation), new[] { (byte)bytes });
+               Result = true;
+            }
          } else {
             var bytes = Model.TextConverter.Convert(currentText, out var containsBadCharacters);
             if (bytes.Count > 1 && !containsBadCharacters) {
