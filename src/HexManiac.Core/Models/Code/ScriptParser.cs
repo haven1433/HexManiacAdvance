@@ -193,18 +193,19 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
-      public void FormatScript<SERun>(ModelDelta token, IDataModel model, int address) where SERun : IScriptStartRun {
+      // returns a list of scripts that were formatted, and their length
+      public IDictionary<int, int> FormatScript<SERun>(ModelDelta token, IDataModel model, int address) where SERun : IScriptStartRun {
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(SERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
          if (typeof(SERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
          if (typeof(SERun) == typeof(TSERun)) constructor = (a, s) => new TSERun(a, s);
 
-         var processed = new List<int>();
+         var processed = new Dictionary<int, int>();
          var toProcess = new List<int> { address };
          while (toProcess.Count > 0) {
             address = toProcess.Last();
             toProcess.RemoveAt(toProcess.Count - 1);
-            if (processed.Contains(address)) continue;
+            if (processed.ContainsKey(address)) continue;
             var existingRun = model.GetNextRun(address);
             if (!(existingRun is SERun) && existingRun.Start == address) {
                var anchorName = model.GetAnchorFromAddress(-1, address);
@@ -262,8 +263,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                if (line.IsEndingCommand) break;
             }
-            processed.Add(address);
+            processed.Add(address, length);
          }
+
+         return processed;
       }
 
       private void WriteTextStream(IDataModel model, ModelDelta token, int destination, int source) {

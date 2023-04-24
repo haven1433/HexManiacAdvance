@@ -786,6 +786,16 @@ label2:;goto <000050>;end";
          Assert.Equal(4, martData.Length);
       }
 
+      [Fact]
+      public void EventWithGoto_AddCommandBeforeGoto_PointerFormatShifts() {
+         SetFullModel(0xFF);
+         EventScript = "goto <000000>";
+
+         EventScript = "addvar 1 1;goto <000000>";
+
+         Assert.Equal(6, Model.GetNextRun(1).Start);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
