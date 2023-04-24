@@ -1257,6 +1257,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ExplainMoves(spriteRun, newSprite, paletteRun, newPalette);
+
+         if (spriteRun.Start != newSprite.Start) {
+            spriteAddress = newSprite.Start;
+            NotifyPropertyChanged(nameof(SpriteAddress));
+         }
+         if (paletteRun.Start != newPalette.Start) {
+            paletteAddress = newPalette.Start;
+            NotifyPropertyChanged(nameof(PaletteAddress));
+         }
+
          return new Point(PixelWidth, PixelHeight);
       }
 
