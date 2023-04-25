@@ -798,7 +798,7 @@ graphics.text.font.japan4.characters, 	1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , ,
 graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
 graphics.text.font.palette, 		002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
 
-graphics.text.font.buttons.characters,        ,       ,       ,       , 006414, 006414, 006428, 006428, 006334, `ucs4x16x4`
+graphics.text.font.buttons.characters,        ,       ,       ,       , 006414, 006414, 006428, 006428, 006334, `ucs4x16x4|graphics.menu.downarrow.palette`
 
 data.text.menu.pokemon.battle,                                 , , , , 032C38, 032C38, 032C4C, 032C4C,       , ""
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
