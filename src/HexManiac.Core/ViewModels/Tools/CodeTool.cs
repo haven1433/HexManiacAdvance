@@ -442,9 +442,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.CompiledLength = code.Length;
                model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             }
-            parser.FormatScript<SERun>(history.CurrentChange, model, start);
+            var formatted = parser.FormatScript<SERun>(history.CurrentChange, model, start);
             if (sources != null) {
                foreach (var source in sources) {
+                  // skip the source if it's within one of the added scripts: it may have moved, and we've already added it.
+                  if (formatted.Any(kvp => source.InRange(kvp.Key, kvp.Key + kvp.Value))) continue;
                   var existingRun = model.GetNextRun(source);
                   if (existingRun.Start > source || !(existingRun is ITableRun)) {
                      model.ObserveRunWritten(history.CurrentChange, new PointerRun(source));

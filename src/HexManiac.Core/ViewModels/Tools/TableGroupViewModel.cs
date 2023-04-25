@@ -53,6 +53,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, TableGroupViewModel helperGroup, int splitPortion = -1) {
          var itemAddress = table.Start + table.ElementLength * index;
+         var originalItemAddress = itemAddress;
          var currentPartition = 0;
          foreach (var itemSegment in table.ElementContent) {
             var item = itemSegment;
@@ -90,7 +91,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                } else if (item is ArrayRunColorSegment) {
                   viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
                } else if (item is ArrayRunCalculatedSegment calcSeg) {
-                  viewModel = new CalculatedElementViewModel(viewPort, calcSeg, itemAddress);
+                  viewModel = new CalculatedElementViewModel(viewPort, calcSeg, originalItemAddress);
                } else if (item is ArrayRunOffsetRenderSegment renderSeg) {
                   viewModel = new OffsetRenderViewModel(viewPort, renderSeg, itemAddress);
                } else if (item is ArrayRunSignedSegment signedSegment) {

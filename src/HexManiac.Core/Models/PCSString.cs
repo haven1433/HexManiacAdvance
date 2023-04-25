@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -259,6 +260,18 @@ namespace HavenSoft.HexManiac.Core.Models {
                      continue;
                   }
                }
+            }
+
+            // check raw escape code \!XX (hex byte)
+            if (index < input.Length - 4 && input[index] == '\\' && input[index + 1] == '!') {
+               var hex = new string(new[] { input[index + 2], input[index + 3] });
+               if (hex.TryParseHex(out int value)) {
+                  result.Add((byte)value);
+               } else {
+                  result.Add(0);
+               }
+               index += 4;
+               continue;
             }
 
             // check characters and escape codes

@@ -1228,7 +1228,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var needWriteSpriteData = true;
          var matchPalettes = palettes;
-         if (spriteRun.Pages == 1 && palettes.Length > 1) matchPalettes = palettes.Take(1).ToArray();
+         if (spriteRun.Pages == 1 && palettes != null && palettes.Length > 1) matchPalettes = palettes.Take(1).ToArray();
          var problemPixel = TryReorderPalettesFromMatchingSprite(matchPalettes, image, spriteRun.GetPixels(model, spritePage, -1));
          if (problemPixel.X == PixelWidth && problemPixel.Y == PixelHeight) {
             // palette is reordered, everything matches up with the original data. No need to write sprite data.
@@ -1257,6 +1257,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ExplainMoves(spriteRun, newSprite, paletteRun, newPalette);
+
+         if (spriteRun.Start != newSprite.Start) {
+            spriteAddress = newSprite.Start;
+            NotifyPropertyChanged(nameof(SpriteAddress));
+         }
+         if (newPalette != null && paletteRun.Start != newPalette.Start) {
+            paletteAddress = newPalette.Start;
+            NotifyPropertyChanged(nameof(PaletteAddress));
+         }
+
          return new Point(PixelWidth, PixelHeight);
       }
 

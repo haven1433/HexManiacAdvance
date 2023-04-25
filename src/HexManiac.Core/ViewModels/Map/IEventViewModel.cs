@@ -298,7 +298,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (run.Start != address) {
             if (run.Start < address) return null;
             var length = PCSString.ReadString(element.Model, address, true);
-            if (run.Start < address + length) return null;
+            if (run.Start < address + length || length < 1) return null;
             // we can add a PCSRun here
             run = new PCSRun(element.Model, address, length, SortedSpan.One(pointer));
             if (element.Model.GetNextRun(pointer).Start >= pointer + 4) element.Model.ObserveRunWritten(element.Token, new PointerRun(pointer));
@@ -309,6 +309,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.Model.ClearFormat(element.Token, address, length);
             pcs = new PCSRun(element.Model, address, length, run.PointerSources);
          }
+         if (pcs.Length < 1) return string.Empty;
          return pcs.SerializeRun();
       }
 
