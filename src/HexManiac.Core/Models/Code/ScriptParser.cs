@@ -652,9 +652,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          while (length > 0) {
             if (index == nextAnchor.Start) {
-               if (results.Count > 0) results.Add(string.Empty);
-               results.Add($"{labels.AddressToLabel(nextAnchor.Start)}: # {nextAnchor.Start:X6}");
+               if (nextAnchor is IScriptStartRun) {
+                  if (results.Count > 0) results.Add(string.Empty);
+                  results.Add($"{labels.AddressToLabel(nextAnchor.Start, true)}: # {nextAnchor.Start:X6}");
+               } else if (nextAnchor is IStreamRun) {
+                  if (destinations.ContainsKey(index)) {
+                     index += nextAnchor.Length;
+                     length -= nextAnchor.Length;
+                  }
+               }
                nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
+               continue;
+            } else if (index > nextAnchor.Start) {
+               nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
+               continue;
             }
 
             var line = engine.FirstOrDefault(option => option.Matches(data, index) && option.MatchesGame(gameCode));
@@ -669,6 +680,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                length -= compiledByteLength;
 
                // if we point to shortly after, keep going
+               if (destinations.ContainsKey(index) && nextAnchor is IStreamRun && nextAnchor.Start == index) continue;
+               if (destinations.ContainsKey(index + 1) && nextAnchor is IStreamRun && nextAnchor.Start == index + 1) continue;
                if (destinations.ContainsKey(index) && nextAnchor is IScriptStartRun && nextAnchor.Start == index) continue;
                if (destinations.ContainsKey(index + 1) && nextAnchor is IScriptStartRun && nextAnchor.Start == index + 1) continue;
 
@@ -677,25 +690,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
 
-         // post processing: if a line has a pointer to this address and the length is big enough,
+         // post processing: if a line has a stream pointer to within the script,
          // change that pointer to be an -auto- pointer
-         while (length > 0) {
-            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{labels.AddressToLabel(index)}>") || results[i].Contains($"<{labels.AddressToLabel(index + 1)}>"));
-            var autoRun = data.GetNextRun(index);
-            var runStartsNoGap = autoRun.Start == index && autoRun.Length <= length;
-            var runStartsGap = autoRun.Start == index + 1 && autoRun.Length < length;
+         foreach (var label in labels.AutoLabels.ToList()) {
+            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{label:X6}>"));
+            var autoRun = data.GetNextRun(label);
             var runIsStream = autoRun is IStreamRun;
 
-            if (runStartsNoGap && runIsStream) {
-               results[autoIndex] = results[autoIndex].Replace($"<{labels.AddressToLabel(index)}>", "<auto>");
-               length -= autoRun.Length;
-               index += autoRun.Length;
-            } else if (runStartsGap && runIsStream) {
-               results[autoIndex] = results[autoIndex].Replace($"<{labels.AddressToLabel(index + 1)}>", "<auto>");
-               length -= autoRun.Length + 1;
-               index += autoRun.Length + 1;
+            if (runIsStream) {
+               results[autoIndex] = results[autoIndex].Replace($"<{label:X6}>", "<auto>");
             } else {
-               break;
+               continue;
             }
          }
 
@@ -1332,10 +1337,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
-               builder.Append(labels.AddressToLabel(address));
+               builder.Append(labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script));
             } else {
                address -= 0x8000000;
-               builder.Append($"<{labels.AddressToLabel(address)}>");
+               builder.Append($"<{labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script)}>");
                if (PointerType != ExpectedPointerType.Unknown) {
                   if (data.GetNextRun(address) is IStreamRun stream && stream.Start == address) {
                      streamContent.Add(stream.SerializeRun());

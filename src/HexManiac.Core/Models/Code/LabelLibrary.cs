@@ -61,14 +61,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public record DecompileLabelLibrary(int Start, int Length) {
       private readonly Dictionary<int, string> labels = new();
-      public string AddressToLabel(int address) {
+      private readonly HashSet<int> rawLabels = new();
+
+      /// <param name="isScriptAddress">
+      /// If this is false, the address is not the start of a script, but some other kind of data.
+      /// Only turn script addresses into section headers.
+      /// </param>
+      public string AddressToLabel(int address, bool isScriptAddress) {
          if (labels.TryGetValue(address, out var label)) return label;
-         if (address.InRange(Start, Start + Length)) {
+         if (isScriptAddress && address.InRange(Start, Start + Length)) {
             label = "section" + labels.Count;
             labels[address] = label;
             return label;
          }
+         rawLabels.Add(address);
          return address.ToAddress();
       }
+
+      public IEnumerable<int> AutoLabels => rawLabels.Where(key => key.InRange(Start, Start + Length));
    }
 }
