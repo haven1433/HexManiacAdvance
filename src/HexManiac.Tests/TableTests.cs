@@ -1503,6 +1503,16 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEqual(0x100, Model.GetNextRun(0x100).Start);
       }
 
+      [Fact]
+      public void TableOfScripts_ChangeAddressToFreespaceAndBack_NoAnchorLeftBehind() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("<null> @000 ^table[script<`bse`>]1 <100> ");
+
+         ViewPort.Edit("@table <180>");
+
+         Assert.Equal(0x180, Model.GetNextRun(0x100).Start);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

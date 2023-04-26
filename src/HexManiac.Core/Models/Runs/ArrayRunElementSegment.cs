@@ -710,6 +710,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   /// <summary>
+   /// Calculation options:
+   /// (data.pokemon.stats/hp=field)/atk -> get the attack of the pokemon who's hp matches some field in the current table.
+   /// 5                                 -> a constant
+   /// field                             -> another field within the current element of this table
+   /// data.pokemon.stats/hp             -> get the hp of the pokemon with the same index as the current table (TODO)
+   /// </summary>
    public class ArrayRunCalculatedSegment : ArrayRunElementSegment {
       public IDataModel Model { get; }
       public IReadOnlyList<string> Operands { get; }

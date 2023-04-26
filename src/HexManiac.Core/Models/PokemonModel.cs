@@ -1815,6 +1815,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                // if there is no parent, then there's no concept of length.
                // just remove it
                RemoveIndex(index);
+            } else if (newRun is IScriptStartRun ss && newRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newRun.Start)) {
+               // script start run, but with nothing points to it and it's unnamed.
+               // just remove it
+               RemoveIndex(index);
             } else {
                SetIndex(index, newRun);
                currentChange.AddRun(newRun);

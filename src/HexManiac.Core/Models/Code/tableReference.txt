@@ -331,7 +331,7 @@ graphics.pokemon.type.map,             3C11C8, 3C1220, 3C11E4, 3C1240,       ,  
 graphics.pokemon.bag.type.icon,              ,       ,       ,       ,       ,       ,       ,       , 19A340, `ucs4x16x16|graphics.pokemon.bag.type.palette`
 graphics.pokemon.bag.type.palette,           ,       ,       ,       ,       ,       ,       ,       , 19A2E0, `ucp4`
 graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,       ,       ,       , 19A33C, [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
-graphics.text.importer,                      ,       ,       ,       , 1456EC, 1456C8, 145764, 145740,       , [a:: tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8
+graphics.text.importer,                      ,       ,       ,       , 1456EC, 1456C8, 145764, 145740,       , [titleTextPal. bodyTextPal. footerTextPal. stampShadowPal. tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8
 graphics.text.box.about,                     ,       ,       ,       , 112FC8, 112FA0, 113040, 113018,       , `ucs4x5x4|graphics.text.box.palette`
 graphics.text.box.palette,                   ,       ,       ,       , 150450, 15042C, 1504C8, 1504A4,       , `ucp4:01234`
 graphics.text.box.message,                   ,       ,       ,       , 14FD68, 14FD44, 14FDE0, 14FDBC,       , `uct4x18|graphics.text.box.palette`
@@ -779,8 +779,10 @@ graphics.text.font.japan1.characters,         ,,,, ,,,, 0064BC, `ucs2x16x64`
 graphics.text.font.japan2.characters,         ,,,, ,,,, 0065A4, `ucs2x16x64`
 graphics.text.font.japan3.characters,         ,,,, ,,,, 006794, `ucs2x16x128`
 graphics.text.font.japan3.width,              ,,,, ,,,, 00679C, [width.]512
+graphics.text.font.japan6.characters,         ,,,, ,,,, 00696C, `ucs2x16x32`
 
-data.fonts, 				003A54, 003A54, 003A54, 003A54, , , , , , [fontType:: glyphs<> size: lowerTileOffset:]14
+data.fonts,                            	003A54, 003A54, 003A54, 003A54, , , , ,       , [fontType:: glyphs<> size: lowerTileOffset:]allFonts
+data.fonts,                            	      ,       ,       ,       , , , , , 006374, [function<> maxWidth. maxHeight. letterSpacing. lineSpacing. colors:|t|unused::|foreground::|background::|shadow:: padding:]allFonts
 graphics.text.font.latin0.characters, 	1E6B88, 1E6B18, 1E6BA0, 1E6B30, , , , , , `ucs1x1x511`
 graphics.text.font.latin0.width, 	004944, 004944, 004944, 004944, , , , , , [width.]254
 graphics.text.font.latin1.characters, 	002B88, 002B88, 002B88, 002B88, , , , , , `ucs1x1x256`
@@ -795,6 +797,8 @@ graphics.text.font.japan3.characters, 	1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , ,
 graphics.text.font.japan4.characters, 	1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
 graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
 graphics.text.font.palette, 		002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
+
+graphics.text.font.buttons.characters,        ,       ,       ,       , 006414, 006414, 006428, 006428, 006334, `ucs4x16x4|graphics.menu.downarrow.palette`
 
 data.text.menu.pokemon.battle,                                 , , , , 032C38, 032C38, 032C4C, 032C4C,       , ""
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]
@@ -831,6 +835,7 @@ graphics.pokemon.sprites.egg,                20A3B0, 20A340, 20A3C8, 20A358, 260
 data.text.trade.messages,                          ,       ,       ,       , 124570, 124548, 1245E8, 1245C0, 07A1EC, [text<"">]9
 graphics.menus.trade.windowtemplates.others,       ,       ,       ,       ,       ,       ,       ,       , 0773A8, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]!FF00000000000000
 graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,       ,       ,       ,       , 078EEC, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]1
+data.statstages.default,                     013104, 013104, 013104, 013104, 014ED4, 014ED4, 014EE8, 014EE8, 03D024, [numerator. denominator. ratio|=numerator÷denominator]13
 
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578,       ,       ,       ,       ,       , [numerator. divisor. unused:]13
