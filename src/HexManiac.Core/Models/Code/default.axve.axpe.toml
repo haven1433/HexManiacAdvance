@@ -734,6 +734,24 @@ Name = '''songnames'''
 466 = '''mus_vs_aqua_magma_leader'''
 467 = '''mus_gsc_radio_tower_takeover'''
 
+[[List]]
+Name = '''allFonts'''
+0 = [
+   '''japan0''',
+   '''japan1-01''',
+   '''japan1-02''',
+   '''japan3''',
+   '''japan4-04''',
+   '''japan4-05''',
+   '''braille''',
+   '''latin0''',
+   '''latin1-08''',
+   '''latin1-09''',
+   '''default''',
+   '''short-0B''',
+   '''short-0C''',
+   '''braille''',
+]
 
 [[GotoShortcut]]
 Name = '''Pokemon'''
