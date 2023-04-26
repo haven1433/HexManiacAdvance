@@ -1221,6 +1221,21 @@ Name = '''songnames'''
    '''ph_nurse_solo''',
 ]
 
+[[List]]
+Name = '''allFonts'''
+0 = [
+   '''short2''',
+   '''other''',
+   '''black''',
+   '''black-03''',
+   '''black-04''',
+   '''black-05''',
+   '''braille''',
+   '''bag''',
+   '''short''',
+   '''japan6''',
+]
+
 [[GotoShortcut]]
 Name = '''Pokemon'''
 Image = '''graphics.pokemon.sprites.front/295/sprite/'''
