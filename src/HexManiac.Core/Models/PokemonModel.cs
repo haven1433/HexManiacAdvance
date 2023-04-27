@@ -980,8 +980,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if ((address - array.Start) % array.ElementLength != 0) return false;
 
          var index = (address - array.Start) / array.ElementLength;
-         if (array.ElementNames.Count <= index) return false;
-         header = array.ElementNames[index];
+         var names = array.ElementNames;
+         if (names.Count <= index) return false;
+         header = names[index];
 
          return true;
       }
