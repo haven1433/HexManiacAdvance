@@ -208,6 +208,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
       public event EventHandler<CanPatchEventArgs> RequestCreatePatch;
 
+      public bool CanIpsPatchRight => false;
+      public bool CanUpsPatchRight => false;
+      public void IpsPatchRight() { }
+      public void UpsPatchRight() { }
+
       public void Duplicate() => Duplicate(PrimaryMap.MapID / 1000, PrimaryMap.MapID % 1000);
       private void Duplicate(int bank, int map) {
          var dup = viewPort.CreateDuplicate();

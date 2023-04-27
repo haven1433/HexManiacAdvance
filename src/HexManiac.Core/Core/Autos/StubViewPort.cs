@@ -824,8 +824,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels
             }
         }
         public EventImplementation<System.Collections.Specialized.NotifyCollectionChangedEventArgs> CollectionChanged = new EventImplementation<System.Collections.Specialized.NotifyCollectionChangedEventArgs>();
-        
-        event System.Collections.Specialized.NotifyCollectionChangedEventHandler System.Collections.Specialized.INotifyCollectionChanged.CollectionChanged
+
+      public PropertyImplementation<bool> CanIpsPatchRight { get; } = new();
+      bool ITabContent.CanIpsPatchRight => CanIpsPatchRight.value;
+      public PropertyImplementation<bool> CanUpsPatchRight { get; } = new();
+      bool ITabContent.CanUpsPatchRight => CanUpsPatchRight.value;
+      public Action IpsPatchRight;
+      void ITabContent.IpsPatchRight() => IpsPatchRight?.Invoke();
+      public Action UpsPatchRight;
+      void ITabContent.UpsPatchRight() => UpsPatchRight?.Invoke();
+
+      event System.Collections.Specialized.NotifyCollectionChangedEventHandler System.Collections.Specialized.INotifyCollectionChanged.CollectionChanged
         {
             add
             {
