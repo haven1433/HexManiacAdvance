@@ -508,7 +508,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var list = new List<BlockMapViewModel>();
          var border = GetBorderThickness();
          if (border == null) return list;
-         foreach (var connection in GetConnections()) {
+         var connections = GetConnections();
+         if (connections == null) return list;
+         foreach (var connection in connections) {
             if (connection.Direction != direction) continue;
             var vm = GetNeighbor(connection, border);
             list.Add(vm);
@@ -1398,11 +1400,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             connectionsAndCount.SetValue("count", connections.ElementCount + 1);
             var table = new ModelTable(model, connections.Start, tokenFactory, connections);
             var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
-            newConnection.Offset = info.Offset;
+            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
+            newConnection.Offset = isZConnection ? 0 : info.Offset;
             newConnection.Direction = info.Direction;
+            newConnection.Unused = 0;
 
             var (width, height) = (info.Size, info.Size);
-            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
             if (isZConnection) height = info.Offset;
             var otherMap = CreateNewMap(token, option, width, height);
 
@@ -1413,6 +1416,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             newConnection.Offset = isZConnection ? 0 : info.Offset;
             newConnection.MapGroup = MapID / 1000;
             newConnection.MapNum = MapID % 1000;
+            newConnection.Unused = 0;
 
             RefreshMapSize();
             NeighborsChanged.Raise(this);
@@ -2131,7 +2135,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public Border GetBorderThickness(ModelArrayElement layout = null) {
          if (!includeBorders) return new(0, 0, 0, 0);
          var connections = GetConnections();
-         if (connections == null) return null;
+         if (connections == null) return new(0, 0, 0, 0);
          if (layout == null) layout = GetLayout();
          var width = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
          var height = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
@@ -2390,6 +2394,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int MapNum {
          get => connection.GetValue("mapNum");
          set => connection.SetValue("mapNum", value);
+      }
+
+      public int Unused {
+         get => connection.GetValue("unused");
+         set => connection.SetValue("unused", value);
       }
 
       public ConnectionModel GetInverse() {
