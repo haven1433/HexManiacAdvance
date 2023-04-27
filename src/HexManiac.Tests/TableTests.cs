@@ -1513,6 +1513,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(0x180, Model.GetNextRun(0x100).Start);
       }
 
+      [Fact]
+      public void PointerRecord_Copy_CopyAsPointer() {
+         ViewPort.Edit("^table[kind:: arg::|s=kind(0=<>)]1 0 <100> ");
+
+         ViewPort.Goto.Execute(0);
+         ViewPort.SelectionEnd = new(7, 0);
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Contains("<000100>", FileSystem.CopyText.value);
+      }
+
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {
          CreateTextTable(HardcodeTablesModel.PokemonNameTable, 0x180, "ABCDEFGHIJKLMNOP".Select(c => c.ToString()).ToArray());
          CreateTextTable(HardcodeTablesModel.MoveNamesTable, 0x1B0, "qrstuvwxyz".Select(c => c.ToString()).ToArray());

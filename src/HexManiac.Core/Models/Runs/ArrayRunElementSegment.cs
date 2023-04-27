@@ -393,6 +393,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRunEnumSegment(Name, Length, enumName);
       }
 
+      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+         return CreateConcrete(rawData, offset).ToText(rawData, offset, deep);
+      }
+
       public bool DependsOn(string anchorName) => EnumForValue.Values.Contains(anchorName);
    }
 
