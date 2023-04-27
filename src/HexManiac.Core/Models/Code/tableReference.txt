@@ -728,7 +728,7 @@ graphics.trainercard.background.tilemap,             ,,,,               089488, 
 graphics.trainercard.background.tilemap2,            ,,,,               089478, 08944C, 08948C, 089460, , `lzm4x30x20|graphics.trainercard.tileset2`
 graphics.trainercard.palette.front,       , , , , , , , , 56FAE4, `ucp4:012`
 graphics.trainercard.palette.back.female, , , , , , , , , 0C4478, `ucp4`
-graphics.trainercard.tileset,             , , , , , , , , 0C2C20, `lzs4x12x12|graphics.trainercard.palette.front`
+graphics.trainercard.tileset,             , , , , , , , , 0C2C20, `lzt4|graphics.trainercard.palette.front`
 graphics.trainercard.tilemap.back,        , , , , , , , , 0C2B60, `lzm4x30x20|graphics.trainercard.tileset`
 graphics.trainercard.tilemap.background,  , , , , , , , , 0C2B2C, `lzm4x30x20|graphics.trainercard.tileset`
 graphics.trainercard.tilemap.front,       , , , , , , , , 0C2B9C, `lzm4x30x20|graphics.trainercard.tileset`
