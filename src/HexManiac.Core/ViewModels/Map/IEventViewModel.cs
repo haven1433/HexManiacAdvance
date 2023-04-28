@@ -1185,7 +1185,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObservableCollection<string> KindOptions { get; } = new();
 
       public int Kind {
-         get => element.GetValue("kind");
+         get => element.TryGetValue("kind", out var value) ? value : -1;
          set {
             ClearDestinationFormat();
             var old = element.GetValue("kind");
