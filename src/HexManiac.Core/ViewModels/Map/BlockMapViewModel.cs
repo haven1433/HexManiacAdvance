@@ -778,24 +778,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool warpIsAgainstWall = true;
          if (warps.Count > 0) {
             var map0 = warps[0].TargetMap;
-            var matchingWarp0 = map0.Events.Warps[warps[0].WarpID];
-            warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
-            if (warpIsAgainstWall) {
-               blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
-               blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
-               blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
+            var mapWarps = map0.Events.Warps;
+            if (mapWarps.Count > warps[0].WarpID) {
+               var matchingWarp0 = mapWarps[warps[0].WarpID];
+               warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
+               if (warpIsAgainstWall) {
+                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
+                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
+                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
 
-               blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-               blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-               blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
-            } else {
-               blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-               blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-               blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+               } else {
+                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
 
-               blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
-               blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
-               blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
+                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
+                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+               }
             }
          }
 
