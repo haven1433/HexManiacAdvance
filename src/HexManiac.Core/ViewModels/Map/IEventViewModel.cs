@@ -484,12 +484,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                nameof(ShowMartContents), nameof(MartHello), nameof(MartContent), nameof(MartGoodbye),
                nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
                nameof(ShowTradeContent), nameof(TradeFailedText), nameof(TradeIndex), nameof(TradeInitialText), nameof(TradeSuccessText), nameof(TradeThanksText), nameof(TradeWrongSpeciesText),
-               nameof(ShowBerryContent), nameof(BerryText));
+               nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
          }
       }
 
       public void GotoScript() => gotoAddress(ScriptAddress);
       public bool CanGotoScript => 0 <= ScriptAddress && ScriptAddress < element.Model.Count;
+
+      public bool CanCreateScript => ScriptAddress == Pointer.NULL;
+      public void CreateScript() {
+         var start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
+         Token.ChangeData(element.Model, start, 2);
+         ScriptAddress = start;
+         gotoAddress(start);
+      }
 
       private string scriptAddressText;
       public string ScriptAddressText {
