@@ -40,7 +40,7 @@
 1f jumpifsideaffecting battler. sidestatus: ptr<`bse`>
 20 jumpifstat battler. ifflag. stat. value. ptr<`bse`>
 21 jumpifstatus3condition battler. status3:: param2. ptr<`bse`>
-22 jumpiftype battler. type. ptr<`bse`>
+22 jumpiftype battler. type.data.pokemon.type.names ptr<`bse`>
 23 getexp battler.
 24 checkteamslost ptr<>
 25 movevaluescleanup
@@ -72,7 +72,7 @@
 3f end3
 40 jumpifaffectedbyprotect ptr<>
 41 call ptr<`bse`>
-42 jumpiftype2 battler. type. ptr<>
+42 jumpiftype2 battler. type.data.pokemon.type.names ptr<>
 43 jumpifabilitypresent ability. ptr<>
 44 endselectionscript
 45 playanimation battler. param1. param2::
