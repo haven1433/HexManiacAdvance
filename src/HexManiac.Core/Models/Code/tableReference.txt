@@ -413,6 +413,7 @@ graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 13
 graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
 graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 131C18, , `lzp4:0123`
 graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
+graphics.menu.tms.hm_logo,                       ,,,, 1335DC, 1335B4, 133654, 13362C, , `ucs4x2x2`
 graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
 graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10B938, , `ucp4`
 graphics.menu.storage.background.palette1, , , , , 08F0C0, 08F094, 08F0D4, 08F0A8, , `ucp4:3`
