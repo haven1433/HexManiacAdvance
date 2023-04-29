@@ -40,6 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
       public void UseTrainerFlag(int flag) => UsedTrainerFlags.Add(flag);
+      public bool IsTrainerFlagInUse(int flag) => UsedTrainerFlags.Contains(flag);
 
       private IReadOnlyDictionary<int, TrainerPreference> TrainerPreferences {
          get {
@@ -87,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (model.IsFRLG() || model.IsEmerald()) AvailableTemplateTypes.Add(TemplateType.Tutor); // Ruby/Sapphire don't have tutors
 
          GraphicsOptions.Clear();
-         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2));
+         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2, true));
 
          TypeOptions.Clear();
          var types = model.GetTableModel(HardcodeTablesModel.TypesTableName);

@@ -948,7 +948,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.gotoAddress = gotoAddress;
          this.eventTemplate = eventTemplate;
          this.berries = berries;
-         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2));
+         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
          DefaultOW = defaultSprite;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);

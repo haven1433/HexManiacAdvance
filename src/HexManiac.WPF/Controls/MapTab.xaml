@@ -11,7 +11,10 @@
       <local:EqualityToBooleanConverter x:Key="Equality" />
       <local:PointConverter x:Key="PointConverter" />
       <DataTemplate DataType="{x:Type tools:VisualComboOption}">
-         <local:PixelImage />
+         <StackPanel Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
+            <local:PixelImage />
+         </StackPanel>
       </DataTemplate>
    </UserControl.Resources>
    <UserControl.InputBindings>
@@ -252,7 +255,7 @@
                         <local:AngleComboBox Grid.Row="0" Grid.Column="1" Direction="Right" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}" Margin="0,2,2,2">
                            <local:AngleComboBox.ItemsPanel>
                               <ItemsPanelTemplate>
-                                 <WrapPanel Width="130" />
+                                 <WrapPanel Width="220" />
                               </ItemsPanelTemplate>
                            </local:AngleComboBox.ItemsPanel>
                         </local:AngleComboBox>
