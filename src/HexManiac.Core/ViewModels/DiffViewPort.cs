@@ -172,6 +172,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event PropertyChangedEventHandler PropertyChanged;
       public event NotifyCollectionChangedEventHandler CollectionChanged;
 
+      public bool CanIpsPatchRight => false;
+      public bool CanUpsPatchRight => false;
+      public void IpsPatchRight() { }
+      public void UpsPatchRight() { }
+
       public void ConsiderReload(IFileSystem fileSystem) => throw new NotImplementedException();
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {

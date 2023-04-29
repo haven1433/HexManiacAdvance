@@ -75,7 +75,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var allmaps = AllMapsModel.Create(viewPort.Model, () => viewPort.ChangeHistory.CurrentChange);
          var layout = allmaps[group][map].Layout;
          var (width, height) = (layout.Width, layout.Height);
-         return new ConnectionInfo(width, height, MapDirection.Emerge);
+         return new ConnectionInfo(width, height, direction);
       }
 
       #endregion

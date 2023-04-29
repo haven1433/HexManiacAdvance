@@ -41,6 +41,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
       event EventHandler<CanPatchEventArgs> RequestCreatePatch;
 
+      bool CanIpsPatchRight { get; }
+      bool CanUpsPatchRight { get; }
+      void IpsPatchRight();
+      void UpsPatchRight();
+
       bool CanDuplicate { get; }
       void Duplicate();
 

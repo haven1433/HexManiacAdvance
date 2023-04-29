@@ -152,6 +152,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
 #pragma warning restore 0067
 
+      public bool CanIpsPatchRight => false;
+      public bool CanUpsPatchRight => false;
+      public void IpsPatchRight() { }
+      public void UpsPatchRight() { }
+
       #endregion
 
       public SearchResultsViewPort(string searchTerm) {

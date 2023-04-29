@@ -66,6 +66,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCanCreatePatch { add { } remove { } }
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
 
+      public bool CanIpsPatchRight => false;
+      public bool CanUpsPatchRight => false;
+      public void IpsPatchRight() { }
+      public void UpsPatchRight() { }
+
       private int selectionStart;
       public int SelectionStart {
          get => selectionStart;

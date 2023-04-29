@@ -365,8 +365,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels
             }
         }
         public EventImplementation<System.ComponentModel.PropertyChangedEventArgs> PropertyChanged = new EventImplementation<System.ComponentModel.PropertyChangedEventArgs>();
-        
-        event System.ComponentModel.PropertyChangedEventHandler System.ComponentModel.INotifyPropertyChanged.PropertyChanged
+
+      public PropertyImplementation<bool> CanIpsPatchRight { get; } = new();
+      bool ITabContent.CanIpsPatchRight => CanIpsPatchRight.value;
+      public PropertyImplementation<bool> CanUpsPatchRight { get; } = new();
+      bool ITabContent.CanUpsPatchRight => CanUpsPatchRight.value;
+      public Action IpsPatchRight;
+      void ITabContent.IpsPatchRight() => IpsPatchRight?.Invoke();
+      public Action UpsPatchRight;
+      void ITabContent.UpsPatchRight() => UpsPatchRight?.Invoke();
+
+      event System.ComponentModel.PropertyChangedEventHandler System.ComponentModel.INotifyPropertyChanged.PropertyChanged
         {
             add
             {

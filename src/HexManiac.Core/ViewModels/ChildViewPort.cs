@@ -182,6 +182,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event PropertyChangedEventHandler PropertyChanged { add => ForEach(child => child.PropertyChanged += value); remove => ForEach(child => child.PropertyChanged -= value); }
       public event NotifyCollectionChangedEventHandler CollectionChanged { add => ForEach(child => child.CollectionChanged += value); remove => ForEach(child => child.CollectionChanged -= value); }
 
+      public bool CanIpsPatchRight => false;
+      public bool CanUpsPatchRight => false;
+      public void IpsPatchRight() { }
+      public void UpsPatchRight() { }
+
       public void ConsiderReload(IFileSystem fileSystem) => throw new NotImplementedException();
 
       public IChildViewPort CreateChildView(int startAddress, int endAddress) {

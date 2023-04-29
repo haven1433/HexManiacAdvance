@@ -508,7 +508,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var list = new List<BlockMapViewModel>();
          var border = GetBorderThickness();
          if (border == null) return list;
-         foreach (var connection in GetConnections()) {
+         var connections = GetConnections();
+         if (connections == null) return list;
+         foreach (var connection in connections) {
             if (connection.Direction != direction) continue;
             var vm = GetNeighbor(connection, border);
             list.Add(vm);
@@ -776,24 +778,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          bool warpIsAgainstWall = true;
          if (warps.Count > 0) {
             var map0 = warps[0].TargetMap;
-            var matchingWarp0 = map0.Events.Warps[warps[0].WarpID];
-            warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
-            if (warpIsAgainstWall) {
-               blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
-               blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
-               blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
+            var mapWarps = map0.Events.Warps;
+            if (mapWarps.Count > warps[0].WarpID) {
+               var matchingWarp0 = mapWarps[warps[0].WarpID];
+               warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
+               if (warpIsAgainstWall) {
+                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
+                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
+                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
 
-               blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-               blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-               blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
-            } else {
-               blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-               blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-               blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+               } else {
+                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
+                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
+                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
 
-               blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
-               blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
-               blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
+                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
+                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+               }
             }
          }
 
@@ -1398,11 +1403,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             connectionsAndCount.SetValue("count", connections.ElementCount + 1);
             var table = new ModelTable(model, connections.Start, tokenFactory, connections);
             var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
-            newConnection.Offset = info.Offset;
+            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
+            newConnection.Offset = isZConnection ? 0 : info.Offset;
             newConnection.Direction = info.Direction;
+            newConnection.Unused = 0;
 
             var (width, height) = (info.Size, info.Size);
-            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
             if (isZConnection) height = info.Offset;
             var otherMap = CreateNewMap(token, option, width, height);
 
@@ -1413,6 +1419,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             newConnection.Offset = isZConnection ? 0 : info.Offset;
             newConnection.MapGroup = MapID / 1000;
             newConnection.MapNum = MapID % 1000;
+            newConnection.Unused = 0;
 
             RefreshMapSize();
             NeighborsChanged.Raise(this);
@@ -2131,7 +2138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public Border GetBorderThickness(ModelArrayElement layout = null) {
          if (!includeBorders) return new(0, 0, 0, 0);
          var connections = GetConnections();
-         if (connections == null) return null;
+         if (connections == null) return new(0, 0, 0, 0);
          if (layout == null) layout = GetLayout();
          var width = layout.HasField("borderwidth") ? layout.GetValue("borderwidth") : 2;
          var height = layout.HasField("borderheight") ? layout.GetValue("borderheight") : 2;
@@ -2390,6 +2397,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int MapNum {
          get => connection.GetValue("mapNum");
          set => connection.SetValue("mapNum", value);
+      }
+
+      public int Unused {
+         get => connection.GetValue("unused");
+         set => connection.SetValue("unused", value);
       }
 
       public ConnectionModel GetInverse() {

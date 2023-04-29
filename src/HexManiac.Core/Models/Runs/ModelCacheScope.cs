@@ -120,7 +120,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var content = parser.Parse(model, scriptStart, scriptLength);
          scriptInfo = new ScriptInfo(scriptStart, scriptLength, content);
          ScriptDestinations[scriptStart] = scriptLength;
-         cachedScripts.Add(scriptStart, scriptInfo);
+         cachedScripts[scriptStart] = scriptInfo;
          return scriptInfo;
       }
 

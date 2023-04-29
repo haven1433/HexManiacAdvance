@@ -51,10 +51,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool ShowSpriteProperties { get => showSpriteProperties; private set => Set(ref showSpriteProperties, value); }
 
       private string spriteWidthHeight;
-      public string SpriteWidthHeight { get => spriteWidthHeight; set => Set(ref spriteWidthHeight, value, oldValue => UpdateSpriteFormat()); }
+      public string SpriteWidthHeight { get => spriteWidthHeight; set => Set(ref spriteWidthHeight, value, oldValue => UpdateSpriteFormat(false)); }
 
       private bool spriteIs256Color;
-      public bool SpriteIs256Color { get => spriteIs256Color; set => Set(ref spriteIs256Color, value, oldValue => UpdateSpriteFormat()); }
+      public bool SpriteIs256Color { get => spriteIs256Color; set => Set(ref spriteIs256Color, value, oldValue => UpdateSpriteFormat(true)); }
 
       private bool spriteIsTilemap;
       public bool SpriteIsTilemap { get => spriteIsTilemap; set => Set(ref spriteIsTilemap, value, oldValue => {
@@ -69,13 +69,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             Set(ref spriteWidthHeight, $"{width}x{height}", nameof(SpriteWidthHeight));
          }
-         UpdateSpriteFormat();
+         UpdateSpriteFormat(false);
       }); }
 
       private string spritePaletteHint = string.Empty;
-      public string SpritePaletteHint { get => spritePaletteHint; set => Set(ref spritePaletteHint, value, oldValue => UpdateSpriteFormat()); }
+      public string SpritePaletteHint { get => spritePaletteHint; set => Set(ref spritePaletteHint, value, oldValue => UpdateSpriteFormat(false)); }
 
-      private void UpdateSpriteFormat() {
+      private void UpdateSpriteFormat(bool read256ColorFlag) {
          var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
          bool isDefault = false;
          if (spriteRun == null || spriteRun.Start != spriteAddress) {
@@ -83,6 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             isDefault = true;
          }
          var bits = SpriteIs256Color ? 8 : 4;
+         if (spriteRun != null && !read256ColorFlag) bits = spriteRun.SpriteFormat.BitsPerPixel;
 
          if (spriteWidthHeight.ToLower().Trim() == "tiles") {
             if (spriteRun is LZRun lzRun && lzRun.DecompressedLength % (8 * bits) == 0) {

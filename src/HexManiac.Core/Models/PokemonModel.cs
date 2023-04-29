@@ -980,8 +980,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if ((address - array.Start) % array.ElementLength != 0) return false;
 
          var index = (address - array.Start) / array.ElementLength;
-         if (array.ElementNames.Count <= index) return false;
-         header = array.ElementNames[index];
+         var names = array.ElementNames;
+         if (names.Count <= index) return false;
+         header = names[index];
 
          return true;
       }
@@ -2630,12 +2631,18 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
          }
 
-         // clear pointers from moved scripts
+         // clear pointers / move inner anchors from moved scripts
          if (run is IScriptStartRun) {
             do {
-               var nextRun = GetNextRun(run.Start + 1) as PointerRun;
-               if (nextRun == null || nextRun.Start >= run.Start + length) break;
-               ClearFormat(changeToken, nextRun.Start, 4);
+               var nextRun = GetNextRun(run.Start + 1);
+               if (nextRun.Start >= run.Start + length) break;
+               if (nextRun is PointerRun pRun) {
+                  ClearFormat(changeToken, nextRun.Start, 4);
+               } else if (nextRun is IScriptStartRun sRun) {
+                  MoveRun(changeToken, sRun, 1, newStart + sRun.Start - run.Start);
+               } else {
+                  break;
+               }
             }
             while (true);
          }
