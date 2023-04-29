@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             // don't try to use the to tab's map editor until it's been fully initialized.
             dup.InitializationWorkload.ContinueWith(task => {
                singletons.WorkDispatcher.BlockOnUIWork(() => {
-                  dup.MapEditor.UpdatePrimaryMap(new BlockMapViewModel(FileSystem, Tutorials, viewPort, Format, bank, map));
+                  dup.MapEditor.UpdatePrimaryMap(new BlockMapViewModel(FileSystem, Tutorials, viewPort, Format, templates, bank, map));
                   RequestTabChange?.Invoke(this, new(dup.MapEditor));
                });
             }, TaskContinuationOptions.ExecuteSynchronously);
@@ -288,7 +288,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var template = VisibleMaps.FirstOrDefault(vm => vm.MapID == (bank * 1000 + map));
          VisibleMaps.Clear(); // need to clear in case the navigation takes us to a nearby map
-         var newMap = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, bank, map) {
+         var newMap = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, bank, map) {
             IncludeBorders = primaryMap?.IncludeBorders ?? true,
             SpriteScale = primaryMap?.SpriteScale ?? .5,
          };
@@ -324,8 +324,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryBlocks = PrimaryTiles;
          this.format = new Format(model);
 
-         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, 3, 0);
-         templates = new(model, viewPort.Tools.CodeTool.ScriptParser, map.AllOverworldSprites);
+         var owSprites = BlockMapViewModel.RenderOWs(model);
+         templates = new(model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
+         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = owSprites };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
 
@@ -1108,7 +1109,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var banks = AllMapsModel.Create(warp.Element.Model, default);
             if (banks[warp.Bank] == null) return tips.ToArray();
             if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
-               var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+               var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
                var image = blockmap.AutoCrop(warp.WarpID - 1);
                if (image != null) {
                   tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));

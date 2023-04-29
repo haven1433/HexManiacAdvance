@@ -57,7 +57,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var currentPartition = 0;
          foreach (var itemSegment in table.ElementContent) {
             var item = itemSegment;
-            if (item is ArrayRunRecordSegment recordItem) item = recordItem.CreateConcrete(viewPort.Model, itemAddress);
+            if (item is ArrayRunRecordSegment recordItem) item = recordItem.CreateConcrete(viewPort.Model, table, itemAddress);
 
             if (itemSegment is ArrayRunSplitterSegment) {
                currentPartition += 1;
