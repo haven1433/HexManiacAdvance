@@ -513,6 +513,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool showBeneath;
       public bool ShowBeneath { get => showBeneath; set => Set(ref showBeneath, value, old => PrimaryMap.ShowBeneath = ShowBeneath); }
 
+      private bool hideEvents;
+      public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => {
+         foreach (var m in VisibleMaps) m.HideEvents = hideEvents;
+         Tutorials.Complete(Tutorial.Ctrl_HideEvents);
+      }); }
+
       // if it returns an empty array: no hover tip to display
       // if it returns null: continue displaying previous hover tip
       // if it returns content: display that as the new hover tip

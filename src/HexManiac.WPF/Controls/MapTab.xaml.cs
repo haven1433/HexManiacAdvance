@@ -146,10 +146,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          e.Handled = true;
          if (e.Key == Key.Add) ViewModel.ZoomCommand.Execute(ZoomDirection.Enlarge);
          else if (e.Key == Key.Subtract) ViewModel.ZoomCommand.Execute(ZoomDirection.Shrink);
-         else if (e.Key== Key.Space) {
+         else if (e.Key == Key.Space) {
             ViewModel.ShowBeneath = true;
-         }
-         else e.Handled = false;
+         } else if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
+            ViewModel.HideEvents = true;
+            if (e.Key == Key.Z) ViewModel.Undo.Execute();
+            if (e.Key == Key.Y) ViewModel.Redo.Execute();
+         } else e.Handled = false;
       }
 
       private void HandleKeyUp(object sender, KeyEventArgs e) {
@@ -158,6 +161,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ViewModel.ShowBeneath = false;
             e.Handled = true;
          }
+         ViewModel.HideEvents = e.KeyboardDevice.Modifiers == ModifierKeys.Control;
       }
 
       private void ButtonMove(object sender, MouseEventArgs e) {

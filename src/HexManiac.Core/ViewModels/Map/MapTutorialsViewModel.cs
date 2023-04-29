@@ -47,6 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       ToolbarTemplate_ConfigureObject,
 
       SpaceBar_ShowBeneath,
+      Ctrl_HideEvents,
    }
 
    public class MapTutorialsViewModel : ViewModelCore {
@@ -134,6 +135,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // additions
          {
             Tutorials.Add(new("Remove", "Show Beneath", "Hold Spacebar to see the map from the Dive/Emerge connection. Double-click to switch to that map."));
+            Tutorials.Add(new("CtrlKey", "Hide Events", "Hold Control to hide events. You can right-click to select a block under an event."));
          }
 
          Reset();
@@ -205,7 +207,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public double TargetPosition { get => target; set => PropertyChanged.TryUpdate(this, ref target, value); }
       public double TopEdge => TargetPosition * 90;
       public int Index { get; set; }
-      public string IndexText => $"{Index} of 35";
+      public string IndexText => $"{Index} of 36";
 
       public void TriggerAnimation() => AnimateMovement.Raise(this);
 

@@ -230,6 +230,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
       } ); }
 
+      private bool hideEvents;
+      public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => ClearPixelCache()); }
+
       #endregion
 
       #region Visual Blocks
@@ -1191,6 +1194,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
+         if (hideEvents) return null;
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
@@ -1954,12 +1958,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         if (eventRenders == null) RefreshMapEvents(layout);
-         if (eventRenders != null) {
-            foreach (var obj in eventRenders) {
-               if (obj.EventRender != null) {
-                  var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-                  canvas.Draw(obj.EventRender, x, y);
+         if (!hideEvents) {
+            if (eventRenders == null) RefreshMapEvents(layout);
+            if (eventRenders != null) {
+               foreach (var obj in eventRenders) {
+                  if (obj.EventRender != null) {
+                     var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+                     canvas.Draw(obj.EventRender, x, y);
+                  }
                }
             }
          }
