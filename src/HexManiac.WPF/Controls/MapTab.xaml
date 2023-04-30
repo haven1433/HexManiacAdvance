@@ -118,10 +118,27 @@
                         <DataTrigger Binding="{Binding DrawMultipleTiles}" Value="True">
                            <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding IsValid9GridSelection}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                      </Style.Triggers>
                   </Style>
                </Decorator.Style>
             </Decorator>
+            <CheckBox IsChecked="{Binding Use9Grid}" Content="Draw 9-Grid" VerticalAlignment="Top" Grid.Row="1" HorizontalAlignment="Center"
+                      Visibility="{Binding IsValid9GridSelection, Converter={StaticResource BoolToVisibility}}">
+               <CheckBox.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
+                        Draw one of the selected 9 blocks based on a grid.
+                        <LineBreak />
+                        This can make drawing multi-block details like paths,
+                        <LineBreak />
+                        water, or mountains much faster.
+                     </TextBlock>
+                  </ToolTip>
+               </CheckBox.ToolTip>
+            </CheckBox>
             <TextBlock Foreground="{DynamicResource Secondary}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
                <TextBlock.Style>
                   <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -131,6 +148,7 @@
                            <MultiDataTrigger.Conditions>
                               <Condition Binding="{Binding BlockEditorVisible}" Value="False" />
                               <Condition Binding="{Binding DrawMultipleTiles}" Value="False" />
+                              <Condition Binding="{Binding IsValid9GridSelection}" Value="False" />
                            </MultiDataTrigger.Conditions>
                            <MultiDataTrigger.Setters>
                               <Setter Property="Visibility" Value="Visible" />

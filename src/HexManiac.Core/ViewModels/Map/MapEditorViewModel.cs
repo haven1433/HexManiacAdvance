@@ -652,7 +652,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void DrawDown(double x, double y, PrimaryInteractionStart click) {
          interactionType = PrimaryInteractionType.Draw;
          if ((click & PrimaryInteractionStart.ControlClick) != 0) interactionType = PrimaryInteractionType.RectangleDraw;
-         if (click == PrimaryInteractionStart.ShiftClick) interactionType = PrimaryInteractionType.Draw9Grid;
+         if (use9Grid && IsValid9GridSelection) interactionType = PrimaryInteractionType.Draw9Grid;
          var map = MapUnderCursor(x, y);
          if ((click & PrimaryInteractionStart.DoubleClick) != 0) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
@@ -676,7 +676,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             lastDraw = drawSource;
             if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
             if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
-            if (click == PrimaryInteractionStart.ShiftClick) Draw9Grid(x, y);
+            if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
          }
       }
 
@@ -723,7 +723,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void Draw9Grid(double x, double y) {
          var map = MapUnderCursor(x, y);
-         map.Draw9Grid(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+         map.Draw9Grid(history.CurrentChange, tilesToDraw, x, y);
          Hover(x, y);
       }
 
@@ -925,7 +925,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool drawMultipleTiles;
       public bool DrawMultipleTiles {
          get => drawMultipleTiles;
-         private set => Set(ref drawMultipleTiles, value, arg => { if (!drawMultipleTiles) tilesToDraw = null; });
+         private set => Set(ref drawMultipleTiles, value);
       }
 
       private bool blockEditorVisible;
@@ -1015,7 +1015,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else {
             Tutorials.Complete(Tutorial.RightDragMap_SelectBlocks);
             FillMultiTileRender();
-            DrawMultipleTiles = true;
+            if (use9Grid && IsValid9GridSelection) {
+               DrawMultipleTiles = false;
+               width = height = 1;
+            } else DrawMultipleTiles = true;
             BlockEditorVisible = false;
             PrimaryMap.BlockEditor.ShowTiles = false;
             UpdateHover(map, left, top, width, height);
@@ -1032,6 +1035,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void FillMultiTileRender() {
+         NotifyPropertyChanged(nameof(IsValid9GridSelection));
          if (tilesToDraw == null) return;
          var (width, height) = (tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
          var scale = (width < 4 && height < 4) ? 2 : 1;
@@ -1453,6 +1457,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool selectionFromBlock = false;
       private Point blockInteractionStart;
 
+      private bool use9Grid;
+      public bool Use9Grid { get => use9Grid; set => Set(ref use9Grid, value, old => {
+         if (use9Grid && IsValid9GridSelection) DrawMultipleTiles = false;
+         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0)>1|| tilesToDraw.GetLength(1) > 1);
+      }); }
+      public bool IsValid9GridSelection {
+         get {
+            return tilesToDraw != null && tilesToDraw.GetLength(0) == 3 && tilesToDraw.GetLength(1) == 3;
+         }
+      }
+
       public void SelectBlock(int x, int y) {
          while (y * BlockMapViewModel.BlocksPerRow + x > PrimaryMap.BlockRenders.Count) y -= 1;
          blockInteractionStart = new(x, y);
@@ -1509,7 +1524,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          PrimaryMap.BlockEditor.ShowTiles = false;
          FillMultiTileRender();
-         DrawMultipleTiles = true;
+         if (use9Grid && IsValid9GridSelection) DrawMultipleTiles = false;
+         else DrawMultipleTiles = true;
          BlockEditorVisible = false;
       }
 

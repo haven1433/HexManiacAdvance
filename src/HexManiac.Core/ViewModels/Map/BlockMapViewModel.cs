@@ -888,64 +888,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.LeftClickMap_DrawBlock);
       }
 
-      public void Draw9Grid(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
+      public void Draw9Grid(ModelDelta token, int[,] grid, double x, double y) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
 
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
-         Draw9Grid(token, blockIndex, collisionIndex, xx, yy);
+         Draw9Grid(token, grid, xx, yy);
       }
 
-      public void Draw9Grid(ModelDelta token, int blockIndex, int collisionIndex, int xx, int yy) {
-         var blockHeight = (int)Math.Ceiling((double)blockRenders.Count / BlocksPerRow);
-
-         // find all neighbor blocks with blockIndex +/- 1 +/- BlocksPerRow
-         // arrange these blocks into a grid so we can use them
-         var grid = new int[3, 3]; // TODO fill the grid
-         var targets = new List<int> { blockIndex };
-         if (blockIndex >= BlocksPerRow) {
-            if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1 - BlocksPerRow);
-            grid[0, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 - BlocksPerRow : blockIndex - BlocksPerRow;
-            targets.Add(blockIndex - BlocksPerRow);
-            grid[0, 1] = blockIndex - BlocksPerRow;
-            if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1 - BlocksPerRow);
-            grid[0, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 - BlocksPerRow : blockIndex - BlocksPerRow;
-         } else {
-            grid[0, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
-            grid[0, 1] = blockIndex;
-            grid[0, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
-         }
-         if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1);
-         grid[1, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
-         grid[1, 1] = blockIndex;
-         if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1);
-         grid[1, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
-         if (blockIndex / BlocksPerRow < blockHeight - 1) {
-            if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1 + BlocksPerRow);
-            grid[2, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 + BlocksPerRow : blockIndex + BlocksPerRow;
-            targets.Add(blockIndex + BlocksPerRow);
-            grid[2, 1] = blockIndex + BlocksPerRow;
-            if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1 + BlocksPerRow);
-            grid[2, 2] = blockIndex % BlocksPerRow > 0 ? blockIndex + 1 + BlocksPerRow : blockIndex + BlocksPerRow;
-         } else {
-            grid[2, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
-            grid[2, 1] = blockIndex;
-            grid[2, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
-         }
+      public void Draw9Grid(ModelDelta token, int[,] grid, int xx, int yy) {
+         var targets = new List<int>();
+         for (int x = 0; x < 3; x++) for (int y = 0; y < 3; y++) targets.Add(grid[x, y] & 0x3FF);
 
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
 
          int get(Point p) => p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height ? -1 : model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2) & 0x3FF;
-         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, (block & 0x3FF) + (collisionIndex << 10));
+         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, block);
 
          // change all connected blocks based on the grid
          var todo = new List<Point> { new(xx, yy), new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1) };
          lock (pixelWriteLock) {
-            set(todo[0], blockIndex);
+            set(todo[0], grid[1, 1]);
             foreach (var cell in todo) {
                var cellValue = get(cell);
                if (!targets.Contains(cellValue)) continue;
@@ -958,13 +925,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
                var block = aggregate switch {
                   " ES " => grid[0, 0],
-                  " ESW" => grid[0, 1],
-                  "  SW" => grid[0, 2],
-                  "NES " => grid[1, 0],
+                  " ESW" => grid[1, 0],
+                  "  SW" => grid[2, 0],
+                  "NES " => grid[0, 1],
                   "NESW" => grid[1, 1],
-                  "N SW" => grid[1, 2],
-                  "NE  " => grid[2, 0],
-                  "NE W" => grid[2, 1],
+                  "N SW" => grid[2, 1],
+                  "NE  " => grid[0, 2],
+                  "NE W" => grid[1, 2],
                   "N  W" => grid[2, 2],
                   _ => grid[1, 1],
                };
