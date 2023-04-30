@@ -388,7 +388,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                blockEditor.AutoscrollTiles += HandleAutoscrollTiles;
                BlockEditor.SendMessage += (sender, e) => viewPort.RaiseMessage(e);
                blockEditor.Bind(nameof(blockEditor.ShowTiles), (editor, args) => BorderEditor.ShowBorderPanel &= !editor.ShowTiles);
-               blockEditor.Bind(nameof(blockEditor.BlockIndex), (editor, args) => lastDrawX = lastDrawY = -1);
+               blockEditor.Bind(nameof(blockEditor.BlockIndex), (editor, args) => { lastDrawX = lastDrawY = -1; ClearPixelCache(); });
             }
             return blockEditor;
          }

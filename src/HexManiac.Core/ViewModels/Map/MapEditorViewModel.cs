@@ -118,6 +118,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (drawBlockIndex >= 0) BlockEditorVisible = true;
                PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
                drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
+               foreach (var map in VisibleMaps) {
+                  map.BlockEditor.BlockIndex = drawBlockIndex;
+                  map.CollisionHighlight = collisionIndex;
+               }
                selectionFromBlock = false;
                NotifyPropertiesChanged(nameof(HighlightBlockX), nameof(HighlightBlockY), nameof(HighlightBlockWidth), nameof(HighlightBlockHeight));
             });
@@ -135,8 +139,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => collisionIndex;
          set {
             Set(ref collisionIndex, value);
-            foreach (var map in VisibleMaps)
+            foreach (var map in VisibleMaps) {
                map.CollisionHighlight = value;
+            }
             DrawMultipleTiles = false;
          }
       }
