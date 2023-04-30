@@ -150,8 +150,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ViewModel.ShowBeneath = true;
          } else if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
             ViewModel.HideEvents = true;
-            if (e.Key == Key.Z) ViewModel.Undo.Execute();
-            if (e.Key == Key.Y) ViewModel.Redo.Execute();
+            e.Handled = false;
          } else e.Handled = false;
       }
 
