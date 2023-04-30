@@ -930,11 +930,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool drawMultipleTiles;
       public bool DrawMultipleTiles {
          get => drawMultipleTiles;
-         private set => Set(ref drawMultipleTiles, value);
+         private set => Set(ref drawMultipleTiles, value, old => NotifyPropertyChanged(nameof(BlockBagVisible)));
       }
 
       private bool blockEditorVisible;
-      public bool BlockEditorVisible { get => blockEditorVisible; private set => Set(ref blockEditorVisible, value); }
+      public bool BlockEditorVisible { get => blockEditorVisible; private set => Set(ref blockEditorVisible, value, old => NotifyPropertyChanged(nameof(BlockBagVisible))); }
+
+      public bool BlockBagVisible => blockEditorVisible && !drawMultipleTiles;
 
       private IPixelViewModel multiTileDrawRender;
       public IPixelViewModel MultiTileDrawRender {

@@ -91,21 +91,30 @@
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block" x:Name="EditBlockButton"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
-            <local:PixelImage DataContext="{Binding BlockBag}" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                              MouseDown="BlockBagMouseDown"
-                              Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
-               <local:PixelImage.ToolTip>
+            <StackPanel MouseDown="BlockBagMouseDown" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                        Orientation="Horizontal" Visibility="{Binding BlockBagVisible, Converter={StaticResource BoolToVisibility}}">
+               <StackPanel.ToolTip>
                   <ToolTip>
                      <TextBlock>
-                        <Bold>Block Bag</Bold>
+                        Ctrl+Click to add/remove blocks from the mixing bag.
                         <LineBreak />
-                        Drawing and painting treat these blocks as equivalent.
+                        Ctrl+Click the bag icon to empty it.
                         <LineBreak />
-                        Ctrl+Click to clear the block bag.
+                        <LineBreak />
+                        When drawing a block from the mixing bag,
+                        <LineBreak />
+                        any block from the mixing bag will be used at random.
+                        <LineBreak />
+                        <Italic>(Also works with double-click.)</Italic>
+                        <LineBreak />
+                        <LineBreak />
+                        Use it to make more interesting grass or ground.
                      </TextBlock>
                   </ToolTip>
-               </local:PixelImage.ToolTip>
-            </local:PixelImage>
+               </StackPanel.ToolTip>
+               <Path Data="{res:Icon Bag}" Fill="{DynamicResource Primary}" Width="16" Height="16" Stretch="Fill" />
+               <local:PixelImage VerticalAlignment="Center" DataContext="{Binding BlockBag}" />
+            </StackPanel>
             <Decorator HorizontalAlignment="Center" VerticalAlignment="Center">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
                <Decorator.Style>
