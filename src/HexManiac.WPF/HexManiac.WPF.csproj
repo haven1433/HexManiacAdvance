@@ -55,6 +55,9 @@
     <None Include="Scripts\AllowEvolutionWithoutNationalDex_FireRedLeafGreen.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Scripts\remove_contest_moves_tab.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
