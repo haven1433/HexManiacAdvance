@@ -365,8 +365,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public ArrayRunElementSegment CreateConcrete(IDataModel model, int offset) {
-         var defaultConcrete = new ArrayRunElementSegment(Name, ElementContentType.Integer, Length, TextConverter);
          var table = (ITableRun)model.GetNextRun(offset);
+         return CreateConcrete(model, table, offset);
+      }
+
+      public ArrayRunElementSegment CreateConcrete(IDataModel model, ITableRun table, int offset) {
+         var defaultConcrete = new ArrayRunElementSegment(Name, ElementContentType.Integer, Length, TextConverter);
          int matchFieldOffset = 0;
          int matchFieldIndex = 0;
          for (int i = 0; i < table.ElementContent.Count; i++) {
@@ -391,6 +395,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          return new ArrayRunEnumSegment(Name, Length, enumName);
+      }
+
+      public string ToText(IDataModel model, ITableRun table, int offset, bool deep = false) {
+         return CreateConcrete(model, table, offset).ToText(model, offset, deep);
       }
 
       public override string ToText(IDataModel rawData, int offset, bool deep = false) {

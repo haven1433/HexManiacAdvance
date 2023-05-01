@@ -143,7 +143,7 @@ graphics.pokemon.animations.options.front,        ,       ,       ,       ,     
 graphics.pokemon.animations.options.back,         ,       ,       ,       ,       ,       ,       ,       , 17F608, [extremeAnim.graphics.pokemon.animations.options.front mediumAnim.graphics.pokemon.animations.options.front mildAnim.graphics.pokemon.animations.options.front]25 // The game uses 3 front animations per back animation. The one picked depends on the Pokémon's nature.
 graphics.pokemon.animations.front,                ,       ,       ,       ,       ,       ,       ,       , 06EDE8, [index.graphics.pokemon.animations.options.front]data.pokemon.names-1
 graphics.pokemon.animations.back,                 ,       ,       ,       ,       ,       ,       ,       , 17F488, [index.graphics.pokemon.animations.options.back]data.pokemon.names
-graphics.pokemon.animations.frames,               ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (expcept Spinda), and some have 3.
+graphics.pokemon.animations.frames,               ,       ,       ,       ,       ,       ,       ,       , 05E7BC, [data<[frames<[frame: time:]!FFFF0000>]1>]data.pokemon.names  // every pokemon has at least 2 (except Spinda), and some have 3.
 graphics.pokedex.habitats,                        ,       ,       ,       , 102F44, 102F1C, 102FBC, 102F94,       , [sprite<`lzs4x8x6`> pal<`ucp4`>]data.pokedex.habitat.names+6
 graphics.pokedex.minibox,                         ,       ,       ,       , 104E6C, 104E44, 104EE4, 104EBC,       , `lzs4x8x4|graphics.townmap.catchmap.palette`
 graphics.pokedex.regionaldex.tileset,             ,       ,       ,       , 1026A4, 10267C, 10271C, 1026F4,       , `lzt4|graphics.townmap.catchmap.palette`
@@ -334,8 +334,10 @@ graphics.pokemon.bag.type.map,               ,       ,       ,       ,       ,  
 graphics.text.importer,                      ,       ,       ,       , 1456EC, 1456C8, 145764, 145740,       , [titleTextPal. bodyTextPal. footerTextPal. stampShadowPal. tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8
 graphics.text.box.about,                     ,       ,       ,       , 112FC8, 112FA0, 113040, 113018,       , `ucs4x5x4|graphics.text.box.palette`
 graphics.text.box.palette,                   ,       ,       ,       , 150450, 15042C, 1504C8, 1504A4,       , `ucp4:01234`
+graphics.text.box.palette,                   ,       ,       ,       ,       ,       ,       ,       , 098C68, `ucp4`
 graphics.text.box.message,                   ,       ,       ,       , 14FD68, 14FD44, 14FDE0, 14FDBC,       , `uct4x18|graphics.text.box.palette`
 graphics.text.box.signpost,                  ,       ,       ,       , 14FD9C, 14FD78, 14FE14, 14FDF0,       , `uct4x19|graphics.text.box.palette`
+graphics.text.box.noframe,                   ,       ,       ,       ,       ,       ,       ,       , 0987B8, `ucs4x14x1` 
 graphics.text.boxes,                         ,       ,       ,       , 06979C, 06979C, 0697B0, 0697B0,       , [sprite<`ucs4x3x3`> pal<`ucp4`>]10
 graphics.text.boxes,                         ,       ,       ,       ,       ,       ,       ,       , 09876C, [sprite<`ucs4x3x3`> pal<`ucp4`>]20
 
@@ -413,6 +415,7 @@ graphics.menu.tms.background,                    ,,,, 131B8C, 131B64, 131C04, 13
 graphics.menu.tms.case,                          ,,,, 131BA8, 131B80, 131C20, 131BF8, , `lzm4x32x32|graphics.menu.tms.tileset`
 graphics.menu.tms.palette,                       ,,,, 131BC8, 131BA0, 131C40, 131C18, , `lzp4:0123`
 graphics.menu.tms.palette2,                      ,,,, 131BD8, 131BB0, 131C50, 131C28, , `lzp4`
+graphics.menu.tms.hm_logo,                       ,,,, 1335DC, 1335B4, 133654, 13362C, , `ucs4x2x2`
 graphics.menu.help.palette,                      ,,,, 13B98C, 13B964, 13BA04, 13B9DC, , `ucp4`
 graphics.menu.text.bold.palette,                 ,,,, 10B8E8, 10B8C0, 10B960, 10B938, , `ucp4`
 graphics.menu.storage.background.palette1, , , , , 08F0C0, 08F094, 08F0D4, 08F0A8, , `ucp4:3`
@@ -799,6 +802,7 @@ graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x
 graphics.text.font.palette, 		002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
 
 graphics.text.font.buttons.characters,        ,       ,       ,       , 006414, 006414, 006428, 006428, 006334, `ucs4x16x4|graphics.menu.downarrow.palette`
+graphics.text.font.buttons.data,              ,       ,       ,       , 006410, 006410, 006424, 006424, 006330, [tileOffset: width. height.]13
 
 data.text.menu.pokemon.battle,                                 , , , , 032C38, 032C38, 032C4C, 032C4C,       , ""
 data.text.menu.pause,                  071160, 071164, 071180, 071184, 06EF9C, 06EF9C, 06EFB0, 06EFB0, 09F818, [text<""> code<>]

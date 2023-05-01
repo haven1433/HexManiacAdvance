@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly MapTutorialsViewModel tutorials;
       private readonly IEditableViewPort viewPort;
       private readonly IDataModel model;
+      private readonly EventTemplate eventTemplate;
       private readonly Func<ModelDelta> tokenFactory;
       private readonly int group, map;
 
@@ -229,6 +230,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
       } ); }
 
+      private bool hideEvents;
+      public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => ClearPixelCache()); }
+
       #endregion
 
       #region Visual Blocks
@@ -384,7 +388,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                blockEditor.AutoscrollTiles += HandleAutoscrollTiles;
                BlockEditor.SendMessage += (sender, e) => viewPort.RaiseMessage(e);
                blockEditor.Bind(nameof(blockEditor.ShowTiles), (editor, args) => BorderEditor.ShowBorderPanel &= !editor.ShowTiles);
-               blockEditor.Bind(nameof(blockEditor.BlockIndex), (editor, args) => lastDrawX = lastDrawY = -1);
+               blockEditor.Bind(nameof(blockEditor.BlockIndex), (editor, args) => { lastDrawX = lastDrawY = -1; ClearPixelCache(); });
             }
             return blockEditor;
          }
@@ -446,12 +450,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public BlockMapViewModel(IFileSystem fileSystem, MapTutorialsViewModel tutorials, IEditableViewPort viewPort, Format format, int group, int map) {
+      public BlockMapViewModel(IFileSystem fileSystem, MapTutorialsViewModel tutorials, IEditableViewPort viewPort, Format format, EventTemplate eventTemplate, int group, int map) {
          this.format = format;
          this.fileSystem = fileSystem;
          this.tutorials = tutorials;
          this.viewPort = viewPort;
          this.model = viewPort.Model;
+         this.eventTemplate = eventTemplate;
          this.tokenFactory = () => viewPort.ChangeHistory.CurrentChange;
          (this.group, this.map) = (group, map);
          Transparent = -1;
@@ -803,7 +808,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // draw the map
-         var viewModel = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, warps[0].Bank, warps[0].Map) { BerryInfo = BerryInfo };
+         var viewModel = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, warps[0].Bank, warps[0].Map) { BerryInfo = BerryInfo };
          var canvas = new CanvasPixelViewModel(9 * 16, 9 * 16);
          for (int y = 0; y < 9; y++) {
             for (int x = 0; x < 9; x++) {
@@ -883,64 +888,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.LeftClickMap_DrawBlock);
       }
 
-      public void Draw9Grid(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
+      public void Draw9Grid(ModelDelta token, int[,] grid, double x, double y) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
 
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var (xx, yy) = ((int)x - border.West, (int)y - border.North);
-         Draw9Grid(token, blockIndex, collisionIndex, xx, yy);
+         Draw9Grid(token, grid, xx, yy);
       }
 
-      public void Draw9Grid(ModelDelta token, int blockIndex, int collisionIndex, int xx, int yy) {
-         var blockHeight = (int)Math.Ceiling((double)blockRenders.Count / BlocksPerRow);
-
-         // find all neighbor blocks with blockIndex +/- 1 +/- BlocksPerRow
-         // arrange these blocks into a grid so we can use them
-         var grid = new int[3, 3]; // TODO fill the grid
-         var targets = new List<int> { blockIndex };
-         if (blockIndex >= BlocksPerRow) {
-            if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1 - BlocksPerRow);
-            grid[0, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 - BlocksPerRow : blockIndex - BlocksPerRow;
-            targets.Add(blockIndex - BlocksPerRow);
-            grid[0, 1] = blockIndex - BlocksPerRow;
-            if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1 - BlocksPerRow);
-            grid[0, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 - BlocksPerRow : blockIndex - BlocksPerRow;
-         } else {
-            grid[0, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
-            grid[0, 1] = blockIndex;
-            grid[0, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
-         }
-         if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1);
-         grid[1, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
-         grid[1, 1] = blockIndex;
-         if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1);
-         grid[1, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
-         if (blockIndex / BlocksPerRow < blockHeight - 1) {
-            if (blockIndex % BlocksPerRow > 0) targets.Add(blockIndex - 1 + BlocksPerRow);
-            grid[2, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 + BlocksPerRow : blockIndex + BlocksPerRow;
-            targets.Add(blockIndex + BlocksPerRow);
-            grid[2, 1] = blockIndex + BlocksPerRow;
-            if (blockIndex % BlocksPerRow != BlocksPerRow - 1) targets.Add(blockIndex + 1 + BlocksPerRow);
-            grid[2, 2] = blockIndex % BlocksPerRow > 0 ? blockIndex + 1 + BlocksPerRow : blockIndex + BlocksPerRow;
-         } else {
-            grid[2, 0] = blockIndex % BlocksPerRow > 0 ? blockIndex - 1 : blockIndex;
-            grid[2, 1] = blockIndex;
-            grid[2, 2] = blockIndex % BlocksPerRow != BlocksPerRow - 1 ? blockIndex + 1 : blockIndex;
-         }
+      public void Draw9Grid(ModelDelta token, int[,] grid, int xx, int yy) {
+         var targets = new List<int>();
+         for (int x = 0; x < 3; x++) for (int y = 0; y < 3; y++) targets.Add(grid[x, y] & 0x3FF);
 
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
 
          int get(Point p) => p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height ? -1 : model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2) & 0x3FF;
-         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, (block & 0x3FF) + (collisionIndex << 10));
+         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, block);
 
          // change all connected blocks based on the grid
          var todo = new List<Point> { new(xx, yy), new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1) };
          lock (pixelWriteLock) {
-            set(todo[0], blockIndex);
+            set(todo[0], grid[1, 1]);
             foreach (var cell in todo) {
                var cellValue = get(cell);
                if (!targets.Contains(cellValue)) continue;
@@ -953,13 +925,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
                var block = aggregate switch {
                   " ES " => grid[0, 0],
-                  " ESW" => grid[0, 1],
-                  "  SW" => grid[0, 2],
-                  "NES " => grid[1, 0],
+                  " ESW" => grid[1, 0],
+                  "  SW" => grid[2, 0],
+                  "NES " => grid[0, 1],
                   "NESW" => grid[1, 1],
-                  "N SW" => grid[1, 2],
-                  "NE  " => grid[2, 0],
-                  "NE W" => grid[2, 1],
+                  "N SW" => grid[2, 1],
+                  "NE  " => grid[0, 2],
+                  "NE W" => grid[1, 2],
                   "N  W" => grid[2, 2],
                   _ => grid[1, 1],
                };
@@ -1189,6 +1161,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
+         if (hideEvents) return null;
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
@@ -1213,7 +1186,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout(map);
          if (layout == null) return null;
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
          if (events.Warps.Count <= warpID) return null;
          var warp = events.Warps[warpID];
          var startX = warp.X - SizeX / 2;
@@ -1441,7 +1414,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newMap.Element.SetAddress(Format.Layout, layout.Element.Start);
          model.UpdateArrayPointer(token, null, null, -1, mapTable.Start + mapTable.Length - 4, newMap.Element.Start);
 
-         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, bank, mapTable.ElementCount - 1) {
+         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, bank, mapTable.ElementCount - 1) {
             allOverworldSprites = allOverworldSprites,
             BerryInfo = BerryInfo,
          };
@@ -1460,7 +1433,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var bank = mapBanks[group];
             var maps = bank.GetSubTable("maps");
             for (int map = 0; map < maps.Count; map++) {
-               var mapVM = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, group, map) {
+               var mapVM = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, group, map) {
                   allOverworldSprites = allOverworldSprites,
                   BerryInfo = BerryInfo,
                };
@@ -1482,7 +1455,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (option == -1) return;
          var choice = keys[enumViewModel.Choice];
 
-         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, choice / 1000, choice % 1000) {
+         var otherMap = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, choice / 1000, choice % 1000) {
             allOverworldSprites = allOverworldSprites,
             BerryInfo = BerryInfo,
          };
@@ -1618,7 +1591,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
-         var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
+         var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
             X = 0, Y = 0,
             Elevation = 0,
             ObjectID = element.Table.ElementCount,
@@ -1737,6 +1710,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          var token = tokenFactory();
          var newRun = elementTable.Append(token, 1);
+         if (model.GetNextRun(newRun.Start + 1).Start != newRun.Start) model.ClearFormat(token, newRun.Start + 1, newRun.Length - 1);
          model.ObserveRunWritten(token, newRun);
          if (newRun.Start != elementTable.Start) InformRepoint(new(fieldName, newRun.Start));
          return new ModelArrayElement(model, newRun.Start, newRun.ElementCount - 1, tokenFactory, newRun);
@@ -1793,7 +1767,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel GetNeighbor(ConnectionModel connection, Border border) {
-         var vm = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connection.MapGroup, connection.MapNum) {
+         var vm = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, connection.MapGroup, connection.MapNum) {
             IncludeBorders = IncludeBorders,
             SpriteScale = SpriteScale,
             allOverworldSprites = allOverworldSprites,
@@ -1951,12 +1925,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         if (eventRenders == null) RefreshMapEvents(layout);
-         if (eventRenders != null) {
-            foreach (var obj in eventRenders) {
-               if (obj.EventRender != null) {
-                  var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-                  canvas.Draw(obj.EventRender, x, y);
+         if (!hideEvents) {
+            if (eventRenders == null) RefreshMapEvents(layout);
+            if (eventRenders != null) {
+               foreach (var obj in eventRenders) {
+                  if (obj.EventRender != null) {
+                     var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+                     canvas.Draw(obj.EventRender, x, y);
+                  }
                }
             }
          }
@@ -2117,7 +2093,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (eventsTable == null) return null;
             var eventElements = eventsTable[0];
             if (eventElements == null) return null;
-            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
             events.DataMoved += HandleEventDataMoved;
             return events;
          }
@@ -2170,7 +2146,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < (connections?.Count ?? 0); i++) {
             if (connections[i].Direction != direction) continue;
             if (direction == MapDirection.Up || direction == MapDirection.Down) {
-               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) {
+               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, connections[i].MapGroup, connections[i].MapNum) {
                   allOverworldSprites = allOverworldSprites,
                   BerryInfo = BerryInfo,
                };
@@ -2178,7 +2154,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var removeOffset = connections[i].Offset;
                foreach (int j in removeWidth.Range()) availableSpace.Remove(j + removeOffset);
             } else if (direction == MapDirection.Left || direction == MapDirection.Right) {
-               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, connections[i].MapGroup, connections[i].MapNum) {
+               var map = new BlockMapViewModel(fileSystem, tutorials, viewPort, format, eventTemplate, connections[i].MapGroup, connections[i].MapNum) {
                   allOverworldSprites = allOverworldSprites,
                   BerryInfo = BerryInfo,
                };
@@ -2421,7 +2397,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement events, IReadOnlyList<IPixelViewModel> ows, IPixelViewModel defaultOW, BerryInfo berries, int bank, int map) {
+      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement events, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> ows, IPixelViewModel defaultOW, BerryInfo berries, int bank, int map) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -2429,7 +2405,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var objectList = new List<ObjectEventViewModel>();
          if (objects != null) {
             for (int i = 0; i < objectCount; i++) {
-               var newEvent = new ObjectEventViewModel(parser, gotoAddress, objects[i], ows, defaultOW, berries);
+               var newEvent = new ObjectEventViewModel(parser, gotoAddress, objects[i], eventTemplate, ows, defaultOW, berries);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                objectList.Add(newEvent);
             }

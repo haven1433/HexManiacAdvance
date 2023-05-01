@@ -275,6 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         if (seg is ArrayRunRecordSegment rSeg) seg = rSeg.CreateConcrete(Model, table, valueAddress);
          if (seg.Type == ElementContentType.Pointer) {
             model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value);
          } else {

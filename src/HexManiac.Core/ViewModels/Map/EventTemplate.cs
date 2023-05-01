@@ -39,6 +39,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             return usedTrainerFlags;
          }
       }
+      public void UseTrainerFlag(int flag) => UsedTrainerFlags.Add(flag);
+      public bool IsTrainerFlagInUse(int flag) => UsedTrainerFlags.Contains(flag);
 
       private IReadOnlyDictionary<int, TrainerPreference> TrainerPreferences {
          get {
@@ -64,6 +66,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          HMObjectOptions.Add("Cut Tree");
          HMObjectOptions.Add("Smash Rock");
          HMObjectOptions.Add("Strength Boulder");
+         TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
+            var targetSprite = model.GetTableModel(HardcodeTablesModel.TrainerTableName)[TrainerOptions.SelectedIndex].GetValue("sprite");
+            foreach (var key in TrainerPreferences.Keys) {
+               if (TrainerPreferences[key].Sprite != targetSprite) continue;
+               TrainerGraphics = key;
+               break;
+            }
+         });
       }
 
       public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
@@ -78,17 +88,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (model.IsFRLG() || model.IsEmerald()) AvailableTemplateTypes.Add(TemplateType.Tutor); // Ruby/Sapphire don't have tutors
 
          GraphicsOptions.Clear();
-         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2));
+         for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2, true));
 
          TypeOptions.Clear();
-         foreach (var type in model.GetTableModel(HardcodeTablesModel.TypesTableName)) {
-            TypeOptions.Add(type.GetStringValue("name"));
+         var types = model.GetTableModel(HardcodeTablesModel.TypesTableName);
+         if (types != null) {
+            foreach (var type in types) {
+               TypeOptions.Add(type.GetStringValue("name"));
+            }
          }
 
          ItemOptions.Clear();
-         foreach (var item in model.GetTableModel(HardcodeTablesModel.ItemsTableName)) {
-            ItemOptions.Add(item.GetStringValue("name"));
+         var items = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
+         if (items != null) {
+            foreach (var item in items) {
+               ItemOptions.Add(item.GetStringValue("name"));
+            }
          }
+
+         var trainerOptions = new List<ComboOption>();
+         var trainers = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+         var trainerClasses = model.GetTableModel(HardcodeTablesModel.TrainerClassNamesTable);
+         if (trainers != null && trainerClasses != null) {
+            var options = model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable);
+            for (int i = 0; i < trainers.Count; i++) {
+               trainerOptions.Add(ObjectEventViewModel.CreateOption(options, i, trainers[i].GetValue(1), trainers[i].GetStringValue("name")));
+            }
+         }
+         TrainerOptions.Update(trainerOptions, TrainerOptions.SelectedIndex);
 
          UpdateObjectTemplateImage();
       }
@@ -119,6 +146,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObservableCollection<VisualComboOption> GraphicsOptions { get; } = new();
       public ObservableCollection<string> TypeOptions { get; } = new();
 
+      private bool useExistingTrainer;
+      public bool UseExistingTrainer { get => useExistingTrainer; set => Set(ref useExistingTrainer, value); }
+
+      public FilteringComboOptions TrainerOptions { get; } = new();
+
       private int trainerGraphics, maxPokedex = 25, maxLevel = 9, preferredType = 6;
       public int TrainerGraphics {
          get => trainerGraphics;
@@ -147,56 +179,61 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void CreateTrainer(ObjectEventViewModel objectEventModel, ModelDelta token) {
          const int ChosenTypeOddsMultiplier = 100;
 
-         // part 1: the team
-         var availablePokemon = new List<int>();
-         var dexName = HardcodeTablesModel.RegionalDexTableName;
-         if (useNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
-         var pokedex = model.GetTableModel(dexName, () => token);
-         var pokestats = model.GetTableModel(HardcodeTablesModel.PokemonStatsTable, () => token);
-         for (int i = 1; i < pokedex.Count; i++) {
-            if (pokedex[i - 1].GetValue(0) > maxPokedex) continue;
-            if (MinLevel.TryGetValue(i, out var level) && level > maxLevel) continue;
-            availablePokemon.Add(i);
-            if (pokestats[i].GetValue("type1") == preferredType || pokestats[i].GetValue("type2") == preferredType) {
-               for (int j = 0; j < ChosenTypeOddsMultiplier; j++) availablePokemon.Add(i);
-            }
-         }
-
-         var teamSize = rnd.Next(3) + 1;
-         var teamStart = model.FindFreeSpace(model.FreeSpaceStart, 8 * teamSize);
-         for (int i = 0; i < teamSize; i++) {
-            // ivSpread: level: mon: padding:
-            var pokemon = availablePokemon[rnd.Next(availablePokemon.Count)];
-            var level = maxLevel;
-            while (level > maxLevel - 5 && rnd.Next(2) == 1) level--;
-            model.WriteMultiByteValue(teamStart + i * 8 + 0, 2, token, 0);
-            model.WriteMultiByteValue(teamStart + i * 8 + 2, 2, token, level);
-            model.WriteMultiByteValue(teamStart + i * 8 + 4, 2, token, pokemon);
-            model.WriteMultiByteValue(teamStart + i * 8 + 6, 2, token, 0);
-         }
-
-         // part 2: the trainer
-         var trainerFlag = 1;
-         while (UsedTrainerFlags.Contains(trainerFlag)) trainerFlag++;
-         usedTrainerFlags.Add(trainerFlag);
-
          var trainers = model.GetTableModel(HardcodeTablesModel.TrainerTableName, () => token);
-         var trainer = trainers[trainerFlag];
-         // structType. class. introMusicAndGender. sprite. name""12 item1: item2: item3: item4: doubleBattle:: ai:: pokemonCount:: pokemon<>
-         trainer.SetValue("structType", 0);
-         trainer.SetStringValue("name", "Francis");
-         trainer.SetValue("item1", 0);
-         trainer.SetValue("item2", 0);
-         trainer.SetValue("item3", 0);
-         trainer.SetValue("item4", 0);
-         trainer.SetValue("doubleBattle", 0);
-         trainer.SetValue("ai", 0);
-         trainer.SetValue("pokemonCount", teamSize);
-         trainer.SetAddress("pokemon", teamStart);
-         if (!TrainerPreferences.TryGetValue(trainerGraphics, out var pref)) pref = new(0, 0, 0);
-         trainer.SetValue("class", pref.TrainerClass);
-         trainer.SetValue("introMusicAndGender", pref.MusicAndGender);
-         trainer.SetValue("sprite", pref.Sprite);
+         var trainerFlag = 1;
+         if (UseExistingTrainer) {
+            trainerFlag = TrainerOptions.SelectedIndex;
+            UsedTrainerFlags.Add(trainerFlag);
+         } else {
+            // part 1: the team
+            var availablePokemon = new List<int>();
+            var dexName = HardcodeTablesModel.RegionalDexTableName;
+            if (useNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
+            var pokedex = model.GetTableModel(dexName, () => token);
+            var pokestats = model.GetTableModel(HardcodeTablesModel.PokemonStatsTable, () => token);
+            for (int i = 1; i < pokedex.Count; i++) {
+               if (pokedex[i - 1].GetValue(0) > maxPokedex) continue;
+               if (MinLevel.TryGetValue(i, out var level) && level > maxLevel) continue;
+               availablePokemon.Add(i);
+               if (pokestats[i].GetValue("type1") == preferredType || pokestats[i].GetValue("type2") == preferredType) {
+                  for (int j = 0; j < ChosenTypeOddsMultiplier; j++) availablePokemon.Add(i);
+               }
+            }
+
+            var teamSize = rnd.Next(3) + 1;
+            var teamStart = model.FindFreeSpace(model.FreeSpaceStart, 8 * teamSize);
+            for (int i = 0; i < teamSize; i++) {
+               // ivSpread: level: mon: padding:
+               var pokemon = availablePokemon[rnd.Next(availablePokemon.Count)];
+               var level = maxLevel;
+               while (level > maxLevel - 5 && rnd.Next(2) == 1) level--;
+               model.WriteMultiByteValue(teamStart + i * 8 + 0, 2, token, 0);
+               model.WriteMultiByteValue(teamStart + i * 8 + 2, 2, token, level);
+               model.WriteMultiByteValue(teamStart + i * 8 + 4, 2, token, pokemon);
+               model.WriteMultiByteValue(teamStart + i * 8 + 6, 2, token, 0);
+            }
+
+            // part 2: the trainer
+            while (UsedTrainerFlags.Contains(trainerFlag)) trainerFlag++;
+            usedTrainerFlags.Add(trainerFlag);
+
+            var trainer = trainers[trainerFlag];
+            // structType. class. introMusicAndGender. sprite. name""12 item1: item2: item3: item4: doubleBattle:: ai:: pokemonCount:: pokemon<>
+            trainer.SetValue("structType", 0);
+            trainer.SetStringValue("name", "Francis");
+            trainer.SetValue("item1", 0);
+            trainer.SetValue("item2", 0);
+            trainer.SetValue("item3", 0);
+            trainer.SetValue("item4", 0);
+            trainer.SetValue("doubleBattle", 0);
+            trainer.SetValue("ai", 0);
+            trainer.SetValue("pokemonCount", teamSize);
+            trainer.SetAddress("pokemon", teamStart);
+            if (!TrainerPreferences.TryGetValue(trainerGraphics, out var pref)) pref = new(0, 0, 0);
+            trainer.SetValue("class", pref.TrainerClass);
+            trainer.SetValue("introMusicAndGender", pref.MusicAndGender);
+            trainer.SetValue("sprite", pref.Sprite);
+         }
 
          // part 3: the script
          /*
@@ -207,9 +244,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
           */
          //       2                  6       10          16
          // 5C 00 trainerFlag: 00 00 <before> <win> 0F 00 <after> 09 06 02
-         var before = WriteText(token, "Before!");
+         var before = WriteText(token, "Let's battle!");
          var win = WriteText(token, "You Win!");
-         var after = WriteText(token, "After!");
+         var after = WriteText(token, "Post-battle chat!");
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 24);
          token.ChangeData(model, scriptStart, "5C 00 00 00 00 00 00 00 00 00 00 00 00 00 0F 00 00 00 00 00 09 06 02 00".ToByteArray());
          model.WriteMultiByteValue(scriptStart + 2, 2, token, trainerFlag);
@@ -233,6 +270,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          objectEventModel.TrainerRangeOrBerryID = 5;
          objectEventModel.ScriptAddress = scriptStart;
          objectEventModel.Flag = 0;
+         objectEventModel.RefreshTrainerOptions();
 
          model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
       }
@@ -283,7 +321,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var trainerNameAddress = trainers[trainerID].Start + 4;
          var teamPointer = trainers[trainerID].Start + 36;
 
-         return new TrainerEventContent(beforePointer, winPointer, afterPointer, trainerClassAddress, trainerNameAddress, teamPointer);
+         return new TrainerEventContent(beforePointer, winPointer, afterPointer, trainerClassAddress, trainerID, address + 2, trainerNameAddress, teamPointer);
       }
 
       #endregion
@@ -871,7 +909,7 @@ wrongspecies:
       #endregion
    }
 
-   public record TrainerEventContent(int BeforeTextPointer, int WinTextPointer, int AfterTextPointer, int TrainerClassAddress, int TrainerNameAddress, int TeamPointer);
+   public record TrainerEventContent(int BeforeTextPointer, int WinTextPointer, int AfterTextPointer, int TrainerClassAddress, int TrainerIndex, int TrainerIndexAddress, int TrainerNameAddress, int TeamPointer);
 
    public record MartEventContent(int HelloPointer, int MartPointer, int GoodbyePointer);
 

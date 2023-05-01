@@ -11,7 +11,10 @@
       <local:EqualityToBooleanConverter x:Key="Equality" />
       <local:PointConverter x:Key="PointConverter" />
       <DataTemplate DataType="{x:Type tools:VisualComboOption}">
-         <local:PixelImage />
+         <StackPanel Orientation="Horizontal">
+            <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
+            <local:PixelImage />
+         </StackPanel>
       </DataTemplate>
    </UserControl.Resources>
    <UserControl.InputBindings>
@@ -88,21 +91,30 @@
                <local:AngleButton DataContext="{Binding PrimaryMap.BlockEditor}" Content="Edit Block" x:Name="EditBlockButton"
                    Direction="Right" Padding="2,0" Command="{res:MethodCommand ToggleShowTiles}" />
             </Decorator>
-            <local:PixelImage DataContext="{Binding BlockBag}" VerticalAlignment="Bottom" HorizontalAlignment="Center"
-                              MouseDown="BlockBagMouseDown"
-                              Visibility="{Binding BlockEditorVisible, Converter={StaticResource BoolToVisibility}}">
-               <local:PixelImage.ToolTip>
+            <StackPanel MouseDown="BlockBagMouseDown" VerticalAlignment="Bottom" HorizontalAlignment="Left"
+                        Orientation="Horizontal" Visibility="{Binding BlockBagVisible, Converter={StaticResource BoolToVisibility}}">
+               <StackPanel.ToolTip>
                   <ToolTip>
                      <TextBlock>
-                        <Bold>Block Bag</Bold>
+                        Ctrl+Click to add/remove blocks from the mixing bag.
                         <LineBreak />
-                        Drawing and painting treat these blocks as equivalent.
+                        Ctrl+Click the bag icon to empty it.
                         <LineBreak />
-                        Ctrl+Click to clear the block bag.
+                        <LineBreak />
+                        When drawing a block from the mixing bag,
+                        <LineBreak />
+                        any block from the mixing bag will be used at random.
+                        <LineBreak />
+                        <Italic>(Also works with double-click.)</Italic>
+                        <LineBreak />
+                        <LineBreak />
+                        Use it to make more interesting grass or ground.
                      </TextBlock>
                   </ToolTip>
-               </local:PixelImage.ToolTip>
-            </local:PixelImage>
+               </StackPanel.ToolTip>
+               <Path Data="{res:Icon Bag}" Fill="{DynamicResource Primary}" Width="16" Height="16" Stretch="Fill" />
+               <local:PixelImage VerticalAlignment="Center" DataContext="{Binding BlockBag}" />
+            </StackPanel>
             <Decorator HorizontalAlignment="Center" VerticalAlignment="Center">
                <local:PixelImage DataContext="{Binding MultiTileDrawRender}" />
                <Decorator.Style>
@@ -115,10 +127,27 @@
                         <DataTrigger Binding="{Binding DrawMultipleTiles}" Value="True">
                            <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding IsValid9GridSelection}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                      </Style.Triggers>
                   </Style>
                </Decorator.Style>
             </Decorator>
+            <CheckBox IsChecked="{Binding Use9Grid}" Content="Draw 9-Grid" VerticalAlignment="Top" Grid.Row="1" HorizontalAlignment="Center"
+                      Visibility="{Binding IsValid9GridSelection, Converter={StaticResource BoolToVisibility}}">
+               <CheckBox.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
+                        Draw one of the selected 9 blocks based on a grid.
+                        <LineBreak />
+                        This can make drawing multi-block details like paths,
+                        <LineBreak />
+                        water, or mountains much faster.
+                     </TextBlock>
+                  </ToolTip>
+               </CheckBox.ToolTip>
+            </CheckBox>
             <TextBlock Foreground="{DynamicResource Secondary}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
                <TextBlock.Style>
                   <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -128,6 +157,7 @@
                            <MultiDataTrigger.Conditions>
                               <Condition Binding="{Binding BlockEditorVisible}" Value="False" />
                               <Condition Binding="{Binding DrawMultipleTiles}" Value="False" />
+                              <Condition Binding="{Binding IsValid9GridSelection}" Value="False" />
                            </MultiDataTrigger.Conditions>
                            <MultiDataTrigger.Setters>
                               <Setter Property="Visibility" Value="Visible" />
@@ -252,7 +282,7 @@
                         <local:AngleComboBox Grid.Row="0" Grid.Column="1" Direction="Right" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}" Margin="0,2,2,2">
                            <local:AngleComboBox.ItemsPanel>
                               <ItemsPanelTemplate>
-                                 <WrapPanel Width="130" />
+                                 <WrapPanel Width="220" />
                               </ItemsPanelTemplate>
                            </local:AngleComboBox.ItemsPanel>
                         </local:AngleComboBox>
@@ -343,6 +373,11 @@
                               Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
+                        <local:AngleButton Command="{res:MethodCommand CreateScript}" Direction="Right" Grid.Row="8" Grid.Column="1" HorizontalAlignment="Right"
+                              Visibility="{Binding CanCreateScript, Converter={StaticResource BoolToVisibility}}"
+                              Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
 
                         <local:AngleBorder Grid.Row="9" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Flag:"/>
@@ -373,6 +408,12 @@
                                  <Setter Property="Width" Value="244" />
                               </Style>
                            </StackPanel.Resources>
+                           <local:AngleComboBox Direction="Out" Margin="4,10" DataContext="{Binding TrainerOptions}" IsTextSearchEnabled="False"
+                              SelectedIndex="{Binding SelectedIndex}"
+                              ItemsSource="{Binding FilteredOptions}"
+                              IsEditable="{Binding CanFilter}"
+                              Text="{Binding DisplayText}"
+                              IsDropDownOpen="{Binding DropDownIsOpen}"/>
                            <Grid>
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition />
@@ -1388,7 +1429,7 @@
             <Path Data="{res:Icon Settings}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
          </ToggleButton>
          <Popup DataContext="{Binding Templates}" IsOpen="{Binding IsChecked, ElementName=ShowTemplateSettingsButton}" PlacementTarget="{Binding ElementName=ShowTemplateSettingsButton}"
-                Width="235" Height="245" StaysOpen="{Binding IsMouseOver, ElementName=ShowTemplateSettingsButton}">
+                Width="235" Height="280" StaysOpen="{Binding IsMouseOver, ElementName=ShowTemplateSettingsButton}">
             <Border BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Background="{DynamicResource Background}">
                <Grid Margin="5">
                   <Grid.ColumnDefinitions>
@@ -1447,34 +1488,55 @@
                            </Style.Triggers>
                         </Style>
                      </StackPanel.Style>
-                     <!-- This trainer prefers to use a level <15> <Bug> pokemon from first <50> pokemon in the <National> pokedex. -->
-                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="This trainer prefers to use" />
+                     <CheckBox Content="Use Existing Trainer Data" Margin="4,4,4,10" HorizontalAlignment="Center" IsChecked="{Binding UseExistingTrainer}" />
+                     <StackPanel>
+                        <StackPanel.Style>
+                           <Style TargetType="StackPanel">
+                              <Setter Property="Visibility" Value="Collapsed" />
+                              <Style.Triggers>
+                                 <DataTrigger Binding="{Binding UseExistingTrainer}" Value="False">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                 </DataTrigger>
+                              </Style.Triggers>
+                           </Style>
+                        </StackPanel.Style>
+                        <!-- This trainer prefers to use a level <15> <Bug> pokemon from first <50> pokemon in the <National> pokedex. -->
+                        <StackPanel Orientation="Horizontal">
+                           <TextBlock Text="This trainer prefers to use" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,5">
+                           <local:AngleBorder Direction="Left">
+                              <TextBlock Margin="0,0,2,0" Text="level" />
+                           </local:AngleBorder>
+                           <local:AngleTextBox Width="35" Direction="Out" TextBinding="{Binding MaxLevel, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:AngleComboBox Width="75" ItemsSource="{Binding TypeOptions}" SelectedIndex="{Binding PreferredType}" Direction="Right" />
+                           <TextBlock Margin="2,0" Text="pokemon" />
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal">
+                           <TextBlock Margin="2,0" Text="from the first" />
+                           <local:AngleTextBox Width="35" Direction="Left" TextBinding="{Binding MaxPokedex, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:AngleButton Width="60" Padding="0" Height="18" Direction="Out" IsChecked="{Binding UseNationalDex}">
+                              <local:AngleButton.Style>
+                                 <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
+                                    <Setter Property="Content" Value="Hoenn" />
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding UseNationalDex}" Value="True">
+                                          <Setter Property="Content" Value="National" />
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </local:AngleButton.Style>
+                           </local:AngleButton>
+                           <TextBlock Margin="2,0" Text="pokemon." />
+                        </StackPanel>
                      </StackPanel>
-                     <StackPanel Orientation="Horizontal" Margin="0,5">
-                        <local:AngleBorder Direction="Left">
-                           <TextBlock Margin="0,0,2,0" Text="level" />
-                        </local:AngleBorder>
-                        <local:AngleTextBox Width="35" Direction="Out" TextBinding="{Binding MaxLevel, UpdateSourceTrigger=PropertyChanged}" />
-                        <local:AngleComboBox Width="75" ItemsSource="{Binding TypeOptions}" SelectedIndex="{Binding PreferredType}" Direction="Right" />
-                        <TextBlock Margin="2,0" Text="pokemon" />
-                     </StackPanel>
-                     <StackPanel Orientation="Horizontal">
-                        <TextBlock Margin="2,0" Text="from the first" />
-                        <local:AngleTextBox Width="35" Direction="Left" TextBinding="{Binding MaxPokedex, UpdateSourceTrigger=PropertyChanged}" />
-                        <local:AngleButton Width="60" Padding="0" Height="18" Direction="Out" IsChecked="{Binding UseNationalDex}">
-                           <local:AngleButton.Style>
-                              <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
-                                 <Setter Property="Content" Value="Hoenn" />
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding UseNationalDex}" Value="True">
-                                       <Setter Property="Content" Value="National" />
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </local:AngleButton.Style>
-                        </local:AngleButton>
-                        <TextBlock Margin="2,0" Text="pokemon." />
+                     <StackPanel Visibility="{Binding UseExistingTrainer, Converter={StaticResource BoolToVisibility}}">
+                        <local:AngleComboBox Direction="Out" DataContext="{Binding TrainerOptions}" IsTextSearchEnabled="False"
+                              SelectedIndex="{Binding SelectedIndex}"
+                              ItemsSource="{Binding FilteredOptions}"
+                              IsEditable="{Binding CanFilter}"
+                              Text="{Binding DisplayText}"
+                              IsDropDownOpen="{Binding DropDownIsOpen}"/>
                      </StackPanel>
                   </StackPanel>
                   <Decorator Grid.ColumnSpan="2" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Top">

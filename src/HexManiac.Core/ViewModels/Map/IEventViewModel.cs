@@ -356,6 +356,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class ObjectEventViewModel : BaseEventViewModel {
       private readonly ScriptParser parser;
+      private readonly EventTemplate eventTemplate;
       private readonly BerryInfo berries;
       private readonly Action<int> gotoAddress;
 
@@ -483,12 +484,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                nameof(ShowMartContents), nameof(MartHello), nameof(MartContent), nameof(MartGoodbye),
                nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
                nameof(ShowTradeContent), nameof(TradeFailedText), nameof(TradeIndex), nameof(TradeInitialText), nameof(TradeSuccessText), nameof(TradeThanksText), nameof(TradeWrongSpeciesText),
-               nameof(ShowBerryContent), nameof(BerryText));
+               nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
          }
       }
 
       public void GotoScript() => gotoAddress(ScriptAddress);
       public bool CanGotoScript => 0 <= ScriptAddress && ScriptAddress < element.Model.Count;
+
+      public bool CanCreateScript => ScriptAddress == Pointer.NULL;
+      public void CreateScript() {
+         var start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
+         Token.ChangeData(element.Model, start, 2);
+         ScriptAddress = start;
+         gotoAddress(start);
+      }
 
       private string scriptAddressText;
       public string ScriptAddressText {
@@ -573,6 +582,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Trainer Content
 
+      public FilteringComboOptions TrainerOptions { get; } = new();
+
       public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null;
 
       public int TrainerClass {
@@ -585,6 +596,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
             if (trainerContent == null) return;
             element.Token.ChangeData(element.Model, trainerContent.TrainerClassAddress, (byte)value);
+
+            var options = TrainerOptions.AllOptions.ToList();
+            options[trainerContent.TrainerIndex] = CreateOption(trainerContent.TrainerIndex, value, TrainerName);
+            TrainerOptions.Update(options, trainerContent.TrainerIndex);
          }
       }
 
@@ -622,7 +637,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             while (bytes.Count < 12) bytes.Add(0);
             element.Token.ChangeData(element.Model, trainerContent.TrainerNameAddress, bytes);
             NotifyPropertyChanged();
+            var options = TrainerOptions.AllOptions.ToList();
+            options[trainerContent.TrainerIndex] = CreateOption(trainerContent.TrainerIndex, element.Model[trainerContent.TrainerClassAddress], value);
+            TrainerOptions.Update(options, trainerContent.TrainerIndex);
          }
+      }
+
+      public void RefreshTrainerOptions() {
+         var trainerTable = element.Model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+         var trainers = element.Model.GetOptions(HardcodeTablesModel.TrainerTableName);
+         if (trainerTable == null) return;
+
+         var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+         var options = new List<ComboOption>();
+         for (int i = 0; i < trainers.Count; i++) {
+            options.Add(CreateOption(i, trainerTable[i].GetValue(1), trainers[i]));
+         }
+         TrainerOptions.Update(options, trainerContent?.TrainerIndex ?? 0);
       }
 
       private string trainerBeforeText;
@@ -720,6 +751,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (trainerContent == null) return;
          gotoAddress(trainerContent.TrainerClassAddress - 1);
       });
+
+      public static ComboOption CreateOption(IReadOnlyList<string> classOptions, int index, int trainerClass, string name) => new($"{index} - {classOptions[trainerClass.LimitToRange(0, classOptions.Count - 1)]} {name}", index);
+
+      private ComboOption CreateOption(int index, int trainerClass, string name) => CreateOption(ClassOptions, index, trainerClass, name);
 
       #endregion
 
@@ -916,16 +951,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
+      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
          this.parser = parser;
          this.gotoAddress = gotoAddress;
+         this.eventTemplate = eventTemplate;
          this.berries = berries;
-         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2));
+         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
          DefaultOW = defaultSprite;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          foreach (var item in list) FacingOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
+
+         RefreshTrainerOptions();
+         TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
+            this.eventTemplate.UseTrainerFlag(TrainerOptions.SelectedIndex);
+            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, element.Token, TrainerOptions.SelectedIndex);
+            TeamVisualizations.Clear();
+            trainerSprite = null;
+            trainerName = trainerBeforeText = trainerWinText = trainerAfterText = teamText = null;
+            NotifyPropertiesChanged(nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeText), nameof(TrainerWinText), nameof(TrainerAfterText), nameof(TrainerTeam), nameof(TrainerClass));
+         });
 
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
@@ -1074,7 +1121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var behavior = blockset.Attribute(tile).Behavior;
          if (list.Count <= behavior) return false;
-         return list[behavior].Contains("Warp") || list[behavior].Contains("Door") || list[behavior].Contains("Stairs");
+         return new[] { "Warp", "Door", "Stairs", "Ladder" }.Any(list[behavior].Contains);
       }
    }
 

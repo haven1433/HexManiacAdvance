@@ -1144,10 +1144,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                for (int j = 0; j < elementCount; j++) {
                   // segment=recordSeg.CreateConcrete(this,segmentOffset)
                   var start = segmentOffset + arrayRun.ElementLength * j;
-                  segment = recordSeg.CreateConcrete(this, start);
+                  segment = recordSeg.CreateConcrete(this, arrayRun, start);
                   if (segment.Type == ElementContentType.Pointer) {
                      if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
-                     changeAnchors(arrayRun.ElementContent[i], arrayRun.ElementContent, j, changeToken, start);
+                     changeAnchors(segment, arrayRun.ElementContent, j, changeToken, start);
                   }
                }
                segmentOffset += segment.Length;
