@@ -717,6 +717,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // create a new 9x9 map
          var newMap = CreateNewMap(token, option, 9, 9);
+         if (newMap == null) {
+            viewPort.RaiseError(MapRepointer.MapBankFullError);
+            return null;
+         }
          var newLayout = newMap.GetLayout();
          newLayout.SetAddress(Format.BorderBlock, borderBlockAddress);
          newLayout.SetAddress(Format.PrimaryBlockset, primaryBlocksetAddress);
@@ -1390,6 +1394,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             var map = GetMapModel();
 
+            var (width, height) = (info.Size, info.Size);
+            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
+            if (isZConnection) height = info.Offset;
+            var otherMap = CreateNewMap(token, option, width, height);
+            if (otherMap == null) {
+               viewPort.RaiseError(MapRepointer.MapBankFullError);
+               return;
+            }
+
             var connections = GetOrCreateConnections(map, token);
             var connectionsAndCount = map.GetSubTable("connections")[0];
 
@@ -1399,14 +1412,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             connectionsAndCount.SetValue("count", connections.ElementCount + 1);
             var table = new ModelTable(model, connections.Start, tokenFactory, connections);
             var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
-            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
             newConnection.Offset = isZConnection ? 0 : info.Offset;
             newConnection.Direction = info.Direction;
             newConnection.Unused = 0;
-
-            var (width, height) = (info.Size, info.Size);
-            if (isZConnection) height = info.Offset;
-            var otherMap = CreateNewMap(token, option, width, height);
 
             newConnection.MapGroup = otherMap.group;
             newConnection.MapNum = otherMap.map;
@@ -1425,6 +1433,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private BlockMapViewModel CreateNewMap(ModelDelta token, int bank, int width, int height) {
          var mapTable = MapRepointer.AddNewMapToBank(bank);
+         if (mapTable == null) return null; // failed to create map in given bank
          var newMap = MapRepointer.CreateNewMap(token);
          var layout = MapRepointer.CreateNewLayout(token);
 
