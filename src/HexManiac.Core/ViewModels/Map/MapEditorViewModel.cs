@@ -13,6 +13,34 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
+/* List of tables used by the map editor (or event templates):
+
+* data.maps.banks
+* data.maps.layouts
+* graphics.overworld.sprites
+* data.maps.names
+* data.items.berry.stats
+* data.maps.fly.connections
+* data.maps.fly.spawns
+
+* data.pokemon.names
+* data.pokemon.types.names
+* data.pokedex.regional
+* data.pokedex.national
+* graphics.pokemon.sprites.front
+* graphics.pokemon.icons.sprites
+
+* data.trainers.stats
+* data.trainers.classes.names
+* graphics.trainers.sprites.front
+
+* data.items.stats
+* graphics.items.sprites
+* data.pokemon.moves.tutors
+* data.pokemon.trades
+
+ */
+
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
    /// Represents the entire map editor tab, with all visible controls, maps, edit boxes, etc
@@ -646,10 +674,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void PrimaryUp(double x, double y) {
-         if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.Event) EventUp();
+         if (interactionType == PrimaryInteractionType.Event || withinEventCreationInteraction) EventUp(x, y);
+         else if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
+         else if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
+         else if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
          interactionType = PrimaryInteractionType.None;
       }
 
@@ -664,9 +692,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                // nothing to paint
                interactionType = PrimaryInteractionType.None;
             } else {
-               if (interactionType == PrimaryInteractionType.RectangleDraw && map != null) {
-                  map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
-               } else if (map != null && !drawMultipleTiles) {
+               if (map != null && !drawMultipleTiles) {
                   if (blockBag.Contains(drawBlockIndex)) {
                      map.PaintBlockBag(history.CurrentChange, blockBag, collisionIndex, x, y);
                   } else {
@@ -799,7 +825,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Hover(x, y);
       }
 
-      public void EventUp() {
+      public void EventUp(double x, double y) {
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
@@ -810,6 +836,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             // Open the popup.
             ShowTemplateSettings = true;
             eventCreationType = EventCreationType.None;
+         }
+         if (eventCreationType == EventCreationType.WaveFunction) {
+            eventCreationType = EventCreationType.None;
+            // user wants to do a wave function collapse at this position
+            var map = MapUnderCursor(x, y);
+            if (map != primaryMap) return;
+            map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
          }
       }
 
@@ -885,6 +918,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void CreateEventForCreationInteraction(EventCreationType type) {
          if (type == EventCreationType.None) return;
+         if (type == EventCreationType.WaveFunction) return;
          eventCreationType = EventCreationType.None;
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
@@ -1690,7 +1724,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       //    find the current block with the tightest restriction, and pick an option based on the (weighted) options
       //    propogate new restrictions to neighboring unset blocks
 
-      // if we ever get to a block that's restricted to 0 options, skip it until the end. Once there's onl 0-options choices left,
+      // if we ever get to a block that's restricted to 0 options, skip it until the end. Once there's only 0-options choices left,
       // recalculate available options but only accounting for 3 sides at random, then 2 sides, then 1 side.
       // if we still can't find a neighbor after that, leave it blank.
 
@@ -1993,7 +2027,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum SelectionInteractionResult { None, ShowMenu }
 
-   public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
+   public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly, WaveFunction }
 
    [Flags]
    public enum PrimaryInteractionStart {

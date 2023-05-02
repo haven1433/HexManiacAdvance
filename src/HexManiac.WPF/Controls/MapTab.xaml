@@ -1421,6 +1421,11 @@
             </Border>
          </Popup>
          <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" Command="{res:MethodCommand ToggleBorderEditor}" Margin="0,0,5,0" x:Name="EditBorderButton" />
+         <Grid Width="24" Height="24" Name="WaveFunction" Background="Transparent"
+                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.WaveFunction}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to fill a map section with randomized blocks">
+            <Rectangle Fill="{DynamicResource Primary}" Margin="2" />
+            <Path Data="{res:Icon Dice}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+         </Grid>
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" Name="ObjectEventTemplate"
                  MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
             <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>

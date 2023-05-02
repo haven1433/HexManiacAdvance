@@ -1095,6 +1095,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
+      private IEnumerable<Point> GetAllMatchingConnectedBlocks(int x, int y) {
+         var added = new HashSet<Point>();
+         var toAdd = new Queue<Point>();
+         toAdd.Enqueue(new(x, y));
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+         var address = start + (y * width + x) * 2;
+         int read(Point p) => model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2);
+         var matchBlock = read(new(x, y));
+
+         while (toAdd.Count > 0) {
+            var current = toAdd.Dequeue();
+            if (added.Contains(current)) continue;
+            if (current.X < 0 || current.X >= width) continue;
+            if (current.Y < 0 || current.Y >= height) continue;
+            if (read(current) != matchBlock) continue;
+            yield return current;
+            added.Add(current);
+            toAdd.Enqueue(current + new Point(-1, 0));
+            toAdd.Enqueue(current + new Point(1, 0));
+            toAdd.Enqueue(current + new Point(0, -1));
+            toAdd.Enqueue(current + new Point(0, 1));
+         }
+      }
+
       public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
@@ -1105,34 +1132,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (xx < 0 || yy < 0 || xx > width || yy > height) return;
          var start = layout.GetAddress("blockmap");
 
-         // first pass: set all the effected spaces to 0 so they won't count
-         var toDraw = new Queue<Point>();
-         toDraw.Enqueue(new(xx, yy));
-         var drawn = new List<Point>();
+         Point right = new(1, 0), down = new(0, 1);
          var rnd = new Random();
-         lock (pixelWriteLock) {
-            while (toDraw.Count > 0) {
-               var p = toDraw.Dequeue();
-               if (drawn.Contains(p)) continue;
-               var address = start + (p.Y * width + (p.X - 1)) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X - 1, p.Y));
-               address = start + (p.Y * width + (p.X + 1)) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X + 1, p.Y));
-               address = start + ((p.Y - 1) * width + p.X) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y - 1));
-               address = start + ((p.Y + 1) * width + p.X) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y + 1));
-               address = start + (p.Y * width + p.X) * 2;
-               model.WriteMultiByteValue(address, 2, token, 0);
-               drawn.Add(p);
-            }
+         var toDraw = new Dictionary<Point, WaveCell>();
+         var allCells = GetAllMatchingConnectedBlocks(xx, yy).ToList();
+         void Fill(Point p, int value) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, value);
 
-            // second pass: wave-fill in the reverse order (outside in)
-            drawn.Reverse();
-            foreach (var p in drawn) {
-               var targetVal = wave(p.X, p.Y).Collapse(rnd);
-               var address = start + (p.Y * width + p.X) * 2;
-               model.WriteMultiByteValue(address, 2, token, targetVal);
+         lock (pixelWriteLock) {
+            // set all effected spaces to 0 so they won't count toward eachother's wave-function
+            foreach (var cell in allCells) Fill(cell, 0);
+
+            // initial wave function collapse values
+            foreach (var cell in allCells) toDraw[cell] = wave(cell.X, cell.Y);
+
+            // reduction loop: find the most restricted cell, collapse it, then propogate its new restrictions
+            while (toDraw.Count > 0) {
+               var smallest = toDraw.Values.Select(v => v.Probabilities.Count).Min();
+               var smallestPoints = toDraw.Where(kvp => kvp.Value.Probabilities.Count == smallest).Select(kvp => kvp.Key).ToList();
+               var point = rnd.From(smallestPoints);
+               Fill(point, toDraw[point].Collapse(rnd));
+               toDraw.Remove(point);
+               foreach (var neighbor in new List<Point> { point - right, point + right, point - down, point + down }) {
+                  if (!toDraw.ContainsKey(neighbor)) continue;
+                  toDraw[neighbor] = wave(neighbor.X, neighbor.Y);
+               }
             }
          }
 
