@@ -537,6 +537,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public int Unused {
+         get => element.GetValue("unused");
+         set {
+            element.SetValue("unused", value);
+            NotifyPropertyChanged();
+         }
+      }
+
       public IPixelViewModel DefaultOW { get; }
       public ObservableCollection<VisualComboOption> Options { get; } = new();
       public ObservableCollection<string> FacingOptions { get; } = new();
