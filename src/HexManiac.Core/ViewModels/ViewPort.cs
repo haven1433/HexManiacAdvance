@@ -2977,6 +2977,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RaiseError($"Expected Cautious, Greedy, or Smart, but got {args[1]}.");
                exitEditEarly = true;
             } else {
+               // editor[0].Edit('@!importimage(relative/path.png Greedy)')
                var error = Tools.SpriteTool.TryImport(mapper.FileSystem, pathContext ?? Path.GetDirectoryName(FullFileName), run.Start, args[0], importType);
                if (error == null || !error.HasError) {
                   // all good
