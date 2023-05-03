@@ -1199,17 +1199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
       public SignpostEventViewModel(ModelArrayElement signpostEvent, Action<int> gotoAddress) : base(signpostEvent, "signpostCount") {
-         new List<string> {
-            "Facing Any",
-            "Facing North",
-            "Facing South",
-            "Facing East",
-            "Facing West",
-            "Hidden Item (unused 1)",
-            "Hidden Item (unused 2)",
-            "Hidden Item",
-            "Secret Base",
-         }.ForEach(KindOptions.Add);
+         if (signpostEvent.Model.TryGetList("MapSignpostKindOptions", out var names)) names.ForEach(KindOptions.Add);
 
          foreach (var item in signpostEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) {
             ItemOptions.Add(item);

@@ -119,7 +119,7 @@ namespace HavenSoft.HexManiac.Integration {
 
          var ev = firered.MapEditor.PrimaryMap.EventGroup.Objects[0];
          firered.MapEditor.EventDown(ev, PrimaryInteractionStart.None);
-         firered.MapEditor.EventUp();
+         firered.MapEditor.EventUp(default, default);
 
          Assert.False(firered.MapEditor.BlockEditorVisible);
       }

@@ -1779,21 +1779,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             return availableBlocks.Range().Select(i => new CollapseProbability(i)).ToList();
          }
 
-         // old version that returned just a single block
-         //else if (probabilities[0].Count == 1) {
-         //   // only one option, go with that
-         //   return probabilities[0][0].Block;
-         //}
-         // pick one block from among the available blocks at random (weighted based on use)
-         //var totalOptions = probabilities[0].Sum(cp => cp.Count);
-         //var selection = rnd.Next(totalOptions);
-         //var index = 0;
-         //while (selection > probabilities[0][index].Count) {
-         //   selection -= probabilities[0][index].Count;
-         //   index += 1;
-         //}
-         //return probabilities[0][index].Block;
-
          // new version that returns the current probabilities, which need collapsing
          return probabilities[0];
       }
