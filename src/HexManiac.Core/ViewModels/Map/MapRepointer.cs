@@ -155,7 +155,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // TODO we just made a new layout, we need to add it to the layout table
       }
 
-      public string RepointBorderText => $"This border is used by {CountLayoutMemberSources(Format.BorderBlock)} layouts.";
+      public string RepointBorderText {
+         get {
+            var count = CountLayoutMemberSources(Format.BorderBlock);
+            return $"This border is used by {count} layout{(count != 1 ? "s" : string.Empty)}.";
+         }
+      }
 
       private bool CanRepointBorderBlock() => CountLayoutMemberSources(Format.BorderBlock) > 1;
 

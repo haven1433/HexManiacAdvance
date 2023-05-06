@@ -1330,17 +1330,17 @@
       </Border>
 
       <!-- Border Panel-->
-      <Border DataContext="{Binding PrimaryMap.BorderEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
+      <Border Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1" MouseWheel="EatMouseWheel"
               Background="{DynamicResource Background}">
          <DockPanel Width="400" HorizontalAlignment="Right">
-            <Grid DockPanel.Dock="Top">
+            <Grid DockPanel.Dock="Top" DataContext="{Binding PrimaryMap.BorderEditor}">
                <ToggleButton Command="{res:MethodCommand ToggleBorderEditor}" Width="20" Height="20" HorizontalAlignment="Right" Margin="1">
                   <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                </ToggleButton>
                <local:AngleBorder Width="100" HorizontalAlignment="Center" Direction="Out" Content="Border Block" HorizontalContentAlignment="Center" Margin="0,0,0,5" />
             </Grid>
-            <Grid Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
+            <Grid DataContext="{Binding PrimaryMap.BorderEditor}" Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
                <Grid.RowDefinitions>
                   <RowDefinition />
                   <RowDefinition />
@@ -1354,14 +1354,19 @@
                <local:AngleBorder Content="Height:" Direction="Out" Grid.Row="1" />
                <local:AngleTextBox TextBinding="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Direction="Right" />
             </Grid>
-            <local:PixelImage x:Name="BorderImage" DataContext="{Binding BorderRender}" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <Decorator Width="200" Height="24" HorizontalAlignment="Center" DockPanel.Dock="Top"
+                       DataContext="{Binding PrimaryMap.MapRepointer}" ToolTip="{Binding RepointBorderText}">
+               <local:AngleButton  Command="{Binding RepointBorderBlock}" Content="Repoint Border Block" Direction="Out" />
+            </Decorator>
+
+            <local:PixelImage x:Name="BorderImage" DataContext="{Binding PrimaryMap.BorderEditor.BorderRender}" HorizontalAlignment="Center" VerticalAlignment="Center"
                MouseLeftButtonDown="BorderDown" MouseRightButtonDown="BorderSelect" MouseMove="BorderMove" MouseUp="BorderUp" />
          </DockPanel>
          <Border.Style>
             <Style TargetType="Border">
                <Setter Property="Width" Value="0" />
                <Style.Triggers>
-                  <DataTrigger Binding="{Binding ShowBorderPanel}" Value="True">
+                  <DataTrigger Binding="{Binding PrimaryMap.BorderEditor.ShowBorderPanel}" Value="True">
                      <DataTrigger.EnterActions>
                         <BeginStoryboard>
                            <Storyboard>
