@@ -563,7 +563,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // need autocomplete for command?
             if (tokens.Length == 1) {
-               candidates.Where(line => line.LineCommand.StartsWith(tokens[0])).ToList();
+               var gameCode = model.GetGameCode().Substring(0, 4);
+               candidates = candidates.Where(line => line.LineCommand.StartsWith(tokens[0]) && line.MatchesGame(gameCode)).ToList();
                foreach (var line in candidates) {
                   if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
                }
@@ -1017,7 +1018,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var gamesEnd = line.IndexOf("]");
          if (gamesEnd == -1) return null;
          var games = line.Substring(1, gamesEnd - 1);
-         line = line.Substring(gamesEnd + 1);
+         line = line.Substring(gamesEnd + 1).TrimStart();
          return games.Split("_");
       }
 
