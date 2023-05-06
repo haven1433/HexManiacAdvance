@@ -427,7 +427,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (listSource.TryGetList("MapLayerOptions", out var layer)) layer.ForEach(LayerOptions.Add);
          if (listSource.TryGetList("MapTerrainOptions", out var terrain)) terrain.ForEach(TerrainOptions.Add);
          if (listSource.TryGetList("MapEncounterOptions", out var encounters)) encounters.ForEach(EncounterOptions.Add);
-         foreach (var palette in palettes) Palettes.Add(new ReadonlyPaletteCollection(palette));
+         for (var i = 0; i < palettes.Length; i++) Palettes.Add(new ReadonlyPaletteCollection(palettes[i], i));
       }
 
       public IPixelViewModel LeftTopBack => images[0];

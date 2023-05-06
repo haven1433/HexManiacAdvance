@@ -244,7 +244,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
             var palette = paletteRun?.GetPalette(model, paletteRun.PaletteFormat.InitialBlankPages) ?? TileViewModel.CreateDefaultPalette(16);
             var image = SpriteTool.Render(sprite, palette, paletteRun?.PaletteFormat.InitialBlankPages ?? default, 0);
-            var option = VisualComboOption.CreateFromSprite(defaultOptions[i].Text, image, sprite.GetLength(0), i);
+            var option = VisualComboOption.CreateFromSprite(defaultOptions[i].Text, image, sprite.GetLength(0), i, 1, true);
             imageOptions.Add(option);
          }
 

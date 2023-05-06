@@ -142,6 +142,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool copying = false;
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is ComboBoxArrayElementViewModel comboBox)) return false;
+         if (comboBox.FilteringComboOptions.AllOptions?.FirstOrDefault()?.DisplayAsText != FilteringComboOptions.AllOptions?.FirstOrDefault()?.DisplayAsText) {
+            return false;
+         }
          Name = comboBox.Name;
          TableName = comboBox.TableName;
          Length = comboBox.Length;

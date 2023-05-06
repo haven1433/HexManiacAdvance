@@ -406,7 +406,10 @@
                                                    IsDropDownOpen="{Binding DropDownIsOpen}">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
-                                                      <hsg3hv:PixelImage />
+                                                      <StackPanel Orientation="Horizontal">
+                                                         <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
+                                                         <hsg3hv:PixelImage />
+                                                      </StackPanel>
                                                    </DataTemplate>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:ComboOption}">
                                                       <TextBlock Text="{Binding Text}" />

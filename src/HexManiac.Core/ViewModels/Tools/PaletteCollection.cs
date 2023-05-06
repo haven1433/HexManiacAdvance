@@ -14,9 +14,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ReadonlyPaletteCollection : ViewModelCore {
       public int ColorWidth => (int)Math.Ceiling(Math.Sqrt(Colors.Count));
       public int ColorHeight => (int)Math.Sqrt(Colors.Count);
+      public int Index { get; }
+      public bool DisplayIndex { get; }
       public ObservableCollection<short> Colors { get; } = new ObservableCollection<short>();
-      public ReadonlyPaletteCollection(IEnumerable<short> colors) {
+      public ReadonlyPaletteCollection(IEnumerable<short> colors, int index = -1) {
          foreach (var color in colors) Colors.Add(color);
+         Index = index;
+         DisplayIndex = index >= 0;
       }
    }
 
