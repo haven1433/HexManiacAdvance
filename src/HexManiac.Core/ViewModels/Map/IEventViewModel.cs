@@ -987,7 +987,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
             this.eventTemplate.UseTrainerFlag(TrainerOptions.SelectedIndex);
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, element.Token, TrainerOptions.SelectedIndex);
+            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, () => element.Token, TrainerOptions.SelectedIndex);
             TeamVisualizations.Clear();
             trainerSprite = null;
             trainerName = trainerBeforeText = trainerWinText = trainerAfterText = teamText = null;

@@ -357,6 +357,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          return word;
       }
 
+      public static bool WriteMultiByteValue(this IDataModel model, int index, int length, Func<ModelDelta> tokenFactory, int value) {
+         Debug.Assert(length > 0, "Trying to write a value with no length!");
+         var currentValue = ReadMultiByteValue(model, index, length);
+         if (currentValue == value) return false;
+         return WriteMultiByteValue(model, index, length, tokenFactory(), value);
+      }
+
       public static bool WriteMultiByteValue(this IDataModel model, int index, int length, ModelDelta changeToken, int value) {
          Debug.Assert(length > 0, "Trying to write a value with no length!");
          var anyChange = false;
