@@ -7,7 +7,7 @@
          <TextBlock Text="Filter Name/Type:" VerticalAlignment="Center"/>
          <TextBox Width="100" Margin="5" Text="{Binding Filter, UpdateSourceTrigger=PropertyChanged}"/>
       </StackPanel>
-      <ScrollViewer Background="LightGray">
+      <ScrollViewer Background="{DynamicResource Background}" PreviewMouseWheel="ElementScroll">
          <ItemsControl Name="Container" ItemsSource="{Binding Elements}" MouseDown="StartElementMove" MouseMove="ElementMove" MouseUp="EndElementMove">
             <ItemsControl.ItemsPanel>
                <ItemsPanelTemplate>

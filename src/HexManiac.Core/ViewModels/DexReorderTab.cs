@@ -71,6 +71,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public void IpsPatchRight() { }
       public void UpsPatchRight() { }
 
+      private double spriteScale = 1;
+      public double SpriteScale {
+         get => spriteScale;
+         set => Set(ref spriteScale, value.LimitToRange(.25, 4), old => {
+            foreach (var pokemon in Elements) pokemon.SpriteScale = SpriteScale;
+         });
+      }
+
       private int selectionStart;
       public int SelectionStart {
          get => selectionStart;
@@ -154,7 +162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // multiple pokemon set to the same slot. Example: Rattata and Alolan Rattata
                elements[dexIndex - 1].AddSource(i + 1);
             } else {
-               elements[dexIndex - 1] = new SortablePokemon(model, i + 1);
+               elements[dexIndex - 1] = new SortablePokemon(model, i + 1) { SpriteScale = SpriteScale };
             }
          }
          for (int i = dexInfo.ElementCount; i < elementCount; i++) {
@@ -167,7 +175,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
          for (int i = 0; i < elements.Length; i++) {
-            if (elements[i] == null) elements[i] = new SortablePokemon(model, 0); // unused pokedex slot
+            if (elements[i] == null) elements[i] = new SortablePokemon(model, 0) { SpriteScale = SpriteScale }; // unused pokedex slot
             Elements.Add(elements[i]);
             elements[i].MatchToFilter(filter);
          }
@@ -299,7 +307,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int PixelWidth { get; }
       public int PixelHeight { get; }
       public short[] PixelData { get; }
-      public double SpriteScale { get; }
+      private double spriteScale;
+      public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
 
       private bool isFilteredOut;
       public bool IsFilteredOut { get => isFilteredOut; set => TryUpdate(ref isFilteredOut, value); }

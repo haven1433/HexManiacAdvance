@@ -66,5 +66,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          Container.ReleaseMouseCapture();
          ViewModel.CompleteCurrentInteraction();
       }
+
+      private void ElementScroll(object sender, MouseWheelEventArgs e) {
+         if (Keyboard.Modifiers != ModifierKeys.Control) return;
+         ViewModel.SpriteScale *= Math.Sign(e.Delta) > 0 ? 2 : .5;
+         e.Handled = true;
+      }
    }
 }
