@@ -42,6 +42,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          DataContext = viewModel;
          viewModel.MoveFocusToFind += (sender, e) => FocusTextBox(FindBox);
          viewModel.MoveFocusToHexConverter += (sender, e) => FocusTextBox(HexBox);
+         viewModel.MoveFocusToPrimaryContent += (sender, e) => FocusPrimaryContent();
          viewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
          viewModel.PropertyChanged += ViewModelPropertyChanged;
 
@@ -275,6 +276,14 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void FocusTabElement(object sender, EventArgs e) {
          var panel = (FrameworkElement)sender;
          NavigationCommands.NavigateJournal.Execute(panel, this);
+      }
+
+      private void FocusPrimaryContent() {
+         if (GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]) is HexContent hex) {
+            hex.Focus();
+         } else if (GetChild(Tabs, string.Empty, ViewModel[ViewModel.SelectedIndex]) is MapTab map) {
+            map.Focus();
+         }
       }
 
       protected override void OnDragEnter(DragEventArgs e) {

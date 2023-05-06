@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public const int MaxMapsPerBank = 127;
       public const string MapBankFullError = "Banks cannot have more than 127 maps.";
+      public const string MapLayoutMissing = "Cannot create a new map when data.maps.layouts is missing.";
 
       private readonly Format format;
       private readonly IFileSystem fileSystem;

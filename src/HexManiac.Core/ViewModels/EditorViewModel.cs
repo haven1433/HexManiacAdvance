@@ -416,6 +416,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler MoveFocusToFind;
       public event EventHandler MoveFocusToHexConverter;
+      public event EventHandler MoveFocusToPrimaryContent;
 
       #region Collection Properties
 
@@ -1315,11 +1316,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(gotoViewModel.ControlVisible) && gotoViewModel.ControlVisible) {
-            ClearError.Execute();
-            ClearMessage.Execute();
-            FindControlVisible = false;
-            HexConverterVisible = false;
+         if (e.PropertyName == nameof(gotoViewModel.ControlVisible)) {
+            if (gotoViewModel.ControlVisible) {
+               ClearError.Execute();
+               ClearMessage.Execute();
+               FindControlVisible = false;
+               HexConverterVisible = false;
+            } else {
+               MoveFocusToPrimaryContent.Raise(this);
+            }
          }
          if (e.PropertyName == nameof(gotoViewModel.ShowAll)) FocusOnGotoShortcuts = !gotoViewModel.ShowAll;
       }
