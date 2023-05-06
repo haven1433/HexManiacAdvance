@@ -718,7 +718,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // create a new 9x9 map
          var newMap = CreateNewMap(token, option, 9, 9);
          if (newMap == null) {
-            viewPort.RaiseError(MapRepointer.MapBankFullError);
+            if (model.GetTable(HardcodeTablesModel.MapLayoutTable) == null) {
+               viewPort.RaiseError(MapRepointer.MapLayoutMissing);
+            } else {
+               viewPort.RaiseError(MapRepointer.MapBankFullError);
+            }
             return null;
          }
          var newLayout = newMap.GetLayout();
@@ -1382,6 +1386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void ConnectNewMap(ConnectionInfo info) {
+         ViewPort.ChangeHistory.ChangeCompleted();
          using (viewPort.ChangeHistory.ContinueCurrentTransaction()) {
             var token = tokenFactory();
             var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
@@ -1399,7 +1404,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (isZConnection) height = info.Offset;
             var otherMap = CreateNewMap(token, option, width, height);
             if (otherMap == null) {
-               viewPort.RaiseError(MapRepointer.MapBankFullError);
+               if (model.GetTable(HardcodeTablesModel.MapLayoutTable) == null) {
+                  viewPort.RaiseError(MapRepointer.MapLayoutMissing);
+               } else {
+                  viewPort.RaiseError(MapRepointer.MapBankFullError);
+               }
                return;
             }
 
@@ -1432,6 +1441,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel CreateNewMap(ModelDelta token, int bank, int width, int height) {
+         if (model.GetTable(HardcodeTablesModel.MapLayoutTable) == null) return null;
          var mapTable = MapRepointer.AddNewMapToBank(bank);
          if (mapTable == null) return null; // failed to create map in given bank
          var newMap = MapRepointer.CreateNewMap(token);
