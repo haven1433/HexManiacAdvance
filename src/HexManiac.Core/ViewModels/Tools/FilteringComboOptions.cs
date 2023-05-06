@@ -40,7 +40,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (selectedIndex < 0 || selectedIndex >= FilteredOptions.Count) return;
             interactionType = InteractionType.DropDown;
             selectedIndex = value;
-            ClearFilter();
+            if (!ClearFilter()) {
+               displayText = AllOptions[selectedIndex].Text;
+               NotifyPropertiesChanged(nameof(SelectedIndex), nameof(DisplayText), nameof(ModelValue));
+            }
             interactionType = InteractionType.None;
          }
       }
@@ -121,13 +124,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          interactionType = InteractionType.None;
       }
 
-      private void ClearFilter() {
-         if (FilteredOptions.SequenceEqual(AllOptions)) return;
+      private bool ClearFilter() {
+         if (FilteredOptions.SequenceEqual(AllOptions)) return false;
          var selectedOption = FilteredOptions.Count == 0 ? 0 : FilteredOptions[selectedIndex].Index;
          FilteredOptions = new(AllOptions);
          selectedIndex = AllOptions.IndexOf(AllOptions.Single(option => option.Index == selectedOption));
          displayText = AllOptions[selectedIndex].Text;
          NotifyPropertiesChanged(nameof(FilteredOptions), nameof(SelectedIndex), nameof(DisplayText), nameof(DropDownIsOpen), nameof(ModelValue));
+         return true;
       }
 
       #endregion
