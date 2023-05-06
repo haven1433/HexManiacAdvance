@@ -240,5 +240,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          cache = new BlocksetCache(new(), new());
          cache.CalculateBlocksetOptions(model);
       }
+
+      public int RecentBank { get; set; }
    }
 }

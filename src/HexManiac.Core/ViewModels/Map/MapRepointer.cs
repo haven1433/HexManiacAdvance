@@ -771,13 +771,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          var options = mapBanks.Count.Range(i => i.ToString()).ToList();
          options.Add("Create New Bank");
-         var enumViewModel = new EnumViewModel(options.ToArray());
+         var enumViewModel = new EnumViewModel(options.ToArray()) { Choice = format.RecentBank.LimitToRange(0, options.Count) };
          var option = fileSystem.ShowOptions(
             "Pick a bank",
             prompt,
             new[] { new[] { enumViewModel } },
             new VisualOption { Index = 1, Option = "OK", ShortDescription = "Insert New Map" });
          if (option == -1) return option;
+         format.RecentBank = enumViewModel.Choice;
          return enumViewModel.Choice;
       }
 
