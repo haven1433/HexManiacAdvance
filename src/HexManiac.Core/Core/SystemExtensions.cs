@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -112,6 +113,10 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public static void AddRange<T>(this HashSet<T> set, IEnumerable<T> items) {
+         foreach (var item in items) set.Add(item);
+      }
+
+      public static void AddRange<T>(this ObservableCollection<T> set, IEnumerable<T> items) {
          foreach (var item in items) set.Add(item);
       }
 

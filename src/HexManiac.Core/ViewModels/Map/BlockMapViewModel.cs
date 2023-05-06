@@ -2247,8 +2247,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, NoInfoRun.FromPointer(model, source));
       }
 
-      private void GotoAddress(int address) {
-         var nextRun = model.GetNextRun(address);
+      private void GotoAddress(int address) => GotoAddress(viewPort, address);
+
+      /// <summary>
+      /// Wrapper around standard viewPort.Goto that also formats the script when you do the goto.
+      /// </summary>
+      public static void GotoAddress(IViewPort viewPort, int address) {
+         var nextRun = viewPort.Model.GetNextRun(address);
          var tool = viewPort.Tools.CodeTool;
          if (nextRun.Start > address) {
             viewPort.Tools.SelectedTool = tool;
