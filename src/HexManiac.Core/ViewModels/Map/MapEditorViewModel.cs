@@ -565,12 +565,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                while (Math.Abs(p.Y - drawSource.Y) % tilesToDraw.GetLength(1) != 0) p -= new Point(0, 1);
             }
             UpdateHover(map, p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
-            HoverPoint = string.Empty;
          } else {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
             map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
-               HoverPoint = $"({p.X}, {p.Y})";
                if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
                   return ShowEventHover(map, ev);
                } else {
@@ -603,6 +601,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          HighlightCursorY = (top + border.North + height / 2.0) * 16 * map.SpriteScale + map.TopEdge;
          HighlightCursorWidth = width * 16 * map.SpriteScale + 4;
          HighlightCursorHeight = height * 16 * map.SpriteScale + 4;
+
+         HoverPoint = $"({left}, {top})";
+         if (width > 1 || height > 1) HoverPoint += $" [{width}x{height}]";
 
          if (prevX != highlightCursorX) return true;
          if (prevY != highlightCursorY) return true;
