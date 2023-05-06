@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ObservableCollection<ComboOption> AllOptions { get; private set; }
       public ObservableCollection<ComboOption> FilteredOptions { get; private set; }
 
-      public bool CanFilter => AllOptions?.FirstOrDefault()?.DisplayAsText ?? false;
+      public bool CanFilter => AllOptions?.All(option => option.DisplayAsText) ?? false;
 
       // direct-editing the text updates the filter / opens the dropdown
       private string displayText;

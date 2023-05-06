@@ -11,7 +11,7 @@
       <local:EqualityToBooleanConverter x:Key="Equality" />
       <local:PointConverter x:Key="PointConverter" />
       <DataTemplate DataType="{x:Type tools:VisualComboOption}">
-         <StackPanel Orientation="Horizontal">
+         <StackPanel Orientation="Horizontal" Background="Transparent">
             <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
             <local:PixelImage />
          </StackPanel>

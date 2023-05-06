@@ -196,12 +196,20 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto" SharedSizeGroup="NextPrev"/>
                      </Grid.ColumnDefinitions>
+                     <Grid.Resources>
+                        <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
+                           <StackPanel Orientation="Horizontal" Background="Transparent">
+                              <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Text}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
+                              <hsg3hv:PixelImage />
+                           </StackPanel>
+                        </DataTemplate>
+                     </Grid.Resources>
                      <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                        IsEditable="True" IsTextSearchEnabled="False" Margin="5,0" Direction="Out"
+                        IsEditable="{Binding CanFilter}" IsTextSearchEnabled="False" Margin="5,0" Direction="Out"
                         DataContext="{Binding TableTool.CurrentElementSelector}"
-                        ItemsSource="{Binding Options}"
+                        ItemsSource="{Binding FilteredOptions}"
                         SelectedIndex="{Binding SelectedIndex}"
-                        Text="{Binding Text}" />
+                        Text="{Binding DisplayText}" />
                      <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding TableTool.Previous}" Padding="0" Direction="Left"/>
                      <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="Right"/>
                   </Grid>
@@ -406,7 +414,7 @@
                                                    IsDropDownOpen="{Binding DropDownIsOpen}">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
-                                                      <StackPanel Orientation="Horizontal">
+                                                      <StackPanel Orientation="Horizontal" Background="Transparent">
                                                          <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
                                                          <hsg3hv:PixelImage />
                                                       </StackPanel>
