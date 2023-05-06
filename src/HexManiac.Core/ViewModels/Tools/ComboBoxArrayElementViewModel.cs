@@ -124,6 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
 
          FilteringComboOptions.Bind(nameof(FilteringComboOptions.ModelValue), (options, args) => {
+            if (copying) return;
             var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);
             var rawSegment = run.ElementContent[offsets.SegmentIndex];
@@ -138,6 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          });
       }
 
+      private bool copying = false;
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is ComboBoxArrayElementViewModel comboBox)) return false;
          Name = comboBox.Name;
@@ -145,7 +147,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Length = comboBox.Length;
          Start = comboBox.Start;
          Visible = comboBox.Visible;
-         FilteringComboOptions.Update(comboBox.FilteringComboOptions.AllOptions, comboBox.FilteringComboOptions.SelectedIndex);
+         using (Scope(ref copying, true, old => copying = old)) {
+            FilteringComboOptions.Update(comboBox.FilteringComboOptions.AllOptions, comboBox.FilteringComboOptions.SelectedIndex);
+         }
 
          ErrorText = comboBox.ErrorText;
          GotoSource = comboBox.GotoSource;
