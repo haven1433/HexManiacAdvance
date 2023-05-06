@@ -63,8 +63,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       bool SupportsImport { get; }
       bool SupportsEdit { get; }
       SpriteFormat SpriteFormat { get; }
+      int DecompressedLength { get; }
       int[,] GetPixels(IDataModel model, int page, int tableIndex);
       ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels);
+      ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles);
       ISpriteRun Duplicate(SpriteFormat newFormat);
       byte[] GetData();
    }
@@ -295,7 +297,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return results;
       }
 
-      public static IReadOnlyList<ITilemapRun> FindDependentTilemaps(this ITilesetRun tileset, IDataModel model) {
+      public static IReadOnlyList<ITilemapRun> FindDependentTilemaps(this ISpriteRun tileset, IDataModel model) {
          var results = new List<ITilemapRun>();
 
          // if the tileset is part of a table, find other tilemaps at the same index in the table

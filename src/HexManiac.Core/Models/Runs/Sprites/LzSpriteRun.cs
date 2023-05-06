@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
@@ -98,6 +99,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          model.ObserveRunWritten(token, newRun);
          return newRun;
       }
+
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => LzTilesetRun.SetPixels(this, model, token, tiles, (start, sources) => new LzSpriteRun(SpriteFormat, model, start, sources));
 
       public LzSpriteRun IncreaseHeight(int tiles, ModelDelta token) {
          var data = Decompress(Model, Start);

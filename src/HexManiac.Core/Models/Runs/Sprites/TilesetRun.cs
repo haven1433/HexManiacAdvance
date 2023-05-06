@@ -105,7 +105,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return this;
       }
 
-      public ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
          return LzTilesetRun.SetPixels(this, model, token, tiles, (start, sources) => new TilesetRun(TilesetFormat, model, start, sources));
       }
 

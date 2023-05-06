@@ -2516,7 +2516,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          // special case: empty format, stick with the no-info run
          if (format == string.Empty) return ErrorInfo.NoError;
 
-         return model.FormatRunFactory.GetStrategy(format)?.TryParseData(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
+         if (model is PokemonModel pModel) {
+            lock (pModel.threadlock) {
+               return model.FormatRunFactory.GetStrategy(format)?.TryParseData(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
+            }
+         } else {
+            return model.FormatRunFactory.GetStrategy(format)?.TryParseData(model, name, dataIndex, ref run) ?? new ErrorInfo($"Format {format} was not understood."); ;
+         }
       }
 
       private static ErrorInfo ValidateAnchorNameAndFormat(IDataModel model, IFormattedRun runToWrite, string name, string format, int dataIndex, bool allowAnchorOverwrite = false) {

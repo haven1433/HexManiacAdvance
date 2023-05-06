@@ -14,6 +14,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override int Length { get; }
 
+      public int DecompressedLength => Length;
+
       public int ElementCount { get; }
 
       public string PaletteHint { get; }
@@ -296,6 +298,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          spriteRun.SetPixels(model, token, 0, pixels);
          return this; // moving a page will never move the list
       }
+
+      // we should never try to set a overworld sprite list from a tileset
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => throw new NotImplementedException();
 
       public ISpriteRun Duplicate(SpriteFormat newFormat) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, PointerSources);
    }
