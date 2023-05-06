@@ -548,10 +548,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public int Unused {
-         get => element.GetValue("unused");
+      public int Padding {
+         get => element.TryGetValue("padding", out var value) ? value : 0;
          set {
-            element.SetValue("unused", value);
+            element.SetValue("padding", value);
             NotifyPropertyChanged();
          }
       }

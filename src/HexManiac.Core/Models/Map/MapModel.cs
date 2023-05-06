@@ -226,7 +226,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          if (isRSE) LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}>]1";
          var regionSectionIDFormat = "data.maps.names+88";
          if (isRSE) regionSectionIDFormat = "data.maps.names";
-         ObjectsFormat = $"[id. graphics. unused:1 x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/{ObjectCount}";
+         var field3 = !isRSE ? "kind:" : "unused:1";
+         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: padding:]/{ObjectCount}";
          WarpsFormat = $"[x:|z y:|z elevation.10 warpID. map. bank.]/{WarpCount}";
          ScriptsFormat = $"[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/{ScriptCount}";
          SignpostsFormat = $"[x:|z y:|z elevation.10 kind. unused:1 arg::|h]/{SignpostCount}";

@@ -386,9 +386,9 @@
                         <local:AngleTextBox Grid.Row="9" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="10" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
-                           <TextBlock Text="Unused:"/>
+                           <TextBlock Text="Padding:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="10" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Unused, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleTextBox Grid.Row="10" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Padding, UpdateSourceTrigger=PropertyChanged}" />
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowBerryContent, Converter={StaticResource BoolToVisibility}}">
                            <Grid>
