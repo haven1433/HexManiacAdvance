@@ -286,16 +286,19 @@
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeruby/symbols/pokeruby.sym" />
+                        <MenuItem Header="Battle Outcome Constants" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/battle.h#L67" />
                      </MenuItem>
                      <MenuItem Header="FireRed">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/vars.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokefirered/symbols/pokefirered.sym" />
+                        <MenuItem Header="Battle Outcome Constants" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/battle.h#L75" />
                      </MenuItem>
                      <MenuItem Header="Emerald">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/vars.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/flags.h" />
                         <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeemerald/symbols/pokeemerald.sym" />
+                        <MenuItem Header="Battle Outcome Constants" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/c32fbf594aec382e3bd58a6651e1e382c5105e4b/include/constants/battle.h#L88" />
                      </MenuItem>
                   </MenuItem>
                   <MenuItem Header="_Report an Issue" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/issues" />
