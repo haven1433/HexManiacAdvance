@@ -207,7 +207,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          append = new StubCommand {
             CanExecute = parameter => {
                var array = model.GetNextRun(address) as ITableRun;
-               return array != null && array.CanAppend && address == array.Start + array.ElementLength * (array.ElementCount - 1);
+               if (array == null || !array.CanAppend) return false;
+               if (array is TableStreamRun stream && stream.AllowsZeroElements && address == array.Start + array.ElementLength * array.ElementCount) return true;
+               return address == array.Start + array.ElementLength * (array.ElementCount - 1);
             },
             Execute = parameter => {
                using (ModelCacheScope.CreateScope(model)) {
