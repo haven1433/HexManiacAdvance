@@ -6,14 +6,12 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
    public interface ITilesetRun : ISpriteRun {
       TilesetFormat TilesetFormat { get; }
-      ITilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles);
-      int DecompressedLength { get; }
    }
 
    public static class ITilesetRunExtensions {
-      public static IEnumerable<int> GetFillerTiles(this ITilesetRun tileset) {
+      public static IEnumerable<int> GetFillerTiles(this ISpriteRun tileset) {
          var data = tileset.GetData();
-         var bytesPerTile = tileset.TilesetFormat.BitsPerPixel * 8;
+         var bytesPerTile = tileset.SpriteFormat.BitsPerPixel * 8;
          var tileCount = data.Length / bytesPerTile;
          for (int i = 0; i < tileCount; i++) {
             if (IsFiller(data, i * bytesPerTile, bytesPerTile)) yield return i;
@@ -140,20 +138,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public ISpriteRun Duplicate(SpriteFormat format) => new LzTilesetRun(new TilesetFormat(format.BitsPerPixel, TilesetFormat.Tiles, TilesetFormat.MaxTiles, format.PaletteHint), Model, Start, PointerSources);
 
-      ITilesetRun ITilesetRun.SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => SetPixels(model, token, tiles);
+      ISpriteRun ISpriteRun.SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => SetPixels(model, token, tiles);
       public LzTilesetRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
          return SetPixels(this, model, token, tiles, (start, sources) => new LzTilesetRun(TilesetFormat, model, start, sources));
       }
 
-      public static T SetPixels<T>(T run, IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles, Func<int, SortedSpan<int>, T> construct) where T : ITilesetRun {
-         var tileSize = 8 * run.TilesetFormat.BitsPerPixel;
+      public static T SetPixels<T>(T run, IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles, Func<int, SortedSpan<int>, T> construct) where T : ISpriteRun {
+         var bpp = run.SpriteFormat.BitsPerPixel;
+         var tileSize = 8 * bpp;
          var data = new byte[tiles.Count * tileSize];
 
          for (int i = 0; i < tiles.Count; i++) {
-            SpriteRun.SetPixels(data, i * tileSize, tiles[i], run.TilesetFormat.BitsPerPixel);
+            SpriteRun.SetPixels(data, i * tileSize, tiles[i], bpp);
          }
 
-         var newModelData = Compress(data, 0, data.Length);
+         var newModelData = run is LZRun ? Compress(data, 0, data.Length) : data;
          var newRun = model.RelocateForExpansion(token, run, newModelData.Count);
          for (int i = 0; i < newModelData.Count; i++) token.ChangeData(model, newRun.Start + i, newModelData[i]);
          for (int i = newModelData.Count; i < run.Length; i++) token.ChangeData(model, newRun.Start + i, 0xFF);

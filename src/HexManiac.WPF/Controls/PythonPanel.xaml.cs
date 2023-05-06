@@ -13,6 +13,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             e.Handled = true;
             if (DataContext is not PythonTool tool) return;
             tool.RunPython();
+         } else if (e.Key == Key.Escape) {
+            e.Handled = true;
+            if (DataContext is not PythonTool tool) return;
+            tool.Close();
          }
       }
 

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 
-public class MetatileRun : BaseRun, ISpriteRun {
+public class MetatileRun : BaseRun {
    public static readonly string SharedFormatString = "`ucb`"; // uncompressed block
 
    private readonly IDataModel model;
@@ -43,10 +43,6 @@ public class MetatileRun : BaseRun, ISpriteRun {
    public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
       // TODO make this better
       model.ClearFormatAndData(changeToken, start, length);
-   }
-
-   public ISpriteRun Duplicate(SpriteFormat newFormat) {
-      return new MetatileRun(model, Start, PointerSources);
    }
 
    public byte[] GetData() {

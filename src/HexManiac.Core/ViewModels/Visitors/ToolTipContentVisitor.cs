@@ -122,7 +122,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          GetEnumImage(model, Content, enumValue, parentArray);
       }
 
-      public static void GetEnumImage(IDataModel model, ObservableCollection<object> content, int enumValue, ArrayRun parentArray) {
+      public static IPixelViewModel GetEnumImage(IDataModel model, int enumValue, ArrayRun parentArray) {
+         if (parentArray == null) return null;
          foreach (var array in model.GetRelatedArrays(parentArray)) {
             int segOffset = 0;
             foreach (var seg in array.ElementContent) {
@@ -134,10 +135,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                if (seg.Type != ElementContentType.Pointer) continue;
                if (model.GetNextRun(destination) is not ISpriteRun spriteRun) continue;
                var paletteRuns = spriteRun.FindRelatedPalettes(model, array.Start + array.ElementLength * itemIndex);
-               content.Add(ReadonlyPixelViewModel.Create(model, spriteRun, paletteRuns.FirstOrDefault(), true));
-               return;
+               return ReadonlyPixelViewModel.Create(model, spriteRun, paletteRuns.FirstOrDefault(), true);
             }
          }
+         return null;
+      }
+
+      public static void GetEnumImage(IDataModel model, ObservableCollection<object> content, int enumValue, ArrayRun parentArray) {
+         var result = GetEnumImage(model, enumValue, parentArray);
+         if (result != null) content.Add(result);
       }
 
       public void Visit(IntegerHex integer, byte data) { }

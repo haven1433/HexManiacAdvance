@@ -423,10 +423,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.blockAttributes = blockAttributes;
          images = new CanvasPixelViewModel[8];
          indexForTileImage = new Dictionary<IPixelViewModel, int>();
-         if (listSource.TryGetList("MapAttributeBehaviors", out var list)) {
-            foreach (var item in list) BehaviorOptions.Add(item);
-         }
-         foreach (var palette in palettes) Palettes.Add(new ReadonlyPaletteCollection(palette));
+         if (listSource.TryGetList("MapAttributeBehaviors", out var behaviors)) behaviors.ForEach(BehaviorOptions.Add);
+         if (listSource.TryGetList("MapLayerOptions", out var layer)) layer.ForEach(LayerOptions.Add);
+         if (listSource.TryGetList("MapTerrainOptions", out var terrain)) terrain.ForEach(TerrainOptions.Add);
+         if (listSource.TryGetList("MapEncounterOptions", out var encounters)) encounters.ForEach(EncounterOptions.Add);
+         for (var i = 0; i < palettes.Length; i++) Palettes.Add(new ReadonlyPaletteCollection(palettes[i], i));
       }
 
       public IPixelViewModel LeftTopBack => images[0];

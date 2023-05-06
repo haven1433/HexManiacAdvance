@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -24,6 +23,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ComboOption(string text, int index) { Text = text; Index = index; }
 
       public override string ToString() => Text;
+
+      public static IEnumerable<ComboOption> Convert(IEnumerable<string> options) {
+         int count = 0;
+         foreach (var option in options) {
+            yield return new ComboOption(option, count);
+            count++;
+         }
+      }
    }
 
    public class VisualComboOption : ComboOption, IPixelViewModel {
@@ -124,6 +131,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
 
          FilteringComboOptions.Bind(nameof(FilteringComboOptions.ModelValue), (options, args) => {
+            if (copying) return;
             var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(Start);
             var rawSegment = run.ElementContent[offsets.SegmentIndex];
@@ -138,14 +146,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          });
       }
 
+      private bool copying = false;
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is ComboBoxArrayElementViewModel comboBox)) return false;
+         if (comboBox.FilteringComboOptions.AllOptions?.FirstOrDefault()?.DisplayAsText != FilteringComboOptions.AllOptions?.FirstOrDefault()?.DisplayAsText) {
+            return false;
+         }
          Name = comboBox.Name;
          TableName = comboBox.TableName;
          Length = comboBox.Length;
          Start = comboBox.Start;
          Visible = comboBox.Visible;
-         FilteringComboOptions.Update(comboBox.FilteringComboOptions.AllOptions, comboBox.FilteringComboOptions.SelectedIndex);
+         using (Scope(ref copying, true, old => copying = old)) {
+            FilteringComboOptions.Update(comboBox.FilteringComboOptions.AllOptions, comboBox.FilteringComboOptions.SelectedIndex);
+         }
 
          ErrorText = comboBox.ErrorText;
          GotoSource = comboBox.GotoSource;

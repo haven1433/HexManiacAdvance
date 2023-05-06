@@ -717,6 +717,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // create a new 9x9 map
          var newMap = CreateNewMap(token, option, 9, 9);
+         if (newMap == null) {
+            if (model.GetTable(HardcodeTablesModel.MapLayoutTable) == null) {
+               viewPort.RaiseError(MapRepointer.MapLayoutMissing);
+            } else {
+               viewPort.RaiseError(MapRepointer.MapBankFullError);
+            }
+            return null;
+         }
          var newLayout = newMap.GetLayout();
          newLayout.SetAddress(Format.BorderBlock, borderBlockAddress);
          newLayout.SetAddress(Format.PrimaryBlockset, primaryBlocksetAddress);
@@ -1095,6 +1103,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
+      private IEnumerable<Point> GetAllMatchingConnectedBlocks(int x, int y) {
+         var added = new HashSet<Point>();
+         var toAdd = new Queue<Point>();
+         toAdd.Enqueue(new(x, y));
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+         var address = start + (y * width + x) * 2;
+         int read(Point p) => model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2);
+         var matchBlock = read(new(x, y));
+
+         while (toAdd.Count > 0) {
+            var current = toAdd.Dequeue();
+            if (added.Contains(current)) continue;
+            if (current.X < 0 || current.X >= width) continue;
+            if (current.Y < 0 || current.Y >= height) continue;
+            if (read(current) != matchBlock) continue;
+            yield return current;
+            added.Add(current);
+            toAdd.Enqueue(current + new Point(-1, 0));
+            toAdd.Enqueue(current + new Point(1, 0));
+            toAdd.Enqueue(current + new Point(0, -1));
+            toAdd.Enqueue(current + new Point(0, 1));
+         }
+      }
+
       public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
@@ -1105,34 +1140,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (xx < 0 || yy < 0 || xx > width || yy > height) return;
          var start = layout.GetAddress("blockmap");
 
-         // first pass: set all the effected spaces to 0 so they won't count
-         var toDraw = new Queue<Point>();
-         toDraw.Enqueue(new(xx, yy));
-         var drawn = new List<Point>();
+         Point right = new(1, 0), down = new(0, 1);
          var rnd = new Random();
-         lock (pixelWriteLock) {
-            while (toDraw.Count > 0) {
-               var p = toDraw.Dequeue();
-               if (drawn.Contains(p)) continue;
-               var address = start + (p.Y * width + (p.X - 1)) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X - 1, p.Y));
-               address = start + (p.Y * width + (p.X + 1)) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X + 1, p.Y));
-               address = start + ((p.Y - 1) * width + p.X) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y - 1));
-               address = start + ((p.Y + 1) * width + p.X) * 2;
-               if (p.X - 1 > 0 && model.ReadMultiByteValue(address, 2) == lastDrawVal) toDraw.Enqueue(new(p.X, p.Y + 1));
-               address = start + (p.Y * width + p.X) * 2;
-               model.WriteMultiByteValue(address, 2, token, 0);
-               drawn.Add(p);
-            }
+         var toDraw = new Dictionary<Point, WaveCell>();
+         var allCells = GetAllMatchingConnectedBlocks(xx, yy).ToList();
+         void Fill(Point p, int value) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, value);
 
-            // second pass: wave-fill in the reverse order (outside in)
-            drawn.Reverse();
-            foreach (var p in drawn) {
-               var targetVal = wave(p.X, p.Y).Collapse(rnd);
-               var address = start + (p.Y * width + p.X) * 2;
-               model.WriteMultiByteValue(address, 2, token, targetVal);
+         lock (pixelWriteLock) {
+            // set all effected spaces to 0 so they won't count toward eachother's wave-function
+            foreach (var cell in allCells) Fill(cell, 0);
+
+            // initial wave function collapse values
+            foreach (var cell in allCells) toDraw[cell] = wave(cell.X, cell.Y);
+
+            // reduction loop: find the most restricted cell, collapse it, then propogate its new restrictions
+            while (toDraw.Count > 0) {
+               var smallest = toDraw.Values.Select(v => v.Probabilities.Count).Min();
+               var smallestPoints = toDraw.Where(kvp => kvp.Value.Probabilities.Count == smallest).Select(kvp => kvp.Key).ToList();
+               var point = rnd.From(smallestPoints);
+               Fill(point, toDraw[point].Collapse(rnd));
+               toDraw.Remove(point);
+               foreach (var neighbor in new List<Point> { point - right, point + right, point - down, point + down }) {
+                  if (!toDraw.ContainsKey(neighbor)) continue;
+                  toDraw[neighbor] = wave(neighbor.X, neighbor.Y);
+               }
             }
          }
 
@@ -1355,6 +1386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void ConnectNewMap(ConnectionInfo info) {
+         ViewPort.ChangeHistory.ChangeCompleted();
          using (viewPort.ChangeHistory.ContinueCurrentTransaction()) {
             var token = tokenFactory();
             var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
@@ -1367,6 +1399,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             var map = GetMapModel();
 
+            var (width, height) = (info.Size, info.Size);
+
+            var layoutModel = new LayoutModel(GetLayout());
+            if (info.Direction.IsAny(MapDirection.Up, MapDirection.Down)) {
+               height = Math.Min(layoutModel.Height, height);
+            } else if (info.Direction.IsAny(MapDirection.Right, MapDirection.Left)) {
+               width = Math.Min(layoutModel.Width, width);
+            }
+            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
+            if (isZConnection) height = info.Offset;
+            var otherMap = CreateNewMap(token, option, width, height);
+            if (otherMap == null) {
+               if (model.GetTable(HardcodeTablesModel.MapLayoutTable) == null) {
+                  viewPort.RaiseError(MapRepointer.MapLayoutMissing);
+               } else {
+                  viewPort.RaiseError(MapRepointer.MapBankFullError);
+               }
+               return;
+            }
+
             var connections = GetOrCreateConnections(map, token);
             var connectionsAndCount = map.GetSubTable("connections")[0];
 
@@ -1376,14 +1428,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             connectionsAndCount.SetValue("count", connections.ElementCount + 1);
             var table = new ModelTable(model, connections.Start, tokenFactory, connections);
             var newConnection = new ConnectionModel(table[connections.ElementCount], group, this.map);
-            var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
             newConnection.Offset = isZConnection ? 0 : info.Offset;
             newConnection.Direction = info.Direction;
             newConnection.Unused = 0;
-
-            var (width, height) = (info.Size, info.Size);
-            if (isZConnection) height = info.Offset;
-            var otherMap = CreateNewMap(token, option, width, height);
 
             newConnection.MapGroup = otherMap.group;
             newConnection.MapNum = otherMap.map;
@@ -1401,7 +1448,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private BlockMapViewModel CreateNewMap(ModelDelta token, int bank, int width, int height) {
+         if (model.GetTable(HardcodeTablesModel.MapLayoutTable) == null) return null;
          var mapTable = MapRepointer.AddNewMapToBank(bank);
+         if (mapTable == null) return null; // failed to create map in given bank
          var newMap = MapRepointer.CreateNewMap(token);
          var layout = MapRepointer.CreateNewLayout(token);
 
@@ -2215,8 +2264,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.ObserveRunWritten(token, NoInfoRun.FromPointer(model, source));
       }
 
-      private void GotoAddress(int address) {
-         var nextRun = model.GetNextRun(address);
+      private void GotoAddress(int address) => GotoAddress(viewPort, address);
+
+      /// <summary>
+      /// Wrapper around standard viewPort.Goto that also formats the script when you do the goto.
+      /// </summary>
+      public static void GotoAddress(IViewPort viewPort, int address) {
+         var nextRun = viewPort.Model.GetNextRun(address);
          var tool = viewPort.Tools.CodeTool;
          if (nextRun.Start > address) {
             viewPort.Tools.SelectedTool = tool;
@@ -2229,9 +2283,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void HandleBlocksChanged(object sender, byte[][] blocks) {
          var layout = GetLayout();
-         var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-         var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
-         BlockmapRun.WriteBlocks(tokenFactory(), blockModel1, blockModel2, blocks);
+         var layoutModel = new LayoutModel(layout);
+
+         if (model.GetNextRun(layoutModel.BlockMap.Start) is BlockmapRun blockmapRun) {
+            var blockModel1 = layoutModel.PrimaryBlockset.FullBlocksetModel;
+            var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
+            var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
+            var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
+            BlockmapRun.WriteBlocks(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, blocks);
+         }
+
          viewPort.ChangeHistory.ChangeCompleted();
          RequestClearMapCaches.Raise(this);
       }
@@ -2249,9 +2310,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {
          var layout = GetLayout();
-         var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-         var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
-         BlockmapRun.WriteBlockAttributes(tokenFactory(), blockModel1, blockModel2, attributes);
+         var layoutModel = new LayoutModel(layout);
+         if (model.GetNextRun(layoutModel.BlockMap.Start) is BlockmapRun blockmapRun) {
+            var blockModel1 = layoutModel.PrimaryBlockset.FullBlocksetModel;
+            var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
+            var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
+            var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
+            BlockmapRun.WriteBlockAttributes(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, attributes);
+         }
       }
 
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);

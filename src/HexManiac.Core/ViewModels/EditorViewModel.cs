@@ -408,6 +408,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEditsMisc { get; }
 
+      private bool showAutomationPanel;
+      public bool ShowAutomationPanel { get => showAutomationPanel; set => Set(ref showAutomationPanel, value); }
+      private StubCommand toggleShowAutomationPanelCommand;
+      public ICommand ToggleShowAutomationPanelCommand => StubCommand(ref toggleShowAutomationPanelCommand, () => ShowAutomationPanel = !ShowAutomationPanel);
+
       public PythonTool PythonTool { get; }
 
       public Singletons Singletons { get; }
@@ -416,6 +421,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event EventHandler MoveFocusToFind;
       public event EventHandler MoveFocusToHexConverter;
+      public event EventHandler MoveFocusToPrimaryContent;
 
       #region Collection Properties
 
@@ -1235,8 +1241,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
             if (destinationAddress == Pointer.NULL) {
-               var count = model.GetMatchingMaps(model.GotoShortcuts[i].GotoAnchor).Count;
-               if (count != 1) continue;
+               var destination = model.GotoShortcuts[i].GotoAnchor;
+               var matchingMaps = model.GetMatchingMaps(destination);
+               if (matchingMaps.Count > 1) {
+                  matchingMaps = matchingMaps.Where(info => info.Name.Contains(destination)).ToList();
+               }
+               if (matchingMaps.Count != 1) continue;
             }
 
             IPixelViewModel sprite;
@@ -1315,11 +1325,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void GotoPropertyChanged(object sender, PropertyChangedEventArgs e) {
-         if (e.PropertyName == nameof(gotoViewModel.ControlVisible) && gotoViewModel.ControlVisible) {
-            ClearError.Execute();
-            ClearMessage.Execute();
-            FindControlVisible = false;
-            HexConverterVisible = false;
+         if (e.PropertyName == nameof(gotoViewModel.ControlVisible)) {
+            if (gotoViewModel.ControlVisible) {
+               ClearError.Execute();
+               ClearMessage.Execute();
+               FindControlVisible = false;
+               HexConverterVisible = false;
+            } else {
+               MoveFocusToPrimaryContent.Raise(this);
+            }
          }
          if (e.PropertyName == nameof(gotoViewModel.ShowAll)) FocusOnGotoShortcuts = !gotoViewModel.ShowAll;
       }

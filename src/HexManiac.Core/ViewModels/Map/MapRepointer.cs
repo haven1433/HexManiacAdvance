@@ -16,6 +16,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class MapRepointer : ViewModelCore {
 
+      public const int MaxMapsPerBank = 127;
+      public const string MapBankFullError = "Banks cannot have more than 127 maps.";
+      public const string MapLayoutMissing = "Cannot create a new map when data.maps.layouts is missing.";
+
       private readonly Format format;
       private readonly IFileSystem fileSystem;
       private readonly IEditableViewPort viewPort;
@@ -151,7 +155,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // TODO we just made a new layout, we need to add it to the layout table
       }
 
-      public string RepointBorderText => $"This border is used by {CountLayoutMemberSources(Format.BorderBlock)} layouts.";
+      public string RepointBorderText {
+         get {
+            var count = CountLayoutMemberSources(Format.BorderBlock);
+            return $"This border is used by {count} layout{(count != 1 ? "s" : string.Empty)}.";
+         }
+      }
 
       private bool CanRepointBorderBlock() => CountLayoutMemberSources(Format.BorderBlock) > 1;
 
@@ -250,6 +259,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             );
          if (option == -1) return;
          var table = AddNewMapToBank(option);
+         if (table == null) {
+            viewPort.RaiseError(MapBankFullError);
+            return;
+         }
          var newMap = CreateNewMap(history.CurrentChange);
          model.UpdateArrayPointer(history.CurrentChange, null, null, -1, table.Start + table.Length - 4, newMap.Element.Start);
          ChangeMap.Raise(this, new(option, table.ElementCount - 1));
@@ -763,13 +776,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          var options = mapBanks.Count.Range(i => i.ToString()).ToList();
          options.Add("Create New Bank");
-         var enumViewModel = new EnumViewModel(options.ToArray());
+         var enumViewModel = new EnumViewModel(options.ToArray()) { Choice = format.RecentBank.LimitToRange(0, options.Count) };
          var option = fileSystem.ShowOptions(
             "Pick a bank",
             prompt,
             new[] { new[] { enumViewModel } },
             new VisualOption { Index = 1, Option = "OK", ShortDescription = "Insert New Map" });
          if (option == -1) return option;
+         format.RecentBank = enumViewModel.Choice;
          return enumViewModel.Choice;
       }
 
@@ -777,22 +791,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// Expands the chosen map bank by one, adding a new map to the end.
       /// </summary>
       /// <returns>The table that contains the new map.</returns>
-      public ITableRun AddNewMapToBank(int option) {
+      public ITableRun AddNewMapToBank(int bankIndex) {
          var tokenFactory = () => history.CurrentChange;
          var token = history.CurrentChange;
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start, tokenFactory);
          ITableRun mapTable;
-         if (mapBanks.Count == option) {
+         if (mapBanks.Count == bankIndex) {
             var newTable = model.RelocateForExpansion(token, mapBanks.Run, mapBanks.Run.Length + mapBanks.Run.ElementLength);
             newTable = newTable.Append(token, 1);
             model.ObserveRunWritten(token, newTable);
             mapBanks = new ModelTable(model, newTable.Start, tokenFactory, newTable);
             var tableStart = model.FindFreeSpace(model.FreeSpaceStart, 8);
-            mapTable = new TableStreamRun(model, tableStart, SortedSpan.One(mapBanks[option].Start), $"[map<{format.MapFormat}1>]", null, new DynamicStreamStrategy(model, null), 0);
-            model.UpdateArrayPointer(token, null, null, -1, mapBanks[option].Start, tableStart);
+            mapTable = new TableStreamRun(model, tableStart, SortedSpan.One(mapBanks[bankIndex].Start), $"[map<{format.MapFormat}1>]", null, new DynamicStreamStrategy(model, null), 0);
+            model.UpdateArrayPointer(token, null, null, -1, mapBanks[bankIndex].Start, tableStart);
          } else {
-            mapTable = mapBanks[option].GetSubTable("maps").Run;
+            mapTable = mapBanks[bankIndex].GetSubTable("maps").Run;
          }
+         if (mapTable.ElementCount >= MaxMapsPerBank) return null; // don't add another map
          mapTable = mapTable.Append(token, 1);
          model.ObserveRunWritten(token, mapTable);
          return mapTable;

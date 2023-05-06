@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -109,6 +110,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int TilesetAddress => Element?.GetAddress(Format.Tileset) ?? Pointer.NULL;
       public int PaletteAddress => Element?.GetAddress(Format.Palette) ?? Pointer.NULL;
       public int AttributeAddress => Element?.GetAddress(Format.BlockAttributes) ?? Pointer.NULL;
+      public BlocksetModel FullBlocksetModel => new BlocksetModel(Element.Model, Element.Start);
       public TileAttribute Attribute(int index) {
          var start = AttributeAddress;
          if (start == Pointer.NULL) return null;
@@ -224,7 +226,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          if (isRSE) LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}>]1";
          var regionSectionIDFormat = "data.maps.names+88";
          if (isRSE) regionSectionIDFormat = "data.maps.names";
-         ObjectsFormat = $"[id. graphics. unused:1 x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/{ObjectCount}";
+         var field3 = !isRSE ? "kind:" : "unused:1";
+         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: padding:]/{ObjectCount}";
          WarpsFormat = $"[x:|z y:|z elevation.10 warpID. map. bank.]/{WarpCount}";
          ScriptsFormat = $"[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/{ScriptCount}";
          SignpostsFormat = $"[x:|z y:|z elevation.10 kind. unused:1 arg::|h]/{SignpostCount}";
@@ -238,5 +241,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          cache = new BlocksetCache(new(), new());
          cache.CalculateBlocksetOptions(model);
       }
+
+      public int RecentBank { get; set; }
    }
 }

@@ -110,6 +110,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             }
             if (e.NewValue is FilteringComboOptions newVM) {
                newVM.PropertyChanged += HandleVMTextChanged;
+               if (IsTextSearchEnabled) {
+                  IsTextSearchEnabled = false;
+                  SetBinding(ItemsSourceProperty, nameof(newVM.FilteredOptions));
+                  SetBinding(SelectedIndexProperty, nameof(newVM.SelectedIndex));
+                  SetBinding(IsEditableProperty, nameof(newVM.CanFilter));
+                  SetBinding(TextProperty, nameof(newVM.DisplayText));
+                  SetBinding(IsDropDownOpenProperty, nameof(newVM.DropDownIsOpen));
+               }
             }
          };
          InitializeComponent();

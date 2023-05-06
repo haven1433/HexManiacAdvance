@@ -11,7 +11,7 @@
       <local:EqualityToBooleanConverter x:Key="Equality" />
       <local:PointConverter x:Key="PointConverter" />
       <DataTemplate DataType="{x:Type tools:VisualComboOption}">
-         <StackPanel Orientation="Horizontal">
+         <StackPanel Orientation="Horizontal" Background="Transparent">
             <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
             <local:PixelImage />
          </StackPanel>
@@ -269,7 +269,8 @@
                            <RowDefinition /> <RowDefinition />
                            <RowDefinition /> <RowDefinition />
                            <RowDefinition /> <RowDefinition />
-                           <RowDefinition /> <RowDefinition Height="Auto" />
+                           <RowDefinition /> <RowDefinition />
+                           <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <StackPanel Margin="2,2,0,2">
@@ -323,7 +324,7 @@
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2">
                            <TextBlock Text="Movement Type:"/>
                         </local:AngleBorder>
-                        <local:AngleComboBox Grid.Row="4" Grid.Column="1" Margin="0,2,2,2" VerticalAlignment="Top" Direction="Right" SelectedIndex="{Binding MoveType}" ItemsSource="{Binding FacingOptions}" />
+                        <local:AngleComboBox Grid.Row="4" Grid.Column="1" Margin="0,2,2,2" VerticalAlignment="Top" Direction="Right" DataContext="{Binding FacingOptions}" />
 
                         <local:AngleBorder Grid.Row="5" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Range:" />
@@ -384,7 +385,12 @@
                         </local:AngleBorder>
                         <local:AngleTextBox Grid.Row="9" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowBerryContent, Converter={StaticResource BoolToVisibility}}">
+                        <local:AngleBorder Grid.Row="10" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
+                           <TextBlock Text="Padding:"/>
+                        </local:AngleBorder>
+                        <local:AngleTextBox Grid.Row="10" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Padding, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowBerryContent, Converter={StaticResource BoolToVisibility}}">
                            <Grid>
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition />
@@ -399,7 +405,7 @@
                            </Grid>
                         </StackPanel>
                         
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowTrainerContent, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowTrainerContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
                               <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
                                  <Setter Property="FontFamily" Value="Consolas" />
@@ -408,12 +414,7 @@
                                  <Setter Property="Width" Value="244" />
                               </Style>
                            </StackPanel.Resources>
-                           <local:AngleComboBox Direction="Out" Margin="4,10" DataContext="{Binding TrainerOptions}" IsTextSearchEnabled="False"
-                              SelectedIndex="{Binding SelectedIndex}"
-                              ItemsSource="{Binding FilteredOptions}"
-                              IsEditable="{Binding CanFilter}"
-                              Text="{Binding DisplayText}"
-                              IsDropDownOpen="{Binding DropDownIsOpen}"/>
+                           <local:AngleComboBox Direction="Out" Margin="4,10" DataContext="{Binding TrainerOptions}" />
                            <Grid>
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition />
@@ -458,7 +459,7 @@
                            </local:AngleButton>
                         </StackPanel>
 
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowItemContents, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowItemContents, Converter={StaticResource BoolToVisibility}}">
                            <Grid>
                               <Grid.ColumnDefinitions>
                                  <ColumnDefinition />
@@ -471,14 +472,14 @@
                            </Grid>
                         </StackPanel>
 
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowNpcText, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowNpcText, Converter={StaticResource BoolToVisibility}}">
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Text:" Margin="4,0"/>
                            </local:AngleBorder>
                            <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding NpcText, UpdateSourceTrigger=PropertyChanged}" />
                         </StackPanel>
 
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowMartContents, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowMartContents, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
                               <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
                                  <Setter Property="FontFamily" Value="Consolas" />
@@ -495,7 +496,7 @@
                            <TextBox Text="{Binding MartGoodbye, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                         </StackPanel>
 
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowTutorContent, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowTutorContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
                               <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
                                  <Setter Property="FontFamily" Value="Consolas" />
@@ -516,7 +517,7 @@
                                  <ColumnDefinition Width="Auto" />
                               </Grid.ColumnDefinitions>
                               <local:AngleBorder Direction="Left" Content="Tutor Move:" />
-                              <local:AngleComboBox Grid.Column="1" Direction="Out" ItemsSource="{Binding TutorOptions}" SelectedIndex="{Binding TutorNumber}" />
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" DataContext="{Binding TutorOptions}" />
                               <local:AngleButton Command="{res:MethodCommand GotoTutors}" Direction="Right" Grid.Column="2" HorizontalAlignment="Right"
                                     Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                  <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
@@ -529,7 +530,7 @@
                            <TextBox Text="{Binding TutorFailedText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                         </StackPanel>
 
-                        <StackPanel Margin="2,12" Grid.Row="10" Grid.ColumnSpan="2" Visibility="{Binding ShowTradeContent, Converter={StaticResource BoolToVisibility}}">
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowTradeContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
                               <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
                                  <Setter Property="FontFamily" Value="Consolas" />
@@ -548,7 +549,7 @@
                                  <ColumnDefinition Width="Auto" />
                               </Grid.ColumnDefinitions>
                               <local:AngleBorder Direction="Left" Content="Trade:" />
-                              <local:AngleComboBox Grid.Column="1" Direction="Out" ItemsSource="{Binding TradeOptions}" SelectedIndex="{Binding TradeIndex}" />
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" DataContext="{Binding TradeOptions}" />
                               <local:AngleButton Command="{res:MethodCommand GotoTrades}" Direction="Right" Grid.Column="2" HorizontalAlignment="Right"
                                     Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                  <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
@@ -1329,17 +1330,17 @@
       </Border>
 
       <!-- Border Panel-->
-      <Border DataContext="{Binding PrimaryMap.BorderEditor}" Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
+      <Border Grid.Column="1" Grid.RowSpan="2" Panel.ZIndex="3" HorizontalAlignment="Left"
               BorderBrush="{DynamicResource Backlight}" BorderThickness="1" MouseWheel="EatMouseWheel"
               Background="{DynamicResource Background}">
          <DockPanel Width="400" HorizontalAlignment="Right">
-            <Grid DockPanel.Dock="Top">
+            <Grid DockPanel.Dock="Top" DataContext="{Binding PrimaryMap.BorderEditor}">
                <ToggleButton Command="{res:MethodCommand ToggleBorderEditor}" Width="20" Height="20" HorizontalAlignment="Right" Margin="1">
                   <Path Data="{res:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                </ToggleButton>
                <local:AngleBorder Width="100" HorizontalAlignment="Center" Direction="Out" Content="Border Block" HorizontalContentAlignment="Center" Margin="0,0,0,5" />
             </Grid>
-            <Grid Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
+            <Grid DataContext="{Binding PrimaryMap.BorderEditor}" Visibility="{Binding HasBorderDimensions, Converter={StaticResource BoolToVisibility}}" DockPanel.Dock="Top" Margin="10">
                <Grid.RowDefinitions>
                   <RowDefinition />
                   <RowDefinition />
@@ -1353,14 +1354,19 @@
                <local:AngleBorder Content="Height:" Direction="Out" Grid.Row="1" />
                <local:AngleTextBox TextBinding="{Binding Height, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Direction="Right" />
             </Grid>
-            <local:PixelImage x:Name="BorderImage" DataContext="{Binding BorderRender}" HorizontalAlignment="Center" VerticalAlignment="Center"
+            <Decorator Width="200" Height="24" HorizontalAlignment="Center" DockPanel.Dock="Top"
+                       DataContext="{Binding PrimaryMap.MapRepointer}" ToolTip="{Binding RepointBorderText}">
+               <local:AngleButton  Command="{Binding RepointBorderBlock}" Content="Repoint Border Block" Direction="Out" />
+            </Decorator>
+
+            <local:PixelImage x:Name="BorderImage" DataContext="{Binding PrimaryMap.BorderEditor.BorderRender}" HorizontalAlignment="Center" VerticalAlignment="Center"
                MouseLeftButtonDown="BorderDown" MouseRightButtonDown="BorderSelect" MouseMove="BorderMove" MouseUp="BorderUp" />
          </DockPanel>
          <Border.Style>
             <Style TargetType="Border">
                <Setter Property="Width" Value="0" />
                <Style.Triggers>
-                  <DataTrigger Binding="{Binding ShowBorderPanel}" Value="True">
+                  <DataTrigger Binding="{Binding PrimaryMap.BorderEditor.ShowBorderPanel}" Value="True">
                      <DataTrigger.EnterActions>
                         <BeginStoryboard>
                            <Storyboard>
@@ -1394,7 +1400,7 @@
                <Path Stretch="Uniform" Fill="{DynamicResource Secondary}" Data="{res:Icon ThinMinus}" />
             </Button>
          </StackPanel>
-         <local:AngleButton Direction="Left" Content="Edit Map Header" Command="{res:MethodCommand ToggleHeaderPanel}" Margin="5,0,0,0" x:Name="MapHeaderButton" />
+         <local:AngleButton Direction="Left" Content="Edit Map Header" Command="{res:MethodCommand ToggleHeaderPanel}" Margin="0" x:Name="MapHeaderButton" />
          <local:AngleButton Direction="Out" Width="110" x:Name="WildButton" IsChecked="{Binding PrimaryMap.WildPokemon.ShowWildData}">
             <local:AngleButton.Style>
                <Style TargetType="local:AngleButton" BasedOn="{StaticResource {x:Type local:AngleButton}}">
@@ -1421,6 +1427,11 @@
             </Border>
          </Popup>
          <local:AngleButton Direction="Right" Content="Edit Border Block" DataContext="{Binding PrimaryMap.BorderEditor}" Command="{res:MethodCommand ToggleBorderEditor}" Margin="0,0,5,0" x:Name="EditBorderButton" />
+         <Grid Width="24" Height="24" Name="WaveFunction" Background="Transparent"
+                 MouseLeftButtonDown="EventTemplateDown" Margin="0,0,5,0" Tag="{x:Static map:EventCreationType.WaveFunction}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to fill a map section with randomized blocks">
+            <Rectangle Fill="{DynamicResource Primary}" Margin="2" />
+            <Path Data="{res:Icon Dice}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+         </Grid>
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" Name="ObjectEventTemplate"
                  MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
             <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>
@@ -1531,12 +1542,7 @@
                         </StackPanel>
                      </StackPanel>
                      <StackPanel Visibility="{Binding UseExistingTrainer, Converter={StaticResource BoolToVisibility}}">
-                        <local:AngleComboBox Direction="Out" DataContext="{Binding TrainerOptions}" IsTextSearchEnabled="False"
-                              SelectedIndex="{Binding SelectedIndex}"
-                              ItemsSource="{Binding FilteredOptions}"
-                              IsEditable="{Binding CanFilter}"
-                              Text="{Binding DisplayText}"
-                              IsDropDownOpen="{Binding DropDownIsOpen}"/>
+                        <local:AngleComboBox Direction="Out" DataContext="{Binding TrainerOptions}" />
                      </StackPanel>
                   </StackPanel>
                   <Decorator Grid.ColumnSpan="2" Margin="5" HorizontalAlignment="Center" VerticalAlignment="Top">

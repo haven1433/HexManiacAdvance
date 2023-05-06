@@ -286,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // NOTE maybe we should clear all the data in this script right here
       }
 
-      public void Goto() => viewPort.Goto.Execute(address);
+      public void Goto() => BlockMapViewModel.GotoAddress(viewPort, address);
 
       private void HandleDelete(object sender, MapScriptDeleteEventArgs e) {
          var model = viewPort.Model;
@@ -361,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // leaving an orphan behind on purpose
       }
 
-      public void Goto() => viewPort.Goto.Execute(address);
+      public void Goto() => BlockMapViewModel.GotoAddress(viewPort, address);
    }
 
 }

@@ -19,6 +19,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public bool SupportsImport => true;
       public bool SupportsEdit => true;
 
+      public int DecompressedLength => Length; // no compression
+
       public SpriteRun(IDataModel model, int start, SpriteFormat format, SortedSpan<int> sources = null) : base(start, sources) {
          Model = model;
          SpriteFormat = format;
@@ -212,6 +214,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          SetPixels(data, 0, pixels, SpriteFormat.BitsPerPixel);
          for (int i = 0; i < data.Length; i++) token.ChangeData(model, Start + i, data[i]);
          return this;
+      }
+
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) {
+         return LzTilesetRun.SetPixels(this, model, token, tiles, (start, sources) => new SpriteRun(model, start, SpriteFormat, sources));
       }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {

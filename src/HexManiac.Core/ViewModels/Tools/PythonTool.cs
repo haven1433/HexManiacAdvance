@@ -67,6 +67,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void Printer(string text) {
          editor.FileSystem.ShowCustomMessageBox(text, false);
       }
+
+      public void Close() => editor.ShowAutomationPanel = false;
    }
 
    public record TableGetter(EditorViewModel Editor) {

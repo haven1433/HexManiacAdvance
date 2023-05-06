@@ -150,11 +150,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      if (pixels.Length > 0 && imagePixels != null) {
                         fs.SaveImage(pixels, imagePixels.GetLength(0), name);
                      } else {
-                        ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}The sprite couldn't be recognized.");
+                        ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}The sprite couldn't be recognized.");
                      }
                   }
                } else {
-                  ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i]}).{Environment.NewLine}Another image with that named exists.");
+                  ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}Another image with that named exists.");
                }
             }
          }

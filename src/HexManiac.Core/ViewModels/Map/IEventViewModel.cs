@@ -352,6 +352,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, default), pixels, transparent: 0);
       }
+
+      public static IPixelViewModel BuildInvisibleEventRender(IPixelViewModel colors) {
+         var pixels = new short[colors.PixelData.Length];
+         for (int x = 0; x < colors.PixelWidth; x++) {
+            for (int y = 0; y < colors.PixelHeight; y++) {
+               if (((x + y) & 1) != 0) pixels[y * colors.PixelWidth + x] = colors.Transparent;
+               else pixels[y * colors.PixelWidth + x] = colors.PixelData[y * colors.PixelWidth + x];
+            }
+         }
+         return new ReadonlyPixelViewModel(new SpriteFormat(4, colors.PixelWidth / 8, colors.PixelHeight / 8, default), pixels, colors.Transparent);
+      }
    }
 
    public class ObjectEventViewModel : BaseEventViewModel {
@@ -537,9 +548,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public int Padding {
+         get => element.TryGetValue("padding", out var value) ? value : 0;
+         set {
+            element.SetValue("padding", value);
+            NotifyPropertyChanged();
+         }
+      }
+
       public IPixelViewModel DefaultOW { get; }
       public ObservableCollection<VisualComboOption> Options { get; } = new();
-      public ObservableCollection<string> FacingOptions { get; } = new();
+      public FilteringComboOptions FacingOptions { get; } = new();
       public ObservableCollection<string> ClassOptions { get; } = new();
       public ObservableCollection<string> ItemOptions { get; } = new();
 
@@ -804,8 +823,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool ShowTutorContent {
          get {
             var content = tutorContent.Value;
-            if (content != null && TutorOptions.Count == 0) {
-               TutorOptions.AddRange(element.Model.GetOptions(HardcodeTablesModel.MoveTutors));
+            if (content != null && TutorOptions .AllOptions == null) {
+               TutorOptions.Update(ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.MoveTutors)), TutorNumber);
+               TutorOptions.Bind(nameof(TutorOptions.SelectedIndex), (sender, e) => TutorNumber = TutorOptions.SelectedIndex);
             }
             return tutorContent.Value != null;
          }
@@ -843,7 +863,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public ObservableCollection<string> TutorOptions { get; } = new();
+      public FilteringComboOptions TutorOptions { get; } = new();
 
       public void GotoTutors() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.MoveTutors)[TutorNumber].Start);
 
@@ -853,20 +873,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private Lazy<TradeEventContent> tradeContent;
 
-      public ObservableCollection<string> TradeOptions { get; } = new();
+      public FilteringComboOptions TradeOptions { get; } = new();
 
       public bool ShowTradeContent {
          get {
             var content = tradeContent.Value;
-            if (content != null && TradeOptions.Count == 0) {
+            if (content != null && TradeOptions.AllOptions == null) {
                var pokenames = element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable);
+               var options = new List<string>();
                foreach (var trade in element.Model.GetTableModel(HardcodeTablesModel.TradeTable)) {
                   if (!trade.TryGetValue("receive", out int receive) || !trade.TryGetValue("give", out int give)) {
-                     TradeOptions.Add(TradeOptions.Count.ToString());
+                     options.Add(options.Count.ToString());
                   } else {
-                     TradeOptions.Add($"{pokenames[give]} -> {pokenames[receive]}");
+                     options.Add($"{pokenames[give]} -> {pokenames[receive]}");
                   }
                }
+               TradeOptions.Update(ComboOption.Convert(options), TradeIndex);
+               TradeOptions.Bind(nameof(TradeOptions.SelectedIndex), (sender, e) => TradeIndex = TradeOptions.SelectedIndex);
             }
             return tradeContent.Value != null;
          }
@@ -959,7 +982,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
          DefaultOW = defaultSprite;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
-         foreach (var item in list) FacingOptions.Add(item);
+         FacingOptions.Update(ComboOption.Convert(list), MoveType);
+         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.SelectedIndex);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
 
@@ -967,7 +991,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
             this.eventTemplate.UseTrainerFlag(TrainerOptions.SelectedIndex);
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, element.Token, TrainerOptions.SelectedIndex);
+            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, () => element.Token, TrainerOptions.SelectedIndex);
             TeamVisualizations.Clear();
             trainerSprite = null;
             trainerName = trainerBeforeText = trainerWinText = trainerAfterText = teamText = null;
@@ -989,6 +1013,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             7 => 1,
             9 => 2,
             10 => 3,
+            76 => 76, // invisible
             _ => 0,
          };
          EventRender = Render(model, owTable, DefaultOW, Graphics, facing);
@@ -1002,6 +1027,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites");
          if (sprites == null) return defaultOW;
+         bool invisible = facing == 76;
          bool flip = facing == 3;
          if (facing == 3) facing = 2;
          if (facing >= sprites.Count) facing = 0;
@@ -1017,6 +1043,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (graphicsRun == null) return defaultOW;
          if (paletteRun == null) return defaultOW;
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
+         if (invisible) ow = BuildInvisibleEventRender(ow);
          if (flip) ow = ow.ReflectX();
          return ow;
       }
@@ -1191,17 +1218,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
       public SignpostEventViewModel(ModelArrayElement signpostEvent, Action<int> gotoAddress) : base(signpostEvent, "signpostCount") {
-         new List<string> {
-            "Facing Any",
-            "Facing North",
-            "Facing South",
-            "Facing East",
-            "Facing West",
-            "Hidden Item (unused 1)",
-            "Hidden Item (unused 2)",
-            "Hidden Item",
-            "Secret Base",
-         }.ForEach(KindOptions.Add);
+         if (signpostEvent.Model.TryGetList("MapSignpostKindOptions", out var names)) names.ForEach(KindOptions.Add);
 
          foreach (var item in signpostEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) {
             ItemOptions.Add(item);

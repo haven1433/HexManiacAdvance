@@ -32,6 +32,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       public override int Length => Format.TileWidth * Format.TileHeight * BytesPerTile;
 
+      public int DecompressedLength => Length;
+
       public override string FormatString {
          get {
             var start = $"`ucm{Format.BitsPerPixel}x{Format.TileWidth}x{Format.TileHeight}|{Format.MatchingTileset}";
@@ -137,6 +139,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public ISpriteRun SetPixels(IDataModel model, ModelDelta token, int page, int[,] pixels) {
          return LzTilemapRun.SetPixels(this, model, token, page, pixels, ref arrayTilesetAddress, ReplaceData);
       }
+
+      // we should never try to set a tilemap from a tileset
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => throw new NotImplementedException();
 
       /// <param name="newRawData">Uncompressed data that we want to compress and insert.</param>
       public ITilemapRun ReplaceData(byte[] newRawData, ModelDelta token) {

@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
-using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,6 +11,34 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+
+/* List of tables used by the map editor (or event templates):
+
+* data.maps.banks
+* data.maps.layouts
+* graphics.overworld.sprites
+* data.maps.names
+* data.items.berry.stats
+* data.maps.fly.connections
+* data.maps.fly.spawns
+
+* data.pokemon.names
+* data.pokemon.types.names
+* data.pokedex.regional
+* data.pokedex.national
+* graphics.pokemon.sprites.front
+* graphics.pokemon.icons.sprites
+
+* data.trainers.stats
+* data.trainers.classes.names
+* graphics.trainers.sprites.front
+
+* data.items.stats
+* graphics.items.sprites
+* data.pokemon.moves.tutors
+* data.pokemon.trades
+
+ */
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// <summary>
@@ -538,12 +565,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                while (Math.Abs(p.Y - drawSource.Y) % tilesToDraw.GetLength(1) != 0) p -= new Point(0, 1);
             }
             UpdateHover(map, p.X, p.Y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
-            HoverPoint = string.Empty;
          } else {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
             map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
-               HoverPoint = $"({p.X}, {p.Y})";
                if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
                   return ShowEventHover(map, ev);
                } else {
@@ -576,6 +601,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          HighlightCursorY = (top + border.North + height / 2.0) * 16 * map.SpriteScale + map.TopEdge;
          HighlightCursorWidth = width * 16 * map.SpriteScale + 4;
          HighlightCursorHeight = height * 16 * map.SpriteScale + 4;
+
+         HoverPoint = $"({left}, {top})";
+         if (width > 1 || height > 1) HoverPoint += $" [{width}x{height}]";
 
          if (prevX != highlightCursorX) return true;
          if (prevY != highlightCursorY) return true;
@@ -646,10 +674,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void PrimaryUp(double x, double y) {
-         if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
-         if (interactionType == PrimaryInteractionType.Event) EventUp();
+         if (interactionType == PrimaryInteractionType.Event || withinEventCreationInteraction) EventUp(x, y);
+         else if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
+         else if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
+         else if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
          interactionType = PrimaryInteractionType.None;
       }
 
@@ -664,9 +692,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                // nothing to paint
                interactionType = PrimaryInteractionType.None;
             } else {
-               if (interactionType == PrimaryInteractionType.RectangleDraw && map != null) {
-                  map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
-               } else if (map != null && !drawMultipleTiles) {
+               if (map != null && !drawMultipleTiles) {
                   if (blockBag.Contains(drawBlockIndex)) {
                      map.PaintBlockBag(history.CurrentChange, blockBag, collisionIndex, x, y);
                   } else {
@@ -799,7 +825,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Hover(x, y);
       }
 
-      public void EventUp() {
+      public void EventUp(double x, double y) {
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
@@ -810,6 +836,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             // Open the popup.
             ShowTemplateSettings = true;
             eventCreationType = EventCreationType.None;
+         }
+         if (eventCreationType == EventCreationType.WaveFunction) {
+            eventCreationType = EventCreationType.None;
+            // user wants to do a wave function collapse at this position
+            var map = MapUnderCursor(x, y);
+            if (map != primaryMap) return;
+            map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
          }
       }
 
@@ -885,6 +918,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void CreateEventForCreationInteraction(EventCreationType type) {
          if (type == EventCreationType.None) return;
+         if (type == EventCreationType.WaveFunction) return;
          eventCreationType = EventCreationType.None;
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
@@ -1044,14 +1078,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void FillMultiTileRender() {
          NotifyPropertyChanged(nameof(IsValid9GridSelection));
          if (tilesToDraw == null) return;
-         var (width, height) = (tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
+         var localCopy = tilesToDraw;
+         var localRenders = primaryMap.BlockRenders;
+         var (width, height) = (localCopy.GetLength(0), localCopy.GetLength(1));
          var scale = (width < 4 && height < 4) ? 2 : 1;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
-         for (int xx = 0; xx < tilesToDraw.GetLength(0); xx++) {
-            for (int yy = 0; yy < tilesToDraw.GetLength(1); yy++) {
-               var index = tilesToDraw[xx, yy] & 0x3FF;
-               if (index >= primaryMap.BlockRenders.Count) index = 0;
-               canvas.Draw(primaryMap.BlockRenders[index], xx * 16, yy * 16);
+         for (int xx = 0; xx < localCopy.GetLength(0); xx++) {
+            for (int yy = 0; yy < localCopy.GetLength(1); yy++) {
+               var index = localCopy[xx, yy] & 0x3FF;
+               if (index >= localRenders.Count) index = 0;
+               canvas.Draw(localRenders[index], xx * 16, yy * 16);
             }
          }
          MultiTileDrawRender = canvas;
@@ -1690,7 +1726,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       //    find the current block with the tightest restriction, and pick an option based on the (weighted) options
       //    propogate new restrictions to neighboring unset blocks
 
-      // if we ever get to a block that's restricted to 0 options, skip it until the end. Once there's onl 0-options choices left,
+      // if we ever get to a block that's restricted to 0 options, skip it until the end. Once there's only 0-options choices left,
       // recalculate available options but only accounting for 3 sides at random, then 2 sides, then 1 side.
       // if we still can't find a neighbor after that, leave it blank.
 
@@ -1744,21 +1780,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var (availableBlocks, _) = PrimaryMap.MapRepointer.EstimateBlockCount(layout.Element, true);
             return availableBlocks.Range().Select(i => new CollapseProbability(i)).ToList();
          }
-
-         // old version that returned just a single block
-         //else if (probabilities[0].Count == 1) {
-         //   // only one option, go with that
-         //   return probabilities[0][0].Block;
-         //}
-         // pick one block from among the available blocks at random (weighted based on use)
-         //var totalOptions = probabilities[0].Sum(cp => cp.Count);
-         //var selection = rnd.Next(totalOptions);
-         //var index = 0;
-         //while (selection > probabilities[0][index].Count) {
-         //   selection -= probabilities[0][index].Count;
-         //   index += 1;
-         //}
-         //return probabilities[0][index].Block;
 
          // new version that returns the current probabilities, which need collapsing
          return probabilities[0];
@@ -1993,7 +2014,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum SelectionInteractionResult { None, ShowMenu }
 
-   public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly }
+   public enum EventCreationType { None, Object, Warp, Script, Signpost, Fly, WaveFunction }
 
    [Flags]
    public enum PrimaryInteractionStart {

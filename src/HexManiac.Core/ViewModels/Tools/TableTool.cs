@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -87,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          private set => TryUpdate(ref currentElementName, value);
       }
 
-      public IndexComboBoxViewModel CurrentElementSelector { get; }
+      public FilteringComboOptions CurrentElementSelector { get; }
 
       private readonly StubCommand previous, next, append;
       private StubCommand incrementAdd, decrementAdd;
@@ -172,8 +173,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.history = history;
          this.viewPort = viewPort;
          this.toolTray = toolTray;
-         CurrentElementSelector = new IndexComboBoxViewModel(viewPort.Model);
-         CurrentElementSelector.UpdateSelection += UpdateViewPortSelectionFromTableComboBoxIndex;
+         CurrentElementSelector = new FilteringComboOptions();
+         CurrentElementSelector.Bind(nameof(FilteringComboOptions.SelectedIndex), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();
          UsageChildren = new();
 
@@ -206,7 +207,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          append = new StubCommand {
             CanExecute = parameter => {
                var array = model.GetNextRun(address) as ITableRun;
-               return array != null && array.CanAppend && address == array.Start + array.ElementLength * (array.ElementCount - 1);
+               if (array == null || !array.CanAppend) return false;
+               if (array is TableStreamRun stream && stream.AllowsZeroElements && address == array.Start + array.ElementLength * array.ElementCount) return true;
+               return address == array.Start + array.ElementLength * (array.ElementCount - 1);
             },
             Execute = parameter => {
                using (ModelCacheScope.CreateScope(model)) {
@@ -434,8 +437,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdateCurrentElementSelector(ITableRun array, int index) {
-         CurrentElementSelector.SetupFromModel(array.Start + array.ElementLength * index);
+         SetupFromModel(array.Start + array.ElementLength * index);
       }
+
+      private bool selfChange = false;
+      private void SetupFromModel(int address) {
+         if (!(model.GetNextRun(address) is ITableRun tableRun)) return;
+         var offset = tableRun.ConvertByteOffsetToArrayOffset(address);
+         var allOptions = tableRun.ElementNames?.ToList();
+         if (allOptions == null) allOptions = tableRun.ElementCount.Range().Select(i => i.ToString()).ToList();
+         while (allOptions.Count < tableRun.ElementCount) {
+            allOptions.Add(allOptions.Count.ToString());
+         }
+         var selectedIndex = offset.ElementIndex;
+         var options = new List<ComboOption>();
+         for (int i = 0; i < allOptions.Count; i++) {
+            // var image = ToolTipContentVisitor.GetEnumImage(model, i, tableRun as ArrayRun);
+            // if (image != null) options.Add(VisualComboOption.CreateFromSprite(allOptions[i], image.PixelData, image.PixelWidth, i, 1, true));
+            // else
+            options.Add(new ComboOption(allOptions[i], i));
+         }
+         using (Scope(ref selfChange, true, old => selfChange = old)) {
+            CurrentElementSelector.Update(options, selectedIndex);
+         }
+      }
+
 
       /// <summary>
       /// This extra group is added just to make the single tables look right in the table tool.
@@ -446,6 +472,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void UpdateViewPortSelectionFromTableComboBoxIndex(object sender = null, EventArgs e = null) {
+         if (selfChange) return;
          var array = (ITableRun)model.GetNextRun(Address);
          var address = array.Start + array.ElementLength * CurrentElementSelector.SelectedIndex;
          selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address);

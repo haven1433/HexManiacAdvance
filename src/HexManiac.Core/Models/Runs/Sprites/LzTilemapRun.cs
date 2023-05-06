@@ -183,17 +183,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return SetPixels(this, model, token, page, pixels, ref arrayTilesetAddress, ReplaceData);
       }
 
+      // we should never try to set a tilemap from a tileset
+      public ISpriteRun SetPixels(IDataModel model, ModelDelta token, IReadOnlyList<int[,]> tiles) => throw new NotImplementedException();
+
       public static ITilemapRun SetPixels(ITilemapRun run, IDataModel model, ModelDelta token, int page, int[,] pixels, ref int arrayTilesetAddress, Func<byte[], ModelDelta, ITilemapRun> replaceData) {
          var tileData = Tilize(pixels, run.Format.BitsPerPixel);
          var tiles = GetUniqueTiles(tileData, run.BytesPerTile == 2);
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, run.Format.MatchingTileset);
-         var tileset = model.GetNextRun(tilesetAddress) as ITilesetRun;
+         var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
          if (tileset == null) {
             FindMatchingTileset(run, model, -1, ref arrayTilesetAddress);
-            tileset = model.GetNextRun(arrayTilesetAddress) as ITilesetRun;
+            tileset = model.GetNextRun(arrayTilesetAddress) as ISpriteRun;
          }
 
-         var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.TilesetFormat.BitsPerPixel / 8).Range());
+         var tilesToKeep = new HashSet<int>((tileset.DecompressedLength / tileset.SpriteFormat.BitsPerPixel / 8).Range());
          var originalUsedTiles = GetUsedTiles(run).ToHashSet();
          foreach (var tile in originalUsedTiles) tilesToKeep.Remove(tile);
          foreach (var tile in tileset.GetFillerTiles()) tilesToKeep.Remove(tile);

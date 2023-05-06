@@ -1325,18 +1325,21 @@
 
    <!-- Data Templates -->
    <DataTemplate DataType="{x:Type tools:ReadonlyPaletteCollection}">
-      <ItemsControl SnapsToDevicePixels="True" ItemsSource="{Binding Colors}">
-         <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-               <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}" HorizontalAlignment="Center"/>
-            </ItemsPanelTemplate>
-         </ItemsControl.ItemsPanel>
-         <ItemsControl.ItemTemplate>
-            <DataTemplate>
-               <Rectangle Margin="1" Fill="{Binding Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
-            </DataTemplate>
-         </ItemsControl.ItemTemplate>
-      </ItemsControl>
+      <StackPanel Orientation="Horizontal">
+         <TextBlock VerticalAlignment="Center" Margin="0,0,2,0" Text="{Binding Index}" Visibility="{Binding DisplayIndex, Converter={StaticResource BoolToVisibility}}" />
+         <ItemsControl SnapsToDevicePixels="True" ItemsSource="{Binding Colors}">
+            <ItemsControl.ItemsPanel>
+               <ItemsPanelTemplate>
+                  <UniformGrid Columns="{Binding ColorWidth}" Rows="{Binding ColorHeight}" HorizontalAlignment="Center"/>
+               </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+               <DataTemplate>
+                  <Rectangle Margin="1" Fill="{Binding Converter={StaticResource PaletteColorConverter}}" Width="14" Height="14"/>
+               </DataTemplate>
+            </ItemsControl.ItemTemplate>
+         </ItemsControl>
+      </StackPanel>
    </DataTemplate>
    <DataTemplate DataType="{x:Type images:ReadonlyPixelViewModel}">
       <hsc:PixelImage />

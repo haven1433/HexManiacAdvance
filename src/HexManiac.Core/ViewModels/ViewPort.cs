@@ -229,7 +229,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   // but only if the search is specific enough to match only one map name
                   // (multiple maps can have the same map name)
                   var maps = Model.GetMatchingMaps(str);
+                  MapInfo gotoMap = null;
+                  if (str.Contains("-") && str.StartsWith("maps.") && mapper != null) {
+                     var bestMaps = maps.Where(info => info.Name.Contains(str)).ToList();
+                     if (bestMaps.Count == 1) gotoMap = bestMaps[0];
+                  }
                   if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(m.Name.Split('(', ')')[1])) && mapper != null && !str.TryParseHex(out _)) {
+                     gotoMap = maps[0];
+                  }
+                  if (gotoMap != null) {
                      var previousMap = mapper.PrimaryMap;
                      mapper.PrimaryMap = new BlockMapViewModel(mapper.FileSystem, mapper.Tutorials, this, mapper.Format, mapper.Templates, maps[0].Group, maps[0].Map);
                      args = new TabChangeRequestedEventArgs(mapper);
@@ -2977,6 +2985,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RaiseError($"Expected Cautious, Greedy, or Smart, but got {args[1]}.");
                exitEditEarly = true;
             } else {
+               // editor[0].Edit('@!importimage(relative/path.png Greedy)')
                var error = Tools.SpriteTool.TryImport(mapper.FileSystem, pathContext ?? Path.GetDirectoryName(FullFileName), run.Start, args[0], importType);
                if (error == null || !error.HasError) {
                   // all good
