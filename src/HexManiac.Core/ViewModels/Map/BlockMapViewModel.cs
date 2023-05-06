@@ -1400,6 +1400,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var map = GetMapModel();
 
             var (width, height) = (info.Size, info.Size);
+
+            var layoutModel = new LayoutModel(GetLayout());
+            if (info.Direction.IsAny(MapDirection.Up, MapDirection.Down)) {
+               height = Math.Min(layoutModel.Height, height);
+            } else if (info.Direction.IsAny(MapDirection.Right, MapDirection.Left)) {
+               width = Math.Min(layoutModel.Width, width);
+            }
             var isZConnection = info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge);
             if (isZConnection) height = info.Offset;
             var otherMap = CreateNewMap(token, option, width, height);
