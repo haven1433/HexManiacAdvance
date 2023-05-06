@@ -2261,9 +2261,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void HandleBlocksChanged(object sender, byte[][] blocks) {
          var layout = GetLayout();
-         var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-         var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
-         BlockmapRun.WriteBlocks(tokenFactory(), blockModel1, blockModel2, blocks);
+         var layoutModel = new LayoutModel(layout);
+
+         if (model.GetNextRun(layoutModel.BlockMap.Start) is BlockmapRun blockmapRun) {
+            var blockModel1 = layoutModel.PrimaryBlockset.FullBlocksetModel;
+            var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
+            var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
+            var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
+            BlockmapRun.WriteBlocks(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, blocks);
+         }
+
          viewPort.ChangeHistory.ChangeCompleted();
          RequestClearMapCaches.Raise(this);
       }
@@ -2281,9 +2288,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {
          var layout = GetLayout();
-         var blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
-         var blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
-         BlockmapRun.WriteBlockAttributes(tokenFactory(), blockModel1, blockModel2, attributes);
+         var layoutModel = new LayoutModel(layout);
+         if (model.GetNextRun(layoutModel.BlockMap.Start) is BlockmapRun blockmapRun) {
+            var blockModel1 = layoutModel.PrimaryBlockset.FullBlocksetModel;
+            var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
+            var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
+            var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
+            BlockmapRun.WriteBlockAttributes(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, attributes);
+         }
       }
 
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);

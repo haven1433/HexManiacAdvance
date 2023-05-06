@@ -116,13 +116,13 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return result.ToArray();
       }
 
-      public static void WriteBlocks(ModelDelta token, BlocksetModel blockModel1, BlocksetModel blockModel2, byte[][] blocks) {
+      public static void WriteBlocks(Func<ModelDelta> tokenFactory, int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2, byte[][] blocks) {
          var primary = new List<byte[]>();
          var secondary = new List<byte[]>();
          for (int i = 0; i < blockModel1.PrimaryBlocks; i++) primary.Add(blocks[i]);
          for (int i = 0; i < blocks.Length - blockModel1.PrimaryBlocks; i++) secondary.Add(blocks[i + blockModel1.PrimaryBlocks]);
-         blockModel1.WriteBlocks(primary.ToArray(), token);
-         blockModel2.WriteBlocks(secondary.ToArray(), token);
+         blockModel1.WriteBlocks(primary.Take(maxUsedPrimary).ToArray(), tokenFactory);
+         blockModel2.WriteBlocks(secondary.Take(maxUsedSecondary).ToArray(), tokenFactory);
       }
 
       public static byte[][] ReadBlockAttributes(int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2) {
@@ -135,13 +135,13 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return result.ToArray();
       }
 
-      public static void WriteBlockAttributes(ModelDelta token, BlocksetModel blockModel1, BlocksetModel blockModel2, byte[][] blockAttributes) {
+      public static void WriteBlockAttributes(Func<ModelDelta> tokenFactory, int maxUsedPrimary, int maxUsedSecondary, BlocksetModel blockModel1, BlocksetModel blockModel2, byte[][] blockAttributes) {
          var primary = new List<byte[]>();
          var secondary = new List<byte[]>();
          for (int i = 0; i < blockModel1.PrimaryBlocks; i++) primary.Add(blockAttributes[i]);
          for (int i = 0; i < blockAttributes.Length - blockModel1.PrimaryBlocks; i++) secondary.Add(blockAttributes[i + blockModel1.PrimaryBlocks]);
-         blockModel1.WriteBlockAttributes(primary.ToArray(), token);
-         blockModel2.WriteBlockAttributes(secondary.ToArray(), token);
+         blockModel1.WriteBlockAttributes(primary.Take(maxUsedPrimary).ToArray(), tokenFactory);
+         blockModel2.WriteBlockAttributes(secondary.Take(maxUsedSecondary).ToArray(), tokenFactory);
       }
 
       public static IEnumerable<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, int[][,] tiles, short[][] palettes) {
@@ -451,11 +451,14 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
-      // TODO make it possible to expand blocks to their full size
-      public void WriteBlocks(byte[][] blocks, ModelDelta token) {
+      public void WriteBlocks(byte[][] blocks, Func<ModelDelta> tokenFactory) {
          int start = ReadPointer(12);
          for (int i = 0; i < blocks.Length; i++) {
-            token.ChangeData(model, start + i * blocks[i].Length, blocks[i]);
+            var s = start + i * blocks[i].Length;
+            for (int j = 0; j < blocks[i].Length; j++) {
+               if (model[s + j] == blocks[i][j]) continue;
+               tokenFactory().ChangeData(model, s + j, blocks[i][j]);
+            }
          }
       }
 
@@ -475,12 +478,14 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
-      // TODO make it possible to expand attributes to their full size
-      public void WriteBlockAttributes(byte[][] attributes, ModelDelta token) {
+      public void WriteBlockAttributes(byte[][] attributes, Func<ModelDelta> tokenFactory) {
          int attributeStart = ReadPointer(attributeOffset);
          for (int i = 0; i < attributes.Length; i++) {
-            if (attributes[i] == null) continue;
-            token.ChangeData(model, attributeStart + i * attributes[i].Length, attributes[i]);
+            var s = attributeStart + i * attributes[i].Length;
+            for (int j = 0; j < attributes[i].Length; j++) {
+               if (model[s + j] == attributes[i][j]) continue;
+               tokenFactory().ChangeData(model, s + j, attributes[i][j]);
+            }
          }
       }
 

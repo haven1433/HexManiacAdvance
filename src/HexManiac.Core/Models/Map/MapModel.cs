@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -109,6 +110,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int TilesetAddress => Element?.GetAddress(Format.Tileset) ?? Pointer.NULL;
       public int PaletteAddress => Element?.GetAddress(Format.Palette) ?? Pointer.NULL;
       public int AttributeAddress => Element?.GetAddress(Format.BlockAttributes) ?? Pointer.NULL;
+      public BlocksetModel FullBlocksetModel => new BlocksetModel(Element.Model, Element.Start);
       public TileAttribute Attribute(int index) {
          var start = AttributeAddress;
          if (start == Pointer.NULL) return null;
