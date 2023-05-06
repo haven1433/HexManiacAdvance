@@ -352,6 +352,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, default), pixels, transparent: 0);
       }
+
+      public static IPixelViewModel BuildInvisibleEventRender(IPixelViewModel colors) {
+         var pixels = new short[colors.PixelData.Length];
+         for (int x = 0; x < colors.PixelWidth; x++) {
+            for (int y = 0; y < colors.PixelHeight; y++) {
+               if (((x + y) & 1) != 0) pixels[y * colors.PixelWidth + x] = colors.Transparent;
+               else pixels[y * colors.PixelWidth + x] = colors.PixelData[y * colors.PixelWidth + x];
+            }
+         }
+         return new ReadonlyPixelViewModel(new SpriteFormat(4, colors.PixelWidth / 8, colors.PixelHeight / 8, default), pixels, colors.Transparent);
+      }
    }
 
    public class ObjectEventViewModel : BaseEventViewModel {
@@ -547,7 +558,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel DefaultOW { get; }
       public ObservableCollection<VisualComboOption> Options { get; } = new();
-      public ObservableCollection<string> FacingOptions { get; } = new();
+      public FilteringComboOptions FacingOptions { get; } = new();
       public ObservableCollection<string> ClassOptions { get; } = new();
       public ObservableCollection<string> ItemOptions { get; } = new();
 
@@ -967,7 +978,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
          DefaultOW = defaultSprite;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
-         foreach (var item in list) FacingOptions.Add(item);
+         FacingOptions.Update(ComboOption.Convert(list), MoveType);
+         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.SelectedIndex);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
 
@@ -997,6 +1009,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             7 => 1,
             9 => 2,
             10 => 3,
+            76 => 76, // invisible
             _ => 0,
          };
          EventRender = Render(model, owTable, DefaultOW, Graphics, facing);
@@ -1010,6 +1023,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var data = element.GetSubTable("data")[0];
          var sprites = data.GetSubTable("sprites");
          if (sprites == null) return defaultOW;
+         bool invisible = facing == 76;
          bool flip = facing == 3;
          if (facing == 3) facing = 2;
          if (facing >= sprites.Count) facing = 0;
@@ -1025,6 +1039,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (graphicsRun == null) return defaultOW;
          if (paletteRun == null) return defaultOW;
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
+         if (invisible) ow = BuildInvisibleEventRender(ow);
          if (flip) ow = ow.ReflectX();
          return ow;
       }

@@ -23,6 +23,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ComboOption(string text, int index) { Text = text; Index = index; }
 
       public override string ToString() => Text;
+
+      public static IEnumerable<ComboOption> Convert(IEnumerable<string> options) {
+         int count = 0;
+         foreach (var option in options) {
+            yield return new ComboOption(option, count);
+            count++;
+         }
+      }
    }
 
    public class VisualComboOption : ComboOption, IPixelViewModel {

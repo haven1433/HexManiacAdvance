@@ -204,12 +204,8 @@
                            </StackPanel>
                         </DataTemplate>
                      </Grid.Resources>
-                     <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch"
-                        IsEditable="{Binding CanFilter}" IsTextSearchEnabled="False" Margin="5,0" Direction="Out"
-                        DataContext="{Binding TableTool.CurrentElementSelector}"
-                        ItemsSource="{Binding FilteredOptions}"
-                        SelectedIndex="{Binding SelectedIndex}"
-                        Text="{Binding DisplayText}" />
+                     <hsg3hv:AngleComboBox Grid.Column="1" HorizontalAlignment="Stretch" Margin="5,0" Direction="Out"
+                        DataContext="{Binding TableTool.CurrentElementSelector}" />
                      <hsg3hv:AngleButton Content="Previous" Grid.Column="0" Command="{Binding TableTool.Previous}" Padding="0" Direction="Left"/>
                      <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="Right"/>
                   </Grid>
@@ -406,12 +402,7 @@
                                              <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" Grid.Column="1" Direction="Out" IsTextSearchEnabled="False"
-                                                   SelectedIndex="{Binding SelectedIndex}"
-                                                   ItemsSource="{Binding FilteredOptions}"
-                                                   IsEditable="{Binding CanFilter}"
-                                                   Text="{Binding DisplayText}"
-                                                   IsDropDownOpen="{Binding DropDownIsOpen}">
+                                             <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" Grid.Column="1" Direction="Out">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
                                                       <StackPanel Orientation="Horizontal" Background="Transparent">
