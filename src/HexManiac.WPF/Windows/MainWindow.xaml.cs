@@ -279,6 +279,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void FocusPrimaryContent() {
+         if (!ViewModel.SelectedIndex.InRange(0, ViewModel.Count)) return;
          if (GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]) is HexContent hex) {
             hex.Focus();
          } else if (GetChild(Tabs, string.Empty, ViewModel[ViewModel.SelectedIndex]) is MapTab map) {
@@ -430,6 +431,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       // when the ViewModel changes its GotoControlViewModel subsystem, update the event handler
       private void ViewModelPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(ViewModel.ShowAutomationPanel)) {
+            TabContainer.ColumnDefinitions[1].Width = ViewModel.ShowAutomationPanel ? new GridLength(1) : new GridLength(0);
+            TabContainer.ColumnDefinitions[2].Width = ViewModel.ShowAutomationPanel ? new GridLength(300) : new GridLength(0);
+            if (ViewModel.ShowAutomationPanel) {
+               FocusTextBox(PythonTool.InputBox);
+            } else {
+               FocusPrimaryContent();
+            }
+         }
          if (e.PropertyName != nameof(ViewModel.GotoViewModel)) return;
          var args = (ExtendedPropertyChangedEventArgs<GotoControlViewModel>)e;
          args.OldValue.MoveFocusToGoto -= FocusGotoBox;
@@ -641,10 +651,6 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          textbox.SelectAll();
          textbox.Focus();
          e.Handled = true;
-      }
-
-      private void SetPythonPanelWidth(object sender, RoutedEventArgs e) {
-         TabContainer.ColumnDefinitions[2].Width = new GridLength(300);
       }
    }
 

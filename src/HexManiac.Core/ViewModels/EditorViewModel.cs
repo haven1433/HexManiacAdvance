@@ -408,6 +408,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IQuickEditItem> QuickEditsMisc { get; }
 
+      private bool showAutomationPanel;
+      public bool ShowAutomationPanel { get => showAutomationPanel; set => Set(ref showAutomationPanel, value); }
+      private StubCommand toggleShowAutomationPanelCommand;
+      public ICommand ToggleShowAutomationPanelCommand => StubCommand(ref toggleShowAutomationPanelCommand, () => ShowAutomationPanel = !ShowAutomationPanel);
+
       public PythonTool PythonTool { get; }
 
       public Singletons Singletons { get; }

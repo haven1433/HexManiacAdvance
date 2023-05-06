@@ -48,6 +48,7 @@
       <KeyBinding Key="OemMinus" Modifiers="Ctrl" Command="{Binding Back}" />
       <KeyBinding Key="OemMinus" Modifiers="Ctrl+Shift" Command="{Binding Forward}" />
 
+      <KeyBinding Key="R" Modifiers="Ctrl" Command="{Binding ToggleShowAutomationPanelCommand}" />
       <KeyBinding Key="M" Modifiers="Ctrl" Command="{Binding ToggleMatrix}" />
       <KeyBinding Key="H" Modifiers="Ctrl" Command="{Binding ShowHexConverter}">
          <KeyBinding.CommandParameter>
@@ -206,6 +207,7 @@
                         </ToolTip>
                      </MenuItem.ToolTip>
                   </MenuItem>
+                  <Separator/>
                   <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
                      <MenuItem.ToolTip>
                         <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
@@ -216,7 +218,6 @@
                   <MenuItem Header="Reset _Alignment" Command="{Binding ResetAlignment}" />
                   <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
                   <MenuItem Header="_Clear Error" Command="{Binding ClearError}" InputGestureText="Esc"/>
-                  <MenuItem Header="Show Automation Tool" Click="SetPythonPanelWidth"/>
                </MenuItem>
                <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
                   <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
@@ -247,6 +248,7 @@
                         <sys:Boolean>true</sys:Boolean>
                      </MenuItem.CommandParameter>
                   </MenuItem>
+                  <MenuItem Header="Show Automation Tool" IsCheckable="True" IsChecked="{Binding ShowAutomationPanel}" InputGestureText="Ctrl+R" />
                </MenuItem>
                <MenuItem Header="_Help">
                   <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
@@ -555,7 +557,7 @@
             <Grid Name="TabContainer">
                <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
-                  <ColumnDefinition Width="1"/>
+                  <ColumnDefinition Width="0"/>
                   <ColumnDefinition Width="0"/>
                </Grid.ColumnDefinitions>
                <TabControl Name="Tabs" ItemsSource="{Binding}" SelectedIndex="{Binding SelectedIndex}">
@@ -642,7 +644,7 @@
                </TabControl>
                <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4"/>
                <DockPanel Grid.Column="2">
-                  <hsg3hv:PythonPanel DataContext="{Binding PythonTool}"/>
+                  <hsg3hv:PythonPanel x:Name="PythonTool" DataContext="{Binding PythonTool}"/>
                </DockPanel>
             </Grid>
             <Rectangle Fill="{DynamicResource Background}" Name="GotoBackground" Visibility="{Binding GotoViewModel.ControlVisible, Converter={StaticResource BoolToVisibility}}"/>
