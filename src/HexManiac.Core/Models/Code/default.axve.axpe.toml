@@ -776,4 +776,4 @@ Destination = '''data.items.stats'''
 [[GotoShortcut]]
 Name = '''Maps'''
 Image = '''data.maps.banks/0/maps/9/map/0/layout/0/blockmap/'''
-Destination = '''maps.0-9 (LITTLEROOTTOWN)'''
+Destination = '''maps.0-9 '''

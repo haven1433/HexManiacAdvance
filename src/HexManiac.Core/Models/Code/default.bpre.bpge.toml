@@ -776,7 +776,7 @@ Destination = '''data.items.stats'''
 [[GotoShortcut]]
 Name = '''Maps'''
 Image = '''data.maps.banks/3/maps/0/map/0/layout/0/blockmap/'''
-Destination = '''maps.3-0 (PALLET TOWN)'''
+Destination = '''maps.3-0'''
 
 [[List]]
 Name = '''effectanimations'''

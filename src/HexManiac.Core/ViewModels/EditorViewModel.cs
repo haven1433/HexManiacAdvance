@@ -1236,8 +1236,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          for (int i = 0; i < model.GotoShortcuts.Count; i++) {
             var destinationAddress = model.GetAddressFromAnchor(new ModelDelta(), -1, model.GotoShortcuts[i].GotoAnchor);
             if (destinationAddress == Pointer.NULL) {
-               var count = model.GetMatchingMaps(model.GotoShortcuts[i].GotoAnchor).Count;
-               if (count != 1) continue;
+               var destination = model.GotoShortcuts[i].GotoAnchor;
+               var matchingMaps = model.GetMatchingMaps(destination);
+               if (matchingMaps.Count > 1) {
+                  matchingMaps = matchingMaps.Where(info => info.Name.Contains(destination)).ToList();
+               }
+               if (matchingMaps.Count != 1) continue;
             }
 
             IPixelViewModel sprite;
