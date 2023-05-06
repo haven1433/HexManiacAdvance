@@ -122,6 +122,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       private void ClearFilter() {
+         if (FilteredOptions.SequenceEqual(AllOptions)) return;
          var selectedOption = FilteredOptions.Count == 0 ? 0 : FilteredOptions[selectedIndex].Index;
          FilteredOptions = new(AllOptions);
          selectedIndex = AllOptions.IndexOf(AllOptions.Single(option => option.Index == selectedOption));
