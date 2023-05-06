@@ -823,8 +823,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool ShowTutorContent {
          get {
             var content = tutorContent.Value;
-            if (content != null && TutorOptions.Count == 0) {
-               TutorOptions.AddRange(element.Model.GetOptions(HardcodeTablesModel.MoveTutors));
+            if (content != null && TutorOptions .AllOptions == null) {
+               TutorOptions.Update(ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.MoveTutors)), TutorNumber);
+               TutorOptions.Bind(nameof(TutorOptions.SelectedIndex), (sender, e) => TutorNumber = TutorOptions.SelectedIndex);
             }
             return tutorContent.Value != null;
          }
@@ -862,7 +863,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public ObservableCollection<string> TutorOptions { get; } = new();
+      public FilteringComboOptions TutorOptions { get; } = new();
 
       public void GotoTutors() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.MoveTutors)[TutorNumber].Start);
 
@@ -872,20 +873,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private Lazy<TradeEventContent> tradeContent;
 
-      public ObservableCollection<string> TradeOptions { get; } = new();
+      public FilteringComboOptions TradeOptions { get; } = new();
 
       public bool ShowTradeContent {
          get {
             var content = tradeContent.Value;
-            if (content != null && TradeOptions.Count == 0) {
+            if (content != null && TradeOptions.AllOptions == null) {
                var pokenames = element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable);
+               var options = new List<string>();
                foreach (var trade in element.Model.GetTableModel(HardcodeTablesModel.TradeTable)) {
                   if (!trade.TryGetValue("receive", out int receive) || !trade.TryGetValue("give", out int give)) {
-                     TradeOptions.Add(TradeOptions.Count.ToString());
+                     options.Add(options.Count.ToString());
                   } else {
-                     TradeOptions.Add($"{pokenames[give]} -> {pokenames[receive]}");
+                     options.Add($"{pokenames[give]} -> {pokenames[receive]}");
                   }
                }
+               TradeOptions.Update(ComboOption.Convert(options), TradeIndex);
+               TradeOptions.Bind(nameof(TradeOptions.SelectedIndex), (sender, e) => TradeIndex = TradeOptions.SelectedIndex);
             }
             return tradeContent.Value != null;
          }
