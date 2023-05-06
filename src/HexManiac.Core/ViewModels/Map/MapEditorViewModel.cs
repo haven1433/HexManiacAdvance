@@ -1078,14 +1078,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void FillMultiTileRender() {
          NotifyPropertyChanged(nameof(IsValid9GridSelection));
          if (tilesToDraw == null) return;
-         var (width, height) = (tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
+         var localCopy = tilesToDraw;
+         var localRenders = primaryMap.BlockRenders;
+         var (width, height) = (localCopy.GetLength(0), localCopy.GetLength(1));
          var scale = (width < 4 && height < 4) ? 2 : 1;
          var canvas = new CanvasPixelViewModel(width * 16, height * 16) { SpriteScale = scale };
-         for (int xx = 0; xx < tilesToDraw.GetLength(0); xx++) {
-            for (int yy = 0; yy < tilesToDraw.GetLength(1); yy++) {
-               var index = tilesToDraw[xx, yy] & 0x3FF;
-               if (index >= primaryMap.BlockRenders.Count) index = 0;
-               canvas.Draw(primaryMap.BlockRenders[index], xx * 16, yy * 16);
+         for (int xx = 0; xx < localCopy.GetLength(0); xx++) {
+            for (int yy = 0; yy < localCopy.GetLength(1); yy++) {
+               var index = localCopy[xx, yy] & 0x3FF;
+               if (index >= localRenders.Count) index = 0;
+               canvas.Draw(localRenders[index], xx * 16, yy * 16);
             }
          }
          MultiTileDrawRender = canvas;
