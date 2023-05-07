@@ -128,6 +128,13 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return objects.Select(obj => new ObjectEventModel(obj)).ToList();
          }
       }
+      public List<ScriptEventModel> Scripts {
+         get {
+            if (Element == null) return new List<ScriptEventModel>();
+            if (!Element.TryGetSubTable(Format.Scripts, out var scripts)) return new List<ScriptEventModel>();
+            return scripts.Select(obj => new ScriptEventModel(obj)).ToList();
+         }
+      }
       public List<WarpEventModel> Warps {
          get {
             if (Element == null) return new List<WarpEventModel>();
@@ -144,14 +151,29 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
    }
 
-   public record BaseEventModel(ModelArrayElement Element) {
+   public interface IEventModel {
+      public ModelArrayElement Element { get; }
+      int X { get; }
+      int Y { get; }
+      int Elevation { get; }
+   }
+
+   public record BaseEventModel(ModelArrayElement Element): IEventModel {
       public int X => Element.TryGetValue("x", out int x) ? x : 0;
       public int Y => Element.TryGetValue("y", out int y) ? y : 0;
       public int Elevation => Element.TryGetValue("elevation", out int elevation) ? elevation : 0;
    }
 
-   public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
+   public interface IScriptEventModel : IEventModel {
+      int ScriptAddress { get; }
+   }
+
+   public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element), IScriptEventModel {
       public int Graphics => Element.TryGetValue("graphics", out var result) ? result : -1;
+      public int ScriptAddress => Element.GetAddress("script");
+   }
+
+   public record ScriptEventModel(ModelArrayElement Element) : BaseEventModel(Element), IScriptEventModel {
       public int ScriptAddress => Element.GetAddress("script");
    }
 
@@ -181,9 +203,13 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
    }
 
-   public record SignpostEventModel(ModelArrayElement Element) : BaseEventModel(Element) {
+   public record SignpostEventModel(ModelArrayElement Element) : BaseEventModel(Element), IScriptEventModel {
       public int Kind => Element.GetValue("kind");
       public int Arg => Element.GetValue("arg");
+      public bool HasScript => Kind < 5;
+      public bool IsHiddenItem => Kind.IsAny(5, 6, 7);
+      public int ItemValue => Element.Model.ReadMultiByteValue(Element.Start + 8, 2);
+      public int ScriptAddress => Element.Model.ReadPointer(Element.Start + 8);
    }
 
    public class Format {

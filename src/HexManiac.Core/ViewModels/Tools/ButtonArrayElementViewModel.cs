@@ -132,11 +132,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          var allMaps = AllMapsModel.Create(model);
+         var isItemTable = tableName == HardcodeTablesModel.ItemsTableName;
          for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
             var bank = allMaps[bankIndex];
             for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
                var map = bank[mapIndex];
-               foreach (var ev in map.Events.Objects) {
+               foreach (var ev in map.Events.Objects.Concat<IScriptEventModel>(map.Events.Scripts)) {
+                  if (ev is SignpostEventModel sp && !sp.HasScript) continue;
                   var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, filter.ToArray());
 
                   // if any of these spots match, then this object's script refers to this enum
@@ -159,6 +161,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      if (match) break;
                   }
                }
+               if (isItemTable) {
+                  foreach (var ev in map.Events.Signposts) {
+                     if (ev.IsHiddenItem && ev.ItemValue == index) {
+                        var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
+                        if (button.Image == null) continue;
+                        yield return button;
+                     }
+                  }
+               }
             }
          }
       }
@@ -168,9 +179,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly MapEditorViewModel mapEditor;
       private readonly MapOptionsArrayElementViewModel owner;
       private readonly int bank, map;
-      private BaseEventModel eventModel;
+      private IEventModel eventModel;
       public IPixelViewModel Image { get; init; }
-      public GotoMapButton(MapEditorViewModel mapEditor, MapOptionsArrayElementViewModel owner, int bank, int map, BaseEventModel eventViewModel) {
+      public GotoMapButton(MapEditorViewModel mapEditor, MapOptionsArrayElementViewModel owner, int bank, int map, IEventModel eventViewModel) {
          (this.mapEditor, this.owner) = (mapEditor, owner);
          (this.bank, this.map) = (bank, map);
          this.eventModel = eventViewModel;
