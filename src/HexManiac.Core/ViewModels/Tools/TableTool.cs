@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly ViewPort viewPort;
       private readonly IToolTrayViewModel toolTray;
+      private readonly IWorkDispatcher dispatcher;
 
       public string Name => "Table";
 
@@ -167,12 +168,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       // properties that exist solely so the UI can remember things when the tab switches
       public double VerticalOffset { get; set; }
 
-      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray) {
+      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray, IWorkDispatcher dispatcher) {
          this.model = model;
          this.selection = selection;
          this.history = history;
          this.viewPort = viewPort;
          this.toolTray = toolTray;
+         this.dispatcher = dispatcher;
          CurrentElementSelector = new FilteringComboOptions();
          CurrentElementSelector.Bind(nameof(FilteringComboOptions.SelectedIndex), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();
@@ -557,6 +559,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewPort.Tools.CodeTool.Mode = CodeMode.Script;
                }
             }));
+         }
+
+         // maps
+         if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState) {
+            var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
+            if (mapOptions.HasAny) AddUsageChild(mapOptions);
          }
       }
 

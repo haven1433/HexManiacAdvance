@@ -6,6 +6,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Map {
 
@@ -166,6 +167,17 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int WarpID => Element.GetValue("warpID");
       public int Bank => Element.GetValue("bank");
       public int Map => Element.GetValue("map");
+
+      public WarpEventModel TargetWarp {
+         get {
+            var allmaps = AllMapsModel.Create(Element.Model);
+            var bank = allmaps[Bank];
+            if (bank == null) return null;
+            var map = bank[Map];
+            if (map == null) return null;
+            return map.Events.Warps[WarpID - 1];
+         }
+      }
    }
 
    public record SignpostEventModel(ModelArrayElement Element) : BaseEventModel(Element) {

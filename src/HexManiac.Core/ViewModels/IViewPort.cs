@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       void Edit(string input);
       Task Edit(string input, double loadingPercentBeforeEdit, double loadingPercentAfterEdit);
       void Edit(ConsoleKey key);
+      void RaiseRequestTabChange(ITabContent tab);
       InlineDispatch UpdateProgress(double value);
       void ClearProgress();
       IEditableViewPort CreateDuplicate();

@@ -1423,6 +1423,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
       private void RaiseMessage() => OnMessage?.Invoke(this, deferredMessage);
 
+      public void RaiseRequestTabChange(ITabContent tab) => RequestTabChange?.Invoke(this, new(tab));
+
       public void ClearAnchor() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
          var endDataIndex = scroll.ViewPointToDataIndex(SelectionEnd);

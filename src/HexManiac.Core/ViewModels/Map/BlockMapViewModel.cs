@@ -1208,20 +1208,27 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return last;
       }
 
+      const int SizeX = 7, SizeY = 7;
       public IPixelViewModel AutoCrop(int warpID) {
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
-         const int SizeX = 7, SizeY = 7;
+         var map = GetMapModel();
+         if (map == null) return null;
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+         if (events.Warps.Count <= warpID) return null;
+         var warp = events.Warps[warpID];
+         return AutoCrop(warp.X, warp.Y);
+      }
+
+      public IPixelViewModel AutoCrop(int centerX, int centerY) {
          var map = GetMapModel();
          if (map == null) return null;
          var layout = GetLayout(map);
          if (layout == null) return null;
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
-         if (events.Warps.Count <= warpID) return null;
-         var warp = events.Warps[warpID];
-         var startX = warp.X - SizeX / 2;
-         var startY = warp.Y - SizeY / 2;
+
+         var startX = centerX - SizeX / 2;
+         var startY = centerY - SizeY / 2;
          while (startX < 0) startX += 1;
          while (startY < 0) startY += 1;
          while (startX + SizeX > width) startX--;

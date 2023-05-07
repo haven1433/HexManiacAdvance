@@ -1126,6 +1126,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank, Map);
 
+      public WarpEventModel WarpModel => new WarpEventModel(element);
+
       #endregion
 
       public override void Render(IDataModel model, LayoutModel layout) {

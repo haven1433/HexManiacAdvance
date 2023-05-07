@@ -1,4 +1,12 @@
-﻿using System;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -43,6 +51,134 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Visible = other.Visible;
          NotifyPropertyChanged(nameof(Command));
          return true;
+      }
+   }
+
+   public class MapOptionsArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private readonly IWorkDispatcher dispatcher;
+      private readonly MapEditorViewModel mapEditor;
+      private readonly string tableName;
+      private readonly int index;
+      private bool visible = true;
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+
+      public bool IsInError => false;
+
+      public string ErrorText => string.Empty;
+
+      private int zIndex;
+      public int ZIndex { get => zIndex; set => Set(ref zIndex, value); }
+
+      public event EventHandler DataChanged;
+      public event EventHandler DataSelected;
+
+      public bool TryCopy(IArrayElementViewModel other) => false;
+
+      public bool HasAny { get; }
+
+      private bool showPreviews, loaded;
+      public bool ShowPreviews {
+         get => showPreviews;
+         set => Set(ref showPreviews, value, old => {
+            if (!loaded) {
+               loaded = true;
+               dispatcher.RunBackgroundWork(Load);
+            }
+         });
+      }
+
+      public ObservableCollection<GotoMapButton> MapPreviews { get; } = new();
+
+      public MapOptionsArrayElementViewModel(IWorkDispatcher dispatcher, MapEditorViewModel mapEditor, string tableName, int index) {
+         this.dispatcher = dispatcher;
+         (this.mapEditor, this.tableName, this.index) = (mapEditor, tableName, index);
+         HasAny = tableName == HardcodeTablesModel.OverworldSprites && FindOverworldUses().Any();
+         if (!HasAny) HasAny = FindObjectUses().Any();
+      }
+
+      private void Load() {
+         if (tableName == HardcodeTablesModel.OverworldSprites) {
+            foreach (var button in FindOverworldUses()) dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
+         } else {
+            foreach (var button in FindObjectUses()) dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
+         }
+      }
+
+      private IEnumerable<GotoMapButton> FindOverworldUses() {
+         // look for any map with an event using this sprite
+         var allMaps = AllMapsModel.Create(mapEditor.ViewPort.Model);
+         for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
+            var bank = allMaps[bankIndex];
+            for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
+               var map = bank[mapIndex];
+               foreach (var ev in map.Events.Objects) {
+                  if (ev.Graphics != index) continue;
+                  var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev.X, ev.Y);
+                  if (button.Image == null) continue;
+                  yield return button;
+               }
+            }
+         }
+      }
+
+      private IEnumerable<GotoMapButton> FindObjectUses() {
+         var model = mapEditor.ViewPort.Model;
+         var parser = mapEditor.ViewPort.Tools.CodeTool.ScriptParser;
+         var lines = parser.DependsOn(tableName).ToList();
+         var filter = new List<byte>();
+         foreach (var line in lines) {
+            if (line is MacroScriptLine macro && macro.Args[0] is SilentMatchArg silent) filter.Add(silent.ExpectedValue);
+            if (line is ScriptLine sl) filter.Add(line.LineCode[0]);
+         }
+
+         var allMaps = AllMapsModel.Create(model);
+         for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
+            var bank = allMaps[bankIndex];
+            for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
+               var map = bank[mapIndex];
+               foreach (var ev in map.Events.Objects) {
+                  var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, filter.ToArray());
+
+                  // if any of these spots match, then this object's script refers to this enum
+                  foreach (var spot in spots) {
+                     int check = spot.Address + spot.Line.LineCode.Count;
+                     bool match = false;
+                     foreach (var arg in spot.Line.Args) {
+                        var length = arg.Length(model, check);
+                        if (arg.EnumTableName == tableName) {
+                           if (model.ReadMultiByteValue(check, length) == index) {
+                              var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev.X, ev.Y);
+                              if (button.Image == null) continue;
+                              yield return button;
+                              match = true;
+                              break;
+                           }
+                        }
+                        check += length;
+                     }
+                     if (match) break;
+                  }
+               }
+            }
+         }
+      }
+   }
+
+   public class GotoMapButton : ViewModelCore {
+      private readonly MapEditorViewModel mapEditor;
+      private readonly MapOptionsArrayElementViewModel owner;
+      private readonly int bank, map, x, y;
+      public IPixelViewModel Image { get; init; }
+      public GotoMapButton(MapEditorViewModel mapEditor, MapOptionsArrayElementViewModel owner, int bank, int map, int x, int y) {
+         (this.mapEditor, this.owner) = (mapEditor, owner);
+         (this.bank, this.map, this.x, this.y) = (bank, map, x, y);
+         Image = mapEditor.GetMapPreview(bank, map, x, y);
+      }
+      public void Goto() {
+         owner.ShowPreviews = false;
+         mapEditor.ViewPort.Tools.TableTool.UsageOptionsOpen = false;
+         mapEditor.NavigateTo(bank, map, x, y);
+         mapEditor.ViewPort.RaiseRequestTabChange(mapEditor);
       }
    }
 }
