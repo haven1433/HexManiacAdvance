@@ -533,7 +533,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("flag", value);
             NotifyPropertyChanged();
             flagText = null;
-            NotifyPropertyChanged(nameof(FlagText));
+            NotifyPropertyChanged(nameof(FlagText), nameof(SampleLegendClearScript));
          }
       }
 
@@ -547,7 +547,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             flagText = value;
             element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(Flag));
+            NotifyPropertyChanged(nameof(Flag), nameof(SampleLegendClearScript));
          }
       }
 
@@ -989,6 +989,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                element.Model.WriteMultiByteValue(flag + 1, 2, element.Token, value.TryParseHex(out int result) ? result : 0);
             }
             NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(SampleLegendClearScript));
          }
       }
       public bool HasCryText => (legendaryContent.Value?.CryTextPointer ?? Pointer.NULL) != Pointer.NULL;
@@ -996,6 +997,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string CryText {
          get => GetText(ref cryText, legendaryContent.Value?.CryTextPointer);
          set => SetText(ref cryText, legendaryContent.Value?.CryTextPointer, value, "Cry");
+      }
+
+      private TextEditorViewModel sampleLegendClearScript;
+      public TextEditorViewModel SampleLegendClearScript {
+         get {
+            var script = @$"  # whatever
+  if.flag.clear.call 0x{LegendaryFlagText} <show>
+  # whatever
+  end
+
+show:
+  clearflag 0x{FlagText}
+  return";
+            if (sampleLegendClearScript == null) {
+               sampleLegendClearScript = new TextEditorViewModel() { LineCommentHeader = "#" };
+               sampleLegendClearScript.Keywords.Add("if.flag.clear.call");
+               sampleLegendClearScript.Keywords.Add("end");
+               sampleLegendClearScript.Keywords.Add("clearflag");
+               sampleLegendClearScript.Keywords.Add("return");
+            }
+            sampleLegendClearScript.Content = script;
+            return sampleLegendClearScript;
+         }
       }
 
       #endregion

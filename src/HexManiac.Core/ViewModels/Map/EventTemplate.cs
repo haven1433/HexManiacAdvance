@@ -85,7 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AvailableTemplateTypes.Add(TemplateType.Mart);
          AvailableTemplateTypes.Add(TemplateType.Trade);
          if (model.IsFRLG() || model.IsEmerald()) AvailableTemplateTypes.Add(TemplateType.Tutor); // Ruby/Sapphire don't have tutors
-         // AvailableTemplateTypes.Add(TemplateType.Legendary);
+         AvailableTemplateTypes.Add(TemplateType.Legendary);
          AvailableTemplateTypes.Add(TemplateType.HMObject);
 
          GraphicsOptions.Clear();
@@ -843,6 +843,10 @@ wrongspecies:
          var legendFlag = 0x21;
          while (UsedFlags.Contains(legendFlag)) legendFlag++;
          UsedFlags.Add(legendFlag);
+         var catchFlag = legendFlag;
+         while (UsedFlags.Contains(catchFlag)) catchFlag++;
+         UsedFlags.Add(catchFlag);
+
          int cryText = model.IsFRLG() ? WriteText(token, "Roar!") : Pointer.NULL;
 
          #region script
@@ -884,26 +888,11 @@ setwildbattle 1 50 0
 ");
          }
          script.AppendLine(@$"
+fadescreen 1
+hidesprite 0x800F
+fadescreen 0
 special2 0x800D GetBattleOutcome
-if.compare.goto 0x800D = 1 <section1>
-if.compare.goto 0x800D = 4 <section2>
-if.compare.goto 0x800D = 5 <section2>
-setflag 0x{legendFlag:X4}
-release
-end
-
-section1:
-setflag 0x{legendFlag:X4}
-fadescreen 1
-hidesprite 0x800F
-fadescreen 0
-release
-end
-
-section2:
-fadescreen 1
-hidesprite 0x800F
-fadescreen 0
+if.compare.goto 0x800D = 7 <caught>
 bufferPokemon 0 1
 msgbox.default <auto>
 {{
@@ -911,6 +900,12 @@ The [buffer1] disappeared!
 }}
 release
 end
+
+caught:
+setflag 0x{catchFlag:X4}
+release
+end
+
 ");
          #endregion
 
@@ -968,7 +963,7 @@ end
          if (setOnlyFlags.Count != 1) return null;
          var bufferPokemon = new List<int>();
          foreach (var kvp in bufferSpots) {
-            if (kvp.Value == model.ReadMultiByteValue(content.SetWildBattle + 1, 2)) bufferPokemon.Add(kvp.Value - 2);
+            if (kvp.Value == model.ReadMultiByteValue(content.SetWildBattle + 1, 2)) bufferPokemon.Add(kvp.Key - 2);
          }
 
          var legendFlag = setOnlyFlags.Single();

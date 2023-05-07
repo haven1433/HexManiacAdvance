@@ -609,7 +609,7 @@
                                  <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                               </local:AngleButton>
 
-                              <local:AngleBorder Grid.Row="3" Direction="Left" Content="Pokemon Flag:" Margin="2,2,0,2" />
+                              <local:AngleBorder Grid.Row="3" Direction="Left" Content="Capture Flag:" Margin="2,2,0,2" />
                               <local:AngleTextBox Grid.Row="3"  Grid.Column="1" Direction="Out" Margin="0,2" TextBinding="{Binding LegendaryFlagText, UpdateSourceTrigger=PropertyChanged}" />
                            </Grid>
 
@@ -617,6 +617,9 @@
                               <local:AngleBorder Content="Cry:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
                               <TextBox Text="{Binding CryText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            </StackPanel>
+
+                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,5,2" TextWrapping="Wrap" Text="Put this in a Map Header Transition Script (or some other script) to make the legendary return if you haven't captured it:" />
+                           <local:TextEditor IsReadOnly="True" DataContext="{Binding SampleLegendClearScript}" Height="120" />
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
