@@ -564,7 +564,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // maps
          if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState) {
             var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
-            if (mapOptions.HasAny) AddUsageChild(mapOptions);
+            AddUsageChild(mapOptions); // always add, but invisible when empty
          }
       }
 

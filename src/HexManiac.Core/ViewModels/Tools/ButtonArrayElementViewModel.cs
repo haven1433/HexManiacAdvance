@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly MapEditorViewModel mapEditor;
       private readonly string tableName;
       private readonly int index;
-      private bool visible = true;
+      private bool visible;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
       public bool IsInError => false;
@@ -72,19 +72,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public event EventHandler DataChanged;
       public event EventHandler DataSelected;
 
-      public bool TryCopy(IArrayElementViewModel other) => false;
+      // if we're trying to copy data from another element,
+      // cancel any remaining work on this one
+      private bool cancel;
+      public bool TryCopy(IArrayElementViewModel other) {
+         cancel = true;
+         return false;
+      }
 
-      public bool HasAny { get; }
-
-      private bool showPreviews, loaded;
+      private bool showPreviews;
       public bool ShowPreviews {
          get => showPreviews;
-         set => Set(ref showPreviews, value, old => {
-            if (!loaded) {
-               loaded = true;
-               dispatcher.RunBackgroundWork(Load);
-            }
-         });
+         set => Set(ref showPreviews, value);
       }
 
       public ObservableCollection<GotoMapButton> MapPreviews { get; } = new();
@@ -92,15 +91,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public MapOptionsArrayElementViewModel(IWorkDispatcher dispatcher, MapEditorViewModel mapEditor, string tableName, int index) {
          this.dispatcher = dispatcher;
          (this.mapEditor, this.tableName, this.index) = (mapEditor, tableName, index);
-         HasAny = tableName == HardcodeTablesModel.OverworldSprites && FindOverworldUses().Any();
-         if (!HasAny) HasAny = FindObjectUses().Any();
+         dispatcher.RunBackgroundWork(Load);
       }
 
       private void Load() {
+         void Add(GotoMapButton button) {
+            if (!visible) dispatcher.BlockOnUIWork(() => {
+               Visible = true;
+               MapPreviews.Add(button);
+            });
+            else dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
+         }
          if (tableName == HardcodeTablesModel.OverworldSprites) {
-            foreach (var button in FindOverworldUses()) dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
+            foreach (var button in FindOverworldUses()) Add(button);
          } else {
-            foreach (var button in FindObjectUses()) dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
+            foreach (var button in FindObjectUses()) Add(button);
          }
       }
 
@@ -146,6 +151,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      int check = spot.Address + spot.Line.LineCode.Count;
                      bool match = false;
                      foreach (var arg in spot.Line.Args) {
+                        if (cancel) yield break;
                         var length = arg.Length(model, check);
                         if (arg.EnumTableName == tableName) {
                            if (model.ReadMultiByteValue(check, length) == index) {
@@ -163,6 +169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
                if (isItemTable) {
                   foreach (var ev in map.Events.Signposts) {
+                     if (cancel) yield break;
                      if (ev.IsHiddenItem && ev.ItemValue == index) {
                         var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
                         if (button.Image == null) continue;
