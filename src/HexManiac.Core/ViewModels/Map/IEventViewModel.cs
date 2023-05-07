@@ -952,6 +952,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                PokemonOptions.Bind(nameof(PokemonOptions.SelectedIndex), (sender, e) => {
                   element.Model.WriteMultiByteValue(content.Cry + 1, 2, element.Token, PokemonOptions.SelectedIndex);
                   element.Model.WriteMultiByteValue(content.SetWildBattle + 1, 2, element.Token, PokemonOptions.SelectedIndex);
+                  foreach (var buffer in content.BufferPokemon) element.Model.WriteMultiByteValue(buffer + 2, 2, element.Token, PokemonOptions.SelectedIndex);
                });
             }
             if (content != null && HoldItemOptions.AllOptions == null) {
@@ -978,13 +979,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string LegendaryFlagText {
          get {
             if (legendaryContent.Value == null) return null;
-            if (legendaryFlagText == null) legendaryFlagText = element.Model.ReadMultiByteValue(legendaryContent.Value.SetFlag + 1, 2).ToString("X4");
+            if (legendaryFlagText == null) legendaryFlagText = element.Model.ReadMultiByteValue(legendaryContent.Value.SetFlag[0] + 1, 2).ToString("X4");
             return legendaryFlagText;
          }
          set {
             if (legendaryContent.Value == null) return;
             legendaryFlagText = value;
-            element.Model.WriteMultiByteValue(legendaryContent.Value.SetFlag + 1, 2, element.Token, value.TryParseHex(out int result) ? result : 0);
+            foreach (var flag in legendaryContent.Value.SetFlag) {
+               element.Model.WriteMultiByteValue(flag + 1, 2, element.Token, value.TryParseHex(out int result) ? result : 0);
+            }
             NotifyPropertyChanged();
          }
       }

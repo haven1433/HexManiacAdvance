@@ -175,7 +175,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             if (bank == null) return null;
             var map = bank[Map];
             if (map == null) return null;
-            return map.Events.Warps[WarpID - 1];
+            if (map.Events.Warps.Count <= WarpID) return null;
+            return map.Events.Warps[WarpID];
          }
       }
    }

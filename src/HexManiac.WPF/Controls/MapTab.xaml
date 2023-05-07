@@ -1615,6 +1615,10 @@
                                  <Setter Property="Visibility" Value="Visible" />
                                  <Setter Property="Grid.Row" Value="2" />
                               </DataTrigger>
+                              <DataTrigger Binding="{Binding SelectedTemplate}" Value="Legendary">
+                                 <Setter Property="Visibility" Value="Visible" />
+                                 <Setter Property="Grid.Row" Value="2" />
+                              </DataTrigger>
                            </Style.Triggers>
                         </Style>
                      </Decorator.Style>
