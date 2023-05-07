@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
       public ICommand CycleEventCommand { get; }
+      public ModelArrayElement Element { get; }
       string EventType { get; }
       string EventIndex { get; }
       int TopOffset { get; }
@@ -44,6 +45,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public virtual int TopOffset => 0;
       public virtual int LeftOffset => 0;
+
+      public ModelArrayElement Element => flySpot;
 
       #region X/Y
 

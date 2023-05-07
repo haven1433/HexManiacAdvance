@@ -113,7 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var map = bank[mapIndex];
                foreach (var ev in map.Events.Objects) {
                   if (ev.Graphics != index) continue;
-                  var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev.X, ev.Y);
+                  var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
                   if (button.Image == null) continue;
                   yield return button;
                }
@@ -147,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         var length = arg.Length(model, check);
                         if (arg.EnumTableName == tableName) {
                            if (model.ReadMultiByteValue(check, length) == index) {
-                              var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev.X, ev.Y);
+                              var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
                               if (button.Image == null) continue;
                               yield return button;
                               match = true;
@@ -167,17 +167,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class GotoMapButton : ViewModelCore {
       private readonly MapEditorViewModel mapEditor;
       private readonly MapOptionsArrayElementViewModel owner;
-      private readonly int bank, map, x, y;
+      private readonly int bank, map;
+      private BaseEventModel eventModel;
       public IPixelViewModel Image { get; init; }
-      public GotoMapButton(MapEditorViewModel mapEditor, MapOptionsArrayElementViewModel owner, int bank, int map, int x, int y) {
+      public GotoMapButton(MapEditorViewModel mapEditor, MapOptionsArrayElementViewModel owner, int bank, int map, BaseEventModel eventViewModel) {
          (this.mapEditor, this.owner) = (mapEditor, owner);
-         (this.bank, this.map, this.x, this.y) = (bank, map, x, y);
-         Image = mapEditor.GetMapPreview(bank, map, x, y);
+         (this.bank, this.map) = (bank, map);
+         this.eventModel = eventViewModel;
+         Image = mapEditor.GetMapPreview(bank, map, eventViewModel.X, eventViewModel.Y);
       }
       public void Goto() {
          owner.ShowPreviews = false;
          mapEditor.ViewPort.Tools.TableTool.UsageOptionsOpen = false;
-         mapEditor.NavigateTo(bank, map, x, y);
+         mapEditor.NavigateTo(bank, map, eventModel.X, eventModel.Y);
+         mapEditor.SelectedEvent = mapEditor.PrimaryMap.EventGroup.All.FirstOrDefault(ev => ev.Element.Start == eventModel.Element.Start);
          mapEditor.ViewPort.RaiseRequestTabChange(mapEditor);
       }
    }

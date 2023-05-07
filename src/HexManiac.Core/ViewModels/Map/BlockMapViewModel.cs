@@ -2526,6 +2526,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public IReadOnlyList<SignpostEventViewModel> Signposts { get; }
       public IReadOnlyList<FlyEventViewModel> FlyEvents { get; }
 
+      public IEnumerable<IEventViewModel> All => Objects.Concat<IEventViewModel>(Warps).Concat(Scripts).Concat(Signposts).Concat(FlyEvents);
+
       /*
        *  events<[objectCount. warpCount. scriptCount. signpostCount.
             objects<[id. graphics. unused: x:500 y:500 elevation. moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: unused:]/objectCount>
