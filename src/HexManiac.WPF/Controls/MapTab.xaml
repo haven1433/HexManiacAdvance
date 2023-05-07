@@ -569,6 +569,55 @@
                            <TextBox Text="{Binding TradeSuccessText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                         </StackPanel>
 
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowLegendaryContent, Converter={StaticResource BoolToVisibility}}">
+                           <StackPanel.Resources>
+                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
+                                 <Setter Property="FontFamily" Value="Consolas" />
+                                 <Setter Property="AcceptsReturn" Value="True" />
+                                 <Setter Property="HorizontalAlignment" Value="Right" />
+                                 <Setter Property="Width" Value="244" />
+                              </Style>
+                           </StackPanel.Resources>
+
+                           <Grid Margin="0,10,0,0">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                                 <ColumnDefinition Width="Auto" />
+                              </Grid.ColumnDefinitions>
+                              <Grid.RowDefinitions>
+                                 <RowDefinition />
+                                 <RowDefinition />
+                                 <RowDefinition />
+                                 <RowDefinition />
+                              </Grid.RowDefinitions>
+
+                              <local:AngleBorder Direction="Left" Content="Pokemon:" Margin="2,2,0,2" />
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2" DataContext="{Binding PokemonOptions}" />
+                              <local:AngleButton Command="{res:MethodCommand GotoPokemon}" Direction="Right" Grid.Column="2" HorizontalAlignment="Right"
+                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+
+                              <local:AngleBorder Grid.Row="1" Direction="Left" Content="Level:" Margin="2,2,0,2" />
+                              <local:AngleTextBox Grid.Row="1"  Grid.Column="1" Direction="Out" Margin="0,2" TextBinding="{Binding Level, UpdateSourceTrigger=PropertyChanged}" />
+
+                              <local:AngleBorder Grid.Row="2" Direction="Left" Content="Hold Item:" Margin="2,2,0,2" />
+                              <local:AngleComboBox Grid.Row="2" Grid.Column="1" Direction="Out" Margin="0,2" DataContext="{Binding HoldItemOptions}" />
+                              <local:AngleButton Grid.Row="2" Command="{res:MethodCommand GotoHoldItem}" Direction="Right" Grid.Column="2" HorizontalAlignment="Right"
+                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+
+                              <local:AngleBorder Grid.Row="3" Direction="Left" Content="Pokemon Flag:" Margin="2,2,0,2" />
+                              <local:AngleTextBox Grid.Row="3"  Grid.Column="1" Direction="Out" Margin="0,2" TextBinding="{Binding LegendaryFlagText, UpdateSourceTrigger=PropertyChanged}" />
+                           </Grid>
+
+                           <StackPanel Visibility="{Binding HasCryText, Converter={StaticResource BoolToVisibility}}">
+                              <local:AngleBorder Content="Cry:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
+                              <TextBox Text="{Binding CryText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           </StackPanel>
+                        </StackPanel>
                      </Grid>
                   </DataTemplate>
                   <DataTemplate DataType="{x:Type map:WarpEventViewModel}">

@@ -939,6 +939,64 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Legendary Content
+
+      private Lazy<LegendaryEventContent> legendaryContent;
+
+      public bool ShowLegendaryContent {
+         get {
+            var content = legendaryContent.Value;
+            if (content != null && PokemonOptions.AllOptions == null) {
+               var options = ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable));
+               PokemonOptions.Update(options, element.Model.ReadMultiByteValue(content.SetWildBattle + 1, 2));
+               PokemonOptions.Bind(nameof(PokemonOptions.SelectedIndex), (sender, e) => {
+                  element.Model.WriteMultiByteValue(content.Cry + 1, 2, element.Token, PokemonOptions.SelectedIndex);
+                  element.Model.WriteMultiByteValue(content.SetWildBattle + 1, 2, element.Token, PokemonOptions.SelectedIndex);
+               });
+            }
+            if (content != null && HoldItemOptions.AllOptions == null) {
+               var options = ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.ItemsTableName));
+               HoldItemOptions.Update(options, element.Model.ReadMultiByteValue(content.SetWildBattle + 4, 2));
+               HoldItemOptions.Bind(nameof(HoldItemOptions.SelectedIndex), (sender, e) => element.Model.WriteMultiByteValue(content.SetWildBattle + 4, 2, element.Token, HoldItemOptions.SelectedIndex));
+            }
+            return content != null;
+         }
+      }
+
+      public FilteringComboOptions PokemonOptions { get; } = new();
+      public void GotoPokemon() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.PokemonNameTable)[PokemonOptions.SelectedIndex].Start);
+      public int Level {
+         get => legendaryContent.Value == null ? -1 : element.Model[legendaryContent.Value.SetWildBattle + 3];
+         set {
+            if (legendaryContent.Value == null) return;
+            element.Token.ChangeData(element.Model, legendaryContent.Value.SetWildBattle + 3, (byte)value);
+         }
+      }
+      public FilteringComboOptions HoldItemOptions { get; } = new();
+      public void GotoHoldItem() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.ItemsTableName)[HoldItemOptions.SelectedIndex].Start);
+      private string legendaryFlagText;
+      public string LegendaryFlagText {
+         get {
+            if (legendaryContent.Value == null) return null;
+            if (legendaryFlagText == null) legendaryFlagText = element.Model.ReadMultiByteValue(legendaryContent.Value.SetFlag + 1, 2).ToString("X4");
+            return legendaryFlagText;
+         }
+         set {
+            if (legendaryContent.Value == null) return;
+            legendaryFlagText = value;
+            element.Model.WriteMultiByteValue(legendaryContent.Value.SetFlag + 1, 2, element.Token, value.TryParseHex(out int result) ? result : 0);
+            NotifyPropertyChanged();
+         }
+      }
+      public bool HasCryText => (legendaryContent.Value?.CryTextPointer ?? Pointer.NULL) != Pointer.NULL;
+      private string cryText;
+      public string CryText {
+         get => GetText(ref cryText, legendaryContent.Value?.CryTextPointer);
+         set => SetText(ref cryText, legendaryContent.Value?.CryTextPointer, value, "Cry");
+      }
+
+      #endregion
+
       #region Berry Content
 
       public bool ShowBerryContent => TrainerType == 0 && TrainerRangeOrBerryID != 0;
@@ -1004,6 +1062,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
          tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this));
+         legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
       }
 
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);

@@ -137,6 +137,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedTemplate == TemplateType.Mart) CreateMart(objectEventModel, token);
          if (selectedTemplate == TemplateType.Tutor) CreateTutor(objectEventModel, token);
          if (selectedTemplate == TemplateType.Trade) CreateTrade(objectEventModel, token);
+         if (selectedTemplate == TemplateType.Legendary) CreateLegendary(objectEventModel, token);
          if (selectedTemplate == TemplateType.HMObject) CreateHMObject(objectEventModel, token);
       }
 
@@ -834,6 +835,54 @@ wrongspecies:
 
       #endregion
 
+      #region Legendary Encounter
+
+      public void CreateLegendary(ObjectEventModel objectEventModel, ModelDelta token) {
+         // TODO
+      }
+
+      public LegendaryEventContent GetLegendaryEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetLegendaryEventContent(model, parser, eventModel);
+      public static LegendaryEventContent GetLegendaryEventContent(IDataModel model, ScriptParser parser, ObjectEventViewModel ev) {
+         var content = new LegendaryEventContent(Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL);
+         /*
+            67 preparemsg text<"">
+            A1 cry species:data.pokemon.names effect:
+            B6 setwildbattle species: level. item:
+            29 setflag flag:
+            2A clearflag flag:
+         */
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, 0x67, 0xA1, 0xB6, 0x29, 0x2A);
+         var flagsSet = new Dictionary<int, int>(); // address of flag -> flag value
+         var flagsCleared = new Dictionary<int, int>(); // address of flag -> flag value
+         foreach (var spot in spots) {
+            if (spot.Line.LineCode[0] == 0x29) {
+               flagsSet[spot.Address + 1] = model.ReadMultiByteValue(spot.Address + 1, 2);
+            } else if (spot.Line.LineCode[0] == 0x2A) {
+               flagsCleared[spot.Address + 1] = model.ReadMultiByteValue(spot.Address + 1, 2);
+            } else {
+               content = spot.Line.LineCode[0] switch {
+                  0x67 => content with { CryTextPointer = spot.Address + 1 },
+                  0xA1 => content with { Cry = spot.Address },
+                  0xB6 => content with { SetWildBattle = spot.Address },
+                  0x29 => content with { SetFlag = spot.Address },
+                  _ => throw new NotImplementedException(),
+               };
+            }
+         }
+         if (content.Cry == Pointer.NULL) return null;
+         if (content.SetWildBattle == Pointer.NULL) return null;
+         var setOnlyFlags = flagsSet.Values.Except(flagsCleared.Values).ToHashSet();
+         if (setOnlyFlags.Count != 1) return null;
+
+         var legendFlag = setOnlyFlags.Single();
+         var legendFlagAddress = flagsSet.Keys.First(key => flagsSet[key] == legendFlag);
+         content = content with { SetFlag = legendFlagAddress - 1 };
+
+         return content;
+      }
+
+      #endregion
+
       #region HM Object
 
       public ObservableCollection<string> HMObjectOptions { get; } = new();
@@ -916,7 +965,9 @@ wrongspecies:
 
    public record TradeEventContent(int InfoPointer, int ThanksPointer, int SuccessPointer, int FailedPointer, int WrongSpeciesPointer, int TradeAddress);
 
-   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade, HMObject }
+   public record LegendaryEventContent(int Cry, int SetWildBattle, int SetFlag, int CryTextPointer);
+
+   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade, Legendary, HMObject }
 }
 
 /*
