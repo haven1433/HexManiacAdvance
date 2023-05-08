@@ -2297,6 +2297,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
             var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
             var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
+            primaryMax = Math.Max(primaryMax, mapRepointer.EstimateBlockCount(layout, true).currentCount);
+            secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount);
             BlockmapRun.WriteBlocks(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, blocks);
          }
 
@@ -2323,6 +2325,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
             var primaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, blockmapRun.PrimaryBlocks);
             var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, blockmapRun.Start, blockmapRun.BlockWidth, blockmapRun.BlockHeight, 1024) - blockmapRun.PrimaryBlocks;
+            primaryMax = Math.Max(primaryMax, mapRepointer.EstimateBlockCount(layout, true).currentCount);
+            secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount);
             BlockmapRun.WriteBlockAttributes(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, attributes);
          }
       }
