@@ -1,10 +1,12 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.WPF.Windows;
 using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using ModelPoint = HavenSoft.HexManiac.Core.Models.Point;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class DexReorderView {
@@ -14,18 +16,22 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public DexReorderView() => InitializeComponent();
 
-      private const int ExpectedElementWidth = 66, ExpectedElementHeight = 66;
+      private int ExpectedElementWidth => (int)(64 * ViewModel.SpriteScale) + 2;
+      private int ExpectedElementHeight => (int)(64 * ViewModel.SpriteScale) + 2;
+
+      private int ToTile(Point p) {
+         var tileWidth = (int)(Container.ActualWidth / ExpectedElementWidth);
+         var newTileX = (int)(p.X / ExpectedElementWidth);
+         var newTileY = (int)(p.Y / ExpectedElementHeight);
+         var tileIndex = newTileY * tileWidth + newTileX;
+         return tileIndex.LimitToRange(0, Container.Items.Count);
+      }
 
       private Point interactionPoint;
       private void StartElementMove(object sender, MouseButtonEventArgs e) {
          if (e.LeftButton == MouseButtonState.Released) return;
          interactionPoint = e.GetPosition(Container);
-
-         var tileWidth = (int)(Container.ActualWidth / ExpectedElementWidth);
-         var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
-         var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
-         var tileIndex = newTileY * tileWidth + newTileX;
-         tileIndex = Math.Min(Math.Max(0, tileIndex), Container.Items.Count - 1);
+         var tileIndex = ToTile(interactionPoint);
 
          if (Keyboard.Modifiers == ModifierKeys.Shift) {
             ViewModel.SelectionEnd = tileIndex;
@@ -38,19 +44,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ElementMove(object sender, MouseEventArgs e) {
          if (!Container.IsMouseCaptured) return;
-         var tileWidth = (int)(Container.ActualWidth / ExpectedElementWidth);
-
-         var oldTileX = (int)(interactionPoint.X / ExpectedElementWidth);
-         var oldTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
-         var oldTileIndex = oldTileY * tileWidth + oldTileX;
+         var oldTileIndex = ToTile(interactionPoint);
 
          interactionPoint = e.GetPosition(Container);
-         var newTileX = (int)(interactionPoint.X / ExpectedElementWidth);
-         var newTileY = (int)(interactionPoint.Y / ExpectedElementHeight);
-         var newTileIndex = newTileY * tileWidth + newTileX;
+         var newTileIndex = ToTile(interactionPoint);
 
-         oldTileIndex = Math.Min(Math.Max(0, oldTileIndex), Container.Items.Count - 1);
-         newTileIndex = Math.Min(Math.Max(0, newTileIndex), Container.Items.Count - 1);
          var tilesToAnimate = ViewModel.HandleMove(oldTileIndex, newTileIndex);
 
          foreach (var (index, direction) in tilesToAnimate) {
