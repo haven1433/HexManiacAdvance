@@ -199,12 +199,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var element in GetAllEvents(model, "objects")) scriptAddresses.Add(element.GetAddress("script"));
          foreach (var element in GetAllEvents(model, "scripts")) scriptAddresses.Add(element.GetAddress("script"));
          foreach (var element in GetAllEvents(model, "signposts")) scriptAddresses.Add(element.GetAddress("arg"));
+
          // header scripts
          foreach (var bank in AllMapsModel.Create(model, default)) {
+            if (bank == null) continue;
             foreach (var map in bank) {
+               if (map == null) continue;
                var scripts = map.MapScripts;
                if (scripts == null) continue;
                foreach (var script in scripts) {
+                  if (script == null) continue;
                   if (script.GetValue("type").IsAny(2, 4)) {
                      var start = script.GetAddress("pointer");
                      if (start >= model.Count || start < 0) continue;
