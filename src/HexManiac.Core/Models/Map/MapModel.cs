@@ -171,6 +171,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    public record ObjectEventModel(ModelArrayElement Element) : BaseEventModel(Element), IScriptEventModel {
       public int Graphics => Element.TryGetValue("graphics", out var result) ? result : -1;
       public int ScriptAddress => Element.GetAddress("script");
+      public int Flag => Element.GetAddress("flag");
    }
 
    public record ScriptEventModel(ModelArrayElement Element) : BaseEventModel(Element), IScriptEventModel {
