@@ -202,12 +202,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          () => {
             history.Undo.Execute();
             Tutorials.Complete(Tutorial.ToolbarUndo_Undo);
+            HideEvents = false;
             Refresh();
          },
          () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redo,
          () => {
             history.Redo.Execute();
+            HideEvents = false;
             Refresh();
          },
          () => history.Redo.CanExecute(default));
