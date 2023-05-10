@@ -269,6 +269,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (Groups.Count > childIndexGroup) Groups[childIndexGroup].Open();
       }
 
+      public bool HasUsageOptions {
+         get {
+            foreach(var child in UsageChildren) {
+               if (child is not MapOptionsArrayElementViewModel mapUsage) return true;
+               return mapUsage.MapPreviews.Count > 0;
+            }
+            return false;
+         }
+      }
+
       private int usageChildInsertionIndex = 0;
       private void AddUsageChild(IArrayElementViewModel child) {
          if (usageChildInsertionIndex == UsageChildren.Count) {
@@ -277,6 +287,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             UsageChildren[usageChildInsertionIndex] = child;
          }
          usageChildInsertionIndex++;
+         NotifyPropertyChanged(nameof(HasUsageOptions));
       }
 
       private bool dataForCurrentRunChangeUpdate;
@@ -564,6 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // maps
          if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState) {
             var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
+            mapOptions.MapPreviews.CollectionChanged += (sender, e) => NotifyPropertyChanged(nameof(HasUsageOptions));
             AddUsageChild(mapOptions); // always add, but invisible when empty
          }
       }
