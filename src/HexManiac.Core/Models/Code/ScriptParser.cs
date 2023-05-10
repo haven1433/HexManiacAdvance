@@ -183,7 +183,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
 
+         editor.Constants.Clear();
          editor.Constants.AddRange(constantCache);
+         editor.Keywords.Clear();
          editor.Keywords.AddRange(keywordCache);
          editor.Keywords.Add("auto"); // for the auto-pointer feature
       }
