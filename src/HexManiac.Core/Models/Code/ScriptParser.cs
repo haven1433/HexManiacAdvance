@@ -110,10 +110,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return scripts;
       }
 
-      public int FindLength(IDataModel model, int address) {
+      public int FindLength(IDataModel model, int address, Dictionary<int, int> destinations = null) {
+         if (destinations == null) destinations = model.CurrentCacheScope.ScriptDestinations(address);
          int length = 0;
          int consecutiveNops = 0;
-         var destinations = model.CurrentCacheScope.ScriptDestinations;
          int lastCommand = -1, repeateLength = 1;
          while (true) {
             var line = engine.GetMatchingLine(model, address + length);

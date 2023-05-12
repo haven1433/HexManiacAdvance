@@ -401,7 +401,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         // (1) the only pointers to that script are contained within the script we're currently compiling
                         // (2) the script is contained completely within the compiled code (meaning it's actually part of the script as written)
                         if (scriptRun.PointerSources.All(source => start < source && source < start + length)) {
-                           var scriptLength = parser.FindLength(model, scriptRun.Start);
+                           var scriptLength = parser.FindLength(model, scriptRun.Start, model.CurrentCacheScope.ScriptDestinations(start));
                            if (i + scriptLength <= start + code.Length) {
                               i += scriptLength - 1;
                               availableLength += scriptLength;
