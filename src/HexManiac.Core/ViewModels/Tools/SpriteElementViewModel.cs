@@ -141,6 +141,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
                name = $"{folder}/{tableName}_{i}_{name}.png";
                if (!fs.Exists(name)) {
+                  if (sRun is ITilemapRun tmRun) tmRun.FindMatchingTileset(Model);
                   var imagePixels = sRun.GetPixels(Model, sRun.Pages > CurrentPage ? CurrentPage : 0, -1);
                   var colors = palette?.AllColors(Model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sRun.SpriteFormat.BitsPerPixel));
                   if (imagePixels != null && colors.Count == 16) {
