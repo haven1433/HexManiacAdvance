@@ -279,7 +279,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private int FindPreferredTrainerElevation(IDataModel model, int graphics) {
          var histogram = new Dictionary<int, int>();
-         foreach (var bank in AllMapsModel.Create(model, null)) {
+         var banks = AllMapsModel.Create(model, null);
+         if (banks == null) return 3;
+         foreach (var bank in banks) {
             foreach (var map in bank) {
                foreach (var obj in map.Events.Objects) {
                   if (obj.Graphics != graphics) continue;

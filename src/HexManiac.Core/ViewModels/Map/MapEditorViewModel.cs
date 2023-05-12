@@ -763,7 +763,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RectangleDrawMove(double x, double y) {
-         var map = MapUnderCursor(x, y);
+         var map = PrimaryMap;
          if (tilesToDraw == null && drawBlockIndex < 0 && collisionIndex < 0) {
             interactionType = PrimaryInteractionType.None;
          } else if (map != null) {

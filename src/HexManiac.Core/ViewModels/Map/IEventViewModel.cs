@@ -413,6 +413,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => element.GetValue("moveType");
          set {
             element.SetValue("moveType", value);
+            FacingOptions.Update(FacingOptions.AllOptions, MoveType);
             RaiseEventVisualUpdated();
             NotifyPropertyChanged();
          }
