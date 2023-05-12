@@ -169,7 +169,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
       protected override void OnLostFocus(RoutedEventArgs e) {
          base.OnLostFocus(e);
-         ViewModel.HideEvents = false;
+         var viewModel = ViewModel;
+         if (viewModel != null) viewModel.HideEvents = false;
          waitingForControlUp = false;
       }
 
