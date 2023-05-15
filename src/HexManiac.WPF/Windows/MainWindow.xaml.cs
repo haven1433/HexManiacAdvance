@@ -1,8 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Implementations;
@@ -159,12 +161,21 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          }
          text.AppendLine("Current tab count: " + editor.Count);
          text.AppendLine("Current selected tab: " + editor.SelectedIndex);
+         text.AppendLine("---");
          foreach (var tab in editor) {
             if (tab is IEditableViewPort viewPort) {
                text.AppendLine("Tab is ViewPort for " + Path.GetFileName(viewPort.FileName));
                text.AppendLine("Game Code: " + viewPort.Model.GetGameCode());
                text.AppendLine("Data Length: 0x" + viewPort.Model.Count.ToAddress());
                text.AppendLine("Pokemon Count: " + (viewPort.Model.GetTable(HardcodeTablesModel.PokemonNameTable)?.ElementCount ?? 0));
+               text.AppendLine("---");
+            } else if (tab is MapEditorViewModel mapEditor && mapEditor.PrimaryMap is not null) {
+               var layout = new LayoutModel(mapEditor.PrimaryMap.GetLayout());
+               var events = mapEditor.PrimaryMap.EventGroup;
+               text.AppendLine("Tab is map for " + mapEditor.PrimaryMap.Name);
+               text.AppendLine($"Size: {layout.Width}x{layout.Height}");
+               if (events == null) text.AppendLine("(No Events)");
+               else text.AppendLine($"Events: {events.Objects.Count}-{events.Warps.Count}-{events.Scripts.Count}-{events.Signposts.Count}");
                text.AppendLine("---");
             } else {
                text.AppendLine($"Tab is {tab.GetType()}");

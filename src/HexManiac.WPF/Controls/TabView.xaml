@@ -169,6 +169,31 @@
                                  Content="{Binding Text}" ToolTip="{Binding ToolTipText}" Command="{Binding Command}"
                                  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
                   </DataTemplate>
+                  <DataTemplate DataType="{x:Type hsg3hvmtr:MapOptionsArrayElementViewModel}">
+                     <StackPanel>
+                        <hsg3hv:AngleButton Margin="2,2" Direction="Out" HorizontalAlignment="Stretch" x:Name="ShowMapsButton"
+                                 Content="maps" IsChecked="{Binding ShowPreviews}"
+                                 Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"/>
+                        <Popup IsOpen="{Binding ShowPreviews}" StaysOpen="{Binding IsMouseOver, ElementName=ShowMapsButton}" PlacementTarget="{Binding ElementName=ShowMapsButton}">
+                           <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
+                              <ScrollViewer MaxWidth="600" HorizontalScrollBarVisibility="Hidden">
+                                 <ItemsControl ItemsSource="{Binding MapPreviews}">
+                                    <ItemsControl.ItemsPanel>
+                                       <ItemsPanelTemplate>
+                                          <WrapPanel MaxWidth="600" />
+                                       </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                 </ItemsControl>
+                              </ScrollViewer>
+                           </Border>
+                        </Popup>
+                     </StackPanel>
+                  </DataTemplate>
+                  <DataTemplate DataType="{x:Type hsg3hvmtr:GotoMapButton}">
+                     <hsg3hv:AngleButton Margin="2,2" Command="{hsv:MethodCommand Goto}" Height="114">
+                        <hsg3hv:PixelImage DataContext="{Binding Image}" />
+                     </hsg3hv:AngleButton>
+                  </DataTemplate>
                </DockPanel.Resources>
                <DockPanel.Style>
                   <Style TargetType="DockPanel">
@@ -210,12 +235,14 @@
                      <hsg3hv:AngleButton Content="Next" Grid.Column="2" Command="{Binding TableTool.Next}" Padding="0" Direction="Right"/>
                   </Grid>
                   <!-- Show Uses -->
+
                   <!--
-                       Xaml restrictions: we can't use an ElementName before it's delcared,
-                       so we declare an extra ItemsControl just so we can access its HasItems property
+                       Xaml restrictions: we can't use an ElementName before it's delcared.
+                       So we declare an extra ItemsControl just so we can access its HasItems property.
                   -->
                   <ItemsControl Name="UsageItems" ItemsSource="{Binding TableTool.UsageChildren}" Visibility="Collapsed" />
-                  <hsg3hv:AngleButton x:Name="ShowUsesButton" Content="Show Uses" HorizontalAlignment="Center" IsEnabled="{Binding HasItems, ElementName=UsageItems}" Direction="Out" IsChecked="{Binding TableTool.UsageOptionsOpen}" />
+
+                  <hsg3hv:AngleButton x:Name="ShowUsesButton" Content="Show Uses" HorizontalAlignment="Center" IsEnabled="{Binding TableTool.HasUsageOptions}" Direction="Out" IsChecked="{Binding TableTool.UsageOptionsOpen}" />
                   <Popup IsOpen="{Binding IsChecked, ElementName=ShowUsesButton}" StaysOpen="{Binding IsMouseOver, ElementName=ShowUsesButton}" PlacementTarget="{Binding ElementName=ShowUsesButton}">
                      <Border Background="{DynamicResource Background}" BorderThickness="1" BorderBrush="{DynamicResource Accent}">
                         <ItemsControl ItemsSource="{Binding TableTool.UsageChildren}" />

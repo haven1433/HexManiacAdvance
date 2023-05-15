@@ -530,14 +530,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var start = blockset.GetAddress(Format.Tileset);
          if (blockset.GetValue("isCompressed") != 0) {
             var run = new LZRun(model, start);
-            var compressedData = Cut(start, run.Length);
+            var compressedData = new byte[run.Length];
+            Array.Copy(model.RawData, start, compressedData, 0, run.Length);
             var decompressedData = LZRun.Decompress(compressedData, 0);
             var newData = new byte[maxTiles * 0x20];
             Array.Copy(decompressedData, newData, decompressedData.Length);
             var newCompressedData = LZRun.Compress(newData).ToArray();
-            var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), newCompressedData.Length);
+            var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), run.Length, newCompressedData.Length);
             Paste(newRun.Start, newCompressedData, newCompressedData.Length);
             start = newRun.Start;
+            model.ObserveRunWritten(history.CurrentChange, newRun.Duplicate(newRun.Start, newRun.PointerSources)); // run length changed
          } else {
             var data = Cut(start, currentTiles * 0x20);
             var newRun = model.RelocateForExpansion(history.CurrentChange, model.GetNextRun(start), maxTiles * 0x20);

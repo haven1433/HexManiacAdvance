@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Text;
 
 // example for making a bug trainer: templates.CreateTrainer(objectEvent, history.CurrentChange, 20 /* bug catcher */, 30, 9, 6 /*bug*/, true);
 
@@ -83,8 +84,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AvailableTemplateTypes.Add(TemplateType.Trainer);
          AvailableTemplateTypes.Add(TemplateType.Mart);
          AvailableTemplateTypes.Add(TemplateType.Trade);
-         AvailableTemplateTypes.Add(TemplateType.HMObject);
          if (model.IsFRLG() || model.IsEmerald()) AvailableTemplateTypes.Add(TemplateType.Tutor); // Ruby/Sapphire don't have tutors
+         AvailableTemplateTypes.Add(TemplateType.Legendary);
+         AvailableTemplateTypes.Add(TemplateType.HMObject);
 
          GraphicsOptions.Clear();
          for (int i = 0; i < owGraphics.Count; i++) GraphicsOptions.Add(VisualComboOption.CreateFromSprite(i.ToString(), owGraphics[i].PixelData, owGraphics[i].PixelWidth, i, 2, true));
@@ -137,6 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedTemplate == TemplateType.Mart) CreateMart(objectEventModel, token);
          if (selectedTemplate == TemplateType.Tutor) CreateTutor(objectEventModel, token);
          if (selectedTemplate == TemplateType.Trade) CreateTrade(objectEventModel, token);
+         if (selectedTemplate == TemplateType.Legendary) CreateLegendary(objectEventModel, token);
          if (selectedTemplate == TemplateType.HMObject) CreateHMObject(objectEventModel, token);
       }
 
@@ -276,7 +279,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private int FindPreferredTrainerElevation(IDataModel model, int graphics) {
          var histogram = new Dictionary<int, int>();
-         foreach (var bank in AllMapsModel.Create(model, null)) {
+         var banks = AllMapsModel.Create(model, null);
+         if (banks == null) return 3;
+         foreach (var bank in banks) {
             foreach (var map in bank) {
                foreach (var obj in map.Events.Objects) {
                   if (obj.Graphics != graphics) continue;
@@ -834,6 +839,145 @@ wrongspecies:
 
       #endregion
 
+      #region Legendary Encounter
+
+      public void CreateLegendary(ObjectEventViewModel objectEventModel, ModelDelta token) {
+         var legendFlag = 0x21;
+         while (UsedFlags.Contains(legendFlag)) legendFlag++;
+         UsedFlags.Add(legendFlag);
+         var catchFlag = legendFlag;
+         while (UsedFlags.Contains(catchFlag)) catchFlag++;
+         UsedFlags.Add(catchFlag);
+
+         int cryText = model.IsFRLG() ? WriteText(token, "Roar!") : Pointer.NULL;
+
+         #region script
+         var script = new StringBuilder(@"
+lock
+faceplayer
+waitsound
+cry 1 2
+setwildbattle 1 50 0
+");
+         if (model.IsFRLG()) {
+            script.AppendLine($"preparemsg <{cryText:X6}>");
+            script.AppendLine("waitmsg");
+         }
+         script.AppendLine("waitcry");
+         script.AppendLine("pause 10");
+         if (model.IsFRLG()) {
+            script.AppendLine(@"
+   playsong mus_encounter_gym_leader playOnce
+   waitkeypress
+   setflag 0x0807
+   special 0x138
+   waitstate
+   clearflag 0x0807
+");
+         } else if (model.IsEmerald()) {
+            script.AppendLine(@"
+   setflag 0x08C1
+   special 0x13A
+   waitstate
+   clearflag 0x08C1
+");
+         } else {
+            script.AppendLine(@"
+   setflag 0x861
+   special 0x137
+   waitstate
+   clearflag 0x861
+");
+         }
+         script.AppendLine(@$"
+fadescreen 1
+hidesprite 0x800F
+fadescreen 0
+special2 0x800D GetBattleOutcome
+if.compare.goto 0x800D = 7 <caught>
+bufferPokemon 0 1
+msgbox.default <auto>
+{{
+The [buffer1] disappeared!
+}}
+release
+end
+
+caught:
+setflag 0x{catchFlag:X4}
+release
+end
+
+");
+         #endregion
+
+         var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 160);
+         var scriptText = script.ToString();
+         var content = parser.Compile(token, model, scriptStart, ref scriptText, out var _, out var _);
+         token.ChangeData(model, scriptStart, content);
+
+         objectEventModel.Graphics = trainerGraphics;
+         objectEventModel.Elevation = FindPreferredTrainerElevation(model, trainerGraphics);
+         objectEventModel.MoveType = 8;
+         objectEventModel.RangeX = objectEventModel.RangeY = 0;
+         objectEventModel.TrainerType = objectEventModel.TrainerRangeOrBerryID = 0;
+         objectEventModel.ScriptAddress = scriptStart;
+         objectEventModel.Flag = legendFlag;
+
+         model.ObserveRunWritten(token, new XSERun(scriptStart, SortedSpan.One(objectEventModel.Start + 16)));
+         parser.FormatScript<XSERun>(token, model, scriptStart);
+      }
+
+      public LegendaryEventContent GetLegendaryEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetLegendaryEventContent(model, parser, eventModel);
+      public static LegendaryEventContent GetLegendaryEventContent(IDataModel model, ScriptParser parser, ObjectEventViewModel ev) {
+         var content = new LegendaryEventContent(Pointer.NULL, Pointer.NULL, null, null, Pointer.NULL);
+         /*
+            67 preparemsg text<"">
+            A1 cry species:data.pokemon.names effect:
+            B6 setwildbattle species: level. item:
+            29 setflag flag:
+            2A clearflag flag:
+            7D bufferPokemon buffer.3 species:data.pokemon.names
+         */
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, 0x67, 0xA1, 0xB6, 0x29, 0x2A, 0x7D);
+         var flagsSet = new Dictionary<int, int>(); // address of flag -> flag value
+         var flagsCleared = new Dictionary<int, int>(); // address of flag -> flag value
+         var bufferSpots = new Dictionary<int, int>(); // address of buffer -> pokemon to buffer
+         foreach (var spot in spots) {
+            if (spot.Line.LineCode[0] == 0x29) {
+               flagsSet[spot.Address + 1] = model.ReadMultiByteValue(spot.Address + 1, 2);
+            } else if (spot.Line.LineCode[0] == 0x2A) {
+               flagsCleared[spot.Address + 1] = model.ReadMultiByteValue(spot.Address + 1, 2);
+            } else if (spot.Line.LineCode[0] == 0x7D) {
+               bufferSpots[spot.Address + 2] = model.ReadMultiByteValue(spot.Address + 2, 2);
+            } else {
+               content = spot.Line.LineCode[0] switch {
+                  0x67 => content with { CryTextPointer = spot.Address + 1 },
+                  0xA1 => content with { Cry = spot.Address },
+                  0xB6 => content with { SetWildBattle = spot.Address },
+                  _ => throw new NotImplementedException(),
+               };
+            }
+         }
+         if (content.Cry == Pointer.NULL) return null;
+         if (content.SetWildBattle == Pointer.NULL) return null;
+         var setOnlyFlags = flagsSet.Values.Except(flagsCleared.Values).ToHashSet();
+         if (setOnlyFlags.Count != 1) return null;
+         var bufferPokemon = new List<int>();
+         foreach (var kvp in bufferSpots) {
+            if (kvp.Value == model.ReadMultiByteValue(content.SetWildBattle + 1, 2)) bufferPokemon.Add(kvp.Key - 2);
+         }
+
+         var legendFlag = setOnlyFlags.Single();
+         var legendFlagAddress = flagsSet.Keys.Where(key => flagsSet[key] == legendFlag);
+         content = content with { SetFlag = legendFlagAddress.Select(flag => flag - 1).ToList() };
+         content = content with { BufferPokemon = bufferPokemon };
+
+         return content;
+      }
+
+      #endregion
+
       #region HM Object
 
       public ObservableCollection<string> HMObjectOptions { get; } = new();
@@ -893,7 +1037,7 @@ wrongspecies:
       private void UpdateObjectTemplateImage(TemplateType old = default) {
          if (selectedTemplate == TemplateType.None) {
             ObjectTemplateImage = GraphicsOptions[0];
-         } else if (selectedTemplate.IsAny(TemplateType.Trainer, TemplateType.Npc, TemplateType.Tutor, TemplateType.Trade, TemplateType.HMObject)) {
+         } else if (selectedTemplate.IsAny(TemplateType.Trainer, TemplateType.Npc, TemplateType.Tutor, TemplateType.Trade, TemplateType.Legendary, TemplateType.HMObject)) {
             ObjectTemplateImage = GraphicsOptions[TrainerGraphics];
          } else if (selectedTemplate == TemplateType.Item) {
             ObjectTemplateImage = GraphicsOptions[ItemGraphics];
@@ -916,7 +1060,9 @@ wrongspecies:
 
    public record TradeEventContent(int InfoPointer, int ThanksPointer, int SuccessPointer, int FailedPointer, int WrongSpeciesPointer, int TradeAddress);
 
-   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade, HMObject }
+   public record LegendaryEventContent(int Cry, int SetWildBattle, List<int> BufferPokemon, List<int> SetFlag, int CryTextPointer);
+
+   public enum TemplateType { None, Npc, Item, Trainer, Mart, Tutor, Trade, Legendary, HMObject }
 }
 
 /*

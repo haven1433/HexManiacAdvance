@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.model = model;
          this.selection = selection;
          tools = new IToolViewModel[] {
-            new TableTool(model, selection, history, viewPort, this),
+            new TableTool(model, selection, history, viewPort, this, singletons.WorkDispatcher),
             new PCSTool(viewPort, history, this),
             new SpriteTool(viewPort, history),
             new CodeTool(singletons, model, selection, history, viewPort),

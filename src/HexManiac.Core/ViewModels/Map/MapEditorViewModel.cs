@@ -54,7 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly EventTemplate templates;
       private readonly Random rnd = new();
 
-      public IViewPort ViewPort => viewPort;
+      public IEditableViewPort ViewPort => viewPort;
       public IFileSystem FileSystem => fileSystem;
       public Format Format => format;
 
@@ -202,12 +202,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          () => {
             history.Undo.Execute();
             Tutorials.Complete(Tutorial.ToolbarUndo_Undo);
+            HideEvents = false;
             Refresh();
          },
          () => history.Undo.CanExecute(default));
       public ICommand Redo => StubCommand(ref redo,
          () => {
             history.Redo.Execute();
+            HideEvents = false;
             Refresh();
          },
          () => history.Redo.CanExecute(default));
@@ -325,6 +327,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             SpriteScale = primaryMap?.SpriteScale ?? .5,
          };
          if (template != null) (newMap.LeftEdge, newMap.TopEdge) = (template.LeftEdge, template.TopEdge);
+         UpdatePrimaryMap(newMap);
+      }
+
+      public void NavigateTo(int bank, int map, int x, int y) {
+         if (primaryMap != null) {
+            backStack.Add(primaryMap.MapID);
+            if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();
+            if (forwardStack.Count > 0) {
+               forwardStack.Clear();
+               forwardCommand.RaiseCanExecuteChanged();
+            }
+         }
+
+         VisibleMaps.Clear();
+         var newMap = new BlockMapViewModel(fileSystem, Tutorials, viewPort, Format, templates, bank, map) {
+            IncludeBorders = primaryMap?.IncludeBorders ?? true,
+            SpriteScale = primaryMap?.SpriteScale ?? .5,
+         };
+         var (width, height) = (newMap.PixelWidth / newMap.SpriteScale / 16, newMap.PixelHeight / newMap.SpriteScale / 16);
+         var (centerX, centerY) = (width / 2, height / 2);
+         newMap.LeftEdge += (int)((centerX - x) * 16 * newMap.SpriteScale);
+         newMap.TopEdge += (int)((centerY - y) * 16 * newMap.SpriteScale);
          UpdatePrimaryMap(newMap);
       }
 
@@ -739,7 +763,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RectangleDrawMove(double x, double y) {
-         var map = MapUnderCursor(x, y);
+         var map = PrimaryMap;
          if (tilesToDraw == null && drawBlockIndex < 0 && collisionIndex < 0) {
             interactionType = PrimaryInteractionType.None;
          } else if (map != null) {
@@ -1162,10 +1186,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var banks = AllMapsModel.Create(warp.Element.Model, default);
             if (banks[warp.Bank] == null) return tips.ToArray();
             if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
-               var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, warp.Bank, warp.Map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
-               var image = blockmap.AutoCrop(warp.WarpID - 1);
-               if (image != null) {
-                  tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+               var targetWarp = warp.WarpModel.TargetWarp;
+               if (targetWarp != null) {
+                  var image = GetMapPreview(warp.Bank, warp.Map, targetWarp.X, targetWarp.Y);
+                  if (image != null) {
+                     tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+                  }
                }
             }
          } else if (ev is ObjectEventViewModel obj) {
@@ -1182,6 +1208,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          return tips.ToArray();
+      }
+
+      public ReadonlyPixelViewModel GetMapPreview(int bank, int map, int x, int y) {
+         var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, bank, map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+         var image = blockmap.AutoCrop(x, y);
+         if (image != null) {
+            return new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData);
+         }
+         return null;
       }
 
       public const int TextSummaryLimit = 60, TextCountLimit = 5;

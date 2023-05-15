@@ -586,9 +586,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string ErrorText => errorText;
 
       public ObservableCollection<string> BehaviorOptions { get; } = new();
-      public ObservableCollection<string> LayerOptions { get; } = new() { "Normal", "Covered", "Split", };
-      public ObservableCollection<string> TerrainOptions { get; } = new() { "Normal", "Grass", "Water" };
-      public ObservableCollection<string> EncounterOptions { get; } = new() { "Normal", "Grass", "Water" };
+      public ObservableCollection<string> LayerOptions { get; } = new();
+      public ObservableCollection<string> TerrainOptions { get; } = new();
+      public ObservableCollection<string> EncounterOptions { get; } = new();
 
       private bool hasTerrainAndEncounter;
       public bool HasTerrainAndEncounter { get => hasTerrainAndEncounter; set => Set(ref hasTerrainAndEncounter, value); }

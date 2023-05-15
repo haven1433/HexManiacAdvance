@@ -17,6 +17,12 @@ using System.Linq;
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public record BerrySpot(int Address, int BerryID);
 
+   public record FlagContext(int Address, int Bank, int Map);
+   public record ObjectFlagContext(int Address, int Bank, int Map, int Object) : FlagContext(Address, Bank, Map);
+   public record ScriptFlagContext(int Address, int Bank, int Map, int Script) : FlagContext(Address, Bank, Map);
+   public record SignpostFlagContext(int Address, int Bank, int Map, int Signpost) : FlagContext(Address, Bank, Map);
+   public record HeaderFlagContext(int Address, int Bank, int Map, int ScriptType) : FlagContext(Address, Bank, Map);
+
    public class Flags {
       private const int ScriptLengthLimit = 0x1000;
       private const int ScriptCountLimit = 100;
@@ -30,7 +36,91 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {
-            usedFlags.Add(model.ReadMultiByteValue(spot.Address + 1, 2));
+            usedFlags.Add(model.ReadMultiByteValue(spot.Address + 1, 2));  
+         }
+
+         return usedFlags;
+      }
+
+      /// <summary>
+      /// Instead of just finding out which flags are used,
+      /// this method attempts to find all the context for each flag.
+      /// Any flag in this dictionary is used at least once by a header, object, script, or signpost.
+      /// You can check the flag to see info about what calls it.
+      /// * The exact address that uses the flag
+      /// * the Bank/Map that uses the flag, as well as the event type and index
+      /// * For header scripts, the type of script that uses it
+      /// </summary>
+      public static Dictionary<int, List<FlagContext>> GetAllFlagContext(IDataModel model, ScriptParser parser) {
+         var usedFlags = new Dictionary<int, List<FlagContext>>();
+         var filter = new byte[] { 0x29, 0x2A, 0x2B }; // setflag, clearflag, checkflag
+
+         void Add(int scriptAddress, Func<ScriptSpot, FlagContext> predicate) {
+            foreach (var spot in GetAllScriptSpots(model, parser, new[] { scriptAddress }, filter)) {
+               var flag = model.ReadMultiByteValue(spot.Address + 1, 2);
+               if (!usedFlags.ContainsKey(flag)) usedFlags.Add(flag, new());
+               usedFlags[flag].Add(predicate(spot));
+            }
+         }
+
+         var banks = AllMapsModel.Create(model, default);
+         for (int bankIndex = 0; bankIndex < banks.Count; bankIndex++) {
+            var bank = banks[bankIndex];
+            if (bank == null) continue;
+            for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
+               var map = bank[mapIndex];
+               if (map == null) continue;
+
+               // map header scripts
+               var headerScripts = map.MapScripts;
+               if (headerScripts != null) {
+                  for (int scriptIndex = 0; scriptIndex < headerScripts.Count; scriptIndex++) {
+                     var script = headerScripts[scriptIndex];
+                     if (script == null) continue;
+                     if (script.GetValue("type").IsAny(2, 4)) {
+                        var start = script.GetAddress("pointer");
+                        if (start >= model.Count || start < 0) continue;
+                        int initialStart = start;
+                        while (!model.ReadMultiByteValue(start, 2).IsAny(0, 0xFFFF)) {
+                           Add(model.ReadPointer(start + 4), spot => new HeaderFlagContext(spot.Address, bankIndex, mapIndex, script.GetValue("type")));
+                           start += 8;
+                           if (start - initialStart > 100) break; // sanity check
+                        }
+                     } else {
+                        Add(script.GetAddress("pointer"), spot => new HeaderFlagContext(spot.Address, bankIndex, mapIndex, script.GetValue("type")));
+                     }
+                  }
+               }
+
+               // objects
+               var objects = map.Events.Objects;
+               for (int objectIndex = 0; objectIndex < objects.Count; objectIndex++) {
+                  var obj = objects[objectIndex];
+                  if (obj == null) continue;
+                  var objFlag = obj.Flag;
+                  if (objFlag != 0) {
+                     if (!usedFlags.ContainsKey(objFlag)) usedFlags.Add(objFlag, new());
+                     usedFlags[objFlag].Add(new ObjectFlagContext(obj.Element.Start, bankIndex, mapIndex, objectIndex));
+                  }
+                  Add(obj.ScriptAddress, spot => new ObjectFlagContext(spot.Address, bankIndex, mapIndex, objectIndex));
+               }
+
+               // scripts
+               var scripts = map.Events.Scripts;
+               for (int scriptIndex = 0; scriptIndex < scripts.Count; scriptIndex++) {
+                  var script = scripts[scriptIndex];
+                  if (script == null) continue;
+                  Add(script.ScriptAddress, spot => new ScriptFlagContext(spot.Address, bankIndex, mapIndex, scriptIndex));
+               }
+
+               // signposts
+               var signposts = map.Events.Signposts;
+               for (int signpostIndex = 0; signpostIndex < signposts.Count; signpostIndex++) {
+                  var signpost = signposts[signpostIndex];
+                  if (signpost == null || !signpost.HasScript) continue;
+                  Add(signpost.ScriptAddress, spot => new SignpostFlagContext(spot.Address, bankIndex, mapIndex, signpostIndex));
+               }
+            }
          }
 
          return usedFlags;
@@ -199,12 +289,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var element in GetAllEvents(model, "objects")) scriptAddresses.Add(element.GetAddress("script"));
          foreach (var element in GetAllEvents(model, "scripts")) scriptAddresses.Add(element.GetAddress("script"));
          foreach (var element in GetAllEvents(model, "signposts")) scriptAddresses.Add(element.GetAddress("arg"));
+
          // header scripts
          foreach (var bank in AllMapsModel.Create(model, default)) {
+            if (bank == null) continue;
             foreach (var map in bank) {
+               if (map == null) continue;
                var scripts = map.MapScripts;
                if (scripts == null) continue;
                foreach (var script in scripts) {
+                  if (script == null) continue;
                   if (script.GetValue("type").IsAny(2, 4)) {
                      var start = script.GetAddress("pointer");
                      if (start >= model.Count || start < 0) continue;

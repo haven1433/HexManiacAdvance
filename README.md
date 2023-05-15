@@ -1,45 +1,44 @@
 # Hex Maniac Advance
 
-HexManiacAdvance is a hex editor designed for editing Pokemon GBA games. It specifically targets the English games Ruby (AXVE), Sapphire (AXPE), FireRed (BPRE), LeafGreen (BPGE), and Emerald (BPEE). It has a reduced set of features when opening other files.
+HexManiacAdvance is an all-purpose editor designed for editing Pokemon GBA games. It specifically targets the English games Ruby (AXVE), Sapphire (AXPE), FireRed (BPRE), LeafGreen (BPGE), and Emerald (BPEE). It has a reduced set of features when opening other files.
 
-Other than standard hex editor features like load/save, view/edit, and copy/paste, it also provides improved navigation, display, and editing features for more easily working with data within the files.
+Other than standard hex editor features like view/edit, copy/paste, and diff, it also provides improved navigation, display, and editing for working with data within the files. It also has custom editors for complex data like code, images, maps, and the pokedex.
 
 ![Screenshot](https://i.imgur.com/uUYoaqk.png)
 
 ## What Can HexManiacAdvance do for me?
 **Data Editing**
-* Edit Pokemon names, stats, evolutions, moves, and pokedex entries
-* Edit Trainer names, items, and pokemon teams
-* Edit Move names, stats, and descriptions
-* Edit Item stats and effects
-* Edit many other miscellaneous tables in the game like multi-choice text lists, what moves are effected by SoundProof, how much money different types of trainers give you, in-game trades, and what moves won't appear during metronome
-* Edit many constants within the game, such as the shiny odds, the stat boost for various badges, or the exp boost for lucky egg or traded pokemon
+* Edit Pokemon, Trainers, Moves, Items, and more.
+* Use the goto tool to help you locate and edit uncommon data like SoundProof moves, trainer payout, in-game trades, and moves that can't be copied by Metronome.
+* Edit many constants within the game, such as the shiny odds, stat boost from badges, or the exp boost for lucky egg and traded pokemon.
+
+**Map Editing**
+* Edit existing maps, events, connections, and warps using a separate tab.
+* Simple event scripts are converted into controls directly in the map editor, so you don't need to change your view to edit text, trainers, and more.
+* Jump quickly between related maps, scripts, and tables.
 
 **Text Editing**
-* Find and edit almost any text in the game
-* Safely and automatically repoint text that's too long to fit in its original space
+* Find and edit almost any text in the game.
+* Safely and automatically repoint text that no longer fits at its original address.
 
 **Image Editing**
-* Edit images and tilemaps directly within HMA, or use import/export to convert from PNG so you can use your favorite image editor
-* Never worry about tilesets again: HMA lets you treat tilemaps just like any other sprite
-* Edit the title screen and the menus
-* Edit the townmap and player icons
-* Edit sprites of pokemon, trainers, items, and Overworld characters
-* Edit type icons
-* Have full control over how you handle shared palettes, or ask HMA to do it for you
+* Edit images and tilemaps directly within HMA, or use import/export to convert from PNG so you can use your favorite image editor.
+* Never worry about tilesets again: HMA lets you treat tilemaps just like any other sprite.
+* Edit the title screen, menus, townmap, icons, sprites, and other image data in the game.
+* Have full control over how you handle shared palettes, or ask HMA to do it for you.
 
 **Code Editing**
-* View/Edit events scripts like you would with XSE
-* HMA can integrate with AdvanceMap as a script editor 
-* View/Edit battle scripts and animation scripts for your moves
-* View/Edit thumb code
+* View/Edit event scripts similar to how you would with XSE, but with additional macros.
+* View/Edit other types of scripts used for moves effects, move animations, and trainer ai.
+* View/Edit thumb code.
 
 **Utilities**
-* Safely add the Fairy type to your game
-* Expand your game with any number of additional moves
-* Create and apply patches (.ips and .ups)
-* Reorder your pokedex
-* Export backups as you work
+* Safely add the Fairy type to your game.
+* Expand your game with any number of additional moves or tutors.
+* Add abilities similar to Pixilate.
+* Create and apply patches (.ips and .ups).
+* Reorder your pokedex.
+* Export backups as you work.
 
 **Community**
 * An active discord community to help with any problems you encounter
@@ -47,8 +46,7 @@ Other than standard hex editor features like load/save, view/edit, and copy/past
 
 Here's a quote about the tool from Asith, Pokemon GBA Rom Hacker. Maker of [Spectrobes GBA](https://www.pokecommunity.com/showthread.php?t=459017), judge from [MAGM4](https://discord.gg/aDZuSndX4c), winner of [MAGM5](https://discord.gg/mjhBXsG9jq).
 
-> HexManiacAdvance is a new tool that could be described as all-purpose. It does a lot of things that old tools did, but better and safer. Anthroyd's tutorials are still very relevant, but one of the biggest differences is the existence of hma as a tool. I would recommend checking it out, it can do the jobs of nearly all old tools except advancemap and xse.
-
+> HexManiacAdvance is now a must-have binary hacking tool. It does what all the old tools did but better and safer, essentially being an all-in-one toolkit. You can make an entire hack using only HMA, and when that's combined with its QoL features and safety nets to not break your rom, there's no reason to use tools of the past. I'm especially impressed with how its new map and script editors have ousted AdvanceMap and XSE - tools that were the only option for a decade - by immediately being 10 times better to use. It has changed the binary hacking standard to the point where classic binary hacking and HMA hacking are completely distinct and I can't imagine working without it.
 
 # Getting Started
 

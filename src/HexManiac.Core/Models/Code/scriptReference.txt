@@ -9,19 +9,21 @@
 # 05 A != B
 
 # memory banks:
-# there are only 4 banks. Each can store a byte (see setbyte2) or a pointer (see loadpointer)
+# There are only 4 banks. Each can store a byte (see setbyte2) or a pointer (see loadpointer).
 
 # buffers:
-# the only buffers are 0, 1, and 2. They can hold strings.
+# The only buffers are 0, 1, and 2. They can hold strings and numbers.
 
 # variables:
-# possibly from 8000 to 800F. They can hold numbers, probably 1 byte, possibly more.
-# variable reference: https://github.com/pret/pokeemerald/blob/3cc68031560b3efcbe3c838a180fe5cad924060b/include/constants/vars.h
+# Range from 4000 to 40FF, as well as from 8000 to 8015. They can hold two-byte numbers.
+# Variable references: https://github.com/pret/pokeemerald/blob/3cc68031560b3efcbe3c838a180fe5cad924060b/include/constants/vars.h
+#                      https://github.com/pret/pokefirered/blob/master/include/constants/vars.h
+#                      https://github.com/pret/pokeruby/blob/master/include/constants/vars.h
 
 # RAM:
-# you can write individual bytes into set locations in the RAM. Examples?
+# You can write individual bytes into set locations in the RAM. Examples?
 
-# macros
+# macros:
 msgbox.npc       0F 00 ptr<""> 09 02  # loadpointer, callstd 2
 msgbox.sign      0F 00 ptr<""> 09 03  # loadpointer, callstd 3
 msgbox.default   0F 00 ptr<""> 09 04  # loadpointer, callstd 4

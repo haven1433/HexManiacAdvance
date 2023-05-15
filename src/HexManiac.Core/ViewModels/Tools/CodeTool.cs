@@ -234,20 +234,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             var label = scriptStart.ToString("X6");
             var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart);
-            var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = info.Length };
-            parser.AddKeywords(model, body);
-            body.Content = info.Content;
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
                Contents[i].HelpSourceChanged -= UpdateScriptHelpFromLine;
-               Contents[i].Content = body.Content;
-               Contents[i].Address = body.Address;
-               Contents[i].CompiledLength = body.CompiledLength;
-               Contents[i].Label = body.Label;
+               Contents[i].Content = string.Empty;
+               if (Contents[i].Address != scriptStart) parser.AddKeywords(model, Contents[i]);
+               Contents[i].Content = info.Content;
+               Contents[i].Address = scriptStart;
+               Contents[i].CompiledLength = info.Length;
+               Contents[i].Label = label;
                Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents[i].ContentChanged += ScriptChanged;
             } else {
+               var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = info.Length };
+               parser.AddKeywords(model, body);
+               body.Content = info.Content;
                body.ContentChanged += ScriptChanged;
                body.HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents.Add(body);

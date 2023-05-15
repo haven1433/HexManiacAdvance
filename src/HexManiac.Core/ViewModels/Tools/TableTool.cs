@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly ViewPort viewPort;
       private readonly IToolTrayViewModel toolTray;
+      private readonly IWorkDispatcher dispatcher;
 
       public string Name => "Table";
 
@@ -167,12 +168,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       // properties that exist solely so the UI can remember things when the tab switches
       public double VerticalOffset { get; set; }
 
-      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray) {
+      public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray, IWorkDispatcher dispatcher) {
          this.model = model;
          this.selection = selection;
          this.history = history;
          this.viewPort = viewPort;
          this.toolTray = toolTray;
+         this.dispatcher = dispatcher;
          CurrentElementSelector = new FilteringComboOptions();
          CurrentElementSelector.Bind(nameof(FilteringComboOptions.SelectedIndex), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();
@@ -267,6 +269,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (Groups.Count > childIndexGroup) Groups[childIndexGroup].Open();
       }
 
+      public bool HasUsageOptions {
+         get {
+            foreach(var child in UsageChildren) {
+               if (child is not MapOptionsArrayElementViewModel mapUsage) return true;
+               return mapUsage.MapPreviews.Count > 0;
+            }
+            return false;
+         }
+      }
+
       private int usageChildInsertionIndex = 0;
       private void AddUsageChild(IArrayElementViewModel child) {
          if (usageChildInsertionIndex == UsageChildren.Count) {
@@ -275,6 +287,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             UsageChildren[usageChildInsertionIndex] = child;
          }
          usageChildInsertionIndex++;
+         NotifyPropertyChanged(nameof(HasUsageOptions));
       }
 
       private bool dataForCurrentRunChangeUpdate;
@@ -557,6 +570,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewPort.Tools.CodeTool.Mode = CodeMode.Script;
                }
             }));
+         }
+
+         // maps
+         if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState) {
+            var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
+            mapOptions.MapPreviews.CollectionChanged += (sender, e) => NotifyPropertyChanged(nameof(HasUsageOptions));
+            AddUsageChild(mapOptions); // always add, but invisible when empty
          }
       }
 

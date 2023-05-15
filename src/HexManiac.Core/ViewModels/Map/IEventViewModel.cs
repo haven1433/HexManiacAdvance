@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
       public ICommand CycleEventCommand { get; }
+      public ModelArrayElement Element { get; }
       string EventType { get; }
       string EventIndex { get; }
       int TopOffset { get; }
@@ -44,6 +45,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public virtual int TopOffset => 0;
       public virtual int LeftOffset => 0;
+
+      public ModelArrayElement Element => flySpot;
 
       #region X/Y
 
@@ -410,6 +413,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => element.GetValue("moveType");
          set {
             element.SetValue("moveType", value);
+            FacingOptions.Update(FacingOptions.AllOptions, MoveType);
             RaiseEventVisualUpdated();
             NotifyPropertyChanged();
          }
@@ -530,7 +534,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("flag", value);
             NotifyPropertyChanged();
             flagText = null;
-            NotifyPropertyChanged(nameof(FlagText));
+            NotifyPropertyChanged(nameof(FlagText), nameof(SampleLegendClearScript));
          }
       }
 
@@ -544,7 +548,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             flagText = value;
             element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(Flag));
+            NotifyPropertyChanged(nameof(Flag), nameof(SampleLegendClearScript));
          }
       }
 
@@ -936,6 +940,91 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Legendary Content
+
+      private Lazy<LegendaryEventContent> legendaryContent;
+
+      public bool ShowLegendaryContent {
+         get {
+            var content = legendaryContent.Value;
+            if (content != null && PokemonOptions.AllOptions == null) {
+               var options = ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.PokemonNameTable));
+               PokemonOptions.Update(options, element.Model.ReadMultiByteValue(content.SetWildBattle + 1, 2));
+               PokemonOptions.Bind(nameof(PokemonOptions.SelectedIndex), (sender, e) => {
+                  element.Model.WriteMultiByteValue(content.Cry + 1, 2, element.Token, PokemonOptions.SelectedIndex);
+                  element.Model.WriteMultiByteValue(content.SetWildBattle + 1, 2, element.Token, PokemonOptions.SelectedIndex);
+                  foreach (var buffer in content.BufferPokemon) element.Model.WriteMultiByteValue(buffer + 2, 2, element.Token, PokemonOptions.SelectedIndex);
+               });
+            }
+            if (content != null && HoldItemOptions.AllOptions == null) {
+               var options = ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.ItemsTableName));
+               HoldItemOptions.Update(options, element.Model.ReadMultiByteValue(content.SetWildBattle + 4, 2));
+               HoldItemOptions.Bind(nameof(HoldItemOptions.SelectedIndex), (sender, e) => element.Model.WriteMultiByteValue(content.SetWildBattle + 4, 2, element.Token, HoldItemOptions.SelectedIndex));
+            }
+            return content != null;
+         }
+      }
+
+      public FilteringComboOptions PokemonOptions { get; } = new();
+      public void GotoPokemon() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.PokemonNameTable)[PokemonOptions.SelectedIndex].Start);
+      public int Level {
+         get => legendaryContent.Value == null ? -1 : element.Model[legendaryContent.Value.SetWildBattle + 3];
+         set {
+            if (legendaryContent.Value == null) return;
+            element.Token.ChangeData(element.Model, legendaryContent.Value.SetWildBattle + 3, (byte)value);
+         }
+      }
+      public FilteringComboOptions HoldItemOptions { get; } = new();
+      public void GotoHoldItem() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.ItemsTableName)[HoldItemOptions.SelectedIndex].Start);
+      private string legendaryFlagText;
+      public string LegendaryFlagText {
+         get {
+            if (legendaryContent.Value == null) return null;
+            if (legendaryFlagText == null) legendaryFlagText = element.Model.ReadMultiByteValue(legendaryContent.Value.SetFlag[0] + 1, 2).ToString("X4");
+            return legendaryFlagText;
+         }
+         set {
+            if (legendaryContent.Value == null) return;
+            legendaryFlagText = value;
+            foreach (var flag in legendaryContent.Value.SetFlag) {
+               element.Model.WriteMultiByteValue(flag + 1, 2, element.Token, value.TryParseHex(out int result) ? result : 0);
+            }
+            NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(SampleLegendClearScript));
+         }
+      }
+      public bool HasCryText => (legendaryContent.Value?.CryTextPointer ?? Pointer.NULL) != Pointer.NULL;
+      private string cryText;
+      public string CryText {
+         get => GetText(ref cryText, legendaryContent.Value?.CryTextPointer);
+         set => SetText(ref cryText, legendaryContent.Value?.CryTextPointer, value, "Cry");
+      }
+
+      private TextEditorViewModel sampleLegendClearScript;
+      public TextEditorViewModel SampleLegendClearScript {
+         get {
+            var script = @$"  # whatever
+  if.flag.clear.call 0x{LegendaryFlagText} <show>
+  # whatever
+  end
+
+show:
+  clearflag 0x{FlagText}
+  return";
+            if (sampleLegendClearScript == null) {
+               sampleLegendClearScript = new TextEditorViewModel() { LineCommentHeader = "#" };
+               sampleLegendClearScript.Keywords.Add("if.flag.clear.call");
+               sampleLegendClearScript.Keywords.Add("end");
+               sampleLegendClearScript.Keywords.Add("clearflag");
+               sampleLegendClearScript.Keywords.Add("return");
+            }
+            sampleLegendClearScript.Content = script;
+            return sampleLegendClearScript;
+         }
+      }
+
+      #endregion
+
       #region Berry Content
 
       public bool ShowBerryContent => TrainerType == 0 && TrainerRangeOrBerryID != 0;
@@ -1001,6 +1090,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
          tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this));
+         legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
       }
 
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
@@ -1125,6 +1215,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank, Map);
+
+      public WarpEventModel WarpModel => new WarpEventModel(element);
 
       #endregion
 

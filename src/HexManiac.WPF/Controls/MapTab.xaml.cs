@@ -149,18 +149,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          else if (e.Key == Key.Space) {
             ViewModel.ShowBeneath = true;
          } else if (e.KeyboardDevice.Modifiers == ModifierKeys.Control) {
-            ViewModel.HideEvents = true;
+            ViewModel.HideEvents |= !waitingForControlUp;
+            waitingForControlUp = true;
             e.Handled = false;
          } else e.Handled = false;
       }
 
+      bool waitingForControlUp; // sentinel to watch for ctrl keyup, since e.IsRepeat doesn't work for Ctrl after a Ctrl+Z
       private void HandleKeyUp(object sender, KeyEventArgs e) {
          if (Keyboard.FocusedElement is TextBoxBase || Keyboard.FocusedElement is TextBoxLookAlike) return;
          if (e.Key == Key.Space) {
             ViewModel.ShowBeneath = false;
             e.Handled = true;
          }
-         ViewModel.HideEvents = e.KeyboardDevice.Modifiers == ModifierKeys.Control;
+         if (e.Key == Key.LeftCtrl || e.Key == Key.RightCtrl) {
+            waitingForControlUp = false;
+            ViewModel.HideEvents = false;
+         }
+      }
+      protected override void OnLostFocus(RoutedEventArgs e) {
+         base.OnLostFocus(e);
+         ViewModel.HideEvents = false;
+         waitingForControlUp = false;
       }
 
       private void ButtonMove(object sender, MouseEventArgs e) {
