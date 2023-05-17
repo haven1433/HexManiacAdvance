@@ -93,11 +93,14 @@ namespace HavenSoft.HexManiac.Tests {
       [Fact]
       public void ImportImage1OverImage2ResultsInCorrectData() {
          SetupTilemaps();
-         short[] pixelData = null;
-         int width = 0;
+         int[,] pixelData = null;
+         short[] palette = null;
          var fs = new StubFileSystem {
-            SaveImage = (p, w, n) => (pixelData, width) = (p, w),
-            LoadImage = fileName => (pixelData, width),
+            SaveIndexedImage = (sprite, pal, name) => (pixelData, palette) = (sprite, pal.ToArray()),
+            LoadImage = fileName => {
+               var width = pixelData.GetLength(0);
+               return (pixelData.Length.Range(i => palette[pixelData[i % width, i / width]]).ToArray(), width);
+            },
          };
 
          ViewPort.SelectionStart = new Point(4, 0);
@@ -112,10 +115,7 @@ namespace HavenSoft.HexManiac.Tests {
          // the compression and color ordering may be different
          // but the rendered image should be the same
          var importedPixelData = ViewPort.Tools.SpriteTool.PixelData;
-         Assert.Equal(pixelData.Length, importedPixelData.Length);
-         for (int i = 0; i < pixelData.Length; i++) {
-            Assert.Equal(pixelData[i], importedPixelData[i]);
-         }
+         AssertPixelDataEqual(pixelData, palette, importedPixelData);
       }
 
       [Fact]
@@ -144,22 +144,20 @@ namespace HavenSoft.HexManiac.Tests {
          // the compression and color ordering may be different
          // but the rendered image should be the same
          var importedPixelData = ViewPort.Tools.SpriteTool.PixelData;
-         Assert.Equal(pixelData.Length, importedPixelData.Length);
-         for (int i = 0; i < pixelData.Length; i++) {
-            int x = i % pixelData.GetLength(0);
-            int y = i / pixelData.GetLength(0);
-            Assert.Equal(palette[pixelData[x, y]], importedPixelData[i]);
-         }
+         AssertPixelDataEqual(pixelData, palette, importedPixelData);
       }
 
       [Fact]
       public void CautiousImportCreatesCorrectImage() {
          SetupTilemaps();
-         short[] pixelData = null;
-         int width = 0;
+         int[,] pixelData = null;
+         short[] palette = null;
          var fs = new StubFileSystem {
-            SaveImage = (p, w, n) => (pixelData, width) = (p, w),
-            LoadImage = fileName => (pixelData, width),
+            SaveIndexedImage = (sprite, pal, name) => (pixelData, palette) = (sprite, pal.ToArray()),
+            LoadImage = fileName => {
+               var width = pixelData.GetLength(0);
+               return (pixelData.Length.Range(i => palette[pixelData[i % width, i / width]]).ToArray(), width);
+            },
             ShowOptions = (_0, _1, _d, _2) => 2, // use Cautious
          };
 
@@ -179,10 +177,7 @@ namespace HavenSoft.HexManiac.Tests {
          // the compression and color ordering may be different
          // but the rendered image should be the same
          var importedPixelData = ViewPort.Tools.SpriteTool.PixelData;
-         Assert.Equal(pixelData.Length, importedPixelData.Length);
-         for (int i = 0; i < pixelData.Length; i++) {
-            Assert.Equal(pixelData[i], importedPixelData[i]);
-         }
+         AssertPixelDataEqual(pixelData, palette, importedPixelData);
       }
 
       [Fact]
@@ -271,6 +266,15 @@ namespace HavenSoft.HexManiac.Tests {
             tiles.Add(SpriteRun.GetPixels(data, i, 1, 1, 4));
          }
          return tiles.ToArray();
+      }
+
+      private static void AssertPixelDataEqual(int[,] pixelData, short[] palette, short[] renderedPixels) {
+         Assert.Equal(pixelData.Length, renderedPixels.Length);
+         for (int i = 0; i < renderedPixels.Length; i++) {
+            int x = i % pixelData.GetLength(0);
+            int y = i / pixelData.GetLength(0);
+            Assert.Equal(palette[pixelData[x, y]], renderedPixels[i]);
+         }
       }
 
       public static string TextRender(int[,] tile) {
