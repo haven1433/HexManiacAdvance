@@ -293,7 +293,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          if (!ViewModel.SelectedIndex.InRange(0, ViewModel.Count)) return;
          if (GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]) is HexContent hex) {
             hex.Focus();
-         } else if (GetChild(Tabs, string.Empty, ViewModel[ViewModel.SelectedIndex]) is MapTab map) {
+         } else if (GetChild(Tabs, "MapTab", ViewModel[ViewModel.SelectedIndex]) is MapTab map) {
             map.Focus();
          }
       }
@@ -451,10 +451,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                FocusPrimaryContent();
             }
          }
+         if (e.PropertyName.IsAny(nameof(ViewModel.HexConverterVisible), nameof(ViewModel.FindControlVisible), nameof(ViewModel.ShowError))) ResetFocus();
          if (e.PropertyName != nameof(ViewModel.GotoViewModel)) return;
          var args = (ExtendedPropertyChangedEventArgs<GotoControlViewModel>)e;
          args.OldValue.MoveFocusToGoto -= FocusGotoBox;
          ViewModel.GotoViewModel.MoveFocusToGoto += FocusGotoBox;
+         ResetFocus();
+      }
+
+      private void ResetFocus() {
+         // if all the various extra little textboxes are closed, move the focus back to the primary content
+         if (!ViewModel.HexConverterVisible && !ViewModel.FindControlVisible && !ViewModel.ShowError && !ViewModel.GotoViewModel.ControlVisible) FocusPrimaryContent();
       }
 
       private void FocusGotoBox(object sender = default, EventArgs e = default) {

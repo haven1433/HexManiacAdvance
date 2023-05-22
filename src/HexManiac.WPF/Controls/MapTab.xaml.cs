@@ -174,6 +174,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          waitingForControlUp = false;
       }
 
+      protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e) {
+         base.OnLostKeyboardFocus(e);
+         var viewModel = ViewModel;
+         if (viewModel != null) viewModel.HideEvents = false;
+         waitingForControlUp = false;
+      }
+
       private void ButtonMove(object sender, MouseEventArgs e) {
          var element = (FrameworkElement)sender;
          var vm = ViewModel;
