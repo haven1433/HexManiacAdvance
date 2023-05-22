@@ -15,12 +15,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public const int MaxRepeates = 20;
       private readonly IReadOnlyList<IScriptLine> engine;
       private readonly byte endToken;
+      private int gameHash;
 
       public event EventHandler<string> CompileError;
 
-      public ScriptParser(IReadOnlyList<IScriptLine> engine, byte endToken) => (this.engine, this.endToken) = (engine, endToken);
+      public ScriptParser(int gameHash, IReadOnlyList<IScriptLine> engine, byte endToken) {
+         (this.engine, this.endToken) = (engine, endToken);
+         this.gameHash = gameHash;
+      }
 
-      public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(model, address, new Dictionary<int, int>());
+      public void RefreshGameHash(IDataModel model) => gameHash = model.GetShortGameCode();
+
+      public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(gameHash, model, address, new Dictionary<int, int>());
 
       public string Parse(IDataModel data, int start, int length) {
          var builder = new StringBuilder();
@@ -47,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var destinations = new Dictionary<int, int>();
             int lastCommand = -1, repeateLength = 0;
             while (true) {
-               var line = engine.GetMatchingLine(model, address + length);
+               var line = engine.GetMatchingLine(gameHash, model, address + length);
                if (line == null) break;
                // normally we would just use this,
                // but we want to track all the pointers that go to scripts separately.
@@ -116,7 +122,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          int consecutiveNops = 0;
          int lastCommand = -1, repeateLength = 1;
          while (true) {
-            var line = engine.GetMatchingLine(model, address + length);
+            var line = engine.GetMatchingLine(gameHash, model, address + length);
             if (line == null) break;
             consecutiveNops = line.LineCommand.StartsWith("nop") ? consecutiveNops + 1 : 0;
             if (consecutiveNops > 16) return 0;
@@ -147,8 +153,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return length;
       }
 
-      public MacroScriptLine GetMacro(IDataModel model, int address) => engine.GetMatchingMacro(model, address);
-      public ScriptLine GetLine(IDataModel model, int address) => engine.GetMatchingLine(model, address);
+      public MacroScriptLine GetMacro(IDataModel model, int address) => engine.GetMatchingMacro(gameHash, model, address);
+      public ScriptLine GetLine(IDataModel model, int address) => engine.GetMatchingLine(gameHash, model, address);
 
       public IEnumerable<IScriptLine> DependsOn(string basename) {
          foreach (var line in engine) {
@@ -215,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             int length = 0;
             while (true) {
-               var line = engine.GetMatchingLine(model, address + length);
+               var line = engine.GetMatchingLine(gameHash, model, address + length);
                if (line == null) break;
                // there may've previously been a pointer here: the code has changed!
                if (model.GetNextRun(address + length) is PointerRun pRun && pRun.Start == address + length) model.ClearFormat(token, address + length, line.LineCode.Count);
@@ -371,7 +377,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {
          ignoreCharacterCount = 0;
          movedData = new List<(int, int)>();
-         var gameCode = model.GetGameCode().Substring(0, 4);
          var deferredContent = new List<DeferredStreamToken>();
          script = InsertMissingClosers(script);
          var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
@@ -428,7 +433,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             streamInfo.Clear();
             foreach (var command in engine) {
-               if (!command.MatchesGame(gameCode)) continue;
+               if (!command.MatchesGame(gameHash)) continue;
                if (!command.CanCompile(line)) continue;
                var currentSize = result.Count;
 
@@ -565,8 +570,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // need autocomplete for command?
             if (tokens.Length == 1) {
-               var gameCode = model.GetGameCode().Substring(0, 4);
-               candidates = candidates.Where(line => line.LineCommand.StartsWith(tokens[0]) && line.MatchesGame(gameCode)).ToList();
+               candidates = candidates.Where(line => line.LineCommand.StartsWith(tokens[0]) && line.MatchesGame(gameHash)).ToList();
                foreach (var line in candidates) {
                   if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
                }
@@ -648,7 +652,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private string[] Decompile(IDataModel data, int index, int length) {
          var results = new List<string>();
-         var gameCode = data.GetGameCode().Substring(0, 4);
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
 
@@ -672,7 +675,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
 
-            var line = engine.FirstOrDefault(option => option.Matches(data, index) && option.MatchesGame(gameCode));
+            var line = engine.FirstOrDefault(option => option.Matches(gameHash, data, index));
             if (line == null) {
                results.Add($".raw {data[index]:X2}");
                index += 1;
@@ -721,10 +724,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       bool IsEndingCommand { get; }
 
-      bool MatchesGame(string game);
+      bool MatchesGame(int gameCodeHash);
       int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
-      bool Matches(IReadOnlyList<byte> data, int index);
+      bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index);
       string Decompile(IDataModel data, int start, DecompileLabelLibrary labels);
 
       bool CanCompile(string line);
@@ -747,7 +750,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private bool hasShortForm;
       private readonly Dictionary<int, int> shortIndexFromLongIndex = new();
-      private readonly IReadOnlyList<string> matchingGames;
+      private readonly IReadOnlyList<int> matchingGames;
 
       public IReadOnlyList<IScriptArg> Args { get; }
       public IReadOnlyList<byte> LineCode => emptyByteList;
@@ -817,7 +820,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          Usage = parts[0];
       }
 
-      public bool MatchesGame(string game) => matchingGames?.Contains(game) ?? true;
+      public bool MatchesGame(int game) => matchingGames?.Contains(game) ?? true;
 
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
@@ -840,8 +843,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return length;
       }
 
-      public bool Matches(IReadOnlyList<byte> data, int index) {
+      public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (Args.Count == 0) return false;
+         if (!MatchesGame(gameCodeHash)) return false;
          foreach (var arg in Args) {
             if (arg is SilentMatchArg smarg) {
                if (data[index] != smarg.ExpectedValue) return false;
@@ -953,7 +957,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
    public abstract class ScriptLine : IScriptLine {
       private readonly List<string> documentation = new List<string>();
-      private readonly IReadOnlyList<string> matchingGames;
+      private readonly IReadOnlyList<int> matchingGames;
 
       public const string Hex = "0123456789ABCDEF";
       public IReadOnlyList<IScriptArg> Args { get; }
@@ -1015,25 +1019,28 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          Args = args;
       }
 
-      public static IReadOnlyList<string> ExtractMatchingGames(ref string line) {
+      public static IReadOnlyList<int> ExtractMatchingGames(ref string line) {
          if (!line.StartsWith("[")) return null;
          var gamesEnd = line.IndexOf("]");
          if (gamesEnd == -1) return null;
          var games = line.Substring(1, gamesEnd - 1);
          line = line.Substring(gamesEnd + 1).TrimStart();
-         return games.Split("_");
+         return games.Split("_").Select(ConvertAscii).ToList();
       }
 
-      public bool MatchesGame(string game) => matchingGames?.Contains(game) ?? true;
+      public static int ConvertAscii(string letters) {
+         return letters.Reverse().Aggregate(0, (current, letter) => (current << 8) | (byte)letter);
+      }
+
+      public bool MatchesGame(int game) => matchingGames?.Contains(game) ?? true;
 
       public void AddDocumentation(string doc) => documentation.Add(doc);
 
       public bool PartialMatchLine(string line) => LineCommand.MatchesPartial(line.Split(' ')[0]);
 
-      public bool Matches(IReadOnlyList<byte> data, int index) {
+      public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (index + LineCode.Count >= data.Count) return false;
-         var code = data.GetGameCode();
-         if (matchingGames == null || matchingGames.Count == 0 || matchingGames.Any(code.StartsWith)) {
+         if (MatchesGame(gameCodeHash)) {
             return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
          }
          return false;
@@ -1475,22 +1482,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public static class ScriptExtensions {
-      public static MacroScriptLine GetMatchingMacro(this IReadOnlyList<IScriptLine> self, IReadOnlyList<byte>data, int start) {
-         return (MacroScriptLine)self.FirstOrDefault(option => option is MacroScriptLine && option.Matches(data, start));
+      public static MacroScriptLine GetMatchingMacro(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte>data, int start) {
+         return (MacroScriptLine)self.FirstOrDefault(option => option is MacroScriptLine && option.Matches(gameHash, data, start));
       }
 
       /// <summary>
       /// Does not consider macros. Only returns individual lines.
       /// </summary>
-      public static ScriptLine GetMatchingLine(this IReadOnlyList<IScriptLine> self, IReadOnlyList<byte> data, int start) {
-         return (ScriptLine)self.FirstOrDefault(option => option is ScriptLine && option.Matches(data, start));
+      public static ScriptLine GetMatchingLine(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte> data, int start) {
+         return (ScriptLine)self.FirstOrDefault(option => option is ScriptLine && option.Matches(gameHash, data, start));
       }
 
-      public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, IDataModel model, int address, IDictionary<int, int> destinationLengths) {
+      public static int GetScriptSegmentLength(this IReadOnlyList<IScriptLine> self, int gameHash, IDataModel model, int address, IDictionary<int, int> destinationLengths) {
          int length = 0;
          int lastCommand = -1, repeateLength = 1;
          while (true) {
-            var line = self.GetMatchingLine(model, address + length);
+            var line = self.GetMatchingLine(gameHash, model, address + length);
             if (line == null) break;
             length += line.CompiledByteLength(model, address + length, destinationLengths);
             if (line.IsEndingCommand) break;

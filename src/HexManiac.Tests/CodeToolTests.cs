@@ -559,8 +559,8 @@ You said no!
       [Fact]
       public void Macro_GameSpecific_Compiles() {
          var line = new MacroScriptLine("[BPRE_BPGE] some.command 01 varible: 33 # comment");
-         Assert.True(line.MatchesGame("BPRE"));
-         Assert.False(line.MatchesGame("BPEE"));
+         Assert.True(line.MatchesGame(ScriptLine.ConvertAscii("BPRE")));
+         Assert.False(line.MatchesGame(ScriptLine.ConvertAscii("BPEE")));
       }
 
       [Fact]

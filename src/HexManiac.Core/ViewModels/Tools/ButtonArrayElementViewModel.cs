@@ -96,11 +96,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void Load() {
          void Add(GotoMapButton button) {
-            if (!visible) dispatcher.BlockOnUIWork(() => {
-               Visible = true;
-               MapPreviews.Add(button);
-            });
-            else dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
+            Visible = true;
+            MapPreviews.Add(button);
          }
          if (tableName == HardcodeTablesModel.OverworldSprites) {
             foreach (var button in FindOverworldUses()) Add(button);
@@ -117,6 +114,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
                var map = bank[mapIndex];
                foreach (var ev in map.Events.Objects) {
+                  if (cancel) yield break;
                   if (ev.Graphics != index) continue;
                   var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
                   if (button.Image == null) continue;
@@ -144,6 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var map = bank[mapIndex];
                foreach (var ev in map.Events.Objects.Concat<IScriptEventModel>(map.Events.Scripts)) {
                   if (ev is SignpostEventModel sp && !sp.HasScript) continue;
+                  if (cancel) yield break;
                   var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, filter.ToArray());
 
                   // if any of these spots match, then this object's script refers to this enum

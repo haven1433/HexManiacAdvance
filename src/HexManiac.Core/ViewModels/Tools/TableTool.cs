@@ -3,7 +3,6 @@ using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
