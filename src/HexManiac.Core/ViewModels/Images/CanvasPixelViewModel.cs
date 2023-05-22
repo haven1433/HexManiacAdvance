@@ -58,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public void DrawBox(int x, int y, int size, short color) => DrawRect(x, y, size, size, color);
 
       public void DrawRect(int x, int y, int width, int height, short color) {
+         if (x + y * PixelWidth >= PixelData.Length) return;
          for (int i = 0; i < width - 1; i++) {
             PixelData[x + i + y * PixelWidth] = color;
             PixelData[x + width - 1 - i + (y + height - 1) * PixelWidth] = color;
@@ -69,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       }
 
       public void DarkenRect(int x, int y, int width, int height, int darkness) {
+         if (x + y * PixelWidth >= PixelData.Length) return;
          for (int i = 0; i < width - 1; i++) {
             var (p1, p2) = (x + i + y * PixelWidth, x + width - 1 - i + (y + height - 1) * PixelWidth);
             PixelData[p1] = Darken(PixelData[p1], darkness);
