@@ -51,7 +51,8 @@ if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>    
 if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>                                                                                   # checktrainerflag, if1
 if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>                                                                                   # checktrainerflag, if2
 
-movenpc    4F npc: data<`move`> 51 npc: # See below for more information about the applymovement command.
+move.npc    4F npc: data<`move`> 51 00 00       # See below for more information about the applymovement command. This macro assumes using "waitmovement 0" instead of "waitmovement npc".
+move.player 4F 255 data<`move`> 51 00 00        # Moves the player (NPC object #255) around the map. This macro assumes using "waitmovement 0" instead of "waitmovement 255".
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
@@ -79,6 +80,8 @@ movenpc    4F npc: data<`move`> 51 npc: # See below for more information about t
 17 addvar variable: value:                      # variable += value
 18 subvar variable: value:                      # variable -= value
 19 copyvar destination: source:                 # destination = source
+1A setorcopyvar destination: source:            # Works like the copyvar command if the source field is a variable number;
+                                                # works like the setvar command if the source field is not a variable number.
 1A copyvarifnotzero destination: source:        # destination = source (or) destination = *source
                                                 # (if source isn't a valid variable, it's read as a value)
 1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the values in the two banks
@@ -232,7 +235,7 @@ movenpc    4F npc: data<`move`> 51 npc: # See below for more information about t
 8B choosecontextpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
 8C startcontest                              # nop in FireRed. Starts a contest.
 8D showcontestresults                        # nop in FireRed. Shows contest results.
-8E contestlinktransfer                       # nop in FR. In Emerald, starts a wireless connection contest
+8E contestlinktransfer                       # nop in FireRed. In Emerald, starts a wireless connection contest
 8F random high:                              # returns 0<=number<high, stored in 800D (LASTRESULT)
 90 givemoney money:: check.                  # if check is 0, gives the player money
 91 paymoney money:: check.                   # if check is 0, takes money from the player
