@@ -783,7 +783,7 @@ label2:;goto <000050>;end";
          EventScript = "pokemart <0000C0>;{;1;};end";
 
          var martData = (TableStreamRun)Model.GetNextRun(0xC0);
-         Assert.Equal(4, martData.Length);
+         Assert.Equal(2, martData.Length);
       }
 
       [Fact]
