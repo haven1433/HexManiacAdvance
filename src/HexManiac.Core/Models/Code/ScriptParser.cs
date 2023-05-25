@@ -90,6 +90,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                // child script has a 1-byte margin (probably an end after a goto)
                if (destinations.TryGetValue(address + length + 1, out childLength)) {
+                  // there was a skip... should we ignore it?
+                  // If something points to that position, we can't keep going.
+                  var anchor = model.GetNextAnchor(address + length);
+                  if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
                   length += childLength + 1;
                   continue;
                }
@@ -143,6 +148,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
             if (destinations.TryGetValue(address + length + 1, out additionalLength)) {
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
                length += additionalLength + 1;
                continue;
             }
