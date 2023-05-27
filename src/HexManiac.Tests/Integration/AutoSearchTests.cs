@@ -775,7 +775,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void FireRed_Macros_Parse(int address, string content) {
          var model = fixture.LoadModel(FireRedName);
 
-         var parser = new ScriptParser(fixture.Singletons.ScriptLines, 2);
+         var parser = new ScriptParser(model.GetShortGameCode(), fixture.Singletons.ScriptLines, 2);
          var lines = parser.Parse(model, address, 50).SplitLines();
 
          var text = lines[0].Trim();
@@ -784,7 +784,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       [SkippableFact]
-      public void Potion_FindUsesInScripts_5Results() {
+      public void Potion_FindUsesInScripts_7Results() {
          ITabContent newTab = null;
          var model = fixture.LoadModel(FireRedName);
          var viewPort = new ViewPort(FireRedName, model, InstantDispatch.Instance, fixture.Singletons);

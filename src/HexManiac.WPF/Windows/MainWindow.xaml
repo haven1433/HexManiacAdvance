@@ -638,7 +638,7 @@
                                  <hsg3hv:ImageEditorView />
                               </DataTemplate>
                               <DataTemplate DataType="{x:Type mapvm:MapEditorViewModel}">
-                                 <hsg3hv:MapTab FocusElement="FocusTabElement" />
+                                 <hsg3hv:MapTab FocusElement="FocusTabElement" x:Name="MapTab" />
                               </DataTemplate>
                            </ContentControl.Resources>
                         </ContentControl>

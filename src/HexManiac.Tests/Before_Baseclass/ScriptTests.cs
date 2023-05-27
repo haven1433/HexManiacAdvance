@@ -598,6 +598,20 @@ Script:
          Assert.Equal("\"text\"", text);
       }
 
+      [Fact]
+      public void ScriptPointingToPrecedingFreespaceForMart_EditScript_IntroduceEmptyMartData() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@010 86 <000000> 02 @010 ");
+
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         ViewPort.Tools.CodeTool.Contents[0].Content += " ";
+
+         Model.ResolveConflicts();
+         var table = (ITableRun)Model.GetNextRun(0);
+         Assert.Equal(0, table.Start);
+         Assert.Equal("86 00 00 00 08 02".ToByteArray(), Model.Skip(0x10).Take(6).ToArray());
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }

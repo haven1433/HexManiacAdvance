@@ -87,7 +87,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          selectedIndex = selection;
-         if (!selectedIndex.InRange(0, AllOptions.Count - 1)) selectedIndex = -1;
+         if (!selectedIndex.InRange(0, AllOptions.Count)) selectedIndex = -1;
          dropDownIsOpen = false;
          displayText = selectedIndex >= 0 ? AllOptions[selectedIndex].Text : string.Empty;
          NotifyPropertiesChanged(nameof(CanFilter), nameof(AllOptions), nameof(FilteredOptions), nameof(SelectedIndex), nameof(DisplayText), nameof(DropDownIsOpen), nameof(ModelValue));

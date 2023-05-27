@@ -86,11 +86,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public double MultiBoxVerticalOffset { get; set; }
 
       public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
+         var gameHash = model.GetShortGameCode();
          thumb = new ThumbParser(singletons);
-         script = new ScriptParser(singletons.ScriptLines, 0x02);
-         battleScript = new ScriptParser(singletons.BattleScriptLines, 0x3D);
-         animationScript = new ScriptParser(singletons.AnimationScriptLines, 0x08);
-         battleAIScript = new ScriptParser(singletons.BattleAIScriptLines, 0x5A);
+         script = new ScriptParser(gameHash, singletons.ScriptLines, 0x02);
+         battleScript = new ScriptParser(gameHash, singletons.BattleScriptLines, 0x3D);
+         animationScript = new ScriptParser(gameHash, singletons.AnimationScriptLines, 0x08);
+         battleAIScript = new ScriptParser(gameHash, singletons.BattleAIScriptLines, 0x5A);
          script.CompileError += ObserveCompileError;
          battleScript.CompileError += ObserveCompileError;
          animationScript.CompileError += ObserveCompileError;
@@ -401,7 +402,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         // (1) the only pointers to that script are contained within the script we're currently compiling
                         // (2) the script is contained completely within the compiled code (meaning it's actually part of the script as written)
                         if (scriptRun.PointerSources.All(source => start < source && source < start + length)) {
-                           var scriptLength = parser.FindLength(model, scriptRun.Start);
+                           var scriptLength = parser.FindLength(model, scriptRun.Start, model.CurrentCacheScope.ScriptDestinations(start));
                            if (i + scriptLength <= start + code.Length) {
                               i += scriptLength - 1;
                               availableLength += scriptLength;

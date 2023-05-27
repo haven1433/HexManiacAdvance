@@ -11,6 +11,17 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
+   ///// <summary>
+   ///// Sometimes notifying after every change is too noisy.
+   ///// Custom <see cref="INotifyCollectionChanged"/> implementation that allows delayed notifications.
+   ///// </summary>
+   //public class ObservableList<T> : List<T>, INotifyCollectionChanged {
+   //   public event NotifyCollectionChangedEventHandler? CollectionChanged;
+
+   //   public void RaiseCollectionChanged(NotifyCollectionChangedEventArgs e) => CollectionChanged?.Invoke(this, e);
+   //   public void RaiseRefresh() => CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+   //}
+
    public class TableGroupViewModel : ViewModelCore {
       public const string DefaultName = "Other";
 
@@ -49,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!isOpen) return;
          while (Members.Count > currentMember) Members.RemoveAt(Members.Count - 1);
          isOpen = false;
+         // Members.RaiseRefresh();
       }
 
       public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, TableGroupViewModel helperGroup, int splitPortion = -1) {

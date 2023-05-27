@@ -915,6 +915,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("AXPE0", "updatemoney 1 1\r\nend", "95 01 01 02")]
       public void ScriptWithGameSpecificCommand_Compile_Works(string gameCode, string script, string bytes) {
          SetGameCode(gameCode);
+         ViewPort.Tools.CodeTool.ScriptParser.RefreshGameHash(Model);
          var parser = ViewPort.Tools.CodeTool.ScriptParser;
 
          var compiled = parser.Compile(Token, Model, 0, ref script, out var _);
@@ -927,6 +928,7 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("AXPE0", "updatemoney 1 1\r\nend", "95 01 01 02")]
       public void ScriptWithGameSpecificCommand_Decompile_Works(string gameCode, string script, string bytes) {
          SetGameCode(gameCode);
+         ViewPort.Tools.CodeTool.ScriptParser.RefreshGameHash(Model);
          var code = bytes.ToByteArray();
          Token.ChangeData(Model, 0, code);
 

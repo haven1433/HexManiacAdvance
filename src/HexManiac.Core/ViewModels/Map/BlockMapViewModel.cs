@@ -2003,16 +2003,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void HighlightCollision(short[] pixelData, int x, int y) {
-         void Transform(int xx, int yy) {
-            var p = (y + yy) * PixelWidth + x + xx;
-            pixelData[p] = CanvasPixelViewModel.Darken(pixelData[p], 8);
-         }
-         for (int i = 0; i < 15; i++) {
-            Transform(i, 0);
-            Transform(15 - i, 15);
-            Transform(0, 15 - i);
-            Transform(15, i);
-         }
+         new CanvasPixelViewModel(PixelWidth, PixelHeight, pixelData).DarkenRect(x, y, 16, 16, 8);
       }
 
       private void HighlightBlock(short[] pixelData, int x, int y) {

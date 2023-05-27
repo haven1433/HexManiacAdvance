@@ -559,8 +559,8 @@ You said no!
       [Fact]
       public void Macro_GameSpecific_Compiles() {
          var line = new MacroScriptLine("[BPRE_BPGE] some.command 01 varible: 33 # comment");
-         Assert.True(line.MatchesGame("BPRE"));
-         Assert.False(line.MatchesGame("BPEE"));
+         Assert.True(line.MatchesGame(ScriptLine.ConvertAscii("BPRE")));
+         Assert.False(line.MatchesGame(ScriptLine.ConvertAscii("BPEE")));
       }
 
       [Fact]
@@ -783,7 +783,7 @@ label2:;goto <000050>;end";
          EventScript = "pokemart <0000C0>;{;1;};end";
 
          var martData = (TableStreamRun)Model.GetNextRun(0xC0);
-         Assert.Equal(4, martData.Length);
+         Assert.Equal(2, martData.Length);
       }
 
       [Fact]

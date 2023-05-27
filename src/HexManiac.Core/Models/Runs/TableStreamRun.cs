@@ -184,14 +184,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result;
       }
 
+      public TableStreamRun DeserializeRunFromZero(string content,ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
+         return DeserializeRun(content, token, 0, out changedOffsets, out movedChildren);
+      }
+
       public TableStreamRun DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
+         return DeserializeRun(content, token, ElementCount, out changedOffsets, out movedChildren);
+      }
+
+      private TableStreamRun DeserializeRun(string content, ModelDelta token, int lengthOverride, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
          if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token, out changedOffsets, out movedChildren);
+         var self = this;
+         if (lengthOverride != ElementCount) self = new TableStreamRun(model, Start, PointerSources, FormatString, ElementContent, endStream, lengthOverride);
          var changedAddresses = new List<int>();
          var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
          if (lines.Length == 0 && !AllowsZeroElements) lines = content.Split(Environment.NewLine);
-         var newRun = this;
-         var appendCount = Math.Max(lines.Length, 1) - ElementCount;
-         if (lines.Length != ElementCount) newRun = (TableStreamRun)Append(token, appendCount);
+         var newRun = self;
+         var appendCount = Math.Max(lines.Length, 1) - lengthOverride;
+         if (lines.Length != lengthOverride) newRun = (TableStreamRun)self.Append(token, appendCount);
          int start = newRun.Start;
          for (int i = 0; i < newRun.ElementCount; i++) {
             var line = lines.Length > i ? lines[i] : string.Empty;

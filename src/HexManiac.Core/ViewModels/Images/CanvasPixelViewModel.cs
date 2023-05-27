@@ -34,13 +34,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public void Draw(IPixelViewModel foreground, int x, int y) {
          if (foreground == null) return;
          for (int yy = 0; yy < foreground.PixelHeight; yy++) {
-            for (int xx = 0; xx < foreground.PixelWidth; xx++) {
-               var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
-               if (pixel == foreground.Transparent) continue;
-               if (x + xx >= PixelWidth || y + yy >= PixelHeight) continue;
-               if (x + xx < 0 || y + yy < 0) continue;
-               int offset = PixelWidth * (y + yy) + (x + xx);
-               PixelData[offset] = pixel;
+            if (y + yy < 0 || y + yy >= PixelHeight) continue;
+            if (foreground.Transparent == -1) {
+               // copy one row at a time, to account for gaps
+               var start = Math.Max(x, 0);
+               var end = Math.Min(x + foreground.PixelWidth, PixelWidth);
+               Array.Copy(foreground.PixelData, foreground.PixelWidth * yy + start - x, PixelData, PixelWidth * (y + yy) + x, end - start);
+            } else {
+               // go through each pixel to look for transparency
+               for (int xx = 0; xx < foreground.PixelWidth; xx++) {
+                  var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
+                  if (pixel == foreground.Transparent) continue;
+                  if (x + xx >= PixelWidth) continue;
+                  if (x + xx < 0) continue;
+                  int offset = PixelWidth * (y + yy) + (x + xx);
+                  PixelData[offset] = pixel;
+               }
             }
          }
          NotifyPropertyChanged(nameof(PixelData));
@@ -49,6 +58,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public void DrawBox(int x, int y, int size, short color) => DrawRect(x, y, size, size, color);
 
       public void DrawRect(int x, int y, int width, int height, short color) {
+         if (x + y * PixelWidth >= PixelData.Length) return;
          for (int i = 0; i < width - 1; i++) {
             PixelData[x + i + y * PixelWidth] = color;
             PixelData[x + width - 1 - i + (y + height - 1) * PixelWidth] = color;
@@ -60,6 +70,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       }
 
       public void DarkenRect(int x, int y, int width, int height, int darkness) {
+         if (x + y * PixelWidth >= PixelData.Length) return;
          for (int i = 0; i < width - 1; i++) {
             var (p1, p2) = (x + i + y * PixelWidth, x + width - 1 - i + (y + height - 1) * PixelWidth);
             PixelData[p1] = Darken(PixelData[p1], darkness);
@@ -73,11 +84,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       }
 
       public static short Darken(short color, int amount) {
-         var rgb = UncompressedPaletteColor.ToRGB(color);
-         rgb.r = (rgb.r - amount).LimitToRange(0, 31);
-         rgb.g = (rgb.g - amount).LimitToRange(0, 31);
-         rgb.b = (rgb.b - amount).LimitToRange(0, 31);
-         return UncompressedPaletteColor.Pack(rgb.r, rgb.g, rgb.b);
+         // it's faster to do this inline rather than calling UncompressedPaletteColor.ToRGB
+         // this method needs to be fast, since it can be called for many pixels on many maps
+         int r = (color >> 10) & 0x1F;
+         int g = (color >> 5) & 0x1F;
+         int b = (color >> 0) & 0x1F;
+
+         r = Math.Max(0, r - amount);
+         g = Math.Max(0, g - amount);
+         b = Math.Max(0, b - amount);
+         return UncompressedPaletteColor.Pack(r, g, b);
       }
       public static short ShiftTowards(short color, (int r, int g, int b) targetColor, int amount) {
          var rgb = UncompressedPaletteColor.ToRGB(color);

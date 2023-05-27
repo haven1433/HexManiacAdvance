@@ -29,6 +29,9 @@ namespace HavenSoft.HexManiac.Core {
          return value;
       }
 
+      /// <summary>
+      /// Returns true if min &lt;= value and value &lt; max
+      /// </summary>
       public static bool InRange<T>(this T value, T min, T max) where T : IComparable<T> {
          return min.CompareTo(value) <= 0 && value.CompareTo(max) < 0;
       }
