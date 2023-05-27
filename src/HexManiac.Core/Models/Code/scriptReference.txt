@@ -51,8 +51,8 @@ if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>    
 if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>                                                                                   # checktrainerflag, if1
 if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>                                                                                   # checktrainerflag, if2
 
-move.npc    4F npc: data<`move`> 51 00 00       # See below for more information about the applymovement command. This macro assumes using "waitmovement 0" instead of "waitmovement npc".
 move.player 4F 255 data<`move`> 51 00 00        # Moves the player (NPC object #255) around the map. This macro assumes using "waitmovement 0" instead of "waitmovement 255".
+move.npc    4F npc: data<`move`> 51 00 00       # See below for more information about the applymovement command. This macro assumes using "waitmovement 0" instead of "waitmovement npc".
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
