@@ -144,15 +144,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (sRun is ITilemapRun tmRun) tmRun.FindMatchingTileset(Model);
                   var imagePixels = sRun.GetPixels(Model, sRun.Pages > CurrentPage ? CurrentPage : 0, -1);
                   var colors = palette?.AllColors(Model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sRun.SpriteFormat.BitsPerPixel));
-                  if (imagePixels != null && colors.Count == 16) {
-                     fs.SaveImage(imagePixels, colors, name);
-                  } else {
+                  if (imagePixels == null || imagePixels.Length == 0) {
+                     ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}The sprite couldn't be recognized.");
+                  } else if (colors.Count > 256) {
                      var pixels = SpriteTool.Render(imagePixels, colors, palette?.PaletteFormat.InitialBlankPages ?? 0, 0);
-                     if (pixels.Length > 0 && imagePixels != null) {
-                        fs.SaveImage(pixels, imagePixels.GetLength(0), name);
-                     } else {
-                        ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}The sprite couldn't be recognized.");
+                     fs.SaveImage(pixels, imagePixels.GetLength(0), name);
+                  } else {
+                     var initialBlankPages = palette?.PaletteFormat.InitialBlankPages ?? 0;
+                     if (initialBlankPages > 0) {
+                        for (int x = 0; x < imagePixels.GetLength(0); x++) {
+                           for (int y = 0; y < imagePixels.GetLength(1); y++) {
+                              imagePixels[x, y] = Math.Max(0, imagePixels[x, y] - (initialBlankPages << 4));
+                           }
+                        }
                      }
+                     fs.SaveImage(imagePixels, colors, name);
                   }
                } else {
                   ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}Another image with that named exists.");
