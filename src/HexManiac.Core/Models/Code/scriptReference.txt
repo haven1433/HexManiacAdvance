@@ -61,11 +61,11 @@ single.battle.rematch             5C 05 trainer:data.trainers.stats 00 start<"">
 double.battle.continue.music      5C 06 trainer:data.trainers.stats 00 start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # trainerbattle 06: Plays the trainer's intro music. Continues the script after winning. The battle can be refused.
 double.battle.rematch             5C 07 trainer:data.trainers.stats 00 start<""> playerwin<""> needmorepokemonText<"">                       # trainerbattle 07: Starts a trainer battle rematch. The battle can be refused.
 double.battle.continue.silent     5C 08 trainer:data.trainers.stats 00 start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # trainerbattle 08: No intro music. Continues the script after winning. The battle can be refused.
-[BPRE_BPGE] tutorial.battle       5C 09 trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 09: Used in the tutorial rival fight.
-[BPEE] pyramid.battle             5C 09 trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 09: Seems to not work.
+[BPRE_BPGE] tutorial.battle       5C 09 trainer:data.trainers.stats flags: playerlose<""> playerwin<"">           # trainerbattle 09: Used in the first two rival fights. A 'flags' field is used instead of a local ID.
+[BPEE] pyramid.battle             5C 09 trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 09: Only works when called by Battle Pyramid ASM.
 [BPEE] setup.battle.A             5C 0A trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 0A: Sets up the 1st trainer for a multi battle.
 [BPEE] setup.battle.B             5C 0B trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 0B: Sets up the 2nd trainer for a multi battle.
-[BPEE] trainerhill.battle         5C 0C trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 0C: Seems to not work.
+[BPEE] trainerhill.battle         5C 0C trainer:data.trainers.stats 00 start<""> playerwin<"">   # trainerbattle 0C: Only works when called by Trainer Hill ASM.
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
