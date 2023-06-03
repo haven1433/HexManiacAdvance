@@ -7,7 +7,6 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
@@ -55,6 +54,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var lines = new List<string>();
          list.AppendContents(lines);
+         lines = lines.Where(line => line.Length > 0).ToList();
 
          Assert.Equal(@"[[List]]
 Name = '''Input'''
@@ -69,7 +69,7 @@ DefaultHash = '''0BEEDA92'''
    '''kevin''',
 ]
 8 = '''carl'''
-".Split(Environment.NewLine).ToList(), lines);
+".Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).ToList(), lines);
       }
 
       [Fact]

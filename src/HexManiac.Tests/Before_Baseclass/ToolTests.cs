@@ -280,7 +280,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
          var model = new PokemonModel(bytes);
-         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
          Assert.Equal("000000:", lines[0]);
          Assert.Equal("    push  {r4-r5, lr}", lines[1]);
@@ -308,7 +308,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
          var model = new PokemonModel(bytes);
-         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
          Assert.Equal("000000:", lines[0]);
          Assert.Equal("    ldr   r0, [pc, <000004>]", lines[1]);
@@ -333,7 +333,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var bytes = code.SelectMany(pair => new[] { (byte)pair, (byte)(pair >> 8) }).ToArray();
          var model = new PokemonModel(bytes);
-         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
 
          Assert.Equal(6, lines.Length);
          Assert.Equal("000000:", lines[0]);

@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             interactionType = InteractionType.Text;
             dropDownIsOpen = true;
             displayText = value;
-            FilteredOptions = new(AllOptions.Where(option => option.Text.MatchesPartial(displayText)));
+            FilteredOptions = new(AllOptions.Where(option => option.Text.MatchesPartial(displayText)).OrderBy(option => option.Text.SkipCount(displayText)));
             selectedIndex = 0;
             NotifyPropertiesChanged(nameof(FilteredOptions), nameof(SelectedIndex), nameof(DisplayText), nameof(DropDownIsOpen), nameof(ModelValue));
             interactionType = InteractionType.None;
@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          selectedIndex = selection;
          if (!selectedIndex.InRange(0, AllOptions.Count)) selectedIndex = -1;
          dropDownIsOpen = false;
-         displayText = selectedIndex >= 0 ? AllOptions[selectedIndex].Text : string.Empty;
+         displayText = selectedIndex >= 0 ? AllOptions[selectedIndex].Text : selection.ToString();
          NotifyPropertiesChanged(nameof(CanFilter), nameof(AllOptions), nameof(FilteredOptions), nameof(SelectedIndex), nameof(DisplayText), nameof(DropDownIsOpen), nameof(ModelValue));
          interactionType = InteractionType.None;
       }

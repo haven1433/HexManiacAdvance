@@ -1469,3 +1469,10 @@ Name = '''MapSignpostKindOptions'''
    '''Hidden Item''',
    '''Secret Base''',
 ]
+
+[[List]]
+Name = '''allowcanceloptions'''
+0 = [
+   '''AllowCancel''',
+   '''ForbidCancel''',
+]

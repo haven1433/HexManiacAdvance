@@ -117,12 +117,12 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void TupleTable_LengthEnumFormat_EnumTupleCreated() {
-         ViewPort.Edit("^table[value:|t|a:|b:2|c:]1 ");
+         ViewPort.Edit("^table[value:|t|a:|b:3|c:]1 ");
          var child = (EnumTupleElementViewModel)TupleTable.Children[1];
 
-         child.SelectedIndex = 2;
+         child.FilteringComboOptions.SelectedIndex = 2;
 
-         Assert.Equal(new[] { "0", "1" }, child.Options);
+         Assert.Equal(new[] { "0", "1", "2" }, child.FilteringComboOptions.FilteredOptions.Select(option => option.Text).ToArray());
          Assert.Equal(0b1000, Model[0]);
       }
 
@@ -346,7 +346,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void EnumTuple_Create_HasFilteredText() {
          CreateTextTable("names", 0x100, "adam", "bob", "carl", "dave");
          var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default, default);
-         Assert.Equal("adam", tuple.FilterText);
+         Assert.Equal("adam", tuple.FilteringComboOptions.DisplayText);
       }
 
       [Fact]
@@ -356,7 +356,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var tuple = new EnumTupleElementViewModel(ViewPort, 0, 0, new TupleSegment("name", 8, "names"), default, default);
 
-         Assert.Equal("9", tuple.FilterText);
+         Assert.Equal("9", tuple.FilteringComboOptions.DisplayText);
       }
 
       [Fact]

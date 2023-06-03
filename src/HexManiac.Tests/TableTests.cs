@@ -168,7 +168,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          ViewPort.Edit("@00 3 @trainertable/0/pokemon/0 ");
 
-         var moves = tool.Content.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None)[1];
+         var moves = tool.Content.Split(new[] { '\n', '\r' }, 2, StringSplitOptions.RemoveEmptyEntries)[1];
          Assert.Equal(@"- w
 - x
 - y

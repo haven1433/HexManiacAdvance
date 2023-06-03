@@ -150,82 +150,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private Action RaiseDataChanged { get; }
       private Action RaiseDataSelected { get; }
 
-      public IReadOnlyList<string> Options {
-         get {
-            var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
-            if (!isFiltering) return fullOptions;
-            return fullOptions.Where(option => option.MatchesPartial(filterText, onlyCheckLettersAndDigits: true)).ToList();
-         }
-      }
-
-      public void ConfirmSelection() => SelectedIndex = 0;
-
-      public int SelectedIndex {
-         get => seg.Read(viewPort.Model, Start, BitOffset);
-         set {
-            if (recursionCheck != 0) return;
-            recursionCheck++;
-            using var _ = new StubDisposable { Dispose = () => recursionCheck-- };
-            var filteredOptions = Options;
-            var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
-            var currentOption = (0 <= value && value < filteredOptions.Count) ? filteredOptions[value] : fullOptions[0];
-            IsFiltering = false;
-            if (0 <= value && value < fullOptions.Count) value = fullOptions.IndexOf(currentOption);
-            if (0 <= value && value < fullOptions.Count) FilterText = fullOptions[value];
-            if (filteredOptions.Count != fullOptions.Count) {
-               NotifyPropertyChanged(nameof(Options));
-            }
-
-            seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, value);
-            RaiseDataChanged();
-            NotifyPropertyChanged();
-         }
-      }
-
-      #region Filtering
-
-      private int recursionCheck;
-
-      private bool isFiltering;
-      public bool IsFiltering {
-         get => isFiltering;
-         set => Set(ref isFiltering, value, wasFiltering => {
-            if (wasFiltering) SelectedIndex = 0; // reset selection
-         });
-      }
-
-      private string filterText;
-      public string FilterText {
-         get => filterText;
-         set => Set(ref filterText, value, FilterTextChanged);
-      }
-
-      private void FilterTextChanged(string oldValue) {
-         if (recursionCheck != 0 || !isFiltering) return;
-         recursionCheck++;
-         var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
-         var options = fullOptions.Where(option => option.MatchesPartial(filterText, onlyCheckLettersAndDigits: true)).ToList();
-         if (SelectedIndex >= 0 && SelectedIndex < fullOptions.Count && Options.Contains(fullOptions[SelectedIndex])) {
-            // selected index is already fine
-         } else if (options.Count > 0) {
-            // based on typing filter text, we can change the selection
-            SelectedIndex = fullOptions.IndexOf(options[0]);
-         }
-         NotifyPropertyChanged(nameof(Options));
-         recursionCheck--;
-      }
-
-      #endregion
+      public FilteringComboOptions FilteringComboOptions { get; } = new();
 
       public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged, Action raiseDataSelected) {
          (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
-         var selectedIndex = SelectedIndex;
-         var fullOptions = ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName).ToList();
-         filterText = selectedIndex >= 0 && selectedIndex < fullOptions.Count ? fullOptions[selectedIndex] : selectedIndex.ToString();
          RaiseDataChanged = raiseDataChanged;
          RaiseDataSelected = raiseDataSelected;
+
+         FilteringComboOptions.Update(ComboOption.Convert(ArrayRunEnumSegment.GetOptions(viewPort.Model, EnumName)), seg.Read(viewPort.Model, Start, BitOffset));
+         FilteringComboOptions.Bind(nameof(FilteringComboOptions.ModelValue), (sender, e) => {
+            if (copying) return;
+            seg.Write(viewPort.Model, viewPort.CurrentChange, Start, BitOffset, FilteringComboOptions.ModelValue);
+            RaiseDataChanged();
+         });
       }
 
+      private bool copying;
       public bool TryCopy(ITupleElementViewModel other) {
          if (!(other is EnumTupleElementViewModel that)) return false;
          if (EnumName != that.EnumName) return false;
@@ -234,8 +174,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (BitLength != that.BitLength) return false;
 
          Start = that.Start;
+         using (Scope(ref copying, true, old => copying = old)) {
+            FilteringComboOptions.Update(that.FilteringComboOptions.AllOptions, that.FilteringComboOptions.SelectedIndex);
+         }
          NotifyPropertyChanged(nameof(Start));
-         NotifyPropertyChanged(nameof(SelectedIndex));
+         
          return true;
       }
 
