@@ -254,9 +254,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override bool Write(IReadOnlyList<ArrayRunElementSegment> parentSegments, IDataModel model, ModelDelta token, int start, ref string data) {
          if (data.StartsWith("(") && data.EndsWith(")")) data = data.Substring(1, data.Length - 2);
          var tokens = TableStreamRun.Tokenize(data);
-         var remainder = ", ".Join(tokens.Skip(1));
          if (tokens.Count == 0) return false;
-         data = tokens[0];
+         var remainder = string.Empty;
+         if (parentSegments.Count > 1) {
+            data = tokens[0];
+            remainder = ", ".Join(tokens.Skip(1));
+         }
          bool result;
 
          if (!TryParse(model, data, out int value)) {

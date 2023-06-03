@@ -197,7 +197,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var self = this;
          if (lengthOverride != ElementCount) self = new TableStreamRun(model, Start, PointerSources, FormatString, ElementContent, endStream, lengthOverride);
          var changedAddresses = new List<int>();
-         var lines = content.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
          if (lines.Length == 0 && !AllowsZeroElements) lines = content.Split(Environment.NewLine);
          var newRun = self;
          var appendCount = Math.Max(lines.Length, 1) - lengthOverride;
