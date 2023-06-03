@@ -199,9 +199,9 @@ move.npc    4F npc: data<`move`> 51 00 00       # Moves an overworld NPC with ID
 6C release                                   # allow the movement of the person that called the script
 6D waitkeypress                              # blocks script execution until the player pushes a button
 6E yesnobox x. y.                            # shows a yes/no dialog, 800D stores 1 if YES was selected.
-6F multichoice x. y. list. allowCancel.      # player selection stored in 800D. If they backed out, 800D=7F
-70 multichoice2 x. y. list. default. canCancel. # like multichoice, but you can choose which option is selected at the start
-71 multichoice3 x. y. list. per_row. canCancel. # like multichoice, but shows multiple columns.
+6F multichoice x. y. list. allowCancel.allowcanceloptions           # player selection stored in 800D. If they backed out, 800D=7F
+70 multichoice2 x. y. list. default. canCancel.allowcanceloptions   # like multichoice, but you can choose which option is selected at the start
+71 multichoice3 x. y. list. per_row. canCancel.allowcanceloptions   # like multichoice, but shows multiple columns.
 72 showbox x. y. width. height.
 73 hidebox x. y. width. height.                 # ruby/sapphire only
 74 clearbox x. y. width. height.                # clear only a part of a custom box
