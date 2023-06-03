@@ -5,7 +5,6 @@ using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
 using Xunit;
 
@@ -471,7 +470,7 @@ namespace HavenSoft.HexManiac.Tests {
 [General]
 ApplicationVersion = '''0.1.0'''
 ";
-         var metadata = new StoredMetadata(file.Split(Environment.NewLine));
+         var metadata = new StoredMetadata(file.Split(new[] { '\n', '\r' }));
          Assert.Equal("0.1.0", metadata.Version);
       }
 
