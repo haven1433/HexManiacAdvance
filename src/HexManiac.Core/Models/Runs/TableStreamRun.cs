@@ -376,7 +376,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (targetSegment is ArrayRunEnumSegment enumSegment) {
             if (currentToken.StartsWith("\"")) currentToken = currentToken.Substring(1);
             if (currentToken.EndsWith("\"")) currentToken = currentToken.Substring(0, currentToken.Length - 1);
-            var optionText = enumSegment.GetOptions(model).Where(option => option?.MatchesPartial(currentToken) ?? false);
+            var optionText = enumSegment.GetBestOptions(model, currentToken);
             results.AddRange(CreateEnumAutocompleteOptions(tokens, optionText, lineEnd));
          } else if (targetSegment is ArrayRunTupleSegment tupleGroup) {
             var tupleTokens = currentToken.Split(" ").ToList();
@@ -389,7 +389,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (optionToken.StartsWith("\"")) optionToken = optionToken.Substring(1);
                if (optionToken.EndsWith("\"")) optionToken = optionToken.Substring(0, optionToken.Length - 1);
                if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
-                  var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(optionToken));
+                  var optionText = ArrayRunEnumSegment.GetBestOptions(ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName), optionToken);
                   results.AddRange(CreateTupleEnumAutocompleteOptions(tokens, tupleGroup, tupleTokens, optionText, lineEnd));
                } else if (tupleToken.BitWidth == 1) {
                   var options = new[] { "false", "true" }.Where(option => option.MatchesPartial(optionToken));

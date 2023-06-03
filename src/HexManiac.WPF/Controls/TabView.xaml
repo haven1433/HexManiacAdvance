@@ -650,7 +650,7 @@
                                                 </ItemsControl.ItemsPanel>
                                                 <ItemsControl.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTupleElementViewModel}">
-                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" PreviewKeyDown="ComboBoxTupleElementViewKeyDown">
+                                                      <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                                          <Grid.ColumnDefinitions>
                                                             <ColumnDefinition/>
                                                             <ColumnDefinition Width="2*"/>
@@ -658,10 +658,7 @@
                                                          <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                                                             <TextBlock Text="{Binding Name}" />
                                                          </hsg3hv:AngleBorder>
-                                                         <hsg3hv:AngleComboBox ItemsSource="{Binding Options}" SelectedIndex="{Binding SelectedIndex}" Grid.Column="1" Direction="Out"
-                                                             PreviewMouseDown="HandleTupleComboClick"
-                                                             LostKeyboardFocus="ComboTupleElementLostKeyboardFocus" IsEditable="True" Text="{Binding FilterText}"
-                                                             IsTextSearchEnabled="False" PreviewTextInput="ComboBoxTupleElementTextInput"/>
+                                                         <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" Grid.Column="1" Direction="Out" />
                                                       </Grid>
                                                    </DataTemplate>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:NumericTupleElementViewModel}">

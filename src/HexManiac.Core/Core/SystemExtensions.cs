@@ -205,6 +205,31 @@ namespace HavenSoft.HexManiac.Core {
          return MatchLength(full, partial, onlyCheckLettersAndDigits) == partial.Length;
       }
 
+      /// <summary>
+      /// Measures the amount of 'skipped letters' in a match
+      /// </summary>
+      public static int SkipCount(this string full, string partial) {
+         int j = 0, skipCount = 0;
+
+         for (int i = 0; i < partial.Length; i++) {
+            var testPartial = char.ToUpperInvariant(partial[i]);
+            if (partial[i] == 'é') testPartial = 'E';
+            if (partial[i] == 'á') testPartial = 'A';
+            while (j < full.Length) {
+               var testFull = char.ToUpperInvariant(full[j]);
+               if (full[j] == 'é') testFull = 'E';
+               if (full[j] == 'á') testFull = 'A';
+               j++;
+               if (testFull == testPartial) break;
+               if (j == full.Length) return skipCount;
+               if (i > 0) skipCount++;
+            }
+            if (j == full.Length) return skipCount;
+         }
+
+         return skipCount;
+      }
+
       public static int IndexOfPartial(this IReadOnlyList<string> names, string input) {
          // perfect match first
          var matchIndex = names.IndexOf(input);

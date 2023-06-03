@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
@@ -152,6 +153,13 @@ namespace HavenSoft.HexManiac.Tests {
          var cell = (UnderEdit)viewPort[0, 0].Format;
          var options = cell.AutocompleteOptions.Select(option => option.CompletionText.Trim());
          Assert.Equal(new[] { "option_abc", "option_xyz" }, options);
+      }
+
+      [Fact]
+      public void LongWordBeforeShortWord_ShortWordIsBetterMatch_MatchShortWord() {
+         var options = new[] { "TRI-ATTACK", "TRICK" };
+         var best = ArrayRunEnumSegment.GetBestOptions(options, "trick").First();
+         Assert.Equal("TRICK", best);
       }
    }
 }
