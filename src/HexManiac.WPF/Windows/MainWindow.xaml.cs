@@ -733,7 +733,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                      "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
                      message + Environment.NewLine +
                      detailMessage + Environment.NewLine +
-                     "To report the assert, copy & paste the stack trace to the #hma-bug-reports channel here: https://discord.gg/x9eQuBg." + Environment.NewLine + Environment.NewLine +
+                     "To report the assert, copy & paste the stack trace to the Discord's #hma-bug-reports channel." + 
+                     Environment.NewLine + Environment.NewLine +
                      "Stack Trace:" + Environment.NewLine +
                      Environment.StackTrace,
                      null,
@@ -744,9 +745,22 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                               ShortDescription = "Show in Debugger",
                               Description = "Break in a connected debugger"
                            },
+                           new VisualOption {
+                              Index = 2,
+                              Option = "Report",
+                              ShortDescription = "Go to Discord",
+                              Description = "Copy the stack trace, and paste it into #hma-bug-reports."
+                           },
                         }
                      );
                });
+               if (result == 2) {
+                  // fileSystem.ShowCustomMessageBox("test", false, new ProcessModel("Test", "https://discord.gg/x9eQuBg"));
+                  Process.Start(new ProcessStartInfo("https://discord.gg/x9eQuBg") {
+                     UseShellExecute = true
+                  });
+                  result = 1;
+               }
             }
          }
       }
