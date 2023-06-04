@@ -755,10 +755,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                      );
                });
                if (result == 2) {
-                  // fileSystem.ShowCustomMessageBox("test", false, new ProcessModel("Test", "https://discord.gg/x9eQuBg"));
-                  Process.Start(new ProcessStartInfo("https://discord.gg/x9eQuBg") {
-                     UseShellExecute = true
-                  });
+                  NativeProcess.Start("https://discord.gg/x9eQuBg");
                   result = 1;
                }
             }
