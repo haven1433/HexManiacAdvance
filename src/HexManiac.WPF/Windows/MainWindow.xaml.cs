@@ -708,7 +708,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                   new VisualOption {
                      Index = 1,
                      Option = "Debug",
-                     ShortDescription = "Show Full Message",
+                     ShortDescription = "View Details",
                      Description = "Bring up the full dialog with debugging options."
                   },
                   new VisualOption {
@@ -733,6 +733,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                      "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
                      message + Environment.NewLine +
                      detailMessage + Environment.NewLine +
+                     "To report the assert, copy & paste the stack trace to the #hma-bug-reports channel here: https://discord.gg/x9eQuBg." + Environment.NewLine + Environment.NewLine +
                      "Stack Trace:" + Environment.NewLine +
                      Environment.StackTrace,
                      null,
