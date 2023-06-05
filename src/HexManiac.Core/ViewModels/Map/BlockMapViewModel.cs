@@ -1941,6 +1941,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var border = GetBorderThickness(layout);
          var start = layout.GetAddress("blockmap");
          var blockHighlight = blockEditor?.BlockIndex ?? -1;
+         var selectedEvent = this.selectedEvent; // threading protection
 
          var canvas = new CanvasPixelViewModel(pixelWidth, pixelHeight);
          var (borderWidth, borderHeight) = (borderBlockCopy.PixelWidth / 16, borderBlockCopy.PixelHeight / 16);
@@ -1976,7 +1977,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // draw the box for the selected event
          var gray = UncompressedPaletteColor.Pack(6, 6, 6);
-         if (selectedEvent != null && selectedEvent.X >= 0 && selectedEvent.X < width && selectedEvent.Y >= 0 && SelectedEvent.Y < height) {
+         if (selectedEvent != null && selectedEvent.X >= 0 && selectedEvent.X < width && selectedEvent.Y >= 0 && selectedEvent.Y < height) {
             canvas.DrawBox((selectedEvent.X + border.West) * 16, (selectedEvent.Y + border.North) * 16, 16, gray);
          }
 

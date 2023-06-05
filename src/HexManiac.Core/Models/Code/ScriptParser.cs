@@ -772,9 +772,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static bool IsMacroLine(string engineLine) {
          engineLine = engineLine.Trim();
-         var token = engineLine.Split(' ')[0];
+         var tokens = engineLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+         if (tokens.Length == 0) return false;
+         var token = tokens[0];
+         if (token.StartsWith("[") && tokens.Length > 1) token = tokens[1];
          if (token.StartsWith("#")) return false;
-         if (token.StartsWith("[")) return false;
          if (token.Length == 2 && token.TryParseHex(out _)) return false;
          return true;
       }
@@ -982,10 +984,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
          var length = LineCode.Count;
          foreach (var arg in Args) {
-            var destination = model.ReadPointer(start + length);
-            if (destinationLengths != null && !destinationLengths.ContainsKey(destination)) {
-               var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-               if (argLength > 0) destinationLengths[destination] = argLength;
+            if (arg.Type == ArgType.Pointer) {
+               var destination = model.ReadPointer(start + length);
+               if (destinationLengths != null && !destinationLengths.ContainsKey(destination)) {
+                  var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
+                  if (argLength > 0) destinationLengths[destination] = argLength;
+               }
             }
             length += arg.Length(model, start + length);
          }
@@ -1394,6 +1398,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (!token.EndsWith(">")) return "Unmatched <>";
                token = token.Substring(1, token.Length - 2);
             }
+            if (token.StartsWith("0x")) {
+               token = token.Substring(2);
+            }
             if (token == "auto") {
                if(PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
                   return "<auto> only supported for text/data.";
@@ -1403,6 +1410,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // resolved to an address
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
+               if (value > -Pointer.NULL) value += Pointer.NULL;
             } else {
                labels.AddUnresolvedLabel(token, address);
                value = 0;

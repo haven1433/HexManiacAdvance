@@ -1044,7 +1044,9 @@ end
          } else if (selectedTemplate == TemplateType.Mart) {
             ObjectTemplateImage = GraphicsOptions[ClerkGraphics];
          }
-         ObjectTemplateImage = new ReadonlyPixelViewModel(ObjectTemplateImage.PixelWidth, ObjectTemplateImage.PixelHeight, ObjectTemplateImage.PixelData, ObjectTemplateImage.PixelData[0]);
+         if (ObjectTemplateImage.PixelData.Length > 0) {
+            ObjectTemplateImage = new ReadonlyPixelViewModel(ObjectTemplateImage.PixelWidth, ObjectTemplateImage.PixelHeight, ObjectTemplateImage.PixelData, ObjectTemplateImage.PixelData[0]);
+         }
          ObjectTemplateImage = ObjectTemplateImage.AutoCrop();
          NotifyPropertyChanged(nameof(ObjectTemplateImage));
       }

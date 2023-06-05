@@ -388,6 +388,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             if (code.Length > length) {
+               model.ExpandData(history.CurrentChange, start + code.Length - 1);
+               selection.Scroll.DataLength = model.RawData.Length;
                if (run == null) {
                   var availableLength = length;
                   for (int i = start + length; i < start + code.Length; i++) {
