@@ -772,9 +772,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static bool IsMacroLine(string engineLine) {
          engineLine = engineLine.Trim();
-         var token = engineLine.Split(' ')[0];
+         var tokens = engineLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+         if (tokens.Length == 0) return false;
+         var token = tokens[0];
+         if (token.StartsWith("[") && tokens.Length > 1) token = tokens[1];
          if (token.StartsWith("#")) return false;
-         if (token.StartsWith("[")) return false;
          if (token.Length == 2 && token.TryParseHex(out _)) return false;
          return true;
       }
