@@ -2434,7 +2434,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             RequestTabChange(this, args);
             if (!args.RequestAccepted && MapEditor?.IsValidState == true) {
                // trying to open from the image editor?
-               RequestTabChange(MapEditor, args);
+               MapEditor.RaiseRequestTabChange(args);
             }
             if (preferredTileWidth != -1 && newTab.CanEditTilesetWidth) {
                newTab.CurrentTilesetWidth = preferredTileWidth.LimitToRange(newTab.MinimumTilesetWidth, newTab.MaximumTilesetWidth);

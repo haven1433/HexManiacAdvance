@@ -250,6 +250,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void Duplicate() => Duplicate(PrimaryMap.MapID / 1000, PrimaryMap.MapID % 1000);
       private void Duplicate(int bank, int map) {
          var dup = viewPort.CreateDuplicate();
+         dup.RequestTabChange += (sender, e) => viewPort.RaiseRequestTabChange(e.NewTab);
+
          // don't check for the viewPort initilazition workload until the model is initialized (for map duplication, this should never really be an issue)
          model.InitializationWorkload.ContinueWith(t => {
             // don't try to use the to tab's map editor until it's been fully initialized.
@@ -1721,6 +1723,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          waveFunctionMixed = new();
          foreach (var bank in AllMapsModel.Create(model, () => history.CurrentChange)) {
             foreach (var map in bank) {
+               if (map == null || map.Layout == null || map.Blocks == null || map.Layout.PrimaryBlockset == null || map.Layout.SecondaryBlockset == null) continue;
                var cells = map.Blocks;
                var primary = map.Layout.PrimaryBlockset.Start;
                var secondary = map.Layout.SecondaryBlockset.Start;
