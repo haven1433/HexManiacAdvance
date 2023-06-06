@@ -28,11 +28,6 @@ msgbox.npc       0F 00 ptr<""> 09 02  # loadpointer, callstd 2
 msgbox.sign      0F 00 ptr<""> 09 03  # loadpointer, callstd 3
 msgbox.default   0F 00 ptr<""> 09 04  # loadpointer, callstd 4
 msgbox.yesno     0F 00 ptr<""> 09 05  # loadpointer, callstd 5
-msgbox.yesno.compact   0F 00 msg<""> 09 05 21 0D 80 01 00 06 01 yes<`xse`> 21 0D 08 00 00 06 01 no<`xse`>     # msgbox.yesno, compare Ans 1, if1 = <yes>, compare Ans 2, if1 = <no>
-if.yes.goto      21 0D 80 01 00 06 01 ptr<`xse`>
-if.yes.call      21 0D 08 01 00 07 01 ptr<`xse`>
-if.no.goto       21 0D 08 00 00 06 01 ptr<`xse`>
-if.no.call       21 0D 08 00 00 07 01 ptr<`xse`>
 msgbox.autoclose 0F 00 ptr<""> 09 06  # loadpointer, callstd 6
 wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7  # setwildbattle, dowildbattle
 give.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01           # copyvarifnotzero (item and count), callstd 1
@@ -45,6 +40,10 @@ msgbox.instant.npc                6A 5A DB ptr<""> 66 6D 68 6C  #Skips the typew
 msgbox.instant.default            6A DB ptr<""> 66 6D 6C        #Skips the typewriter effect
 msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32                                                                                                            # fanfare, preparemsg, waitmsg
 register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08  # setvar, special 0xEA, copyvarifnotzero, callstd 8
+if.yes.goto        21 0D 80 01 00 06 01 ptr<`xse`>
+if.yes.call        21 0D 08 01 00 07 01 ptr<`xse`>
+if.no.goto         21 0D 08 00 00 06 01 ptr<`xse`>
+if.no.call         21 0D 08 00 00 07 01 ptr<`xse`>
 if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # compare, if1
 if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # compare, if2
 if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # checkflag, if1
