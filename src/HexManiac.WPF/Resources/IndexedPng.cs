@@ -13,6 +13,9 @@ using System.Text;
 namespace HexManiac.WPF.Resources {
    public class IndexedPng : Stream {
       public static void Save(string filename, int[,] pixels, IReadOnlyList<short> palette) {
+         if (palette.Count > 256) {
+            throw new ArgumentException("An indexed PNG file cannot have more than 256 colors.");
+         }
          using (var outputStream = File.Create(filename)) {
             var stream = new IndexedPng(outputStream);
             var width = pixels.GetLength(0);

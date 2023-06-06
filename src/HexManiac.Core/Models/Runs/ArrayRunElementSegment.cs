@@ -254,9 +254,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override bool Write(IReadOnlyList<ArrayRunElementSegment> parentSegments, IDataModel model, ModelDelta token, int start, ref string data) {
          if (data.StartsWith("(") && data.EndsWith(")")) data = data.Substring(1, data.Length - 2);
          var tokens = TableStreamRun.Tokenize(data);
-         var remainder = ", ".Join(tokens.Skip(1));
          if (tokens.Count == 0) return false;
-         data = tokens[0];
+         var remainder = string.Empty;
+         if (parentSegments.Count > 1) {
+            data = tokens[0];
+            remainder = ", ".Join(tokens.Skip(1));
+         }
          bool result;
 
          if (!TryParse(model, data, out int value)) {
@@ -318,6 +321,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IEnumerable<string> GetOptions(IDataModel model) => GetOptions(model, EnumName);
 
+      public IEnumerable<string> GetBestOptions(IDataModel model, string match) => GetBestOptions(GetOptions(model, EnumName), match);
+
       public static IEnumerable<string> GetOptions(IDataModel model, string enumName) {
          if (enumName.TryParseInt(out var result)) return result.Range().Select(i => i.ToString());
          IEnumerable<string> options = model.GetOptions(enumName);
@@ -331,6 +336,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
 
          return options;
+      }
+
+      /// <summary>
+      /// Returns a sorted list of options based on 'best match'
+      /// </summary>
+      public static IEnumerable<string> GetBestOptions(IEnumerable<string> options, string text, bool onlyCheckLettersAndDigits = false) {
+         return options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false).OrderBy(option => option.SkipCount(text));
       }
    }
 
@@ -531,7 +543,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (optionToken.StartsWith("\"")) optionToken = optionToken.Substring(1);
             if (optionToken.EndsWith("\"")) optionToken = optionToken.Substring(0, optionToken.Length - 1);
             if (!string.IsNullOrEmpty(tupleToken.SourceName)) {
-               var optionText = ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName).Where(option => option.MatchesPartial(optionToken));
+               var optionText = ArrayRunEnumSegment.GetBestOptions(ArrayRunEnumSegment.GetOptions(model, tupleToken.SourceName), optionToken);
                return CreateTupleEnumAutocompleteOptions(tupleTokens, optionText);
             } else if (tupleToken.BitWidth == 1) {
                var optionText = new[] { "false", "true" }.Where(option => option.MatchesPartial(optionToken));

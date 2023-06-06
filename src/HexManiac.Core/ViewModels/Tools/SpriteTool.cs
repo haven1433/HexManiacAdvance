@@ -360,34 +360,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return;
          }
 
-         // get the palette (or palettes, if the number of palettes matches the number of pages like in castform)
-         var run = model.GetNextRun(spriteAddress) as ISpriteRun;
-         var renderPalette = GetRenderPalette(run);
-         bool useMultiplePalette = false;
-         if (run != null && run.SpriteFormat.BitsPerPixel == 4 && model.GetNextRun(paletteAddress) is IPaletteRun palRun) {
-            var multiPalette = palRun.AllColors(model);
-            if (multiPalette.Count == 16 * spritePages) {
-               useMultiplePalette = true;
-               renderPalette = multiPalette;
-            }
-         }
+         var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
+         var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         var renderPalette = paletteRun.AllColors(model);
 
          for (int i = 0; i < spritePages; i++) {
             var (xPageOffset, yPageOffset) = choice == ImageExportMode.Horizontal ? (i * PixelWidth, 0) : (0, i * PixelHeight);
-            var pagePixels = run.GetPixels(model, i, -1);
-            int palOffset = useMultiplePalette ? i * 16 : 0;
+            var pagePixels = spriteRun.GetPixels(model, i, -1);
+            int palOffset = i * 16;
             for (int x = 0; x < PixelWidth; x++) {
                for (int y = 0; y < PixelHeight; y++) {
-                  manyPixels[xPageOffset + x, yPageOffset + y] = pagePixels[x, y] + palOffset;
+                  var pixel = pagePixels[x, y] + palOffset;
+                  pixel = Math.Max(0, pixel - (paletteFormat.InitialBlankPages << 4));
+                  manyPixels[xPageOffset + x, yPageOffset + y] = pixel;
                }
             }
          }
 
-         if (renderPalette.Count == 16) {
-            fs.SaveImage(manyPixels, renderPalette);
-         } else {
-            var rendered = Render(manyPixels, renderPalette, paletteFormat.InitialBlankPages, useMultiplePalette ? 0 : spritePage);
+         if (renderPalette.Count > 256) {
+            var rendered = Render(manyPixels, renderPalette, 0, 0);
             fs.SaveImage(rendered, manyPixels.GetLength(0));
+         }
+         else {
+            fs.SaveImage(manyPixels, renderPalette);
          }
       }
 
@@ -1568,21 +1563,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void ExportSpriteAndPalette(IFileSystem fileSystem) {
          var spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
-         var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
-         bool export4bitImage = false;
-         if (spriteRun != null && paletteRun != null) {
-            bool spriteIs16Color = spriteRun.SpriteFormat.BitsPerPixel == 4 && spriteRun is not ITilemapRun tmap;
-            bool palIs16Color = paletteRun.AllColors(model).Count == 16;
-            export4bitImage = spriteIs16Color || palIs16Color;
-         }
-
-         if (export4bitImage) {
-            var pixels = spriteRun.GetPixels(model, SpritePage, -1);
-            var palette = paletteRun.GetPalette(model, PalettePage);
-            fileSystem.SaveImage(pixels, palette);
-         } else {
+         var palette = GetRenderPalette(spriteRun);
+         if (palette.Count > 256) {
             fileSystem.SaveImage(PixelData, PixelWidth);
+            return;
          }
+         var pixels = spriteRun.GetPixels(model, SpritePage, -1);
+         if (paletteFormat.InitialBlankPages > 0) {
+            for (int x = 0; x < pixels.GetLength(0); x++) {
+               for (int y = 0; y < pixels.GetLength(1); y++) {
+                  pixels[x, y] = Math.Max(0, pixels[x, y] - (paletteFormat.InitialBlankPages << 4));
+               }
+            }
+         }
+         fileSystem.SaveImage(pixels, palette);
       }
    }
 

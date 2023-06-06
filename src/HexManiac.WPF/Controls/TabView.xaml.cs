@@ -522,29 +522,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          FocusElement.Raise(ToolPanel);
       }
 
-      private void ComboBoxTupleElementTextInput(object sender, TextCompositionEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (EnumTupleElementViewModel)element.DataContext;
-         var keyString = e.Text;
-         var filter = false;
-         if (keyString.Length == 1 && char.IsLetterOrDigit(keyString[0])) filter = true;
-         else if (keyString.Length == 1 && keyString[0].IsAny(" '?\"-_".ToCharArray())) filter = true;
-         viewModel.IsFiltering = filter;
-         if (element is ComboBox cb) cb.IsDropDownOpen |= filter;
-      }
-
-      private void ComboTupleElementLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (EnumTupleElementViewModel)element.DataContext;
-         viewModel.IsFiltering = false;
-      }
-
-      private void ComboBoxTupleElementViewKeyDown(object sender, KeyEventArgs e) {
-         var element = (FrameworkElement)sender;
-         var viewModel = (EnumTupleElementViewModel)element.DataContext;
-         if (e.Key == Key.Enter) viewModel.ConfirmSelection();
-      }
-
       private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {
          LeftToolsPane.Width = new GridLength(500);
       }
@@ -606,11 +583,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void HandleTupleFieldKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
          var element = (FrameworkElement)sender;
          if (element.DataContext is NumericTupleElementViewModel vm) vm.Focus();
-      }
-
-      private void HandleTupleComboClick(object sender, MouseButtonEventArgs e) {
-         var element = (FrameworkElement)sender;
-         if (element.DataContext is EnumTupleElementViewModel vm) vm.Focus();
       }
 
       private void WheelCodeBody(object sender, MouseWheelEventArgs e) {
