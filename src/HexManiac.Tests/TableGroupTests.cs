@@ -141,14 +141,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void Text_LoadMetadata_CaptureHash() {
-         var text = @"
-[[TableGroup]]
-Name = '''custom'''
-DefaultHash = '''0'''
-0 = [
-   '''table''',
-]
-";
+         var text = SplitLines("[[TableGroup]];Name = '''custom''';DefaultHash = '''0''';0 = [;   '''table''',;]");
 
          var metadata = new StoredMetadata(text.SplitLines());
 

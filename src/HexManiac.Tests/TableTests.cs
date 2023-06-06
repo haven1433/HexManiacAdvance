@@ -160,11 +160,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Edit("@A0 ");
          var tool = ViewPort.Tools.StringTool;
 
-         tool.Content = @"10 A
-- w
-- x
-- y
-- q";
+         tool.Content = SplitLines("10 A;- w;- x;- y;- q");
 
          ViewPort.Edit("@00 3 @trainertable/0/pokemon/0 ");
 
@@ -259,11 +255,7 @@ namespace HavenSoft.HexManiac.Tests {
          var segment = ViewPort.Tools.TableTool.Children.OfType<TextStreamElementViewModel>().Single();
 
          // precondition: the format is as expected
-         Assert.Equal(@"255
-255
-255
-255
-255", segment.Content);
+         Assert.Equal(SplitLines("255;255;255;255;255"), segment.Content);
 
          // Act: change the content in a way that would change the length of a more dynamic stream.
          segment.Content = "12";

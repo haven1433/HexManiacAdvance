@@ -325,23 +325,11 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Goto.Execute("50");
          ViewPort.Edit("^sample`plm` ");
 
-         Assert.Equal(
-@"1 Option1
-1 Option1
-1 Option1
-1 Option1", tool.Content);
+         Assert.Equal(SplitLines("1 Option1;1 Option1;1 Option1;1 Option1"), tool.Content);
 
-         tool.Content =
-@"1 Option1
-2 ""Option2 More""
-2 Option4
-2 Option4";
+         tool.Content = SplitLines("1 Option1;2 \"Option2 More\";2 Option4;2 Option4");
 
-         Assert.Equal(
-@"1 Option1
-2 ""Option2 More""
-2 Option4
-2 Option4", tool.Content);
+         Assert.Equal(SplitLines("1 Option1;2 \"Option2 More\";2 Option4;2 Option4"), tool.Content);
 
          var plm = (PLMRun)Model.GetNextRun(0x50);
          Assert.Equal(10, plm.Length);
