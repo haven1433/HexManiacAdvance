@@ -58,6 +58,25 @@ move.camera 4F 7F 00 data<`move`> 51 00 00      # Moves the camera (NPC object #
 move.npc    4F npc: data<`move`> 51 00 00       # Moves an overworld NPC with ID 'npc' according to the specified movement commands in the 'data' pointer.
                                                 # This macro assumes using "waitmovement 0" instead of "waitmovement npc".
 
+# Trainer battle macros (assume a localID (arg) parameter of 0)
+single.battle                       5C 00 trainer:data.trainers.stats 00 00 start<""> playerwin<"">                    # trainerbattle 00: Default trainer battle command.
+single.battle.continue.silent       5C 01 trainer:data.trainers.stats 00 00 start<""> playerwin<""> winscript<`xse`>   # trainerbattle 01: No intro music. Continues the script after winning.
+single.battle.continue.music        5C 02 trainer:data.trainers.stats 00 00 start<""> playerwin<""> winscript<`xse`>   # trainerbattle 02: Plays the trainer's intro music. Continues the script after winning.
+single.battle.nointro               5C 03 trainer:data.trainers.stats 00 00 playerwin<"">                              # trainerbattle 03: No intro music nor intro text.
+double.battle                       5C 04 trainer:data.trainers.stats 00 00 start<""> playerwin<""> needmorepokemonText<"">                       # trainerbattle 04: Refuses a battle if the player only has 1 Pokémon alive.
+single.battle.rematch               5C 05 trainer:data.trainers.stats 00 00 start<""> playerwin<"">                    # trainerbattle 05: Starts a trainer battle rematch.
+double.battle.continue.music        5C 06 trainer:data.trainers.stats 00 00 start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # trainerbattle 06: Plays the trainer's intro music. Continues the script after winning. The battle can be refused.
+double.battle.rematch               5C 07 trainer:data.trainers.stats 00 00 start<""> playerwin<""> needmorepokemonText<"">                       # trainerbattle 07: Starts a trainer battle rematch. The battle can be refused.
+double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # trainerbattle 08: No intro music. Continues the script after winning. The battle can be refused.
+[BPRE_BPGE] single.battle.canlose   5C 09 trainer:data.trainers.stats 01 00 playerlose<""> playerwin<"">           # trainerbattle 09: Starts a battle where the player can lose.
+[BPRE_BPGE] tutorial.battle         5C 09 trainer:data.trainers.stats 02 00 playerlose<""> playerwin<"">           # trainerbattle 09: Starts a tutorial battle with Prof. Oak interjecting. The player must win.
+[BPRE_BPGE] tutorial.battle.canlose 5C 09 trainer:data.trainers.stats 03 00 playerlose<""> playerwin<"">           # trainerbattle 09: Starts a tutorial battle with Prof. Oak interjecting. The player can lose.
+[BPEE] pyramid.battle               5C 09 trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 09: Only works when called by Battle Pyramid ASM.
+[BPEE] setup.battle.A               5C 0A trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0A: Sets up the 1st trainer for a multi battle.
+[BPEE] setup.battle.B               5C 0B trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0B: Sets up the 2nd trainer for a multi battle.
+[BPEE] trainerhill.battle           5C 0C trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0C: Only works when called by Trainer Hill ASM.
+
+
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
 02 end                                          # ends the script
@@ -169,7 +188,7 @@ move.npc    4F npc: data<`move`> 51 00 00       # Moves an overworld NPC with ID
 5C trainerbattle 04 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">  # double battles
 5C trainerbattle 05 trainer:data.trainers.stats arg: start<""> playerwin<"">                          # clone of 0, but with rematch potential
 5C trainerbattle 06 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # double battles, continues the script
-5C trainerbattle 07 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">           # clone of 4, but with rematch potential
+5C trainerbattle 07 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">                       # clone of 4, but with rematch potential
 5C trainerbattle 08 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # clone of 6, does not play encounter music
 5C trainerbattle 09 trainer:data.trainers.stats arg: start<""> playerwin<""> # tutorial battle (can't lose) (set arg=3 for oak's naration) (Pyramid type for Emerald)
 5C trainerbattle other. trainer:data.trainers.stats arg: start<""> playerwin<""> # same as 0
