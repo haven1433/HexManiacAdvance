@@ -843,8 +843,12 @@ graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,    
 data.statstages.default,                     013104, 013104, 013104, 013104, 014ED4, 014ED4, 014EE8, 014EE8, 03D024, [numerator. denominator. ratio|=numerator÷denominator]13
 
 // From Shiny Till Dawn & Yak Attack:
-data.text.easychat.pokemon,                  3DE0E0, 3DE138, 3DE0FC, 3DE158, 3ECED4, 3ECD10, 3ECF44, 3ECD80, 59D004, [pokemon:data.pokemon.names]202
-data.text.easychat.pokemon2,                 3DE134, 3DE18C, 3DE150, 3DE1AC, 3ECF7C, 3ECDB8, 3ECFEC, 3ECE28, 59D0AC, [pokemon:data.pokemon.names]251
+data.text.easychat.master,                   0EB0A4, 0EB0A4, 0EB0C4, 0EB0C4,       ,       ,       ,       ,       , [group<>]22
+data.text.easychat.master,                         ,       ,       ,       , 0BD788, 0BD75C, 0BD79C, 0BD770, 11EAA0, [group<> wordCount: enabledWordCount:]22
+data.text.easychat.pokemon,                  3DE0E0, 3DE138, 3DE0FC, 3DE158,       ,       ,       ,       ,       , [pokemon:data.pokemon.names]202
+data.text.easychat.pokemon,                        ,       ,       ,       , 3ECED4, 3ECD10, 3ECF44, 3ECD80, 59D004, [pokemon:data.pokemon.names]/wordCount
+data.text.easychat.pokemon2,                 3DE134, 3DE18C, 3DE150, 3DE1AC,       ,       ,       ,       ,       , [pokemon:data.pokemon.names]251
+data.text.easychat.pokemon2,                       ,       ,       ,       , 3ECF7C, 3ECDB8, 3ECFEC, 3ECE28, 59D0AC, [pokemon:data.pokemon.names]/wordCount
 
 
 
