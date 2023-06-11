@@ -1476,3 +1476,30 @@ Name = '''allowcanceloptions'''
    '''AllowCancel''',
    '''ForbidCancel''',
 ]
+
+[[List]]
+Name = '''easychatgroups'''
+0 = [
+   '''pokémon''',
+   '''trainer''',
+   '''status''',
+   '''battle''',
+   '''greetings''',
+   '''people''',
+   '''voices''',
+   '''speech''',
+   '''endings''',
+   '''feelings''',
+   '''conditions''',
+   '''actions''',
+   '''lifestyle''',
+   '''hobbies''',
+   '''time''',
+   '''miscellaneous''',
+   '''adjectives''',
+   '''events''',
+   '''moves''',
+   '''moves2''',
+   '''trendysayings''',
+   '''pokémon2''',
+]
