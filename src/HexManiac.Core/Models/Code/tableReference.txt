@@ -177,10 +177,10 @@ graphics.items.ball.trade.sprite,                 ,       ,       ,       , 26CD
 graphics.items.ball.trade.palette,                ,       ,       ,       , 26CDDC, 26CDBC, 26CE4C, 26CE2C,       , `ucp4`
 graphics.items.sprites,                           ,       ,       ,       , 09899C, 098970, 0989B0, 098984, 1B0034, [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
 graphics.items.mail,                              ,       ,       ,       , 0BEEB0, 0BEE84, 0BEEC4, 0BEE98,       , [pal<`ucp4`> tileset<`lzt4`> tilemap<`lzm4x32x20|graphics.items.mail`> size:: textcolor:|c shadow:|c]12
-graphics.items.fossils.palette1,          ,       ,       ,       , 09D604, 09D5D8, 09D618, 09D5EC,       , `ucp4`
-graphics.items.fossils.palette2,          ,       ,       ,       , 09D554, 09D528, 09D568, 09D53C,       , `ucp4`
-graphics.items.fossils.sprite1,           ,       ,       ,       , 3E17D0, 3E160C, 3E1840, 3E167C,       , `ucs4x8x8|graphics.items.fossils.palette1`
-graphics.items.fossils.sprite2,           ,       ,       ,       , 3E17C0, 3E15FC, 3E1830, 3E166C,       , `ucs4x8x8|graphics.items.fossils.palette2`
+graphics.items.fossils.palette1,                  ,       ,       ,       , 09D604, 09D5D8, 09D618, 09D5EC,       , `ucp4`
+graphics.items.fossils.palette2,                  ,       ,       ,       , 09D554, 09D528, 09D568, 09D53C,       , `ucp4`
+graphics.items.fossils.sprite1,                   ,       ,       ,       , 3E17D0, 3E160C, 3E1840, 3E167C,       , `ucs4x8x8|graphics.items.fossils.palette1`
+graphics.items.fossils.sprite2,                   ,       ,       ,       , 3E17C0, 3E15FC, 3E1830, 3E166C,       , `ucs4x8x8|graphics.items.fossils.palette2`
 
 
 data.pokemon.stats,                    010B64, 010B64, 010B64, 010B64, 0001BC, 0001BC, 0001BC, 0001BC, 0001BC, [hp. attack. def. speed. spatk. spdef. baseStatTotal|=hp+attack+def+speed+spatk+spdef type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs:|t|hp:|atk:|def:|spd:|spatk:|spdef: item1:data.items.stats item2:data.items.stats genderratio.genderratiovalues steps2hatch. basehappiness. growthrate.growthrates egg1.egggroups egg2.egggroups ability1.data.abilities.names ability2.data.abilities.names runrate. dex.|t|color:::.bodycolors|noFlip. padding:]data.pokemon.names
@@ -841,6 +841,13 @@ data.text.trade.messages,                          ,       ,       ,       , 124
 graphics.menus.trade.windowtemplates.others,       ,       ,       ,       ,       ,       ,       ,       , 0773A8, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]!FF00000000000000
 graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,       ,       ,       ,       , 078EEC, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]1
 data.statstages.default,                     013104, 013104, 013104, 013104, 014ED4, 014ED4, 014EE8, 014EE8, 03D024, [numerator. denominator. ratio|=numerator÷denominator]13
+
+// From Shiny Till Dawn & Yak Attack:
+data.text.easychat.pokemon,                  3DE0E0, 3DE138, 3DE0FC, 3DE158, 3ECED4, 3ECD10, 3ECF44, 3ECD80, 59D004, [pokemon:data.pokemon.names]202
+data.text.easychat.pokemon2,                 3DE134, 3DE18C, 3DE150, 3DE1AC, 3ECF7C, 3ECDB8, 3ECFEC, 3ECE28, 59D0AC, [pokemon:data.pokemon.names]251
+
+
+
 
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
