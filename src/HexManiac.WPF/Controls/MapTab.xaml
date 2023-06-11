@@ -826,8 +826,8 @@
                <local:AngleBorder Direction="Left" Content="Primary Blockset: " />
                <local:AngleBorder Grid.Row="1" Direction="Left" Content="Secondary Blockset: " />
 
-               <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" SelectedIndex="{Binding PrimaryIndex}" ItemsSource="{Binding PrimaryOptions}" />
-               <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" SelectedIndex="{Binding SecondaryIndex}" ItemsSource="{Binding SecondaryOptions}" Grid.Row="1" />
+               <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" ItemsSource="{Binding PrimaryOptions}" SelectedIndex="{Binding PrimaryIndex}" />
+               <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" ItemsSource="{Binding SecondaryOptions}" SelectedIndex="{Binding SecondaryIndex}" Grid.Row="1" />
             </Grid>
             <Grid Height="20" Margin="0,5">
                <local:AngleButton Content="Data Operations" Width="160" Direction="Out" Padding="2,0" x:Name="DataOperations" />

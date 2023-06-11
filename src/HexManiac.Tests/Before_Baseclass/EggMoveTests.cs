@@ -44,6 +44,8 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.Edit($"^{HardcodeTablesModel.EggMovesTableName}`egg` ");
       }
 
+      private static string SplitLines(string lines) => Environment.NewLine.Join(lines.Split(";"));
+
       #endregion
 
       [Fact]
@@ -137,15 +139,9 @@ namespace HavenSoft.HexManiac.Tests {
          viewPort.SelectionStart = new Point(2, 0); // and then back on
          viewPort.Tools.StringToolCommand.Execute();
 
-         Assert.Equal(@"[Carl]
-Wind", viewPort.Tools.StringTool.Content);
+         Assert.Equal(SplitLines("[Carl];Wind"), viewPort.Tools.StringTool.Content);
 
-         viewPort.Tools.StringTool.Content = @"[Carl]
-Earth
-Light
-[Ryan]
-Fire
-Water";
+         viewPort.Tools.StringTool.Content = SplitLines("[Carl];Earth;Light;[Ryan];Fire;Water");
 
          Assert.Equal(14, model.GetNextRun(0).Length);
          Assert.Equal(5, model.ReadMultiByteValue(0x188, 4));

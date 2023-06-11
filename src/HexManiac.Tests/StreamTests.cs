@@ -15,12 +15,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.WriteMultiByteValue(0x40, 2, new ModelDelta(), 0xFFFF);
          ViewPort.Edit("@40 ^bob`plm` 5 a 6 b 7 c 8 d ");
 
-         ViewPort.Tools.StringTool.Content = @"
-5 a
-6 b
-7""c c""
-8 d
-";
+         ViewPort.Tools.StringTool.Content = SplitLines(@"5 a;6 b;7""c c"";8 d");
 
          // Assert that the run length is still 8 (was 10).
          Assert.Equal(8, Model.GetNextRun(0x40).Length);
@@ -32,10 +27,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.WriteMultiByteValue(0x40, 2, new ModelDelta(), 0xFFFF);
          ViewPort.Edit("@40 ^bob`plm` 5 a 6 b 7 c 8 d ");
 
-         ViewPort.Tools.StringTool.Content = @"
-5 a
-8 d
-";
+         ViewPort.Tools.StringTool.Content = SplitLines("5 a;8 d");
 
          // assert that bytes 7/8 are FF
          Assert.Equal(0xFFFF, Model.ReadMultiByteValue(0x46, 2));
@@ -70,16 +62,9 @@ namespace HavenSoft.HexManiac.Tests {
       public void ExtendingTableStreamRepoints() {
          ViewPort.Edit("00 01 02 03 FF ^bob CC @00 ^table[value.]!FF ");
          ViewPort.Tools.SelectedIndex = ViewPort.Tools.IndexOf(ViewPort.Tools.StringTool);
-         Assert.Equal(@"0
-1
-2
-3", ViewPort.Tools.StringTool.Content);
+         Assert.Equal(SplitLines("0;1;2;3"), ViewPort.Tools.StringTool.Content);
 
-         ViewPort.Tools.StringTool.Content = @"0
-1
-2
-3
-4";
+         ViewPort.Tools.StringTool.Content = SplitLines("0;1;2;3;4");
 
          Assert.NotEmpty(Messages);
          var anchorAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, "table");

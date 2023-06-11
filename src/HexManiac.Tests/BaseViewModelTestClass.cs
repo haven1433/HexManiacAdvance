@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -101,5 +102,7 @@ namespace HavenSoft.HexManiac.Tests {
          Model.ObserveRunWritten(Token, new XSERun(address));
          ViewPort.Goto.Execute(address);
       }
+
+      protected static string SplitLines(string lines) => Environment.NewLine.Join(lines.Split(";"));
    }
 }
