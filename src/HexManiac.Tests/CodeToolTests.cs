@@ -201,7 +201,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.CascadeScript(0);
          var code = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, 15).SplitLines().Select(line=>line.Trim()).ToArray();
          var expected = new[] {
-            "trainerbattle 00 0 0 <000100> <000110>",
+            "single.battle 0 <000100> <000110>",
             "{",
             "Start",
             "}",

@@ -80,6 +80,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TrainerBattle3_Decode_Has3Arguments() {
          Model[0] = 0x5C;
          Model[1] = 3;
+         Model[4] = 1; // so it doesn't use the macro
          Model[10] = 2;
          Model[14] = 2;
 
