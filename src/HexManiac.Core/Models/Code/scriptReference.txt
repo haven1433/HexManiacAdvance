@@ -41,9 +41,9 @@ msgbox.instant.default            6A DB ptr<""> 66 6D 6C        #Skips the typew
 msgbox.fanfare   31 song:songnames 67 ptr<""> 66 32                                                                                                            # fanfare, preparemsg, waitmsg
 register.matchcall trainer:data.trainers.stats -> register.matchcall 16 04 80 trainer:data.trainers.stats 25 EA 01 1A 00 80 trainer:data.trainers.stats 09 08  # setvar, special 0xEA, copyvarifnotzero, callstd 8
 if.yes.goto        21 0D 80 01 00 06 01 ptr<`xse`>
-if.yes.call        21 0D 08 01 00 07 01 ptr<`xse`>
-if.no.goto         21 0D 08 00 00 06 01 ptr<`xse`>
-if.no.call         21 0D 08 00 00 07 01 ptr<`xse`>
+if.yes.call        21 0D 80 01 00 07 01 ptr<`xse`>
+if.no.goto         21 0D 80 00 00 06 01 ptr<`xse`>
+if.no.call         21 0D 80 00 00 07 01 ptr<`xse`>
 if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # compare, if1
 if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # compare, if2
 if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # checkflag, if1
@@ -206,7 +206,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 5D repeattrainerbattle                       # do the last trainer battle again
 5E endtrainerbattle                          # returns from the trainerbattle screen without starting message (go to after battle script)
 5F endtrainerbattle2                         # same as 5E? (go to beaten battle script)
-60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated, set 800D to 1
+60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated. Similar to checkflag
 61 defeatedtrainer  trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
 62 readytrainer     trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
