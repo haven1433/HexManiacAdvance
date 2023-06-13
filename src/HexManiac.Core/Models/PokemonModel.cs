@@ -1721,7 +1721,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash) {
+      public override void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash) {
          if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else {

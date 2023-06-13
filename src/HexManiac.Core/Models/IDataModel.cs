@@ -84,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
-      void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash);
+      void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -211,7 +211,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public virtual void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash) => throw new NotImplementedException();
+      public virtual void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash) => throw new NotImplementedException();
 
       public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 

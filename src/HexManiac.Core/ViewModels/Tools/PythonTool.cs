@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          try {
             var result = engine.Execute(code, scope);
             string resultText = result?.ToString();
-            if (result is IEnumerable enumerable && result is not string) {
+            if (result is IEnumerable enumerable && result is not string && result is not IDataModel) {
                resultText = string.Empty;
                foreach (var item in enumerable) {
                   if (resultText.Length > 0) resultText += Environment.NewLine;

@@ -161,7 +161,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-         if (seg.Type == ElementContentType.Integer) {
+         if (seg.Type == ElementContentType.Integer && seg is ArrayRunSignedSegment signedSeg) {
+            return signedSeg.ReadValue(model, valueAddress);
+         } if (seg.Type == ElementContentType.Integer) {
             return model.ReadMultiByteValue(valueAddress, seg.Length);
          } else {
             return model.ReadMultiByteValue(valueAddress, seg.Length.LimitToRange(0, 3));
@@ -219,6 +221,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunTupleSegment)seg, tokenFactory);
       }
 
+      public object __getindex__(string key) => this[key];                     // for python
+      public void __setindex__(string key, object value) => this[key] = value; // for python
       public object this[string fieldName] {
          get {
             var seg = table.ElementContent.Single(segment => segment.Name == fieldName);

@@ -132,6 +132,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public MapTutorialsViewModel Tutorials { get; }
 
+      public AllMapsModel Models => AllMapsModel.Create(model, () => viewPort.ChangeHistory.CurrentChange);
+
       #region Block Picker
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
