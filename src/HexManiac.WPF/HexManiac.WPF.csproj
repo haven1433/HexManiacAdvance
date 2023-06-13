@@ -49,6 +49,9 @@
     <None Include="Scripts\EditBattleOdds.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Scripts\ElasticNatureTable.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Scripts\callasmBattleScriptCommand.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
