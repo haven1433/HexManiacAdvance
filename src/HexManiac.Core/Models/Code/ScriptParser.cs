@@ -1402,7 +1402,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                token = token.Substring(2);
             }
             if (token == "auto") {
-               if(PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
+               if (PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
                   return "<auto> only supported for text/data.";
                }
                value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
@@ -1411,9 +1411,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
                if (value > -Pointer.NULL) value += Pointer.NULL;
+            } else if (PointerType != ExpectedPointerType.Script) {
+               return $"'{token}' is not a valid pointer.";
             } else {
                labels.AddUnresolvedLabel(token, address);
-               value = 0;
+               value = Pointer.NULL;
             }
             value -= Pointer.NULL;
             results.Add((byte)value);
