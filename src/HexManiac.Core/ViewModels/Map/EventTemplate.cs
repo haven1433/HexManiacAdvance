@@ -283,6 +283,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (banks == null) return 3;
          foreach (var bank in banks) {
             foreach (var map in bank) {
+               if (map == null) continue;
                foreach (var obj in map.Events.Objects) {
                   if (obj.Graphics != graphics) continue;
                   if (!histogram.ContainsKey(obj.Elevation)) histogram[obj.Elevation] = 0;
