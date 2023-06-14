@@ -30,7 +30,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private readonly string appInstanceIdentifier;
 
       [STAThread]
-      public static void Main(string[] args) => new App().Run();
+      public static void Main(string[] args) {
+         new SplashScreen("Resources/Splash.png").Show(true);
+         new App().Run();
+      }
 
       public App() {
          this.InitializeComponent();

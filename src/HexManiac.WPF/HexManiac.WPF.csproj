@@ -13,6 +13,10 @@
   <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\HMA_Splash.xcf" />
+    <None Remove="Resources\Splash.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -72,6 +76,9 @@
   <ItemGroup>
     <Resource Include="Resources\AppIcon.ico" />
     <Resource Include="Resources\AppImage.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Resources\Splash.png" />
   </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
