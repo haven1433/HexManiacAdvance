@@ -5,8 +5,8 @@ using System.Collections;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PythonTool : ViewModelCore {
-      private readonly ScriptEngine engine;
-      private readonly ScriptScope scope;
+      private Lazy<ScriptEngine> engine;
+      private Lazy<ScriptScope> scope;
       private readonly EditorViewModel editor;
 
       private string text, resultText;
@@ -15,15 +15,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public PythonTool(EditorViewModel editor) {
          this.editor = editor;
-         engine = IronPython.Hosting.Python.CreateEngine();
-         var paths = engine.GetSearchPaths();
-         paths.Add(Environment.CurrentDirectory);
-         engine.SetSearchPaths(paths);
+         engine = new(() => {
+            var engine = IronPython.Hosting.Python.CreateEngine();
+            var paths = engine.GetSearchPaths();
+            paths.Add(Environment.CurrentDirectory);
+            engine.SetSearchPaths(paths);
+            return engine;
+         });
 
-         scope = engine.CreateScope();
-         scope.SetVariable("editor", editor);
-         scope.SetVariable("table", new TableGetter(editor));
-         scope.SetVariable("print", (Action<string>)Printer);
+         scope = new(() => {
+            var scope = engine.Value.CreateScope();
+            scope.SetVariable("editor", editor);
+            scope.SetVariable("table", new TableGetter(editor));
+            scope.SetVariable("print", (Action<string>)Printer);
+            return scope;
+         });
          Text = @"print('''
    Put python code here.
    Use 'editor' to access the EditorViewModel.
@@ -43,6 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public ErrorInfo RunPythonScript(string code) {
+         var (engine, scope) = (this.engine.Value, this.scope.Value);
          if (editor.SelectedTab is IEditableViewPort vp) {
             var anchors = AnchorGroup.GetTopLevelAnchorGroups(vp.Model, () => vp.ChangeHistory.CurrentChange);
             foreach (var key in anchors.Keys) scope.SetVariable(key, anchors[key]);
