@@ -181,6 +181,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
 
          var sprite = data.CurrentCacheScope.GetImage(this);
+         if (sprite == null) return basicFormat;
          var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
          lastFormatRequested = index;
          return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);

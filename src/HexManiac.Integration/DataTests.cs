@@ -118,5 +118,15 @@ namespace HavenSoft.HexManiac.Integration {
 
          // no debug assert = pass
       }
+
+      [SkippableFact]
+      public void FireRedAndEmerald_Diff_NoError() {
+         var firered = LoadReadOnlyFireRed();
+         var emerald = LoadReadOnlyEmerald();
+
+         firered.Diff.Execute(emerald);
+
+         // no exceptions = pass
+      }
    }
 }

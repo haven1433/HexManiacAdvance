@@ -195,6 +195,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!IDataModelExtensions.EditorReleased) return null;
          if (run.PointerSources.IsNullOrEmpty()) return null;
          var primarySource = run.PointerSources[0];
+         var (address1, address2) = (model.ReadPointer(primarySource + 4), model.ReadPointer(primarySource + 8));
+         if (address1 < 0 || address2 < 0) return null;
          var blocks1 = new BlocksetModel(model, model.ReadPointer(primarySource + 4));
          var blocks2 = new BlocksetModel(model, model.ReadPointer(primarySource + 8));
          var primaryMax = BlockmapRun.GetMaxUsedBlock(model, run.Start, run.BlockWidth, run.BlockHeight, run.PrimaryBlocks);
