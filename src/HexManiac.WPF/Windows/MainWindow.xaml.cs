@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -70,6 +71,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
          FillQuickEditMenu();
       }
+
+      protected override AutomationPeer OnCreateAutomationPeer() => new CustomAutomationPeer(this); // prevent memory held by automation peer
 
       private void SetupDebugListener(object sender, RoutedEventArgs e) {
          Trace.Listeners.Clear();
@@ -576,6 +579,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
 
+      private void DeveloperRunGarbageCollection(object sender, RoutedEventArgs e) => GC.Collect();
+
       private void DeveloperRenderRomOverview() {
          var tab = (ViewPort)ViewModel.SelectedTab;
          var model = tab.Model;
@@ -670,6 +675,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          textbox.Focus();
          e.Handled = true;
       }
+   }
+
+   public class CustomAutomationPeer : WindowAutomationPeer {
+      public CustomAutomationPeer(Window owner) : base(owner) { }
+      protected override List<AutomationPeer> GetChildrenCore() => null;
    }
 
    public class CustomTraceListener : TraceListener {

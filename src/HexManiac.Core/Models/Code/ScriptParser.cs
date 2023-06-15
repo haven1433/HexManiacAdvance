@@ -1055,7 +1055,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (index + LineCode.Count >= data.Count) return false;
          if (MatchesGame(gameCodeHash)) {
-            return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
+            var result = true;
+            for (int i = 0; result && i < LineCode.Count; i++) result = data[index + i] == LineCode[i]; // avoid making lambda for performance
+            return result;
          }
          return false;
       }

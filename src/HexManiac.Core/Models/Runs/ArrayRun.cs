@@ -1525,7 +1525,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return true;
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {
-                  var options = enumSegment.GetOptions(owner).ToList();
+                  var options = enumSegment.GetOptions(owner);
                   // don't verify enums that are based on lists.
                   // There could be more elements in use than elements in the list, especially for edited ROMs with default lists.
                   if (options.Count == 0 || parentIndex == 0) return true; // unrecognized, so just allow anything

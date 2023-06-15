@@ -1,5 +1,10 @@
-﻿namespace HavenSoft.HexManiac.WPF.Resources {
+﻿using System.Windows.Media;
+
+namespace HavenSoft.HexManiac.WPF.Resources {
    partial class Icons {
-      public Icons() => InitializeComponent();
+      public Icons() {
+         InitializeComponent();
+         foreach (Geometry geo in Items) geo.Freeze();
+      }
    }
 }

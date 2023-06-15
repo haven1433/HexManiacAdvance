@@ -227,6 +227,7 @@
                   <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
                   <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                   <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
+                  <MenuItem Header="Run Garbage Collection" Click="DeveloperRunGarbageCollection"/>
                   <Separator />
                   <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
                </MenuItem>

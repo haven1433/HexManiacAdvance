@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name, where is it?
       // for a location, what is its name?
-      private readonly IDictionary<string, int> addressForAnchor = new ThreadSafeDictionary<string, int>();
+      private readonly ThreadSafeDictionary<string, int> addressForAnchor = new ThreadSafeDictionary<string, int>();
       private readonly Dictionary<int, string> anchorForAddress = new Dictionary<int, string>();
 
       // for a name not actually in the file, what pointers point to it?
@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
       private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
 
-      private readonly Dictionary<string, ValidationList> lists = new Dictionary<string, ValidationList>();
+      private readonly ThreadSafeDictionary<string, ValidationList> lists = new ThreadSafeDictionary<string, ValidationList>();
 
       private readonly Singletons singletons;
       private readonly bool showRawIVByteForTrainer, devMode;
@@ -119,15 +119,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// setup a cache to make loading faster
       /// </summary>
       private void BuildDestinationToSourceCache(byte[] data) {
-         sourcesForDestinations = new Dictionary<int, SortedSpan<int>>();
+         var sourcesForDestinations = new Dictionary<int, List<int>>();
          for (int i = 3; i < data.Length; i++) {
             if (data[i] != 0x08 && data[i] != 0x09) continue;
             var source = i - 3;
             var destination = ReadPointer(source);
             if (destination < 0 || destination >= data.Length) continue;
-            if (!sourcesForDestinations.ContainsKey(destination)) sourcesForDestinations.Add(destination, SortedSpan<int>.None);
-            sourcesForDestinations[destination] = sourcesForDestinations[destination].Add1(source);
+            if (!sourcesForDestinations.ContainsKey(destination)) sourcesForDestinations.Add(destination, new());
+            sourcesForDestinations[destination].Add(source);
          }
+
+         this.sourcesForDestinations = new Dictionary<int, SortedSpan<int>>();
+         foreach (var kvp in sourcesForDestinations) this.sourcesForDestinations[kvp.Key] = new SortedSpan<int>(kvp.Value.ToArray(), kvp.Value.Count);
       }
 
       public override byte this[int index] {
@@ -1422,8 +1425,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
-         if (strategy is TableStreamRunContentStrategy) {
-            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, segments, false, out var newRun)) {
+         if (strategy is TableStreamRunContentStrategy tableStrategy) {
+            if (segment.TryParseTableStream(this, run.Start, run.PointerSources, segments, false, out var newRun)) {
                for (var existingRun = GetNextRun(newRun.Start); existingRun.Start < newRun.Start + newRun.Length; existingRun = GetNextRun(existingRun.Start + existingRun.Length)) {
                   if (existingRun.Start > newRun.Start && existingRun is ITableRun) {
                      // we still care about the pointer, we just don't want to add the format
@@ -1431,9 +1434,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                }
             }
+            tableStrategy.UpdateNewRunFromPointerFormat(this, token, segment, segments, parentIndex, ref run);
+         } else {
+            strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
          }
-
-         strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
       }
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
@@ -2762,9 +2766,9 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
 
    public static class StringDictionaryExtensions {
-      public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {
+      public static bool TryGetValueCaseInsensitive<T>(this ThreadSafeDictionary<string, T> self, string key, out T value) {
          if (self.TryGetValue(key, out value)) return true;
-         var keys = self.Keys.ToList();
+         var keys = self.Keys; // keys is a thread-safe copy
          foreach (var option in keys) {
             if (key.Equals(option, StringComparison.CurrentCultureIgnoreCase)) {
                value = self[option];
