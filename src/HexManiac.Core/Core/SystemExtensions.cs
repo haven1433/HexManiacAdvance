@@ -124,6 +124,13 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public static int Count<T>(this IEnumerable<T> list, T c) where T : struct => list.Count(ch => ch.Equals(c));
+      public static int Count<T>(this ReadOnlySpan<T> list, T c) where T : struct {
+         int count = 0;
+         foreach (var ch in list) {
+            if (c.Equals(ch)) count++;
+         }
+         return count;
+      }
 
       public static int IndexOf<T>(this IReadOnlyList<T> list, T element) {
          for (int i = 0; i < list.Count; i++) {

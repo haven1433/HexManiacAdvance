@@ -1279,104 +1279,105 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static bool IsValidFieldNameCharacter(char c) => char.IsLetterOrDigit(c) || c == '_'; // field names can contain underscores
       private static bool IsValidTableNameCharacter(char c) => char.IsLetterOrDigit(c) || c.IsAny('_', '.'); // table names can contain underscores or dots
 
-      public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
+      public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) => ParseSegments(segments.AsSpan(), model);
+      public static List<ArrayRunElementSegment> ParseSegments(ReadOnlySpan<char> segments, IDataModel model) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
          while (segments.Length > 0) {
             if (segments.StartsWith("[")) {
                int subArrayClose = segments.LastIndexOf("]");
                if (subArrayClose == -1) throw new ArrayRunParseException("Found unmatched open bracket ([).");
-               var innerSegments = ParseSegments(segments.Substring(1, subArrayClose - 1), model);
-               segments = segments.Substring(subArrayClose + 1);
+               var innerSegments = ParseSegments(segments.Slice(1, subArrayClose - 1), model);
+               segments = segments.Slice(subArrayClose + 1);
                int repeatLength = 0;
                while (repeatLength < segments.Length && char.IsDigit(segments[repeatLength])) repeatLength++;
-               if (!int.TryParse(segments.Substring(0, repeatLength), out int innerCount)) {
+               if (!int.TryParse(segments.Slice(0, repeatLength), out int innerCount)) {
                   throw new ArrayRunParseException($"Could not parse '{segments}' as a number.");
                }
                for (int i = 0; i < innerCount; i++) list.AddRange(innerSegments);
-               segments = segments.Substring(repeatLength);
+               segments = segments.Slice(repeatLength);
                continue;
             }
 
             int nameEnd = 0;
             while (nameEnd < segments.Length && IsValidFieldNameCharacter(segments[nameEnd])) nameEnd++;
-            var name = segments.Substring(0, nameEnd);
-            segments = segments.Substring(nameEnd);
+            var name = segments.Slice(0, nameEnd).ToString();
+            segments = segments.Slice(nameEnd);
             var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
-            if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException("expected name, but none was found: " + segments);
-            if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException("Cannot have 0-length text: " + name);
+            if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException($"expected name, but none was found: {segments}");
+            if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException($"Cannot have 0-length text: {name}");
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
-               segments = segments.Substring(formatLength);
+               segments = segments.Slice(formatLength);
                if (segments.StartsWith(HexFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunHexSegment(name, segmentLength));
                } else if (segments.StartsWith(SignedFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunSignedSegment(name, segmentLength));
                } else if (segments.StartsWith(TupleFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var tupleContract = segments.Substring(TupleFormatString.Length, endOfToken - TupleFormatString.Length);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunTupleSegment(name, tupleContract, segmentLength));
+                  var tupleContract = segments.Slice(TupleFormatString.Length, endOfToken - TupleFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunTupleSegment(name, tupleContract.ToString(), segmentLength));
                } else if (segments.StartsWith(ColorFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunColorSegment(name));
                } else if (segments.StartsWith(CalculatedFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var calculationContract = segments.Substring(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunCalculatedSegment(model, name, calculationContract));
+                  var calculationContract = segments.Slice(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunCalculatedSegment(model, name, calculationContract.ToString()));
                } else if (segments.StartsWith(RenderFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var contract = segments.Substring(RenderFormatString.Length, endOfToken - RenderFormatString.Length);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunOffsetRenderSegment(name, contract));
+                  var contract = segments.Slice(RenderFormatString.Length, endOfToken - RenderFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunOffsetRenderSegment(name, contract.ToString()));
                } else if (segments.StartsWith(RecordFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var recordContract = segments.Substring(0, endOfToken);
-                  segments = segments.Substring(endOfToken).Trim();
+                  var recordContract = segments.Slice(0, endOfToken);
+                  segments = segments.Slice(endOfToken).Trim();
                   if (recordContract.Count('(') != 1 || recordContract.Count(')') != 1) {
                      throw new ArrayRunParseException("Record format is s={name}({number}={enum}|...).");
                   }
-                  list.Add(new ArrayRunRecordSegment(name, segmentLength, recordContract));
+                  list.Add(new ArrayRunRecordSegment(name, segmentLength, recordContract.ToString()));
                } else if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, elementCount.ToString()));
                } else {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var enumName = segments.Substring(0, endOfToken);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
+                  var enumName = segments.Slice(0, endOfToken);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName.ToString()));
                }
             } else if (format == ElementContentType.Pointer && formatLength > 2) {
-               var pointerSegment = new ArrayRunPointerSegment(model.FormatRunFactory, name, segments.Substring(1, formatLength - 2));
+               var pointerSegment = new ArrayRunPointerSegment(model.FormatRunFactory, name, segments.Slice(1, formatLength - 2).ToString());
                if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
                list.Add(pointerSegment);
-               segments = segments.Substring(formatLength).Trim();
+               segments = segments.Slice(formatLength).Trim();
             } else if (format == ElementContentType.BitArray) {
-               var sourceName = segments.Substring(BitArray.SharedFormatString.Length, formatLength - BitArray.SharedFormatString.Length);
-               segments = segments.Substring(formatLength).Trim();
-               list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName));
+               var sourceName = segments.Slice(BitArray.SharedFormatString.Length, formatLength - BitArray.SharedFormatString.Length);
+               segments = segments.Slice(formatLength).Trim();
+               list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName.ToString()));
             } else if (format == ElementContentType.Splitter) {
-               segments = segments.Substring(formatLength).Trim();
+               segments = segments.Slice(formatLength).Trim();
                list.Add(new ArrayRunSplitterSegment());
             } else {
-               segments = segments.Substring(formatLength).Trim();
+               segments = segments.Slice(formatLength).Trim();
                if (format == ElementContentType.Unknown) {
                   // default to single byte integer
                   format = ElementContentType.Integer;
@@ -1389,12 +1390,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return list;
       }
 
-      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(string segments, IDataModel model) {
-         if (segments.Length >= 2 && segments.Substring(0, 2) == PCSRun.SharedFormatString) {
+      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(ReadOnlySpan<char> segments,IDataModel model) {
+         if (segments.Length >= 2 && MemoryExtensions.Equals(segments.Slice(0, 2), PCSRun.SharedFormatString, StringComparison.Ordinal)) {
             var format = ElementContentType.PCS;
             var formatLength = 2;
             while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
-            if (int.TryParse(segments.Substring(2, formatLength - 2), out var segmentLength)) {
+            if (int.TryParse(segments.Slice(2, formatLength - 2), out var segmentLength)) {
                return (format, formatLength, segmentLength);
             }
          } else if (segments.StartsWith(CalculatedFormatString)) {
@@ -1422,8 +1423,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else if (segments.StartsWith(BitArray.SharedFormatString)) {
             var endIndex = BitArray.SharedFormatString.Length;
             while (segments.Length > endIndex && IsValidTableNameCharacter(segments[endIndex])) endIndex++;
-            var format = segments.Substring(0, endIndex);
-            var name = format.Substring(BitArray.SharedFormatString.Length);
+            var format = segments.Slice(0, endIndex);
+            var name = format.Slice(BitArray.SharedFormatString.Length).ToString();
             var options = model.GetBitOptions(name);
             var count = options?.Count ?? 8;
             return (ElementContentType.BitArray, format.Length, (int)Math.Ceiling(count / 8.0));
