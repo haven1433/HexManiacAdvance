@@ -465,7 +465,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => element.GetValue("trainerType");
          set {
             element.SetValue("trainerType", value);
-            NotifyPropertyChanged(nameof(ShowBerryContent));
+            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(ShowTrainerContent));
             NotifyPropertyChanged();
          }
       }
@@ -607,7 +607,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public FilteringComboOptions TrainerOptions { get; } = new();
 
-      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null;
+      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null && TrainerType != 0;
 
       public int TrainerClass {
          get {

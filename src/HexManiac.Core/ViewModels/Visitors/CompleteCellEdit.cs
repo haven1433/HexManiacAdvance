@@ -605,7 +605,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       private void CompleteIntegerEnumEdit() {
          string sanitizedText = CurrentText.Replace(')', ' ');
-         var array = (ITableRun)Model.GetNextRun(memoryLocation);
+         var array = Model.GetNextRun(memoryLocation) as ITableRun;
+         if (array == null) {
+            ErrorText = $"Enum does not appear to be in a table.";
+            return;
+         }
          var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
          var contentSegment = array.ElementContent[offsets.SegmentIndex];
          if (contentSegment is ArrayRunRecordSegment record) contentSegment = record.CreateConcrete(Model, memoryLocation);
@@ -614,7 +618,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Model.WriteMultiByteValue(offsets.SegmentStart, segment.Length, CurrentChange, value);
             NewDataIndex = offsets.SegmentStart + segment.Length;
          } else {
-            ErrorText = $"Could not parse {CurrentText} as an enum from the {segment.EnumName} array";
+            ErrorText = $"Could not parse {CurrentText} as an enum from the {segment.EnumName} array.";
          }
       }
 
