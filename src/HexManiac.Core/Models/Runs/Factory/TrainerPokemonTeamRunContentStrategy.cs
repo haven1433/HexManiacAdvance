@@ -36,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new TrainerPokemonTeamRun(model, run.Start, showFullIVByteRange, run.PointerSources);
+         if (runAttempt.Length < 1) return;
          model.ClearFormat(token, run.Start, runAttempt.Length);
          run = runAttempt;
       }

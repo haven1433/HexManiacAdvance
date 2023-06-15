@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static readonly string SharedFormatString = AsciiRun.StreamDelimeter + "tpt" + AsciiRun.StreamDelimeter;
 
       private readonly IDataModel model;
+      private readonly int primarySource;
 
       public byte StructType { get; }
 
@@ -50,6 +51,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (!(model.GetNextRun(source) is ITableRun)) continue;
             StructType = model[source - TrainerFormat_PointerOffset];
             ElementCount = model.ReadMultiByteValue(source - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset, 4);
+            primarySource = source;
             break;
          }
 
@@ -62,6 +64,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private TrainerPokemonTeamRun(IDataModel model, int start, bool showFullIVByteRange, SortedSpan<int> sources, int primarySource) : base(start, sources) {
          this.model = model;
          this.showFullIVByteRange = showFullIVByteRange;
+         this.primarySource = primarySource;
          StructType = model[primarySource - TrainerFormat_PointerOffset];
          ElementCount = model.ReadMultiByteValue(primarySource - TrainerFormat_PointerOffset + TrainerFormat_PokemonCountOffset, 4);
          var segments = Initialize();
@@ -124,7 +127,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => this.CreateSegmentDataFormat(data, index);
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TrainerPokemonTeamRun(model, Start, showFullIVByteRange, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TrainerPokemonTeamRun(model, Start, showFullIVByteRange, newPointerSources, primarySource);
 
       #endregion
 
