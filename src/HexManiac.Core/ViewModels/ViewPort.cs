@@ -895,6 +895,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                            selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
                            Goto.Execute(index);
                            selection.PropertyChanged += SelectionPropertyChanged;
+                           NotifyPropertyChanged(nameof(PreferredWidth)); // editing the anchor can edit the preferred width, and we weren't listening
                         }
                         UpdateColumnHeaders();
                      }
