@@ -1358,6 +1358,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                if (parent.Palette.CanEditColors || palette.pages > 1) {
                   if (palette.colors.Count < 256 && !parent.SpriteOnlyExpects16Colors()) {
                      index -= palette.initialBlankPages << 4;
+                     while (index < 0) index += 16;
                      if (parent.SpritePages == 1) parent.PalettePage = index / 16;
                      index %= 16;
                   }
