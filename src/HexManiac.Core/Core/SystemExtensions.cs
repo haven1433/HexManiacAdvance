@@ -41,6 +41,11 @@ namespace HavenSoft.HexManiac.Core {
          if (int.TryParse(str, out result)) return true;
          return false;
       }
+      public static bool TryParseInt(this ReadOnlySpan<char> str, out int result) {
+         if (str.StartsWith("0x") && int.TryParse(str.Slice(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return true;
+         if (int.TryParse(str, out result)) return true;
+         return false;
+      }
 
       // allows writing 5.Range() instead of Enumerable.Range(0, 5)
       public static IEnumerable<int> Range(this int count) => Enumerable.Range(0, count);
@@ -121,6 +126,14 @@ namespace HavenSoft.HexManiac.Core {
 
       public static void AddRange<T>(this ObservableCollection<T> set, IEnumerable<T> items) {
          foreach (var item in items) set.Add(item);
+      }
+
+      public static bool All<T>(this ReadOnlySpan<T> span, Func<T,bool> predicate) {
+         var match = true;
+         for (int i = 0; match && i < span.Length; i++) {
+            match = predicate(span[i]);
+         }
+         return match;
       }
 
       public static int Count<T>(this IEnumerable<T> list, T c) where T : struct => list.Count(ch => ch.Equals(c));

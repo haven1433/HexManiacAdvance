@@ -324,14 +324,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IEnumerable<string> GetBestOptions(IDataModel model, string match) => GetBestOptions(GetOptions(model, EnumName), match);
 
       public static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
-         if (enumName.TryParseInt(out var result)) return result.Range().Select(i => i.ToString()).ToList();
+         if (enumName.TryParseInt(out var result)) return GetNumericOptions(result);
          IReadOnlyList<string> options = model.GetOptions(enumName);
 
          // we _need_ options for the table tool
          // if we have none, just create "0", "1", ..., "n-1" based on the length of the EnumName table.
          if (!options.Any()) {
             if (model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName)) is ITableRun tableRun) {
-               options = tableRun.ElementCount.Range().Select(i => i.ToString()).ToList();
+               options = GetNumericOptions(tableRun.ElementCount);
             }
          }
 
@@ -343,6 +343,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// </summary>
       public static IEnumerable<string> GetBestOptions(IEnumerable<string> options, string text, bool onlyCheckLettersAndDigits = false) {
          return options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false).OrderBy(option => option.SkipCount(text));
+      }
+
+      private static readonly List<string> numericOptions = new();
+      public static IReadOnlyList<string> GetNumericOptions(int count) {
+         while (numericOptions.Count < count) numericOptions.Add(numericOptions.Count.ToString());
+         var options = new string[count];
+         numericOptions.CopyTo(0, options, 0, count);
+         return options;
       }
    }
 

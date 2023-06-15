@@ -858,7 +858,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (Args.Count == 0) return false;
          if (!MatchesGame(gameCodeHash)) return false;
-         foreach (var arg in Args) {
+         for (int i = 0; i < Args.Count; i++) {
+            var arg = Args[i];
             if (arg is SilentMatchArg smarg) {
                if (data[index] != smarg.ExpectedValue) return false;
             } else if (arg is ScriptArg sarg) {

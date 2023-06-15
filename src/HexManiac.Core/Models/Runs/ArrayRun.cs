@@ -424,15 +424,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int BeginningMargin { get; }
       public int EndMargin { get; }
       public ParentOffset(int start = 0, int end = 0) => (BeginningMargin, EndMargin) = (start, end);
-      public static ParentOffset Parse(ref string nameToken) {
+      public static ParentOffset Parse(ref ReadOnlySpan<char> nameToken) {
          var name = nameToken;
          var result = new ParentOffset();
-         var separators = name.Length.Range().Where(i => name[i].IsAny("+-".ToCharArray())).Concat(new[] { name.Length }).ToArray();
-         if (separators.Length == 1) return Default;
-         var textMargins = (separators.Length - 1).Range().Select(i => name.Substring(separators[i], separators[i + 1] - separators[i]));
-         var margins = textMargins.Select(str => int.TryParse(str, out var value) ? value : default).ToArray();
+         var separators = new List<int>();
+
+         for (int i = 0; i < name.Length; i++) {
+            if (name[i].IsAny('+', '-')) separators.Add(i);
+         }
+         separators.Add(name.Length);
+
+         if (separators.Count == 1) return Default;
+
+         var margins = new int[separators.Count - 1];
+         for (int i = 0; i < margins.Length; i++) {
+            var textMargin = name.Slice(separators[i], separators[i + 1] - separators[i]);
+            margins[i] = int.TryParse(textMargin, out var margin) ? margin : default;
+         }
+
          if (margins.Length > 2 || margins.Length < 1) return Default;
-         nameToken = name.Substring(0, separators[0]);
+         nameToken = name.Slice(0, separators[0]);
          if (margins.Length == 1 && margins[0] > 0) return new ParentOffset(end: margins[0]);
          if (margins.Length == 1 && margins[0] < 0) return new ParentOffset(start: margins[0]);
          if (margins.Length == 1) return Default;
@@ -548,15 +559,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool CanAppend => true;
 
-      private ArrayRun(IDataModel data, string format, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string formatText, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
          owner = data;
-         FormatString = format;
+         FormatString = formatText;
+         var format = formatText.AsSpan();
          SupportsInnerPointers = format.StartsWith(AnchorStart.ToString());
-         if (SupportsInnerPointers) format = format.Substring(1);
+         if (SupportsInnerPointers) format = format.Slice(1);
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
-         var segments = format.Substring(1, closeArray - 1);
-         var length = format.Substring(closeArray + 1);
+         var segments = format.Slice(1, closeArray - 1);
+         var length = format.Slice(closeArray + 1);
          if (!length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow +/-
          ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
@@ -1435,9 +1447,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return (ElementContentType.Unknown, 0, 0);
       }
 
-      private (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(string length) {
+      private (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(ReadOnlySpan<char> length) {
          var parentOffset = ParentOffset.Parse(ref length);
-         var lengthFromAnchor = length;
+         var lengthFromAnchor = length.ToString();
 
          // length is based on another array
          int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, lengthFromAnchor);
