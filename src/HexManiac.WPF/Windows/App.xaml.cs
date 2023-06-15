@@ -23,6 +23,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
    partial class App {
       public const string ReleaseUrl = "https://github.com/haven1433/HexManiacAdvance/releases";
       public const string
+         Arg_Skip_Splash_Screen = "--skip-splash",
          Arg_No_Metadata = "--no-metadata",
          Arg_Developer_Menu = "--dev-menu";
 
@@ -31,7 +32,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       [STAThread]
       public static void Main(string[] args) {
-         new SplashScreen("Resources/Splash.png").Show(true);
+         if (!Arg_Skip_Splash_Screen.IsAny(args)) {
+            new SplashScreen("Resources/Splash.png").Show(true);
+         }
          new App().Run();
       }
 
@@ -108,16 +111,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private static (string path, int address, bool[] options) ParseArgs(string[] args) {
-         var useMetadata = true;
-         var showDevMenu = false;
-         if (args.Any(arg => arg == Arg_No_Metadata)) {
-            useMetadata = false;
-            args = args.Where(arg => arg != Arg_No_Metadata).ToArray();
-         }
-         if (args.Any(arg => arg == Arg_Developer_Menu)) {
-            showDevMenu = true;
-            args = args.Where(arg => arg != Arg_Developer_Menu).ToArray();
-         }
+         var useMetadata = !args.Any(arg => arg == Arg_No_Metadata);
+         var showDevMenu = args.Any(arg => arg == Arg_Developer_Menu);
+         args = args.Where(arg => !arg.StartsWith("--")).ToArray();
 
          var allArgs = args.Aggregate(string.Empty, (a, b) => a + ' ' + b).Trim();
          var loadAddress = -1;
