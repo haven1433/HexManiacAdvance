@@ -27,6 +27,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private const int ScriptLengthLimit = 0x1000;
       private const int ScriptCountLimit = 100;
 
+      /// <summary>
+      /// IDs of every used flag
+      /// </summary>
       public static HashSet<int> GetUsedItemFlags(IDataModel model, ScriptParser parser) {
          var usedFlags = new HashSet<int>();
 
@@ -142,6 +145,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return results;
       }
 
+      /// <returns>Every address where this flag is used</returns>
       public static HashSet<int> FindFlagUsages(IDataModel model, ScriptParser parser, int flag) {
          var usages = new HashSet<int>();
 

@@ -385,7 +385,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.format = new Format(model);
 
          var owSprites = BlockMapViewModel.RenderOWs(model);
-         templates = new(model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
+         templates = new(singletons.WorkDispatcher, model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
          var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = owSprites };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
