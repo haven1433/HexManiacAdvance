@@ -1046,6 +1046,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }
 
+      private bool ignoreFurtherCommands = false;
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
          undoWrapper.Execute = arg => { history.Undo.Execute(arg); tools.RefreshContent(); };
@@ -1122,11 +1123,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
-         moveSelectionStart.Execute = arg => {
+         moveSelectionStart.Execute = async arg => {
+            if (ignoreFurtherCommands) return;
+            using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+            await dispatcher.WaitForRenderingAsync();
             var direction = (Direction)arg;
-            using (ModelCacheScope.CreateScope(Model)) {
-               MoveSelectionStartExecuted(arg, direction);
-            }
+            MoveSelectionStartExecuted(arg, direction);
          };
          selection.MoveSelectionStart.CanExecuteChanged += (sender, e) => moveSelectionStart.CanExecuteChanged.Invoke(this, e);
          moveSelectionEnd.CanExecute = selection.MoveSelectionEnd.CanExecute;

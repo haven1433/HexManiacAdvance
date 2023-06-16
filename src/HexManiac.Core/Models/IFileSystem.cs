@@ -124,6 +124,13 @@ namespace HavenSoft.HexManiac.Core.Models {
    public record ProcessModel(string DisplayText, string Content);
 
    public interface IWorkDispatcher {
+      /// <summary>
+      /// Pauses until the UI render thread has had a chance to complete rendering.
+      /// Continued work will be done on a background thread.
+      /// Without this, further property notifications to the UI may cause UI studdering or freezing.
+      /// </summary>
+      Task WaitForRenderingAsync();
+
       void BlockOnUIWork(Action action);
 
       /// <summary>
@@ -141,6 +148,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class InstantDispatch : IWorkDispatcher {
       public static IWorkDispatcher Instance { get; } = new InstantDispatch();
+      public Task WaitForRenderingAsync() => Task.CompletedTask;
       public void BlockOnUIWork(Action action) => action();
       public Task DispatchWork(Action action) { action?.Invoke(); return Task.CompletedTask; }
       public Task RunBackgroundWork(Action action) => DispatchWork(action);
@@ -149,6 +157,9 @@ namespace HavenSoft.HexManiac.Core.Models {
    public class ControlledDispatch : IWorkDispatcher {
       private record Dispatch(Action Action, CancellationTokenSource CancellationSource);
       private readonly List<Dispatch> workloads = new();
+
+      public Task WaitForRenderingAsync { get; set; } = Task.CompletedTask;
+      Task IWorkDispatcher.WaitForRenderingAsync() => WaitForRenderingAsync;
 
       public void BlockOnUIWork(Action action) => action();
 

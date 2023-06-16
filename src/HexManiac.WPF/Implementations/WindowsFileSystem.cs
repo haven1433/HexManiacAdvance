@@ -168,6 +168,10 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          watchers[fileName].RemoveAt(index);
       }
 
+      #region WorkDispatcher
+
+      public async Task WaitForRenderingAsync() => await new InlineDispatch(this);
+
       public void BlockOnUIWork(Action action) {
          if (Thread.CurrentThread == dispatcher.Thread) {
             action();
@@ -187,6 +191,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       }
 
       public Task RunBackgroundWork(Action action) => Task.Run(action);
+
+      #endregion
 
       public string RequestNewName(string currentName, string extensionDescription = null, params string[] extensionOptions) {
          var dialog = new SaveFileDialog { FileName = currentName, Filter = CreateFilterFromOptions(extensionDescription, extensionOptions) };
