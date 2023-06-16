@@ -24,7 +24,8 @@ for nature in data.pokemon.natures.stats:
     nature[stat] *= 10
     nature[stat] += 100
 .end
-
+# make the values go from 0->255 instead of -128->127
+@data.pokemon.natures.stats ^data.pokemon.natures.stats[attack. defense. speed. spAttack. spDefense.]data.pokemon.natures.names
 
 
 # Part 2: Update code that uses the table
@@ -72,6 +73,9 @@ end:
 @192CDA 64 @192D04 64
 
 
-
 # Part 4 TODO: update limiters to allow for more natures (see notes in constantReference.txt)
 
+
+
+# Finally: go to the natures stats table so the user can edit it.
+@data.pokemon.natures.stats
