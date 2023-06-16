@@ -255,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          dup.RequestTabChange += (sender, e) => viewPort.RaiseRequestTabChange(e.NewTab);
 
          // don't check for the viewPort initilazition workload until the model is initialized (for map duplication, this should never really be an issue)
-         model.InitializationWorkload.ContinueWith(t => {
+         ViewPort.InitializationWorkload.ContinueWith(t => {
             // don't try to use the to tab's map editor until it's been fully initialized.
             dup.InitializationWorkload.ContinueWith(task => {
                singletons.WorkDispatcher.BlockOnUIWork(() => {

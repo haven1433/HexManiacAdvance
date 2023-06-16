@@ -33,6 +33,24 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      private readonly Dictionary<string, IReadOnlyList<ArrayRun>> cachedDependentArrays = new();
+      public IEnumerable<ArrayRun> GetDependantArrays(string anchor) {
+         if (cachedDependentArrays.TryGetValue(anchor, out var cache)) return cache;
+
+         var results = new List<ArrayRun>();
+         foreach (var array in model.Arrays) {
+            if (array.LengthFromAnchor == anchor) results.Add(array);
+            foreach (var segment in array.ElementContent) {
+               if (segment is ArrayRunBitArraySegment bitSegment) {
+                  if (bitSegment.SourceArrayName == anchor) results.Add(array);
+               }
+            }
+         }
+         cachedDependentArrays[anchor] = results;
+         return results;
+      }
+
+
       public static string QuoteIfNeeded(string text) {
          if (!text.Contains(" ")) return text;
          if (text.Contains("\"")) return text;

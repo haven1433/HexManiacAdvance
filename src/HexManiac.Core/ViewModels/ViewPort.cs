@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private StubCommand gotoCommand;
       private void ExecuteGoto(object arg) {
-         Model.InitializationWorkload.ContinueWith(task => {
+         InitializationWorkload.ContinueWith(task => {
             // This needs to be synchronous to make it deterministic,
             // but needs to happen on the UI thread since it can update bound properties.
             dispatcher.BlockOnUIWork(() => {
@@ -1031,27 +1031,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
          Shortcuts = new Shortcuts(this);
 
-         Action setupCompletion = () => {
-            if (changeHistory == null) CascadeScripts();
-            RefreshBackingData();
+         InitializationWorkload = model.InitializationWorkload.ContinueWith(task => {
+            var firstViewPort = changeHistory == null;
+            if (firstViewPort) {
+               CascadeScripts();
+               ValidateMatchedWords();
+            }
+            dispatcher.DispatchWork(RefreshBackingData); // this work must be done on the UI thread
             if (fs != null) {
                if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) mapper = null;
             }
-         };
-
-         // defer the remaining setup until the model's been fully loaded
-         if (model.InitializationWorkload.IsCompleted) {
-            InitializationWorkload = model.InitializationWorkload;
-            setupCompletion();
-         } else {
-            model.InitializationWorkload.ContinueWith(task => {
-               // if we're sharing history with another viewmodel, our model has already been updated like this.
-               InitializationWorkload = dispatcher.DispatchWork(() => {
-                  ValidateMatchedWords(); // only need to validate matched words if this is an initial model load
-                  setupCompletion();
-               });
-            }, TaskContinuationOptions.ExecuteSynchronously);
-         }
+         }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }

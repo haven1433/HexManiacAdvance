@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
@@ -912,6 +913,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Y = GetInt(parts, 7);
          TargetFieldX = Get(parts, 8);
          TargetFieldY = Get(parts, 9);
+      }
+
+      private ISpriteRun previousRun;
+      private IPixelViewModel previousRender;
+
+      public IPixelViewModel RenderBackground(IDataModel model) {
+         if (model.GetNextRun(model.GetAddressFromAnchor(new(), -1, Background)) is not ISpriteRun spriteRun) return null;
+         if (spriteRun == previousRun) return previousRender;
+         var pixels = SpriteDecorator.BuildSprite(model, spriteRun);
+         pixels = ReadonlyPixelViewModel.Crop(pixels, BackgroundX, BackgroundY, BackgroundWidth, BackgroundHeight); // (gba screen width, height of pokemon battle background)
+         (previousRun, previousRender) = (spriteRun, pixels);
+         return pixels;
       }
 
       private static string Get(string[] array, int index) => array.Length > index ? array[index] : string.Empty;

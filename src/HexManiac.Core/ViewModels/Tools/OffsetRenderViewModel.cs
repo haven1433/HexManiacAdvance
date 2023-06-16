@@ -48,9 +48,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          yOffset = ParseContent(offsetTable, segment.TargetFieldY, itemAddress);
 
          // find/crop background
-         if (model.GetNextRun(model.GetAddressFromAnchor(new(), -1, segment.Background)) is not ISpriteRun spriteRun) return;
-         PixelViewModel = SpriteDecorator.BuildSprite(model, spriteRun);
-         PixelViewModel = ReadonlyPixelViewModel.Crop(PixelViewModel, segment.BackgroundX, segment.BackgroundY, segment.BackgroundWidth, segment.BackgroundHeight); // (gba screen width, height of pokemon battle background)
+         PixelViewModel = segment.RenderBackground(model);
+         if (PixelViewModel == null) return;
 
          // find/render foreground
          var foregroundTable = model.GetTable(segment.Foreground);

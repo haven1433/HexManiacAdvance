@@ -53,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      private string name;
+      private string name, enumName;
       private int start, length;
 
       private EventHandler dataChanged, dataSelected;
@@ -101,10 +101,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var rawSegment = run.ElementContent[offsets.SegmentIndex];
          if (rawSegment is ArrayRunRecordSegment recordSegment) rawSegment = recordSegment.CreateConcrete(viewPort.Model, start);
          var segment = rawSegment as ArrayRunEnumSegment;
+         enumName = segment.EnumName;
          var optionSource = new Lazy<int>(() => Pointer.NULL);
          Debug.Assert(segment != null);
          if (segment != null) {
-            optionSource = new Lazy<int>(() => CalculateOptionSource(segment.EnumName));
+            optionSource = new Lazy<int>(() => CalculateOptionSource(enumName));
             fullOptions = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
             fullOptions = new List<ComboOption>();
@@ -162,8 +163,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ErrorText = comboBox.ErrorText;
-         GotoSource = comboBox.GotoSource;
-         NotifyPropertyChanged(nameof(GotoSource));
+         if (enumName != comboBox.enumName) {
+            enumName = comboBox.enumName;
+            GotoSource = comboBox.GotoSource;
+            NotifyPropertyChanged(nameof(GotoSource));
+         }
          dataChanged = comboBox.dataChanged;
          dataSelected = comboBox.dataSelected;
 
