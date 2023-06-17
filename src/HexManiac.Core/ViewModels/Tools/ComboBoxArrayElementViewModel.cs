@@ -74,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ElementContentViewModelType Type => ElementContentViewModelType.ComboBox;
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => errorText != string.Empty;
 
       string errorText;

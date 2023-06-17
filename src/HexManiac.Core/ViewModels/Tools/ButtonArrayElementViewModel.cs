@@ -11,6 +11,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ButtonArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
@@ -62,6 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
 
       public string ErrorText => string.Empty;

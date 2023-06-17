@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
 
       public string ErrorText => string.Empty;

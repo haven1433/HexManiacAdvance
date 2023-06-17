@@ -96,6 +96,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly StubCommand createNew = new StubCommand();
       public ICommand CreateNew => createNew;
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
 
       private string errorText;

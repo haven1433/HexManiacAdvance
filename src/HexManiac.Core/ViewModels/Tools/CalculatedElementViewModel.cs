@@ -31,6 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #region IArrayElementViewModel
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       private bool visible;
       public bool Visible { get => visible; set => Set(ref visible, value); }
       public bool IsInError => false;

@@ -3,8 +3,6 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Globalization;
-using System.Runtime.Serialization.Formatters;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
@@ -45,6 +43,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ElementContentViewModelType Type => strategy.Type;
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => errorText != string.Empty;
 
       string errorText;

@@ -48,6 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public interface IArrayElementViewModel : INotifyPropertyChanged {
       event EventHandler DataChanged;
       event EventHandler DataSelected;
+      string Theme { get; set; }
       bool Visible { get; set; }
       bool IsInError { get; }
       string ErrorText { get; }
@@ -63,9 +64,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string sectionName;
       private int sectionLink;
       private bool showSection;
-      private string lastFilter = string.Empty;
+      private string lastFilter = string.Empty, theme;
       private StubCommand followLink, collapseAll, expandAll, toggleVisibility;
 
+      public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
@@ -140,6 +142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(other is SplitterArrayElementViewModel splitter)) return false;
          SectionName = splitter.SectionName;
          SectionLink = splitter.SectionLink;
+         Theme = splitter.Theme;
          return true;
       }
    }
