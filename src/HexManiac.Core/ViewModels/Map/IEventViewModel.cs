@@ -1240,7 +1240,7 @@ show:
 
          var behavior = blockset.Attribute(tile).Behavior;
          if (list.Count <= behavior) return false;
-         return new[] { "Warp", "Door", "Stairs", "Ladder" }.Any(list[behavior].Contains);
+         return new[] { "Warp", "Door", "Stairs", "Ladder", "Escalator" }.Any(list[behavior].Contains);
       }
    }
 

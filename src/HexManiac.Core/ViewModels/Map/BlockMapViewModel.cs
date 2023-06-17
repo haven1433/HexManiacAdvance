@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       private static int MapSizeLimit => 0x2800; // (x+15)*(y+14) must be less that 0x2800 (5*2048). This can lead to limits like 113x66 or 497x6
-      public static bool IsMapWithinSizeLimit(int width, int height) => (width / 16 + 15) * (height / 16 + 14) <= MapSizeLimit;
+      public static bool IsMapWithinSizeLimit(int width, int height) => (width + 15) * (height + 14) <= MapSizeLimit;
 
       public int MapID => group * 1000 + map;
 
