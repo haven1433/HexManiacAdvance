@@ -1123,10 +1123,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
-         moveSelectionStart.Execute = async arg => {
-            if (ignoreFurtherCommands) return;
-            using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
-            await dispatcher.WaitForRenderingAsync();
+         moveSelectionStart.Execute = arg => {
+            // if (ignoreFurtherCommands) return;
+            // using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+            // await dispatcher.WaitForRenderingAsync();
             var direction = (Direction)arg;
             MoveSelectionStartExecuted(arg, direction);
          };
