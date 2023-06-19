@@ -323,7 +323,7 @@
                            <DataTemplate>
                               <StackPanel>
                                  <Grid Background="{DynamicResource Backlight}" Visibility="{Binding DisplayHeader, Converter={StaticResource BoolToVisibility}}">
-                                    <TextBlock HorizontalAlignment="Center" Text="{Binding GroupName}" FontSize="20"/>
+                                    <TextBlock HorizontalAlignment="Center" Text="{Binding GroupName}" FontSize="20" Height="26"/>
                                  </Grid>
                                  <ItemsControl ItemsSource="{Binding Members}">
                                     <ItemsControl.ItemContainerStyle>
@@ -333,7 +333,7 @@
                                     </ItemsControl.ItemContainerStyle>
                                     <ItemsControl.Resources>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                                          <DockPanel Name="ContainerPanel" Height="20" Margin="0,4,0,0"
+                                          <DockPanel Name="ContainerPanel" Height="20" Margin="0,6,0,0"
                                                hsg3hv:ColumnStackPanel.IsHeader="True"
                                                Background="{DynamicResource Backlight}"
                                                Visibility="{Binding ShowSection, Converter={StaticResource BoolToVisibility}}">
@@ -352,6 +352,7 @@
                                                    <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
                                                 </ContextMenu>
                                              </DockPanel.ContextMenu>
+                                             <Rectangle SnapsToDevicePixels="True" Height="1" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <Rectangle Width="1" DockPanel.Dock="Left" VerticalAlignment="Stretch" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <Grid DockPanel.Dock="Right">
                                                 <Rectangle Width="4" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
