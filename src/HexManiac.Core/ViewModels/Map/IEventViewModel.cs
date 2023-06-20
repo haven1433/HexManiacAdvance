@@ -1274,10 +1274,21 @@ show:
 
       public int ScriptAddress {
          get => element.GetAddress("script");
-         set => element.SetAddress("script", value);
+         set {
+            element.SetAddress("script", value);
+            NotifyPropertyChanged(nameof(CanCreateScript));
+         }
       }
 
       public void GotoScript() => gotoAddress(ScriptAddress);
+
+      public bool CanCreateScript => ScriptAddress == Pointer.NULL;
+      public void CreateScript() {
+         var start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
+         Token.ChangeData(element.Model, start, 2);
+         ScriptAddress = start;
+         gotoAddress(start);
+      }
 
       private string scriptAddressText;
       public string ScriptAddressText {

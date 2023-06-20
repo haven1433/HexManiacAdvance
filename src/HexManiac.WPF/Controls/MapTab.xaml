@@ -703,6 +703,11 @@
                               Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
+                        <local:AngleButton Command="{res:MethodCommand CreateScript}" Direction="Right" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Right"
+                              Visibility="{Binding CanCreateScript, Converter={StaticResource BoolToVisibility}}"
+                              Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
 
                      </Grid>
                   </DataTemplate>
