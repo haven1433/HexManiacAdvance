@@ -257,9 +257,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private string[] themes = new string[] {
          //nameof(Theme.Text1),
-         nameof(Theme.Text2),
+         //nameof(Theme.Text2),
          //nameof(Theme.Data1),
-         //nameof(Theme.Data2),
+         nameof(Theme.Data2),
          nameof(Theme.Accent),
          //nameof(Theme.Stream1),
          //nameof(Theme.Stream2),
