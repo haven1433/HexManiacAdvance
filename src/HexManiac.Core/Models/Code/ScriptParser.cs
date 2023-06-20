@@ -223,12 +223,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          while (toProcess.Count > 0) {
             address = toProcess.Last();
             toProcess.RemoveAt(toProcess.Count - 1);
-            if (processed.ContainsKey(address)) continue;
             var existingRun = model.GetNextRun(address);
+            // We need to check for an anchor here _before_ checking if this is a duplicate address and therefore skippable.
+            // Because self-referential scripts won't have their anchor picked up on the initial run.
             if (!(existingRun is SERun) && existingRun.Start == address) {
                var anchorName = model.GetAnchorFromAddress(-1, address);
                model.ObserveAnchorWritten(token, anchorName, constructor(address, existingRun.PointerSources));
             }
+            if (processed.ContainsKey(address)) continue;
             int length = 0;
             while (true) {
                var line = engine.GetMatchingLine(gameHash, model, address + length);

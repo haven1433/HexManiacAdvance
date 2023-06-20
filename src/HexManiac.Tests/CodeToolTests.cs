@@ -796,6 +796,13 @@ label2:;goto <000050>;end";
          Assert.Equal(6, Model.GetNextRun(1).Start);
       }
 
+      [Fact]
+      public void SelfReferenceScript_Compile_CorrectAnchorFormat() {
+         SetFullModel(0xFF);
+         EventScript = "top:;goto top";
+         Assert.IsType<XSERun>(Model.GetNextRun(0));
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
