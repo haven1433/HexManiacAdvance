@@ -14,6 +14,13 @@ BPGE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F174E  # The odds of a p
 BPGE1.scripts.shiny.odds   104A74                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
 BPGE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17C6  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
 
+# additional shiny constants found by AGSMG?, used in credits
+BPRE0.scripts.shiny.odds   0F41DA,0F4218,0F4258,0F42A0
+BPGE0.scripts.shiny.odds   0F41B2,0F41F0,0F4230,0F4278
+BPRE1.scripts.shiny.odds   0F4252,0F4290,0F42D0,0F4318
+BPGE1.scripts.shiny.odds   0F422A,0F4268,0F42A8,0F42F0
+
+
 # Credit to Rubiibank for finding this!
 BPEF0.scripts.shiny.odds   031910,0C0CC4,1342F0
 BPEF0.scripts.shiny.odds-1 067C56,06E76C,06E7E2,06EBE4,172CD6

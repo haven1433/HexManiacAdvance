@@ -125,8 +125,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource.Value != Pointer.NULL,
             Execute = arg => {
-               var indexSource = (viewPort.Model.GetNextRun(optionSource.Value) is ITableRun optionSourceTable) ?
-                  optionSourceTable.Start + optionSourceTable.ElementLength * selectedIndex :
+               var modelValue = ViewPort.Model.ReadMultiByteValue(Start, Length) - segment.ValueOffset;
+               var indexSource = (viewPort.Model.GetNextRun(optionSource.Value) is ITableRun optionSourceTable && modelValue < optionSourceTable.ElementCount) ?
+                  optionSourceTable.Start + optionSourceTable.ElementLength * modelValue :
                   optionSource.Value;
                selection.GotoAddress(indexSource);
             },
