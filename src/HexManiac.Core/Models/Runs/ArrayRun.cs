@@ -52,7 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static bool IsUnused(this ArrayRunElementSegment segment) {
-         return segment.Name.StartsWith("unused") || segment.Name.StartsWith("padding");
+         return segment is ArrayRunCommentSegment || segment.Name.StartsWith("unused") || segment.Name.StartsWith("padding");
       }
 
       public static IDataFormat CreateSegmentDataFormat(this ITableRun self, IDataModel data, int index) {
@@ -128,7 +128,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var names = self.ElementNames;
          var offsets = self.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
+         var comments = new Dictionary<int, string>();
+         foreach (var seg in self.ElementContent) {
+            if (seg is not ArrayRunCommentSegment comment) continue;
+            if (comments.ContainsKey(comment.Index)) {
+               comments[comment.Index] += Environment.NewLine + comment.RenderCommentLine();
+            } else {
+               comments[comment.Index] = comment.RenderCommentLine();
+            }
+         }
          for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
+            if (comments.TryGetValue(i, out var comment)) {
+               if (i != 0) text.AppendLine();
+               text.AppendLine(comment);
+            }
             var offset = offsets.SegmentStart;
             var couldBeExtension = offsets.ElementIndex > 0 || self is TableStreamRun streamRun && streamRun.AllowsZeroElements;
             if (offsets.SegmentIndex == 0 && couldBeExtension) text.Append(ArrayRun.ExtendArray);
@@ -492,6 +505,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string ColorFormatString = "|c";
       public const string CalculatedFormatString = "|=";
       public const string RenderFormatString = "|render=";
+      public const string CommentFormatString = "|comment=";
       public const string SplitterFormatString = "|";
 
       private const int JunkLimit = 80;
@@ -1338,6 +1352,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   var tupleContract = segments.Slice(TupleFormatString.Length, endOfToken - TupleFormatString.Length);
                   segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunTupleSegment(name, tupleContract.ToString(), segmentLength));
+               } else if (segments.StartsWith(CommentFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var contract = segments.Slice(CommentFormatString.Length, endOfToken - CommentFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunCommentSegment(name, contract.ToString()));
                } else if (segments.StartsWith(ColorFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
@@ -1413,6 +1433,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else if (segments.StartsWith(CalculatedFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(RenderFormatString)) {
+            return (ElementContentType.Integer, 0, 0);
+         } else if (segments.StartsWith(CommentFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
             return (ElementContentType.Integer, 2, 4);
@@ -1579,6 +1601,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          IsSingleSegment = 0x01,
          AllowJunkAfterText = 0x02,
       }
+   }
+
+   public class ArrayRunCommentSegment : ArrayRunElementSegment {
+      public int Index { get; private set; }
+      public string Comment { get; private set; }
+      public override string SerializeFormat => $"{Name}|comment={Index}|{Comment}";
+      public ArrayRunCommentSegment(string name, string contract) : base(name, ElementContentType.Integer, 0) {
+         var parts = contract.Split('|', 2);
+         if (parts[0].TryParseInt(out var index)) Index = index;
+         Comment = parts[1];
+      }
+      public string RenderCommentLine() => $"# {Comment.Replace('_', ' ')}";
    }
 
    public class ArrayRunParseException : Exception {

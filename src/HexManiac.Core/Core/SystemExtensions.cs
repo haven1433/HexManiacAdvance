@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core {
@@ -180,6 +181,21 @@ namespace HavenSoft.HexManiac.Core {
          var index = input.IndexOf(search);
          if (index == -1) return input;
          return input.Substring(0, index) + replacement + input.Substring(index + search.Length);
+      }
+
+      public static StringBuilder TrimEnd(this StringBuilder sb) {
+         if (sb == null || sb.Length == 0) return sb;
+
+         int i = sb.Length - 1;
+
+         for (; i >= 0; i--)
+            if (!char.IsWhiteSpace(sb[i]))
+               break;
+
+         if (i < sb.Length - 1)
+            sb.Length = i + 1;
+
+         return sb;
       }
 
       public static bool IsAny<T>(this T self, params T[] options) {

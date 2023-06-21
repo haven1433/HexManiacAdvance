@@ -209,7 +209,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var self = this;
          if (lengthOverride != ElementCount) self = new TableStreamRun(model, Start, PointerSources, FormatString, ElementContent, endStream, lengthOverride);
          var changedAddresses = new List<int>();
-         var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Where(line => !line.Trim().StartsWith("#")).ToArray();
          if (lines.Length == 0 && !AllowsZeroElements) lines = content.Split(Environment.NewLine);
          var newRun = self;
          var appendCount = Math.Max(lines.Length, 1) - lengthOverride;
@@ -271,6 +271,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (pointerValue == Pointer.NULL) value = "<null>";
             } else if (segment.Type == ElementContentType.PCS) {
                value = model.TextConverter.Convert(model, offset, segment.Length);
+            } else if (segment.Length == 0) {
+               continue;
             }
             var extraWhitespace = new string(' ', longestLabel - segment.Name.Length);
             result.Append($"{segment.Name}:{extraWhitespace} {value}");
