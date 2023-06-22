@@ -33,6 +33,12 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort = new ViewPort("file.txt", Model, InstantDispatch.Instance, Singletons) { AllowMultipleElementsPerLine = true, Width = 0x10, Height = 0x10 };
          ViewPort.OnError += (sender, e) => { if (!string.IsNullOrEmpty(e)) Errors.Add(e); };
          ViewPort.OnMessage += (sender, e) => Messages.Add(e);
+
+         // turn off full-address-required for most tests
+         ViewPort.Tools.CodeTool.ScriptParser.RequireCompleteAddresses = false;
+         ViewPort.Tools.CodeTool.BattleScriptParser.RequireCompleteAddresses = false;
+         ViewPort.Tools.CodeTool.BattleAIScriptParser.RequireCompleteAddresses = false;
+         ViewPort.Tools.CodeTool.BattleAIScriptParser.RequireCompleteAddresses = false;
       }
 
       /// <summary>

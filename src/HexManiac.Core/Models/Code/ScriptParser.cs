@@ -17,6 +17,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly byte endToken;
       private int gameHash;
 
+      public bool RequireCompleteAddresses { get; set; } = true;
+
       public event EventHandler<string> CompileError;
 
       public ScriptParser(int gameHash, IReadOnlyList<IScriptLine> engine, byte endToken) {
@@ -519,7 +521,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                            _ => ("^", new byte[0])
                         };
                         deferredContent.Add(new(currentSize + pointerOffset, format, defaultContent));
-                     } else if (destination >= 0) {
+                     } else if (destination >= 0 && arg.PointerType != ExpectedPointerType.Script) {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         if (arg.PointerType == ExpectedPointerType.Text) {
                            WriteTextStream(model, token, destination, start + currentSize + pointerOffset);
@@ -564,7 +566,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                break;
             }
          }
-         return new LabelLibrary(model, labels);
+         return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
       }
 
       public string GetHelp(IDataModel model, HelpContext context) {
@@ -1416,6 +1418,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
                if (value > -Pointer.NULL) value += Pointer.NULL;
+               //       public bool RequireCompleteAddresses { get; set; } = true;
+               if (labels.RequireCompleteAddresses && (token.Length < 6 || token.Length > 7)) {
+                  return "Script addresses must be 6 or 7 characters long.";
+               }
             } else if (PointerType != ExpectedPointerType.Script) {
                return $"'{token}' is not a valid pointer.";
             } else {

@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly IDataModel model;
       private readonly IDictionary<string, int> labels;
       private readonly IDictionary<string, List<int>> unresolvedLabels;
+      public bool RequireCompleteAddresses { get; init; } = true;
       public LabelLibrary(IDataModel data, IDictionary<string, int> additionalLabels) {
          (model, labels) = (data, additionalLabels);
          unresolvedLabels = new Dictionary<string, List<int>>();
