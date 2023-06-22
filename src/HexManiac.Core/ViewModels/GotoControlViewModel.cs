@@ -379,14 +379,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Initialize();
       }
 
-      /// <summary>
-      /// If a '.' is followed by a space, it's not a divider
-      /// </summary>
       private string DotSplit(string content) {
          var parts = content.Split(".");
          var firstPart = parts[0];
          for (int i = 1; i < parts.Length; i++) {
             if (parts[i].Length == 0 || parts[i][0] == ' ' || firstPart.Count('"') % 2 != 0) {
+               // "Mr. Mime" and similar names with ". " should not be split.
+               firstPart += "." + parts[i];
+            } else if (firstPart.Count('(') > firstPart.Count(')')) {
+               // () pairs should not be split
                firstPart += "." + parts[i];
             } else {
                break;
