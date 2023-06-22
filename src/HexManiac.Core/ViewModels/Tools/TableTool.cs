@@ -80,7 +80,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Address = start;
       }
 
-      private IReadOnlyList<ArrayRun> UnmatchedArrays => model.Arrays.Where(a => string.IsNullOrEmpty(a.LengthFromAnchor)).ToList();
+      private IReadOnlyList<ITableRun> UnmatchedArrays {
+         get {
+            var list = new List<ITableRun>();
+            foreach (var anchor in model.Anchors) {
+               var table = model.GetTable(anchor);
+               if (table is null) continue; // skip anything that's not a table
+               if (table is ArrayRun array && !string.IsNullOrEmpty(array.LengthFromAnchor)) continue; // skip 'matched-length' arrays
+               list.Add(table);
+            }
+            return list;
+         }
+      }
 
       private string currentElementName;
       public string CurrentElementName {
