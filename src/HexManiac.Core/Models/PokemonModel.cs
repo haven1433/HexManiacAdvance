@@ -574,7 +574,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                      // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
                   } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
                      var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
-                     Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
+                     if (offsets.SegmentOffset == 0 && offsets.SegmentIndex == 0) {
+                        Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start),
+                           $"Expected array at {arrayRun1.Start.ToAddress()} element {offsets.ElementIndex} to know about the pointer at {pointerRun.Start.ToAddress()}.");
+                     }
                      if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
                   } else if (run.Start < destination) {
                      // pointer points into the middle of a run. Such a pointer is an error, but is not a metadata inconsistency.
