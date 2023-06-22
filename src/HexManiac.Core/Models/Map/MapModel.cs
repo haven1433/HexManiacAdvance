@@ -81,6 +81,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    public record BlockCells(IDataModel Model, int Start, int Width, int Height) {
       public BlockCell this[int x, int y] {
          get {
+            if (Start == Pointer.NULL) return null;
             var data = Model.ReadMultiByteValue(Start + (y * Width + x) * 2, 2);
             return new(data & 0x3FF, data >> 10);
          }

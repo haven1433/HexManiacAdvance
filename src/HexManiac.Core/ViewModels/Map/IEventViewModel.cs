@@ -1221,9 +1221,11 @@ show:
       #endregion
 
       public override void Render(IDataModel model, LayoutModel layout) {
-         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
-         if (WarpIsOnWarpableBlock(model, layout)) return;
-         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
+         if (WarpIsOnWarpableBlock(model, layout)) {
+            EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
+         } else {
+            EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
+         }
       }
 
       public bool WarpIsOnWarpableBlock(IDataModel model, LayoutModel layout) {
@@ -1231,6 +1233,7 @@ show:
 
          int primaryBlockCount = model.IsFRLG() ? 640 : 512;
          var cell = layout.BlockMap[X, Y];
+         if (cell == null) return true; // failure to read layout, this warp rendering doesn't matter.
          var tile = cell.Tile;
          var blockset = layout.PrimaryBlockset;
          if (tile >= primaryBlockCount) {
