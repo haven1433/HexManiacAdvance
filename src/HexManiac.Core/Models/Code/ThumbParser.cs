@@ -58,10 +58,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.Contains("<") && line.Contains(">")) {
                   var content = line.Split('<')[1].Split('>')[0];
                   var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
-                  if (address == Pointer.NULL) address = int.Parse(content, NumberStyles.HexNumber);
-                  interestingAddresses.Add(address);
-                  if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
-                     wordLocations.Add(address);
+                  if (address != Pointer.NULL || content.TryParseHex(out address)) {
+                     interestingAddresses.Add(address);
+                     if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
+                        wordLocations.Add(address);
+                     }
                   }
                }
                length -= template.ByteLength;

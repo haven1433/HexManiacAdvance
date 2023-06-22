@@ -145,10 +145,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Set(ref drawBlockIndex, value, old => {
                DrawMultipleTiles = false;
                if (drawBlockIndex >= 0) BlockEditorVisible = true;
-               PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
-               drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
+               if (PrimaryMap.BlockEditor != null) {
+                  PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
+                  drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
+               }
                foreach (var map in VisibleMaps) {
-                  map.BlockEditor.BlockIndex = drawBlockIndex;
+                  if (map.BlockEditor != null) map.BlockEditor.BlockIndex = drawBlockIndex;
                   map.CollisionHighlight = collisionIndex;
                }
                selectionFromBlock = false;
