@@ -2299,14 +2299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void HandleBorderChanged(object sender, EventArgs e) {
-         blocks = null;
-         lock (blockRenders) {
-            blockRenders.Clear();
-         }
-         blockPixels = null;
-         borderBlock = null;
-         ClearPixelCache();
-         NotifyPropertiesChanged(nameof(BlockPixels), nameof(BlockRenders), nameof(BorderBlock));
+         RequestClearMapCaches.Raise(this);
       }
 
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {

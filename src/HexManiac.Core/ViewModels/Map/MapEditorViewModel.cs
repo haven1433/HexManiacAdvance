@@ -270,8 +270,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Refresh() {
          format.Refresh();
-         primaryMap.ClearCaches();
          UpdatePrimaryMap(primaryMap);
+         foreach (var map in VisibleMaps) map.ClearCaches();
       }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
