@@ -295,6 +295,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void FocusPrimaryContent() {
          if (!ViewModel.SelectedIndex.InRange(0, ViewModel.Count)) return;
          if (GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]) is HexContent hex) {
+            var anchorTextBox = GetChild(Tabs, "AnchorTextBox", ViewModel[ViewModel.SelectedIndex]);
+            if (anchorTextBox != null && anchorTextBox.IsFocused) return;
             hex.Focus();
          } else if (GetChild(Tabs, "MapTab", ViewModel[ViewModel.SelectedIndex]) is MapTab map) {
             map.Focus();
