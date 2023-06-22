@@ -1645,12 +1645,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventsTable == null) eventsTable = CreateEventTable(map);
          var events = eventsTable[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
+         var targetID = 1;
+         var takenIDs = events.TryGetSubTable("objects", out var eventTable) ? eventTable.Select(ev => ev.TryGetValue("id", out int id) ? id : 0).ToHashSet() : new HashSet<int>();
+         while (targetID < element.Table.ElementCount && takenIDs.Contains(targetID)) targetID++;
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
             X = 0, Y = 0,
             Elevation = 0,
-            ObjectID = element.Table.ElementCount,
+            ObjectID = targetID,
             ScriptAddress = scriptAddress,
             Graphics = graphics,
             RangeX = 0,
