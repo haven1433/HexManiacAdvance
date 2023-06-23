@@ -700,6 +700,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (interactionType == PrimaryInteractionType.Draw) DrawMove(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) RectangleDrawMove(x, y);
          if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
+         if (interactionType == PrimaryInteractionType.Draw25Grid) Draw25Grid(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventMove(x, y);
       }
 
@@ -708,6 +709,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          else if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
          else if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
          else if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
+         else if (interactionType == PrimaryInteractionType.Draw25Grid) DrawUp(x, y);
          interactionType = PrimaryInteractionType.None;
       }
 
@@ -716,6 +718,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          interactionType = PrimaryInteractionType.Draw;
          if ((click & PrimaryInteractionStart.ControlClick) != 0) interactionType = PrimaryInteractionType.RectangleDraw;
          if (use9Grid && IsValid9GridSelection) interactionType = PrimaryInteractionType.Draw9Grid;
+         if (use25Grid && IsValid25GridSelection) interactionType = PrimaryInteractionType.Draw25Grid;
          var map = MapUnderCursor(x, y);
          if ((click & PrimaryInteractionStart.DoubleClick) != 0) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
@@ -738,6 +741,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
             if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
             if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
+            if (interactionType == PrimaryInteractionType.Draw25Grid) Draw25Grid(x, y);
          }
       }
 
@@ -785,6 +789,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void Draw9Grid(double x, double y) {
          var map = MapUnderCursor(x, y);
          map.Draw9Grid(history.CurrentChange, tilesToDraw, x, y);
+         Hover(x, y);
+      }
+
+      private void Draw25Grid(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         map.Draw25Grid(history.CurrentChange, tilesToDraw, x, y);
          Hover(x, y);
       }
 
@@ -1089,7 +1099,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (use9Grid && IsValid9GridSelection) {
                DrawMultipleTiles = false;
                width = height = 1;
-            } else DrawMultipleTiles = true;
+            } else if (use25Grid && IsValid25GridSelection) {
+               DrawMultipleTiles = false;
+               width = height = 1;
+            } else {
+               DrawMultipleTiles = true;
+            }
             BlockEditorVisible = false;
             PrimaryMap.BlockEditor.ShowTiles = false;
             UpdateHover(map, left, top, width, height);
@@ -1106,7 +1121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void FillMultiTileRender() {
-         NotifyPropertyChanged(nameof(IsValid9GridSelection));
+         NotifyPropertiesChanged(nameof(IsValid9GridSelection), nameof(IsValid25GridSelection));
          if (tilesToDraw == null) return;
          var localCopy = tilesToDraw;
          var localRenders = primaryMap.BlockRenders;
@@ -1544,11 +1559,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool use9Grid;
       public bool Use9Grid { get => use9Grid; set => Set(ref use9Grid, value, old => {
          if (use9Grid && IsValid9GridSelection) DrawMultipleTiles = false;
-         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0)>1|| tilesToDraw.GetLength(1) > 1);
+         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0) > 1 || tilesToDraw.GetLength(1) > 1);
       }); }
       public bool IsValid9GridSelection {
          get {
             return tilesToDraw != null && tilesToDraw.GetLength(0) == 3 && tilesToDraw.GetLength(1) == 3;
+         }
+      }
+
+      private bool use25Grid;
+      public bool Use25Grid { get => use25Grid; set => Set(ref use25Grid, value, old => {
+         if (use25Grid && IsValid25GridSelection) DrawMultipleTiles = false;
+         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0) > 1 || tilesToDraw.GetLength(1) > 1);
+      }); }
+      public bool IsValid25GridSelection {
+         get {
+            if (tilesToDraw == null || tilesToDraw.GetLength(0) != 5 && tilesToDraw.GetLength(1) != 5) return false;
+
+            // require like-blocks
+            // 25 blocks - 4 corners - 1 center - 4 partial centers - 4 corners - 4 edges = 8 duplicate blocks
+
+            // 4 corner duplicates
+            if (tilesToDraw[1, 0] != tilesToDraw[0, 1]) return false;
+            if (tilesToDraw[3, 0] != tilesToDraw[4, 1]) return false;
+            if (tilesToDraw[0, 3] != tilesToDraw[1, 4]) return false;
+            if (tilesToDraw[3, 4] != tilesToDraw[4, 3]) return false;
+
+            // 4 center duplicates
+            if (tilesToDraw[2, 2] != tilesToDraw[2, 1]) return false;
+            if (tilesToDraw[2, 2] != tilesToDraw[2, 3]) return false;
+            if (tilesToDraw[2, 2] != tilesToDraw[1, 2]) return false;
+            if (tilesToDraw[2, 2] != tilesToDraw[3, 2]) return false;
+
+            return true;
          }
       }
 
@@ -1609,6 +1652,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryMap.BlockEditor.ShowTiles = false;
          FillMultiTileRender();
          if (use9Grid && IsValid9GridSelection) DrawMultipleTiles = false;
+         else if (use25Grid && IsValid25GridSelection) DrawMultipleTiles = false;
          else DrawMultipleTiles = true;
          BlockEditorVisible = false;
       }
@@ -2066,7 +2110,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       ControlClick = 4,
       ShiftClick = 8,
    }
-   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid }
+   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid, Draw25Grid }
 
    public record BlocksetCache(ObservableCollection<string> Primary, ObservableCollection<string> Secondary) {
       public void CalculateBlocksetOptions(IDataModel model) {

@@ -906,6 +906,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Draw9Grid(token, grid, xx, yy);
       }
 
+      public void Draw25Grid(ModelDelta token, int[,] grid, double x, double y) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         Draw25Grid(token, grid, xx, yy);
+      }
+
       public void Draw9Grid(ModelDelta token, int[,] grid, int xx, int yy) {
          var targets = new List<int>();
          for (int x = 0; x < 3; x++) for (int y = 0; y < 3; y++) targets.Add(grid[x, y] & 0x3FF);
@@ -943,6 +953,75 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   "N  W" => grid[2, 2],
                   _ => grid[1, 1],
                };
+               set(cell, block);
+            }
+         }
+
+         ClearPixelCache();
+      }
+
+      public void Draw25Grid(ModelDelta token, int[,] grid, int xx, int yy) {
+         var targets = new List<int>();
+         for (int x = 0; x < 5; x++) {
+            for (int y = 0; y < 5; y++) {
+               if (x == 0 && y == 0) continue;
+               if (x == 4 && y == 0) continue;
+               if (x == 0 && y == 4) continue;
+               if (x == 4 && y == 4) continue;
+               targets.Add(grid[x, y] & 0x3FF);
+            }
+         }
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+
+         int get(Point p) => p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height ? -1 : model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2) & 0x3FF;
+         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, block);
+
+         // change all connected blocks based on the grid
+         var todo = new List<Point> {
+            new(xx, yy),
+            new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1),
+            new(xx + 1, yy + 1), new(xx + 1, yy - 1), new(xx - 1, yy + 1), new(xx - 1, yy - 1),
+         };
+         lock (pixelWriteLock) {
+            set(todo[0], grid[1, 1]);
+            foreach (var cell in todo) {
+               var cellValue = get(cell);
+               if (!targets.Contains(cellValue)) continue;
+
+               var northwest = targets.Contains(get(new(cell.X - 1, cell.Y - 1)));
+               var northeast = targets.Contains(get(new(cell.X + 1, cell.Y - 1)));
+               var southwest = targets.Contains(get(new(cell.X - 1, cell.Y + 1)));
+               var southeast = targets.Contains(get(new(cell.X + 1, cell.Y + 1)));
+               var north = targets.Contains(get(new(cell.X, cell.Y - 1)));
+               var south = targets.Contains(get(new(cell.X, cell.Y + 1)));
+               var west = targets.Contains(get(new(cell.X - 1, cell.Y)));
+               var east = targets.Contains(get(new(cell.X + 1, cell.Y)));
+
+               var aggregate = (north ? "N" : " ") + (east ? "E" : " ") + (south ? "S" : " ") + (west ? "W" : " ");
+               var corners = (northwest ? "7" : " ") + (northeast ? "9" : " ") + (southeast ? "3" : " ") + (southwest ? "1" : " ");
+
+               // grid[x, y]
+               var block = aggregate switch {
+                  " ES " => grid[1, 0],
+                  " ESW" => grid[2, 0],
+                  "  SW" => grid[3, 0],
+                  "NES " => grid[0, 2],
+                  "NESW" => grid[2, 2],
+                  "N SW" => grid[4, 2],
+                  "NE  " => grid[0, 3],
+                  "NE W" => grid[2, 4],
+                  "N  W" => grid[4, 3],
+                  _ => grid[1, 1],
+               };
+
+               if ("NW".All(aggregate.Contains) && !corners.Contains('7')) block = grid[1, 1];
+               if ("NE".All(aggregate.Contains) && !corners.Contains('9')) block = grid[3, 1];
+               if ("SE".All(aggregate.Contains) && !corners.Contains('3')) block = grid[3, 3];
+               if ("SW".All(aggregate.Contains) && !corners.Contains('1')) block = grid[1, 3];
+
                set(cell, block);
             }
          }
