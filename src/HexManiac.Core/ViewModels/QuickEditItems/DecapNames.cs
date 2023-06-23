@@ -61,6 +61,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          foreach (var tableName in new[] {
             HardcodeTablesModel.MapNameTable,
             HardcodeTablesModel.NaturesTableName,
+            HardcodeTablesModel.AbilityDescriptionsTable,
             "data.battle.text",
             "data.maps.dungeons.stats",
             "data.menus.text.options", // TODO the values (FireRed=3CC330): Slow/Mid/Fast, On/Off, Shift/Set, Mono/Stereo, Help/LR/L=A
