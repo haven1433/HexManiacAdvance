@@ -136,7 +136,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             fullPalette = paletteRun.AllColors(model);
          }
 
-         // make insertion more robust
+         // choose a palette that best matches the available colors
+         if (Palette.Elements.Count < fullPalette.Count) {
+            var paletteMatch = new int[fullPalette.Count / Palette.Elements.Count];
+            for (int xx = 0; xx < sprite.width; xx++) {
+               for (int yy = 0; yy < height; yy++) {
+                  var targetColor = sprite.image[yy * sprite.width + xx];
+                  foreach (var pal in fullPalette.Count.Range().Where(i => fullPalette[i] == targetColor).Select(i => i / Palette.Elements.Count)) paletteMatch[pal]++;
+               }
+            }
+            var max = paletteMatch.Max();
+            var palChoice = paletteMatch.Length.Range().First(i => paletteMatch[i] == max);
+            fullPalette = fullPalette.Skip(palChoice * Palette.Elements.Count).Take(Palette.Elements.Count).ToList();
+         }
+
          var newUnderPixels = new int[sprite.width, height];
          for (int xx = 0; xx < sprite.width; xx++) {
             for (int yy = 0; yy < height; yy++) {
