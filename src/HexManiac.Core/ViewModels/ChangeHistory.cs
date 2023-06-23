@@ -143,6 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private bool continueCurrentTransaction;
       public IDisposable ContinueCurrentTransaction() {
+         if (customChangeInProgress) ChangeCompleted();
          var previousValue = continueCurrentTransaction;
          continueCurrentTransaction = true;
          return new StubDisposable { Dispose = () => continueCurrentTransaction = previousValue };

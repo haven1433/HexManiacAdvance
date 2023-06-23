@@ -373,7 +373,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void ChangeTextWithTextTool_Undo_TextToolUpdates() {
-         ViewPort.Edit("FF @00 ^text\"\" Test\" @00 ");
+         ViewPort.Edit("FF @00 ^text\"\" Test\" ");
+         ViewPort.Goto.Execute(0);
          ViewPort.Tools.StringTool.Content = "Blah";
 
          ViewPort.Undo.Execute();

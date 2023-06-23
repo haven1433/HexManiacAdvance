@@ -659,6 +659,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private double progress;
       public double Progress { get => progress; set => Set(ref progress, value); }
 
+      private IDisposable holdWorkHistory;
       private bool updateInProgress;
       public bool UpdateInProgress { get => updateInProgress; set => Set(ref updateInProgress, value); }
 
@@ -1442,6 +1443,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
             initialWorkLoad = input.Length;
             postEditWork = 0;
+            holdWorkHistory = history.ContinueCurrentTransaction();
             EditCore(input);
          }
       }
@@ -1569,6 +1571,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UpdateInProgress = false;
          skipToNextGameCode = false;
          pathContext = null;
+         holdWorkHistory?.Dispose();
+         holdWorkHistory = null;
       }
 
       public void Edit(ConsoleKey key) {
