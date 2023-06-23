@@ -1,8 +1,8 @@
 ﻿using System.Windows;
-using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
-   public partial class AngleButton {
+   public partial class AngleButton : ToggleButton {
 
       #region AngleDirection
 
