@@ -275,13 +275,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public void SetAddress(string fieldName, int value) {
+      public void SetAddress(string fieldName, int value, bool writeDestinationFormat = true) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunRecordSegment rSeg) seg = rSeg.CreateConcrete(Model, table, valueAddress);
          if (seg.Type == ElementContentType.Pointer) {
-            model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value);
+            model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value, writeDestinationFormat);
          } else {
             // it's not a pointer so don't update any formats to think that this points to them
             // bet we should still update the value.

@@ -1141,6 +1141,7 @@
    <!-- Angle TextBox Style -->
    <Style TargetType="hsc:AngleTextBox">
       <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource TopToBottomBrush}"/>
       <Setter Property="MinHeight" Value="18"/>
       <Setter Property="Template">

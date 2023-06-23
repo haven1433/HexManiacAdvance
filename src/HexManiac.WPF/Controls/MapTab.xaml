@@ -256,8 +256,19 @@
          </ItemsControl>
 
          <ScrollViewer>
+            <ScrollViewer.Resources>
+               <Style x:Key="ScriptAddressStyle" TargetType="local:AngleTextBox" BasedOn="{StaticResource {x:Type local:AngleTextBox}}">
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding HasScriptAddressError}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource Error}" />
+                        <Setter Property="ToolTip" Value="{Binding ScriptAddressError}" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </ScrollViewer.Resources>
             <ContentControl DataContext="{Binding SelectedEvent}" Content="{Binding}">
                <ContentControl.Resources>
+
                   <DataTemplate DataType="{x:Type map:ObjectEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
@@ -369,7 +380,9 @@
                         <local:AngleBorder Grid.Row="8" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Script Address:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2"
+                                            Direction="Out" Style="{StaticResource ScriptAddressStyle}"
+                                            TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
                         <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" Grid.Row="8" Grid.Column="1" HorizontalAlignment="Right"
                               Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
@@ -698,7 +711,9 @@
                         <local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Script Address:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2"
+                                            Direction="Out" Style="{StaticResource ScriptAddressStyle}"
+                                            TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
                         <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Right"
                               Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
@@ -739,9 +754,10 @@
                            TextBinding="{Binding ArgText, UpdateSourceTrigger=PropertyChanged}"
                            Visibility="{Binding ShowArg, Converter={StaticResource BoolToVisibility}}" />
 
-                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="Script:"
+                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2" Content="Script:"
                            Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
-                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,24,2" Direction="Right"
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,24,2"
+                           Direction="Out" Style="{StaticResource ScriptAddressStyle}"
                            TextBinding="{Binding PointerText, UpdateSourceTrigger=PropertyChanged}"
                            Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
                         <local:AngleButton Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GotoScript}"
@@ -749,6 +765,12 @@
                            Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
+                        <local:AngleButton Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand CreateScript}"
+                           Visibility="{Binding CanCreateScript, Converter={StaticResource BoolToVisibility}}"
+                           Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
+
 
                         <StackPanel Margin="2,12" Grid.Row="4" Grid.RowSpan="4" Grid.ColumnSpan="2" Visibility="{Binding ShowSignpostText, Converter={StaticResource BoolToVisibility}}">
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Text" />

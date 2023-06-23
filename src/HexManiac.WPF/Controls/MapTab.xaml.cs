@@ -9,7 +9,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
-   public partial class MapTab {
+   public partial class MapTab : UserControl {
       private MapEditorViewModel ViewModel => (MapEditorViewModel)DataContext;
       private new ToolTip ToolTip => (ToolTip)base.ToolTip;
 

@@ -1326,6 +1326,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <param name="changeToken"></param>
       /// <param name="start"></param>
       private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
+         AddPointerToAnchor(segment, segments, parentIndex, changeToken, start, true);
+      }
+
+      private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start, bool includeFormatting) {
          if (segment is ArrayRunRecordSegment recordSeg) segment = recordSeg.CreateConcrete(this, start);
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
@@ -1342,7 +1346,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (index < 0) {
             // the pointer points to a location between existing runs
             IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
-            UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            if (includeFormatting) {
+               UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            }
             if (newRun != null) {
                if (newRun.Start < start && newRun.Start + newRun.Length > start) {
                   // the new run conflicts with the pointer that points to it
@@ -1353,9 +1359,15 @@ namespace HavenSoft.HexManiac.Core.Models {
                   newRun = new NoInfoRun(newRun.Start, newRun.PointerSources);
                }
                var existingRun = GetNextRun(newRun.Start);
-               if (existingRun.Start == newRun.Start) newRun = newRun.MergeAnchor(existingRun.PointerSources);
-               ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
-               ObserveRunWritten(changeToken, newRun);
+               if (existingRun.Start == newRun.Start) {
+                  newRun = newRun.MergeAnchor(existingRun.PointerSources);
+               }
+               if (existingRun.Start < newRun.Start && !includeFormatting) {
+                  // prefer to keep the existing run, not add the new run
+               } else {
+                  ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
+                  ObserveRunWritten(changeToken, newRun);
+               }
             }
          } else if (runs[index].Start <= start && start < runs[index].Start + runs[index].Length) {
             // self-referential pointer: don't write a new run, just add the pointer
@@ -1370,7 +1382,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             var previousRun = existingRun;
             existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
             var hasAnchor = anchorForAddress.TryGetValue(existingRun.Start, out string existingAnchor);
-            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            if (includeFormatting) {
+               UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            }
             if (existingRun != null) {
                if (segment == null) {
                   // it's just a naked pointer, so we have no knowledge about the thing it points to.
@@ -2051,11 +2065,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          changeToken.AddRun(newArray);
       }
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int source, int destination) {
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int source, int destination, bool writeDestinationFormat) {
          lock (threadlock) {
             ClearPointerFormat(segment, null, 0, changeToken, source);
             if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
-            AddPointerToAnchor(segment, segments, parentIndex, changeToken, source);
+            AddPointerToAnchor(segment, segments, parentIndex, changeToken, source, writeDestinationFormat);
          }
       }
 

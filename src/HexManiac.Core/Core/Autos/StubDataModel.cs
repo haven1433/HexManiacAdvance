@@ -483,13 +483,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<ModelDelta, Runs.ArrayRunElementSegment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment>, int, int, int> UpdateArrayPointer { get; set; }
+        public Action<ModelDelta, Runs.ArrayRunElementSegment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment>, int, int, int, bool> UpdateArrayPointer { get; set; }
         
-        void IDataModel.UpdateArrayPointer(ModelDelta changeToken, Runs.ArrayRunElementSegment segment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment> segments, int parentIndex, int address, int destination)
+        void IDataModel.UpdateArrayPointer(ModelDelta changeToken, Runs.ArrayRunElementSegment segment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment> segments, int parentIndex, int address, int destination, bool writeDestinationFormat)
         {
             if (this.UpdateArrayPointer != null)
             {
-                this.UpdateArrayPointer(changeToken, segment, segments, parentIndex, address, destination);
+                this.UpdateArrayPointer(changeToken, segment, segments, parentIndex, address, destination, writeDestinationFormat);
             }
         }
         
