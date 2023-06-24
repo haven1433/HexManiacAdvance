@@ -318,7 +318,18 @@
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
                <ToggleButton Width="18" IsChecked="{Binding SearchAllFiles}">
-                  <Path Data="{hsv:Icon Multiple}" Stroke="{DynamicResource Primary}" Stretch="Uniform"/>
+                  <Path Data="{hsv:Icon Multiple}" Stretch="Uniform">
+                     <Path.Style>
+                        <Style TargetType="Path">
+                           <Setter Property="Stroke" Value="{DynamicResource Secondary}" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding SearchAllFiles}" Value="True">
+                                 <Setter Property="Stroke" Value="{DynamicResource Primary}" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </Path.Style>
+                  </Path>
                   <ToggleButton.ToolTip>
                      <ToolTip>
                         <StackPanel>
@@ -339,7 +350,7 @@
                      </ToolTip>
                   </ToggleButton.ToolTip>
                </ToggleButton>
-               <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}" Content="Aa">
+               <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}">
                   <ToggleButton.ToolTip>
                      <ToolTip>
                         <StackPanel>
@@ -359,6 +370,18 @@
                         </StackPanel>
                      </ToolTip>
                   </ToggleButton.ToolTip>
+                  <TextBlock Text="Aa">
+                     <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                           <Setter Property="Foreground" Value="{DynamicResource Secondary}" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding MatchExactCase}" Value="True">
+                                 <Setter Property="Foreground" Value="{DynamicResource Primary}" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </TextBlock.Style>
+                  </TextBlock>
                </ToggleButton>
                <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}">
                   <TextBox.InputBindings>
