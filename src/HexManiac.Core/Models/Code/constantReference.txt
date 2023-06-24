@@ -197,6 +197,12 @@ BPGE0:scripts.newgame.money 054B60
 BPGE1:scripts.newgame.money 054B74
 BPEE0:scripts.newgame.money 0845BC
 
+AXVE0.scripts.newgame.pokemon.level 0821A8
+AXPE0.scripts.newgame.pokemon.level 0821A8
+AXVE1.scripts.newgame.pokemon.level 0821C8
+AVPE1.scripts.newgame.pokemon.level 0821C8
+BPEE0.scripts.newgame.pokemon.level 0B1178
+
 BPRE0.scripts.newgame.start.bank 054A04
 BPRE0.scripts.newgame.start.map  054A06
 BPRE0.scripts.newgame.start.x    054A08
