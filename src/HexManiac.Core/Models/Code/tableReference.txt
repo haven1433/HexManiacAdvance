@@ -845,3 +845,6 @@ data.statstages.default,                     013104, 013104, 013104, 013104, 014
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
 data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8, 01E578, 01E578, 01E58C, 01E58C, 046D68, [rate:]!0000
+
+scripts.seagallop.destinations, , , , , 1471B0, 14718C, 147228, 147204, , [bank. map. x. y.]scripts.seagallop.count
+

@@ -403,3 +403,10 @@ BPRE0.graphics.overworld.tablelength-1 05F2E0
 BPRE1.graphics.overworld.tablelength-1 05F2F4
 BPGE0.graphics.overworld.tablelength-1 05F2E0
 BPGE1.graphics.overworld.tablelength-1 05F2F4
+
+
+BPRE0.scripts.seagallop.count-1 147148
+BPGE0.scripts.seagallop.count-1 147124
+BPRE1.scripts.seagallop.count-1 1471C0
+BPGE1.scripts.seagallop.count-1 14719C
+
