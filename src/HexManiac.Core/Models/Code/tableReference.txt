@@ -497,9 +497,9 @@ graphics.battle.hud.palette,                     20A4D4, 20A464, 20A4EC, 20A47C,
 graphics.battle.hud.hpbar.sprite,                043CE8, 043CE8, 043D08, 043D08, 0480B4, 0480B4, 0480C8, 0480C8, 0728B0, `ucs4x11x6|graphics.battle.hud.hpbar.palette`
 graphics.battle.hud.hpbar.palette,               20A4DC, 20A46C, 20A4F4, 20A484, 260268, 260248, 2602D8, 2602B8, 32C130, `ucp4`
 graphics.battle.hud.hpbox.player,                20A47C, 20A40C, 20A494, 20A424, 260208, 2601E8, 260278, 260258, 32C0D0, `lzs4x8x16|graphics.battle.hud.palette`
-graphics.battle.hud.hpbox.opponent,              20A484, 20A414, 20A49C, 20A42C, 260210, 2601F0, 260280, 260260, , `lzs4x8x8|graphics.battle.hud.palette`
-graphics.battle.hud.hpbox.doublebattle.player,   20A494, 20A424, 20A4AC, 20A43C, 260220, 260200, 260290, 260270, , `lzs4x8x8|graphics.battle.hud.palette`
-graphics.battle.hud.hpbox.doublebattle.opponent, 20A4A4, 20A434, 20A4BC, 20A44C, 260230, 260210, 2602A0, 260280, , `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.opponent,              20A484, 20A414, 20A49C, 20A42C, 260210, 2601F0, 260280, 260260, 32C0D8, `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.doublebattle.player,   20A494, 20A424, 20A4AC, 20A43C, 260220, 260200, 260290, 260270, 32C0E0, `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.doublebattle.opponent, 20A4A4, 20A434, 20A4BC, 20A44C, 260230, 260210, 2602A0, 260280, 32C0F0, `lzs4x8x8|graphics.battle.hud.palette`
 graphics.battle.hud.hpbox.safarizone,            20A4AC, 20A43C, 20A4C4, 20A454, 260238, 260218, 2602A8, 260288, , `lzs4x8x16|graphics.battle.hud.palette`
 graphics.battle.hud.status,                            ,       ,       ,       , 26049C, 26047C, 26050C, 2604EC, 32C34C, `ucs4x13x4|graphics.battle.hud.hpbar.palette`
 graphics.battle.hud.pokeballbar,                       ,       ,       ,       , 26046C, 26044C, 2604DC, 2604BC, , `lzs4x16x1|graphics.battle.hud.palette`
