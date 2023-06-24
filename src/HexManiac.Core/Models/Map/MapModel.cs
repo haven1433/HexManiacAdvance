@@ -79,6 +79,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    public record LayoutPrototype(int PrimaryBlockset, int SecondaryBlockset, int BorderBlock);
 
    public record BlockCells(IDataModel Model, int Start, int Width, int Height) {
+      public BlockmapRun Run => Model.GetNextRun(Start) as BlockmapRun;
       public BlockCell this[int x, int y] {
          get {
             if (Start == Pointer.NULL) return null;

@@ -345,5 +345,6 @@
          <EllipseGeometry Center="80,80" RadiusX="12" RadiusY="12" />
          <EllipseGeometry Center="50,50" RadiusX="12" RadiusY="12" />
       </GeometryGroup>
+      <PathGeometry x:Name="Chevron" Figures="M0,0 L1,0 2,1 3,0 4,0 3,1 2,2 Z" />
    </ItemsControl.Items>
 </ItemsControl>

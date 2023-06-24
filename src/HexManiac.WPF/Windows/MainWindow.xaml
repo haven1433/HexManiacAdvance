@@ -804,28 +804,44 @@
                                                       </Style.Triggers>
                                                    </Style>
                                                 </Border.Style>
-                                                <ToggleButton
-                                                   BorderThickness="0"
-                                                   Content="{Binding Content}"
-                                                   IsChecked="{Binding IsSelected}"
-                                                   Padding="6"
-                                                   FontSize="15"
-                                                   IsEnabled="{Binding IsSelectable}">
-                                                   <ToggleButton.Style>
-                                                      <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                                                         <Setter Property="ToolTip">
-                                                            <Setter.Value>
-                                                               <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
-                                                            </Setter.Value>
-                                                         </Setter>
-                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
-                                                               <Setter Property="ToolTip" Value="{x:Null}"/>
-                                                            </DataTrigger>
-                                                         </Style.Triggers>
-                                                      </Style>
-                                                   </ToggleButton.Style>
-                                                </ToggleButton>
+                                                <Grid>
+                                                   <ToggleButton
+                                                      BorderThickness="0"
+                                                      Content="{Binding Content}"
+                                                      IsChecked="{Binding IsSelected}"
+                                                      Padding="6"
+                                                      FontSize="15"
+                                                      IsEnabled="{Binding IsSelectable}">
+                                                      <ToggleButton.Style>
+                                                         <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                                                            <Setter Property="ToolTipService.InitialShowDelay" Value="0" />
+                                                            <Setter Property="ToolTip">
+                                                               <Setter.Value>
+                                                                  <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
+                                                               </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                               <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
+                                                                  <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                               </DataTrigger>
+                                                            </Style.Triggers>
+                                                         </Style>
+                                                      </ToggleButton.Style>
+                                                   </ToggleButton>
+                                                   <Path Data="{hsv:Icon Chevron}" Fill="{DynamicResource Secondary}"
+                                                         Stretch="Uniform" Width="10" Height="10" Margin="2" IsHitTestVisible="False"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                                      <Path.Style>
+                                                         <Style TargetType="Path">
+                                                            <Style.Triggers>
+                                                               <DataTrigger Binding="{Binding IsGoto}" Value="True">
+                                                                  <Setter Property="Visibility" Value="Collapsed" />
+                                                               </DataTrigger>
+                                                            </Style.Triggers>
+                                                         </Style>
+                                                      </Path.Style>
+                                                   </Path>
+                                                </Grid>
                                              </Border>
                                           </Border>
                                        </DataTemplate>

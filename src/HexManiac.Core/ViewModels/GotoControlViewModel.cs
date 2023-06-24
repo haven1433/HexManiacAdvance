@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -458,6 +459,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private string content;
       public string Content { get => content; set => Set(ref content, value); }
 
+      private bool isGoto; // true if clicking this button causes a goto, false if it opens another section.
+      public bool IsGoto { get => isGoto; set => Set(ref isGoto, value); }
+
       private ObservableCollection<object> hoverTip;
       public ObservableCollection<object> HoverTip {
          get => hoverTip;
@@ -471,8 +475,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void UpdateHoverTip(IDataModel model, string fullName) {
+         var matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
          if (address != Pointer.NULL) {
+            IsGoto = true;
             var run = model.GetNextRun(address);
             if (run != null && address == run.Start) {
                var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, -1, address, run);
@@ -481,6 +487,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   return;
                }
             }
+         } else if (matchingMaps.Count == 1) {
+            IsGoto = true;
+            var info = matchingMaps[0];
+            var bank = AllMapsModel.Create(model)[matchingMaps[0].Group];
+            if (bank != null) {
+               var map = bank[matchingMaps[0].Map];
+               if (map != null) {
+                  var run = map.Layout.BlockMap.Run;
+                  if (run != null) {
+                     var hoverContent = model.CurrentCacheScope.GetImage(run);
+                     if (hoverContent != null) {
+                        HoverTip = new ObservableCollection<object> { hoverContent };
+                        return;
+                     }
+                  }
+               }
+            }
+         } else {
+            IsGoto = false;
          }
 
          HoverTip = null;
