@@ -44,6 +44,12 @@ if.yes.goto        21 0D 80 01 00 06 01 ptr<`xse`>
 if.yes.call        21 0D 80 01 00 07 01 ptr<`xse`>
 if.no.goto         21 0D 80 00 00 06 01 ptr<`xse`>
 if.no.call         21 0D 80 00 00 07 01 ptr<`xse`>
+if.gender.goto     A0 21 0D 80 00 00 06 01 male<`xse`> 21 0D 80 01 00 06 01 female<`xse`>
+if.gender.call     A0 21 0D 80 00 00 07 01 male<`xse`> 21 0D 80 01 00 07 01 female<`xse`>
+if.male.goto       A0 21 0D 80 00 00 06 01 ptr<`xse`>
+if.female.goto     A0 21 0D 80 01 00 06 01 ptr<`xse`>
+if.male.call       A0 21 0D 80 00 00 07 01 ptr<`xse`>
+if.female.call     A0 21 0D 80 01 00 07 01 ptr<`xse`>
 if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # compare, if1
 if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # compare, if2
 if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # checkflag, if1
