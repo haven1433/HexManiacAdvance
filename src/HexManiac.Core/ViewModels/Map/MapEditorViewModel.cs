@@ -268,6 +268,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
+      private void OpenScriptInNewTab(int address) {
+         var dup = viewPort.CreateDuplicate();
+         dup.RequestTabChange += (sender, e) => viewPort.RaiseRequestTabChange(e.NewTab);
+         ViewPort.InitializationWorkload.ContinueWith(t => {
+            singletons.WorkDispatcher.BlockOnUIWork(() => {
+               dup.Goto.Execute(address);
+               RequestTabChange?.Invoke(this, new(dup));
+            });
+         }, TaskContinuationOptions.ExecuteSynchronously);
+      }
+
       public void Refresh() {
          format.Refresh();
          UpdatePrimaryMap(primaryMap);
@@ -1184,14 +1195,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          if (ev is ObjectEventViewModel objEvent) {
             ContextItems.Add(new MenuCommand("Delete Object", DeleteCurrentEvent));
+            ContextItems.Add(new MenuCommand("Open in New Tab", () => OpenScriptInNewTab(objEvent.ScriptAddress)));
          } else if (ev is WarpEventViewModel warp) {
             ContextItems.Add(new MenuCommand("Create New Map", CreateMapForWarp));
             ContextItems.Add(new MenuCommand("Open in New Tab", () => Duplicate(warp.Bank, warp.Map)));
             ContextItems.Add(new MenuCommand("Delete Warp", DeleteCurrentEvent));
          } else if (ev is ScriptEventViewModel script) {
             ContextItems.Add(new MenuCommand("Delete Script", DeleteCurrentEvent));
+            ContextItems.Add(new MenuCommand("Open in New Tab", () => OpenScriptInNewTab(script.ScriptAddress)));
          } else if (ev is SignpostEventViewModel signpost) {
             ContextItems.Add(new MenuCommand("Delete Signpost", DeleteCurrentEvent));
+            if (signpost.ShowPointer && signpost.CanGotoScript) ContextItems.Add(new MenuCommand("Open in New Tab", () => OpenScriptInNewTab(signpost.Pointer)));
          } else if (ev is FlyEventViewModel fly) {
             ContextItems.Add(new MenuCommand("Delete Fly Spot", DeleteCurrentEvent));
          }
