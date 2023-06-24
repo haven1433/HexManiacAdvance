@@ -160,7 +160,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int GetValue(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
-         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
+         if (seg == null) return -1;
          if (seg.Type == ElementContentType.Integer && seg is ArrayRunSignedSegment signedSeg) {
             return signedSeg.ReadValue(model, valueAddress);
          } if (seg.Type == ElementContentType.Integer) {
@@ -225,7 +226,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public void __setindex__(string key, object value) => this[key] = value; // for python
       public object this[string fieldName] {
          get {
-            var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
+            if (seg == null) return null;
             var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
             if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
             if (seg.Type == ElementContentType.Pointer) {
@@ -245,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return GetValue(fieldName);
          }
          set {
-            var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
             if (seg is ArrayRunEnumSegment) {
                if (value is string str) SetEnumValue(fieldName, str);
                else if (value is BigInteger big) SetValue(fieldName, (int)big);

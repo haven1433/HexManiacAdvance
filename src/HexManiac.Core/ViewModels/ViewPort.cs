@@ -3021,6 +3021,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      public void AbortScript() => exitEditEarly |= UpdateInProgress;
+
       private void ClearPointersFromTable(ITableRun tableRun, int index, int length) {
          foreach (var segment in tableRun.ElementContent) {
             if (segment.Type != ElementContentType.Pointer) continue;
