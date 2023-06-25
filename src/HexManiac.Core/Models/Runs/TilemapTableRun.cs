@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new SpriteDecorator(inner, pixels, pixels.PixelWidth / 8, pixels.PixelHeight / 8);
       }
 
-      public static IPixelViewModel Crop(IPixelViewModel pixels, int left, int top, int right, int bottom) {
+      public static ReadonlyPixelViewModel Crop(IPixelViewModel pixels, int left, int top, int right, int bottom) {
          var (width, height) = (pixels.PixelWidth - left - right, pixels.PixelHeight - top - bottom);
          Debug.Assert(width % 8 == 0, $"Cropped image must still have a width/height that's a multiple of 8, but width was {width}.");
          Debug.Assert(height % 8 == 0, $"Cropped image must still have a width/height that's a multiple of 8, but height was {height}.");

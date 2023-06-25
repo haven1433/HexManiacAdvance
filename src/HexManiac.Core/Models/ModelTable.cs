@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -365,6 +366,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else {
             return null; // format didn't match expected, give up
          }
+      }
+
+      /// <summary>
+      /// Attempts to render a sprite from a pointer field.
+      /// </summary>
+      public ReadonlyPixelViewModel Render(string fieldName) {
+         if (arrayIndex < 0 || arrayIndex >= table.ElementCount || !HasField(fieldName)) return null;
+         var address = GetAddress(fieldName);
+         var spriteRun = model.GetNextRun(address) as ISpriteRun;
+         if (spriteRun == null) return null;
+         return ReadonlyPixelViewModel.Create(Model, spriteRun, true);
       }
 
       #region DynamicObject

@@ -793,20 +793,20 @@ wrongspecies:
          parser.FormatScript<XSERun>(token, model, scriptStart);
       }
 
-      public TradeEventContent GetTradeEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTradeContent(model, parser, eventModel);
-      public static TradeEventContent GetTradeContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventViewModel) {
+      public TradeEventContent GetTradeEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTradeContent(model, parser, eventModel.ScriptAddress);
+      public static TradeEventContent GetTradeContent(IDataModel model, ScriptParser parser, int scriptAddress) {
          // tardes must have a `special CreateInGameTradePokemon`
          if (!model.TryGetList("specials", out var specials)) return null;
          var tradeSpecial = specials.IndexOf("CreateInGameTradePokemon");
          if (tradeSpecial == -1) return null;
          if (!Flags.GetAllScriptSpots(
-            model, parser, new[] { eventViewModel.ScriptAddress }, 0x25
+            model, parser, new[] { scriptAddress }, 0x25
          ).Any(
             spot => model.ReadMultiByteValue(spot.Address + 1, 2) == tradeSpecial)
          ) return null;
 
          var content = new TradeEventContent(Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL);
-         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x16, 0x0F); // setvar, loadpointer
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { scriptAddress }, 0x16, 0x0F); // setvar, loadpointer
 
          foreach (var spot in spots) {
             // TradeAddress is the only `setvar 0x8008` command

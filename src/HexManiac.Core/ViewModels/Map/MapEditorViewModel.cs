@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -1238,7 +1239,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (signpost.ShowHiddenItemProperties) {
                var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
                var item = signpost.ItemID;
-               if (item > 0 && item < options.Count) tips.Add(options[item]);
+               if (item > 0 && item < options.Count) {
+                  tips.Add(options[item]);
+                  var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+                  var render = itemSprites[item].Render("sprite");
+                  if (render != null) tips.Add(render);
+               }
             }
          }
 
@@ -1258,15 +1264,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IEnumerable<object> SummarizeScript(int address) {
          var renderedAddresses = new HashSet<int>();
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
-         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x67, 0x1A, 0x5C, 0x86); // loadpointer, preparemsg, copyvarifnotzero, trainerbattle, mart
+         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints,
+            0x0F, // loadpointer
+            0x67, // preparemsg
+            0x1A, // give.item
+            0x5C, // trainerbattle
+            0x86, // mart
+            0xB6, 0x44, // setwildbattle / givepokemon
+            0x79); // additem
          var tips = new List<object>();
          int textIncluded = 0; // prevent the tooltip from getting too long
 
          var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
          var icons = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
+         var fronts = model.GetTableModel(HardcodeTablesModel.FrontSpritesTable);
          var trainerSprites = model.GetTableModel(HardcodeTablesModel.TrainerSpritesName);
          var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
          var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
+
+         var tradeContent = EventTemplate.GetTradeContent(model, parser, address);
+         if (tradeContent != null) {
+            var tradeIndex = model.ReadMultiByteValue(tradeContent.TradeAddress, 2);
+            var tradeTable = model.GetTableModel(HardcodeTablesModel.TradeTable);
+            var give = tradeTable[tradeIndex].GetValue("give");
+            var receive = tradeTable[tradeIndex].GetValue("receive");
+            var giveSprite = icons[give].Render("icon");
+            var receiveSprite = fronts[receive].Render("sprite");
+            giveSprite = ReadonlyPixelViewModel.Crop(giveSprite, 0, 0, 32, 32);
+            tips.Add(ReadonlyPixelViewModel.Render(receiveSprite, giveSprite, 32, 32));
+            // var transparent = new short[88 * 88]; for (int i = 0; i < transparent.Length; i++) transparent[i] = 0;
+            //var combined = new CanvasPixelViewModel(88, 88) { Transparent = 0 };
+            //combined.Draw(giveSprite, 0, 0);
+            //combined.Draw(receiveSprite, 24, 24);
+            //tips.Add(new ReadonlyPixelViewModel(88, 88, combined.PixelData, 0)); // only ReadOnlyPixelViewModel gets the 'true' transparency effect
+         }
+
          foreach (var spot in scriptSpots) {
             if (renderedAddresses.Contains(spot.Address)) continue;
             if (model[spot.Address] == 0x0F) {
@@ -1289,14 +1321,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
-            } else if (model[spot.Address] == 0x1A && itemStats != null) {
-               // copyvarifnotzero (item)
-               var itemAddress = EventTemplate.GetItemAddress(model, spot.Address);
-               if (itemAddress == Pointer.NULL) continue;
+            } else if (model[spot.Address] == 0x1A && model[spot.Address + 1] == 0x00 && model[spot.Address + 2] == 0x80 && itemStats != null) {
+               // copyvarifnotzero (item), likely give.item macro
+               var itemAddress = spot.Address + 3;
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
                if (itemID < 0 || itemID >= itemStats.Count || !itemStats[0].HasField("name")) continue;
                tips.Add(itemStats[itemID].GetStringValue("name"));
                renderedAddresses.Add(spot.Address);
+               var item = itemSprites[itemID].Render("sprite");
+               if (item != null) tips.Add(item);
             } else if (
                model[spot.Address] == 0x5C &&
                trainerTable != null &&
@@ -1361,6 +1394,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   renderedAddresses.Add(spot.Address);
                   itemCount++;
                }
+            } else if (model[spot.Address] == 0xB6 || model[spot.Address] == 0x79) { // setwildbattle, givepokemon
+               var pokemonID = model.ReadMultiByteValue(spot.Address + 1, 2);
+               var pokemon = fronts[pokemonID].Render("sprite");
+               if (pokemon != null) tips.Add(pokemon);
+            } else if (model[spot.Address] == 0x44) { // additem
+               var itemID = model.ReadMultiByteValue(spot.Address + 1, 2);
+               var item = itemSprites[itemID].Render("sprite");
+               if (item != null) tips.Add(item);
             }
          }
          if (address == Pointer.NULL) tips.Add("(no script)");

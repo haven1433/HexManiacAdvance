@@ -209,7 +209,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
+      public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
          if (sprite == null) return null;
          if (sprite is ITilemapRun tilemap) tilemap.FindMatchingTileset(model);
          var paletteRuns = sprite.FindRelatedPalettes(model);
@@ -217,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return BuildSprite(model, sprite, paletteRun, useTransparency, scale);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false, double scale = 1) {
+      public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false, double scale = 1) {
          var pixels = sprite.GetPixels(model, 0, -1);
          if (pixels == null) return null;
          var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
