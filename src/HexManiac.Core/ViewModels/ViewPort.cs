@@ -788,6 +788,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region LaunchFileLocation
+
+      public void LaunchFileLocation(IFileSystem fileSystem) => fileSystem.LaunchProcess("explorer.exe", $"/select,\"{FullFileName}\"");
+
+      #endregion
+
       #region Duplicate
 
       public bool CanDuplicate => true;

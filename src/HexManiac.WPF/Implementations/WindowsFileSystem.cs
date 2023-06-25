@@ -94,10 +94,14 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public bool Exists(string fileName) => File.Exists(fileName);
 
-      public void LaunchProcess(string file) {
+      public void LaunchProcess(string file, string arguments = null) {
          try {
-            file = Path.GetFullPath(file);
-            NativeProcess.Start(file);
+            if (arguments == null) {
+               file = Path.GetFullPath(file);
+               NativeProcess.Start(file);
+            } else {
+               NativeProcess.Start(file, arguments);
+            }
          } catch (System.ComponentModel.Win32Exception) {
             var nl = Environment.NewLine;
             var path = Path.GetFileName(file);
@@ -337,10 +341,12 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
                            try {
                               if (link.Content.StartsWith("~")) {
                                  CopyText = link.Content.Substring(1);
-                              } else if (!link.Content.StartsWith("!")) {
-                                 NativeProcess.Start(link.Content);
-                              } else {
+                              } else if (link.Content.StartsWith("!")) {
                                  ShowFileProperties(link.Content.Substring(1));
+                              } else if (link.Content.StartsWith("/")) {
+                                 NativeProcess.Start("explorer.exe", $"/select,\"{link.Content.Substring(1)}\"");
+                              } else {
+                                 NativeProcess.Start(link.Content);
                               }
                            } catch {
                               ShowCustomMessageBox($"Could not start '{link.Content}'.", showYesNoCancel: false);

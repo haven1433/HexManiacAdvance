@@ -68,7 +68,12 @@ namespace HavenSoft.HexManiac.Core {
       /// </summary>
       public bool CanExecute(object parameter) {
          if (Context == null) return false;
+
+         // verify that the execute method exists
          var canExecuteMethod = Context.GetType().GetMethod(CanExecuteName);
+         var execute = Context.GetType().GetMethods().Where(m => m.Name == ExecuteName && m.GetParameters().Length < 2).ToList();
+         if (execute.Count != 1) return false;
+
          if (canExecuteMethod == null) {
             // property case
             var canExecuteProperty = Context.GetType().GetProperty(CanExecuteName);

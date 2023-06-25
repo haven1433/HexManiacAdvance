@@ -52,13 +52,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<string> LaunchProcess { get; set; }
+        public Action<string, string> LaunchProcess { get; set; }
         
-        void IFileSystem.LaunchProcess(string file)
+        void IFileSystem.LaunchProcess(string file, string arguments = null)
         {
             if (this.LaunchProcess != null)
             {
-                this.LaunchProcess(file);
+                this.LaunchProcess(file, arguments);
             }
         }
         

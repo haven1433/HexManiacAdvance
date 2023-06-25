@@ -116,7 +116,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             "The error has been logged to crash.log" + Environment.NewLine +
             "You may want to:",
             showYesNoCancel: false,
-            new ProcessModel("Show crash.log in Explorer", "."),
+            new ProcessModel("Show crash.log in Explorer", "/" + Path.GetFullPath("crash.log")),
             new ProcessModel("Report this via Discord", "https://discord.gg/Re6E6ePpFc"),
             new ProcessModel(
                "Report this via GitHub",

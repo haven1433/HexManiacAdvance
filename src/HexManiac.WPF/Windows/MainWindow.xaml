@@ -615,6 +615,7 @@
                            </Grid.ToolTip>
                            <Grid.ContextMenu>
                               <ContextMenu>
+                                 <MenuItem Header="Show in File Explorer" Command="{hsv:MethodCommand LaunchFileLocation}" CommandParameter="{DynamicResource FileSystem}" />
                                  <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
                                  <MenuItem Header="Diff with Left" Command="{Binding DiffLeft}" />
                                  <MenuItem Header="Diff with Right" Command="{Binding DiffRight}" />

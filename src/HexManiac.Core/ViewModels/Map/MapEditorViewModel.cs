@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -251,6 +252,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool CanUpsPatchRight => false;
       public void IpsPatchRight() { }
       public void UpsPatchRight() { }
+
+      public void LaunchFileLocation(IFileSystem fileSystem) => fileSystem.LaunchProcess("explorer.exe", $"/select,\"{FullFileName}\"");
 
       public void Duplicate() => Duplicate(PrimaryMap.MapID / 1000, PrimaryMap.MapID % 1000);
       private void Duplicate(int bank, int map) {

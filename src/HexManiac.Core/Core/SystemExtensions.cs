@@ -392,6 +392,10 @@ namespace HavenSoft.HexManiac.Core {
       public static void Start(string url) {
          Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
       }
+
+      public static void Start(string url, string arguments) {
+         Process.Start(new ProcessStartInfo(url, arguments) { UseShellExecute = true });
+      }
    }
 
    /// <summary>

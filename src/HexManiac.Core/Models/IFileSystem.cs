@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <returns>true if the file can be loaded</returns>
       bool Exists(string file);
 
-      void LaunchProcess(string file);
+      void LaunchProcess(string file, string arguments = null);
 
       /// <summary>
       /// Have the filesystem open a specific file.
