@@ -523,9 +523,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void SelectAllExecuted() {
-         Goto.Execute(0);
-         SelectionStart = new Point(0, 0);
-         SelectionEnd = scroll.DataIndexToViewPoint(Model.Count - 1);
+         if (scroll.IsSingleTableMode) {
+            SelectionStart = scroll.DataIndexToViewPoint(scroll.DataStart);
+            SelectionEnd = scroll.DataIndexToViewPoint(scroll.DataStart + scroll.DataLength);
+         } else {
+            Goto.Execute(0);
+            SelectionStart = new Point(0, 0);
+            SelectionEnd = scroll.DataIndexToViewPoint(Model.Count - 1);
+         }
       }
 
       #endregion
