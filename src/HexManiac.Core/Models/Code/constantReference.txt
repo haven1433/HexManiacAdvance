@@ -410,7 +410,17 @@ BPRE1.graphics.overworld.tablelength-1 05F2F4
 BPGE0.graphics.overworld.tablelength-1 05F2E0
 BPGE1.graphics.overworld.tablelength-1 05F2F4
 
+# firstpersonview table length
+BPRE0.graphics.firstpersonview.count-1 0F8104
+BPGE0.graphics.firstpersonview.count-1 0F80DC
+BPRE1.graphics.firstpersonview.count-1 0F817C
+BPGE1.graphics.firstpersonview.count-1 0F8154
+BPRE0.graphics.firstpersonview.count   0F8108,0F8126,0F81AC,0F8552,0F857A
+BPGE0.graphics.firstpersonview.count   0F80E0,0F80FE,0F8184,0F852A,0F8552
+BPRE1.graphics.firstpersonview.count   0F8180,0F819E,0F8224,0F85CA,0F85F2
+BPGE1.graphics.firstpersonview.count   0F8158,0F8176,0F81FC,0F85A2,0F85CA
 
+# not really sure about this...
 BPRE0.scripts.seagallop.count-1 147148
 BPGE0.scripts.seagallop.count-1 147124
 BPRE1.scripts.seagallop.count-1 1471C0
