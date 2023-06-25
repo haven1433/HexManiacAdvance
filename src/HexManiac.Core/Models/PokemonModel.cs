@@ -968,29 +968,31 @@ namespace HavenSoft.HexManiac.Core.Models {
          // only produce headers for arrays with length based on other arrays that start with a text member.
          var run = GetNextRun(address);
          if (run.Start > address) return false;
-         if (!(run is ArrayRun array)) {
-            if (run.PointerSources != null && run.PointerSources.Count > 0 && run.Start == address) {
-               var parentRun = GetNextRun(run.PointerSources[0]);
-               if (parentRun is ArrayRun parentArray) {
-                  array = parentArray;
-                  var arrayIndex = parentArray.ConvertByteOffsetToArrayOffset(run.PointerSources[0]).ElementIndex;
-                  address = parentArray.Start + arrayIndex * parentArray.ElementLength;
+         lock (threadlock) {
+            if (!(run is ArrayRun array)) {
+               if (run.PointerSources != null && run.PointerSources.Count > 0 && run.Start == address) {
+                  var parentRun = GetNextRun(run.PointerSources[0]);
+                  if (parentRun is ArrayRun parentArray) {
+                     array = parentArray;
+                     var arrayIndex = parentArray.ConvertByteOffsetToArrayOffset(run.PointerSources[0]).ElementIndex;
+                     address = parentArray.Start + arrayIndex * parentArray.ElementLength;
+                  } else {
+                     return false;
+                  }
                } else {
                   return false;
                }
-            } else {
-               return false;
             }
+
+            if ((address - array.Start) % array.ElementLength != 0) return false;
+
+            var index = (address - array.Start) / array.ElementLength;
+            var names = array.ElementNames;
+            if (names.Count <= index) return false;
+            header = names[index];
+
+            return true;
          }
-
-         if ((address - array.Start) % array.ElementLength != 0) return false;
-
-         var index = (address - array.Start) / array.ElementLength;
-         var names = array.ElementNames;
-         if (names.Count <= index) return false;
-         header = names[index];
-
-         return true;
       }
 
       public override bool IsAtEndOfArray(int dataIndex, out ITableRun arrayRun) {
