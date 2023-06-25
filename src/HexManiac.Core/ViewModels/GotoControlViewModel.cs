@@ -504,6 +504,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                }
             }
+         } else if (model.GetMatchedWords(fullName).Count > 0) {
+            IsGoto = true;
          } else {
             IsGoto = false;
          }
