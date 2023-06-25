@@ -181,7 +181,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ElementContentViewModelType Type => ElementContentViewModelType.NumericField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
-         if (int.TryParse(viewModel.Content, out int content)) {
+         if (viewModel.Content.TryParseInt(out int content)) {
             viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, content);
             var run = (ITableRun)viewModel.Model.GetNextRun(viewModel.Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(viewModel.Start);
@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ElementContentViewModelType Type => ElementContentViewModelType.NumericField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
-         if (int.TryParse(viewModel.Content, out int content)) {
+         if (viewModel.Content.TryParseInt(out int content)) {
             viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, content);
             var run = (ITableRun)viewModel.Model.GetNextRun(viewModel.Start);
             var offsets = run.ConvertByteOffsetToArrayOffset(viewModel.Start);
@@ -283,7 +283,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ElementContentViewModelType Type => ElementContentViewModelType.HexField;
 
       public void UpdateModelFromViewModel(FieldArrayElementViewModel viewModel) {
-         if (int.TryParse(viewModel.Content, NumberStyles.HexNumber, CultureInfo.CurrentCulture.NumberFormat, out int hexValue)) {
+         if (viewModel.Content.TryParseInt(out int hexValue)) {
             viewModel.Model.WriteMultiByteValue(viewModel.Start, viewModel.Length, viewModel.ViewPort.CurrentChange, hexValue);
          } else {
             viewModel.ErrorText = "Value should be hexidecimal.";
@@ -292,8 +292,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel) {
          int number = viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
-         var text = number.ToString("X2");
-         return text;
+         var text = number.ToString($"X{viewModel.Length * 2}");
+         return "0x" + text;
       }
    }
 

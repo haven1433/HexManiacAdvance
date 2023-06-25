@@ -38,8 +38,13 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public static bool TryParseInt(this string str, out int result) {
+         var negate = str.StartsWith("-");
+         if (negate) str = str.Substring(1);
          if (str.StartsWith("0x") && int.TryParse(str.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return true;
-         if (int.TryParse(str, out result)) return true;
+         if (int.TryParse(str, out result)) {
+            if (negate) result = -result;
+            return true;
+         }
          return false;
       }
       public static bool TryParseInt(this ReadOnlySpan<char> str, out int result) {
