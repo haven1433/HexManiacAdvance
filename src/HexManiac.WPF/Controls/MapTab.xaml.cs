@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Navigation;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class MapTab : UserControl {
@@ -430,5 +431,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       }
 
       #endregion
+
+      private void Navigate(object sender, RequestNavigateEventArgs e) {
+         NativeProcess.Start(e.Uri.AbsoluteUri);
+         e.Handled = true;
+      }
    }
 }

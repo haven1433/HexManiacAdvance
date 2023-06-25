@@ -1066,11 +1066,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private TextEditorViewModel sampleLegendClearScript;
       public TextEditorViewModel SampleLegendClearScript {
          get {
-            var script = @$"  # whatever
+            var script = @$"  # where in your script
   if.flag.clear.call 0x{LegendaryFlagText} <show>
-  # whatever
   end
 
+  # add this at the bottom of the script
 show:
   clearflag 0x{FlagText}
   return";

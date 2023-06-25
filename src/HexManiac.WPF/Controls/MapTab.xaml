@@ -649,8 +649,14 @@
                               <TextBox Text="{Binding CryText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            </StackPanel>
 
-                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,5,2" TextWrapping="Wrap" Text="Put this in a Map Header Transition Script (or some other script) to make the legendary return if you haven't captured it:" />
+                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,5,2" TextWrapping="Wrap" Text="Use this to make the legendary reappear if you haven't captured it:" />
                            <local:TextEditor IsReadOnly="True" DataContext="{Binding SampleLegendClearScript}" Height="120" />
+                           <TextBlock HorizontalAlignment="Right" Margin="4">
+                              <Hyperlink Foreground="{DynamicResource Accent}" RequestNavigate="Navigate"
+                                         NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki/Legendary-Pok%C3%A9mon-Encounters">
+                                 More Info
+                              </Hyperlink>
+                           </TextBlock>
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
