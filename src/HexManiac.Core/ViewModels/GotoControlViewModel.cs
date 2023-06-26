@@ -497,6 +497,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   var run = map.Layout.BlockMap.Run;
                   if (run != null) {
                      var hoverContent = model.CurrentCacheScope.GetImage(run);
+                     if (hoverContent.PixelWidth > 480 || hoverContent.PixelHeight > 320) {
+                        hoverContent = new ReadonlyPixelViewModel(hoverContent.PixelWidth, hoverContent.PixelHeight, hoverContent.PixelData, hoverContent.Transparent) {
+                           SpriteScale = .5
+                        };
+                     }
                      if (hoverContent != null) {
                         HoverTip = new ObservableCollection<object> { hoverContent };
                         return;
