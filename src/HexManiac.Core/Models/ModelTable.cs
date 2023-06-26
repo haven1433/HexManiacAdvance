@@ -451,7 +451,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool HasField(string name) => tuple.Elements.Any(field => field.Name == name);
 
       public int GetValue(string fieldName) {
-         var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+         var tup = tuple.Elements.First(seg => seg.Name == matchName);
          var start = table.Start + table.ElementLength * arrayIndex;
          start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
@@ -459,7 +460,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void SetValue(string fieldName, int value) {
-         var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+         var tup = tuple.Elements.First(seg => seg.Name == matchName);
          var start = table.Start + table.ElementLength * arrayIndex + segmentOffset;
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
          tup.Write(model, tokenFactory(), start, bitOffset, value);
@@ -469,7 +471,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override bool TryGetMember(GetMemberBinder binder, out object? result) {
          result = null;
-         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == binder.Name);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), binder.Name).FirstOrDefault();
+         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == matchName);
          if (seg == null) {
             throw new ArgumentException($"Couldn't find a member named {binder.Name}. Available members include: {", ".Join(table.ElementContent.Select(s => s.Name))}");
          }
@@ -478,8 +481,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override bool TrySetMember(SetMemberBinder binder, object? value) {
-         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == binder.Name);
-         if (seg == null) return base.TrySetMember(binder, value);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), binder.Name).FirstOrDefault();
+         if (matchName == null) return base.TrySetMember(binder, value);
+         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == matchName);
          this[seg.Name] = value;
          return true;
       }
