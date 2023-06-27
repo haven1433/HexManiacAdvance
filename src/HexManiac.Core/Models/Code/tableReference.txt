@@ -737,14 +737,16 @@ graphics.trainercard.tilemap.back,        , , , , , , , , 0C2B60, `lzm4x30x20|gr
 graphics.trainercard.tilemap.background,  , , , , , , , , 0C2B2C, `lzm4x30x20|graphics.trainercard.tileset`
 graphics.trainercard.tilemap.front,       , , , , , , , , 0C2B9C, `lzm4x30x20|graphics.trainercard.tileset`
 
-graphics.overworld.palettes,           05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
-graphics.overworld.palettes2,          1D9D10, 1D9CA0, 1D9D28, 1D9CB8, 1D982C, 1D9808, 1D989C, 1D9878, 2DBBBC, [pal<`ucp4`> id:|h unused:]2
-graphics.overworld.sprites,            05BC3C, 05BC40, 05BC5C, 05BC60,       ,       ,       ,       ,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]218
-graphics.overworld.sprites,                  ,       ,       ,       , 05F2F4, 05F2F4, 05F308, 05F308,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]graphics.overworld.tablelength
-graphics.overworld.sprites,                  ,       ,       ,       ,       ,       ,       ,       , 08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
-graphics.overworld.sprites2,           05AB4C, 05AB50, 05AB6C, 05AB70, 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36
-graphics.overworld.sprites2,                 ,       ,       ,       ,       ,       ,       ,       , 08D4EC, [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]37
-graphics.overworld.textcolor,                ,       ,       ,       , 13CD44, 13CD1C, 13CDBC, 13CD94,       , [data.|t|low::|high::]76
+graphics.overworld.palettes,                   05BE20, 05BE24, 05BE40, 05BE44, 05F4D8, 05F4D8, 05F4EC, 05F4EC, 08E8BC, [pal<`ucp4`> id:|h unused:]!0000000000000000
+graphics.overworld.palettes2,                  1D9D10, 1D9CA0, 1D9D28, 1D9CB8, 1D982C, 1D9808, 1D989C, 1D9878, 2DBBBC, [pal<`ucp4`> id:|h unused:]2
+graphics.overworld.sprites,                    05BC3C, 05BC40, 05BC5C, 05BC60,       ,       ,       ,       ,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]218
+graphics.overworld.sprites,                          ,       ,       ,       , 05F2F4, 05F2F4, 05F308, 05F308,       , [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]graphics.overworld.tablelength
+graphics.overworld.sprites,                          ,       ,       ,       ,       ,       ,       ,       , 08E6D8, [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]246
+graphics.overworld.sprites2,                   05AB4C, 05AB50, 05AB6C, 05AB70, 05DF28, 05DF28, 05DF3C, 05DF3C,       , [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36
+graphics.overworld.sprites2,                         ,       ,       ,       ,       ,       ,       ,       , 08D4EC, [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]37
+graphics.overworld.textcolor,                        ,       ,       ,       , 13CD44, 13CD1C, 13CDBC, 13CD94,       , [data.|t|low::|high::]76
+graphics.overworld.reflection.palettes.player, 05BF74, 05BF78, 05BF94, 05BF98, 05F630, 05F630, 05F644, 05F644, 08EA10, [normalPalette:|h padding: pointer<[normalReflection:|h multiplayerReflection:|h unused: unused:]1>]!FF11
+graphics.overworld.reflection.palettes.slot10, 05BFEC, 05BFF0, 05C00C, 05C010, 05F6A8, 05F6A8, 05F6BC, 05F6BC, 08EA88, [normalPalette:|h padding: pointer<[normalReflection:|h multiplayerReflection:|h unused: unused:]1>]!FF11
 
 # these should be loaded after the overworld palettes because some hacks change these semi-overworld sprites to use overworld palettes (example, Vega)
 graphics.newgame.rival.nameselection.palette,  , , , , 3E23C8, 3E2204, 3E2438, 3E2274, , `ucp4`
@@ -841,10 +843,8 @@ data.text.trade.messages,                          ,       ,       ,       , 124
 graphics.menus.trade.windowtemplates.others,       ,       ,       ,       ,       ,       ,       ,       , 0773A8, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]!FF00000000000000
 graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,       ,       ,       ,       , 078EEC, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]1
 data.statstages.default,                     013104, 013104, 013104, 013104, 014ED4, 014ED4, 014EE8, 014EE8, 03D024, [numerator. denominator. ratio|=numerator÷denominator]13
+scripts.seagallop.destinations, , , , , 1471B0, 14718C, 147228, 147204, , [bank. map. x. y.]scripts.seagallop.count
 
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
 data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8, 01E578, 01E578, 01E58C, 01E58C, 046D68, [rate:]!0000
-
-scripts.seagallop.destinations, , , , , 1471B0, 14718C, 147228, 147204, , [bank. map. x. y.]scripts.seagallop.count
-
