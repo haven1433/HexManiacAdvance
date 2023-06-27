@@ -82,16 +82,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value, arg => UpdateCollapsed(lastFilter)); }
       public void UpdateCollapsed(string filter) {
-         var start = false;
+         bool start = false, end = false;
          var filterMatchesGroup = filter.Length == 0 || sectionName.MatchesPartial(filter);
          bool lastFieldVisible = filterMatchesGroup;
          bool anyChildrenVisible = false;
          foreach (var child in viewPort.Tools.TableTool.Children) {
             if (child == this) start = true;
             if (!start) continue;
-            if (child is SplitterArrayElementViewModel && child != this) break;
+            end |= child is SplitterArrayElementViewModel && child != this;
             if (child is SplitterArrayElementViewModel) continue;
-            if (child is ButtonArrayElementViewModel) break;
+            if (child is ButtonArrayElementViewModel) continue;
+            if (child is IStreamArrayElementViewModel streamElement) {
+               if (streamElement.Parent != null && streamElement.Parent.SectionName != SectionName) continue;
+            } else if (end) {
+               continue;
+            }
             var childVisible = filterMatchesGroup;
 
             if (child is FieldArrayElementViewModel faevm) childVisible = filterMatchesGroup || faevm.Name.MatchesPartial(filter);
@@ -149,6 +154,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public interface IStreamArrayElementViewModel : IArrayElementViewModel {
       event EventHandler<(int originalStart, int newStart)> DataMoved;
+
+      SplitterArrayElementViewModel Parent { get; set; }
 
       bool ShowContent { get; }
       int UsageCount { get; }

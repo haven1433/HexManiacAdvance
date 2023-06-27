@@ -395,8 +395,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   streamGroup.Open();
                }
 
-               AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
-               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, themes[themeIndex], streamGroup);
+               var header = new SplitterArrayElementViewModel(viewPort, basename, elementOffset);
+               AddChild(header);
+               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, themes[themeIndex], header, streamGroup);
                MoveToNextGroup();
                Groups[0].GroupName = basename;
             } else {
@@ -434,8 +435,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
                      if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
-                        AddChild(new SplitterArrayElementViewModel(viewPort, tableName, elementOffset));
-                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, themes[themeIndex], helperGroup, partition);
+                        var header = new SplitterArrayElementViewModel(viewPort, tableName, elementOffset);
+                        AddChild(header);
+                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, themes[themeIndex], header, helperGroup, partition);
                      }
                   }
                   while (Groups.Count <= childIndexGroup) AddGroup();

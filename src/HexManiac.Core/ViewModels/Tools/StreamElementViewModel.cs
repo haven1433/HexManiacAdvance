@@ -26,6 +26,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool ShowContent => UsageCount != 0;
 
+      public SplitterArrayElementViewModel Parent { get; set; }
+
       private int usageCount;
       public int UsageCount {
          get => usageCount;
