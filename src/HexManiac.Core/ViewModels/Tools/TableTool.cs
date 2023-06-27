@@ -203,8 +203,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
                var (start, end) = (selection.Scroll.ViewPointToDataIndex(selection.SelectionStart), selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
                var array = (ITableRun)model.GetNextRun(address);
-               start -= array.ElementLength;
-               end -= array.ElementLength;
+               if (array.Start <= start && start < array.Start + array.Length && array.Start <= end && end < array.Start + array.Length) {
+                  start -= array.ElementLength;
+                  end -= array.ElementLength;
+               } else {
+                  start = address - array.ElementLength;
+                  end = address - 1;
+               }
                selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(end);
             }
@@ -222,8 +227,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
                var (start, end) = (selection.Scroll.ViewPointToDataIndex(selection.SelectionStart), selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
                var array = (ITableRun)model.GetNextRun(address);
-               start += array.ElementLength;
-               end += array.ElementLength;
+               if (array.Start <= start && start < array.Start + array.Length && array.Start <= end && end < array.Start + array.Length) {
+                  start += array.ElementLength;
+                  end += array.ElementLength;
+               } else {
+                  start = address + array.ElementLength;
+                  end = address + array.ElementLength * 2 - 1;
+               }
                selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
                selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(end);
             }
