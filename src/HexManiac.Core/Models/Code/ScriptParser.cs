@@ -10,6 +10,11 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
+// TODO consolidate script length logic:
+// ScriptExtensions.GetScriptSegmentLength
+// ScriptParser.CollectScripts
+// ScriptParser.FindLength
+
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
       public const int MaxRepeates = 20;
@@ -85,20 +90,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // append child scripts that come directly after this script
             while (true) {
-               // child script starts directly after this script
+               // child script starts directly after this script and has only one source
                if (destinations.TryGetValue(address + length, out int childLength) && childLength > 0) {
-                  length += childLength;
-                  continue;
+                  var anchor = model.GetNextAnchor(address + length);
+                  if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
+                     length += childLength;
+                     continue;
+                  }
                }
-               // child script has a 1-byte margin (probably an end after a goto)
+               // child script has a 1-byte margin (probably an end after a goto) and has only one source
                if (destinations.TryGetValue(address + length + 1, out childLength)) {
                   // there was a skip... should we ignore it?
                   // If something points to that position, we can't keep going.
                   var anchor = model.GetNextAnchor(address + length);
                   if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
-                  length += childLength + 1;
-                  continue;
+                  anchor = model.GetNextAnchor(address + length + 1);
+                  if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
+                     length += childLength + 1;
+                     continue;
+                  }
                }
                break;
             }
@@ -144,10 +155,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // Include in the length any content that comes directly (or +1) after the script.
          // This content should be considered part of the script.
+         // Only do this if the content is only referenced once, otherwise it may not be safe to include during repoints.
          while (true) {
             if (destinations.TryGetValue(address + length, out int additionalLength) && additionalLength > 0) {
-               length += additionalLength;
-               continue;
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
+                  length += additionalLength;
+                  continue;
+               }
             }
             if (destinations.TryGetValue(address + length + 1, out additionalLength)) {
                // there was a skip... should we ignore it?
@@ -155,8 +170,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var anchor = model.GetNextAnchor(address + length);
                if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
-               length += additionalLength + 1;
-               continue;
+               anchor = model.GetNextAnchor(address + length + 1);
+               if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
+                  length += additionalLength + 1;
+                  continue;
+               }
             }
 
             break;
@@ -1540,14 +1558,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // concatenate destinations directly after the current script
+         // (only if the destination is only used once)
          while (true) {
             if (destinationLengths.TryGetValue(address + length, out int argLength) && argLength > 0) {
-               length += argLength;
-               continue;
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
+                  length += argLength;
+                  continue;
+               }
             }
             if (destinationLengths.TryGetValue(address + length + 1, out argLength)) {
-               length += argLength + 1;
-               continue;
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+               anchor = model.GetNextAnchor(address + length + 1);
+               if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
+                  length += argLength + 1;
+                  continue;
+               }
             }
             break;
          }

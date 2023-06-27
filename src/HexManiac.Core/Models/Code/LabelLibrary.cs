@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// </param>
       public string AddressToLabel(int address, bool isScriptAddress) {
          if (labels.TryGetValue(address, out var label)) return label;
-         if (isScriptAddress && Model.GetAnchorFromAddress(-1, address) is string anchor) {
+         if (isScriptAddress && Model.GetAnchorFromAddress(-1, address) is string anchor && anchor.Length > 4) {
             labels[address] = anchor;
             return anchor;
          } else if (isScriptAddress && address.InRange(Start, Start + Length)) {
