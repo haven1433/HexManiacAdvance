@@ -56,7 +56,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var foregroundTable = model.GetTable(segment.Foreground);
          var imageAddress = foregroundTable?.ReadPointer(model, segmentOffset.ElementIndex) ?? Pointer.NULL;
          if (model.GetNextRun(imageAddress) is not ISpriteRun foregroundRun) return;
-         var foreground = ReadonlyPixelViewModel.Create(model, foregroundRun, true);
+         var pointerStart = foregroundTable.Start + segmentOffset.ElementIndex * foregroundTable.ElementLength;
+         var paletteRun = foregroundRun.FindRelatedPalettes(model, pointerStart, foregroundRun.SpriteFormat.PaletteHint).FirstOrDefault();
+         var foreground = ReadonlyPixelViewModel.Create(model, foregroundRun, paletteRun, true);
          PixelViewModel = ReadonlyPixelViewModel.Render(PixelViewModel, foreground, segment.X + xOffset, segment.Y + yOffset);
       }
 
