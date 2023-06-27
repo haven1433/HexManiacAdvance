@@ -1255,6 +1255,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return tips.ToArray();
       }
 
+      /// <param name="desiredBlockWidth">If you pass null, no scaling will be performed.</param>
+      public ReadonlyPixelViewModel GetMapPreview(int bank, int map, int? desiredBlockWidth) {
+         var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, bank, map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+         if (desiredBlockWidth is not int desiredBlockSize) {
+            return new ReadonlyPixelViewModel(blockmap.PixelWidth, blockmap.PixelHeight, blockmap.PixelData);
+         }
+
+         var dimension = Math.Max(blockmap.PixelWidth / 16.0 / desiredBlockSize, blockmap.PixelHeight / 16.0 / desiredBlockSize);
+         var scale = 1.0;
+         while (dimension > 1) {
+            dimension /= 2;
+            scale /= 2;
+         }
+         return new ReadonlyPixelViewModel(blockmap.PixelWidth, blockmap.PixelHeight, blockmap.PixelData) { SpriteScale = scale };
+      }
+
       public ReadonlyPixelViewModel GetMapPreview(int bank, int map, int x, int y) {
          var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, bank, map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
          var image = blockmap.AutoCrop(x, y);

@@ -54,6 +54,21 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
 
       public EventGroupModel Events => Element.TryGetSubTable(Format.Events, out var table) ? new(table[0]) : new(null);
 
+      public int NameIndex {
+         get {
+            var code = Element.Model.GetShortGameCode();
+            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            if (!Element.TryGetValue("regionSectionID", out var value)) return -1;
+            return value - offset;
+         }
+         set {
+            if (!Element.HasField("regionSectionID")) return;
+            var code = Element.Model.GetShortGameCode();
+            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            Element.SetValue("regionSectionID", value + offset);
+         }
+      }
+
       public IList<ConnectionModel> Connections {
          get {
             if (Group < 0 || Map < 0) throw new InvalidOperationException("bank/map location unknown.");
