@@ -1053,19 +1053,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (changeCount > 0) ClearPixelCache();
       }
 
-      public void RepeatBlock(Func<ModelDelta> futureToken, int block, int collision, int x, int y, int w, int h, bool refreshScreen) {
+      public void RepeatBlock(Func<ModelDelta> futureToken, IReadOnlyList<int> blockOptions, int collision, int x, int y, int w, int h, bool refreshScreen) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
          int changeCount = 0;
+         var rnd = new Random();
          lock (pixelWriteLock) {
             for (int xx = 0; xx < w; xx++) {
                for (int yy = 0; yy < h; yy++) {
                   if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
                   var address = start + ((yy + y) * width + xx + x) * 2;
-                  // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
                   var blockValue = model.ReadMultiByteValue(address, 2);
                   lastDrawVal = blockValue;
+                  var block = blockOptions[0];
+                  if (blockOptions.Count > 1) block = rnd.From(blockOptions);
                   if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
                   if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
                   if (blockValue != lastDrawVal) {
