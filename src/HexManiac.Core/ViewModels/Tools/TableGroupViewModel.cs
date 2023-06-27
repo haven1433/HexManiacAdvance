@@ -107,6 +107,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
                } else if (item is ArrayRunCalculatedSegment calcSeg) {
                   viewModel = new CalculatedElementViewModel(viewPort, calcSeg, originalItemAddress);
+               } else if (item is ArrayRunPythonButtonSegment pythonButton) {
+                  viewModel = new PythonButtonElementViewModel(viewPort, pythonButton, originalItemAddress);
                } else if (item is ArrayRunOffsetRenderSegment renderSeg) {
                   viewModel = new OffsetRenderViewModel(viewPort, renderSeg, itemAddress);
                } else if (item is ArrayRunSignedSegment signedSegment) {

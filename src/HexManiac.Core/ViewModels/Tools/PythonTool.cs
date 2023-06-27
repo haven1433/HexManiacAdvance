@@ -2,6 +2,7 @@
 using Microsoft.Scripting.Hosting;
 using System;
 using System.Collections;
+using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PythonTool : ViewModelCore {
@@ -28,6 +29,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             scope.SetVariable("editor", editor);
             scope.SetVariable("table", new TableGetter(editor));
             scope.SetVariable("print", (Action<string>)Printer);
+            try {
+               engine.Value.Execute(editor.Singletons.PythonUtility, scope);
+            } catch (Exception ex) {
+               Debug.Fail(ex.Message);
+            }
             return scope;
          });
          Text = @"print('''
@@ -70,6 +76,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             return new ErrorInfo(ex.Message);
          }
       }
+
+      public bool HasFunction(string name) {
+         var result = RunPythonScript($"'{name}' in globals()");
+         return result.IsWarning && result.ErrorMessage == "True";
+      }
+
+      public string GetComment(string functionName) {
+         var result = RunPythonScript($"{functionName}.__doc__");
+         return result.IsWarning ? result.ErrorMessage.Trim() : null;
+      }
+
+      public void AddVariable(string name, object value) => scope.Value.SetVariable(name, value);
 
       public void Printer(string text) {
          editor.FileSystem.ShowCustomMessageBox(text, false);

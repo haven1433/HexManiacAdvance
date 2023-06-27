@@ -757,6 +757,9 @@
                                                 MouseDown="OffsetRenderMouseDown" MouseMove="OffsetRenderMouseMove" MouseUp="OffsetRenderMouseUp" />
                                           </Grid>
                                        </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:PythonButtonElementViewModel}">
+                                          <hsg3hv:AngleButton Direction="Out" Content="{Binding Name}" Margin="4" Command="{hsv:MethodCommand Execute}" ToolTip="{Binding Tooltip}" />
+                                       </DataTemplate>
                                     </ItemsControl.Resources>
                                  </ItemsControl>
                               </StackPanel>

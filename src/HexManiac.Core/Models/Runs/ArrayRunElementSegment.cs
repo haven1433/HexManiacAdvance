@@ -885,6 +885,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunPythonButtonSegment : ArrayRunElementSegment {
+      public IDataModel Model { get; }
+      public string FunctionName { get; }
+      public override string SerializeFormat => Name + "|python=" + FunctionName;
+      public ArrayRunPythonButtonSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
+         Model = model;
+         FunctionName = contract;
+      }
+   }
+
    public class ArrayRunOffsetRenderSegment : ArrayRunElementSegment {
       public string Background { get; }
       public int BackgroundX { get; }

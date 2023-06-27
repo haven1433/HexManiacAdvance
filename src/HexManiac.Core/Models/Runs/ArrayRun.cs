@@ -504,6 +504,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string TupleFormatString = "|t";
       public const string ColorFormatString = "|c";
       public const string CalculatedFormatString = "|=";
+      public const string PythonButtonFormatString = "|python=";
       public const string RenderFormatString = "|render=";
       public const string CommentFormatString = "|comment=";
       public const string SplitterFormatString = "|";
@@ -1309,6 +1310,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public static List<ArrayRunElementSegment> ParseSegments(ReadOnlySpan<char> segments, IDataModel model) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
+         // if (segments.ToString().Contains("python")) ;
          while (segments.Length > 0) {
             if (segments.StartsWith("[")) {
                int subArrayClose = segments.LastIndexOf("]");
@@ -1366,9 +1368,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                } else if (segments.StartsWith(CalculatedFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var calculationContract = segments.Slice(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
+                  var contract = segments.Slice(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
                   segments = segments.Slice(endOfToken).Trim();
-                  list.Add(new ArrayRunCalculatedSegment(model, name, calculationContract.ToString()));
+                  list.Add(new ArrayRunCalculatedSegment(model, name, contract.ToString()));
+               } else if (segments.StartsWith(PythonButtonFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var contract = segments.Slice(PythonButtonFormatString.Length, endOfToken - PythonButtonFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunPythonButtonSegment(model, name, contract.ToString()));
                } else if (segments.StartsWith(RenderFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
@@ -1378,12 +1386,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                } else if (segments.StartsWith(RecordFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var recordContract = segments.Slice(0, endOfToken);
+                  var contract = segments.Slice(0, endOfToken);
                   segments = segments.Slice(endOfToken).Trim();
-                  if (recordContract.Count('(') != 1 || recordContract.Count(')') != 1) {
+                  if (contract.Count('(') != 1 || contract.Count(')') != 1) {
                      throw new ArrayRunParseException("Record format is s={name}({number}={enum}|...).");
                   }
-                  list.Add(new ArrayRunRecordSegment(name, segmentLength, recordContract.ToString()));
+                  list.Add(new ArrayRunRecordSegment(name, segmentLength, contract.ToString()));
                } else if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
@@ -1435,6 +1443,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else if (segments.StartsWith(RenderFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(CommentFormatString)) {
+            return (ElementContentType.Integer, 0, 0);
+         } else if (segments.StartsWith(PythonButtonFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
             return (ElementContentType.Integer, 2, 4);
