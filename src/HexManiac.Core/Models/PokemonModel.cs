@@ -2674,12 +2674,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             do {
                var nextRun = GetNextRun(run.Start + 1);
                if (nextRun.Start >= run.Start + length) break;
-               if (nextRun is PointerRun pRun) {
-                  ClearFormat(changeToken, nextRun.Start, 4);
-               } else if (nextRun is IScriptStartRun sRun) {
+               if (nextRun is IScriptStartRun sRun) {
                   MoveRun(changeToken, sRun, 1, newStart + sRun.Start - run.Start);
                } else {
-                  break;
+                  // clear format of any constants/pointers/streams that is considered part of the script
+                  ClearFormat(changeToken, nextRun.Start, nextRun.Length);
                }
             }
             while (true);
