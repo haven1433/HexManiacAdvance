@@ -922,6 +922,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private readonly object threadlock = new object(); // use threadlock when reading/writing to the runs collection, to make sure that the collection doesn't change while being searched.
+
+      /// <summary>
+      /// Allow clients to do arbitrary operations that need the threadlock early.
+      /// </summary>
+      public void ThreadlockRuns(Action action) {
+         lock (threadlock) action();
+      }
+
       public override IFormattedRun GetNextRun(int dataIndex) {
          if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
          lock (threadlock) {

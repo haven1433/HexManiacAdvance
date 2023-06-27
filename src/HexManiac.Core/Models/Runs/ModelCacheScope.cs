@@ -27,9 +27,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
 
       public IReadOnlyList<string> GetOptions(string table) {
-         lock (cachedOptions) {
-            if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
-            return cachedOptions[table];
+         if (model is PokemonModel pModel) {
+            IReadOnlyList<string> result = null;
+            pModel.ThreadlockRuns(() => {
+               lock (cachedOptions) {
+                  if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
+                  result = cachedOptions[table];
+               }
+            });
+            return result;
+         } else {
+            lock (cachedOptions) {
+               if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
+               return cachedOptions[table];
+            }
          }
       }
 
