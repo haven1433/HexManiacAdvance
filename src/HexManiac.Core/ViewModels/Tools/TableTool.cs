@@ -178,6 +178,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       // properties that exist solely so the UI can remember things when the tab switches
       public double VerticalOffset { get; set; }
 
+      private bool ignoreFurtherCommands = false;
       public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray, IWorkDispatcher dispatcher) {
          this.model = model;
          this.selection = selection;
@@ -195,10 +196,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start < address;
             },
-            Execute = parameter => {
+            Execute = async parameter => {
+               if (ignoreFurtherCommands) return;
+               using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+               await dispatcher.WaitForRenderingAsync();
+
+               var (start, end) = (selection.Scroll.ViewPointToDataIndex(selection.SelectionStart), selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
                var array = (ITableRun)model.GetNextRun(address);
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address - array.ElementLength);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+               start -= array.ElementLength;
+               end -= array.ElementLength;
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(end);
             }
          };
 
@@ -207,12 +215,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start + array.Length > address + array.ElementLength;
             },
-            Execute = parameter => {
-               var address = this.address;
+            Execute = async parameter => {
+               if (ignoreFurtherCommands) return;
+               using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+               await dispatcher.WaitForRenderingAsync();
+
+               var (start, end) = (selection.Scroll.ViewPointToDataIndex(selection.SelectionStart), selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
                var array = (ITableRun)model.GetNextRun(address);
-               if (selection.Scroll.DataIndex < array.Start || selection.Scroll.DataIndex > array.Start + array.Length) selection.GotoAddress(array.Start);
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address + array.ElementLength);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+               start += array.ElementLength;
+               end += array.ElementLength;
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(end);
             }
          };
 

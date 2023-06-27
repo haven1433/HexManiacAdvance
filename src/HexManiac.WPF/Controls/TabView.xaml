@@ -163,7 +163,7 @@
                   </StackPanel>
                </Border>
             </Popup>
-            <DockPanel Name="TableToolPanel">
+            <DockPanel Name="TableToolPanel" PreviewKeyDown="TableKeyDown">
                <DockPanel.Resources>
                   <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
                      <hsg3hv:AngleButton Margin="2,2" Direction="Out" HorizontalAlignment="Stretch"
