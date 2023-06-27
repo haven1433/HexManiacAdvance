@@ -60,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
    }
 
-   public record DecompileLabelLibrary(int Start, int Length) {
+   public record DecompileLabelLibrary(IDataModel Model, int Start, int Length) {
       private readonly Dictionary<int, string> labels = new();
       private readonly HashSet<int> rawLabels = new();
 
@@ -70,7 +70,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// </param>
       public string AddressToLabel(int address, bool isScriptAddress) {
          if (labels.TryGetValue(address, out var label)) return label;
-         if (isScriptAddress && address.InRange(Start, Start + Length)) {
+         if (isScriptAddress && Model.GetAnchorFromAddress(-1, address) is string anchor) {
+            labels[address] = anchor;
+            return anchor;
+         } else if (isScriptAddress && address.InRange(Start, Start + Length)) {
             label = "section" + labels.Count;
             labels[address] = label;
             return label;

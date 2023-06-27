@@ -669,7 +669,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
 
-         var labels = new DecompileLabelLibrary(index, length);
+         var labels = new DecompileLabelLibrary(data, index, length);
 
          while (length > 0) {
             if (index == nextAnchor.Start) {
