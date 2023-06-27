@@ -1348,7 +1348,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionStart = ConvertViewPointToAddress(SelectionStart);
          if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
          scroll.UpdateHeaders();
-         if (Model.GetNextRun(selectionStart) is ITableRun table) scroll.SetTableMode(table.Start, table.Length);
+         if (Model.GetNextRun(selectionStart) is ITableRun table && table.Start <= selectionStart) scroll.SetTableMode(table.Start, table.Length);
          RefreshBackingData();
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
