@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
-using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -48,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class GotoControlViewModel : ViewModelCore {
-      private readonly IViewPort viewPort;
+      private readonly IEditableViewPort viewPort;
       private bool withinTextChange = false, devMode = false;
 
       #region NotifyProperties
@@ -144,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
       public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher, bool devMode) {
-         viewPort = (tabContent as IViewPort);
+         viewPort = (tabContent as IEditableViewPort);
          this.devMode = devMode;
          if (tabContent is MapEditorViewModel mevm) viewPort = mevm.ViewPort;
          MoveAutoCompleteSelectionUp = new StubCommand {
@@ -257,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                foreach (var token in prefix.Tokens) {
                   var fullName = token.Content;
                   if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
-                  token.UpdateHoverTip(viewPort.Model, fullName);
+                  token.UpdateHoverTip(viewPort, fullName);
                }
             }
          }
@@ -474,7 +473,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return collection;
       }
 
-      public void UpdateHoverTip(IDataModel model, string fullName) {
+      public void UpdateHoverTip(IEditableViewPort viewPort, string fullName) {
+         var model = viewPort.Model;
          var matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
          if (address != Pointer.NULL) {
@@ -490,24 +490,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else if (matchingMaps.Count == 1) {
             IsGoto = true;
             var info = matchingMaps[0];
-            var bank = AllMapsModel.Create(model)[matchingMaps[0].Group];
-            if (bank != null) {
-               var map = bank[matchingMaps[0].Map];
-               if (map != null) {
-                  var run = map.Layout.BlockMap.Run;
-                  if (run != null) {
-                     var hoverContent = model.CurrentCacheScope.GetImage(run);
-                     if (hoverContent.PixelWidth > 480 || hoverContent.PixelHeight > 320) {
-                        hoverContent = new ReadonlyPixelViewModel(hoverContent.PixelWidth, hoverContent.PixelHeight, hoverContent.PixelData, hoverContent.Transparent) {
-                           SpriteScale = .5
-                        };
-                     }
-                     if (hoverContent != null) {
-                        HoverTip = new ObservableCollection<object> { hoverContent };
-                        return;
-                     }
-                  }
+            var hoverContent = viewPort.MapEditor.GetMapPreview(info.Group, info.Map, null);
+            if (hoverContent != null) {
+               if (hoverContent.PixelWidth > 480 || hoverContent.PixelHeight > 320) {
+                  hoverContent = new ReadonlyPixelViewModel(hoverContent.PixelWidth, hoverContent.PixelHeight, hoverContent.PixelData, hoverContent.Transparent) {
+                     SpriteScale = .5
+                  };
                }
+               HoverTip = new ObservableCollection<object> { hoverContent };
+               return;
             }
          } else if (model.GetMatchedWords(fullName).Count > 0) {
             IsGoto = true;
