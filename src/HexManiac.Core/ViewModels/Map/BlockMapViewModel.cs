@@ -1417,14 +1417,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Work Methods
 
       private IEnumerable<MapModel> GetAllMaps() {
-         foreach (var bank in model.GetTableModel(HardcodeTablesModel.MapBankTable)) {
+         var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
+         for (int i = 0; i < banks.Count; i++) {
+            var bank = banks[i];
             if (bank == null) continue;
-            foreach (var mapList in bank.GetSubTable("maps")) {
+            var maps = bank.GetSubTable("maps");
+            for (int j = 0; j < maps.Count; j++) {
+               var mapList = maps[j];
                if (mapList == null) continue;
                var mapTable = mapList.GetSubTable("map");
                if (mapTable == null) continue;
                var map = mapTable[0];
-               yield return new(map);
+               yield return new(map, i, j);
             }
          }
       }

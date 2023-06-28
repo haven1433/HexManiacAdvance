@@ -239,5 +239,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged { add { } remove { } }
    }
 
+   public record JumpMapInfo(int Group, int Map, string Name, Action<ChangeMapEventArgs> JumpAction) : MapInfo(Group, Map, Name) {
+      public void GotoMap() => JumpAction(new(Group, Map));
+   }
+
    public record ScriptInfo(int Start, int Length, string Content) : ISearchTreePayload;
 }
