@@ -210,8 +210,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int TopEdge { get => topEdge; set => Set(ref topEdge, value); }
       public int LeftEdge { get => leftEdge; set => Set(ref leftEdge, value); }
 
-      private int BottomEdge => topEdge + (int)(PixelHeight * SpriteScale);
-      private int RightEdge => leftEdge + (int)(PixelWidth * SpriteScale);
+      public int BottomEdge => topEdge + (int)(PixelHeight * SpriteScale);
+      public int RightEdge => leftEdge + (int)(PixelWidth * SpriteScale);
 
       private ImageLocation hoverPoint = new(0, 0);
       public ImageLocation HoverPoint {

@@ -1771,6 +1771,11 @@
             <Border Width="50">
                <TextBlock Text="{Binding PrimaryMap.Name}" HorizontalAlignment="Center" />
             </Border>
+            <local:AngleBorder.ContextMenu>
+               <ContextMenu>
+                  <MenuItem Header="Copy Image of all Connections" Command="{res:MethodCommand ExportAllConnectedMaps}" />
+               </ContextMenu>
+            </local:AngleBorder.ContextMenu>
          </local:AngleBorder>
          <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
          <local:AngleComboBox Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />

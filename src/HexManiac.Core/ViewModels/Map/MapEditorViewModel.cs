@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -8,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -2153,6 +2152,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (preferredCollisionsSecondary.TryGetValue(blockset2, out preference)) return preference[tile];
          }
          return -1;
+      }
+
+      public void ExportAllConnectedMaps() {
+         // from the primary map, find all connected maps
+         var maps = new List<BlockMapViewModel>(new[] { primaryMap });
+         var directions = new[] { MapDirection.Left, MapDirection.Up, MapDirection.Right, MapDirection.Down };
+         for (int i = 0; i < maps.Count; i++) {
+            var neighbors = directions.SelectMany(maps[i].GetNeighbors);
+            foreach(var n in neighbors) {
+               if (!maps.Any(m => m.MapID == n.MapID)) maps.Add(n);
+            }
+         }
+
+         // determine how big the image needs to be
+         var left = maps.Min(map => map.LeftEdge) / primaryMap.SpriteScale;
+         var right = maps.Max(map => map.RightEdge) / primaryMap.SpriteScale;
+         var top = maps.Min(map => map.TopEdge) / primaryMap.SpriteScale;
+         var bottom = maps.Max(map => map.BottomEdge) / primaryMap.SpriteScale;
+         var width = (int)Math.Round(right - left);
+         var height = (int)Math.Round(bottom - top);
+
+         // create a canvas that's the right size
+         var canvas = new CanvasPixelViewModel(width, height);
+
+         // draw all the maps
+         foreach (var map in maps) {
+            canvas.Draw(map, (int)(map.LeftEdge * map.SpriteScale - left), (int)(map.TopEdge * map.SpriteScale - top));
+         }
+
+         // export it as an image
+         fileSystem.CopyImage = (canvas.PixelData, canvas.PixelWidth);
+         ViewPort.RaiseMessage("Map copied to clipboard");
       }
    }
 
