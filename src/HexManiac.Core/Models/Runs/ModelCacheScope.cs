@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -234,7 +235,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public record MapInfo(int Group, int Map, string Name);
+   public record MapInfo(int Group, int Map, string Name) : INotifyPropertyChanged {
+      event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged { add { } remove { } }
+   }
 
    public record ScriptInfo(int Start, int Length, string Content) : ISearchTreePayload;
 }
