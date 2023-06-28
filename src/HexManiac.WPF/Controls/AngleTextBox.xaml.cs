@@ -163,6 +163,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             } else {
                textBox.SetBinding(TextBox.TextProperty, new Binding(nameof(FieldArrayElementViewModel.Content)) { UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged });
             }
+            textBox.SetBinding(Control.ForegroundProperty, new Binding(nameof(Foreground)) { Source = this });
             Content = textBox;
             textBox.ContextMenuOpening += (sender, args) => keepTextBoxForContextMenu = true;
             textBox.ContextMenuClosing += (sender, args) => keepTextBoxForContextMenu = false;
@@ -179,6 +180,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void RefreshProxy() {
          var proxy = new TextBoxLookAlike { BorderThickness = TextContentThickness, VerticalAlignment = VerticalAlignment.Stretch };
          if (textBinding != null) proxy.TextBlock.SetBinding(TextBlock.TextProperty, textBinding);
+         proxy.TextBlock.SetBinding(TextBlock.ForegroundProperty, new Binding(nameof(Foreground)) { Source = this });
          Content = proxy;
          Focusable = true;
       }

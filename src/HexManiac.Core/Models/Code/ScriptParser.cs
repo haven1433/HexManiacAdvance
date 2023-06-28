@@ -10,12 +10,19 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
+// TODO consolidate script length logic:
+// ScriptExtensions.GetScriptSegmentLength
+// ScriptParser.CollectScripts
+// ScriptParser.FindLength
+
 namespace HavenSoft.HexManiac.Core.Models.Code {
    public class ScriptParser {
       public const int MaxRepeates = 20;
       private readonly IReadOnlyList<IScriptLine> engine;
       private readonly byte endToken;
       private int gameHash;
+
+      public bool RequireCompleteAddresses { get; set; } = true;
 
       public event EventHandler<string> CompileError;
 
@@ -83,20 +90,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // append child scripts that come directly after this script
             while (true) {
-               // child script starts directly after this script
+               // child script starts directly after this script and has only one source
                if (destinations.TryGetValue(address + length, out int childLength) && childLength > 0) {
-                  length += childLength;
-                  continue;
+                  var anchor = model.GetNextAnchor(address + length);
+                  if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
+                     length += childLength;
+                     continue;
+                  }
                }
-               // child script has a 1-byte margin (probably an end after a goto)
+               // child script has a 1-byte margin (probably an end after a goto) and has only one source
                if (destinations.TryGetValue(address + length + 1, out childLength)) {
                   // there was a skip... should we ignore it?
                   // If something points to that position, we can't keep going.
                   var anchor = model.GetNextAnchor(address + length);
                   if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
-                  length += childLength + 1;
-                  continue;
+                  anchor = model.GetNextAnchor(address + length + 1);
+                  if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
+                     length += childLength + 1;
+                     continue;
+                  }
                }
                break;
             }
@@ -142,10 +155,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // Include in the length any content that comes directly (or +1) after the script.
          // This content should be considered part of the script.
+         // Only do this if the content is only referenced once, otherwise it may not be safe to include during repoints.
          while (true) {
             if (destinations.TryGetValue(address + length, out int additionalLength) && additionalLength > 0) {
-               length += additionalLength;
-               continue;
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
+                  length += additionalLength;
+                  continue;
+               }
             }
             if (destinations.TryGetValue(address + length + 1, out additionalLength)) {
                // there was a skip... should we ignore it?
@@ -153,8 +170,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                var anchor = model.GetNextAnchor(address + length);
                if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
-               length += additionalLength + 1;
-               continue;
+               anchor = model.GetNextAnchor(address + length + 1);
+               if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
+                  length += additionalLength + 1;
+                  continue;
+               }
             }
 
             break;
@@ -223,12 +243,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          while (toProcess.Count > 0) {
             address = toProcess.Last();
             toProcess.RemoveAt(toProcess.Count - 1);
-            if (processed.ContainsKey(address)) continue;
             var existingRun = model.GetNextRun(address);
+            // We need to check for an anchor here _before_ checking if this is a duplicate address and therefore skippable.
+            // Because self-referential scripts won't have their anchor picked up on the initial run.
             if (!(existingRun is SERun) && existingRun.Start == address) {
                var anchorName = model.GetAnchorFromAddress(-1, address);
                model.ObserveAnchorWritten(token, anchorName, constructor(address, existingRun.PointerSources));
             }
+            if (processed.ContainsKey(address)) continue;
             int length = 0;
             while (true) {
                var line = engine.GetMatchingLine(gameHash, model, address + length);
@@ -517,7 +539,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                            _ => ("^", new byte[0])
                         };
                         deferredContent.Add(new(currentSize + pointerOffset, format, defaultContent));
-                     } else if (destination >= 0) {
+                     } else if (destination >= 0 && arg.PointerType != ExpectedPointerType.Script) {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         if (arg.PointerType == ExpectedPointerType.Text) {
                            WriteTextStream(model, token, destination, start + currentSize + pointerOffset);
@@ -562,7 +584,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                break;
             }
          }
-         return new LabelLibrary(model, labels);
+         return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
       }
 
       public string GetHelp(IDataModel model, HelpContext context) {
@@ -665,7 +687,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
 
-         var labels = new DecompileLabelLibrary(index, length);
+         var labels = new DecompileLabelLibrary(data, index, length);
 
          while (length > 0) {
             if (index == nextAnchor.Start) {
@@ -858,7 +880,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (Args.Count == 0) return false;
          if (!MatchesGame(gameCodeHash)) return false;
-         foreach (var arg in Args) {
+         for (int i = 0; i < Args.Count; i++) {
+            var arg = Args[i];
             if (arg is SilentMatchArg smarg) {
                if (data[index] != smarg.ExpectedValue) return false;
             } else if (arg is ScriptArg sarg) {
@@ -1055,7 +1078,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (index + LineCode.Count >= data.Count) return false;
          if (MatchesGame(gameCodeHash)) {
-            return LineCode.Count.Range().All(i => data[index + i] == LineCode[i]);
+            var result = true;
+            for (int i = 0; result && i < LineCode.Count; i++) result = data[index + i] == LineCode[i]; // avoid making lambda for performance
+            return result;
          }
          return false;
       }
@@ -1402,7 +1427,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                token = token.Substring(2);
             }
             if (token == "auto") {
-               if(PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
+               if (PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
                   return "<auto> only supported for text/data.";
                }
                value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
@@ -1411,9 +1436,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
                if (value > -Pointer.NULL) value += Pointer.NULL;
+               //       public bool RequireCompleteAddresses { get; set; } = true;
+               if (labels.RequireCompleteAddresses && (token.Length < 6 || token.Length > 7)) {
+                  return "Script addresses must be 6 or 7 characters long.";
+               }
+            } else if (PointerType != ExpectedPointerType.Script) {
+               return $"'{token}' is not a valid pointer.";
             } else {
                labels.AddUnresolvedLabel(token, address);
-               value = 0;
+               value = Pointer.NULL;
             }
             value -= Pointer.NULL;
             results.Add((byte)value);
@@ -1527,14 +1558,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // concatenate destinations directly after the current script
+         // (only if the destination is only used once)
          while (true) {
             if (destinationLengths.TryGetValue(address + length, out int argLength) && argLength > 0) {
-               length += argLength;
-               continue;
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
+                  length += argLength;
+                  continue;
+               }
             }
             if (destinationLengths.TryGetValue(address + length + 1, out argLength)) {
-               length += argLength + 1;
-               continue;
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+               anchor = model.GetNextAnchor(address + length + 1);
+               if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
+                  length += argLength + 1;
+                  continue;
+               }
             }
             break;
          }

@@ -14,6 +14,13 @@ BPGE0.scripts.shiny.odds-1 03DB5E,044120,044196,0444B0,0F174E  # The odds of a p
 BPGE1.scripts.shiny.odds   104A74                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
 BPGE1.scripts.shiny.odds-1 03DB72,044134,0441AA,0444C4,0F17C6  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
 
+# additional shiny constants found by AGSMG?, used in credits
+BPRE0.scripts.shiny.odds   0F41DA,0F4218,0F4258,0F42A0
+BPGE0.scripts.shiny.odds   0F41B2,0F41F0,0F4230,0F4278
+BPRE1.scripts.shiny.odds   0F4252,0F4290,0F42D0,0F4318
+BPGE1.scripts.shiny.odds   0F422A,0F4268,0F42A8,0F42F0
+
+
 # Credit to Rubiibank for finding this!
 BPEF0.scripts.shiny.odds   031910,0C0CC4,1342F0
 BPEF0.scripts.shiny.odds-1 067C56,06E76C,06E7E2,06EBE4,172CD6
@@ -189,6 +196,12 @@ BPRE1:scripts.newgame.money 054B74
 BPGE0:scripts.newgame.money 054B60
 BPGE1:scripts.newgame.money 054B74
 BPEE0:scripts.newgame.money 0845BC
+
+AXVE0.scripts.newgame.pokemon.level 0821A8
+AXPE0.scripts.newgame.pokemon.level 0821A8
+AXVE1.scripts.newgame.pokemon.level 0821C8
+AVPE1.scripts.newgame.pokemon.level 0821C8
+BPEE0.scripts.newgame.pokemon.level 0B1178
 
 BPRE0.scripts.newgame.start.bank 054A04
 BPRE0.scripts.newgame.start.map  054A06
@@ -396,3 +409,20 @@ BPRE0.graphics.overworld.tablelength-1 05F2E0
 BPRE1.graphics.overworld.tablelength-1 05F2F4
 BPGE0.graphics.overworld.tablelength-1 05F2E0
 BPGE1.graphics.overworld.tablelength-1 05F2F4
+
+# firstpersonview table length
+BPRE0.graphics.firstpersonview.count-1 0F8104
+BPGE0.graphics.firstpersonview.count-1 0F80DC
+BPRE1.graphics.firstpersonview.count-1 0F817C
+BPGE1.graphics.firstpersonview.count-1 0F8154
+BPRE0.graphics.firstpersonview.count   0F8108,0F8126,0F81AC,0F8552,0F857A
+BPGE0.graphics.firstpersonview.count   0F80E0,0F80FE,0F8184,0F852A,0F8552
+BPRE1.graphics.firstpersonview.count   0F8180,0F819E,0F8224,0F85CA,0F85F2
+BPGE1.graphics.firstpersonview.count   0F8158,0F8176,0F81FC,0F85A2,0F85CA
+
+# not really sure about this...
+BPRE0.scripts.seagallop.count-1 147148
+BPGE0.scripts.seagallop.count-1 147124
+BPRE1.scripts.seagallop.count-1 1471C0
+BPGE1.scripts.seagallop.count-1 14719C
+

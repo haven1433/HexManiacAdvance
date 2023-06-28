@@ -11,6 +11,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class ButtonArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
@@ -62,6 +63,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
 
       public string ErrorText => string.Empty;
@@ -136,6 +138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var allMaps = AllMapsModel.Create(model);
          var isItemTable = tableName == HardcodeTablesModel.ItemsTableName;
+         var isMapNameTable = tableName == HardcodeTablesModel.MapNameTable;
          for (int bankIndex = 0; bankIndex < allMaps.Count; bankIndex++) {
             var bank = allMaps[bankIndex];
             for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
@@ -175,6 +178,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         yield return button;
                      }
                   }
+               } else if (isMapNameTable) {
+                  if (map.NameIndex != index) continue;
+                  var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, null);
+                  if (button.Image == null) continue;
+                  yield return button;
                }
             }
          }
@@ -191,7 +199,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          (this.mapEditor, this.owner) = (mapEditor, owner);
          (this.bank, this.map) = (bank, map);
          this.eventModel = eventViewModel;
-         Image = mapEditor.GetMapPreview(bank, map, eventViewModel.X, eventViewModel.Y);
+         if (eventViewModel == null) {
+            Image = mapEditor.GetMapPreview(bank, map, 7);
+         } else {
+            Image = mapEditor.GetMapPreview(bank, map, eventViewModel.X, eventViewModel.Y);
+         }
       }
       public void Goto() {
          owner.ShowPreviews = false;

@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -132,6 +133,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public MapTutorialsViewModel Tutorials { get; }
 
+      public AllMapsModel Models => AllMapsModel.Create(model, () => viewPort.ChangeHistory.CurrentChange);
+
       #region Block Picker
 
       public IPixelViewModel Blocks => primaryMap?.BlockPixels;
@@ -143,10 +146,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             Set(ref drawBlockIndex, value, old => {
                DrawMultipleTiles = false;
                if (drawBlockIndex >= 0) BlockEditorVisible = true;
-               PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
-               drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
+               if (PrimaryMap.BlockEditor != null) {
+                  PrimaryMap.BlockEditor.BlockIndex = drawBlockIndex;
+                  drawBlockIndex = Math.Min(drawBlockIndex, PrimaryMap.BlockEditor.BlockIndex);
+               }
                foreach (var map in VisibleMaps) {
-                  map.BlockEditor.BlockIndex = drawBlockIndex;
+                  if (map.BlockEditor != null) map.BlockEditor.BlockIndex = drawBlockIndex;
                   map.CollisionHighlight = collisionIndex;
                }
                selectionFromBlock = false;
@@ -247,13 +252,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public void IpsPatchRight() { }
       public void UpsPatchRight() { }
 
+      public void LaunchFileLocation(IFileSystem fileSystem) => fileSystem.LaunchProcess("explorer.exe", $"/select,\"{FullFileName}\"");
+
       public void Duplicate() => Duplicate(PrimaryMap.MapID / 1000, PrimaryMap.MapID % 1000);
       private void Duplicate(int bank, int map) {
          var dup = viewPort.CreateDuplicate();
          dup.RequestTabChange += (sender, e) => viewPort.RaiseRequestTabChange(e.NewTab);
 
          // don't check for the viewPort initilazition workload until the model is initialized (for map duplication, this should never really be an issue)
-         model.InitializationWorkload.ContinueWith(t => {
+         ViewPort.InitializationWorkload.ContinueWith(t => {
             // don't try to use the to tab's map editor until it's been fully initialized.
             dup.InitializationWorkload.ContinueWith(task => {
                singletons.WorkDispatcher.BlockOnUIWork(() => {
@@ -264,10 +271,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
+      private void OpenScriptInNewTab(int address) {
+         var dup = viewPort.CreateDuplicate();
+         dup.RequestTabChange += (sender, e) => viewPort.RaiseRequestTabChange(e.NewTab);
+         ViewPort.InitializationWorkload.ContinueWith(t => {
+            singletons.WorkDispatcher.BlockOnUIWork(() => {
+               dup.Goto.Execute(address);
+               RequestTabChange?.Invoke(this, new(dup));
+            });
+         }, TaskContinuationOptions.ExecuteSynchronously);
+      }
+
       public void Refresh() {
          format.Refresh();
-         primaryMap.ClearCaches();
          UpdatePrimaryMap(primaryMap);
+         foreach (var map in VisibleMaps) map.ClearCaches();
       }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
@@ -383,7 +401,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.format = new Format(model);
 
          var owSprites = BlockMapViewModel.RenderOWs(model);
-         templates = new(model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
+         templates = new(singletons.WorkDispatcher, model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
          var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = owSprites };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
@@ -696,6 +714,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (interactionType == PrimaryInteractionType.Draw) DrawMove(x, y);
          if (interactionType == PrimaryInteractionType.RectangleDraw) RectangleDrawMove(x, y);
          if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
+         if (interactionType == PrimaryInteractionType.Draw25Grid) Draw25Grid(x, y);
          if (interactionType == PrimaryInteractionType.Event) EventMove(x, y);
       }
 
@@ -704,6 +723,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          else if (interactionType == PrimaryInteractionType.Draw) DrawUp(x, y);
          else if (interactionType == PrimaryInteractionType.RectangleDraw) DrawUp(x, y);
          else if (interactionType == PrimaryInteractionType.Draw9Grid) DrawUp(x, y);
+         else if (interactionType == PrimaryInteractionType.Draw25Grid) DrawUp(x, y);
          interactionType = PrimaryInteractionType.None;
       }
 
@@ -712,6 +732,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          interactionType = PrimaryInteractionType.Draw;
          if ((click & PrimaryInteractionStart.ControlClick) != 0) interactionType = PrimaryInteractionType.RectangleDraw;
          if (use9Grid && IsValid9GridSelection) interactionType = PrimaryInteractionType.Draw9Grid;
+         if (use25Grid && IsValid25GridSelection) interactionType = PrimaryInteractionType.Draw25Grid;
          var map = MapUnderCursor(x, y);
          if ((click & PrimaryInteractionStart.DoubleClick) != 0) {
             if (drawBlockIndex < 0 && collisionIndex < 0) {
@@ -734,6 +755,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
             if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
             if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
+            if (interactionType == PrimaryInteractionType.Draw25Grid) Draw25Grid(x, y);
          }
       }
 
@@ -781,6 +803,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void Draw9Grid(double x, double y) {
          var map = MapUnderCursor(x, y);
          map.Draw9Grid(history.CurrentChange, tilesToDraw, x, y);
+         Hover(x, y);
+      }
+
+      private void Draw25Grid(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         map.Draw25Grid(history.CurrentChange, tilesToDraw, x, y);
          Hover(x, y);
       }
 
@@ -912,8 +940,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (top > bottom) (top, bottom) = (bottom, top);
          var (width, height) = (right - left + 1, bottom - top + 1);
 
-         if (tilesToDraw == null) {
-            primaryMap.RepeatBlock(() => history.CurrentChange, drawBlockIndex, collisionIndex, left, top, width, height, true);
+         var singleSelect = tilesToDraw == null || (tilesToDraw.GetLength(0) == 1 && tilesToDraw.GetLength(1) == 1);
+         if (singleSelect && blockBag.Contains(drawBlockIndex)) {
+            primaryMap.RepeatBlock(() => history.CurrentChange, blockBag, collisionIndex, left, top, width, height, true);
          } else {
             primaryMap.RepeatBlocks(() => history.CurrentChange, tilesToDraw, left, top, width, height, true);
          }
@@ -1085,7 +1114,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (use9Grid && IsValid9GridSelection) {
                DrawMultipleTiles = false;
                width = height = 1;
-            } else DrawMultipleTiles = true;
+            } else if (use25Grid && IsValid25GridSelection) {
+               DrawMultipleTiles = false;
+               width = height = 1;
+            } else {
+               DrawMultipleTiles = true;
+            }
             BlockEditorVisible = false;
             PrimaryMap.BlockEditor.ShowTiles = false;
             UpdateHover(map, left, top, width, height);
@@ -1102,7 +1136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void FillMultiTileRender() {
-         NotifyPropertyChanged(nameof(IsValid9GridSelection));
+         NotifyPropertiesChanged(nameof(IsValid9GridSelection), nameof(IsValid25GridSelection));
          if (tilesToDraw == null) return;
          var localCopy = tilesToDraw;
          var localRenders = primaryMap.BlockRenders;
@@ -1165,14 +1199,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          if (ev is ObjectEventViewModel objEvent) {
             ContextItems.Add(new MenuCommand("Delete Object", DeleteCurrentEvent));
+            ContextItems.Add(new MenuCommand("Open in New Tab", () => OpenScriptInNewTab(objEvent.ScriptAddress)));
          } else if (ev is WarpEventViewModel warp) {
             ContextItems.Add(new MenuCommand("Create New Map", CreateMapForWarp));
             ContextItems.Add(new MenuCommand("Open in New Tab", () => Duplicate(warp.Bank, warp.Map)));
             ContextItems.Add(new MenuCommand("Delete Warp", DeleteCurrentEvent));
          } else if (ev is ScriptEventViewModel script) {
             ContextItems.Add(new MenuCommand("Delete Script", DeleteCurrentEvent));
+            ContextItems.Add(new MenuCommand("Open in New Tab", () => OpenScriptInNewTab(script.ScriptAddress)));
          } else if (ev is SignpostEventViewModel signpost) {
             ContextItems.Add(new MenuCommand("Delete Signpost", DeleteCurrentEvent));
+            if (signpost.ShowPointer && signpost.CanGotoScript) ContextItems.Add(new MenuCommand("Open in New Tab", () => OpenScriptInNewTab(signpost.Pointer)));
          } else if (ev is FlyEventViewModel fly) {
             ContextItems.Add(new MenuCommand("Delete Fly Spot", DeleteCurrentEvent));
          }
@@ -1205,11 +1242,32 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (signpost.ShowHiddenItemProperties) {
                var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
                var item = signpost.ItemID;
-               if (item > 0 && item < options.Count) tips.Add(options[item]);
+               if (item > 0 && item < options.Count) {
+                  tips.Add(options[item]);
+                  var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+                  var render = itemSprites[item].Render("sprite");
+                  if (render != null) tips.Add(render);
+               }
             }
          }
 
          return tips.ToArray();
+      }
+
+      /// <param name="desiredBlockWidth">If you pass null, no scaling will be performed.</param>
+      public ReadonlyPixelViewModel GetMapPreview(int bank, int map, int? desiredBlockWidth) {
+         var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, bank, map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+         if (desiredBlockWidth is not int desiredBlockSize) {
+            return new ReadonlyPixelViewModel(blockmap.PixelWidth, blockmap.PixelHeight, blockmap.PixelData);
+         }
+
+         var dimension = Math.Max(blockmap.PixelWidth / 16.0 / desiredBlockSize, blockmap.PixelHeight / 16.0 / desiredBlockSize);
+         var scale = 1.0;
+         while (dimension > 1) {
+            dimension /= 2;
+            scale /= 2;
+         }
+         return new ReadonlyPixelViewModel(blockmap.PixelWidth, blockmap.PixelHeight, blockmap.PixelData) { SpriteScale = scale };
       }
 
       public ReadonlyPixelViewModel GetMapPreview(int bank, int map, int x, int y) {
@@ -1225,15 +1283,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private IEnumerable<object> SummarizeScript(int address) {
          var renderedAddresses = new HashSet<int>();
          var (parser, startPoints) = (viewPort.Tools.CodeTool.ScriptParser, new[] { address });
-         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints, 0x0F, 0x67, 0x1A, 0x5C, 0x86); // loadpointer, preparemsg, copyvarifnotzero, trainerbattle, mart
+         var scriptSpots = Flags.GetAllScriptSpots(model, parser, startPoints,
+            0x0F, // loadpointer
+            0x67, // preparemsg
+            0x1A, // give.item
+            0x5C, // trainerbattle
+            0x86, // mart
+            0xB6, 0x44, // setwildbattle / givepokemon
+            0x79); // additem
          var tips = new List<object>();
          int textIncluded = 0; // prevent the tooltip from getting too long
 
          var trainerTable = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
          var icons = model.GetTableModel(HardcodeTablesModel.PokeIconsTable);
+         var fronts = model.GetTableModel(HardcodeTablesModel.FrontSpritesTable);
          var trainerSprites = model.GetTableModel(HardcodeTablesModel.TrainerSpritesName);
          var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
          var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
+
+         var tradeContent = EventTemplate.GetTradeContent(model, parser, address);
+         if (tradeContent != null) {
+            var tradeIndex = model.ReadMultiByteValue(tradeContent.TradeAddress, 2);
+            var tradeTable = model.GetTableModel(HardcodeTablesModel.TradeTable);
+            var give = tradeTable[tradeIndex].GetValue("give");
+            var receive = tradeTable[tradeIndex].GetValue("receive");
+            var giveSprite = icons[give].Render("icon");
+            var receiveSprite = fronts[receive].Render("sprite");
+            giveSprite = ReadonlyPixelViewModel.Crop(giveSprite, 0, 0, 32, 32);
+            tips.Add(ReadonlyPixelViewModel.Render(receiveSprite, giveSprite, 32, 32));
+            // var transparent = new short[88 * 88]; for (int i = 0; i < transparent.Length; i++) transparent[i] = 0;
+            //var combined = new CanvasPixelViewModel(88, 88) { Transparent = 0 };
+            //combined.Draw(giveSprite, 0, 0);
+            //combined.Draw(receiveSprite, 24, 24);
+            //tips.Add(new ReadonlyPixelViewModel(88, 88, combined.PixelData, 0)); // only ReadOnlyPixelViewModel gets the 'true' transparency effect
+         }
+
          foreach (var spot in scriptSpots) {
             if (renderedAddresses.Contains(spot.Address)) continue;
             if (model[spot.Address] == 0x0F) {
@@ -1256,14 +1340,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
-            } else if (model[spot.Address] == 0x1A && itemStats != null) {
-               // copyvarifnotzero (item)
-               var itemAddress = EventTemplate.GetItemAddress(model, spot.Address);
-               if (itemAddress == Pointer.NULL) continue;
+            } else if (model[spot.Address] == 0x1A && model[spot.Address + 1] == 0x00 && model[spot.Address + 2] == 0x80 && itemStats != null) {
+               // copyvarifnotzero (item), likely give.item macro
+               var itemAddress = spot.Address + 3;
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
                if (itemID < 0 || itemID >= itemStats.Count || !itemStats[0].HasField("name")) continue;
                tips.Add(itemStats[itemID].GetStringValue("name"));
                renderedAddresses.Add(spot.Address);
+               var item = itemSprites[itemID].Render("sprite");
+               if (item != null) tips.Add(item);
             } else if (
                model[spot.Address] == 0x5C &&
                trainerTable != null &&
@@ -1328,6 +1413,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   renderedAddresses.Add(spot.Address);
                   itemCount++;
                }
+            } else if (model[spot.Address] == 0xB6 || model[spot.Address] == 0x79) { // setwildbattle, givepokemon
+               var pokemonID = model.ReadMultiByteValue(spot.Address + 1, 2);
+               var pokemon = fronts[pokemonID].Render("sprite");
+               if (pokemon != null) tips.Add(pokemon);
+            } else if (model[spot.Address] == 0x44) { // additem
+               var itemID = model.ReadMultiByteValue(spot.Address + 1, 2);
+               var item = itemSprites[itemID].Render("sprite");
+               if (item != null) tips.Add(item);
             }
          }
          if (address == Pointer.NULL) tips.Add("(no script)");
@@ -1540,11 +1633,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool use9Grid;
       public bool Use9Grid { get => use9Grid; set => Set(ref use9Grid, value, old => {
          if (use9Grid && IsValid9GridSelection) DrawMultipleTiles = false;
-         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0)>1|| tilesToDraw.GetLength(1) > 1);
+         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0) > 1 || tilesToDraw.GetLength(1) > 1);
       }); }
       public bool IsValid9GridSelection {
          get {
             return tilesToDraw != null && tilesToDraw.GetLength(0) == 3 && tilesToDraw.GetLength(1) == 3;
+         }
+      }
+
+      private bool use25Grid;
+      public bool Use25Grid { get => use25Grid; set => Set(ref use25Grid, value, old => {
+         if (use25Grid && IsValid25GridSelection) DrawMultipleTiles = false;
+         else DrawMultipleTiles = tilesToDraw != null && (tilesToDraw.GetLength(0) > 1 || tilesToDraw.GetLength(1) > 1);
+      }); }
+      public bool IsValid25GridSelection {
+         get {
+            if (tilesToDraw == null || tilesToDraw.GetLength(0) != 5 && tilesToDraw.GetLength(1) != 5) return false;
+
+            // require like-blocks
+            // 25 blocks - 4 corners - 1 center - 4 partial centers - 4 corners - 4 edges = 8 duplicate blocks
+
+            // 4 corner duplicates
+            if (tilesToDraw[1, 0] != tilesToDraw[0, 1]) return false;
+            if (tilesToDraw[3, 0] != tilesToDraw[4, 1]) return false;
+            if (tilesToDraw[0, 3] != tilesToDraw[1, 4]) return false;
+            if (tilesToDraw[3, 4] != tilesToDraw[4, 3]) return false;
+
+            // 4 center duplicates
+            if (tilesToDraw[2, 2] != tilesToDraw[2, 1]) return false;
+            if (tilesToDraw[2, 2] != tilesToDraw[2, 3]) return false;
+            if (tilesToDraw[2, 2] != tilesToDraw[1, 2]) return false;
+            if (tilesToDraw[2, 2] != tilesToDraw[3, 2]) return false;
+
+            return true;
          }
       }
 
@@ -1605,6 +1726,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryMap.BlockEditor.ShowTiles = false;
          FillMultiTileRender();
          if (use9Grid && IsValid9GridSelection) DrawMultipleTiles = false;
+         else if (use25Grid && IsValid25GridSelection) DrawMultipleTiles = false;
          else DrawMultipleTiles = true;
          BlockEditorVisible = false;
       }
@@ -2031,6 +2153,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          return -1;
       }
+
+      public void ExportAllConnectedMaps() {
+         // from the primary map, find all connected maps
+         var maps = new List<BlockMapViewModel>(new[] { primaryMap });
+         var directions = new[] { MapDirection.Left, MapDirection.Up, MapDirection.Right, MapDirection.Down };
+         for (int i = 0; i < maps.Count; i++) {
+            var neighbors = directions.SelectMany(maps[i].GetNeighbors);
+            foreach(var n in neighbors) {
+               if (!maps.Any(m => m.MapID == n.MapID)) maps.Add(n);
+            }
+         }
+
+         // determine how big the image needs to be
+         var left = maps.Min(map => map.LeftEdge) / primaryMap.SpriteScale;
+         var right = maps.Max(map => map.RightEdge) / primaryMap.SpriteScale;
+         var top = maps.Min(map => map.TopEdge) / primaryMap.SpriteScale;
+         var bottom = maps.Max(map => map.BottomEdge) / primaryMap.SpriteScale;
+         var width = (int)Math.Round(right - left);
+         var height = (int)Math.Round(bottom - top);
+
+         // create a canvas that's the right size
+         var canvas = new CanvasPixelViewModel(width, height);
+
+         // draw all the maps
+         foreach (var map in maps) {
+            canvas.Draw(map, (int)(map.LeftEdge * map.SpriteScale - left), (int)(map.TopEdge * map.SpriteScale - top));
+         }
+
+         // export it as an image
+         fileSystem.CopyImage = (canvas.PixelData, canvas.PixelWidth);
+         ViewPort.RaiseMessage("Map copied to clipboard");
+      }
    }
 
    public record CollapseProbability(int Block) { public int Count { get; set; } };
@@ -2062,7 +2216,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       ControlClick = 4,
       ShiftClick = 8,
    }
-   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid }
+   public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid, Draw25Grid }
 
    public record BlocksetCache(ObservableCollection<string> Primary, ObservableCollection<string> Secondary) {
       public void CalculateBlocksetOptions(IDataModel model) {

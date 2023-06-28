@@ -14,6 +14,7 @@
       <hsi:DoubleGridLengthConverter x:Key="DoubleToGridLength" />
       <hsg3hv:IntegerToHexConverter x:Key="Hex" />
       <hsg3hv:EqualityToBooleanConverter x:Key="Equality" />
+      <hsi:ThemeConverter x:Key="Theme" />
    </UserControl.Resources>
    <DockPanel>
       <!-- Bottom Bar -->
@@ -162,7 +163,7 @@
                   </StackPanel>
                </Border>
             </Popup>
-            <DockPanel Name="TableToolPanel">
+            <DockPanel Name="TableToolPanel" PreviewKeyDown="TableKeyDown">
                <DockPanel.Resources>
                   <DataTemplate DataType="{x:Type hsg3hvmtr:ButtonArrayElementViewModel}">
                      <hsg3hv:AngleButton Margin="2,2" Direction="Out" HorizontalAlignment="Stretch"
@@ -322,7 +323,7 @@
                            <DataTemplate>
                               <StackPanel>
                                  <Grid Background="{DynamicResource Backlight}" Visibility="{Binding DisplayHeader, Converter={StaticResource BoolToVisibility}}">
-                                    <TextBlock HorizontalAlignment="Center" Text="{Binding GroupName}" FontSize="20"/>
+                                    <TextBlock HorizontalAlignment="Center" Text="{Binding GroupName}" FontSize="20" Height="26"/>
                                  </Grid>
                                  <ItemsControl ItemsSource="{Binding Members}">
                                     <ItemsControl.ItemContainerStyle>
@@ -332,7 +333,7 @@
                                     </ItemsControl.ItemContainerStyle>
                                     <ItemsControl.Resources>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SplitterArrayElementViewModel}">
-                                          <DockPanel Name="ContainerPanel" Height="20"
+                                          <DockPanel Name="ContainerPanel" Height="20" Margin="0,6,0,0"
                                                hsg3hv:ColumnStackPanel.IsHeader="True"
                                                Background="{DynamicResource Backlight}"
                                                Visibility="{Binding ShowSection, Converter={StaticResource BoolToVisibility}}">
@@ -351,6 +352,8 @@
                                                    <MenuItem Header="Collapse All" Command="{Binding CollapseAll}"/>
                                                 </ContextMenu>
                                              </DockPanel.ContextMenu>
+                                             <Rectangle SnapsToDevicePixels="True" Height="1" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <Rectangle Width="1" DockPanel.Dock="Left" VerticalAlignment="Stretch" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <Grid DockPanel.Dock="Right">
                                                 <Rectangle Width="4" HorizontalAlignment="Right" Stretch="Fill" Fill="{DynamicResource Background}" />
                                                 <hsg3hv:AngleButton Command="{Binding FollowLink}" Direction="Right"
@@ -379,17 +382,19 @@
                                           </DockPanel>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:FieldArrayElementViewModel}">
-                                          <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" Height="18">
+                                          <Grid HorizontalAlignment="Stretch" Margin="2" ClipToBounds="False" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" Height="18">
                                              <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2" />
                                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                              </Grid.ColumnDefinitions>
-                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="Out">
+                                             <Rectangle Width="1" Margin="-2,-2,0,-2" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <hsg3hv:AngleBorder Grid.Column="1" Direction="Out">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleTextBox Grid.Column="1" Direction="Right" PreviewKeyDown="UpdateFieldValue" GotKeyboardFocus="HandleFieldKeyboardFocus" />
-                                             <hsg3hv:AngleButton Grid.Column="2" Command="{hsv:MethodCommand Accept}" Direction="Right"
+                                             <hsg3hv:AngleTextBox Grid.Column="2" Direction="Right" PreviewKeyDown="UpdateFieldValue" GotKeyboardFocus="HandleFieldKeyboardFocus" />
+                                             <hsg3hv:AngleButton Grid.Column="3" Command="{hsv:MethodCommand Accept}" Direction="Right"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}"
                                                 Tag="{Binding Type, Converter={StaticResource Equality}, ConverterParameter=Address}"
                                                 Visibility="{Binding Tag, RelativeSource={RelativeSource Self}, Converter={StaticResource BoolToVisibility}}">
@@ -403,33 +408,37 @@
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:ColorFieldArrayElementViewModel}">
-                                          <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" Height="18">
+                                          <Grid HorizontalAlignment="Stretch" Margin="0,2,2,2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" Height="18">
                                              <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2" />
                                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                              </Grid.ColumnDefinitions>
-                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
+                                             <Rectangle HorizontalAlignment="Left" Width="1" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <hsg3hv:AngleBorder Grid.Column="1" Direction="Left">
                                                 <TextBlock Text="{Binding Name}"/>
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleBorder Grid.Column="1" Height="18" Width="20" Direction="Out" SnapsToDevicePixels="True"
+                                             <hsg3hv:AngleBorder Grid.Column="2" Height="18" Width="20" Direction="Out" SnapsToDevicePixels="True"
                                                 BorderBrush="{DynamicResource Primary}" BorderThickness="1"
                                                 Background="{Binding Color, Converter={StaticResource PaletteColorConverter}}"
                                                 MouseLeftButtonUp="ShowColorFieldSwatch"/>
-                                             <hsg3hv:AngleTextBox Grid.Column="2" Direction="Right"/>
+                                             <hsg3hv:AngleTextBox Grid.Column="3" Direction="Right"/>
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:ComboBoxArrayElementViewModel}">
-                                          <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid HorizontalAlignment="Stretch" Margin="2" ClipToBounds="False" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                              <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="2" />
                                                 <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                              </Grid.ColumnDefinitions>
-                                             <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
+                                             <Rectangle HorizontalAlignment="Left" Width="1" Margin="-2,-2,0,-2" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <hsg3hv:AngleBorder Grid.Column="1" Direction="Left">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
-                                             <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" Grid.Column="1" Direction="Out">
+                                             <hsg3hv:AngleComboBox DataContext="{Binding FilteringComboOptions}" Grid.Column="2" Direction="Out">
                                                 <hsg3hv:AngleComboBox.Resources>
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:VisualComboOption}">
                                                       <StackPanel Orientation="Horizontal" Background="Transparent">
@@ -442,7 +451,7 @@
                                                    </DataTemplate>
                                                 </hsg3hv:AngleComboBox.Resources>
                                              </hsg3hv:AngleComboBox>
-                                             <hsg3hv:AngleButton Grid.Column="2" Command="{Binding GotoSource}" Direction="Right"
+                                             <hsg3hv:AngleButton Grid.Column="3" Command="{Binding GotoSource}" Direction="Right"
                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                                                 <hsg3hv:AngleButton.ToolTip>
                                                    <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
@@ -457,7 +466,9 @@
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Rectangle HorizontalAlignment="Left" Width="1" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                          <StackPanel>
                                              <Grid HorizontalAlignment="Stretch" Margin="2">
                                                 <Grid.ColumnDefinitions>
                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
@@ -510,9 +521,12 @@
                                                 </ItemsControl.ItemTemplate>
                                              </ItemsControl>
                                           </StackPanel>
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" ToolTip="{Binding ParentName}">
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                          <StackPanel ToolTip="{Binding ParentName}">
                                              <hsg3hv:CommonTableStreamControl />
                                              <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
                                                 <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
@@ -529,9 +543,12 @@
                                                 <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
                                              </Grid>
                                           </StackPanel>
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                          <StackPanel>
                                              <hsg3hv:CommonTableStreamControl />
                                              <hsg3hv:AngleBorder Content="Palette Selection" FontSize="10" Direction="Out" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" />
                                              <ItemsControl ItemsSource="{Binding PaletteSelection}" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" IsTabStop="False">
@@ -577,12 +594,18 @@
                                                 <hsg3hv:AngleButton Direction="Right" Content="Next" Grid.Column="4" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
                                              </Grid>
                                           </StackPanel>
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteIndicatorElementViewModel}">
-                                          <hsg3hv:PixelImage Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" SnapsToDevicePixels="True" DataContext="{Binding Image}" />
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                             <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding Image}" />
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
-                                          <StackPanel PreviewMouseDown="ActivatePalette"  Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                          <StackPanel PreviewMouseDown="ActivatePalette">
                                              <hsg3hv:CommonTableStreamControl />
                                              <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
                                              <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
@@ -592,9 +615,12 @@
                                                 <hsg3hv:AngleButton MinWidth="60" Content="Next" Direction="Right" DockPanel.Dock="Right" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
                                              </DockPanel>
                                           </StackPanel>
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:TrainerPokemonTeamElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" ToolTip="{Binding ParentName}">
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                          <StackPanel ToolTip="{Binding ParentName}">
                                              <hsg3hv:CommonTableStreamControl />
                                              <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
                                                 <Viewbox HorizontalAlignment="Right" Height="{Binding ActualHeight, ElementName=StreamTextBox}" Stretch="Uniform" IsHitTestVisible="False" Opacity=".5">
@@ -638,9 +664,12 @@
                                                 </hsg3hv:AngleButton>
                                              </StackPanel>
                                           </StackPanel>
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:TupleArrayElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Grid Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                          <StackPanel>
                                              <TextBlock Text="{Binding Name}" Margin="5,0"/>
                                              <ItemsControl ItemsSource="{Binding Children}">
                                                 <ItemsControl.ItemsPanel>
@@ -679,10 +708,12 @@
                                                 </ItemsControl.Resources>
                                              </ItemsControl>
                                           </StackPanel>
+                                          </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:CalculatedElementViewModel}">
-                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                             <Grid HorizontalAlignment="Stretch" Margin="2" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                          <DockPanel HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                             <Rectangle Width="1" DockPanel.Dock="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <Grid Margin="1,2,2,2" DockPanel.Dock="Top">
                                                 <Grid.ColumnDefinitions>
                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
                                                    <ColumnDefinition Width="*"/>
@@ -690,7 +721,7 @@
                                                 <TextBlock Text="{Binding Name}" Margin="5,0" Grid.Column="0"/>
                                                 <TextBlock Text="{Binding CalculatedValue, StringFormat={}{0:0.##}}" HorizontalAlignment="Right" Grid.Column="1"/>
                                              </Grid>
-                                             <Expander Margin="20,0,0,5" HorizontalAlignment="Left">
+                                             <Expander Margin="19,0,0,5" HorizontalAlignment="Left">
                                                 <Expander.Header>
                                                    <TextBlock>
                                                       <Run>How's it Calculated?</Run>
@@ -717,11 +748,17 @@
                                                    </ItemsControl>
                                                 </StackPanel>
                                              </Expander>
-                                          </StackPanel>
+                                          </DockPanel>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:OffsetRenderViewModel}">
-                                          <hsg3hv:PixelImage SnapsToDevicePixels="True" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"
-                                             MouseDown="OffsetRenderMouseDown" MouseMove="OffsetRenderMouseMove" MouseUp="OffsetRenderMouseUp" />
+                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                             <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
+                                             <hsg3hv:PixelImage SnapsToDevicePixels="True" Margin="1,0,0,0"
+                                                MouseDown="OffsetRenderMouseDown" MouseMove="OffsetRenderMouseMove" MouseUp="OffsetRenderMouseUp" />
+                                          </Grid>
+                                       </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:PythonButtonElementViewModel}">
+                                          <hsg3hv:AngleButton Direction="Out" Content="{Binding Name}" Margin="4" Command="{hsv:MethodCommand Execute}" ToolTip="{Binding Tooltip}" />
                                        </DataTemplate>
                                     </ItemsControl.Resources>
                                  </ItemsControl>

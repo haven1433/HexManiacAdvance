@@ -66,7 +66,8 @@
                      BorderThickness="{TemplateBinding BorderThickness}"
                      BorderBrush="{TemplateBinding BorderBrush}"
                      Background="{TemplateBinding Background}">
-                  <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                  <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                </Border>
                <ControlTemplate.Triggers>
                   <Trigger Property="IsChecked" Value="True">
@@ -1141,6 +1142,7 @@
    <!-- Angle TextBox Style -->
    <Style TargetType="hsc:AngleTextBox">
       <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource TopToBottomBrush}"/>
       <Setter Property="MinHeight" Value="18"/>
       <Setter Property="Template">

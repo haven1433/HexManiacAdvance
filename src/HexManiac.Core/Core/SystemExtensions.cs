@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core {
@@ -37,7 +38,17 @@ namespace HavenSoft.HexManiac.Core {
       }
 
       public static bool TryParseInt(this string str, out int result) {
+         var negate = str.StartsWith("-");
+         if (negate) str = str.Substring(1);
          if (str.StartsWith("0x") && int.TryParse(str.Substring(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return true;
+         if (int.TryParse(str, out result)) {
+            if (negate) result = -result;
+            return true;
+         }
+         return false;
+      }
+      public static bool TryParseInt(this ReadOnlySpan<char> str, out int result) {
+         if (str.StartsWith("0x") && int.TryParse(str.Slice(2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result)) return true;
          if (int.TryParse(str, out result)) return true;
          return false;
       }
@@ -123,7 +134,22 @@ namespace HavenSoft.HexManiac.Core {
          foreach (var item in items) set.Add(item);
       }
 
+      public static bool All<T>(this ReadOnlySpan<T> span, Func<T,bool> predicate) {
+         var match = true;
+         for (int i = 0; match && i < span.Length; i++) {
+            match = predicate(span[i]);
+         }
+         return match;
+      }
+
       public static int Count<T>(this IEnumerable<T> list, T c) where T : struct => list.Count(ch => ch.Equals(c));
+      public static int Count<T>(this ReadOnlySpan<T> list, T c) where T : struct {
+         int count = 0;
+         foreach (var ch in list) {
+            if (c.Equals(ch)) count++;
+         }
+         return count;
+      }
 
       public static int IndexOf<T>(this IReadOnlyList<T> list, T element) {
          for (int i = 0; i < list.Count; i++) {
@@ -160,6 +186,21 @@ namespace HavenSoft.HexManiac.Core {
          var index = input.IndexOf(search);
          if (index == -1) return input;
          return input.Substring(0, index) + replacement + input.Substring(index + search.Length);
+      }
+
+      public static StringBuilder TrimEnd(this StringBuilder sb) {
+         if (sb == null || sb.Length == 0) return sb;
+
+         int i = sb.Length - 1;
+
+         for (; i >= 0; i--)
+            if (!char.IsWhiteSpace(sb[i]))
+               break;
+
+         if (i < sb.Length - 1)
+            sb.Length = i + 1;
+
+         return sb;
       }
 
       public static bool IsAny<T>(this T self, params T[] options) {
@@ -355,6 +396,10 @@ namespace HavenSoft.HexManiac.Core {
       /// </summary>
       public static void Start(string url) {
          Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+      }
+
+      public static void Start(string url, string arguments) {
+         Process.Start(new ProcessStartInfo(url, arguments) { UseShellExecute = true });
       }
    }
 

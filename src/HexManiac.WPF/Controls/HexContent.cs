@@ -383,7 +383,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var newMouseOverPoint = ControlCoordinatesToModelCoordinates(e);
          if (!newMouseOverPoint.Equals(mouseOverPoint)) {
             mouseOverPoint = newMouseOverPoint;
-            UpdateTooltip(newMouseOverPoint);
+            var rawPoint = e.GetPosition(this);
+            if ((int)(rawPoint.X / CellWidth) > ViewPort.Width - 1) {
+               ClearTooltip();
+            } else {
+               UpdateTooltip(newMouseOverPoint);
+            }
          }
          if (!IsMouseCaptured) return;
 

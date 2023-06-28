@@ -195,6 +195,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!IDataModelExtensions.EditorReleased) return null;
          if (run.PointerSources.IsNullOrEmpty()) return null;
          var primarySource = run.PointerSources[0];
+         var (address1, address2) = (model.ReadPointer(primarySource + 4), model.ReadPointer(primarySource + 8));
+         if (address1 < 0 || address2 < 0) return null;
          var blocks1 = new BlocksetModel(model, model.ReadPointer(primarySource + 4));
          var blocks2 = new BlocksetModel(model, model.ReadPointer(primarySource + 8));
          var primaryMax = BlockmapRun.GetMaxUsedBlock(model, run.Start, run.BlockWidth, run.BlockHeight, run.PrimaryBlocks);
@@ -207,7 +209,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
+      public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
          if (sprite == null) return null;
          if (sprite is ITilemapRun tilemap) tilemap.FindMatchingTileset(model);
          var paletteRuns = sprite.FindRelatedPalettes(model);
@@ -215,7 +217,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return BuildSprite(model, sprite, paletteRun, useTransparency, scale);
       }
 
-      public static IPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false, double scale = 1) {
+      public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false, double scale = 1) {
          var pixels = sprite.GetPixels(model, 0, -1);
          if (pixels == null) return null;
          var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));

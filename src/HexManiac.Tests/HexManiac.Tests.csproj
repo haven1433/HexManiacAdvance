@@ -61,6 +61,8 @@
       del "$(TargetDir)Models\Code\*.toml"
       copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.hma"
+      copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.py"
       copy "$(SolutionDir)src\HexManiac.WPF\Scripts\*.hma" "$(TargetDir)resources\Scripts"
     </PostBuildEvent>
   </PropertyGroup>

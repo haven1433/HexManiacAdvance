@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -27,7 +28,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ChangeHistory<T> : ViewModelCore where T : class, IChangeToken, new() {
       private readonly Func<T, T> revert;
       private readonly StubCommand undo, redo;
-      private readonly Stack<T>
+      private readonly int maxSize;
+      private Stack<T>
          undoStack = new Stack<T>(),
          redoStack = new Stack<T>();
 
@@ -88,7 +90,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public ChangeHistory(Func<T, T> revertChange) {
+      public ChangeHistory(Func<T, T> revertChange, int maxStackSize = 100) {
+         maxSize = maxStackSize;
          revert = revertChange;
          undo = new StubCommand {
             Execute = arg => UndoExecuted(),
@@ -108,6 +111,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (continueCurrentTransaction) return;
 
          undoStack.Push(currentChange);
+         if (undoStack.Count > maxSize) {
+            undoStack = new(undoStack.Take(maxSize).Reverse());
+            undoStackSizeAtSaveTag = -1;
+         }
          currentChange.OnNewChange -= OnCurrentTokenDataChanged;
          currentChange = null;
       }
@@ -136,6 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private bool continueCurrentTransaction;
       public IDisposable ContinueCurrentTransaction() {
+         if (customChangeInProgress) ChangeCompleted();
          var previousValue = continueCurrentTransaction;
          continueCurrentTransaction = true;
          return new StubDisposable { Dispose = () => continueCurrentTransaction = previousValue };

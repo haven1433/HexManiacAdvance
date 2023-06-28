@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Input;
@@ -53,6 +54,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             // extend wild table
             var wildTable = model.GetTable(HardcodeTablesModel.WildTableName);
+            if (wildTable == null) return;
             var originalStart = wildTable.Start;
             wildTable = model.RelocateForExpansion(token, wildTable, wildTable.Length + wildTable.ElementLength);
             wildTable = wildTable.Append(token, 1);
@@ -83,30 +85,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             // grass<[rate:: list<>]1> surf<[rate:: list<>]1> tree<[rate:: list<>]1> fish<[rate:: list<>]1>
             var text = new StringBuilder();
             if (wildDataIndex < 0) return text.ToString();
-            BuildWildTooltip(text, wild[wildDataIndex], "grass");
-            text.AppendLine();
-            BuildWildTooltip(text, wild[wildDataIndex], "surf");
-            text.AppendLine();
-            BuildWildTooltip(text, wild[wildDataIndex], "tree");
-            text.AppendLine();
+            if (BuildWildTooltip(text, wild[wildDataIndex], "grass")) text.AppendLine();
+            if (BuildWildTooltip(text, wild[wildDataIndex], "surf")) text.AppendLine();
+            if (BuildWildTooltip(text, wild[wildDataIndex], "tree")) text.AppendLine();
             BuildWildTooltip(text, wild[wildDataIndex], "fish");
             wildText = text.ToString();
+            wildText = text.TrimEnd().ToString();
             if (string.IsNullOrWhiteSpace(wildText)) wildText = "No Wild Pokemon (yet!)";
             return wildText;
          }
       }
-      private static void BuildWildTooltip(StringBuilder text, ModelArrayElement wild, string type) {
+      private static bool BuildWildTooltip(StringBuilder text, ModelArrayElement wild, string type) {
          // list<[low. high. species:]n>
          var terrain = wild.GetSubTable(type);
-         if (terrain == null) return;
+         if (terrain == null) return false;
          var list = terrain[0].GetSubTable("list");
-         if (list == null) return;
+         if (list == null) return false;
          text.Append(type);
-         text.Append(": ");
-         var content = list.Select(element => element.GetEnumValue("species")).ToHistogram();
-         text.AppendJoin(", ", content.Keys.Select(pokemon => {
-            if (content[pokemon] == 1) return pokemon;
-            return $"{pokemon} x{content[pokemon]}";
+         text.AppendLine(":");
+
+         if (type == "fish") {
+            text.Append($"old rod: ");
+            AppendHistogram(text, list.Take(2), "species");
+            text.AppendLine();
+            text.Append($"good rod: ");
+            AppendHistogram(text, list.Skip(2).Take(3), "species");
+            text.AppendLine();
+            text.Append($"super rod: ");
+            AppendHistogram(text, list.Skip(5), "species");
+         } else {
+            AppendHistogram(text, list, "species");
+         }
+         text.AppendLine();
+         return true;
+      }
+
+      private static void AppendHistogram(StringBuilder text, IEnumerable<ModelArrayElement> elements, string fieldName) {
+         var histogram = elements.Select(element => element.GetEnumValue(fieldName)).ToHistogram();
+         text.AppendJoin(", ", histogram.Keys.Select(key => {
+            if (histogram[key] == 1) return key;
+            return $"{key} x{histogram[key]}";
          }));
       }
 

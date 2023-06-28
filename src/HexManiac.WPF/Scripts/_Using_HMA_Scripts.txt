@@ -1,0 +1,24 @@
+What are These?
+===============
+.hma files are little custom scripts that add or changes features in your game.
+The scripts are named based on their supported games, then an underscore, then the effect they have.
+The scripts are organized into directories based on what they do:
+- 'Add Mechanics From Later Generations' includes things like the Physical/Special split from Gen 4
+  or the Fairy Type from Gen 6. Add things from this folder to make your game more 'moddern'.
+- 'Patches' include simple changes meant to solve specific problems, like allowing Gen 1 pokemon to
+  evolve to new forms without the national dex in FR/LG, or removing the contest tab from R/S/E.
+- 'Update Existing Mechanics' don't change anything about your game on their own, but they adjust
+  the game code to make it more flexible and easy to customize.
+  For example, you could make possible to add more starters to Emerald, or edit wild pokemon odds.
+
+How do I use These?
+===================
+1. Open the .gba you want to edit with HexManiacAdvance.
+2. Click and drag the .hma file over HexManiacAdvance.
+   You should see a preview describing what the script will do.
+3. Release. The script will make edits to your rom.
+4. If you're happy with the changes, save.
+
+Note:
+.hma files are just text files. You can open them and read them if you want.
+Some scripts include content that you can customize before running.

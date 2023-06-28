@@ -310,6 +310,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private double spriteScale;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
 
+      public string Name { get; }
+
       private bool isFilteredOut;
       public bool IsFilteredOut { get => isFilteredOut; set => TryUpdate(ref isFilteredOut, value); }
 
@@ -331,6 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SpriteScale = 1;
 
          filterTerms = GenerateFilterTerms(model, index);
+         Name = filterTerms.FirstOrDefault();
       }
 
       public void AddSource(int canonicalIndex) {

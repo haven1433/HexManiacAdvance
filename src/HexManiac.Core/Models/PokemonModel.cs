@@ -89,7 +89,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name, where is it?
       // for a location, what is its name?
-      private readonly IDictionary<string, int> addressForAnchor = new ThreadSafeDictionary<string, int>();
+      private readonly ThreadSafeDictionary<string, int> addressForAnchor = new ThreadSafeDictionary<string, int>();
       private readonly Dictionary<int, string> anchorForAddress = new Dictionary<int, string>();
 
       // for a name not actually in the file, what pointers point to it?
@@ -106,7 +106,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
       private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
 
-      private readonly Dictionary<string, ValidationList> lists = new Dictionary<string, ValidationList>();
+      private readonly ThreadSafeDictionary<string, ValidationList> lists = new ThreadSafeDictionary<string, ValidationList>();
 
       private readonly Singletons singletons;
       private readonly bool showRawIVByteForTrainer, devMode;
@@ -119,15 +119,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// setup a cache to make loading faster
       /// </summary>
       private void BuildDestinationToSourceCache(byte[] data) {
-         sourcesForDestinations = new Dictionary<int, SortedSpan<int>>();
+         var sourcesForDestinations = new Dictionary<int, List<int>>();
          for (int i = 3; i < data.Length; i++) {
             if (data[i] != 0x08 && data[i] != 0x09) continue;
             var source = i - 3;
             var destination = ReadPointer(source);
             if (destination < 0 || destination >= data.Length) continue;
-            if (!sourcesForDestinations.ContainsKey(destination)) sourcesForDestinations.Add(destination, SortedSpan<int>.None);
-            sourcesForDestinations[destination] = sourcesForDestinations[destination].Add1(source);
+            if (!sourcesForDestinations.ContainsKey(destination)) sourcesForDestinations.Add(destination, new());
+            sourcesForDestinations[destination].Add(source);
          }
+
+         this.sourcesForDestinations = new Dictionary<int, SortedSpan<int>>();
+         foreach (var kvp in sourcesForDestinations) this.sourcesForDestinations[kvp.Key] = new SortedSpan<int>(kvp.Value.ToArray(), kvp.Value.Count);
       }
 
       public override byte this[int index] {
@@ -571,7 +574,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                      // pointer points outside scope. Such a pointer is an error, but is not a metadata inconsistency.
                   } else if (run is ArrayRun arrayRun1 && arrayRun1.SupportsInnerPointers) {
                      var offsets = arrayRun1.ConvertByteOffsetToArrayOffset(destination);
-                     Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start));
+                     if (offsets.SegmentOffset == 0 && offsets.SegmentIndex == 0) {
+                        Debug.Assert(arrayRun1.PointerSourcesForInnerElements[offsets.ElementIndex].Contains(pointerRun.Start),
+                           $"Expected array at {arrayRun1.Start.ToAddress()} element {offsets.ElementIndex} to know about the pointer at {pointerRun.Start.ToAddress()}.");
+                     }
                      if (offsets.ElementIndex == 0) Debug.Assert(run.PointerSources.Contains(pointerRun.Start));
                   } else if (run.Start < destination) {
                      // pointer points into the middle of a run. Such a pointer is an error, but is not a metadata inconsistency.
@@ -916,6 +922,14 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private readonly object threadlock = new object(); // use threadlock when reading/writing to the runs collection, to make sure that the collection doesn't change while being searched.
+
+      /// <summary>
+      /// Allow clients to do arbitrary operations that need the threadlock early.
+      /// </summary>
+      public void ThreadlockRuns(Action action) {
+         lock (threadlock) action();
+      }
+
       public override IFormattedRun GetNextRun(int dataIndex) {
          if (dataIndex == Pointer.NULL) return NoInfoRun.NullRun;
          lock (threadlock) {
@@ -962,29 +976,31 @@ namespace HavenSoft.HexManiac.Core.Models {
          // only produce headers for arrays with length based on other arrays that start with a text member.
          var run = GetNextRun(address);
          if (run.Start > address) return false;
-         if (!(run is ArrayRun array)) {
-            if (run.PointerSources != null && run.PointerSources.Count > 0 && run.Start == address) {
-               var parentRun = GetNextRun(run.PointerSources[0]);
-               if (parentRun is ArrayRun parentArray) {
-                  array = parentArray;
-                  var arrayIndex = parentArray.ConvertByteOffsetToArrayOffset(run.PointerSources[0]).ElementIndex;
-                  address = parentArray.Start + arrayIndex * parentArray.ElementLength;
+         lock (threadlock) {
+            if (!(run is ArrayRun array)) {
+               if (run.PointerSources != null && run.PointerSources.Count > 0 && run.Start == address) {
+                  var parentRun = GetNextRun(run.PointerSources[0]);
+                  if (parentRun is ArrayRun parentArray) {
+                     array = parentArray;
+                     var arrayIndex = parentArray.ConvertByteOffsetToArrayOffset(run.PointerSources[0]).ElementIndex;
+                     address = parentArray.Start + arrayIndex * parentArray.ElementLength;
+                  } else {
+                     return false;
+                  }
                } else {
                   return false;
                }
-            } else {
-               return false;
             }
+
+            if ((address - array.Start) % array.ElementLength != 0) return false;
+
+            var index = (address - array.Start) / array.ElementLength;
+            var names = array.ElementNames;
+            if (names.Count <= index) return false;
+            header = names[index];
+
+            return true;
          }
-
-         if ((address - array.Start) % array.ElementLength != 0) return false;
-
-         var index = (address - array.Start) / array.ElementLength;
-         var names = array.ElementNames;
-         if (names.Count <= index) return false;
-         header = names[index];
-
-         return true;
       }
 
       public override bool IsAtEndOfArray(int dataIndex, out ITableRun arrayRun) {
@@ -1197,7 +1213,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   // special case: use the override methods to handle inner-pointers
                   destinationTable = destinationTable.RemoveInnerSource(originalStart);
                   destinationRun = destinationTable.AddSourcePointingWithinRun(movedStart);
-               } else {
+               } else if (destinationRun.PointerSources.Contains(originalStart)) { // only add it if it previously pointed to the start of the run
                   destinationRun = destinationRun.RemoveSource(originalStart);
                   destinationRun = destinationRun.MergeAnchor(new SortedSpan<int>(movedStart));
                }
@@ -1320,6 +1336,10 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// <param name="changeToken"></param>
       /// <param name="start"></param>
       private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start) {
+         AddPointerToAnchor(segment, segments, parentIndex, changeToken, start, true);
+      }
+
+      private void AddPointerToAnchor(ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, ModelDelta changeToken, int start, bool includeFormatting) {
          if (segment is ArrayRunRecordSegment recordSeg) segment = recordSeg.CreateConcrete(this, start);
          var destination = ReadPointer(start);
          if (destination < 0 || destination >= Count) return;
@@ -1336,7 +1356,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          } else if (index < 0) {
             // the pointer points to a location between existing runs
             IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
-            UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            if (includeFormatting) {
+               UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            }
             if (newRun != null) {
                if (newRun.Start < start && newRun.Start + newRun.Length > start) {
                   // the new run conflicts with the pointer that points to it
@@ -1347,9 +1369,15 @@ namespace HavenSoft.HexManiac.Core.Models {
                   newRun = new NoInfoRun(newRun.Start, newRun.PointerSources);
                }
                var existingRun = GetNextRun(newRun.Start);
-               if (existingRun.Start == newRun.Start) newRun = newRun.MergeAnchor(existingRun.PointerSources);
-               ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
-               ObserveRunWritten(changeToken, newRun);
+               if (existingRun.Start == newRun.Start) {
+                  newRun = newRun.MergeAnchor(existingRun.PointerSources);
+               }
+               if (existingRun.Start < newRun.Start && !includeFormatting) {
+                  // prefer to keep the existing run, not add the new run
+               } else {
+                  ClearFormat(changeToken, newRun.Start, newRun.Length); // adding a new destination, so clear anything in the way.
+                  ObserveRunWritten(changeToken, newRun);
+               }
             }
          } else if (runs[index].Start <= start && start < runs[index].Start + runs[index].Length) {
             // self-referential pointer: don't write a new run, just add the pointer
@@ -1364,7 +1392,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             var previousRun = existingRun;
             existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
             var hasAnchor = anchorForAddress.TryGetValue(existingRun.Start, out string existingAnchor);
-            UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            if (includeFormatting) {
+               UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
+            }
             if (existingRun != null) {
                if (segment == null) {
                   // it's just a naked pointer, so we have no knowledge about the thing it points to.
@@ -1422,8 +1452,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          var strategy = FormatRunFactory.GetStrategy(segment.InnerFormat);
-         if (strategy is TableStreamRunContentStrategy) {
-            if (TableStreamRun.TryParseTableStream(this, run.Start, run.PointerSources, segment.Name, segment.InnerFormat, segments, false, out var newRun)) {
+         if (strategy is TableStreamRunContentStrategy tableStrategy) {
+            if (segment.TryParseTableStream(this, run.Start, run.PointerSources, segments, false, out var newRun)) {
                for (var existingRun = GetNextRun(newRun.Start); existingRun.Start < newRun.Start + newRun.Length; existingRun = GetNextRun(existingRun.Start + existingRun.Length)) {
                   if (existingRun.Start > newRun.Start && existingRun is ITableRun) {
                      // we still care about the pointer, we just don't want to add the format
@@ -1431,9 +1461,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                }
             }
+            tableStrategy.UpdateNewRunFromPointerFormat(this, token, segment, segments, parentIndex, ref run);
+         } else {
+            strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
          }
-
-         strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
       }
 
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
@@ -1721,7 +1752,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash) {
+      public override void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash) {
          if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else {
@@ -2044,11 +2075,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          changeToken.AddRun(newArray);
       }
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int source, int destination) {
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int source, int destination, bool writeDestinationFormat) {
          lock (threadlock) {
             ClearPointerFormat(segment, null, 0, changeToken, source);
             if (ReadPointer(source) != destination) WritePointer(changeToken, source, destination);
-            AddPointerToAnchor(segment, segments, parentIndex, changeToken, source);
+            AddPointerToAnchor(segment, segments, parentIndex, changeToken, source, writeDestinationFormat);
          }
       }
 
@@ -2643,12 +2674,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             do {
                var nextRun = GetNextRun(run.Start + 1);
                if (nextRun.Start >= run.Start + length) break;
-               if (nextRun is PointerRun pRun) {
-                  ClearFormat(changeToken, nextRun.Start, 4);
-               } else if (nextRun is IScriptStartRun sRun) {
+               if (nextRun is IScriptStartRun sRun) {
                   MoveRun(changeToken, sRun, 1, newStart + sRun.Start - run.Start);
                } else {
-                  break;
+                  // clear format of any constants/pointers/streams that is considered part of the script
+                  ClearFormat(changeToken, nextRun.Start, nextRun.Length);
                }
             }
             while (true);
@@ -2762,9 +2792,9 @@ namespace HavenSoft.HexManiac.Core.Models {
    }
 
    public static class StringDictionaryExtensions {
-      public static bool TryGetValueCaseInsensitive<T>(this IDictionary<string, T> self, string key, out T value) {
+      public static bool TryGetValueCaseInsensitive<T>(this ThreadSafeDictionary<string, T> self, string key, out T value) {
          if (self.TryGetValue(key, out value)) return true;
-         var keys = self.Keys.ToList();
+         var keys = self.Keys; // keys is a thread-safe copy
          foreach (var option in keys) {
             if (key.Equals(option, StringComparison.CurrentCultureIgnoreCase)) {
                value = self[option];

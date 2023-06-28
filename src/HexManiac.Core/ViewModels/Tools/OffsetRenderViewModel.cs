@@ -15,6 +15,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
@@ -48,15 +49,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          yOffset = ParseContent(offsetTable, segment.TargetFieldY, itemAddress);
 
          // find/crop background
-         if (model.GetNextRun(model.GetAddressFromAnchor(new(), -1, segment.Background)) is not ISpriteRun spriteRun) return;
-         PixelViewModel = SpriteDecorator.BuildSprite(model, spriteRun);
-         PixelViewModel = ReadonlyPixelViewModel.Crop(PixelViewModel, segment.BackgroundX, segment.BackgroundY, segment.BackgroundWidth, segment.BackgroundHeight); // (gba screen width, height of pokemon battle background)
+         PixelViewModel = segment.RenderBackground(model);
+         if (PixelViewModel == null) return;
 
          // find/render foreground
          var foregroundTable = model.GetTable(segment.Foreground);
          var imageAddress = foregroundTable?.ReadPointer(model, segmentOffset.ElementIndex) ?? Pointer.NULL;
          if (model.GetNextRun(imageAddress) is not ISpriteRun foregroundRun) return;
-         var foreground = ReadonlyPixelViewModel.Create(model, foregroundRun, true);
+         var pointerStart = foregroundTable.Start + segmentOffset.ElementIndex * foregroundTable.ElementLength;
+         var paletteRun = foregroundRun.FindRelatedPalettes(model, pointerStart, foregroundRun.SpriteFormat.PaletteHint).FirstOrDefault();
+         var foreground = ReadonlyPixelViewModel.Create(model, foregroundRun, paletteRun, true);
          PixelViewModel = ReadonlyPixelViewModel.Render(PixelViewModel, foreground, segment.X + xOffset, segment.Y + yOffset);
       }
 

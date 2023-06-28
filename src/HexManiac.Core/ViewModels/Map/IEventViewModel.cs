@@ -246,6 +246,53 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public BaseEventViewModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
 
+      #region Script Error
+
+      private bool hasScriptAddressError;
+      public bool HasScriptAddressError { get => hasScriptAddressError; private set => Set(ref hasScriptAddressError, value); }
+
+      private string scriptAddressError;
+      public string ScriptAddressError { get => scriptAddressError; private set => Set(ref scriptAddressError, value); }
+
+      protected void UpdateScriptError(int address) {
+         if (address == Pointer.NULL) {
+            ScriptAddressError = "Event has no script.";
+            HasScriptAddressError = true;
+            return;
+         }
+
+         if (address < 0 || address >= element.Model.Count) {
+            ScriptAddressError = "Address is not valid.";
+            HasScriptAddressError = true;
+            return;
+         }
+
+         var run = element.Model.GetNextRun(address);
+         if (run.Start < address || run is not XSERun) {
+            ScriptAddressError = IsValidScriptFreespace(address) ? "Freespace found at that address." : "No script found at that address.";
+            HasScriptAddressError = true;
+            return;
+         }
+
+         HasScriptAddressError = false;
+         ScriptAddressError = string.Empty;
+      }
+
+      protected bool IsValidScriptFreespace(int address) {
+         const int MinLength = 10;
+         if (address == Pointer.NULL) return true;
+         if (address < 0 || address >= element.Model.Count - MinLength) return false;
+         for (int i = 0; i < MinLength; i++)
+            if (element.Model[address + i] != 0xFF)
+               return false;
+         var run = element.Model.GetNextRun(address);
+         var nextRun = element.Model.GetNextRun(address + 1);
+         if (address != run.Start) return false;
+         return run is NoInfoRun && nextRun.Start > address + MinLength;
+      }
+
+      #endregion
+
       public bool Delete() => DeleteElement(parentLengthField);
 
       public virtual bool Equals(IEventViewModel other) {
@@ -335,10 +382,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return field;
       }
 
-      protected void SetAddressText(string value, ref string field, string fieldName) {
+      protected void SetAddressText(string value, ref string field, string fieldName, bool writeFormat) {
          field = value;
          value = field.Trim("<nul> ".ToCharArray());
-         element.SetAddress(fieldName, value.TryParseHex(out int result) ? result : Pointer.NULL);
+         element.SetAddress(fieldName, value.TryParseHex(out int result) ? result : Pointer.NULL, writeFormat);
       }
 
       private static readonly Point[] focalPoints = new[] { new Point(0, 7), new Point(7, 0), new Point(15, 8), new Point(8, 15) };
@@ -465,7 +512,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => element.GetValue("trainerType");
          set {
             element.SetValue("trainerType", value);
-            NotifyPropertyChanged(nameof(ShowBerryContent));
+            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(ShowTrainerContent));
             NotifyPropertyChanged();
          }
       }
@@ -483,7 +530,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int ScriptAddress {
          get => element.GetAddress("script");
          set {
-            element.SetAddress("script", value);
+            element.SetAddress("script", value, false);
+            UpdateScriptError(element.GetAddress("script"));
             NotifyPropertyChanged();
             trainerSprite = null;
             scriptAddressText = npcText =
@@ -503,14 +551,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public void GotoScript() => gotoAddress(ScriptAddress);
+      public void GotoScript() {
+         SetDestinationFormat();
+         gotoAddress(ScriptAddress);
+      }
       public bool CanGotoScript => 0 <= ScriptAddress && ScriptAddress < element.Model.Count;
 
-      public bool CanCreateScript => ScriptAddress == Pointer.NULL;
+      public bool CanCreateScript => IsValidScriptFreespace(ScriptAddress) || ScriptAddress == Pointer.NULL;
       public void CreateScript() {
-         var start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
+         int start;
+         if (ScriptAddress != Pointer.NULL && IsValidScriptFreespace(ScriptAddress)) start = ScriptAddress;
+         else start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
          Token.ChangeData(element.Model, start, 2);
          ScriptAddress = start;
+         SetDestinationFormat();
          gotoAddress(start);
       }
 
@@ -522,9 +576,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             return GetAddressText(value, ref scriptAddressText);
          }
          set {
-            SetAddressText(value, ref scriptAddressText, "script");
+            SetAddressText(value, ref scriptAddressText, "script", false);
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(ScriptAddress));
+            NotifyPropertiesChanged(
+               nameof(ScriptAddress),
+               nameof(ShowItemContents), nameof(ItemContents),
+               nameof(ShowNpcText), nameof(NpcText),
+               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeText), nameof(TrainerAfterText), nameof(TrainerWinText), nameof(TrainerTeam),
+               nameof(ShowMartContents), nameof(MartHello), nameof(MartContent), nameof(MartGoodbye),
+               nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
+               nameof(ShowTradeContent), nameof(TradeFailedText), nameof(TradeIndex), nameof(TradeInitialText), nameof(TradeSuccessText), nameof(TradeThanksText), nameof(TradeWrongSpeciesText),
+               nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
+            UpdateScriptError(ScriptAddress);
          }
       }
 
@@ -607,7 +670,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public FilteringComboOptions TrainerOptions { get; } = new();
 
-      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null;
+      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null && TrainerType != 0;
 
       public int TrainerClass {
          get {
@@ -1003,11 +1066,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private TextEditorViewModel sampleLegendClearScript;
       public TextEditorViewModel SampleLegendClearScript {
          get {
-            var script = @$"  # whatever
+            var script = @$"  # where in your script
   if.flag.clear.call 0x{LegendaryFlagText} <show>
-  # whatever
   end
 
+  # add this at the bottom of the script
 show:
   clearflag 0x{FlagText}
   return";
@@ -1089,8 +1152,10 @@ show:
 
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
-         tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this));
+         tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this.ScriptAddress));
          legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
+
+         UpdateScriptError(ScriptAddress);
       }
 
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
@@ -1162,6 +1227,13 @@ show:
          }
          return false;
       }
+
+      private void SetDestinationFormat() {
+         var existingRun = element.Model.GetNextRun(ScriptAddress);
+         if (existingRun.Start == ScriptAddress && existingRun is NoInfoRun) {
+            element.Model.ObserveRunWritten(Token, new XSERun(ScriptAddress));
+         }
+      }
    }
 
    public class WarpEventViewModel : BaseEventViewModel {
@@ -1221,9 +1293,11 @@ show:
       #endregion
 
       public override void Render(IDataModel model, LayoutModel layout) {
-         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
-         if (WarpIsOnWarpableBlock(model, layout)) return;
-         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
+         if (WarpIsOnWarpableBlock(model, layout)) {
+            EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
+         } else {
+            EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
+         }
       }
 
       public bool WarpIsOnWarpableBlock(IDataModel model, LayoutModel layout) {
@@ -1231,6 +1305,7 @@ show:
 
          int primaryBlockCount = model.IsFRLG() ? 640 : 512;
          var cell = layout.BlockMap[X, Y];
+         if (cell == null) return true; // failure to read layout, this warp rendering doesn't matter.
          var tile = cell.Tile;
          var blockset = layout.PrimaryBlockset;
          if (tile >= primaryBlockCount) {
@@ -1240,14 +1315,17 @@ show:
 
          var behavior = blockset.Attribute(tile).Behavior;
          if (list.Count <= behavior) return false;
-         return new[] { "Warp", "Door", "Stairs", "Ladder" }.Any(list[behavior].Contains);
+         return new[] { "Warp", "Door", "Stairs", "Ladder", "Escalator" }.Any(list[behavior].Contains);
       }
    }
 
    public class ScriptEventViewModel : BaseEventViewModel {
       private readonly Action<int> gotoAddress;
 
-      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") { this.gotoAddress = gotoAddress; }
+      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") {
+         this.gotoAddress = gotoAddress;
+         UpdateScriptError(ScriptAddress);
+      }
 
       public int Trigger {
          get => element.GetValue("trigger");
@@ -1274,10 +1352,28 @@ show:
 
       public int ScriptAddress {
          get => element.GetAddress("script");
-         set => element.SetAddress("script", value);
+         set {
+            element.SetAddress("script", value, false);
+            UpdateScriptError(element.GetAddress("script"));
+            NotifyPropertiesChanged(nameof(ScriptAddressText), nameof(CanCreateScript));
+         }
       }
 
-      public void GotoScript() => gotoAddress(ScriptAddress);
+      public void GotoScript() {
+         SetDestinationFormat();
+         gotoAddress(ScriptAddress);
+      }
+
+      public bool CanCreateScript => IsValidScriptFreespace(ScriptAddress) || ScriptAddress == Pointer.NULL;
+      public void CreateScript() {
+         int start;
+         if (ScriptAddress != Pointer.NULL && IsValidScriptFreespace(ScriptAddress)) start = ScriptAddress;
+         else start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
+         Token.ChangeData(element.Model, start, 2);
+         ScriptAddress = start;
+         SetDestinationFormat();
+         gotoAddress(start);
+      }
 
       private string scriptAddressText;
       public string ScriptAddressText {
@@ -1287,14 +1383,22 @@ show:
             return GetAddressText(value, ref scriptAddressText);
          }
          set {
-            SetAddressText(value, ref scriptAddressText, "script");
+            SetAddressText(value, ref scriptAddressText, "script", false);
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(ScriptAddress));
+            NotifyPropertiesChanged(nameof(ScriptAddress), nameof(CanCreateScript));
+            UpdateScriptError(ScriptAddress);
          }
       }
 
       public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
+      }
+
+      private void SetDestinationFormat() {
+         var existingRun = element.Model.GetNextRun(ScriptAddress);
+         if (existingRun.Start == ScriptAddress && existingRun is NoInfoRun) {
+            element.Model.ObserveRunWritten(Token, new XSERun(ScriptAddress));
+         }
       }
    }
 
@@ -1319,6 +1423,7 @@ show:
          SetDestinationFormat();
 
          this.gotoAddress = gotoAddress;
+         if (ShowPointer) UpdateScriptError(Pointer);
       }
 
       public void SetDestinationFormat() {
@@ -1376,16 +1481,30 @@ show:
 
       #region Show as Pointer
 
+      public bool CanCreateScript => ShowPointer && IsValidScriptFreespace(Pointer);
+      public void CreateScript() {
+         int start;
+         if (Pointer != DataFormats.Pointer.NULL && IsValidScriptFreespace(Pointer)) start = Pointer;
+         else start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
+         // 0F 00 <start+9> 09 03 02 FF
+         var textStart = start + 9;
+         Token.ChangeData(element.Model, start, new byte[] { 0x0F, 0, (byte)textStart, (byte)(textStart >> 8), (byte)(textStart >> 16), (byte)((textStart >> 24) + 8), 9, 3, 2, 0xFF });
+         Pointer = start;
+         gotoAddress(start);
+      }
+
       public bool ShowPointer => Kind < 5;
 
       public int Pointer {
          get => element.GetAddress("arg");
          set {
             ClearDestinationFormat();
-            element.SetAddress("arg", value);
+            element.SetAddress("arg", value, false);
+            var run = element.Model.GetNextRun(Pointer);
+            if (run.Start == Pointer && run is NoInfoRun && !IsValidScriptFreespace(Pointer)) SetDestinationFormat();
+            UpdateScriptError(element.GetAddress("arg"));
             pointerText = argText = null;
-            NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText), nameof(CanGotoScript));
-            SetDestinationFormat();
+            NotifyPropertiesChanged(nameof(PointerText), nameof(ArgText), nameof(CanGotoScript), nameof(CanCreateScript));
          }
       }
 
@@ -1398,15 +1517,18 @@ show:
          }
          set {
             ClearDestinationFormat();
-            SetAddressText(value, ref pointerText, "arg");
-            SetDestinationFormat();
-            NotifyPropertyChanged(nameof(PointerText), nameof(CanGotoScript));
+            SetAddressText(value, ref pointerText, "arg", false);
+            var run = element.Model.GetNextRun(Pointer);
+            if (run.Start == Pointer && run is NoInfoRun && !IsValidScriptFreespace(Pointer)) SetDestinationFormat();
+            NotifyPropertiesChanged(nameof(PointerText), nameof(Pointer), nameof(ArgText), nameof(CanGotoScript), nameof(CanCreateScript));
+            UpdateScriptError(Pointer);
          }
       }
 
       public bool CanGotoScript => 0 <= Pointer && Pointer < element.Model.Count;
       public void GotoScript() {
-         SetDestinationFormat();
+         var run = element.Model.GetNextRun(Pointer);
+         if (run.Start == Pointer && run is NoInfoRun) SetDestinationFormat();
          gotoAddress(Pointer);
       }
 

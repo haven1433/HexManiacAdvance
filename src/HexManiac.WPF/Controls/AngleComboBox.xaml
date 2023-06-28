@@ -131,6 +131,9 @@
                      <Trigger Property="IsEnabled" Value="false">
                         <Setter Property="Foreground" Value="{DynamicResource Secondary}"/>
                      </Trigger>
+                     <Trigger Property="HasOverflow" Value="True">
+                        <Setter Property="ToolTip" Value="{Binding DisplayText}" />
+                     </Trigger>
                      <Trigger SourceName="Popup" Property="Popup.AllowsTransparency" Value="true">
                         <Setter TargetName="DropDownBorder" Property="CornerRadius" Value="0"/>
                         <Setter TargetName="DropDownBorder" Property="Margin" Value="0,2,0,0"/>

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
@@ -20,7 +21,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public interface IHasOptions {
-      IEnumerable<string> GetOptions(IDataModel model);
+      IReadOnlyList<string> GetOptions(IDataModel model);
    }
 
    public class ArrayRunElementSegment {
@@ -319,19 +320,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public IEnumerable<string> GetOptions(IDataModel model) => GetOptions(model, EnumName);
+      public IReadOnlyList<string> GetOptions(IDataModel model) => GetOptions(model, EnumName);
 
       public IEnumerable<string> GetBestOptions(IDataModel model, string match) => GetBestOptions(GetOptions(model, EnumName), match);
 
-      public static IEnumerable<string> GetOptions(IDataModel model, string enumName) {
-         if (enumName.TryParseInt(out var result)) return result.Range().Select(i => i.ToString());
-         IEnumerable<string> options = model.GetOptions(enumName);
+      public static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
+         if (enumName.TryParseInt(out var result)) return GetNumericOptions(result);
+         IReadOnlyList<string> options = model.GetOptions(enumName);
 
          // we _need_ options for the table tool
          // if we have none, just create "0", "1", ..., "n-1" based on the length of the EnumName table.
          if (!options.Any()) {
             if (model.GetNextRun(model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, enumName)) is ITableRun tableRun) {
-               options = tableRun.ElementCount.Range().Select(i => i.ToString());
+               options = GetNumericOptions(tableRun.ElementCount);
             }
          }
 
@@ -343,6 +344,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// </summary>
       public static IEnumerable<string> GetBestOptions(IEnumerable<string> options, string text, bool onlyCheckLettersAndDigits = false) {
          return options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false).OrderBy(option => option.SkipCount(text));
+      }
+
+      private static readonly List<string> numericOptions = new();
+      public static IReadOnlyList<string> GetNumericOptions(int count) {
+         while (numericOptions.Count < count) numericOptions.Add(numericOptions.Count.ToString());
+         var options = new string[count];
+         numericOptions.CopyTo(0, options, 0, count);
+         return options;
       }
    }
 
@@ -676,7 +685,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return anyChanges;
       }
 
-      public IEnumerable<string> GetOptions(IDataModel model) {
+      public IReadOnlyList<string> GetOptions(IDataModel model) {
          var cache = ModelCacheScope.GetCache(model);
          return cache.GetBitOptions(SourceArrayName);
       }
@@ -731,6 +740,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          owner.WritePointer(token, source, destination);
          var newRun = Factory.GetStrategy(InnerFormat).WriteNewRun(owner, token, source, destination, Name, sourceSegments);
          owner.ObserveRunWritten(token, newRun.MergeAnchor(new SortedSpan<int>(source)));
+      }
+
+      private bool? childIsTable;
+      private List<ArrayRunElementSegment> childSegmentCache;
+      private IStreamEndStrategy childEndCache;
+      public bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, IReadOnlyList<ArrayRunElementSegment> segments, bool validate, out TableStreamRun tableStream) {
+         if (childIsTable == null) childIsTable = TableStreamRun.TryParseSegmentsAndEndStrategy(model, Name, InnerFormat, segments, out childSegmentCache, out childEndCache);
+         if (childIsTable == false) { tableStream = null; return false; }
+         return TableStreamRun.TryBuildTableStream(model, start, sources, Name, InnerFormat, childSegmentCache, childEndCache, validate, out tableStream);
       }
    }
 
@@ -867,6 +885,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
+   public class ArrayRunPythonButtonSegment : ArrayRunElementSegment {
+      public IDataModel Model { get; }
+      public string FunctionName { get; }
+      public override string SerializeFormat => Name + "|python=" + FunctionName;
+      public ArrayRunPythonButtonSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
+         Model = model;
+         FunctionName = contract;
+      }
+   }
+
    public class ArrayRunOffsetRenderSegment : ArrayRunElementSegment {
       public string Background { get; }
       public int BackgroundX { get; }
@@ -895,6 +923,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          Y = GetInt(parts, 7);
          TargetFieldX = Get(parts, 8);
          TargetFieldY = Get(parts, 9);
+      }
+
+      private ISpriteRun previousRun;
+      private IPixelViewModel previousRender;
+
+      public IPixelViewModel RenderBackground(IDataModel model) {
+         if (model.GetNextRun(model.GetAddressFromAnchor(new(), -1, Background)) is not ISpriteRun spriteRun) return null;
+         if (spriteRun == previousRun) return previousRender;
+         var pixels = SpriteDecorator.BuildSprite(model, spriteRun);
+         pixels = ReadonlyPixelViewModel.Crop(pixels, BackgroundX, BackgroundY, BackgroundWidth, BackgroundHeight); // (gba screen width, height of pokemon battle background)
+         (previousRun, previousRender) = (spriteRun, pixels);
+         return pixels;
       }
 
       private static string Get(string[] array, int index) => array.Length > index ? array[index] : string.Empty;

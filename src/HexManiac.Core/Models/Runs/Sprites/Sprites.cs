@@ -13,9 +13,19 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public bool AllowLengthErrors { get; }
       public SpriteFormat(int bitsPerPixel, int width, int height, string paletteHint, bool allowLengthErrors = false) {
          (BitsPerPixel, TileWidth, TileHeight) = (bitsPerPixel, width, height);
-         PaletteHint = paletteHint;
+         PaletteHint = paletteHint ?? string.Empty;
          ExpectedByteLength = 8 * BitsPerPixel * TileWidth * TileHeight;
          AllowLengthErrors = allowLengthErrors;
+      }
+      public override bool Equals(object? obj) {
+         if (obj is not SpriteFormat other) return false;
+         return
+            BitsPerPixel == other.BitsPerPixel &&
+            TileWidth == other.TileWidth &&
+            TileHeight == other.TileHeight &&
+            ExpectedByteLength == other.ExpectedByteLength &&
+            PaletteHint == other.PaletteHint &&
+            AllowLengthErrors == other.AllowLengthErrors;
       }
    }
 

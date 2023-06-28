@@ -38,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          NaturesTableName = "data.pokemon.natures.names",
          OverworldSprites = "graphics.overworld.sprites",
          BallSpritesTable = "graphics.items.ball.sprites",
-         BackSpritesTable = "graphics.pokemon.sprites.front",
+         BackSpritesTable = "graphics.pokemon.sprites.back",
          PokemonStatsTable = "data.pokemon.stats",
          AbilityNamesTable = "data.abilities.names",
          EggMovesTableName = "data.pokemon.moves.egg",
@@ -97,7 +97,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          TutorCompatibility = "data.pokemon.moves.tutorcompatibility";
 
       private readonly string gameCode;
-      private readonly ModelDelta noChangeDelta = new NoDataChangeDeltaModel();
 
       /// <summary>
       /// The first 0x100 bytes of the GBA rom is always the header.
@@ -116,6 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          InitializationWorkload = (singletons?.WorkDispatcher ?? InstantDispatch.Instance).RunBackgroundWork(() => {
             {
+               var noChangeDelta = new NoDataChangeDeltaModel();
                if (singletons.GameReferenceConstants.TryGetValue(gameCode, out var referenceConstants)) {
                   metadata = DecodeConstantsFromReference(this, singletons.MetadataInfo, metadata, referenceConstants);
                }
@@ -201,6 +201,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// The pointer at the source may not point directly to the table: it may point to an offset from the start of the table.
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
+         var noChangeDelta = new NoDataChangeDeltaModel();
          format = AdjustFormatForCFRU(name, format);
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source) - offset;
@@ -247,6 +248,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Find a table given an address for that table
       /// </summary>
       private void AddTableDirect(int destination, string name, string format, bool validatePointerFound = false) {
+         var noChangeDelta = new NoDataChangeDeltaModel();
          using (ModelCacheScope.CreateScope(this)) {
             var errorInfo = ApplyAnchor(this, noChangeDelta, destination, "^" + name + format, allowAnchorOverwrite: true);
             validatePointerFound &= !errorInfo.HasError;

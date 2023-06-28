@@ -24,26 +24,38 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
       public static bool TryParseTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, bool validate, out TableStreamRun tableStream) {
          tableStream = null;
+         if (!TryParseSegmentsAndEndStrategy(model, fieldName, content, sourceSegments, out var segments, out var endStream)) return false;
+         return TryBuildTableStream(model, start, sources, fieldName, content, segments, endStream, validate, out tableStream);
+      }
+
+      public static bool TryParseSegmentsAndEndStrategy(IDataModel model, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> sourceSegments, out List<ArrayRunElementSegment> segments, out IStreamEndStrategy endStream) {
+         segments = null;
+         endStream = null;
 
          if (content.Length < 4 || content[0] != '[') return false;
          var close = content.LastIndexOf(']');
          if (close == -1) return false;
          try {
             var segmentContent = content.Substring(1, close - 1);
-            var segments = ArrayRun.ParseSegments(segmentContent, model);
-            var endStream = ParseEndStream(model, fieldName, content.Substring(close + 1), segments, sourceSegments);
+            segments = ArrayRun.ParseSegments(segmentContent, model);
+            endStream = ParseEndStream(model, fieldName, content.Substring(close + 1), segments, sourceSegments);
             if (endStream == null) return false;
             if (segments.Count == 0) return false;
-            tableStream = new TableStreamRun(model, start, sources, content, segments, endStream);
          } catch (ArrayRunParseException) {
             return false;
          }
+
+         return true;
+      }
+
+      public static bool TryBuildTableStream(IDataModel model, int start, SortedSpan<int> sources, string fieldName, string content, IReadOnlyList<ArrayRunElementSegment> preParsedSegments, IStreamEndStrategy endStream, bool validate, out TableStreamRun tableStream) {
+         tableStream = new TableStreamRun(model, start, sources, content, preParsedSegments, endStream);
 
          if (start < 0) return false; // not a valid data location, so the data can't possibly be valid
 
          if (model.GetUnmappedSourcesToAnchor(fieldName).Count > 0) {
             // we're pasting this format and something else is expecting it. Don't expect the content to match yet.
-            return tableStream.ElementCount > 0 || tableStream.endStream is EndCodeStreamStrategy; 
+            return tableStream.ElementCount > 0 || tableStream.endStream is EndCodeStreamStrategy;
          }
 
          if (!validate) return true;
@@ -197,7 +209,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var self = this;
          if (lengthOverride != ElementCount) self = new TableStreamRun(model, Start, PointerSources, FormatString, ElementContent, endStream, lengthOverride);
          var changedAddresses = new List<int>();
-         var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+         var lines = content.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Where(line => !line.Trim().StartsWith("#")).ToArray();
          if (lines.Length == 0 && !AllowsZeroElements) lines = content.Split(Environment.NewLine);
          var newRun = self;
          var appendCount = Math.Max(lines.Length, 1) - lengthOverride;
@@ -259,6 +271,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                if (pointerValue == Pointer.NULL) value = "<null>";
             } else if (segment.Type == ElementContentType.PCS) {
                value = model.TextConverter.Convert(model, offset, segment.Length);
+            } else if (segment.Length == 0) {
+               continue;
             }
             var extraWhitespace = new string(' ', longestLabel - segment.Name.Length);
             result.Append($"{segment.Name}:{extraWhitespace} {value}");

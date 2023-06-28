@@ -1,7 +1,7 @@
-﻿using System.Collections.ObjectModel;
+﻿using System.Windows.Controls;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
-   public partial class HexContentToolTip {
+   public partial class HexContentToolTip : ToolTip {
       public HexContentToolTip() => InitializeComponent();
    }
 }

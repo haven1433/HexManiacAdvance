@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 // example for making a bug trainer: templates.CreateTrainer(objectEvent, history.CurrentChange, 20 /* bug catcher */, 30, 9, 6 /*bug*/, true);
 
@@ -21,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Random rnd = new();
       private readonly IDataModel model;
       private readonly ScriptParser parser;
+      private readonly Task initializationWorkload;
       private ISet<int> usedFlags;
       private ISet<int> usedTrainerFlags;
       private IReadOnlyDictionary<int, TrainerPreference> trainerPreferences;
@@ -28,17 +30,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private ISet<int> UsedFlags {
          get {
-            if (usedFlags == null) usedFlags = Flags.GetUsedItemFlags(model, parser);
+            initializationWorkload.Wait();
             return usedFlags;
          }
       }
-
       private ISet<int> UsedTrainerFlags {
          get {
-            if (usedTrainerFlags == null) usedTrainerFlags = Flags.GetUsedTrainerFlags(model, parser);
+            initializationWorkload.Wait();
             return usedTrainerFlags;
          }
       }
+
       public void UseTrainerFlag(int flag) => UsedTrainerFlags.Add(flag);
       public bool IsTrainerFlagInUse(int flag) => UsedTrainerFlags.Contains(flag);
 
@@ -58,7 +60,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel ObjectTemplateImage { get; private set; }
 
-      public EventTemplate(IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
+      public EventTemplate(IWorkDispatcher dispatcher, IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
          (this.model, this.parser) = (model, parser);
          RefreshLists(owGraphics);
          if (model.IsFRLG()) UseNationalDex = true;
@@ -73,6 +75,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                TrainerGraphics = key;
                break;
             }
+         });
+
+         initializationWorkload = dispatcher.RunBackgroundWork(() => {
+            usedFlags = Flags.GetUsedItemFlags(model, parser);
+            usedTrainerFlags = Flags.GetUsedTrainerFlags(model, parser);
          });
       }
 
@@ -283,6 +290,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (banks == null) return 3;
          foreach (var bank in banks) {
             foreach (var map in bank) {
+               if (map == null) continue;
                foreach (var obj in map.Events.Objects) {
                   if (obj.Graphics != graphics) continue;
                   if (!histogram.ContainsKey(obj.Elevation)) histogram[obj.Elevation] = 0;
@@ -785,20 +793,20 @@ wrongspecies:
          parser.FormatScript<XSERun>(token, model, scriptStart);
       }
 
-      public TradeEventContent GetTradeEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTradeContent(model, parser, eventModel);
-      public static TradeEventContent GetTradeContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventViewModel) {
+      public TradeEventContent GetTradeEventContent(ScriptParser parser, ObjectEventViewModel eventModel) => GetTradeContent(model, parser, eventModel.ScriptAddress);
+      public static TradeEventContent GetTradeContent(IDataModel model, ScriptParser parser, int scriptAddress) {
          // tardes must have a `special CreateInGameTradePokemon`
          if (!model.TryGetList("specials", out var specials)) return null;
          var tradeSpecial = specials.IndexOf("CreateInGameTradePokemon");
          if (tradeSpecial == -1) return null;
          if (!Flags.GetAllScriptSpots(
-            model, parser, new[] { eventViewModel.ScriptAddress }, 0x25
+            model, parser, new[] { scriptAddress }, 0x25
          ).Any(
             spot => model.ReadMultiByteValue(spot.Address + 1, 2) == tradeSpecial)
          ) return null;
 
          var content = new TradeEventContent(Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL, Pointer.NULL);
-         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventViewModel.ScriptAddress }, 0x16, 0x0F); // setvar, loadpointer
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { scriptAddress }, 0x16, 0x0F); // setvar, loadpointer
 
          foreach (var spot in spots) {
             // TradeAddress is the only `setvar 0x8008` command

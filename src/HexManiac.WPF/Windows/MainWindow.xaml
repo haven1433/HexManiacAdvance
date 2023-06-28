@@ -25,6 +25,7 @@
       <KeyBinding Key="W" Modifiers="Ctrl" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" />
 
       <KeyBinding Key="Z" Modifiers="Ctrl" Command="{Binding Undo}" />
+      <KeyBinding Key="Z" Modifiers="Ctrl+Shift" Command="{Binding Redo}" />
       <KeyBinding Key="Y" Modifiers="Ctrl" Command="{Binding Redo}" />
       <KeyBinding Key="X" Modifiers="Ctrl" Command="{Binding Cut}" />
       <KeyBinding Key="C" Modifiers="Ctrl" Command="{Binding Copy}" />
@@ -227,6 +228,7 @@
                   <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
                   <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
                   <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
+                  <MenuItem Header="Run Garbage Collection" Click="DeveloperRunGarbageCollection"/>
                   <Separator />
                   <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
                </MenuItem>
@@ -317,7 +319,18 @@
             <StackPanel Name="FindPanel" Orientation="Horizontal" DockPanel.Dock="Right" Visibility="{Binding FindControlVisible, Converter={StaticResource BoolToVisibility}}">
                <TextBlock Text="Find :" Margin="10,0" />
                <ToggleButton Width="18" IsChecked="{Binding SearchAllFiles}">
-                  <Path Data="{hsv:Icon Multiple}" Stroke="{DynamicResource Primary}" Stretch="Uniform"/>
+                  <Path Data="{hsv:Icon Multiple}" Stretch="Uniform">
+                     <Path.Style>
+                        <Style TargetType="Path">
+                           <Setter Property="Stroke" Value="{DynamicResource Secondary}" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding SearchAllFiles}" Value="True">
+                                 <Setter Property="Stroke" Value="{DynamicResource Primary}" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </Path.Style>
+                  </Path>
                   <ToggleButton.ToolTip>
                      <ToolTip>
                         <StackPanel>
@@ -338,7 +351,7 @@
                      </ToolTip>
                   </ToggleButton.ToolTip>
                </ToggleButton>
-               <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}" Content="Aa">
+               <ToggleButton Width="18" IsChecked="{Binding MatchExactCase}">
                   <ToggleButton.ToolTip>
                      <ToolTip>
                         <StackPanel>
@@ -358,6 +371,18 @@
                         </StackPanel>
                      </ToolTip>
                   </ToggleButton.ToolTip>
+                  <TextBlock Text="Aa">
+                     <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                           <Setter Property="Foreground" Value="{DynamicResource Secondary}" />
+                           <Style.Triggers>
+                              <DataTrigger Binding="{Binding MatchExactCase}" Value="True">
+                                 <Setter Property="Foreground" Value="{DynamicResource Primary}" />
+                              </DataTrigger>
+                           </Style.Triggers>
+                        </Style>
+                     </TextBlock.Style>
+                  </TextBlock>
                </ToggleButton>
                <TextBox Name="FindBox" MinWidth="200" IsVisibleChanged="EditBoxVisibilityChanged" Text="{Binding FindText, UpdateSourceTrigger=PropertyChanged}">
                   <TextBox.InputBindings>
@@ -590,6 +615,7 @@
                            </Grid.ToolTip>
                            <Grid.ContextMenu>
                               <ContextMenu>
+                                 <MenuItem Header="Show in File Explorer" Command="{hsv:MethodCommand LaunchFileLocation}" CommandParameter="{DynamicResource FileSystem}" />
                                  <MenuItem Header="Duplicate Tab" InputGestureText="Ctrl+T" Command="{hsv:MethodCommand Duplicate}"/>
                                  <MenuItem Header="Diff with Left" Command="{Binding DiffLeft}" />
                                  <MenuItem Header="Diff with Right" Command="{Binding DiffRight}" />
@@ -803,28 +829,44 @@
                                                       </Style.Triggers>
                                                    </Style>
                                                 </Border.Style>
-                                                <ToggleButton
-                                                   BorderThickness="0"
-                                                   Content="{Binding Content}"
-                                                   IsChecked="{Binding IsSelected}"
-                                                   Padding="6"
-                                                   FontSize="15"
-                                                   IsEnabled="{Binding IsSelectable}">
-                                                   <ToggleButton.Style>
-                                                      <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
-                                                         <Setter Property="ToolTip">
-                                                            <Setter.Value>
-                                                               <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
-                                                            </Setter.Value>
-                                                         </Setter>
-                                                         <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
-                                                               <Setter Property="ToolTip" Value="{x:Null}"/>
-                                                            </DataTrigger>
-                                                         </Style.Triggers>
-                                                      </Style>
-                                                   </ToggleButton.Style>
-                                                </ToggleButton>
+                                                <Grid>
+                                                   <ToggleButton
+                                                      BorderThickness="0"
+                                                      Content="{Binding Content}"
+                                                      IsChecked="{Binding IsSelected}"
+                                                      Padding="6"
+                                                      FontSize="15"
+                                                      IsEnabled="{Binding IsSelectable}">
+                                                      <ToggleButton.Style>
+                                                         <Style TargetType="ToggleButton" BasedOn="{StaticResource {x:Type ToggleButton}}">
+                                                            <Setter Property="ToolTipService.InitialShowDelay" Value="0" />
+                                                            <Setter Property="ToolTip">
+                                                               <Setter.Value>
+                                                                  <hsg3hv:HexContentToolTip DataContext="{Binding PlacementTarget.DataContext.HoverTip, RelativeSource={RelativeSource Self}}"/>
+                                                               </Setter.Value>
+                                                            </Setter>
+                                                            <Style.Triggers>
+                                                               <DataTrigger Binding="{Binding HoverTip}" Value="{x:Null}">
+                                                                  <Setter Property="ToolTip" Value="{x:Null}"/>
+                                                               </DataTrigger>
+                                                            </Style.Triggers>
+                                                         </Style>
+                                                      </ToggleButton.Style>
+                                                   </ToggleButton>
+                                                   <Path Data="{hsv:Icon Chevron}" Fill="{DynamicResource Secondary}"
+                                                         Stretch="Uniform" Width="10" Height="10" Margin="2" IsHitTestVisible="False"
+                                                         HorizontalAlignment="Right" VerticalAlignment="Bottom">
+                                                      <Path.Style>
+                                                         <Style TargetType="Path">
+                                                            <Style.Triggers>
+                                                               <DataTrigger Binding="{Binding IsGoto}" Value="True">
+                                                                  <Setter Property="Visibility" Value="Collapsed" />
+                                                               </DataTrigger>
+                                                            </Style.Triggers>
+                                                         </Style>
+                                                      </Path.Style>
+                                                   </Path>
+                                                </Grid>
                                              </Border>
                                           </Border>
                                        </DataTemplate>

@@ -1,0 +1,81 @@
+﻿# Makes data.pokemon.natures.stats more flexible.
+# Allows Natures to change stats up to 255% instead of always 110%.
+# Allows Natures to change stats down to 1%, instead of always 90%.
+
+# TODO Makes it possible to add expand natures, adding more.
+
+# Does not edit Emerald Battle Dome nature code, so Battle Dome natures will still be 90% or 110%
+
+# mark the divide method
+@!game(AXVE0) @1E0868 @!game(AXPE0) @1E07F8
+@!game(AXVE1) @1E0880 @!game(AXPE1) @1E0810
+@!game(BPRE0) @1E4018 @!game(BPGE0) @1E3FF4
+@!game(BPRE1) @1E4088 @!game(BPGE1) @1E4064
+@!game(BPEE0) @2E7540
+@!game(All)   ^thumb.divide
+
+
+
+# Part 1: Update nature stats table
+.python
+stats = ['attack', 'defense', 'speed', 'spAttack', 'spDefense']
+for nature in data.pokemon.natures.stats:
+  for stat in stats:
+    nature[stat] *= 10
+    nature[stat] += 100
+.end
+# make the values go from 0->255 instead of -128->127
+@data.pokemon.natures.stats ^data.pokemon.natures.stats[attack. defense. speed. spAttack. spDefense.]data.pokemon.natures.names
+
+
+# Part 2: Update code that uses the table
+
+@!game(AXVE0_AXPE0) @03FC74
+@!game(AXVE1_AXPE1) @03FC94
+@!game(BPRE0_BPGE0) @043698
+@!game(BPRE1_BPGE1) @0436AC
+@!game(BPEE0)       @06D8D4
+
+@!game(All) .thumb
+ModifyStatByNature: @ (nature, stat, statIndex)
+    push  {lr}
+
+    @ Don't modify HP, Accuracy, or Evasion by nature
+    cmp   r2, #0
+    beq   <skip>
+    cmp   r2, #5
+    bgt   <skip>
+
+adjustStat:
+    mov   r3, #5
+    mul   r0, r3
+    sub   r0, #1
+    ldr   r3, =<data.pokemon.natures.stats>
+    add   r0, r3
+    ldrb  r0, [r0, r2] @ r0 = natures.stats[nature*5][statIndex-1]
+    mul   r0, r1       @ r0 *= stat
+
+    mov   r1, #100
+    bl    <thumb.divide>     @ r0 /= 100
+
+    b     <end>
+skip:
+    mov   r0, r1
+end:
+    pop   {pc}
+.end
+
+
+
+# Part 3: Minimal edits for Battle Dome so it'll compare against the new baseline (100) instead of the old baseline (0)
+@!game(BPEE0)
+@192B8E 64 @192BB4 64
+@192CDA 64 @192D04 64
+
+
+# Part 4 TODO: update limiters to allow for more natures (see notes in constantReference.txt)
+
+
+
+# Finally: go to the natures stats table so the user can edit it.
+@data.pokemon.natures.stats

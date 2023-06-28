@@ -98,12 +98,12 @@ namespace HavenSoft.HexManiac.Tests {
 
          var data = new byte[0x1000000];
          for (int i = 0; i < 4; i++) data[0xAC + i] = (byte)"BPRE"[i];
-         // constant only gets added if all the values match... but for scripts.shiny.odds, all but one instance all have a -1 modifier.
-         data[0x104A24] = 1;
+         // constant only gets added if all the values match... but for scripts.shiny.odds, all but 5 instance all have a -1 modifier.
+         foreach (int i in new[] { 0x0F41DA, 0x0F4218, 0x0F4258, 0x0F42A0, 0x104A24 }) data[i] = 1;
          var model = new PokemonModel(data, metadata, singletons);
 
          var matches = model.GetMatchedWords("scripts.shiny.odds");
-         Assert.Equal(6, matches.Count);
+         Assert.Equal(10, matches.Count);
       }
 
       [Fact]

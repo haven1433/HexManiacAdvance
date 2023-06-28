@@ -5,15 +5,26 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models {
    public class ThreadSafeDictionary<TKey, TValue> : IDictionary<TKey, TValue> {
+      private List<TKey> keyCache;
       private readonly Dictionary<TKey, TValue> inner = new();
 
       public TValue this[TKey key] {
          get { lock (inner) return inner[key]; }
-         set { lock (inner) inner[key] = value; }
+         set {
+            lock (inner) {
+               keyCache = null;
+               inner[key] = value;
+            }
+         }
       }
 
       public ICollection<TKey> Keys {
-         get { lock (inner) return inner.Keys.ToList(); }
+         get {
+            lock (inner) {
+               if (keyCache == null) keyCache = inner.Keys.ToList();
+               return keyCache;
+            }
+         }
       }
 
       public ICollection<TValue> Values {
@@ -27,15 +38,24 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool IsReadOnly => false;
 
       public void Add(TKey key, TValue value) {
-         lock (inner) inner.Add(key, value);
+         lock (inner) {
+            keyCache = null;
+            inner.Add(key, value);
+         }
       }
 
       public void Add(KeyValuePair<TKey, TValue> item) {
-         lock (inner) ((ICollection<KeyValuePair<TKey, TValue>>)inner).Add(item);
+         lock (inner) {
+            keyCache = null;
+            ((ICollection<KeyValuePair<TKey, TValue>>)inner).Add(item);
+         }
       }
 
       public void Clear() {
-         lock (inner) inner.Clear();
+         lock (inner) {
+            keyCache = null;
+            inner.Clear();
+         }
       }
 
       public bool Contains(KeyValuePair<TKey, TValue> item) {
@@ -55,11 +75,17 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public bool Remove(TKey key) {
-         lock (inner) return inner.Remove(key);
+         lock (inner) {
+            keyCache = null;
+            return inner.Remove(key);
+         }
       }
 
       public bool Remove(KeyValuePair<TKey, TValue> item) {
-         lock (inner) return ((ICollection<KeyValuePair<TKey, TValue>>)inner).Remove(item);
+         lock (inner) {
+            keyCache = null;
+            return ((ICollection<KeyValuePair<TKey, TValue>>)inner).Remove(item);
+         }
       }
 
       public bool TryGetValue(TKey key, [MaybeNullWhen(false)] out TValue value) {

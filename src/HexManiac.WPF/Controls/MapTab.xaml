@@ -130,6 +130,9 @@
                         <DataTrigger Binding="{Binding IsValid9GridSelection}" Value="True">
                            <Setter Property="Visibility" Value="Visible" />
                         </DataTrigger>
+                        <DataTrigger Binding="{Binding IsValid25GridSelection}" Value="True">
+                           <Setter Property="Visibility" Value="Visible" />
+                        </DataTrigger>
                      </Style.Triggers>
                   </Style>
                </Decorator.Style>
@@ -148,6 +151,20 @@
                   </ToolTip>
                </CheckBox.ToolTip>
             </CheckBox>
+            <CheckBox IsChecked="{Binding Use25Grid}" Content="Draw 25-Grid" VerticalAlignment="Top" Grid.Row="1" HorizontalAlignment="Center"
+                      Visibility="{Binding IsValid25GridSelection, Converter={StaticResource BoolToVisibility}}">
+               <CheckBox.ToolTip>
+                  <ToolTip>
+                     <TextBlock>
+                        Draw one of the selected 25 blocks based on a grid.
+                        <LineBreak />
+                        This can make drawing multi-block details like paths,
+                        <LineBreak />
+                        water, or mountains much faster.
+                     </TextBlock>
+                  </ToolTip>
+               </CheckBox.ToolTip>
+            </CheckBox>
             <TextBlock Foreground="{DynamicResource Secondary}" VerticalAlignment="Center" HorizontalAlignment="Center" TextAlignment="Center">
                <TextBlock.Style>
                   <Style TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
@@ -158,6 +175,7 @@
                               <Condition Binding="{Binding BlockEditorVisible}" Value="False" />
                               <Condition Binding="{Binding DrawMultipleTiles}" Value="False" />
                               <Condition Binding="{Binding IsValid9GridSelection}" Value="False" />
+                              <Condition Binding="{Binding IsValid25GridSelection}" Value="False" />
                            </MultiDataTrigger.Conditions>
                            <MultiDataTrigger.Setters>
                               <Setter Property="Visibility" Value="Visible" />
@@ -256,8 +274,19 @@
          </ItemsControl>
 
          <ScrollViewer>
+            <ScrollViewer.Resources>
+               <Style x:Key="ScriptAddressStyle" TargetType="local:AngleTextBox" BasedOn="{StaticResource {x:Type local:AngleTextBox}}">
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding HasScriptAddressError}" Value="True">
+                        <Setter Property="Foreground" Value="{DynamicResource Error}" />
+                        <Setter Property="ToolTip" Value="{Binding ScriptAddressError}" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </ScrollViewer.Resources>
             <ContentControl DataContext="{Binding SelectedEvent}" Content="{Binding}">
                <ContentControl.Resources>
+
                   <DataTemplate DataType="{x:Type map:ObjectEventViewModel}">
                      <Grid VerticalAlignment="Top">
                         <Grid.ColumnDefinitions>
@@ -369,7 +398,9 @@
                         <local:AngleBorder Grid.Row="8" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Script Address:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleTextBox Grid.Row="8" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2"
+                                            Direction="Out" Style="{StaticResource ScriptAddressStyle}"
+                                            TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
                         <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" Grid.Row="8" Grid.Column="1" HorizontalAlignment="Right"
                               Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
@@ -618,8 +649,14 @@
                               <TextBox Text="{Binding CryText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
                            </StackPanel>
 
-                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,5,2" TextWrapping="Wrap" Text="Put this in a Map Header Transition Script (or some other script) to make the legendary return if you haven't captured it:" />
+                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,5,2" TextWrapping="Wrap" Text="Use this to make the legendary reappear if you haven't captured it:" />
                            <local:TextEditor IsReadOnly="True" DataContext="{Binding SampleLegendClearScript}" Height="120" />
+                           <TextBlock HorizontalAlignment="Right" Margin="4">
+                              <Hyperlink Foreground="{DynamicResource Accent}" RequestNavigate="Navigate"
+                                         NavigateUri="https://github.com/haven1433/HexManiacAdvance/wiki/Legendary-Pok%C3%A9mon-Encounters">
+                                 More Info
+                              </Hyperlink>
+                           </TextBlock>
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
@@ -698,10 +735,17 @@
                         <local:AngleBorder Grid.Row="7" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Script Address:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2" Direction="Out" TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleTextBox Grid.Row="7" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,21,2"
+                                            Direction="Out" Style="{StaticResource ScriptAddressStyle}"
+                                            TextBinding="{Binding ScriptAddressText, UpdateSourceTrigger=PropertyChanged}" />
                         <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Right"
                               Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
+                        <local:AngleButton Command="{res:MethodCommand CreateScript}" Direction="Right" Grid.Row="7" Grid.Column="1" HorizontalAlignment="Right"
+                              Visibility="{Binding CanCreateScript, Converter={StaticResource BoolToVisibility}}"
+                              Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
 
                      </Grid>
@@ -734,9 +778,10 @@
                            TextBinding="{Binding ArgText, UpdateSourceTrigger=PropertyChanged}"
                            Visibility="{Binding ShowArg, Converter={StaticResource BoolToVisibility}}" />
 
-                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2" Content="Script:"
+                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2" Content="Script:"
                            Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
-                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,24,2" Direction="Right"
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,24,2"
+                           Direction="Out" Style="{StaticResource ScriptAddressStyle}"
                            TextBinding="{Binding PointerText, UpdateSourceTrigger=PropertyChanged}"
                            Visibility="{Binding ShowPointer, Converter={StaticResource BoolToVisibility}}" />
                         <local:AngleButton Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GotoScript}"
@@ -744,6 +789,12 @@
                            Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
                            <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
+                        <local:AngleButton Grid.Row="3" Grid.Column="1" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand CreateScript}"
+                           Visibility="{Binding CanCreateScript, Converter={StaticResource BoolToVisibility}}"
+                           Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
+
 
                         <StackPanel Margin="2,12" Grid.Row="4" Grid.RowSpan="4" Grid.ColumnSpan="2" Visibility="{Binding ShowSignpostText, Converter={StaticResource BoolToVisibility}}">
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Text" />
@@ -989,6 +1040,31 @@
                   </Border>
                </Popup>
             </Grid>
+            <StackPanel Visibility="{Binding PrimaryMap.BlockMapIsShared, Converter={StaticResource BoolToVisibility}}">
+               <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" FontStyle="Italic" Foreground="{DynamicResource Data2}">
+                  <Run Text="This layout is used by "/>
+                  <Run Text="{Binding PrimaryMap.BlockMapShareCount, Mode=OneWay}" />
+                  <Run Text=" maps."/>
+               </TextBlock>
+               <ItemsControl ItemsSource="{Binding PrimaryMap.BlockMapUses}">
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <WrapPanel />
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <Button Width="52" Height="24" ToolTip="{Binding Name}" Command="{res:MethodCommand GotoMap}" CommandParameter="{Binding}" Margin="4">
+                           <TextBlock>
+                              <Run Text="{Binding Group, Mode=OneWay}" />
+                              <Run Text="-" />
+                              <Run Text="{Binding Map, Mode=OneWay}" />
+                           </TextBlock>
+                        </Button>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </StackPanel>
             <Grid Height="24" Margin="0,5,0,25" DataContext="{Binding PrimaryMap.SurfConnection}">
                <Menu Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding CanCreate, Converter={StaticResource BoolToVisibility}}">
                   <local:AngleMenuItem Header="New Z-Connection" Direction="Out">
@@ -1695,6 +1771,11 @@
             <Border Width="50">
                <TextBlock Text="{Binding PrimaryMap.Name}" HorizontalAlignment="Center" />
             </Border>
+            <local:AngleBorder.ContextMenu>
+               <ContextMenu>
+                  <MenuItem Header="Copy Image of all Connections" Command="{res:MethodCommand ExportAllConnectedMaps}" />
+               </ContextMenu>
+            </local:AngleBorder.ContextMenu>
          </local:AngleBorder>
          <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
          <local:AngleComboBox Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />

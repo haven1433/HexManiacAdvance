@@ -30,7 +30,7 @@ namespace HavenSoft.HexManiac.Integration {
       }
 
       [SkippableFact]
-      public void BrockScript_ExpandSelection_EntireScriptSelected() {
+      public void BrockScript_ExpandSelection_MultipleSectionsSelected() {
          var firered = LoadReadOnlyFireRed();
          firered.Goto.Execute("data.maps.banks/6/maps/2/map/0/events/0/objects/0/script/");
 
@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Integration {
          var firstAddress = firered.ConvertViewPointToAddress(firered.SelectionStart);
          var lastAddress = firered.ConvertViewPointToAddress(firered.SelectionEnd);
          var length = lastAddress - firstAddress + 1;
-         Assert.Equal(171, length);
+         Assert.Equal(95, length);
       }
 
       [SkippableFact]
@@ -117,6 +117,16 @@ namespace HavenSoft.HexManiac.Integration {
          emerald.Edit("<00030B>");
 
          // no debug assert = pass
+      }
+
+      [SkippableFact]
+      public void FireRedAndEmerald_Diff_NoError() {
+         var firered = LoadReadOnlyFireRed();
+         var emerald = LoadReadOnlyEmerald();
+
+         firered.Diff.Execute(emerald);
+
+         // no exceptions = pass
       }
    }
 }

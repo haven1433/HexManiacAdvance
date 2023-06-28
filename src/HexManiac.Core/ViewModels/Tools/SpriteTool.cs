@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          } else if (spriteIsTilemap && !(spriteRun is LZRun)) {
             // uncompressed tilemaps are not currently supported, so just no-op.
          } else {
-            if (!isDefault) {
+            if (!isDefault && !newFormat.Equals(spriteRun.SpriteFormat)) {
                model.ObserveRunWritten(history.CurrentChange, spriteRun.Duplicate(newFormat));
                viewPort.Refresh();
             }

@@ -252,9 +252,9 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<ModelDelta, string, System.Collections.Generic.IReadOnlyList<string>, string> SetList { get; set; }
+        public Action<ModelDelta, string, System.Collections.Generic.IEnumerable<string>, string> SetList { get; set; }
         
-        void IDataModel.SetList(ModelDelta changeToken, string name, System.Collections.Generic.IReadOnlyList<string> list, string hash)
+        void IDataModel.SetList(ModelDelta changeToken, string name, System.Collections.Generic.IEnumerable<string> list, string hash)
         {
             if (this.SetList != null)
             {
@@ -483,13 +483,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<ModelDelta, Runs.ArrayRunElementSegment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment>, int, int, int> UpdateArrayPointer { get; set; }
+        public Action<ModelDelta, Runs.ArrayRunElementSegment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment>, int, int, int, bool> UpdateArrayPointer { get; set; }
         
-        void IDataModel.UpdateArrayPointer(ModelDelta changeToken, Runs.ArrayRunElementSegment segment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment> segments, int parentIndex, int address, int destination)
+        void IDataModel.UpdateArrayPointer(ModelDelta changeToken, Runs.ArrayRunElementSegment segment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment> segments, int parentIndex, int address, int destination, bool writeDestinationFormat)
         {
             if (this.UpdateArrayPointer != null)
             {
-                this.UpdateArrayPointer(changeToken, segment, segments, parentIndex, address, destination);
+                this.UpdateArrayPointer(changeToken, segment, segments, parentIndex, address, destination, writeDestinationFormat);
             }
         }
         

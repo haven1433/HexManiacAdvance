@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -31,9 +30,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ViewPort viewPort;
 
       private int start;
-
       public string Name { get; }
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
       public string ErrorText { get; private set; }
       public int ZIndex => 0;

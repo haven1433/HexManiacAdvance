@@ -201,7 +201,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.CascadeScript(0);
          var code = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, 15).SplitLines().Select(line=>line.Trim()).ToArray();
          var expected = new[] {
-            "trainerbattle 00 0 0 <000100> <000110>",
+            "single.battle 0 <000100> <000110>",
             "{",
             "Start",
             "}",
@@ -794,6 +794,38 @@ label2:;goto <000050>;end";
          EventScript = "addvar 1 1;goto <000000>";
 
          Assert.Equal(6, Model.GetNextRun(1).Start);
+      }
+
+      [Fact]
+      public void SelfReferenceScript_Compile_CorrectAnchorFormat() {
+         SetFullModel(0xFF);
+         EventScript = "top:;goto top";
+         Assert.IsType<XSERun>(Model.GetNextRun(0));
+      }
+
+      [Fact]
+      public void TrainerScript_ManyAutos_AllTextPointersAreCorrect() {
+         SetFullModel(0xFF);
+         EventScript = ";".Join(new[] {
+            "if.flag.set.goto 206 <section1>", // 9
+            "msgbox.npc <auto>;{;Text1;};",    // 8
+            "end",                             // 1
+
+            "section1:",
+            "trainerbattle 1 1 0 <auto> <auto> <section2>",  // 18 (2+2+2+4+4+4)
+            "{;Intro;}",
+            "{;Defeat;}",
+            "end",
+
+            "section2:;end"
+         });
+
+         var text1 = Model.TextConverter.Convert(Model, Model.ReadPointer(11), 10);
+         var intro = Model.TextConverter.Convert(Model, Model.ReadPointer(24), 10);
+         var defeat = Model.TextConverter.Convert(Model, Model.ReadPointer(28), 10);
+         Assert.Equal("Text1", text1.Trim('"'));
+         Assert.Equal("Intro", intro.Trim('"'));
+         Assert.Equal("Defeat", defeat.Trim('"'));
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer

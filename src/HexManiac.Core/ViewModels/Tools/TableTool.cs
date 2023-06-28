@@ -80,7 +80,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Address = start;
       }
 
-      private IReadOnlyList<ArrayRun> UnmatchedArrays => model.Arrays.Where(a => string.IsNullOrEmpty(a.LengthFromAnchor)).ToList();
+      private IReadOnlyList<ITableRun> UnmatchedArrays {
+         get {
+            var list = new List<ITableRun>();
+            foreach (var anchor in model.Anchors) {
+               var table = model.GetTable(anchor);
+               if (table is null) continue; // skip anything that's not a table
+               if (table is ArrayRun array && !string.IsNullOrEmpty(array.LengthFromAnchor)) continue; // skip 'matched-length' arrays
+               list.Add(table);
+            }
+            return list;
+         }
+      }
 
       private string currentElementName;
       public string CurrentElementName {
@@ -167,6 +178,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       // properties that exist solely so the UI can remember things when the tab switches
       public double VerticalOffset { get; set; }
 
+      private bool ignoreFurtherCommands = false;
       public TableTool(IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, ViewPort viewPort, IToolTrayViewModel toolTray, IWorkDispatcher dispatcher) {
          this.model = model;
          this.selection = selection;
@@ -184,10 +196,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start < address;
             },
-            Execute = parameter => {
+            Execute = async parameter => {
+               if (ignoreFurtherCommands) return;
+               using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+               await dispatcher.WaitForRenderingAsync();
+
+               var (start, end) = (selection.Scroll.ViewPointToDataIndex(selection.SelectionStart), selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
                var array = (ITableRun)model.GetNextRun(address);
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(Address - array.ElementLength);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+               if (array.Start <= start && start < array.Start + array.Length && array.Start <= end && end < array.Start + array.Length) {
+                  start -= array.ElementLength;
+                  end -= array.ElementLength;
+               } else {
+                  start = address - array.ElementLength;
+                  end = address - 1;
+               }
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(end);
             }
          };
 
@@ -196,12 +220,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var array = model.GetNextRun(address) as ITableRun;
                return array != null && array.Start + array.Length > address + array.ElementLength;
             },
-            Execute = parameter => {
-               var address = this.address;
+            Execute = async parameter => {
+               if (ignoreFurtherCommands) return;
+               using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+               await dispatcher.WaitForRenderingAsync();
+
+               var (start, end) = (selection.Scroll.ViewPointToDataIndex(selection.SelectionStart), selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
                var array = (ITableRun)model.GetNextRun(address);
-               if (selection.Scroll.DataIndex < array.Start || selection.Scroll.DataIndex > array.Start + array.Length) selection.GotoAddress(array.Start);
-               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address + array.ElementLength);
-               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(selection.Scroll.ViewPointToDataIndex(selection.SelectionStart) + array.ElementLength - 1);
+               if (array.Start <= start && start < array.Start + array.Length && array.Start <= end && end < array.Start + array.Length) {
+                  start += array.ElementLength;
+                  end += array.ElementLength;
+               } else {
+                  start = address + array.ElementLength;
+                  end = address + array.ElementLength * 2 - 1;
+               }
+               selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(start);
+               selection.SelectionEnd = selection.Scroll.DataIndexToViewPoint(end);
             }
          };
 
@@ -255,11 +289,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          });
       }
 
-      private int childIndexGroup = 0;
+      private string[] themes = new string[] {
+         //nameof(Theme.Text1),
+         //nameof(Theme.Text2),
+         //nameof(Theme.Data1),
+         nameof(Theme.Data2),
+         nameof(Theme.Accent),
+         //nameof(Theme.Stream1),
+         //nameof(Theme.Stream2),
+      };
+
+      private int childIndexGroup = 0, themeIndex = 0;
       private void AddChild(IArrayElementViewModel child) {
          if (child == null) return;
+         if (child is SplitterArrayElementViewModel) themeIndex = (themeIndex + 1) % themes.Length;
          while (Groups.Count <= childIndexGroup) AddGroup();
-         Groups[childIndexGroup].Add(child);
+         Groups[childIndexGroup].Add(child, themes[themeIndex]);
       }
 
       private void MoveToNextGroup() {
@@ -297,6 +342,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var child in UsageChildren) ClearHandlers(child);
          foreach (var group in Groups) group.Open();
          childIndexGroup = 0;
+         themeIndex = 0;
          usageChildInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
@@ -349,8 +395,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   streamGroup.Open();
                }
 
-               AddChild(new SplitterArrayElementViewModel(viewPort, basename, elementOffset));
-               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, streamGroup);
+               var header = new SplitterArrayElementViewModel(viewPort, basename, elementOffset);
+               AddChild(header);
+               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, themes[themeIndex], header, streamGroup);
                MoveToNextGroup();
                Groups[0].GroupName = basename;
             } else {
@@ -388,8 +435,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      var currentIndex = index + currentArray.ParentOffset.BeginningMargin;
                      if (currentIndex >= 0 && currentIndex < currentArray.ElementCount) {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
-                        AddChild(new SplitterArrayElementViewModel(viewPort, tableName, elementOffset));
-                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, helperGroup, partition);
+                        var header = new SplitterArrayElementViewModel(viewPort, tableName, elementOffset);
+                        AddChild(header);
+                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, themes[themeIndex], header, helperGroup, partition);
                      }
                   }
                   while (Groups.Count <= childIndexGroup) AddGroup();

@@ -1092,3 +1092,10 @@ Name = '''floors'''
 '''basement 2''',
 '''basement 1''',
 ]
+
+[[List]]
+Name = '''transitiontype'''
+0 = [
+'''cave''',
+'''forest''',
+]

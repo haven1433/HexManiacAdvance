@@ -41,8 +41,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          if (TableStreamRun.TryWriteNewEndToken(token, ref tableStream)) return tableStream;
          return tableStream.DeserializeRun(Environment.NewLine.Join(tableStream.ElementCount.Range().Select(i => " ")), token, out var _, out var _);
       }
+
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          if (!TableStreamRun.TryParseTableStream(model, run.Start, run.PointerSources, name, Format, sourceSegments, out var runAttempt)) return;
+         UpdateNewRunFromPointerFormat(model, token, ref run, runAttempt);
+      }
+
+      public void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, ArrayRunPointerSegment segment, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
+         if (!segment.TryParseTableStream(model, run.Start, run.PointerSources, sourceSegments, true, out var runAttempt)) return;
+         UpdateNewRunFromPointerFormat(model, token, ref run, runAttempt);
+      }
+
+      private void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, ref IFormattedRun run, TableStreamRun runAttempt) {
          if (run is ITableRun table && runAttempt.FormatString == table.FormatString && runAttempt.Length == table.Length) {
             // we don't need to do a clear: the new format matches the existing format
          } else {
@@ -50,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
          }
          run = runAttempt;
       }
+
       public override ErrorInfo TryParseData(IDataModel model, string name, int dataIndex, ref IFormattedRun run) {
          var pointerSources = model.GetUnmappedSourcesToAnchor(name);
          pointerSources = new SortedSpan<int>(pointerSources.Where(source => model.ReadValue(source) == 0).ToList());

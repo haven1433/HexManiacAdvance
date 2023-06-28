@@ -1,6 +1,6 @@
 # Introduce a new ability type-swap table.
 # Abilities in this table will change moves of one type to another
-# Example: Pixilate
+# Example: Pixilate, Aerilate, Normalize, Galvanize
 
 # Adds this code, approximately, to the damage calculation step:
 #        foreach entry in data.abilities.typeswaps:

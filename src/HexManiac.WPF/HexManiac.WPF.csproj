@@ -13,51 +13,34 @@
   <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
+    <None Remove="Resources\HMA_Splash.xcf" />
+    <None Remove="Resources\Splash.png" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\MoveRelearnerTesting.hma">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="Scripts\AddFairyType.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\FastNewGame.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\FairyIcon_Emerald.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\FairyIcon_FR_LG.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\How_To_Use_HMA_Files.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\StevenBugFix.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\AddProfessorPokemonConstantsToRubySapphire.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\type_items.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\ability_type_swaps.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\EditBattleOdds.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\callasmBattleScriptCommand.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\AllowEvolutionWithoutNationalDex_FireRedLeafGreen.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="Scripts\remove_contest_moves_tab.hma">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_FairyType.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_PhysicalSpecialSplit.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_PixilateStyleAbilities.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\FairyIcon_Emerald.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Add Mechanics From Later Generations\FairyIcon_FR_LG.png"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\AnyGame_SkipGameIntroScene.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\Emerald_ExpandEVs.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\Emerald_StevenTeamNaturesFix.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\FRLG_AllowEvolutionWithoutNationalDex.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Patches\RSE_RemoveContestMovesTab.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeBattleOdds.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeNatureStats.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\Emerald_ExpandStarters.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\RS_AddProfessorPokemonConstants.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\RS_FRLG_callasmBattleScriptCommand.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\_Using_HMA_Scripts.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Crc32.NET" Version="1.2.0" />
@@ -70,6 +53,9 @@
     <Resource Include="Resources\AppIcon.ico" />
     <Resource Include="Resources\AppImage.png" />
   </ItemGroup>
+  <ItemGroup>
+    <SplashScreen Include="Resources\Splash.png" />
+  </ItemGroup>
   <PropertyGroup>
     <PostBuildEvent>
       if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
@@ -80,13 +66,13 @@
       del "$(TargetDir)Models\Code\*.hma"
       copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.toml"
-      copy "$(TargetDir)Scripts\*.*" "$(TargetDir)resources/Scripts"
+      copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
+      del "$(TargetDir)Models\Code\*.py"
+      xcopy "$(TargetDir)Scripts" "$(TargetDir)resources/Scripts" /i /c /k /e /r /y
       copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
       copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
-      del "$(TargetDir)Scripts\*.hma"
-      del "$(TargetDir)Scripts\*.png"
-      del "$(TargetDir)Scripts\*.txt"
-      rmdir "$(TargetDir)Scripts"
+      del /f /s /q "$(TargetDir)Scripts" 1&gt;nul
+      rmdir /s /q "$(TargetDir)Scripts"
       rmdir "$(TargetDir)Models\Code"
       rmdir "$(TargetDir)Models"
       del "$(TargetDir)IronPython.SQLite.dll"
