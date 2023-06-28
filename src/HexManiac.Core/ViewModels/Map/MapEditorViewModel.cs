@@ -2160,7 +2160,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var directions = new[] { MapDirection.Left, MapDirection.Up, MapDirection.Right, MapDirection.Down };
          for (int i = 0; i < maps.Count; i++) {
             var neighbors = directions.SelectMany(maps[i].GetNeighbors);
-            foreach(var n in neighbors) {
+            foreach (var n in neighbors) {
                if (!maps.Any(m => m.MapID == n.MapID)) maps.Add(n);
             }
          }
@@ -2178,7 +2178,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          // draw all the maps
          foreach (var map in maps) {
-            canvas.Draw(map, (int)(map.LeftEdge * map.SpriteScale - left), (int)(map.TopEdge * map.SpriteScale - top));
+            canvas.Draw(map, (int)(map.LeftEdge / map.SpriteScale - left), (int)(map.TopEdge / map.SpriteScale - top));
          }
 
          // export it as an image
