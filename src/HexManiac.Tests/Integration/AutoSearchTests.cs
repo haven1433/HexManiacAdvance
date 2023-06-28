@@ -128,7 +128,7 @@ namespace HavenSoft.HexManiac.Tests {
             if (!(run is ISpriteRun sprite)) continue;
             if (sprite.SpriteFormat.BitsPerPixel < 4) continue;
             var palettes = sprite.FindRelatedPalettes(model);
-            if (palettes.Count == 0 && sprite.SpriteFormat.PaletteHint == null) continue;
+            if (palettes.Count == 0 && string.IsNullOrEmpty(sprite.SpriteFormat.PaletteHint)) continue;
             Assert.IsAssignableFrom<IPaletteRun>(palettes[0]);
          }
       }
