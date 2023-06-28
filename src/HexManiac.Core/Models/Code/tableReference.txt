@@ -848,6 +848,14 @@ scripts.seagallop.destinations, , , , , 1471B0, 14718C, 147228, 147204, , [bank.
 // Introductory Speeches
 scripts.newgame.speeches.welcome,                  ,       ,       ,       ,       ,       ,       ,       , 2C897B, ""
 scripts.newgame.speeches.showcaseMon,              ,       ,       ,       ,       ,       ,       ,       , 2C89FB, ""
+scripts.newgame.speeches.mainSpeech,               ,       ,       ,       ,       ,       ,       ,       , 2C8A1F, "" // find a more descriptive name for this
+scripts.newgame.speeches.introduceSelf,            ,       ,       ,       ,       ,       ,       ,       , 2C8BD0, ""
+scripts.newgame.speeches.promptGender,             ,       ,       ,       ,       ,       ,       ,       , 2C8BDD, ""
+scripts.newgame.speeches.promptName,               ,       ,       ,       ,       ,       ,       ,       , 2C8BFF, ""
+scripts.newgame.speeches.confirmName,              ,       ,       ,       ,       ,       ,       ,       , 2C8C1C, ""
+scripts.newgame.speeches.confirmSelf,              ,       ,       ,       ,       ,       ,       ,       , 2C8C2A, ""
+scripts.newgame.speeches.ready,                    ,       ,       ,       ,       ,       ,       ,       , 2C8C7A, ""
+
 
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
