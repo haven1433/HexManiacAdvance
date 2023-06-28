@@ -365,6 +365,37 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Blockmap Sharing
+
+      public bool BlockMapIsShared => FindLayoutUses().Count > 1;
+
+      public int BlockMapShareCount => FindLayoutUses().Count;
+
+      public ObservableCollection<JumpMapInfo> BlockMapUses => FindLayoutUses();
+
+      private ObservableCollection<JumpMapInfo> layoutUseCache;
+      private ObservableCollection<JumpMapInfo> FindLayoutUses() {
+         if (layoutUseCache != null) return layoutUseCache;
+         var map = GetMapModel();
+         var layout = GetLayout(map);
+         if (layout == null) return null;
+         var modelRun = model.GetNextRun(layout.Start);
+         if (modelRun.Start != layout.Start) return null;
+         var uses = new ObservableCollection<JumpMapInfo>();
+         var names = model.GetOptions(HardcodeTablesModel.MapNameTable);
+
+         foreach (var candidate in GetAllMaps()) {
+            if (!modelRun.PointerSources.Contains(candidate.Element.Start)) continue;
+            var nameIndex = candidate.NameIndex;
+            var name = nameIndex.InRange(0, names.Count) ? names[nameIndex] : "unknown";
+            uses.Add(new(candidate.Group, candidate.Map, name, args => RequestChangeMap.Raise(this, args)));
+         }
+
+         return layoutUseCache = uses;
+      }
+
+      #endregion
+
       public event EventHandler NeighborsChanged;
       public event EventHandler AutoscrollTiles;
       public event EventHandler HideSidePanels;

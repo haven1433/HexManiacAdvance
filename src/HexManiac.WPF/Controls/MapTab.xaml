@@ -1040,6 +1040,31 @@
                   </Border>
                </Popup>
             </Grid>
+            <StackPanel Visibility="{Binding PrimaryMap.BlockMapIsShared, Converter={StaticResource BoolToVisibility}}">
+               <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center" TextAlignment="Center" FontStyle="Italic" Foreground="{DynamicResource Data2}">
+                  <Run Text="This layout is used by "/>
+                  <Run Text="{Binding PrimaryMap.BlockMapShareCount, Mode=OneWay}" />
+                  <Run Text=" maps."/>
+               </TextBlock>
+               <ItemsControl ItemsSource="{Binding PrimaryMap.BlockMapUses}">
+                  <ItemsControl.ItemsPanel>
+                     <ItemsPanelTemplate>
+                        <WrapPanel />
+                     </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                     <DataTemplate>
+                        <Button Width="52" Height="24" ToolTip="{Binding Name}" Command="{res:MethodCommand GotoMap}" CommandParameter="{Binding}" Margin="4">
+                           <TextBlock>
+                              <Run Text="{Binding Group, Mode=OneWay}" />
+                              <Run Text="-" />
+                              <Run Text="{Binding Map, Mode=OneWay}" />
+                           </TextBlock>
+                        </Button>
+                     </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+               </ItemsControl>
+            </StackPanel>
             <Grid Height="24" Margin="0,5,0,25" DataContext="{Binding PrimaryMap.SurfConnection}">
                <Menu Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="{Binding CanCreate, Converter={StaticResource BoolToVisibility}}">
                   <local:AngleMenuItem Header="New Z-Connection" Direction="Out">
