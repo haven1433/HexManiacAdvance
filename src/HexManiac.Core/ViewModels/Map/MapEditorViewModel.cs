@@ -2218,7 +2218,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
    public enum PrimaryInteractionType { None, Draw, Event, RectangleDraw, Draw9Grid, Draw25Grid }
 
-   public record BlocksetCache(ObservableCollection<string> Primary, ObservableCollection<string> Secondary) {
+   public record BlocksetCache(ObservableCollection<BlocksetOption> Primary, ObservableCollection<BlocksetOption> Secondary) {
       public void CalculateBlocksetOptions(IDataModel model) {
          Primary.Clear();
          Secondary.Clear();
@@ -2236,8 +2236,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
 
-         Primary.AddRange(primary.OrderBy(s => s).Select(s => s.ToAddress()));
-         Secondary.AddRange(secondary.OrderBy(s => s).Select(s => s.ToAddress()));
+         Primary.AddRange(primary.OrderBy(s => s).Select(s => new BlocksetOption(model, s)));
+         Secondary.AddRange(secondary.OrderBy(s => s).Select(s => new BlocksetOption(model, s)));
       }
    }
 
