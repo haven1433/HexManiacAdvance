@@ -374,43 +374,98 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       private record StreamInfo(ExpectedPointerType PointerType, int Source, int Destination);
 
-      public static string InsertMissingClosers(string script) {
-         int checkStart = 0;
-         while (true) {
-            var openIndex = script.Substring(checkStart).IndexOf("{");
-            if (openIndex == -1) break;
-            checkStart += openIndex;
+      public static int InsertMissingClosers(ref string script, int caret) {
+         int caretMove = 0;
+         bool isStartOfLine = true;
+         var text = script.ToList();
+         for (int i = 0; i < text.Count; i++) {
+            if (text[i] == '\n' || text[i] == '\r') isStartOfLine = true;
+            else if (text[i] != ' ' && text[i] != '{') isStartOfLine = false;
+            if (text[i] != '{') continue;
 
-            var closeIndex = script.Substring(checkStart).IndexOf("}");
-            if (closeIndex == -1) {
-               // insert match
-               var start = script.Substring(0, checkStart + 1);
-               var end = script.Substring(checkStart + 1);
-               script = start + Environment.NewLine + "}" + end;
-            } else {
-               checkStart += closeIndex;
+            if (!isStartOfLine) {
+               text.Insert(i, '\r');
+               text.Insert(i + 1, '\n');
+               if (i <= caret) { caret += 2; }
+               i += 2;
             }
+
+            isStartOfLine = true;
+            var close = -1;
+            for (int j = i + 1; j < text.Count && text[j] != '{'; j++) {
+               if (text[j] == '\n' || text[j] == '\r') isStartOfLine = true;
+               else if (text[j] != ' ' && text[j] != '}') isStartOfLine = false;
+               if (text[j] != '}') continue;
+               if (!isStartOfLine) {
+                  text.Insert(j, '\r');
+                  text.Insert(j + 1, '\n');
+                  if (j < caret) { caret += 2; caretMove += 2; }
+                  j += 2;
+               }
+               close = j;
+               break;
+            }
+            if (close == -1) {
+               if (i == caret) {
+                  text.Insert(i + 1, '\r');
+                  text.Insert(i + 2, '\n');
+               }
+               text.Insert(i + 3, '}');
+               close = i + 3;
+               if (i == caret) caretMove -= 3;
+               // check for excess blank lines after the lines we just inserted
+               if (close < text.Count - 4 && text[close + 1] == '\r' && text[close + 2] == '\n' && text[close + 3] == '\r' && text[close + 4] == '\n') {
+                  text.RemoveAt(close + 1);
+                  text.RemoveAt(close + 1);
+               }
+            }
+            if (i + 1 < text.Count && text[i + 1] != '\r') {
+               text.Insert(i + 1, '\r');
+               text.Insert(i + 2, '\n');
+               if (i < caret) { caret += 2; caretMove += 2; }
+               close += 2;
+            }
+            if (close + 1 < text.Count && text[close + 1] != '\r') {
+               text.Insert(close + 1, '\r');
+               text.Insert(close + 2, '\n');
+               if (close < caret) { caret += 2; }
+               isStartOfLine = true;
+               close += 2;
+            }
+
+            // special case: no blank line between open and close
+            if (close == i + 3) {
+               text.Insert(i + 1, '\r');
+               text.Insert(i + 2, '\n');
+               if (i < caret) { caret += 2; caretMove -= 2; }
+               close += 2;
+            }
+
+            i = close;
          }
 
-         return script;
+         script = new string(text.ToArray());
+         return caretMove;
+      }
+
+      public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {
+         int ignoreCaret = 0;
+         return Compile(token, model, start, ref script, ref ignoreCaret, out movedData, out ignoreCharacterCount);
       }
 
       /// <summary>
       /// Potentially edits the script text and returns a set of data repoints.
       /// The data is moved, but the script itself has not written by this method.
       /// </summary>
-      /// <param name="token"></param>
-      /// <param name="model"></param>
-      /// <param name="start"></param>
-      /// <param name="script"></param>
       /// <param name="movedData">Related data runs that moved during compilation.</param>
       /// <param name="ignoreCharacterCount">Number of new characters added that should be ignored by the caret.</param>
       /// <returns></returns>
-      public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {
+      public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, ref int caret, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {
          ignoreCharacterCount = 0;
          movedData = new List<(int, int)>();
          var deferredContent = new List<DeferredStreamToken>();
-         script = InsertMissingClosers(script);
+         int adjustCaret = InsertMissingClosers(ref script, caret);
+         caret += adjustCaret;
          var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
             .Where(line => !string.IsNullOrWhiteSpace(line))

@@ -392,8 +392,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
-            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData, out int ignoreCharacterCount);
-            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount);
+            int caret = body.CaretPosition;
+            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, out var movedData, out int ignoreCharacterCount);
+            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount + caret - body.CaretPosition);
             if (code == null) {
                return;
             }
@@ -433,7 +434,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
-                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData, out var _); // recompile for the new location. Could update pointers.
+                     int changedCaret = body.CaretPosition;
+                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref changedCaret, out movedData, out var _); // recompile for the new location. Could update pointers.
+                     // assume that changedCaret == body.CaretPosition? But it's probably not important
                      sources = run.PointerSources;
                   }
                }
