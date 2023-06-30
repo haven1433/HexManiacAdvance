@@ -72,7 +72,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          TransparentLayer.CaretIndex = vm.CaretIndex;
       }
 
-      private void HandleViewModelRequestKeyboardFocus(object sender, EventArgs e) => Keyboard.Focus(TransparentLayer);
+      private void HandleViewModelRequestKeyboardFocus(object sender, EventArgs e) {
+         RequestBringIntoView += SuppressBringIntoView;
+         Keyboard.Focus(TransparentLayer);
+         RequestBringIntoView -= SuppressBringIntoView;
+      }
+
+      private void SuppressBringIntoView(object sender, RequestBringIntoViewEventArgs e) => e.Handled = true;
 
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
 
