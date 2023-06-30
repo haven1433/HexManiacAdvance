@@ -1325,6 +1325,19 @@
       </Style.Triggers>
    </Style>
 
+   <!-- Text Editor Style -->
+   <Style TargetType="hsc:TextEditor">
+      <Setter Property="ContextMenuOverride">
+         <Setter.Value>
+            <ContextMenu>
+               <MenuItem Command="ApplicationCommands.Cut" />
+               <MenuItem Command="ApplicationCommands.Copy" />
+               <MenuItem Command="ApplicationCommands.Paste" />
+            </ContextMenu>
+         </Setter.Value>
+      </Setter>
+   </Style>
+
    <!-- Data Templates -->
    <DataTemplate DataType="{x:Type tools:ReadonlyPaletteCollection}">
       <StackPanel Orientation="Horizontal">

@@ -37,6 +37,8 @@
       </Canvas>
       <TextBox Name="TransparentLayer" Background="Transparent" CaretBrush="{DynamicResource Primary}" Foreground="Transparent"
                UndoLimit="0" AcceptsReturn="True" AcceptsTab="True" ScrollViewer.ScrollChanged="TextScrollChanged"
+         Tag="{Binding Tag, RelativeSource={RelativeSource AncestorType=local:TextEditor}}"
+         ContextMenu="{Binding ContextMenuOverride, RelativeSource={RelativeSource AncestorType=local:TextEditor}}"
          Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" VerticalScrollBarVisibility="Visible" />
    </Grid>
 </UserControl>

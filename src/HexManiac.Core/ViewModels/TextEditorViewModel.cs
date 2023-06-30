@@ -21,6 +21,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ITextPreProcessor PreFormatter { get; set; }
 
       public event EventHandler RequestCaretMove;
+      public event EventHandler RequestKeyboardFocus;
 
       public TextEditorViewModel() {
          Keywords.CollectionChanged += (sender, e) => UpdateLayers();
@@ -66,6 +67,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          CaretIndex = index;
          RequestCaretMove.Raise(this);
       }
+
+      public void FocusKeyboard() => RequestKeyboardFocus.Raise(this);
 
       private void UpdateLayers() {
          if (content.Length == 0) {

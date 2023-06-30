@@ -464,9 +464,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
             streamInfo.Clear();
-            foreach (var command in engine) {
-               if (!command.MatchesGame(gameHash)) continue;
-               if (!command.CanCompile(line)) continue;
+
+            var command = FirstMatch(line);
+            if (command != null) {
                var currentSize = result.Count;
 
                if (line.Contains("<??????>")) {
@@ -552,7 +552,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
 
                lastCommandIsEndCommand = command.IsEndingCommand;
-               break;
             }
          }
 
@@ -567,6 +566,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          return result.ToArray();
+      }
+
+      public IScriptLine FirstMatch(string line) {
+         foreach (var command in engine) {
+            if (!command.MatchesGame(gameHash)) continue;
+            if (command.CanCompile(line)) return command;
+         }
+         return null;
       }
 
       private LabelLibrary ExtractLocalLabels(IDataModel model, int start, string[] lines) {
@@ -595,7 +602,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
-            (char.IsLetterOrDigit(context.Line[context.Index - 1]) || context.Line[context.Index - 1].IsAny("_~'\"-".ToCharArray()));
+            (char.IsLetterOrDigit(context.Line[context.Index - 1]) || context.Line[context.Index - 1].IsAny("_~'\"-.".ToCharArray()));
          if (isAfterToken) {
             tokens = ScriptLine.Tokenize(currentLine.Substring(0, context.Index).Trim());
             // try to auto-complete whatever token is left of the cursor
@@ -762,7 +769,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index);
       string Decompile(IDataModel data, int start, DecompileLabelLibrary labels);
 
+      /// <summary>
+      /// Returns true if the command looks correct, even if the arguments are incomplete.
+      /// </summary>
       bool CanCompile(string line);
+
+      /// <summary>
+      /// Returns an error if the line cannot be compiled, or a set of tokens if it can be compiled.
+      /// </summary>
+      string ErrorCheck(string scriptLine, out string[] tokens);
+
       string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
 
       void AddDocumentation(string content);
@@ -785,6 +801,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly IReadOnlyList<int> matchingGames;
 
       public IReadOnlyList<IScriptArg> Args { get; }
+      public IReadOnlyList<IScriptArg> ShortFormArgs {
+         get {
+            if (shortIndexFromLongIndex.Count == 0) {
+               return Args.Where(arg => arg is not SilentMatchArg).ToList();
+            }
+            var args = new IScriptArg[shortIndexFromLongIndex.Count()];
+            foreach (var pair in shortIndexFromLongIndex) {
+               args[pair.Value] = Args[pair.Key];
+            }
+            return args;
+         }
+      }
       public IReadOnlyList<byte> LineCode => emptyByteList;
       public IReadOnlyList<string> Documentation => documentation;
       public string LineCommand { get; }
@@ -921,23 +949,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool CanCompile(string line) {
          var tokens = ScriptLine.Tokenize(line);
+         if (tokens.Length == 0) return false;
          if (tokens[0] != LineCommand) return false;
-         var args = tokens.Skip(1).ToArray();
-         args = ConvertShortFormToLongForm(args);
-         return args.Length == Args.Where(arg => arg is ScriptArg).Count();
+         return true;
       }
 
-      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
-         result = null;
-         var tokens = ScriptLine.Tokenize(scriptLine);
+      public string ErrorCheck(string scriptLine, out string[] tokens) {
+         tokens = ScriptLine.Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var args = tokens.Skip(1).ToArray();
+         var shortArgs = args;
          args = ConvertShortFormToLongForm(args);
          var commandText = LineCommand;
          var specifiedArgs = Args.Where(arg => arg is ScriptArg).Count();
          if (specifiedArgs != args.Length) {
-            return $"Command {commandText} expects {specifiedArgs} arguments, but received {args.Length} instead.";
+            return $"Command {commandText} expects {specifiedArgs} arguments, but received {shortArgs.Length} instead.";
          }
+         return null;
+      }
+
+      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
+         result = null;
+         var error = ErrorCheck(scriptLine, out var tokens);
+         if (error != null) return error;
+         var args = tokens.Skip(1).ToArray();
          var results = new List<byte>();
          var specifiedArgIndex = 0;
          for (int i = 0; i < Args.Count; i++) {
@@ -1099,9 +1134,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return true;
       }
 
-      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
-         result = null;
-         var tokens = Tokenize(scriptLine);
+      public string ErrorCheck(string scriptLine, out string[] tokens) {
+         tokens = Tokenize(scriptLine);
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var commandText = LineCommand;
          for (int i = 1; i < LineCode.Count; i++) commandText += " " + LineCode[i].ToString("X2");
@@ -1116,6 +1150,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          } else if (Args.Count != tokens.Length - LineCode.Count) {
             return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
          }
+         return null;
+      }
+
+      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
+         result = null;
+         var error = ErrorCheck(scriptLine, out var tokens);
+         if (error != null) return error;
          var results = new List<byte>(LineCode);
          start += LineCode.Count;
          for (int i = 0; i < Args.Count; i++) {

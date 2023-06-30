@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private CodeMode mode;
       private readonly ThumbParser thumb;
       private readonly ScriptParser script, battleScript, animationScript, battleAIScript;
+      private readonly ViewPort viewPort;
       private readonly IDataModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
@@ -28,6 +30,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool IsReadOnly => Mode == CodeMode.Raw;
       public bool UseSingleContent => !UseMultiContent;
       public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.AnimationScript, CodeMode.TrainerAiScript);
+
+      public IDataInvestigator Investigator { get; set; }
 
       private bool showErrorText;
       public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
@@ -85,8 +89,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public double SingleBoxVerticalOffset { get; set; }
       public double MultiBoxVerticalOffset { get; set; }
 
-      public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
-         var gameHash = model.GetShortGameCode();
+      public CodeTool(Singletons singletons, ViewPort viewPort, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
+         var gameHash = viewPort.Model.GetShortGameCode();
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(gameHash, singletons.ScriptLines, 0x02);
          battleScript = new ScriptParser(gameHash, singletons.BattleScriptLines, 0x3D);
@@ -96,7 +100,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          battleScript.CompileError += ObserveCompileError;
          animationScript.CompileError += ObserveCompileError;
          battleAIScript.CompileError += ObserveCompileError;
-         this.model = model;
+         this.viewPort = viewPort;
+         this.model = viewPort.Model;
          this.selection = selection;
          this.history = history;
          this.messageTab = messageTab;
@@ -248,11 +253,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents[i].ContentChanged += ScriptChanged;
             } else {
-               var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = info.Length };
+               var body = new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label, CompiledLength = info.Length };
                parser.AddKeywords(model, body);
                body.Content = info.Content;
                body.ContentChanged += ScriptChanged;
                body.HelpSourceChanged += UpdateScriptHelpFromLine;
+               body.RequestShowSearchResult += ShowSearchResults;
                Contents.Add(body);
             }
          }
@@ -320,6 +326,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          else if (mode == CodeMode.TrainerAiScript) help = BattleAIScriptParser.GetHelp(model, context);
          else throw new NotImplementedException();
          codeBody.HelpContent = help;
+      }
+
+      private void ShowSearchResults(object sender, ISet<int> results) {
+         var selection = results.Select(r => (r, r + 1)).ToList();
+         viewPort.OpenSearchResultsTab("Script Search Results", selection);
       }
 
       private void CompileChanges() {
@@ -526,7 +537,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class CodeBody : ViewModelCore {
+      private readonly IDataModel model;
+      private readonly ScriptParser parser;
+      private readonly IDataInvestigator investigator;
+
       public event EventHandler<ExtendedPropertyChangedEventArgs<string>> ContentChanged;
+
+      public event EventHandler<ISet<int>> RequestShowSearchResult;
 
       public event EventHandler<HelpContext> HelpSourceChanged;
 
@@ -548,24 +565,166 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => Set(ref compiledLength, value);
       }
 
+      #region Insertion Utilities
+
+      public bool CanInsertFlag {
+         get {
+            if (investigator == null) return false;
+            var context = SplitCurrentLine();
+            if (context.ContentBoundaryCount != 0) return false;
+
+            // only available if the previous character is a space
+            if (context.Index == 0 || context.Line[context.Index - 1] != ' ') return false;
+
+            // only available if the next parameter is a flag
+            var line = parser.FirstMatch(context.Line.Trim());
+            if (line == null) return false;
+            var tokens = ScriptLine.Tokenize(context.Line.Substring(0, context.Index));
+            if (tokens.Length == 0) return false;
+            var args = (line is MacroScriptLine macro) ? macro.ShortFormArgs : line.Args;
+            if (args.Count < tokens.Length) return false;
+            var currentArg = args[tokens.Length - 1];
+            return currentArg.Name == "flag" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == "|h";
+         }
+      }
+
+      public bool CanInsertVar {
+         get {
+            if (investigator == null) return false;
+            var context = SplitCurrentLine();
+            if (context.ContentBoundaryCount != 0) return false;
+
+            // only available if the previous character is a space
+            if (context.Index == 0 || context.Line[context.Index - 1] != ' ') return false;
+
+            // only available if the next parameter is a variable
+            var line = parser.FirstMatch(context.Line.Trim());
+            if (line == null) return false;
+            var tokens = ScriptLine.Tokenize(context.Line.Substring(0, context.Index));
+            if (tokens.Length == 0) return false;
+            var args = (line is MacroScriptLine macro) ? macro.ShortFormArgs : line.Args;
+            if (args.Count < tokens.Length) return false;
+            var currentArg = args[tokens.Length - 1];
+            return currentArg.Name == "variable" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == string.Empty;
+         }
+      }
+
+      public void InsertFlag() {
+         var content = new StringBuilder(Content.Substring(0, CaretPosition));
+         var afterContent = Content.Substring(CaretPosition);
+         var flag = investigator.FindNextUnusedFlag();
+
+         var newContent = $"0x{flag:X4}";
+         var context = SplitCurrentLine();
+         var lineContent = context.Line.Substring(0, context.Index) + newContent;
+         var line = parser.FirstMatch(lineContent.Trim());
+         if (line.ErrorCheck(lineContent, out var _) != null) newContent += " ";
+         content.Append(newContent);
+
+         content.Append(afterContent);
+         SaveCaret(newContent.Length);
+         Content = content.ToString();
+         Editor.FocusKeyboard();
+      }
+
+      public void InsertVar() {
+         var content = new StringBuilder(Content.Substring(0, CaretPosition));
+         var afterContent = Content.Substring(CaretPosition);
+         var variable = investigator.FindNextUnusedVariable();
+
+         var newContent = $"0x{variable:X4}";
+         var context = SplitCurrentLine();
+         var lineContent = context.Line.Substring(0, context.Index) + newContent;
+         var line = parser.FirstMatch(lineContent);
+         if (line.ErrorCheck(lineContent, out var _) != null) newContent += " ";
+         content.Append(newContent);
+
+         content.Append(afterContent);
+         SaveCaret(newContent.Length);
+         Content = content.ToString();
+         Editor.FocusKeyboard();
+      }
+
+      public void InsertFlagOrVar() {
+         if (CanInsertFlag) {
+            InsertFlag();
+         } else if (CanInsertVar) {
+            InsertVar();
+         }
+      }
+
+      /// <summary>
+      /// true if the user right-clicked on a variable or flag
+      /// </summary>
+      public bool CanFindUses {
+         get {
+            if (CaretPosition < 0) return false;
+            var context = SplitCurrentLine();
+            if (context.ContentBoundaryCount != 0) return false;
+            int left = context.Index, right = context.Index;
+            while (right < context.Line.Length && context.Line[right] != ' ') right++;
+            while (left.InRange(1, context.Line.Length) && context.Line[left] != ' ') left--;
+            var token = context.Line.Substring(left, right - left).Trim();
+            if (!token.TryParseInt(out int value)) return false;
+            var line = parser.FirstMatch(context.Line.Trim());
+            if (line == null) return false;
+            if (line.Args.All(arg => arg.Name != "variable" && arg.Name != "flag")) return false;
+            return true;
+         }
+      }
+
+      public void FindUses() {
+         var context = SplitCurrentLine();
+         if (context.ContentBoundaryCount != 0) return;
+         int left = context.Index, right = context.Index;
+         while (right < context.Line.Length && context.Line[right] != ' ') right++;
+         while (left.InRange(0, context.Line.Length) && context.Line[left] != ' ') left--;
+         var token = context.Line.Substring(left, right - left).Trim();
+         if (!token.TryParseInt(out int value)) return;
+         var line = parser.FirstMatch(context.Line.Trim());
+         if (line == null) return;
+         if (value < 0x4000) {
+            var flags = Flags.FindFlagUsages(model, parser, value);
+            RequestShowSearchResult.Raise(this, flags);
+         } else {
+            var variables = Flags.FindVarUsages(model, parser, value);
+            RequestShowSearchResult.Raise(this, variables);
+         }
+      }
+
+      private StubCommand findUsesCommand;
+      public ICommand FindUsesCommand => StubCommand(ref findUsesCommand, FindUses, () => CanFindUses);
+
+      #endregion
+
       public int CaretPosition {
          get => Editor.CaretIndex;
          set {
             if (Editor.CaretIndex == value) return;
             Editor.CaretIndex = value;
-            var lines = Content.Split('\r', '\n').ToList();
-            var contentBoundaryCount = 0;
-            while (value > lines[0].Length) {
-               if (lines[0].Trim() == "{") contentBoundaryCount += 1;
-               if (lines[0].Trim() == "}") contentBoundaryCount -= 1;
-               value -= lines[0].Length + 1;
-               lines.RemoveAt(0);
-            }
+            var context = SplitCurrentLine();
 
             // only show help if we're not within content curlies.
-            if (contentBoundaryCount != 0) HelpContent = string.Empty;
-            else HelpSourceChanged?.Invoke(this, new(lines[0], value));
+            if (context.ContentBoundaryCount != 0) HelpContent = string.Empty;
+            else HelpSourceChanged?.Invoke(this, context);
+
+            NotifyPropertiesChanged(nameof(CanInsertFlag), nameof(CanInsertVar), nameof(CanFindUses));
+            findUsesCommand.RaiseCanExecuteChanged();
          }
+      }
+
+      public HelpContext SplitCurrentLine() {
+         int value = CaretPosition;
+         var lines = Content.Split('\r', '\n').ToList();
+         var contentBoundaryCount = 0;
+         int i = 0;
+         while (value > lines[i].Length) {
+            if (lines[i].Trim() == "{") contentBoundaryCount += 1;
+            if (lines[i].Trim() == "}") contentBoundaryCount -= 1;
+            value -= lines[i].Length + 1;
+            i++;
+         }
+         return new(lines[i], value, contentBoundaryCount);
       }
 
       public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
@@ -588,7 +747,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string helpContent;
       public string HelpContent { get => helpContent; set => TryUpdate(ref helpContent, value); }
 
-      public CodeBody() {
+      public CodeBody(IDataModel model, ScriptParser parser, IDataInvestigator investigator) {
+         this.model = model;
+         this.parser = parser;
+         this.investigator = investigator;
          Editor.Bind(nameof(Editor.Content), (sender, e) => {
             if (ignoreEditorContentUpdates) return;
             NotifyPropertyChanged(nameof(Content));
@@ -602,5 +764,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
    }
 
-   public record HelpContext(string Line, int Index);
+   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0);
 }

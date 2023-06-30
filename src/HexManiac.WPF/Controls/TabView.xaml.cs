@@ -603,5 +603,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             viewPort.Tools.TableTool.Next.Execute();
          }
       }
+
+      private void CodeBodyKeyDown(object sender, KeyEventArgs e) {
+         if (sender is not FrameworkElement element) return;
+         if (element.Tag is not CodeBody body) return;
+         if (e.Key == Key.U && Keyboard.Modifiers == ModifierKeys.Control) {
+            e.Handled = true;
+            body.InsertFlagOrVar();
+         }
+      }
    }
 }

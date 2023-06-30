@@ -112,10 +112,10 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 16 setvar variable: value:                      # sets the given variable to the given value
 17 addvar variable: value:                      # variable += value
 18 subvar variable: value:                      # variable -= value
-19 copyvar destination: source:                 # destination = source
-1A setorcopyvar destination: source:            # Works like the copyvar command if the source field is a variable number;
+19 copyvar variable: source:                    # destination = source
+1A setorcopyvar variable: source:               # Works like the copyvar command if the source field is a variable number;
                                                 # works like the setvar command if the source field is not a variable number.
-1A copyvarifnotzero destination: source:        # destination = source (or) destination = *source
+1A copyvarifnotzero variable: source:           # destination = source (or) destination = *source
                                                 # (if source isn't a valid variable, it's read as a value)
 1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the values in the two banks
 1C comparebanktobyte bank.4 value.              # sets the condition variable

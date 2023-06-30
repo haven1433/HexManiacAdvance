@@ -2017,13 +2017,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
-         if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
-         if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
-         if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
 
          lock (blockRenders) {
+            if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
+            if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
+            if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
             blockRenders.Clear();
-            blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes));
+            if (blocks != null && tiles != null && palettes != null) {
+               blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes));
+            }
          }
       }
 

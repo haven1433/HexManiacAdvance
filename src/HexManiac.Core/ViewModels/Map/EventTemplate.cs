@@ -18,13 +18,17 @@ using System.Threading.Tasks;
 
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
-   public class EventTemplate : ViewModelCore {
+   public interface IDataInvestigator {
+      int FindNextUnusedFlag();
+      int FindNextUnusedVariable();
+   }
+
+   public class EventTemplate : ViewModelCore, IDataInvestigator {
       private readonly Random rnd = new();
       private readonly IDataModel model;
       private readonly ScriptParser parser;
       private readonly Task initializationWorkload;
-      private ISet<int> usedFlags;
-      private ISet<int> usedTrainerFlags;
+      private ISet<int> usedFlags, usedTrainerFlags, usedVariables;
       private IReadOnlyDictionary<int, TrainerPreference> trainerPreferences;
       private IReadOnlyDictionary<int, int> minLevel;
 
@@ -38,6 +42,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get {
             initializationWorkload.Wait();
             return usedTrainerFlags;
+         }
+      }
+      private ISet<int> UsedVariables {
+         get {
+            initializationWorkload.Wait();
+            return usedVariables;
          }
       }
 
@@ -80,6 +90,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          initializationWorkload = dispatcher.RunBackgroundWork(() => {
             usedFlags = Flags.GetUsedItemFlags(model, parser);
             usedTrainerFlags = Flags.GetUsedTrainerFlags(model, parser);
+            usedVariables = Flags.GetUsedVariables(model, parser);
          });
       }
 
@@ -138,6 +149,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public ObservableCollection<TemplateType> AvailableTemplateTypes { get; } = new();
+
+      public int FindNextUnusedFlag() {
+         var flag = 0x21;
+         while (UsedFlags.Contains(flag)) flag++;
+         UsedFlags.Add(flag);
+         return flag;
+      }
+
+      public int FindNextUnusedVariable() {
+         var variable = 0x4034;
+         while (UsedVariables.Contains(variable)) variable++;
+         UsedVariables.Add(variable);
+         return variable;
+      }
 
       public void ApplyTemplate(ObjectEventViewModel objectEventModel, ModelDelta token) {
          if (selectedTemplate == TemplateType.Trainer) CreateTrainer(objectEventModel, token);
@@ -400,9 +425,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          token.ChangeData(model, scriptStart, script);
          model.WriteMultiByteValue(scriptStart + 3, 2, token, itemID);
 
-         var itemFlag = 0x21;
-         while (UsedFlags.Contains(itemFlag)) itemFlag++;
-         UsedFlags.Add(itemFlag);
+         var itemFlag = FindNextUnusedFlag();
 
          objectEventModel.Graphics = ItemGraphics;
          objectEventModel.Elevation = 3;
@@ -573,9 +596,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
           *    end
           */
 
-         var tutorFlag = 0x21;
-         while (UsedFlags.Contains(tutorFlag)) tutorFlag++;
-         UsedFlags.Add(tutorFlag);
+         var tutorFlag = FindNextUnusedFlag();
 
          int tutor = 0;
          int infoStart = WriteText(token, "Want to learn a cool move?");
@@ -712,9 +733,7 @@ failed:
       #region Trade
 
       public void CreateTrade(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
-         var tradeFlag = 0x21;
-         while (UsedFlags.Contains(tradeFlag)) tradeFlag++;
-         UsedFlags.Add(tradeFlag);
+         var tradeFlag = FindNextUnusedFlag();
 
          int tradeId = 0;
          int initialText = WriteText(token, "Want to trade your \\\\02\nfor my \\\\03?");
@@ -850,12 +869,8 @@ wrongspecies:
       #region Legendary Encounter
 
       public void CreateLegendary(ObjectEventViewModel objectEventModel, ModelDelta token) {
-         var legendFlag = 0x21;
-         while (UsedFlags.Contains(legendFlag)) legendFlag++;
-         UsedFlags.Add(legendFlag);
-         var catchFlag = legendFlag;
-         while (UsedFlags.Contains(catchFlag)) catchFlag++;
-         UsedFlags.Add(catchFlag);
+         var legendFlag = FindNextUnusedFlag();
+         var catchFlag = FindNextUnusedFlag();
 
          int cryText = model.IsFRLG() ? WriteText(token, "Roar!") : Pointer.NULL;
 

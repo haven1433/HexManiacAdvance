@@ -1051,7 +1051,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             dispatcher.DispatchWork(RefreshBackingData); // this work must be done on the UI thread
             if (fs != null) {
-               if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) mapper = null;
+               if (MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) {
+                  Tools.CodeTool.Investigator = mapper.Templates;
+               } else {
+                  mapper = null;
+               }
             }
          }, TaskContinuationOptions.ExecuteSynchronously);
       }

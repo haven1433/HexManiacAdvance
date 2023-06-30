@@ -2,6 +2,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
@@ -26,6 +27,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region ContextMenuOverride
+
+      public ContextMenu ContextMenuOverride {
+         get { return (ContextMenu)GetValue(ContextMenuOverrideProperty); }
+         set { SetValue(ContextMenuOverrideProperty, value); }
+      }
+
+      public static readonly DependencyProperty ContextMenuOverrideProperty = DependencyProperty.Register(nameof(ContextMenuOverride), typeof(ContextMenu), typeof(TextEditor), new PropertyMetadata(null));
+
+      #endregion
+
       #region TextBox-Like properties
 
       public event RoutedEventHandler SelectionChanged;
@@ -47,9 +59,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
          if (e.OldValue is TextEditorViewModel oldVM) {
             oldVM.RequestCaretMove -= HandleViewModelCaretMove;
+            oldVM.RequestKeyboardFocus -= HandleViewModelRequestKeyboardFocus;
          }
          if (e.NewValue is TextEditorViewModel newVM) {
             newVM.RequestCaretMove += HandleViewModelCaretMove;
+            newVM.RequestKeyboardFocus += HandleViewModelRequestKeyboardFocus;
          }
       }
 
@@ -57,6 +71,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var vm = (TextEditorViewModel)sender;
          TransparentLayer.CaretIndex = vm.CaretIndex;
       }
+
+      private void HandleViewModelRequestKeyboardFocus(object sender, EventArgs e) => Keyboard.Focus(TransparentLayer);
 
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
 
