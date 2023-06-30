@@ -450,6 +450,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                // we need to patch this one
                line = $"add r{r[0]}, r{r[0]}, r{r[1]}";
             }
+         } else if (tokens[0] == "sub" && tokens.Length == 3 && tokens.Skip(1).All(token => token.StartsWith("r"))) {
+            var r = tokens.Skip(1).Select(token => token[1..].TryParseInt(out var index) ? index : -1).ToArray();
+            if (r.All(i => i.InRange(0, 8))) {
+               // we need to patch this one
+               line = $"sub r{r[0]}, r{r[0]}, r{r[1]}";
+            }
          }
 
          return line;
