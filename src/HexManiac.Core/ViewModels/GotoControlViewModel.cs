@@ -487,7 +487,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   return;
                }
             }
-         } else if (matchingMaps.Count == 1) {
+         } else if (matchingMaps.Count == 1 && viewPort.MapEditor != null) {
             IsGoto = true;
             var info = matchingMaps[0];
             var hoverContent = viewPort.MapEditor.GetMapPreview(info.Group, info.Map, null);
