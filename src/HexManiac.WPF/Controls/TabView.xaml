@@ -1096,7 +1096,16 @@
                                                          </Setter.Value>
                                                       </Setter>
                                                    </DataTrigger>
-                                                </Style.Triggers>
+                                                      <DataTrigger Binding="{Binding Tag.CanGotoSource, ElementName=TextEditor}" Value="Truth">
+                                                         <Setter Property="ContextMenuOverride">
+                                                            <Setter.Value>
+                                                               <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                                                  <MenuItem Header="Goto Source" Command="{Binding GotoSourceCommand}" />
+                                                               </ContextMenu>
+                                                            </Setter.Value>
+                                                         </Setter>
+                                                      </DataTrigger>
+                                                   </Style.Triggers>
                                              </Style>
                                           </hsg3hv:TextEditor.Style>
                                        </hsg3hv:TextEditor>

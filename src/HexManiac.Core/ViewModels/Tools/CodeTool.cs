@@ -665,8 +665,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var context = SplitCurrentLine();
             if (context.ContentBoundaryCount != 0) return false;
             int left = context.Index, right = context.Index;
-            while (right < context.Line.Length && context.Line[right] != ' ') right++;
             while (left.InRange(1, context.Line.Length) && context.Line[left] != ' ') left--;
+            while (right < context.Line.Length && context.Line[right] != ' ') right++;
             var token = context.Line.Substring(left, right - left).Trim();
             if (!token.TryParseInt(out int value)) return false;
             var line = parser.FirstMatch(context.Line.Trim());
@@ -695,8 +695,54 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private StubCommand findUsesCommand;
+      private bool TryGetSourceInfo(out string table, out string parsedToken) {
+         table = null;
+         parsedToken = null;
+         var context = SplitCurrentLine();
+         var tokens = ScriptLine.Tokenize(context.Line);
+         var token = 0;
+         var caret = 0;
+         while (caret < context.Index) {
+            if (context.Line[caret] == ' ') {
+               caret++;
+               continue;
+            }
+            caret += tokens[token].Length;
+            if (caret >= context.Index) break;
+            token++;
+         }
+         if (token == 0) return false;
+         var line = parser.FirstMatch(context.Line.Trim());
+         if (line == null) return false;
+         parsedToken = tokens[token];
+         var args = line.Args;
+         if (line is MacroScriptLine macro) {
+            args = macro.ShortFormArgs;
+            token -= 1;
+         } else if (line is ScriptLine script) {
+            token -= script.LineCode.Count;
+         }
+         if (args.Count <= token || token < 0) return false;
+         table = args[token].EnumTableName;
+         if (table == null) return false;
+         var tableRun = model.GetTable(table);
+         if (tableRun == null) return false;
+         return true;
+      }
+
+      public bool CanGotoSource => TryGetSourceInfo(out var _, out var _);
+
+      public void GotoSource() {
+         if (!TryGetSourceInfo(out var tableName, out var token)) return;
+         if (!ArrayRunEnumSegment.TryParse(tableName, model, token, out var index)) return;
+         var run = model.GetTable(tableName);
+         var destination = run.Start + run.ElementLength * index;
+         RequestShowSearchResult.Raise(this, new HashSet<int> { destination });
+      }
+
+      private StubCommand findUsesCommand, gotoSourceCommand;
       public ICommand FindUsesCommand => StubCommand(ref findUsesCommand, FindUses, () => CanFindUses);
+      public ICommand GotoSourceCommand => StubCommand(ref gotoSourceCommand, GotoSource, () => CanGotoSource);
 
       #endregion
 
@@ -711,8 +757,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (context.ContentBoundaryCount != 0) HelpContent = string.Empty;
             else HelpSourceChanged?.Invoke(this, context);
 
-            NotifyPropertiesChanged(nameof(CanInsertFlag), nameof(CanInsertVar), nameof(CanFindUses));
+            NotifyPropertiesChanged(nameof(CanInsertFlag), nameof(CanInsertVar),
+               nameof(CanFindUses), nameof(CanGotoSource));
             findUsesCommand.RaiseCanExecuteChanged();
+            gotoSourceCommand.RaiseCanExecuteChanged();
          }
       }
 
