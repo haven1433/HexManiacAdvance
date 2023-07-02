@@ -749,6 +749,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
 
+         ISet<int> linesWithLabelsToUpdate = new HashSet<int>();
          var labels = new DecompileLabelLibrary(data, index, length);
 
          while (length > 0) {
@@ -756,6 +757,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (nextAnchor is IScriptStartRun) {
                   if (results.Count > 0) results.Add(string.Empty);
                   results.Add($"{labels.AddressToLabel(nextAnchor.Start, true)}: # {nextAnchor.Start:X6}");
+                  linesWithLabelsToUpdate.Add(results.Count - 1);
                } else if (nextAnchor is IStreamRun) {
                   if (destinations.ContainsKey(index)) {
                      index += nextAnchor.Length;
@@ -776,6 +778,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                length -= 1;
             } else {
                results.Add("  " + line.Decompile(data, index, labels));
+               if (line.Args.Any(arg => arg.Type == ArgType.Pointer && arg.PointerType == ExpectedPointerType.Script)) {
+                  linesWithLabelsToUpdate.Add(results.Count - 1);
+               }
                var compiledByteLength = line.CompiledByteLength(data, index, destinations);
                index += compiledByteLength;
                length -= compiledByteLength;
@@ -803,6 +808,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else {
                continue;
             }
+         }
+
+         // post processing: change the section labels to be in address order
+         var sections = labels.FinalizeLabels();
+         foreach (int i in linesWithLabelsToUpdate) {
+            results[i] = labels.FinalizeLine(sections, results[i]);
          }
 
          return results.ToArray();

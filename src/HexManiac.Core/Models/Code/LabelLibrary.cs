@@ -61,6 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public record DecompileLabelLibrary(IDataModel Model, int Start, int Length) {
+      private const string SENTINEL = ".sentinel.";
       private readonly Dictionary<int, string> labels = new();
       private readonly HashSet<int> rawLabels = new();
 
@@ -74,12 +75,32 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             labels[address] = anchor;
             return anchor;
          } else if (isScriptAddress && address.InRange(Start, Start + Length)) {
-            label = "section" + labels.Count;
+            label = SENTINEL + labels.Count;
             labels[address] = label;
             return label;
          }
          rawLabels.Add(address);
          return address.ToAddress();
+      }
+
+      public IReadOnlyDictionary<string,string> FinalizeLabels() {
+         var matches = labels.Keys.Where(key => labels[key].StartsWith(SENTINEL)).ToList();
+         matches.Sort();
+         var results = new Dictionary<string, string>();
+
+         for (int i = 0; i < matches.Count; i++) {
+            results[labels[matches[i]]] = "section" + i;
+         }
+
+         return results;
+      }
+
+      public string FinalizeLine(IReadOnlyDictionary<string, string> sections, string line) {
+         var start = line.IndexOf(SENTINEL);
+         if (start == -1) return line;
+         var index = int.Parse(new string(line[(start + SENTINEL.Length)..].TakeWhile(char.IsDigit).ToArray()));
+         line = line.Replace(SENTINEL + index, sections[SENTINEL + index]);
+         return FinalizeLine(sections, line);
       }
 
       public IEnumerable<int> AutoLabels => rawLabels.Where(key => key.InRange(Start, Start + Length));
