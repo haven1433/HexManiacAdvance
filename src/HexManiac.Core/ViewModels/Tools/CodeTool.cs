@@ -33,6 +33,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public IDataInvestigator Investigator { get; set; }
 
+      private bool insertAutoActive = true;
+      public bool InsertAutoActive { get => insertAutoActive; set => Set(ref insertAutoActive, value); }
+
       private bool showErrorText;
       public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
 
@@ -278,6 +281,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             _ => null,
          };
          var body = (CodeBody)viewModel;
+         if (InsertAutoActive) body.TryInsertAuto();
+         if (body.CaretPosition > 0) {
+            var start = body.Content[0..(body.CaretPosition + 1)];
+            if (start.EndsWith("<auto>")) InsertAutoActive = true;
+            start = body.Content[0..(body.CaretPosition - 1)];
+            if (start.EndsWith("<auto")) InsertAutoActive = false;
+         }
+
          var codeContent = body.Content;
 
          var run = model.GetNextRun(body.Address);
@@ -714,6 +725,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (token == 0) return false;
          var line = parser.FirstMatch(context.Line.Trim());
          if (line == null) return false;
+         if (token >= tokens.Length) return false;
          parsedToken = tokens[token];
          var args = line.Args;
          if (line is MacroScriptLine macro) {
@@ -746,6 +758,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       #endregion
 
+      #region <auto> complete
+
+      public bool TryInsertAuto() {
+         var context = SplitCurrentLine();
+         var tokens = ScriptLine.Tokenize(context.Line);
+         if (context.Line.Length > context.Index + 1) return false;
+         if (!context.Line.EndsWith(" ")) return false;
+         var line = parser.FirstMatch(context.Line.Trim());
+         if (line == null) return false;
+         var args = line.Args;
+         int token = tokens.Length;
+         if (line is MacroScriptLine macro) {
+            args = macro.ShortFormArgs;
+            token -= 1;
+         } else if (line is ScriptLine script) {
+            token -= script.LineCode.Count;
+         }
+         if (token < 0 || token >= args.Count) return false;
+         if (args[token].Type == ArgType.Pointer && args[token].PointerType.IsAny(ExpectedPointerType.Mart, ExpectedPointerType.SpriteTemplate, ExpectedPointerType.Text, ExpectedPointerType.Movement, ExpectedPointerType.Decor)) {
+            var before = Content.Substring(0, CaretPosition + 1);
+            var after = Content.Substring(CaretPosition + 1);
+            using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
+               Editor.Content = before + "<auto>" + after;
+               Editor.SaveCaret(7);
+               return true;
+            }
+         }
+         return false;
+      }
+
+      #endregion
+
       public int CaretPosition {
          get => Editor.CaretIndex;
          set {
@@ -765,7 +809,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public HelpContext SplitCurrentLine() {
-         int value = CaretPosition;
+         int value = Math.Min(CaretPosition, Content.Length);
          var lines = Content.Split('\r', '\n').ToList();
          var contentBoundaryCount = 0;
          int i = 0;

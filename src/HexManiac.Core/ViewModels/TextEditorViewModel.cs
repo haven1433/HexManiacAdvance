@@ -40,7 +40,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void SaveCaret(int lengthDelta) => savedCaret = caretIndex + lengthDelta;
+      public void SaveCaret(int lengthDelta) {
+         if (savedCaret == int.MinValue) savedCaret = caretIndex;
+         savedCaret += lengthDelta;
+      }
 
       private int caretIndex, savedCaret = int.MinValue;
       public int CaretIndex {
