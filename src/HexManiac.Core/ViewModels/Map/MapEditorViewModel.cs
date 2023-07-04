@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
-using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
@@ -246,6 +245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
       public event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
       public event EventHandler<CanPatchEventArgs> RequestCreatePatch;
+      public event EventHandler RequestRefreshGotoShortcuts;
 
       public bool CanIpsPatchRight => false;
       public bool CanUpsPatchRight => false;
@@ -449,6 +449,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                return;
             }
          }
+         if (primaryMap != null) UpdateMapShortcut(map);
+
          blockset = UpdateBlockset(map.MapID);
          if (blockset == -1) return;
          if (blockset == Pointer.NULL) return;
@@ -520,6 +522,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          UpdateBlockBagVisual();
          IsValidState = true;
+      }
+
+      private void UpdateMapShortcut(BlockMapViewModel map) {
+         var groupIndex = map.MapID / 1000;
+         var mapIndex = map.MapID % 1000;
+         var shortcut = model.GotoShortcuts.FirstOrDefault(shortcut => shortcut.DisplayText == "Maps");
+         var index = model.GotoShortcuts.IndexOf(shortcut);
+         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/0/map/{mapIndex}/layout/0/blockmap/", $"maps.{groupIndex}-{mapIndex}", "Maps");
+         model.UpdateGotoShortcut(index, newShortcut);
+         RequestRefreshGotoShortcuts.Raise(this);
       }
 
       private void PrimaryMapNeighborsChanged(object? sender, EventArgs e) {

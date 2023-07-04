@@ -85,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
       void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash);
+      void UpdateGotoShortcut(int index, GotoShortcutModel shortcut);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -164,7 +165,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual IEnumerable<T> All<T>() where T : IFormattedRun { yield break; }
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
       public virtual IReadOnlyList<string> Anchors { get; } = new List<string>();
-      public IReadOnlyList<GotoShortcutModel> GotoShortcuts { get; } = new List<GotoShortcutModel>();
+      private readonly List<GotoShortcutModel> gotoShortcuts = new();
+      public IReadOnlyList<GotoShortcutModel> GotoShortcuts => gotoShortcuts;
 
       public virtual byte this[int index] {
          get => RawData[index];
@@ -330,6 +332,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool Equals(IDataModel other) => other == this;
 
       public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash) { }
+
+      public void UpdateGotoShortcut(int index, GotoShortcutModel model) => gotoShortcuts[index] = model;
    }
 
    public static class IDataModelExtensions {

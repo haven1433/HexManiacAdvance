@@ -1197,6 +1197,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.RequestCanCreatePatch += CanCreatePatch;
          content.RequestCreatePatch += CreatePatch;
          content.PropertyChanged += TabPropertyChanged;
+         content.RequestRefreshGotoShortcuts += RefreshGotoShortcuts;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
 
          if (content is IViewPort viewPort) {
@@ -1219,6 +1220,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.RequestCanCreatePatch -= CanCreatePatch;
          content.RequestCreatePatch -= CreatePatch;
          content.PropertyChanged -= TabPropertyChanged;
+         content.RequestRefreshGotoShortcuts -= RefreshGotoShortcuts;
          if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
 
          if (content is IViewPort viewPort) {
@@ -1227,6 +1229,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
             }
          }
+      }
+
+      private void RefreshGotoShortcuts(object sender, EventArgs e) {
+         if (SelectedTab != sender) return;
+         var collection = CreateGotoShortcuts(GotoViewModel);
+         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
       }
 
       private void UpdateGotoViewModel() {

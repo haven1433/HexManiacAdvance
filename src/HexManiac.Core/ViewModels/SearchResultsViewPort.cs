@@ -150,6 +150,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCanCreatePatch { add { } remove { } }
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
       public event EventHandler<CanDiffEventArgs> RequestCanDiff;
+      event EventHandler ITabContent.RequestRefreshGotoShortcuts { add { } remove { } }
 #pragma warning restore 0067
 
       public bool CanIpsPatchRight => false;

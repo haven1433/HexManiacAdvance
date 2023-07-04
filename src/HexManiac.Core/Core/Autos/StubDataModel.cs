@@ -770,5 +770,8 @@ namespace HavenSoft.HexManiac.Core.Models
 
       public Func<IScriptStartRun, IDictionary<int, int>, int> GetScriptLength;
       int IDataModel.GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths) => GetScriptLength?.Invoke(run, destinationLengths) ?? default;
+
+      public Action<int, GotoShortcutModel> UpdateGotoShortcut;
+      void IDataModel.UpdateGotoShortcut(int index, GotoShortcutModel shortcut) => UpdateGotoShortcut?.Invoke(index, shortcut);
     }
 }

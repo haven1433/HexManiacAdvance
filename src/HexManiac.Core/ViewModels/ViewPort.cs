@@ -986,6 +986,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler FocusToolPanel;
+      public event EventHandler RequestRefreshGotoShortcuts;
 #pragma warning restore 0067
 
       public Shortcuts Shortcuts { get; }

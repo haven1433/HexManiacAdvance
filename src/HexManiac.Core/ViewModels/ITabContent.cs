@@ -40,6 +40,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanDiffEventArgs> RequestCanDiff;
       event EventHandler<CanPatchEventArgs> RequestCanCreatePatch;
       event EventHandler<CanPatchEventArgs> RequestCreatePatch;
+      event EventHandler RequestRefreshGotoShortcuts;
 
       bool CanIpsPatchRight { get; }
       bool CanUpsPatchRight { get; }

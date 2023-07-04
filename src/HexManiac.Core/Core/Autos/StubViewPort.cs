@@ -825,6 +825,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public EventImplementation<System.Collections.Specialized.NotifyCollectionChangedEventArgs> CollectionChanged = new EventImplementation<System.Collections.Specialized.NotifyCollectionChangedEventArgs>();
 
+      public EventImplementation<EventArgs> RequestRefreshGotoShortcuts = new();
+      event EventHandler ITabContent.RequestRefreshGotoShortcuts {
+         add => RequestRefreshGotoShortcuts.add(new(value));
+         remove => RequestRefreshGotoShortcuts.remove(new(value));
+      }
+
       public PropertyImplementation<bool> CanIpsPatchRight { get; } = new();
       bool ITabContent.CanIpsPatchRight => CanIpsPatchRight.value;
       public PropertyImplementation<bool> CanUpsPatchRight { get; } = new();
