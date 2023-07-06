@@ -359,6 +359,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public int GotoNameIndex {
+         get => SelectedNameIndex;
+         set {
+            if (!value.InRange(0, availableNames.Count)) return;
+            var name = availableNames[value];
+            viewPort.Goto.Execute($"({name})");
+         }
+      }
+
       public static string SanitizeName(string name) {
          return name.Replace("\\CC0000", " ");
       }

@@ -236,6 +236,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                   if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(m.Name.Split('(', ')')[1])) && mapper != null && !str.TryParseHex(out _)) {
                      gotoMap = maps[0];
+                  } else if (str.Contains("(") && str.Contains(")")) {
+                     foreach (var map in maps) {
+                        if (map.Name.SkipCount(str) != 0) continue;
+                        gotoMap = map;
+                        break;
+                     }
                   }
                   if (gotoMap != null) {
                      var previousMap = mapper.PrimaryMap;

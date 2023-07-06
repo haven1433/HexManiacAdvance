@@ -1125,10 +1125,9 @@
                   <ColumnDefinition />
                </Grid.ColumnDefinitions>
                <Grid.RowDefinitions>
-                  <RowDefinition /> <RowDefinition />
-                  <RowDefinition /> <RowDefinition />
-                  <RowDefinition /> <RowDefinition />
-                  <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition /> <RowDefinition />
+                  <RowDefinition /> <RowDefinition /> <RowDefinition />
                </Grid.RowDefinitions>
                <Grid.Resources>
                   <Style TargetType="local:AngleBorder" BasedOn="{StaticResource {x:Type local:AngleBorder}}">
@@ -1142,33 +1141,38 @@
                      <Setter Property="Margin" Value="0,2,4,2" />
                   </Style>
                </Grid.Resources>
-               <local:AngleBorder  Grid.Row="0" Content="Music:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="0" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
+
+               <local:AngleBorder Grid.Row="0" Grid.Column="0" Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
+               <local:AngleComboBox DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                    Grid.Row="0" Grid.Column="1" Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />
+
+               <local:AngleBorder  Grid.Row="1" Content="Music:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="1" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
                                     ItemsSource="{Binding MusicOptions}" SelectedIndex="{Binding Music}"
                                     Visibility="{Binding HasMusicOptions, Converter={StaticResource BoolToVisibility}}" />
 
-               <local:AngleBorder  Grid.Row="1" Content="Cave:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="{Binding Cave}" ItemsSource="{Binding CaveOptions}" Direction="Out" Margin="0,2,4,2" />
+               <local:AngleBorder  Grid.Row="2" Content="Cave:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="{Binding Cave}" ItemsSource="{Binding CaveOptions}" Direction="Out" Margin="0,2,4,2" />
 
-               <local:AngleBorder  Grid.Row="2" Content="Weather:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="2" Grid.Column="1" SelectedIndex="{Binding Weather}" ItemsSource="{Binding WeatherOptions}" Direction="Out" Margin="0,2,4,2" />
+               <local:AngleBorder  Grid.Row="3" Content="Weather:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="3" Grid.Column="1" SelectedIndex="{Binding Weather}" ItemsSource="{Binding WeatherOptions}" Direction="Out" Margin="0,2,4,2" />
 
-               <local:AngleBorder  Grid.Row="3" Content="MapType:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="3" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
+               <local:AngleBorder  Grid.Row="4" Content="MapType:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="4" Grid.Column="1" Direction="Out" Margin="0,2,4,2"
                                     ItemsSource="{Binding MapTypeOptions}" SelectedIndex="{Binding MapType}"
                                     Visibility="{Binding HasMapTypeOptions, Converter={StaticResource BoolToVisibility}}" />
 
-               <CheckBox Grid.Row="4" Grid.Column="0" Content="Allow Running"  IsChecked="{Binding AllowRunning}" Margin="4,2" />
-               <CheckBox Grid.Row="4" Grid.Column="1" Content="Show Map Name"  IsChecked="{Binding ShowMapName}" Margin="4,2" />
+               <CheckBox Grid.Row="5" Grid.Column="0" Content="Allow Running"  IsChecked="{Binding AllowRunning}" Margin="4,2" />
+               <CheckBox Grid.Row="5" Grid.Column="1" Content="Show Map Name"  IsChecked="{Binding ShowMapName}" Margin="4,2" />
 
-               <CheckBox Grid.Row="5" Grid.Column="0" Content="Allow Biking"   IsChecked="{Binding AllowBiking}" Margin="4,2" Visibility="{Binding ShowAllowBikingField, Converter={StaticResource BoolToVisibility}}" />
-               <CheckBox Grid.Row="5" Grid.Column="1" Content="Allow Escaping" IsChecked="{Binding AllowEscaping}" Margin="4,2" />
+               <CheckBox Grid.Row="6" Grid.Column="0" Content="Allow Biking"   IsChecked="{Binding AllowBiking}" Margin="4,2" Visibility="{Binding ShowAllowBikingField, Converter={StaticResource BoolToVisibility}}" />
+               <CheckBox Grid.Row="6" Grid.Column="1" Content="Allow Escaping" IsChecked="{Binding AllowEscaping}" Margin="4,2" />
 
-               <local:AngleBorder  Grid.Row="6" Content="BattleType:" Direction="Left" />
-               <local:AngleComboBox Grid.Row="6" Grid.Column="1" Direction="Out" Margin="0,2,4,2" SelectedIndex="{Binding BattleType}" ItemsSource="{Binding BattleOptions}" />
+               <local:AngleBorder  Grid.Row="7" Content="BattleType:" Direction="Left" />
+               <local:AngleComboBox Grid.Row="7" Grid.Column="1" Direction="Out" Margin="0,2,4,2" SelectedIndex="{Binding BattleType}" ItemsSource="{Binding BattleOptions}" />
 
-               <local:AngleBorder  Grid.Row="7" Content="FloorNum:" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
-               <local:AngleTextBox Grid.Row="7" TextBinding="{Binding FloorNum, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
+               <local:AngleBorder  Grid.Row="8" Content="FloorNum:" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
+               <local:AngleTextBox Grid.Row="8" TextBinding="{Binding FloorNum, UpdateSourceTrigger=PropertyChanged}" Visibility="{Binding ShowFloorNumField, Converter={StaticResource BoolToVisibility}}" />
             </Grid>
             <local:AngleBorder Direction="Out" Content="Map Scripts:" Margin="8,8,8,2" />
             <ItemsControl ItemsSource="{Binding PrimaryMap.MapScriptCollection.Scripts}">
@@ -1801,8 +1805,9 @@
                <TextBlock Text="{Binding PrimaryMap.Name}" HorizontalAlignment="Center" />
             </Border>
          </local:AngleBorder>
-         <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
-         <local:AngleComboBox Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />
+         <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Quick Goto:" />
+         <local:AngleComboBox Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}"
+                              SelectedIndex="{Binding PrimaryMap.GotoNameIndex}" />
       </StackPanel>
       <Border Grid.Column="1" IsHitTestVisible="False" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Background}" BorderThickness="0,0,0,1" Height="5" VerticalAlignment="Bottom" />
    </Grid>
