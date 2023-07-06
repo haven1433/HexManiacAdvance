@@ -867,6 +867,20 @@
                </Button>
             </Grid>
             <local:AngleButton  Direction="Out" Margin="5" Content="View Table in Data Tab" DataContext="{Binding PrimaryMap}" Command="{res:MethodCommand GotoData}" />
+            <Menu Margin="0,0,0,5" HorizontalAlignment="Center">
+               <local:AngleMenuItem Header="Export Image" Direction="Out" Padding="20,2">
+                  <MenuItem Header="This Map">
+                     <MenuItem Header="Hide Events" Command="{res:MethodCommand ExportMapImageNoEvents}" />
+                     <MenuItem Header="Show Objects" Command="{res:MethodCommand ExportMapImageObjectEvents}" />
+                     <MenuItem Header="Show All Events" Command="{res:MethodCommand ExportMapImageAllEvents}" />
+                  </MenuItem>
+                  <MenuItem Header="All Connected Maps">
+                     <MenuItem Header="Hide Events" Command="{res:MethodCommand ExportAllMapImagesNoEvents}" />
+                     <MenuItem Header="Show Objects" Command="{res:MethodCommand ExportAllMapImagesObjectEvents}" />
+                     <MenuItem Header="Show All Events" Command="{res:MethodCommand ExportAllMapImagesAllEvents}" />
+                  </MenuItem>
+               </local:AngleMenuItem>
+            </Menu>
             <Grid DataContext="{Binding PrimaryMap.Header}">
                <Grid.Resources>
                   <Style TargetType="ComboBoxItem" BasedOn="{StaticResource {x:Type ComboBoxItem}}" x:Key="BlocksetOptionsContainer">
@@ -1786,11 +1800,6 @@
             <Border Width="50">
                <TextBlock Text="{Binding PrimaryMap.Name}" HorizontalAlignment="Center" />
             </Border>
-            <local:AngleBorder.ContextMenu>
-               <ContextMenu>
-                  <MenuItem Header="Copy Image of all Connections" Command="{res:MethodCommand ExportAllConnectedMaps}" />
-               </ContextMenu>
-            </local:AngleBorder.ContextMenu>
          </local:AngleBorder>
          <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
          <local:AngleComboBox Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />

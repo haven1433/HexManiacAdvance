@@ -603,7 +603,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private bool hideEvents;
       public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => {
-         foreach (var m in VisibleMaps) m.HideEvents = hideEvents;
+         foreach (var m in VisibleMaps) m.ShowEvents = hideEvents ? MapDisplayOptions.NoEvents : MapDisplayOptions.AllEvents;
          Tutorials.Complete(Tutorial.Ctrl_HideEvents);
       }); }
 
@@ -2166,11 +2166,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return -1;
       }
 
-      public void ExportAllConnectedMaps() {
+      public void ExportAllMapImagesNoEvents() => ExportMapImage(true, MapDisplayOptions.NoEvents);
+      public void ExportAllMapImagesObjectEvents() => ExportMapImage(true, MapDisplayOptions.ObjectEvents);
+      public void ExportAllMapImagesAllEvents() => ExportMapImage(true, MapDisplayOptions.AllEvents);
+      public void ExportMapImageNoEvents() => ExportMapImage(false, MapDisplayOptions.NoEvents);
+      public void ExportMapImageObjectEvents() => ExportMapImage(false, MapDisplayOptions.ObjectEvents);
+      public void ExportMapImageAllEvents() => ExportMapImage(false, MapDisplayOptions.AllEvents);
+
+      public void ExportMapImage(bool includeAllMaps, MapDisplayOptions options) {
          // from the primary map, find all connected maps
+         var savePrimarySelected = primaryMap.IsSelected;
+         var savePrimaryShowEvents = primaryMap.ShowEvents;
+
+         primaryMap.IsSelected = false;
+         primaryMap.ShowEvents = options;
          var maps = new List<BlockMapViewModel>(new[] { primaryMap });
          var directions = new[] { MapDirection.Left, MapDirection.Up, MapDirection.Right, MapDirection.Down };
-         for (int i = 0; i < maps.Count; i++) {
+         for (int i = 0; i < maps.Count && includeAllMaps; i++) {
             var neighbors = directions.SelectMany(maps[i].GetNeighbors);
             foreach (var n in neighbors) {
                if (!maps.Any(m => m.MapID == n.MapID)) maps.Add(n);
@@ -2196,6 +2208,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // export it as an image
          fileSystem.CopyImage = (canvas.PixelData, canvas.PixelWidth);
          ViewPort.RaiseMessage("Map copied to clipboard");
+
+         primaryMap.IsSelected = savePrimarySelected;
+         primaryMap.ShowEvents = savePrimaryShowEvents;
       }
    }
 
@@ -2252,6 +2267,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Secondary.AddRange(secondary.OrderBy(s => s).Select(s => new BlocksetOption(model, s)));
       }
    }
+
+   public enum MapDisplayOptions { AllEvents, ObjectEvents, NoEvents }
 
    public record TileSelection(int[]Tiles, int Width);
 }

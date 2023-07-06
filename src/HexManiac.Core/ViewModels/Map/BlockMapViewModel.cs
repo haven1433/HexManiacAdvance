@@ -230,8 +230,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
       } ); }
 
-      private bool hideEvents;
-      public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => ClearPixelCache()); }
+      private MapDisplayOptions showEvents;
+      public MapDisplayOptions ShowEvents { get => showEvents; set => SetEnum(ref showEvents, value, old => ClearPixelCache()); }
 
       #endregion
 
@@ -1304,7 +1304,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
-         if (hideEvents) return null;
+         if (showEvents == MapDisplayOptions.NoEvents) return null;
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
@@ -1948,6 +1948,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             allOverworldSprites = allOverworldSprites,
             BerryInfo = BerryInfo,
             CollisionHighlight = CollisionHighlight,
+            ShowEvents = ShowEvents
          };
          var (n, _, _, w) = vm.GetBorderThickness();
          vm.TopEdge = TopEdge + (connection.Offset + border.North - n) * (int)(16 * SpriteScale);
@@ -2103,13 +2104,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         if (!hideEvents) {
+         if (showEvents != MapDisplayOptions.NoEvents) {
             if (eventRenders == null) RefreshMapEvents(layout);
             if (eventRenders != null) {
                foreach (var obj in eventRenders) {
                   if (obj.EventRender != null) {
-                     var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-                     canvas.Draw(obj.EventRender, x, y);
+                     if (obj is ObjectEventViewModel || showEvents == MapDisplayOptions.AllEvents) {
+                        var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+                        canvas.Draw(obj.EventRender, x, y);
+                     }
                   }
                }
             }
