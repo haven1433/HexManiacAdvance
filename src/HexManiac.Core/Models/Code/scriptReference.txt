@@ -112,7 +112,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 16 setvar variable: value:                      # sets the given variable to the given value
 17 addvar variable: value:                      # variable += value
 18 subvar variable: value:                      # variable -= value
-19 copyvar variable: source:                    # destination = source
+19 copyvar variable: source:                    # variable = source
 1A setorcopyvar variable: source:               # Works like the copyvar command if the source field is a variable number;
                                                 # works like the setvar command if the source field is not a variable number.
 1A copyvarifnotzero variable: source:           # destination = source (or) destination = *source

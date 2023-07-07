@@ -199,7 +199,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // metadata is more important than anything already found
             foreach (var list in metadata.Lists) {
-               lists[list.Name] = new ValidationList(list.Hash, list);
+               lists[list.Name] = new ValidationList(list.Hash, list, list.Comments);
             }
             var anchorHashes = new Dictionary<string, string>();
 
@@ -1752,13 +1752,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public override void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash) {
+      public override void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash) {
          if (!lists.TryGetValue(name, out var oldContent)) oldContent = null;
          if (list == null && lists.ContainsKey(name)) lists.Remove(name);
          else {
-            lists[name] = new ValidationList(hash, list);
+            lists[name] = new ValidationList(hash, list, comments);
          }
-         changeToken.ChangeList(name, oldContent, new ValidationList(hash, list));
+         changeToken.ChangeList(name, oldContent, new ValidationList(hash, list, new Dictionary<int, string>()));
       }
 
       public override bool TryGetList(string name, out ValidationList list) {
@@ -2361,7 +2361,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var kvp in this.lists) {
             var name = kvp.Key;
             var members = kvp.Value.Select((text, i) => i.ToString() == text ? null : text);
-            lists.Add(new StoredList(name, members.ToList(), kvp.Value.StoredHash));
+            var comments = kvp.Value.Comments;
+            lists.Add(new StoredList(name, members.ToList(), comments, kvp.Value.StoredHash));
          }
 
          var unmappedConstants = new List<StoredUnmappedConstant>();

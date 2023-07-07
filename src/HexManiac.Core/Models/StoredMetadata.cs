@@ -205,6 +205,12 @@ namespace HavenSoft.HexManiac.Core.Models {
                   continueCurrentItemIndex = true;
                }
             }
+
+            var endOfLine = line.Split("'''").Last();
+            if (endOfLine.Contains("#") && currentItemChildren != null) {
+               if (currentItemChildrenComments == null) currentItemChildrenComments = new();
+               currentItemChildrenComments[currentItemChildren.Count - 1] = endOfLine.Split("#")[1].Trim();
+            }
          }
 
          CloseCurrentItem(anchors, pointers, matchedWords, offsetPointers, lists, unmappedConstants, gotoShortcuts, tableGroups);
@@ -341,6 +347,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       string currentItem, currentItemName, currentItemFormat, currentItemImage, currentItemDestination, currentItemHash;
       List<string> currentItemChildren;
+      Dictionary<int, string> currentItemChildrenComments;
       bool continueCurrentItemIndex;
       int currentItemLength = -1;
       int currentItemAddress = -1;
@@ -379,7 +386,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (currentItem == "[[List]]") {
             if (currentItemName == null) throw new ArgumentNullException("The Metadata file has a list that didn't specify a name!");
             if (currentItemChildren == null) throw new ArgumentNullException($"List {currentItemName} didn't specify any children!");
-            lists.Add(new StoredList(currentItemName, currentItemChildren, currentItemHash));
+            lists.Add(new StoredList(currentItemName, currentItemChildren, currentItemChildrenComments, currentItemHash));
          }
 
          if (currentItem == "[[UnmappedConstant]]") {
@@ -411,6 +418,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          currentItemLength = -1;
          continueCurrentItemIndex = false;
          currentItemChildren = null;
+         currentItemChildrenComments = null;
          currentItemNote = null;
          currentItemImage = null;
          currentItemDestination = null;
@@ -464,10 +472,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<string> Contents { get; }
       public string Hash { get; }
       public bool HashMatches => Hash == GenerateHash(Contents);
+      public IReadOnlyDictionary<int,string> Comments { get; }
 
-      public StoredList(string name, IReadOnlyList<string> contents, string hash = null) {
+      public StoredList(string name, IReadOnlyList<string> contents, IReadOnlyDictionary<int, string> comments, string hash = null) {
          if (hash == null) hash = GenerateHash(contents);
          (Name, Hash, Contents) = (name, hash, contents);
+         Comments = comments;
       }
 
       public void AppendContents(IList<string> builder) {
@@ -479,15 +489,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             var nextNull = i == Contents.Count - 1 || Contents[i + 1] == null;
 
             if (Contents[i] != null) {
+               var comment = string.Empty;
+               if (Comments != null) comment = Comments.TryGetValue(i, out var c) ? "# " + c : string.Empty;
                if (prevNull && nextNull) {
-                  builder.Add($"{i} = '''{Contents[i]}'''");
+                  builder.Add($"{i} = '''{Contents[i]}'''{comment}");
                } else if (prevNull && !nextNull) {
                   builder.Add($"{i} = [");
-                  builder.Add($"   '''{Contents[i]}''',");
+                  builder.Add($"   '''{Contents[i]}''',{comment}");
                } else if (!prevNull && !nextNull) {
-                  builder.Add($"   '''{Contents[i]}''',");
+                  builder.Add($"   '''{Contents[i]}''',{comment}");
                } else {
-                  builder.Add($"   '''{Contents[i]}''',");
+                  builder.Add($"   '''{Contents[i]}''',{comment}");
                   builder.Add($"]");
                }
             }
@@ -527,8 +539,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class ValidationList : List<string> {
       public string StoredHash { get; }
+      public IReadOnlyDictionary<int, string> Comments { get; }
       public ValidationList(string hash) => StoredHash = hash;
-      public ValidationList(string hash, IEnumerable<string> content) : base(content) => StoredHash = hash;
+      public ValidationList(string hash, IEnumerable<string> content, IReadOnlyDictionary<int, string> comments) : base(content) {
+         StoredHash = hash;
+         Comments = comments;
+      }
       public bool StoredHashMatches => StoredHash == StoredList.GenerateHash(this);
    }
 }

@@ -84,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
-      void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash);
+      void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash);
       void UpdateGotoShortcut(int index, GotoShortcutModel shortcut);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
@@ -213,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public virtual void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, string hash) => throw new NotImplementedException();
+      public virtual void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash) => throw new NotImplementedException();
 
       public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -561,7 +561,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // the list has been manually tampered with by the user
                // do not update it
             } else {
-               model.SetList(noChange, list.Name, list.Contents, list.Hash);
+               model.SetList(noChange, list.Name, list.Contents, list.Comments, list.Hash);
             }
          }
          foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
@@ -840,7 +840,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, null);
+      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, new Dictionary<int, string>(), null);
 
       public static bool IsFreespace(this IDataModel model, int start, int length) {
          for (int i = 0; i < length; i++) {

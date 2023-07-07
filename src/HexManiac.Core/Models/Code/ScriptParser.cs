@@ -687,7 +687,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {
                   var arg = args[tokens.Length - 1 - skipCount];
                   if (!string.IsNullOrEmpty(arg.EnumTableName)) {
-                     var options = model.GetOptions(arg.EnumTableName).Where(option => option.MatchesPartial(tokens[tokens.Length - 1])).ToList();
+                     var isList = model.TryGetList(arg.EnumTableName, out var list);
+                     var allOptions = model.GetOptions(arg.EnumTableName);
+                     var options = new List<string>();
+                     for (int i = 0; i < allOptions.Count; i++) {
+                        if (allOptions[i].MatchesPartial(tokens[tokens.Length - 1])) {
+                           if (!isList || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
+                           else comment = " # " + comment;
+                           options.Add(allOptions[i] + comment);
+                           if (options.Count > 10) break;
+                        }
+                     }
+                     // var options = model.GetOptions(arg.EnumTableName).Where(option => option.MatchesPartial(tokens[tokens.Length - 1])).ToList();
                      if (options.Count > 10) {
                         while (options.Count > 9) options.RemoveAt(options.Count - 1);
                         options.Add("...");

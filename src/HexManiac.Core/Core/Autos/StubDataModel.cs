@@ -252,14 +252,11 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<ModelDelta, string, System.Collections.Generic.IEnumerable<string>, string> SetList { get; set; }
+        public Action<ModelDelta, string, IEnumerable<string>, IReadOnlyDictionary<int, string>, string> SetList { get; set; }
         
-        void IDataModel.SetList(ModelDelta changeToken, string name, System.Collections.Generic.IEnumerable<string> list, string hash)
+        void IDataModel.SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash)
         {
-            if (this.SetList != null)
-            {
-                this.SetList(changeToken, name, list, hash);
-            }
+         SetList?.Invoke(changeToken, name, list, comments, hash);
         }
         
         public Action<ModelDelta, int, int> ClearPointer { get; set; }
