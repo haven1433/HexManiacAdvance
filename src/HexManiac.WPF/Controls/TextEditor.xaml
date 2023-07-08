@@ -29,7 +29,7 @@
                <TranslateTransform />
             </TextBlock.RenderTransform>
          </TextBlock>
-         <TextBlock Name="CommentLayer" Foreground="{DynamicResource Secondary}" Margin="2" Text="{Binding CommentContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
+         <TextBlock Name="CommentLayer" Foreground="{DynamicResource Secondary}" Margin="2" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
             <TextBlock.RenderTransform>
                <TranslateTransform />
             </TextBlock.RenderTransform>

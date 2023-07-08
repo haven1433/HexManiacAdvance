@@ -99,10 +99,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          battleScript = new ScriptParser(gameHash, singletons.BattleScriptLines, 0x3D);
          animationScript = new ScriptParser(gameHash, singletons.AnimationScriptLines, 0x08);
          battleAIScript = new ScriptParser(gameHash, singletons.BattleAIScriptLines, 0x5A);
-         script.CompileError += ObserveCompileError;
-         battleScript.CompileError += ObserveCompileError;
-         animationScript.CompileError += ObserveCompileError;
-         battleAIScript.CompileError += ObserveCompileError;
          this.viewPort = viewPort;
          this.model = viewPort.Model;
          this.selection = selection;
@@ -404,7 +400,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
             int caret = body.CaretPosition;
+            body.ClearErrors();
+            parser.CompileError += body.WatchForCompileErrors;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, out var movedData, out int ignoreCharacterCount);
+            parser.CompileError -= body.WatchForCompileErrors;
             if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount + caret - body.CaretPosition);
             if (code == null) {
                return;
@@ -526,11 +525,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (start % 16 == 0) builder.AppendLine();
          }
          return builder.ToString();
-      }
-
-      private void ObserveCompileError(object sender, string error) {
-         ShowErrorText = true;
-         ErrorText += error + Environment.NewLine;
       }
    }
 

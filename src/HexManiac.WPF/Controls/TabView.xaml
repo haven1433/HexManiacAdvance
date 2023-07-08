@@ -1112,7 +1112,9 @@
                                        <TextBlock Visibility="{Binding IsOpen, ElementName=CodeContentsPopup, Converter={StaticResource BoolToVisibility}}"
                                              HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" FontFamily="Consolas" FontWeight="Bold"/>
                                     </Grid>
-                                 </StackPanel>
+                                       <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
+                                          Text="{Binding ErrorText}"  Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
+                                    </StackPanel>
                               </DataTemplate>
                            </ItemsControl.ItemTemplate>
                         </ItemsControl>

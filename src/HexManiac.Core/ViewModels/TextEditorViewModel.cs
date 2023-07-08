@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -12,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class TextEditorViewModel : ViewModelCore {
       public ObservableCollection<string> Keywords { get; } = new();
       public ObservableCollection<string> Constants { get; } = new();
+      public ObservableCollection<TextSegment> ErrorLocations { get; } = new();
 
       private string commentHeader = string.Empty, multiLineCommentStart = string.Empty, multiLineCommentEnd = string.Empty;
       public string LineCommentHeader { get => commentHeader; set => Set(ref commentHeader, value); }
@@ -181,6 +183,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             nameof(CommentContent),
             nameof(TextContent));
       }
+   }
+
+   public record TextSegment(int Line, int Start, int Length) : INotifyPropertyChanged {
+      public event PropertyChangedEventHandler? PropertyChanged;
    }
 
    public class MutableString {

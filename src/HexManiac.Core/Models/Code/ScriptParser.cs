@@ -16,6 +16,8 @@ using System.Text;
 // ScriptParser.FindLength
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
+   public record ScriptErrorInfo(string Message, TextSegment Segment);
+
    public class ScriptParser {
       public const int MaxRepeates = 20;
       private readonly IReadOnlyList<IScriptLine> engine;
@@ -24,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public bool RequireCompleteAddresses { get; set; } = true;
 
-      public event EventHandler<string> CompileError;
+      public event EventHandler<ScriptErrorInfo> CompileError;
 
       public ScriptParser(int gameHash, IReadOnlyList<IScriptLine> engine, byte endToken) {
          (this.engine, this.endToken) = (engine, endToken);
@@ -577,7 +579,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (error == null) {
                   result.AddRange(code);
                } else {
-                  CompileError?.Invoke(this, i + ": " + error);
+                  var segment = new TextSegment(i, 0, lines[i].Length);
+                  CompileError?.Invoke(this, new(i + ": " + error, segment));
                   return null;
                }
                var pointerOffset = command.LineCode.Count;

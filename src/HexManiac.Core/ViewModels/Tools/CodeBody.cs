@@ -38,6 +38,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => Set(ref compiledLength, value);
       }
 
+      private bool hasError;
+      public bool HasError { get => hasError; set => Set(ref hasError, value); }
+
+      private string errorText;
+      public string ErrorText { get => errorText; set => Set(ref errorText, value); }
+
       #region Insertion Utilities
 
       public bool CanInsertFlag {
@@ -316,5 +322,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
+
+      public void ClearErrors() {
+         HasError = false;
+         ErrorText = string.Empty;
+         Editor.ErrorLocations.Clear();
+      }
+      public void WatchForCompileErrors(object? sender, ScriptErrorInfo e) {
+         HasError = true;
+         ErrorText = e.Message;
+         Editor.ErrorLocations.Add(e.Segment);
+      }
    }
 }
