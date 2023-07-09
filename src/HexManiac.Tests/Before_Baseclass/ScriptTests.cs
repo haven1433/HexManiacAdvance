@@ -521,7 +521,7 @@ Script:
          ViewPort.Tools.CodeTool.Contents[0].Content = "trainerbattle 00";
 
          var message = "0: Command trainerbattle 00 expects 4 arguments, but received 0 instead.";
-         Assert.Equal(ViewPort.Tools.CodeTool.ErrorText.Trim(), message);
+         Assert.Equal(message, ViewPort.Tools.CodeTool.Contents[0].ErrorText.Trim());
       }
 
       [Fact]

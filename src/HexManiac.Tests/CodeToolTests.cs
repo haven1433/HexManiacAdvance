@@ -776,7 +776,7 @@ label2:;goto <000050>;end";
 
          EventScript = "goto <auto>";
 
-         Assert.True(Tool.ShowErrorText);
+         Assert.True(Tool.Contents[0].HasError);
       }
 
       [Fact]
