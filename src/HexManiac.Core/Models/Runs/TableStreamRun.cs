@@ -219,22 +219,23 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var line = lines.Length > i ? lines[i] : string.Empty;
             var tokens = Tokenize(line);
             int segmentOffset = 0;
-            for (int j = 0; j < ElementContent.Count; j++) {
+            var elementContent = ElementContent.Where(c => c.Length != 0).ToList();
+            for (int j = 0; j < elementContent.Count; j++) {
                var data = j < tokens.Count ? tokens[j] : string.Empty;
-               if (j == ElementContent.Count - 1 && tokens.Count > ElementContent.Count) data += " " + " ".Join(tokens.Skip(j + 1));
-               if (ElementContent[j].Write(ElementContent, model, token, start + segmentOffset, ref data)) {
+               if (j == elementContent.Count - 1 && tokens.Count > elementContent.Count) data += " " + " ".Join(tokens.Skip(j + 1));
+               if (elementContent[j].Write(elementContent, model, token, start + segmentOffset, ref data)) {
                   // don't allow deserialization to write a value that looks like an end code
-                  var storedValue = model.ReadMultiByteValue(start, ElementContent[j].Length);
+                  var storedValue = model.ReadMultiByteValue(start, elementContent[j].Length);
                   if (endStream is EndCodeStreamStrategy endCode &&
                      j == 0 &&
-                     ElementContent[j].Length == endCode.ExtraLength &&
+                     elementContent[j].Length == endCode.ExtraLength &&
                      storedValue == endCode.EndCode.ReadMultiByteValue(0, endCode.ExtraLength)) {
-                     model.WriteMultiByteValue(start + segmentOffset, ElementContent[j].Length, token, storedValue + 1);
+                     model.WriteMultiByteValue(start + segmentOffset, elementContent[j].Length, token, storedValue + 1);
                   }
                   changedAddresses.Add(start + segmentOffset);
                }
                if (data.Length > 0) tokens.Insert(j + 1, data);
-               segmentOffset += ElementContent[j].Length;
+               segmentOffset += elementContent[j].Length;
             }
             start += ElementLength;
          }
