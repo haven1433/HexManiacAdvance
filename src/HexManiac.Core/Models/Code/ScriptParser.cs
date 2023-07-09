@@ -1053,6 +1053,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var error = ErrorCheck(scriptLine, out var tokens);
          if (error != null) return error;
          var args = tokens.Skip(1).ToArray();
+         args = ConvertShortFormToLongForm(args);
          var results = new List<byte>();
          var specifiedArgIndex = 0;
          for (int i = 0; i < Args.Count; i++) {

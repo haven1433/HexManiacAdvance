@@ -41,7 +41,10 @@ namespace HavenSoft.HexManiac.Tests {
          group.Single(item => item.Text.StartsWith("Event Script")).Command.Execute();
       }
 
-      public CodeToolTests() => SetFullModel(0xFF);
+      public CodeToolTests() {
+         Model.LoadMetadata(BaseModel.GetDefaultMetadatas().First()); // load default script-related lists, like script_compare
+         SetFullModel(0xFF);
+      }
 
       [Fact]
       public void AddAndRemoveAnchorInSameToken_Undo_NoAnchor() {
@@ -826,6 +829,22 @@ label2:;goto <000050>;end";
          Assert.Equal("Text1", text1.Trim('"'));
          Assert.Equal("Intro", intro.Trim('"'));
          Assert.Equal("Defeat", defeat.Trim('"'));
+      }
+
+      [Theory]
+      [InlineData("<", 0)]
+      [InlineData("=", 1)]
+      [InlineData(">", 2)]
+      [InlineData("<=", 3)]
+      [InlineData(">=", 4)]
+      [InlineData("!=", 5)]
+      public void IfCompareGotoMacro_Comparisons_CompilesToCompareIf1(string comparisonOperator, byte comparisonBytes) {
+         var expected = $"21 0D 80 64 00 06 {comparisonBytes:X2} 00 01 00 08".ToByteArray();
+
+         EventScript = $"if.compare.goto 0x800D {comparisonOperator} 100 <100>";
+
+         var actual = Model.Take(expected.Length).ToArray();
+         Assert.Equal(expected, actual);
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
