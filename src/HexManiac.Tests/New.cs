@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Tests {
    /// <summary>
@@ -21,6 +22,10 @@ namespace HavenSoft.HexManiac.Tests {
       public IDataModel PokemonModel(byte[] data, StoredMetadata metadata) => new PokemonModel(data, metadata, singletons);
 
       public IDataModel HardcodeTablesModel(byte[] rawData, StoredMetadata metadata = null) => new HardcodeTablesModel(singletons, rawData, metadata);
+
+      public static StoredList StoredList(string name, IReadOnlyList<string> contents, string hash = null) => new StoredList(name, contents, new Dictionary<int, string>(), hash);
+
+      public static ValidationList ValidationList(string hash, IReadOnlyList<string> content) => new ValidationList(hash, content, new Dictionary<int, string>());
 
       public static IMetadataInfo EarliestVersionInfo => new StubMetadataInfo { VersionNumber = "0.0.1" };
    }

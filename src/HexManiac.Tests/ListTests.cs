@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Tests {
             null,
             "carl",
          };
-         var list = new StoredList("Input", input);
+         var list = New.StoredList("Input", input);
 
          var lines = new List<string>();
          list.AppendContents(lines);
@@ -205,7 +205,7 @@ DefaultHash = '''0BEEDA92'''
          var content = new[] { "some", "content" };
          var metadata = new StoredMetadata(
             generalInfo: new StubMetadataInfo { VersionNumber = "0.0.1" },
-            lists: new[] { new StoredList(someRealList.Name, content, StoredList.GenerateHash(content)) }
+            lists: new[] { New.StoredList(someRealList.Name, content, StoredList.GenerateHash(content)) }
          );
          var model = new PokemonModel(Model.RawData, metadata, Singletons);
 
@@ -221,7 +221,7 @@ DefaultHash = '''0BEEDA92'''
          var content = new[] { "some", "content" };
          var metadata = new StoredMetadata(
             generalInfo: new StubMetadataInfo { VersionNumber = "0.0.1" },
-            lists: new[] { new StoredList(someRealList.Name, content, hash: "0") }
+            lists: new[] { New.StoredList(someRealList.Name, content, hash: "0") }
          );
          var model = new PokemonModel(Model.RawData, metadata, Singletons);
 

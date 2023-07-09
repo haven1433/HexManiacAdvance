@@ -13,6 +13,7 @@ using Xunit;
 namespace HavenSoft.HexManiac.Tests {
    public static class TestExtensions {
       public static void SetList(this IDataModel model, string name, IReadOnlyList<string> list) => model.SetList(new NoDataChangeDeltaModel(), name, list, null);
+      public static void SetList(this IDataModel model, ModelDelta token, string name, IReadOnlyList<string> list, string hash) => model.SetList(token, name, list, new Dictionary<int, string>(), hash);
       public static ContextItemGroup GetSubmenu(this IReadOnlyList<IContextItem> menu, string content) => (ContextItemGroup)menu.Single(item => item.Text == content);
       public static byte[] BytesFrom(this IDataModel model, IFormattedRun run) {
          var data = new byte[run.Length];
@@ -34,7 +35,7 @@ namespace HavenSoft.HexManiac.Tests {
       public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _, out _);
 
       public static void ChangeList(this ModelDelta token, string name, string[] oldValues, string[] newValues) {
-         token.ChangeList(name, new ValidationList(null, oldValues), new ValidationList(null, newValues));
+         token.ChangeList(name, New.ValidationList(null, oldValues), New.ValidationList(null, newValues));
       }
 
       public static T Single<T>(this ObservableCollection<IArrayElementViewModel> self) => (T)self.Single(item => item is T);
