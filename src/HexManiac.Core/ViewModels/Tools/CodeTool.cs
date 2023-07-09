@@ -278,7 +278,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
          var body = (CodeBody)viewModel;
          if (InsertAutoActive) body.TryInsertAuto();
-         if (body.CaretPosition > 0) {
+         if (body.CaretPosition > 0 && body.CaretPosition < body.Content.Length) {
             var start = body.Content[0..(body.CaretPosition + 1)];
             if (start.EndsWith("<auto>")) InsertAutoActive = true;
             start = body.Content[0..(body.CaretPosition - 1)];
