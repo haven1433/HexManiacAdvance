@@ -1776,6 +1776,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Leave the original data (and other pointers to it) untouched.
       /// </summary>
       private void RepointWithoutRun(int source, int destination) {
+         if (!destination.InRange(0, Model.Count)) {
+            RaiseError("Could not find suitable freespace to use for the repoint.");
+            return;
+         }
          if (!(Model.GetNextRun(source) is ITableRun table)) {
             RaiseError("Could not parse a data format for that pointer.");
             return;
