@@ -680,9 +680,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          resetZoom.CanExecute = CanAlwaysExecute;
          resetZoom.Execute = arg => {
             ZoomLevel = 16;
-            foreach(var tab in this) {
-               if (tab is not MapEditorViewModel mapTab) continue;
-               mapTab.ResetZoom();
+            foreach (var tab in this) {
+               if (tab is MapEditorViewModel mapTab) mapTab.ResetZoom();
+               if (tab is ViewPort viewPort) viewPort.Tools.CodeTool.FontSize = 12;
             }
          };
 
