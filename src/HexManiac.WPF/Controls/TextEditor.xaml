@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:HavenSoft.HexManiac.WPF.Controls">
    <Grid Background="{DynamicResource Backlight}" TextBlock.FontFamily="Consolas" ClipToBounds="True">
-      <Canvas ClipToBounds="False">
+      <Canvas ClipToBounds="False" Width="0" HorizontalAlignment="Left">
          <TextBlock Name="BasicLayer" Foreground="{DynamicResource Primary}" Margin="2" Text="{Binding PlainContent}" Width="{Binding ActualWidth, ElementName=TransparentLayer}">
             <TextBlock.RenderTransform>
                <TranslateTransform />
