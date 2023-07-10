@@ -63,7 +63,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
             run = newRun;
             return ErrorInfo.NoError;
          }
-         return new ErrorInfo($"Could not at overworld sprite at {dataIndex}");
+         return new ErrorInfo($"Could not find overworld sprite at {dataIndex}");
       }
 
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
