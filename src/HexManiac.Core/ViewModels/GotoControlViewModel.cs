@@ -333,7 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!mapEditorRelease.Value) return new();
 
          var allMaps = model.CurrentCacheScope?.GetAllMaps();
-         var results = allMaps?.Where(map => map.Name.MatchesPartial(text)).ToList() ?? new();
+         var results = allMaps?.Where(map => map.Name.MatchesPartial(text) && map.Name.SkipCount(text) <= text.Length).ToList() ?? new();
          var lower = text.ToLower();
          foreach (var result in results) {
             if (result.Name.ToLower() == lower) return new() { result };
