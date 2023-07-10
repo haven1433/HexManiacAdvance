@@ -1,6 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -51,12 +53,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public TextEditorViewModel ViewModel => (TextEditorViewModel)DataContext;
 
+      private IEnumerable<TextBlock> Layers => new[] { BasicLayer, AccentLayer, ConstantsLayer, NumericLayer, CommentLayer, TextLayer };
+
       public TextEditor() {
          InitializeComponent();
          TransparentLayer.SelectionChanged += (sender, e) => {
             SelectionChanged?.Invoke(this, e);
          };
          DataContextChanged += HandleDataContextChanged;
+         // ExtentWidth is not a DependencyProperty, so check for the horizontal scroll bar when the text chanegs
+         TransparentLayer.TextChanged += (sender, e) => {
+            // measure the width of the text, since ExtentWidth hasn't been updated yet.
+            var typeface = new Typeface(TransparentLayer.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+            var width = new FormattedText(TransparentLayer.Text, CultureInfo.CurrentCulture, FlowDirection, typeface, TransparentLayer.FontSize, Brushes.Transparent, 1).Width;
+            foreach (var layer in Layers) layer.Width = width;
+            if (width > TransparentLayer.ViewportWidth) {
+               CornerCover.Width = 16;
+               CornerCover.Height = 17;
+            } else {
+               CornerCover.Width = 0;
+               CornerCover.Height = 0;
+            }
+         };
       }
 
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -99,9 +117,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
 
       private void TextScrollChanged(object sender, ScrollChangedEventArgs e) {
-         foreach (var layer in new[] { BasicLayer, AccentLayer, ConstantsLayer, NumericLayer, CommentLayer, TextLayer }) {
+         foreach (var layer in Layers) {
             var transform = (TranslateTransform)layer.RenderTransform;
             transform.Y = -TransparentLayer.VerticalOffset;
+            transform.X = -TransparentLayer.HorizontalOffset;
+            layer.Width = TransparentLayer.ExtentWidth;
          }
       }
 
