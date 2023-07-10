@@ -343,6 +343,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             { 21, 0x06 },
             { 22, 0x02 },
          };
+         if (address >= model.Count - expectedValues.Count) return null;
          foreach (var (k, v) in expectedValues) {
             if (model[address + k] != v) return null;
          }
@@ -399,6 +400,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             { 7, 0x02 },
             { 8, 0x02 },
          };
+         if (address >= model.Count - expectedValues.Count) return Pointer.NULL;
          foreach (var (k, v) in expectedValues) {
             if (model[address + k] != v) return Pointer.NULL;
          }
@@ -460,6 +462,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             { 10, 0x09 },
             { 11, 0x01 },
          };
+         if (address >= model.Count - expectedValues.Count) return Pointer.NULL;
          foreach (var (k, v) in expectedValues) {
             if (model[address + k] != v) return Pointer.NULL;
          }

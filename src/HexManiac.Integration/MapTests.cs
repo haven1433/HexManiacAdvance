@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Tests;
 using System;
 using System.Linq;
 using Xunit;
@@ -171,6 +172,19 @@ namespace HavenSoft.HexManiac.Integration {
          var table = firered.Model.GetTable("data.maps.banks/3/maps/0/map/0/events/");
          var format = (Pointer)table.CreateDataFormat(firered.Model, table.Start + table.Length - 1);
          Assert.False(format.HasError);
+      }
+
+      [SkippableFact]
+      public void Emerald_EventWithOutOfBoundsPointer_PointerInvalid() {
+         var emerald = LoadEmerald();
+         emerald.Goto.Execute("15-0 sootopolis");
+         var champGuy = emerald.MapEditor.PrimaryMap.EventGroup.Objects[1];
+         emerald.MapEditor.EventDown(champGuy, PrimaryInteractionStart.Click);
+
+         champGuy.ScriptAddressText = "<1000000>";
+
+         champGuy.ReadAllProperties();
+         Assert.True(champGuy.HasScriptAddressError);
       }
    }
 }

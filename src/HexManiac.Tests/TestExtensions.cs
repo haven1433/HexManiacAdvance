@@ -7,6 +7,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using Xunit;
 
@@ -51,6 +52,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       public static byte[] Compile(this ScriptParser parser, ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          return parser.Compile(token, model, start, ref script, out movedData, out var _);
+      }
+
+      /// <summary>
+      /// Force the evaluation of all properties to check for exceptions that would normally occur during binding.
+      /// </summary>
+      public static void ReadAllProperties(this INotifyPropertyChanged viewModel) {
+         var type = viewModel.GetType();
+         foreach (var prop in type.GetProperties()) {
+            if (prop.GetMethod == null) continue;
+            prop.GetMethod.Invoke(viewModel, null);
+         }
       }
    }
 }
