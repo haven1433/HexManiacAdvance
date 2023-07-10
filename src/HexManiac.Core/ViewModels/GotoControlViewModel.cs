@@ -492,9 +492,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var info = matchingMaps[0];
             var hoverContent = viewPort.MapEditor.GetMapPreview(info.Group, info.Map, null);
             if (hoverContent != null) {
-               if (hoverContent.PixelWidth > 480 || hoverContent.PixelHeight > 320) {
+               var scale = 1.0;
+               if (hoverContent.PixelWidth >= 240 * 4 || hoverContent.PixelHeight >= 160 * 4) {
+                  scale = .25;
+               } else if (hoverContent.PixelWidth >= 240 * 2 || hoverContent.PixelHeight >= 160 * 2) {
+                  scale = .5;
+               }
+               if (scale < 1) {
                   hoverContent = new ReadonlyPixelViewModel(hoverContent.PixelWidth, hoverContent.PixelHeight, hoverContent.PixelData, hoverContent.Transparent) {
-                     SpriteScale = .5
+                     SpriteScale = scale
                   };
                }
                HoverTip = new ObservableCollection<object> { hoverContent };
