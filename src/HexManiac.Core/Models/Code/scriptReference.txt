@@ -245,7 +245,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                              # 800D=1 if it was put in the PC
                                              # 800D=2 if there was no room
                                              # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
-7A giveEgg species:data.pokemon.names
+7A giveEgg species:data.pokemon.names        # species can be a pokemon or a variable
 7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokemon in your party to have a specific move.
                                              # Slots range 0-4 and 0-3.
 7C checkattack move:data.pokemon.moves.names # 800D=n, where n is the index of the pokemon that knows the move.
