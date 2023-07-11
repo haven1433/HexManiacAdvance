@@ -327,11 +327,44 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          HasError = false;
          ErrorText = string.Empty;
          Editor.ErrorLocations.Clear();
+
+         foreach (var streamLine in LookForStreamLines()) {
+            if (streamLine.Type != ExpectedPointerType.Text) continue; // 35*6
+            if (model.TextConverter.GetWidth(streamLine.Text) <= 209) continue;
+            Editor.ErrorLocations.Add(new(streamLine.LineNumber, streamLine.Text.Length - 1, 1));
+         }
       }
+
       public void WatchForCompileErrors(object? sender, ScriptErrorInfo e) {
          HasError = true;
          ErrorText = e.Message;
          Editor.ErrorLocations.Add(e.Segment);
       }
+
+      public IList<ScriptLineFormatInfo> LookForStreamLines() {
+         var results = new List<ScriptLineFormatInfo>();
+         var queue = new Queue<ExpectedPointerType>();
+         var lines = Content.SplitLines();
+         for (int i = 0; i < lines.Length; i++) {
+            if (lines[i].Trim() == "{") {
+               var type = queue.Count == 0 ? ExpectedPointerType.Unknown : queue.Dequeue();
+               i += 1;
+               while (lines[i].Trim() != "}") {
+                  results.Add(new(i, type, lines[i]));
+                  i += 1;
+               }
+               continue;
+            }
+            var command = parser.FirstMatch(lines[i]);
+            if (command == null) continue;
+            queue.Clear();
+            foreach(var arg in command.Args) {
+               if (arg.Type == ArgType.Pointer && !arg.PointerType.IsAny(ExpectedPointerType.Script, ExpectedPointerType.Unknown)) queue.Enqueue(arg.PointerType);
+            }
+         }
+         return results;
+      }
    }
+
+   public record ScriptLineFormatInfo(int LineNumber, ExpectedPointerType Type, string Text);
 }
