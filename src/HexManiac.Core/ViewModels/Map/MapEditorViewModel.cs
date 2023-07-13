@@ -529,7 +529,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapIndex = map.MapID % 1000;
          var shortcut = model.GotoShortcuts.FirstOrDefault(shortcut => shortcut.DisplayText == "Maps");
          var index = model.GotoShortcuts.IndexOf(shortcut);
-         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/0/map/{mapIndex}/layout/0/blockmap/", $"maps.{groupIndex}-{mapIndex}", "Maps");
+         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.{groupIndex}-{mapIndex}", "Maps");
          model.UpdateGotoShortcut(index, newShortcut);
          RequestRefreshGotoShortcuts.Raise(this);
       }
