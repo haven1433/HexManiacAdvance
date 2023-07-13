@@ -25,6 +25,7 @@
 // `xse`      event script
 // `bse`      battle script
 // `ase`      animation script
+// `tse`      trainer AI script
 // `pie`      pokemon item effect
 // `tpt`      trainer pokemon team
 // `osl`      overworld sprite list
@@ -645,6 +646,17 @@ graphics.newgame.menu.naming.tileset,    , , , , 09F8AC, 09F880, 09F8C0, 09F894,
 graphics.newgame.menu.naming.tilemap.m2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+
+// Introductory Speeches
+scripts.newgame.speeches.welcome,              ,       ,       ,       ,       ,       ,       ,       , 2C897B, ""
+scripts.newgame.speeches.showcaseMon,          ,       ,       ,       ,       ,       ,       ,       , 2C89FB, ""
+scripts.newgame.speeches.mainSpeech,           ,       ,       ,       ,       ,       ,       ,       , 2C8A1F, "" // find a more descriptive name for this
+scripts.newgame.speeches.introduceSelf,        ,       ,       ,       ,       ,       ,       ,       , 2C8BD0, ""
+scripts.newgame.speeches.promptGender,         ,       ,       ,       ,       ,       ,       ,       , 2C8BDD, ""
+scripts.newgame.speeches.promptName,           ,       ,       ,       ,       ,       ,       ,       , 2C8BFF, ""
+scripts.newgame.speeches.confirmName,          ,       ,       ,       ,       ,       ,       ,       , 2C8C1C, ""
+scripts.newgame.speeches.confirmSelf,          ,       ,       ,       ,       ,       ,       ,       , 2C8C2A, ""
+scripts.newgame.speeches.ready,                ,       ,       ,       ,       ,       ,       ,       , 2C8C7A, ""
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01234`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
