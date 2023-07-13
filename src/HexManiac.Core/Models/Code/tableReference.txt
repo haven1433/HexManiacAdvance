@@ -648,15 +648,15 @@ graphics.newgame.menu.naming.tilemap.m3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC,
 graphics.newgame.menu.naming.tilemap.m4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 
 // Introductory Speeches
-scripts.newgame.speeches.welcome,              ,       ,       ,       ,       ,       ,       ,       , 0309C4, ""
-scripts.newgame.speeches.showcaseMon,          ,       ,       ,       ,       ,       ,       ,       , 030A20, ""
-scripts.newgame.speeches.mainSpeech,           ,       ,       ,       ,       ,       ,       ,       , 030A64, "" // find a more descriptive name for this
-scripts.newgame.speeches.introduceSelf,        ,       ,       ,       ,       ,       ,       ,       , 030C0C, ""
-scripts.newgame.speeches.promptGender,         ,       ,       ,       ,       ,       ,       ,       , 030DFC, ""
-scripts.newgame.speeches.promptName,           ,       ,       ,       ,       ,       ,       ,       , 031008, ""
-scripts.newgame.speeches.confirmName,          ,       ,       ,       ,       ,       ,       ,       , 031138, ""
-scripts.newgame.speeches.confirmSelf,          ,       ,       ,       ,       ,       ,       ,       , 031334, ""
-scripts.newgame.speeches.ready,                ,       ,       ,       ,       ,       ,       ,       , 0314BC, ""
+scripts.newgame.professor.speeches.welcome,            ,       ,       ,       ,       ,       ,       ,       , 0309C4, ""
+scripts.newgame.professor.speeches.showcaseMon,        ,       ,       ,       ,       ,       ,       ,       , 030A20, ""
+scripts.newgame.professor.speeches.mainSpeech,         ,       ,       ,       ,       ,       ,       ,       , 030A64, "" // find a more descriptive name for this
+scripts.newgame.professor.speeches.introduceSelf,      ,       ,       ,       ,       ,       ,       ,       , 030C0C, ""
+scripts.newgame.professor.speeches.promptGender,       ,       ,       ,       ,       ,       ,       ,       , 030DFC, ""
+scripts.newgame.professor.speeches.promptName,         ,       ,       ,       ,       ,       ,       ,       , 031008, ""
+scripts.newgame.professor.speeches.confirmName,        ,       ,       ,       ,       ,       ,       ,       , 031138, ""
+scripts.newgame.professor.speeches.confirmSelf,        ,       ,       ,       ,       ,       ,       ,       , 031334, ""
+scripts.newgame.professor.speeches.ready,              ,       ,       ,       ,       ,       ,       ,       , 0314BC, ""
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01234`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
