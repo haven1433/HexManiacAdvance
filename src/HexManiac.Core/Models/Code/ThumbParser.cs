@@ -58,10 +58,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.Contains("<") && line.Contains(">")) {
                   var content = line.Split('<')[1].Split('>')[0];
                   var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
-                  if (address == Pointer.NULL) address = int.Parse(content, NumberStyles.HexNumber);
-                  interestingAddresses.Add(address);
-                  if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
-                     wordLocations.Add(address);
+                  if (address != Pointer.NULL || content.TryParseHex(out address)) {
+                     interestingAddresses.Add(address);
+                     if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
+                        wordLocations.Add(address);
+                     }
                   }
                }
                length -= template.ByteLength;
@@ -448,6 +449,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (r.All(i => i >= 0 && i < 8)) {
                // we need to patch this one
                line = $"add r{r[0]}, r{r[0]}, r{r[1]}";
+            }
+         } else if (tokens[0] == "sub" && tokens.Length == 3 && tokens.Skip(1).All(token => token.StartsWith("r"))) {
+            var r = tokens.Skip(1).Select(token => token[1..].TryParseInt(out var index) ? index : -1).ToArray();
+            if (r.All(i => i.InRange(0, 8))) {
+               // we need to patch this one
+               line = $"sub r{r[0]}, r{r[0]}, r{r[1]}";
             }
          }
 

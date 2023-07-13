@@ -1,7 +1,13 @@
 ﻿using HavenSoft.HexManiac.Core.ViewModels;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Input;
 using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
@@ -26,6 +32,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region ContextMenuOverride
+
+      public ContextMenu ContextMenuOverride {
+         get { return (ContextMenu)GetValue(ContextMenuOverrideProperty); }
+         set { SetValue(ContextMenuOverrideProperty, value); }
+      }
+
+      public static readonly DependencyProperty ContextMenuOverrideProperty = DependencyProperty.Register(nameof(ContextMenuOverride), typeof(ContextMenu), typeof(TextEditor), new PropertyMetadata(null));
+
+      #endregion
+
       #region TextBox-Like properties
 
       public event RoutedEventHandler SelectionChanged;
@@ -36,20 +53,49 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public TextEditorViewModel ViewModel => (TextEditorViewModel)DataContext;
 
+      private IEnumerable<TextBlock> Layers => new[] { BasicLayer, AccentLayer, ConstantsLayer, NumericLayer, CommentLayer, TextLayer };
+
       public TextEditor() {
          InitializeComponent();
          TransparentLayer.SelectionChanged += (sender, e) => {
             SelectionChanged?.Invoke(this, e);
          };
          DataContextChanged += HandleDataContextChanged;
+         // ExtentWidth is not a DependencyProperty, so check for the horizontal scroll bar when the text chanegs
+         TransparentLayer.TextChanged += (sender, e) => {
+            // measure the width of the text, since ExtentWidth hasn't been updated yet.
+            var typeface = new Typeface(TransparentLayer.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+            var width = new FormattedText(TransparentLayer.Text, CultureInfo.CurrentCulture, FlowDirection, typeface, TransparentLayer.FontSize, Brushes.Transparent, 1).Width;
+            foreach (var layer in Layers) layer.Width = width;
+            if (width > TransparentLayer.ViewportWidth) {
+               CornerCover.Width = 16;
+               CornerCover.Height = 17;
+            } else {
+               CornerCover.Width = 0;
+               CornerCover.Height = 0;
+            }
+         };
       }
 
       private void HandleDataContextChanged(object sender, DependencyPropertyChangedEventArgs e) {
          if (e.OldValue is TextEditorViewModel oldVM) {
+            oldVM.PropertyChanged -= HandleViewModelPropertyChanged;
             oldVM.RequestCaretMove -= HandleViewModelCaretMove;
+            oldVM.RequestKeyboardFocus -= HandleViewModelRequestKeyboardFocus;
+            oldVM.ErrorLocations.CollectionChanged -= HandleViewModelErrorUpdate;
          }
          if (e.NewValue is TextEditorViewModel newVM) {
+            newVM.PropertyChanged += HandleViewModelPropertyChanged;
             newVM.RequestCaretMove += HandleViewModelCaretMove;
+            newVM.RequestKeyboardFocus += HandleViewModelRequestKeyboardFocus;
+            newVM.ErrorLocations.CollectionChanged += HandleViewModelErrorUpdate;
+            UpdateErrorDecorations();
+         }
+      }
+
+      private void HandleViewModelPropertyChanged(object sender, PropertyChangedEventArgs e) {
+         if (e.PropertyName == nameof(TextEditorViewModel.CommentContent)) {
+            UpdateErrorDecorations();
          }
       }
 
@@ -58,13 +104,61 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          TransparentLayer.CaretIndex = vm.CaretIndex;
       }
 
+      private void HandleViewModelRequestKeyboardFocus(object sender, EventArgs e) {
+         RequestBringIntoView += SuppressBringIntoView;
+         Keyboard.Focus(TransparentLayer);
+         RequestBringIntoView -= SuppressBringIntoView;
+      }
+
+      private void HandleViewModelErrorUpdate(object sender, EventArgs e) => UpdateErrorDecorations();
+
+      private void SuppressBringIntoView(object sender, RequestBringIntoViewEventArgs e) => e.Handled = true;
+
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
 
       private void TextScrollChanged(object sender, ScrollChangedEventArgs e) {
-         foreach (var layer in new[] { BasicLayer, AccentLayer, ConstantsLayer, NumericLayer, CommentLayer, TextLayer }) {
+         foreach (var layer in Layers) {
             var transform = (TranslateTransform)layer.RenderTransform;
             transform.Y = -TransparentLayer.VerticalOffset;
+            transform.X = -TransparentLayer.HorizontalOffset;
+            layer.Width = TransparentLayer.ExtentWidth;
          }
+      }
+
+      private static SolidColorBrush Brush(string name) {
+         return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+      }
+
+      private void UpdateErrorDecorations() {
+         var text = ViewModel.CommentContent;
+         var inlines = CommentLayer.Inlines;
+         inlines.Clear();
+         int character = 0, line = 0;
+         var brush = Brush(nameof(Theme.Error));
+         var geometry = Geometry.Parse("M0,0 L1,1 2,0");
+         var pen = new Pen(new DrawingBrush(new GeometryDrawing(brush, new(), geometry)) {
+            TileMode = TileMode.Tile,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, 3, 2)
+         }, 2);
+         var decoration = new TextDecoration(TextDecorationLocation.Underline, pen, 1, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
+
+         var lineEnd = Environment.NewLine.ToCharArray().Last();
+
+         foreach (var error in ViewModel.ErrorLocations) {
+            var previousLines = character;
+            while (line < error.Line && character < text.Length) {
+               character++;
+               if (text[character - 1] == lineEnd) line++;
+            }
+
+            if (error.Start + error.Length > text.Length - character) break;
+            inlines.Add(new Run(text.Substring(previousLines, character - previousLines + error.Start)));
+            inlines.Add(new Run(text.Substring(character + error.Start, error.Length)) { TextDecorations = { decoration } });
+            character += error.Start + error.Length;
+         }
+
+         if (character < text.Length) inlines.Add(new Run(text.Substring(character)));
       }
    }
 }

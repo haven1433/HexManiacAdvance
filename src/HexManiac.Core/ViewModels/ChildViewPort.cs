@@ -181,6 +181,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
       public event PropertyChangedEventHandler PropertyChanged { add => ForEach(child => child.PropertyChanged += value); remove => ForEach(child => child.PropertyChanged -= value); }
       public event NotifyCollectionChangedEventHandler CollectionChanged { add => ForEach(child => child.CollectionChanged += value); remove => ForEach(child => child.CollectionChanged -= value); }
+      public event EventHandler RequestRefreshGotoShortcuts { add => ForEach(child => child.RequestRefreshGotoShortcuts += value);remove => ForEach(child => child.RequestRefreshGotoShortcuts -= value); }
 
       public bool CanIpsPatchRight => false;
       public bool CanUpsPatchRight => false;

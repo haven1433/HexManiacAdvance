@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #endregion
 
       private static int MapSizeLimit => 0x2800; // (x+15)*(y+14) must be less that 0x2800 (5*2048). This can lead to limits like 113x66 or 497x6
-      public static bool IsMapWithinSizeLimit(int width, int height) => (width / 16 + 15) * (height / 16 + 14) <= MapSizeLimit;
+      public static bool IsMapWithinSizeLimit(int width, int height) => (width + 15) * (height + 14) <= MapSizeLimit;
 
       public int MapID => group * 1000 + map;
 
@@ -210,8 +210,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public int TopEdge { get => topEdge; set => Set(ref topEdge, value); }
       public int LeftEdge { get => leftEdge; set => Set(ref leftEdge, value); }
 
-      private int BottomEdge => topEdge + (int)(PixelHeight * SpriteScale);
-      private int RightEdge => leftEdge + (int)(PixelWidth * SpriteScale);
+      public int BottomEdge => topEdge + (int)(PixelHeight * SpriteScale);
+      public int RightEdge => leftEdge + (int)(PixelWidth * SpriteScale);
 
       private ImageLocation hoverPoint = new(0, 0);
       public ImageLocation HoverPoint {
@@ -230,8 +230,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
       } ); }
 
-      private bool hideEvents;
-      public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => ClearPixelCache()); }
+      private MapDisplayOptions showEvents;
+      public MapDisplayOptions ShowEvents { get => showEvents; set => SetEnum(ref showEvents, value, old => ClearPixelCache()); }
 
       #endregion
 
@@ -359,8 +359,48 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public int GotoNameIndex {
+         get => SelectedNameIndex;
+         set {
+            if (!value.InRange(0, availableNames.Count)) return;
+            var name = availableNames[value];
+            viewPort.Goto.Execute($"({name})");
+         }
+      }
+
       public static string SanitizeName(string name) {
          return name.Replace("\\CC0000", " ");
+      }
+
+      #endregion
+
+      #region Blockmap Sharing
+
+      public bool BlockMapIsShared => FindLayoutUses().Count > 1;
+
+      public int BlockMapShareCount => FindLayoutUses().Count;
+
+      public ObservableCollection<JumpMapInfo> BlockMapUses => FindLayoutUses();
+
+      private ObservableCollection<JumpMapInfo> layoutUseCache;
+      private ObservableCollection<JumpMapInfo> FindLayoutUses() {
+         if (layoutUseCache != null) return layoutUseCache;
+         var map = GetMapModel();
+         var layout = GetLayout(map);
+         if (layout == null) return null;
+         var modelRun = model.GetNextRun(layout.Start);
+         if (modelRun.Start != layout.Start) return null;
+         var uses = new ObservableCollection<JumpMapInfo>();
+         var names = model.GetOptions(HardcodeTablesModel.MapNameTable);
+
+         foreach (var candidate in GetAllMaps()) {
+            if (!modelRun.PointerSources.Contains(candidate.Element.Start)) continue;
+            var nameIndex = candidate.NameIndex;
+            var name = nameIndex.InRange(0, names.Count) ? names[nameIndex] : "unknown";
+            uses.Add(new(candidate.Group, candidate.Map, name, args => RequestChangeMap.Raise(this, args)));
+         }
+
+         return layoutUseCache = uses;
       }
 
       #endregion
@@ -906,6 +946,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          Draw9Grid(token, grid, xx, yy);
       }
 
+      public void Draw25Grid(ModelDelta token, int[,] grid, double x, double y) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         Draw25Grid(token, grid, xx, yy);
+      }
+
       public void Draw9Grid(ModelDelta token, int[,] grid, int xx, int yy) {
          var targets = new List<int>();
          for (int x = 0; x < 3; x++) for (int y = 0; y < 3; y++) targets.Add(grid[x, y] & 0x3FF);
@@ -950,6 +1000,75 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
+      public void Draw25Grid(ModelDelta token, int[,] grid, int xx, int yy) {
+         var targets = new List<int>();
+         for (int x = 0; x < 5; x++) {
+            for (int y = 0; y < 5; y++) {
+               if (x == 0 && y == 0) continue;
+               if (x == 4 && y == 0) continue;
+               if (x == 0 && y == 4) continue;
+               if (x == 4 && y == 4) continue;
+               targets.Add(grid[x, y] & 0x3FF);
+            }
+         }
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var start = layout.GetAddress("blockmap");
+
+         int get(Point p) => p.X < 0 || p.Y < 0 || p.X >= width || p.Y >= height ? -1 : model.ReadMultiByteValue(start + (p.Y * width + p.X) * 2, 2) & 0x3FF;
+         void set(Point p, int block) => model.WriteMultiByteValue(start + (p.Y * width + p.X) * 2, 2, token, block);
+
+         // change all connected blocks based on the grid
+         var todo = new List<Point> {
+            new(xx, yy),
+            new(xx - 1, yy), new(xx + 1, yy), new(xx, yy - 1), new(xx, yy + 1),
+            new(xx + 1, yy + 1), new(xx + 1, yy - 1), new(xx - 1, yy + 1), new(xx - 1, yy - 1),
+         };
+         lock (pixelWriteLock) {
+            set(todo[0], grid[1, 1]);
+            foreach (var cell in todo) {
+               var cellValue = get(cell);
+               if (!targets.Contains(cellValue)) continue;
+
+               var northwest = targets.Contains(get(new(cell.X - 1, cell.Y - 1)));
+               var northeast = targets.Contains(get(new(cell.X + 1, cell.Y - 1)));
+               var southwest = targets.Contains(get(new(cell.X - 1, cell.Y + 1)));
+               var southeast = targets.Contains(get(new(cell.X + 1, cell.Y + 1)));
+               var north = targets.Contains(get(new(cell.X, cell.Y - 1)));
+               var south = targets.Contains(get(new(cell.X, cell.Y + 1)));
+               var west = targets.Contains(get(new(cell.X - 1, cell.Y)));
+               var east = targets.Contains(get(new(cell.X + 1, cell.Y)));
+
+               var aggregate = (north ? "N" : " ") + (east ? "E" : " ") + (south ? "S" : " ") + (west ? "W" : " ");
+               var corners = (northwest ? "7" : " ") + (northeast ? "9" : " ") + (southeast ? "3" : " ") + (southwest ? "1" : " ");
+
+               // grid[x, y]
+               var block = aggregate switch {
+                  " ES " => grid[1, 0],
+                  " ESW" => grid[2, 0],
+                  "  SW" => grid[3, 0],
+                  "NES " => grid[0, 2],
+                  "NESW" => grid[2, 2],
+                  "N SW" => grid[4, 2],
+                  "NE  " => grid[0, 3],
+                  "NE W" => grid[2, 4],
+                  "N  W" => grid[4, 3],
+                  _ => grid[1, 1],
+               };
+
+               if ("NW".All(aggregate.Contains) && !corners.Contains('7')) block = grid[1, 1];
+               if ("NE".All(aggregate.Contains) && !corners.Contains('9')) block = grid[3, 1];
+               if ("SE".All(aggregate.Contains) && !corners.Contains('3')) block = grid[3, 3];
+               if ("SW".All(aggregate.Contains) && !corners.Contains('1')) block = grid[1, 3];
+
+               set(cell, block);
+            }
+         }
+
+         ClearPixelCache();
+      }
+
       public void DrawBlocks(ModelDelta token, int[,] tiles, Point source, Point destination) {
          while (Math.Abs(destination.X - source.X) % tiles.GetLength(0) != 0) destination -= new Point(1, 0);
          while (Math.Abs(destination.Y - source.Y) % tiles.GetLength(1) != 0) destination -= new Point(0, 1);
@@ -974,19 +1093,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (changeCount > 0) ClearPixelCache();
       }
 
-      public void RepeatBlock(Func<ModelDelta> futureToken, int block, int collision, int x, int y, int w, int h, bool refreshScreen) {
+      public void RepeatBlock(Func<ModelDelta> futureToken, IReadOnlyList<int> blockOptions, int collision, int x, int y, int w, int h, bool refreshScreen) {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
          int changeCount = 0;
+         var rnd = new Random();
          lock (pixelWriteLock) {
             for (int xx = 0; xx < w; xx++) {
                for (int yy = 0; yy < h; yy++) {
                   if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
                   var address = start + ((yy + y) * width + xx + x) * 2;
-                  // var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
                   var blockValue = model.ReadMultiByteValue(address, 2);
                   lastDrawVal = blockValue;
+                  var block = blockOptions[0];
+                  if (blockOptions.Count > 1) block = rnd.From(blockOptions);
                   if (block >= 0) blockValue = (blockValue & 0xFC00) + block;
                   if (collision >= 0) blockValue = (blockValue & 0x3FF) + (collision << 10);
                   if (blockValue != lastDrawVal) {
@@ -1192,7 +1313,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
-         if (hideEvents) return null;
+         if (showEvents == MapDisplayOptions.NoEvents) return null;
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
@@ -1336,14 +1457,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       #region Work Methods
 
       private IEnumerable<MapModel> GetAllMaps() {
-         foreach (var bank in model.GetTableModel(HardcodeTablesModel.MapBankTable)) {
+         var banks = model.GetTableModel(HardcodeTablesModel.MapBankTable);
+         for (int i = 0; i < banks.Count; i++) {
+            var bank = banks[i];
             if (bank == null) continue;
-            foreach (var mapList in bank.GetSubTable("maps")) {
+            var maps = bank.GetSubTable("maps");
+            for (int j = 0; j < maps.Count; j++) {
+               var mapList = maps[j];
                if (mapList == null) continue;
                var mapTable = mapList.GetSubTable("map");
                if (mapTable == null) continue;
                var map = mapTable[0];
-               yield return new(map);
+               yield return new(map, i, j);
             }
          }
       }
@@ -1645,12 +1770,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventsTable == null) eventsTable = CreateEventTable(map);
          var events = eventsTable[0];
          var element = AddEvent(events, tokenFactory, "objectCount", "objects");
+         var targetID = 1;
+         var takenIDs = events.TryGetSubTable("objects", out var eventTable) ? eventTable.Select(ev => ev.TryGetValue("id", out int id) ? id : 0).ToHashSet() : new HashSet<int>();
+         while (targetID < element.Table.ElementCount && takenIDs.Contains(targetID)) targetID++;
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
             X = 0, Y = 0,
             Elevation = 0,
-            ObjectID = element.Table.ElementCount,
+            ObjectID = targetID,
             ScriptAddress = scriptAddress,
             Graphics = graphics,
             RangeX = 0,
@@ -1829,6 +1957,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             allOverworldSprites = allOverworldSprites,
             BerryInfo = BerryInfo,
             CollisionHighlight = CollisionHighlight,
+            ShowEvents = ShowEvents
          };
          var (n, _, _, w) = vm.GetBorderThickness();
          vm.TopEdge = TopEdge + (connection.Offset + border.North - n) * (int)(16 * SpriteScale);
@@ -1898,13 +2027,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
-         if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
-         if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
-         if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
 
          lock (blockRenders) {
+            if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
+            if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
+            if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
             blockRenders.Clear();
-            blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes));
+            if (blocks != null && tiles != null && palettes != null) {
+               blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes));
+            }
          }
       }
 
@@ -1982,13 +2113,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          // now draw the events on top
-         if (!hideEvents) {
+         if (showEvents != MapDisplayOptions.NoEvents) {
             if (eventRenders == null) RefreshMapEvents(layout);
             if (eventRenders != null) {
                foreach (var obj in eventRenders) {
                   if (obj.EventRender != null) {
-                     var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
-                     canvas.Draw(obj.EventRender, x, y);
+                     if (obj is ObjectEventViewModel || showEvents == MapDisplayOptions.AllEvents) {
+                        var (x, y) = ((obj.X + border.West) * 16 + obj.LeftOffset, (obj.Y + border.North) * 16 + obj.TopOffset);
+                        canvas.Draw(obj.EventRender, x, y);
+                     }
                   }
                }
             }
@@ -2299,14 +2432,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void HandleBorderChanged(object sender, EventArgs e) {
-         blocks = null;
-         lock (blockRenders) {
-            blockRenders.Clear();
-         }
-         blockPixels = null;
-         borderBlock = null;
-         ClearPixelCache();
-         NotifyPropertiesChanged(nameof(BlockPixels), nameof(BlockRenders), nameof(BorderBlock));
+         RequestClearMapCaches.Raise(this);
       }
 
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {

@@ -181,6 +181,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
 
          var sprite = data.CurrentCacheScope.GetImage(this);
+         if (sprite == null) return basicFormat;
          var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
          lastFormatRequested = index;
          return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
@@ -449,6 +450,32 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             }
          }
          return data;
+      }
+
+      /// <summary>
+      /// Create a full image of just this one blockset, without using tiles/palettes from another.
+      /// </summary>
+      public IPixelViewModel RenderBlockset(double scale = 1) {
+         var blocks = ReadBlocks(PrimaryBlocks);
+         var tiles = ReadTiles();
+         var palettes = ReadPalettes();
+         if (IsSecondary) {
+            var fullTiles = new int[PrimaryBlocks + tiles.Length][,];
+            for (int i = 0; i < tiles.Length; i++) fullTiles[PrimaryBlocks + i] = tiles[i];
+            tiles = fullTiles;
+         }
+         var renders = BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes).ToList();
+
+         var rowWidth = BlockMapViewModel.BlocksPerRow;
+         var blockHeight = (renders.Count + rowWidth - 1) / rowWidth;
+         var canvas = new CanvasPixelViewModel(rowWidth * 16, blockHeight * 16) { SpriteScale = scale };
+         for (int i = 0; i < renders.Count; i++) {
+            var x = i % rowWidth;
+            var y = i / rowWidth;
+            canvas.Draw(renders[i], x * 16, y * 16);
+         }
+
+         return canvas;
       }
 
       public void WriteBlocks(byte[][] blocks, Func<ModelDelta> tokenFactory) {

@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
@@ -27,11 +28,40 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
 
       public IReadOnlyList<string> GetOptions(string table) {
-         lock (cachedOptions) {
-            if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
-            return cachedOptions[table];
+         if (model is PokemonModel pModel) {
+            IReadOnlyList<string> result = null;
+            pModel.ThreadlockRuns(() => {
+               lock (cachedOptions) {
+                  if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
+                  result = cachedOptions[table];
+               }
+            });
+            return result;
+         } else {
+            lock (cachedOptions) {
+               if (!cachedOptions.ContainsKey(table)) cachedOptions[table] = GetOptions(model, table) ?? new List<string>();
+               return cachedOptions[table];
+            }
          }
       }
+
+      private readonly Dictionary<string, IReadOnlyList<ArrayRun>> cachedDependentArrays = new();
+      public IEnumerable<ArrayRun> GetDependantArrays(string anchor) {
+         if (cachedDependentArrays.TryGetValue(anchor, out var cache)) return cache;
+
+         var results = new List<ArrayRun>();
+         foreach (var array in model.Arrays) {
+            if (array.LengthFromAnchor == anchor) results.Add(array);
+            foreach (var segment in array.ElementContent) {
+               if (segment is ArrayRunBitArraySegment bitSegment) {
+                  if (bitSegment.SourceArrayName == anchor) results.Add(array);
+               }
+            }
+         }
+         cachedDependentArrays[anchor] = results;
+         return results;
+      }
+
 
       public static string QuoteIfNeeded(string text) {
          if (!text.Contains(" ")) return text;
@@ -205,7 +235,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
    }
 
-   public record MapInfo(int Group, int Map, string Name);
+   public record MapInfo(int Group, int Map, string Name) : INotifyPropertyChanged {
+      event PropertyChangedEventHandler? INotifyPropertyChanged.PropertyChanged { add { } remove { } }
+   }
+
+   public record JumpMapInfo(int Group, int Map, string Name, Action<ChangeMapEventArgs> JumpAction) : MapInfo(Group, Map, Name) {
+      public void GotoMap() => JumpAction(new(Group, Map));
+   }
 
    public record ScriptInfo(int Start, int Length, string Content) : ISearchTreePayload;
 }

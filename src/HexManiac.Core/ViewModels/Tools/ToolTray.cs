@@ -85,7 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             new TableTool(model, selection, history, viewPort, this, singletons.WorkDispatcher),
             new PCSTool(viewPort, history, this),
             new SpriteTool(viewPort, history),
-            new CodeTool(singletons, model, selection, history, viewPort),
+            new CodeTool(singletons, viewPort, selection, history, viewPort),
          };
 
          StubCommand commandFor(int i) => new StubCommand {

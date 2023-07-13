@@ -11,13 +11,22 @@ namespace HavenSoft.HexManiac.Core.Models {
       List<byte> Convert(string text, out bool containsBadCharacters);
       string Convert(IReadOnlyList<byte> data, int startIndex, int length);
       bool AnyMacroStartsWith(string input);
+
+      /// <summary>
+      /// Resolve the pixel-width of a input string,
+      /// if the string is shown in a textbox.
+      /// </summary>
+      int GetWidth(string input);
    }
 
    public class PCSConverter : ITextConverter {
       private readonly string gameCode;
+      private readonly int spaceWidth;
+
       public PCSConverter(string gameCode) {
          this.gameCode = gameCode;
          if (this.gameCode.Length > 4) this.gameCode = gameCode.Substring(4);
+         spaceWidth = gameCode.IsAny("BPRE", "BPGE") ? 6 : 3;
       }
 
       public List<byte> Convert(string text, out bool containsBadCharacters) {
@@ -31,6 +40,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool AnyMacroStartsWith(string input) {
          if (!PCSString.TextMacros.TryGetValue(gameCode, out var macros)) return false;
          return macros.Keys.Any(key => key.StartsWith(input));
+      }
+
+      public int GetWidth(string input) {
+         if (!PCSString.TextMacros.TryGetValue(gameCode, out var macros)) macros = new Dictionary<string, byte[]>();
+         return PCSString.GetWidth(macros, input, spaceWidth);
       }
    }
 
@@ -353,6 +367,94 @@ namespace HavenSoft.HexManiac.Core.Models {
             length++;
          }
          return -1;
+      }
+
+      public static int GetWidth(IReadOnlyDictionary<string, byte[]> textMacros, ReadOnlySpan<char> input, int spaceWidth) {
+         int maxLength = 0, currentLineLength = 0;
+         var length = input.Length;
+         if (input.StartsWith("\"")) input = input[1..]; // trim leading " at start of string
+
+         int index = 0;
+         while (index < input.Length) {
+            // check macros
+            if (input[index] == '[' && textMacros != null) {
+               var closeMacro = input[index..].IndexOf(']') + index;
+               if (closeMacro > index) {
+                  var candidate = input.Slice(index, closeMacro + 1 - index).ToString();
+                  if (textMacros.TryGetValue(candidate, out var bytes)) {
+                     index += candidate.Length;
+                     if (candidate.IsAny("[player]", "[rival]", "[buffer1]", "[buffer2]", "[buffer3]")) {
+                        // guess that the character name is 9 characters long
+                        currentLineLength += 6 * 9;
+                     } else {
+                        // most macros don't actually make the text longer
+                     }
+
+                     continue;
+                  }
+               }
+            }
+
+            // check raw escape code \!XX (hex byte)
+            if (index < input.Length - 4 && input[index] == '\\' && input[index + 1] == '!') {
+               var hex = new string(new[] { input[index + 2], input[index + 3] });
+
+               // raw hex, unknown length, just guess
+               currentLineLength += 6;
+               index += 4;
+
+               continue;
+            }
+
+            // check characters and escape codes
+            for (int i = 0; i < 0x100; i++) {
+               if (PCS[i] == null) continue;
+               var checkCharacter = PCS[i];
+               if (input.Length < index + checkCharacter.Length) continue;
+               var checkInput = input.Slice(index, checkCharacter.Length).ToString();
+               if (checkCharacter.StartsWith("\\") && !ValidInProgressEscapes.Contains(checkInput)) {
+                  // escape sequences don't care about case (if no sequences seem to match the current case)
+                  checkCharacter = checkCharacter.ToUpper();
+                  checkInput = checkInput.ToUpper();
+               }
+               if (checkInput != checkCharacter) continue;
+
+               index += PCS[i].Length - 1;
+               if (i == 0xFA || i == 0xFB || i == 0xFE) {
+                  // line end
+                  maxLength = Math.Max(currentLineLength, maxLength);
+                  currentLineLength = 0;
+               } else if ((i == Escape || i == DynamicEscape || i == ButtonEscape || i == SpecialCharacterEscape) && input.Length > index + 2) {
+                  if (byte.TryParse(input.Slice(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
+                     currentLineLength += 6;
+                  }
+                  index += 2;
+               } else if (i == FunctionEscape && input.Length > index + 2) {
+                  // function escape code don't add any length to the current line
+                  if (byte.TryParse(input.Slice(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
+                     var extraEscapedBytesCount = GetLengthForControlCode(parsed);
+                     for (int j = 1; j < extraEscapedBytesCount; j++) {
+                        index += 2;
+                     }
+                  }
+                  index += 2;
+               } else if (i == 0) {
+                  // whitespace
+                  currentLineLength += spaceWidth;
+               } else {
+                  // normal character
+                  currentLineLength += 6;
+               }
+
+               break;
+            }
+
+            index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
+         }
+
+         maxLength = Math.Max(maxLength, currentLineLength);
+
+         return maxLength;
       }
 
       private static string FindMacro(IReadOnlyDictionary<string, byte[]> macros, IReadOnlyList<byte> data, int index) {

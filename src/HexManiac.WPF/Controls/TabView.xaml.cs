@@ -592,5 +592,28 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var context = (CodeTool)element.DataContext;
          context.FontSize = (Math.Sign(e.Delta) + context.FontSize).LimitToRange(8, 20);
       }
-    }
+
+      private void TableKeyDown(object sender, KeyEventArgs e) {
+         if (DataContext is not ViewPort viewPort) return;
+         if (e.Key == Key.PageUp && Keyboard.Modifiers == ModifierKeys.None) {
+            e.Handled = true;
+            viewPort.Tools.TableTool.Previous.Execute();
+         } else if (e.Key == Key.PageDown && Keyboard.Modifiers == ModifierKeys.None) {
+            e.Handled = true;
+            viewPort.Tools.TableTool.Next.Execute();
+         }
+      }
+
+      private void CodeBodyKeyDown(object sender, KeyEventArgs e) {
+         if (sender is not FrameworkElement element) return;
+         if (element.Tag is not CodeBody body) return;
+         if (e.Key == Key.U && Keyboard.Modifiers == ModifierKeys.Control) {
+            e.Handled = true;
+            body.InsertFlagOrVar();
+         } else if (e.Key == Key.Escape) {
+            e.Handled = true;
+            CodeContentsPopup.IsOpen = false;
+         }
+      }
+   }
 }

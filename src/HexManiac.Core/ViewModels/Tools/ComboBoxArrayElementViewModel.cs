@@ -53,7 +53,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
-      private string name;
+      private string name, enumName;
       private int start, length;
 
       private EventHandler dataChanged, dataSelected;
@@ -74,6 +74,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ElementContentViewModelType Type => ElementContentViewModelType.ComboBox;
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => errorText != string.Empty;
 
       string errorText;
@@ -101,10 +102,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var rawSegment = run.ElementContent[offsets.SegmentIndex];
          if (rawSegment is ArrayRunRecordSegment recordSegment) rawSegment = recordSegment.CreateConcrete(viewPort.Model, start);
          var segment = rawSegment as ArrayRunEnumSegment;
+         enumName = segment.EnumName;
          var optionSource = new Lazy<int>(() => Pointer.NULL);
          Debug.Assert(segment != null);
          if (segment != null) {
-            optionSource = new Lazy<int>(() => CalculateOptionSource(segment.EnumName));
+            optionSource = new Lazy<int>(() => CalculateOptionSource(enumName));
             fullOptions = new List<ComboOption>(segment.GetComboOptions(ViewPort.Model));
          } else {
             fullOptions = new List<ComboOption>();
@@ -123,8 +125,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          GotoSource = new StubCommand {
             CanExecute = arg => optionSource.Value != Pointer.NULL,
             Execute = arg => {
-               var indexSource = (viewPort.Model.GetNextRun(optionSource.Value) is ITableRun optionSourceTable) ?
-                  optionSourceTable.Start + optionSourceTable.ElementLength * selectedIndex :
+               var modelValue = ViewPort.Model.ReadMultiByteValue(Start, Length) - segment.ValueOffset;
+               var indexSource = (viewPort.Model.GetNextRun(optionSource.Value) is ITableRun optionSourceTable && modelValue < optionSourceTable.ElementCount) ?
+                  optionSourceTable.Start + optionSourceTable.ElementLength * modelValue :
                   optionSource.Value;
                selection.GotoAddress(indexSource);
             },
@@ -162,8 +165,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ErrorText = comboBox.ErrorText;
-         GotoSource = comboBox.GotoSource;
-         NotifyPropertyChanged(nameof(GotoSource));
+         if (enumName != comboBox.enumName) {
+            enumName = comboBox.enumName;
+            GotoSource = comboBox.GotoSource;
+            NotifyPropertyChanged(nameof(GotoSource));
+         }
          dataChanged = comboBox.dataChanged;
          dataSelected = comboBox.dataSelected;
 

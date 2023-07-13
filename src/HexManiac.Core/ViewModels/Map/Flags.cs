@@ -27,6 +27,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private const int ScriptLengthLimit = 0x1000;
       private const int ScriptCountLimit = 100;
 
+      /// <summary>
+      /// IDs of every used flag
+      /// </summary>
       public static HashSet<int> GetUsedItemFlags(IDataModel model, ScriptParser parser) {
          var usedFlags = new HashSet<int>();
 
@@ -40,6 +43,51 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          return usedFlags;
+      }
+
+      /// <returns>Every address where this flag is used</returns>
+      public static HashSet<int> FindFlagUsages(IDataModel model, ScriptParser parser, int flag) {
+         var usages = new HashSet<int>();
+
+         foreach (var element in GetAllEvents(model, "objects")) {
+            if (element.GetValue("flag") == flag) usages.Add(element.Start + 20);
+         }
+
+         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {
+            if (model.ReadMultiByteValue(spot.Address + 1, 2) == flag) usages.Add(spot.Address + 1);
+         }
+
+         return usages;
+      }
+
+      public static HashSet<int> GetUsedVariables(IDataModel model, ScriptParser parser) {
+         var usedVariables = new HashSet<int>();
+
+         foreach (var element in GetAllEvents(model, "scripts")) {
+            if (!element.HasField("trigger")) continue;
+            usedVariables.Add(element.GetValue("trigger"));
+         }
+
+         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x16, 0x17, 0x18, 0x19, 0x1A, 0x21, 0x22, 0x26)) { // setvar, addvar, subvar, copyvar, setorcopyvar, compare, comparevars, special2
+            usedVariables.Add(model.ReadMultiByteValue(spot.Address + 1, 2));
+         }
+
+         return usedVariables;
+      }
+
+      public static HashSet<int> FindVarUsages(IDataModel model, ScriptParser parser, int variable) {
+         var usages = new HashSet<int>();
+
+         foreach (var element in GetAllEvents(model, "scripts")) {
+            if (!element.HasField("trigger")) continue;
+            if (element.GetValue("trigger") == variable) usages.Add(element.Start + 6);
+         }
+
+         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x16, 0x17, 0x18, 0x19, 0x1A, 0x21, 0x22, 0x26)) { // setvar, addvar, subvar, copyvar, setorcopyvar, compare, comparevars, special2
+            if (model.ReadMultiByteValue(spot.Address + 1, 2) == variable) usages.Add(spot.Address + 1);
+         }
+
+         return usages;
       }
 
       /// <summary>
@@ -140,20 +188,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             results[plantID] =  new(spot.Address, berryID - 1);
          }
          return results;
-      }
-
-      public static HashSet<int> FindFlagUsages(IDataModel model, ScriptParser parser, int flag) {
-         var usages = new HashSet<int>();
-
-         foreach (var element in GetAllEvents(model, "objects")) {
-            if (element.GetValue("flag") == flag) usages.Add(element.Start + 20);
-         }
-
-         foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {
-            if (model.ReadMultiByteValue(spot.Address + 1, 2) == flag) usages.Add(spot.Address + 1);
-         }
-
-         return usages;
       }
 
       public static ISet<int> GetUsedTrainerFlags(IDataModel model, ScriptParser parser) {

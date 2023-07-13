@@ -204,7 +204,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private StubCommand gotoCommand;
       private void ExecuteGoto(object arg) {
-         Model.InitializationWorkload.ContinueWith(task => {
+         InitializationWorkload.ContinueWith(task => {
             // This needs to be synchronous to make it deterministic,
             // but needs to happen on the UI thread since it can update bound properties.
             dispatcher.BlockOnUIWork(() => {
@@ -236,6 +236,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
                   if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(m.Name.Split('(', ')')[1])) && mapper != null && !str.TryParseHex(out _)) {
                      gotoMap = maps[0];
+                  } else if (str.Contains("(") && str.Contains(")")) {
+                     foreach (var map in maps) {
+                        if (map.Name.SkipCount(str) != 0) continue;
+                        gotoMap = map;
+                        break;
+                     }
                   }
                   if (gotoMap != null) {
                      var previousMap = mapper.PrimaryMap;
@@ -523,9 +529,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void SelectAllExecuted() {
-         Goto.Execute(0);
-         SelectionStart = new Point(0, 0);
-         SelectionEnd = scroll.DataIndexToViewPoint(Model.Count - 1);
+         if (scroll.IsSingleTableMode) {
+            SelectionStart = scroll.DataIndexToViewPoint(scroll.DataStart);
+            SelectionEnd = scroll.DataIndexToViewPoint(scroll.DataStart + scroll.DataLength);
+         } else {
+            Goto.Execute(0);
+            SelectionStart = new Point(0, 0);
+            SelectionEnd = scroll.DataIndexToViewPoint(Model.Count - 1);
+         }
       }
 
       #endregion
@@ -659,6 +670,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private double progress;
       public double Progress { get => progress; set => Set(ref progress, value); }
 
+      private IDisposable holdWorkHistory;
       private bool updateInProgress;
       public bool UpdateInProgress { get => updateInProgress; set => Set(ref updateInProgress, value); }
 
@@ -782,6 +794,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
+      #region LaunchFileLocation
+
+      public void LaunchFileLocation(IFileSystem fileSystem) => fileSystem.LaunchProcess("explorer.exe", $"/select,\"{FullFileName}\"");
+
+      #endregion
+
       #region Duplicate
 
       public bool CanDuplicate => true;
@@ -895,6 +913,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                            selection.PropertyChanged -= SelectionPropertyChanged; // to keep from double-updating the AnchorText
                            Goto.Execute(index);
                            selection.PropertyChanged += SelectionPropertyChanged;
+                           NotifyPropertyChanged(nameof(PreferredWidth)); // editing the anchor can edit the preferred width, and we weren't listening
                         }
                         UpdateColumnHeaders();
                      }
@@ -973,6 +992,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler<Action> RequestDelayedWork;
       public event EventHandler RequestMenuClose;
       public event EventHandler FocusToolPanel;
+      public event EventHandler RequestRefreshGotoShortcuts;
 #pragma warning restore 0067
 
       public Shortcuts Shortcuts { get; }
@@ -1030,31 +1050,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RefreshBackingData();
          Shortcuts = new Shortcuts(this);
 
-         Action setupCompletion = () => {
-            if (changeHistory == null) CascadeScripts();
-            RefreshBackingData();
-            if (fs != null) {
-               if (!MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) mapper = null;
+         InitializationWorkload = model.InitializationWorkload.ContinueWith(task => {
+            var firstViewPort = changeHistory == null;
+            if (firstViewPort) {
+               CascadeScripts();
+               ValidateMatchedWords();
             }
-         };
-
-         // defer the remaining setup until the model's been fully loaded
-         if (model.InitializationWorkload.IsCompleted) {
-            InitializationWorkload = model.InitializationWorkload;
-            setupCompletion();
-         } else {
-            model.InitializationWorkload.ContinueWith(task => {
-               // if we're sharing history with another viewmodel, our model has already been updated like this.
-               InitializationWorkload = dispatcher.DispatchWork(() => {
-                  ValidateMatchedWords(); // only need to validate matched words if this is an initial model load
-                  setupCompletion();
-               });
-            }, TaskContinuationOptions.ExecuteSynchronously);
-         }
+            dispatcher.DispatchWork(RefreshBackingData); // this work must be done on the UI thread
+            if (fs != null) {
+               if (MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) {
+                  Tools.CodeTool.Investigator = mapper.Templates;
+               } else {
+                  mapper = null;
+               }
+            }
+         }, TaskContinuationOptions.ExecuteSynchronously);
       }
 
       public ViewPort(LoadedFile file) : this(file.Name, new BasicModel(file.Contents), InstantDispatch.Instance) { }
 
+      private bool ignoreFurtherCommands = false;
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
          undoWrapper.Execute = arg => { history.Undo.Execute(arg); tools.RefreshContent(); };
@@ -1131,11 +1146,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
 
          moveSelectionStart.CanExecute = selection.MoveSelectionStart.CanExecute;
-         moveSelectionStart.Execute = arg => {
+         moveSelectionStart.Execute = async arg => {
+            if (ignoreFurtherCommands) return;
+            using var _ = Scope(ref ignoreFurtherCommands, true, value => ignoreFurtherCommands = value);
+            await dispatcher.WaitForRenderingAsync();
             var direction = (Direction)arg;
-            using (ModelCacheScope.CreateScope(Model)) {
-               MoveSelectionStartExecuted(arg, direction);
-            }
+            MoveSelectionStartExecuted(arg, direction);
          };
          selection.MoveSelectionStart.CanExecuteChanged += (sender, e) => moveSelectionStart.CanExecuteChanged.Invoke(this, e);
          moveSelectionEnd.CanExecute = selection.MoveSelectionEnd.CanExecute;
@@ -1343,7 +1359,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var selectionStart = ConvertViewPointToAddress(SelectionStart);
          if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
          scroll.UpdateHeaders();
-         if (Model.GetNextRun(selectionStart) is ITableRun table) scroll.SetTableMode(table.Start, table.Length);
+         if (Model.GetNextRun(selectionStart) is ITableRun table && table.Start <= selectionStart) scroll.SetTableMode(table.Start, table.Length);
          RefreshBackingData();
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
@@ -1449,6 +1465,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
             initialWorkLoad = input.Length;
             postEditWork = 0;
+            holdWorkHistory = history.ContinueCurrentTransaction();
             EditCore(input);
          }
       }
@@ -1576,6 +1593,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UpdateInProgress = false;
          skipToNextGameCode = false;
          pathContext = null;
+         holdWorkHistory?.Dispose();
+         holdWorkHistory = null;
       }
 
       public void Edit(ConsoleKey key) {
@@ -1757,6 +1776,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Leave the original data (and other pointers to it) untouched.
       /// </summary>
       private void RepointWithoutRun(int source, int destination) {
+         if (!destination.InRange(0, Model.Count)) {
+            RaiseError("Could not find suitable freespace to use for the repoint.");
+            return;
+         }
          if (!(Model.GetNextRun(source) is ITableRun table)) {
             RaiseError("Could not parse a data format for that pointer.");
             return;
@@ -3023,6 +3046,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             exitEditEarly = true;
          }
       }
+
+      public void AbortScript() => exitEditEarly |= UpdateInProgress;
 
       private void ClearPointersFromTable(ITableRun tableRun, int index, int length) {
          foreach (var segment in tableRun.ElementContent) {

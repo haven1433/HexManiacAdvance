@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          Transparent = transparent;
       }
 
-      public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
+      public static ReadonlyPixelViewModel Create(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
          return SpriteDecorator.BuildSprite(model, sprite, useTransparency, scale);
       }
 
@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          return SpriteDecorator.BuildSprite(model, sprite, palette, useTransparency);
       }
 
-      public static IPixelViewModel Crop(IPixelViewModel pixels, int x, int y, int width, int height) {
+      public static ReadonlyPixelViewModel Crop(IPixelViewModel pixels, int x, int y, int width, int height) {
          return TilemapTableRun.Crop(pixels, x, y, Math.Max(0, pixels.PixelWidth - width - x), Math.Max(0, pixels.PixelHeight - height - y));
       }
 
@@ -50,7 +50,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
             }
          }
 
-         return new ReadonlyPixelViewModel(background.PixelWidth, background.PixelHeight, data);
+         return new ReadonlyPixelViewModel(background.PixelWidth, background.PixelHeight, data, background.Transparent);
       }
    }
 }

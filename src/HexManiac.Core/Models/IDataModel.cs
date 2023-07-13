@@ -84,7 +84,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
-      void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash);
+      void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash);
+      void UpdateGotoShortcut(int index, GotoShortcutModel shortcut);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
       string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -106,7 +107,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       string GetAnchorFromAddress(int requestSource, int destination);
       IEnumerable<string> GetAutoCompleteAnchorNameOptions(string partial, int maxResults = 30);
       StoredMetadata ExportMetadata(GameReferenceTables references, IMetadataInfo metadataInfo);
-      void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination);
+      void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination, bool writeDestinationFormat = true);
       int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> startLocations);
 
       IEnumerable<string> GetAutoCompleteByteNameOptions(string text);
@@ -164,7 +165,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual IEnumerable<T> All<T>() where T : IFormattedRun { yield break; }
       public virtual IReadOnlyList<IStreamRun> Streams { get; } = new List<IStreamRun>();
       public virtual IReadOnlyList<string> Anchors { get; } = new List<string>();
-      public IReadOnlyList<GotoShortcutModel> GotoShortcuts { get; } = new List<GotoShortcutModel>();
+      private readonly List<GotoShortcutModel> gotoShortcuts = new();
+      public IReadOnlyList<GotoShortcutModel> GotoShortcuts => gotoShortcuts;
 
       public virtual byte this[int index] {
          get => RawData[index];
@@ -211,7 +213,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
-      public virtual void SetList(ModelDelta changeToken, string name, IReadOnlyList<string> list, string hash) => throw new NotImplementedException();
+      public virtual void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash) => throw new NotImplementedException();
 
       public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
@@ -291,7 +293,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public abstract SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses);
 
-      public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int index, int fullValue);
+      public abstract void UpdateArrayPointer(ModelDelta currentChange, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int index, int fullValue, bool writeDestinationFormat = true);
 
       public abstract void ClearPointer(ModelDelta currentChange, int source, int destination);
 
@@ -330,6 +332,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool Equals(IDataModel other) => other == this;
 
       public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash) { }
+
+      public void UpdateGotoShortcut(int index, GotoShortcutModel model) => gotoShortcuts[index] = model;
    }
 
    public static class IDataModelExtensions {
@@ -557,7 +561,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // the list has been manually tampered with by the user
                // do not update it
             } else {
-               model.SetList(noChange, list.Name, list.Contents, list.Hash);
+               model.SetList(noChange, list.Name, list.Contents, list.Comments, list.Hash);
             }
          }
          foreach (var anchor in metadata.NamedAnchors) PokemonModel.ApplyAnchor(model, noChange, anchor.Address, BaseRun.AnchorStart + anchor.Name + anchor.Format, allowAnchorOverwrite: true);
@@ -702,14 +706,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Also returns any array with a BitArraySegment that depends on the parent array.
       /// </summary>
       public static IEnumerable<ArrayRun> GetDependantArrays(this IDataModel model, string anchor) {
-         foreach (var array in model.Arrays) {
-            if (array.LengthFromAnchor == anchor) yield return array;
-            foreach (var segment in array.ElementContent) {
-               if (segment is ArrayRunBitArraySegment bitSegment) {
-                  if (bitSegment.SourceArrayName == anchor) yield return array;
-               }
-            }
-         }
+         return model.CurrentCacheScope.GetDependantArrays(anchor);
       }
 
       /// <summary>
@@ -843,7 +840,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, null);
+      public static void SetList(this IDataModel model, ModelDelta token, string name, params string[] items) => model.SetList(token, name, (IReadOnlyList<string>)items, new Dictionary<int, string>(), null);
 
       public static bool IsFreespace(this IDataModel model, int start, int length) {
          for (int i = 0; i < length; i++) {
@@ -900,7 +897,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override SortedSpan<int> SearchForPointersToAnchor(ModelDelta changeToken, bool ignoreNoInfoPointers, params int[] addresses) => throw new NotImplementedException();
 
-      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination) {
+      public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination, bool writeDestinationFormat = true) {
          WritePointer(changeToken, address, destination);
       }
 

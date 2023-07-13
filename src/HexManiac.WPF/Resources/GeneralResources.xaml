@@ -66,7 +66,8 @@
                      BorderThickness="{TemplateBinding BorderThickness}"
                      BorderBrush="{TemplateBinding BorderBrush}"
                      Background="{TemplateBinding Background}">
-                  <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
+                  <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                    VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                </Border>
                <ControlTemplate.Triggers>
                   <Trigger Property="IsChecked" Value="True">
@@ -1141,6 +1142,7 @@
    <!-- Angle TextBox Style -->
    <Style TargetType="hsc:AngleTextBox">
       <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+      <Setter Property="Foreground" Value="{DynamicResource Primary}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource TopToBottomBrush}"/>
       <Setter Property="MinHeight" Value="18"/>
       <Setter Property="Template">
@@ -1273,7 +1275,8 @@
                               </PathGeometry>
                            </Path.Data>
                         </Path>
-                        <Border Name="TopBottomBorder" BorderThickness="0,1" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="True">
+                        <Border Name="TopBottomBorder" BorderThickness="0,1" BorderBrush="{TemplateBinding BorderBrush}" SnapsToDevicePixels="True"
+                                Padding="{TemplateBinding Padding}" HorizontalAlignment="{TemplateBinding HorizontalAlignment}" Background="{TemplateBinding Background}">
                            <Grid Name="ItemBorder" Background="{TemplateBinding Background}">
                               <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" TextBlock.Foreground="{DynamicResource Primary}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                               <Popup x:Name="Popup" Placement="Bottom" IsOpen="{TemplateBinding IsSubmenuOpen}" SnapsToDevicePixels="True">
@@ -1321,6 +1324,19 @@
             </Setter>
          </Trigger>
       </Style.Triggers>
+   </Style>
+
+   <!-- Text Editor Style -->
+   <Style TargetType="hsc:TextEditor">
+      <Setter Property="ContextMenuOverride">
+         <Setter.Value>
+            <ContextMenu>
+               <MenuItem Command="ApplicationCommands.Cut" />
+               <MenuItem Command="ApplicationCommands.Copy" />
+               <MenuItem Command="ApplicationCommands.Paste" />
+            </ContextMenu>
+         </Setter.Value>
+      </Setter>
    </Style>
 
    <!-- Data Templates -->

@@ -8,6 +8,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly IDataModel model;
       private readonly IDictionary<string, int> labels;
       private readonly IDictionary<string, List<int>> unresolvedLabels;
+      public bool RequireCompleteAddresses { get; init; } = true;
       public LabelLibrary(IDataModel data, IDictionary<string, int> additionalLabels) {
          (model, labels) = (data, additionalLabels);
          unresolvedLabels = new Dictionary<string, List<int>>();
@@ -59,7 +60,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
    }
 
-   public record DecompileLabelLibrary(int Start, int Length) {
+   public record DecompileLabelLibrary(IDataModel Model, int Start, int Length) {
+      private const string SENTINEL = ".sentinel.";
       private readonly Dictionary<int, string> labels = new();
       private readonly HashSet<int> rawLabels = new();
 
@@ -69,13 +71,36 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// </param>
       public string AddressToLabel(int address, bool isScriptAddress) {
          if (labels.TryGetValue(address, out var label)) return label;
-         if (isScriptAddress && address.InRange(Start, Start + Length)) {
-            label = "section" + labels.Count;
+         if (isScriptAddress && Model.GetAnchorFromAddress(-1, address) is string anchor && anchor.Length > 4) {
+            labels[address] = anchor;
+            return anchor;
+         } else if (isScriptAddress && address.InRange(Start, Start + Length)) {
+            label = SENTINEL + labels.Count;
             labels[address] = label;
             return label;
          }
          rawLabels.Add(address);
          return address.ToAddress();
+      }
+
+      public IReadOnlyDictionary<string,string> FinalizeLabels() {
+         var matches = labels.Keys.Where(key => labels[key].StartsWith(SENTINEL)).ToList();
+         matches.Sort();
+         var results = new Dictionary<string, string>();
+
+         for (int i = 0; i < matches.Count; i++) {
+            results[labels[matches[i]]] = "section" + i;
+         }
+
+         return results;
+      }
+
+      public string FinalizeLine(IReadOnlyDictionary<string, string> sections, string line) {
+         var start = line.IndexOf(SENTINEL);
+         if (start == -1) return line;
+         var index = int.Parse(new string(line[(start + SENTINEL.Length)..].TakeWhile(char.IsDigit).ToArray()));
+         line = line.Replace(SENTINEL + index, sections[SENTINEL + index]);
+         return FinalizeLine(sections, line);
       }
 
       public IEnumerable<int> AutoLabels => rawLabels.Where(key => key.InRange(Start, Start + Length));

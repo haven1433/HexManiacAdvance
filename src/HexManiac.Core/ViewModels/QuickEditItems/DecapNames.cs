@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -61,6 +62,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          foreach (var tableName in new[] {
             HardcodeTablesModel.MapNameTable,
             HardcodeTablesModel.NaturesTableName,
+            HardcodeTablesModel.AbilityDescriptionsTable,
             "data.battle.text",
             "data.maps.dungeons.stats",
             "data.menus.text.options", // TODO the values (FireRed=3CC330): Slow/Mid/Fast, On/Off, Shift/Set, Mono/Stereo, Help/LR/L=A
@@ -106,6 +108,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             if (run is PCSRun pcs) Decapitalize(model, viewPort.CurrentChange, pcs.Start);
          }
 
+         // "S" / "IES" additions for FR/LG
+         var address = model.GetGameCode() switch {
+            "BPRE0" => 0x06BDE8, "BPGE0" => 0x06BDE8,
+            "BPRE1" => 0x06BDFC, "BPGE1" => 0x06BDFC,
+            _ => -1
+         };
+         if (address >= 0) {
+            var destination = model.ReadPointer(address);
+            Decapitalize(model, viewPort.CurrentChange, destination, startLowercase: true);
+            Decapitalize(model, viewPort.CurrentChange, destination + 2, startLowercase: true);
+         }
+
          await viewPort.UpdateProgress(.2);
 
          // POKéMON
@@ -121,23 +135,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
 
-      private void Decapitalize(IDataModel model, ModelDelta token, int address) {
+      private void Decapitalize(IDataModel model, ModelDelta token, int address, bool startLowercase = false) {
          if (address < 0 || address >= model.Count) return;
          var textLength = PCSString.ReadString(model, address, true);
-         if (textLength < 3) return;
+         if (textLength < 3 && !startLowercase) return;
          var (_A, _a) = (0xBB, 0xD5);
          var run = new PCSRun(model, address, textLength);
-         bool previousIsCap = run.CreateDataFormat(model, address) is PCS pcs0 && IsCap(pcs0.ThisCharacter);
-         for (int i = 1; i < textLength; i++) {
-            if (run.CreateDataFormat(model, address + i) is not PCS pcs) {
+         var pcs0 = run.CreateDataFormat(model, address) as PCS;
+         bool previousIsCap = false, previousIsSpecial = false;
+         if (pcs0 != null) (previousIsCap, previousIsSpecial) = (IsCap(pcs0.ThisCharacter), IsSpecial(model, pcs0));
+         int start = 1;
+         if (startLowercase) {
+            (previousIsCap, previousIsSpecial) = (false, true);
+            start = 0;
+         }
+         for (int i = start; i < textLength; i++) {
+            var format = run.CreateDataFormat(model, address + i);
+            if (format is Anchor anchor) format = anchor.OriginalFormat;
+            if (format is not PCS pcs) {
                previousIsCap = false;
                continue;
             }
             var isCap = IsCap(pcs.ThisCharacter);
-            if (previousIsCap && isCap) {
+            var isSpecial = IsSpecial(model, pcs);
+            if ((previousIsCap || previousIsSpecial) && isCap) {
                token.ChangeData(model, address + i, (byte)(model[address + i] - _A + _a));
             }
-            previousIsCap = isCap;
+            (previousIsCap, previousIsSpecial) = (isCap, isSpecial);
          }
       }
 
@@ -145,6 +169,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          if (c.StartsWith("\"")) c = c.Substring(1);
          if (c.Length != 1) return false;
          return 'A' <= c[0] && c[0] <= 'Z';
+      }
+
+      private bool IsSpecial(IDataModel model, PCS pcs) {
+         var address = pcs.Source + pcs.Position;
+         if (model[address] == 0x2C) return true; // é
+         if (model[address] == 0xB4) return true; // '
+         return false;
       }
    }
 }

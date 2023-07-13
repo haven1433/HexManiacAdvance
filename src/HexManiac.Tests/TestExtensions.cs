@@ -7,12 +7,14 @@ using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Tests {
    public static class TestExtensions {
       public static void SetList(this IDataModel model, string name, IReadOnlyList<string> list) => model.SetList(new NoDataChangeDeltaModel(), name, list, null);
+      public static void SetList(this IDataModel model, ModelDelta token, string name, IReadOnlyList<string> list, string hash) => model.SetList(token, name, list, new Dictionary<int, string>(), hash);
       public static ContextItemGroup GetSubmenu(this IReadOnlyList<IContextItem> menu, string content) => (ContextItemGroup)menu.Single(item => item.Text == content);
       public static byte[] BytesFrom(this IDataModel model, IFormattedRun run) {
          var data = new byte[run.Length];
@@ -34,7 +36,7 @@ namespace HavenSoft.HexManiac.Tests {
       public static TableStreamRun DeserializeRun(this TableStreamRun streamRun, string content, ModelDelta token) => streamRun.DeserializeRun(content, token, out var _, out _);
 
       public static void ChangeList(this ModelDelta token, string name, string[] oldValues, string[] newValues) {
-         token.ChangeList(name, new ValidationList(null, oldValues), new ValidationList(null, newValues));
+         token.ChangeList(name, New.ValidationList(null, oldValues), New.ValidationList(null, newValues));
       }
 
       public static T Single<T>(this ObservableCollection<IArrayElementViewModel> self) => (T)self.Single(item => item is T);
@@ -50,6 +52,17 @@ namespace HavenSoft.HexManiac.Tests {
 
       public static byte[] Compile(this ScriptParser parser, ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData) {
          return parser.Compile(token, model, start, ref script, out movedData, out var _);
+      }
+
+      /// <summary>
+      /// Force the evaluation of all properties to check for exceptions that would normally occur during binding.
+      /// </summary>
+      public static void ReadAllProperties(this INotifyPropertyChanged viewModel) {
+         var type = viewModel.GetType();
+         foreach (var prop in type.GetProperties()) {
+            if (prop.GetMethod == null) continue;
+            prop.GetMethod.Invoke(viewModel, null);
+         }
       }
    }
 }

@@ -80,6 +80,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TrainerBattle3_Decode_Has3Arguments() {
          Model[0] = 0x5C;
          Model[1] = 3;
+         Model[4] = 1; // so it doesn't use the macro
          Model[10] = 2;
          Model[14] = 2;
 
@@ -520,7 +521,7 @@ Script:
          ViewPort.Tools.CodeTool.Contents[0].Content = "trainerbattle 00";
 
          var message = "0: Command trainerbattle 00 expects 4 arguments, but received 0 instead.";
-         Assert.Equal(ViewPort.Tools.CodeTool.ErrorText.Trim(), message);
+         Assert.Equal(message, ViewPort.Tools.CodeTool.Contents[0].ErrorText.Trim());
       }
 
       [Fact]

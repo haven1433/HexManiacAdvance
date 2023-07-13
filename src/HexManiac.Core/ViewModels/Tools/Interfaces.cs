@@ -48,6 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public interface IArrayElementViewModel : INotifyPropertyChanged {
       event EventHandler DataChanged;
       event EventHandler DataSelected;
+      string Theme { get; set; }
       bool Visible { get; set; }
       bool IsInError { get; }
       string ErrorText { get; }
@@ -63,9 +64,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string sectionName;
       private int sectionLink;
       private bool showSection;
-      private string lastFilter = string.Empty;
+      private string lastFilter = string.Empty, theme;
       private StubCommand followLink, collapseAll, expandAll, toggleVisibility;
 
+      public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;
@@ -80,16 +82,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value, arg => UpdateCollapsed(lastFilter)); }
       public void UpdateCollapsed(string filter) {
-         var start = false;
+         bool start = false, end = false;
          var filterMatchesGroup = filter.Length == 0 || sectionName.MatchesPartial(filter);
          bool lastFieldVisible = filterMatchesGroup;
          bool anyChildrenVisible = false;
          foreach (var child in viewPort.Tools.TableTool.Children) {
             if (child == this) start = true;
             if (!start) continue;
-            if (child is SplitterArrayElementViewModel && child != this) break;
+            end |= child is SplitterArrayElementViewModel && child != this;
             if (child is SplitterArrayElementViewModel) continue;
-            if (child is ButtonArrayElementViewModel) break;
+            if (child is ButtonArrayElementViewModel) continue;
+            if (child is IStreamArrayElementViewModel streamElement) {
+               if (streamElement.Parent != null && streamElement.Parent.SectionName != SectionName) continue;
+            } else if (end) {
+               continue;
+            }
             var childVisible = filterMatchesGroup;
 
             if (child is FieldArrayElementViewModel faevm) childVisible = filterMatchesGroup || faevm.Name.MatchesPartial(filter);
@@ -140,12 +147,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!(other is SplitterArrayElementViewModel splitter)) return false;
          SectionName = splitter.SectionName;
          SectionLink = splitter.SectionLink;
+         Theme = splitter.Theme;
          return true;
       }
    }
 
    public interface IStreamArrayElementViewModel : IArrayElementViewModel {
       event EventHandler<(int originalStart, int newStart)> DataMoved;
+
+      SplitterArrayElementViewModel Parent { get; set; }
 
       bool ShowContent { get; }
       int UsageCount { get; }

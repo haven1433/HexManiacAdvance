@@ -75,11 +75,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void Update(IEnumerable<ComboOption> options, int selection) {
          if (interactionType != InteractionType.None) return;
          interactionType = InteractionType.Update;
+         bool notifyOptions = false, notifyDropOpen = false;
 
          // warning: this might be a performance sink. It might be faster to replace elements, rather than replacing the full collection.
          if (AllOptions == null || !AllOptions.Select(option => option.Text).SequenceEqual(options.Select(option => option.Text))) {
             AllOptions = new(options);
             FilteredOptions = new(options);
+            notifyOptions = true;
          } else if (selectedIndex == selection && !dropDownIsOpen) {
             // no need to notify, nothing changed
             interactionType = InteractionType.None;
@@ -88,9 +90,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          selectedIndex = selection;
          if (!selectedIndex.InRange(0, AllOptions.Count)) selectedIndex = -1;
+         notifyDropOpen = !dropDownIsOpen;
          dropDownIsOpen = false;
          displayText = selectedIndex >= 0 ? AllOptions[selectedIndex].Text : selection.ToString();
-         NotifyPropertiesChanged(nameof(CanFilter), nameof(AllOptions), nameof(FilteredOptions), nameof(SelectedIndex), nameof(DisplayText), nameof(DropDownIsOpen), nameof(ModelValue));
+
+         if (notifyOptions) NotifyPropertiesChanged(nameof(CanFilter), nameof(AllOptions), nameof(FilteredOptions));
+         NotifyPropertiesChanged(nameof(SelectedIndex), nameof(DisplayText), nameof(ModelValue));
+         if (notifyDropOpen) NotifyPropertyChanged(nameof(DropDownIsOpen));
          interactionType = InteractionType.None;
       }
 

@@ -1,5 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -85,12 +87,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layoutTable = map.GetSubTable(Format.Layout);
          if (layoutTable == null) return;
          var layout = layoutTable[0];
-         var primaryAddress = layout.GetAddress(Format.PrimaryBlockset).ToAddress();
-         var secondaryAddress = layout.GetAddress(Format.SecondaryBlockset).ToAddress();
+         var primaryAddress = layout.GetAddress(Format.PrimaryBlockset);
+         var secondaryAddress = layout.GetAddress(Format.SecondaryBlockset);
 
          // if this is a no-op, skip
-         var newPrimary = format.BlocksetCache.Primary.IndexOf(primaryAddress);
-         var newSecondary = format.BlocksetCache.Secondary.IndexOf(secondaryAddress);
+         var newPrimary = format.BlocksetCache.Primary.IndexOf(format.BlocksetCache.Primary.FirstOrDefault(blockset => blockset.Address == primaryAddress));
+         var newSecondary = format.BlocksetCache.Secondary.IndexOf(format.BlocksetCache.Secondary.FirstOrDefault(blockset => blockset.Address == secondaryAddress));
          if (
             PrimaryOptions.SequenceEqual(format.BlocksetCache.Primary) &&
             SecondaryOptions.SequenceEqual(format.BlocksetCache.Secondary) &&
@@ -118,8 +120,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          UpdateFromModel();
       }
 
-      public ObservableCollection<string> PrimaryOptions { get; } = new();
-      public ObservableCollection<string> SecondaryOptions { get; } = new();
+      public ObservableCollection<BlocksetOption> PrimaryOptions { get; } = new();
+      public ObservableCollection<BlocksetOption> SecondaryOptions { get; } = new();
       private int primaryIndex, secondaryIndex;
       public int PrimaryIndex {
          get => primaryIndex;
@@ -144,12 +146,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map.Layout.Element == null) return;
          if (!primaryIndex.InRange(0, PrimaryOptions.Count)) return;
          if (!secondaryIndex.InRange(0, SecondaryOptions.Count)) return;
-         if (PrimaryOptions[primaryIndex].TryParseHex(out int prim)) {
-            map.Layout.Element.SetAddress(Format.PrimaryBlockset, prim);
-         }
-         if (SecondaryOptions[secondaryIndex].TryParseHex(out int sec)) {
-            map.Layout.Element.SetAddress(Format.SecondaryBlockset, sec);
-         }
+         map.Layout.Element.SetAddress(Format.PrimaryBlockset, PrimaryOptions[primaryIndex].Address);
+         map.Layout.Element.SetAddress(Format.SecondaryBlockset, SecondaryOptions[secondaryIndex].Address);
       }
 
       // flags.|t|allowBiking.|allowEscaping.|allowRunning.|showMapName.
@@ -217,6 +215,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                NotifyPropertyChanged(originalName);
             }
          }
+      }
+   }
+
+   public class BlocksetOption : ViewModelCore { // changing this to a record would interfere with combobox selection changes.
+      private readonly Lazy<IPixelViewModel> render;
+      public IDataModel Model { get; }
+      public int Address { get; }
+      public IPixelViewModel Render => render.Value;
+      public string AddressText => Address.ToAddress();
+
+      public BlocksetOption(IDataModel model, int address) {
+         Model = model;
+         Address = address;
+         render = new Lazy<IPixelViewModel>(() => new BlocksetModel(Model, Address).RenderBlockset(.5));
       }
    }
 }

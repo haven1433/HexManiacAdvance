@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class AngleComboBox {
@@ -103,6 +104,24 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      #region HasOverflow
+
+      public static readonly DependencyProperty HasOverflowProperty = DependencyProperty.Register(nameof(HasOverflow), typeof(bool), typeof(AngleComboBox), new FrameworkPropertyMetadata(false, HasOverflowChanged));
+
+      public bool HasOverflow {
+         get => (bool)GetValue(HasOverflowProperty);
+         set => SetValue(HasOverflowProperty, value);
+      }
+
+      private static void HasOverflowChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+         var self = (AngleComboBox)d;
+         self.OnHasOverflowChanged(e);
+      }
+
+      protected virtual void OnHasOverflowChanged(DependencyPropertyChangedEventArgs e) { }
+
+      #endregion
+
       public AngleComboBox() {
          DataContextChanged += (sender, e) => {
             if (e.OldValue is FilteringComboOptions oldVM) {
@@ -141,6 +160,12 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void ClearSelection() {
          if (Template.FindName("PART_EditableTextBox", this) is not TextBox tb) return;
          tb.SelectionStart = tb.SelectionStart + tb.SelectionLength;
+      }
+
+      protected override void OnMouseEnter(MouseEventArgs e) {
+         base.OnMouseEnter(e);
+         if (Template.FindName("PART_EditableTextBox", this) is not TextBox tb) return;
+         HasOverflow = tb.ExtentWidth > tb.ViewportWidth;
       }
 
       private void KeyDownToViewModel(object sender, KeyEventArgs e) {

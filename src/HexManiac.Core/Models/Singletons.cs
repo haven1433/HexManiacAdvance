@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
       private const string AnimationScriptReferenceFileName = "resources/animationScriptReference.txt";
       private const string BattleAIScriptReferenceFileName = "resources/battleAIScriptReference.txt";
+      private const string PythonUtilityFileName = "resources/hma.py";
 
       public IMetadataInfo MetadataInfo { get; }
       public IReadOnlyDictionary<string, GameReferenceTables> GameReferenceTables { get; }
@@ -33,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<IScriptLine> AnimationScriptLines { get; }
       public IReadOnlyList<IScriptLine> BattleAIScriptLines { get; }
       public IWorkDispatcher WorkDispatcher { get; }
+      public string PythonUtility { get; }
       public int CopyLimit { get; }
 
       public Singletons(IWorkDispatcher dispatcher = null, int copyLimit = 40000) {
@@ -45,6 +47,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          AnimationScriptLines = LoadScriptReference<ASEScriptLine>(AnimationScriptReferenceFileName);
          BattleAIScriptLines = LoadScriptReference<TSEScriptLine>(BattleAIScriptReferenceFileName);
          WorkDispatcher = dispatcher ?? InstantDispatch.Instance;
+         PythonUtility = File.ReadAllText(PythonUtilityFileName);
          CopyLimit = copyLimit;
       }
 
@@ -62,6 +65,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          BattleAIScriptLines = new ScriptLine[0];
          WorkDispatcher = InstantDispatch.Instance;
          CopyLimit = copyLimit;
+         PythonUtility = string.Empty;
       }
 
       private IReadOnlyList<IScriptLine> LoadScriptReference<TLine>(string file) where TLine : ScriptLine {

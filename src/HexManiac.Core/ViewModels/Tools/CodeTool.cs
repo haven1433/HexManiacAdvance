@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private CodeMode mode;
       private readonly ThumbParser thumb;
       private readonly ScriptParser script, battleScript, animationScript, battleAIScript;
+      private readonly ViewPort viewPort;
       private readonly IDataModel model;
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
@@ -28,6 +30,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool IsReadOnly => Mode == CodeMode.Raw;
       public bool UseSingleContent => !UseMultiContent;
       public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.AnimationScript, CodeMode.TrainerAiScript);
+
+      public IDataInvestigator Investigator { get; set; }
+
+      private bool insertAutoActive = true;
+      public bool InsertAutoActive { get => insertAutoActive; set => Set(ref insertAutoActive, value); }
 
       private bool showErrorText;
       public bool ShowErrorText { get => showErrorText; private set => TryUpdate(ref showErrorText, value); }
@@ -85,18 +92,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public double SingleBoxVerticalOffset { get; set; }
       public double MultiBoxVerticalOffset { get; set; }
 
-      public CodeTool(Singletons singletons, IDataModel model, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
-         var gameHash = model.GetShortGameCode();
+      public CodeTool(Singletons singletons, ViewPort viewPort, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
+         var gameHash = viewPort.Model.GetShortGameCode();
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(gameHash, singletons.ScriptLines, 0x02);
          battleScript = new ScriptParser(gameHash, singletons.BattleScriptLines, 0x3D);
          animationScript = new ScriptParser(gameHash, singletons.AnimationScriptLines, 0x08);
          battleAIScript = new ScriptParser(gameHash, singletons.BattleAIScriptLines, 0x5A);
-         script.CompileError += ObserveCompileError;
-         battleScript.CompileError += ObserveCompileError;
-         animationScript.CompileError += ObserveCompileError;
-         battleAIScript.CompileError += ObserveCompileError;
-         this.model = model;
+         this.viewPort = viewPort;
+         this.model = viewPort.Model;
          this.selection = selection;
          this.history = history;
          this.messageTab = messageTab;
@@ -248,11 +252,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents[i].ContentChanged += ScriptChanged;
             } else {
-               var body = new CodeBody { Address = scriptStart, Label = label, CompiledLength = info.Length };
+               var body = new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label, CompiledLength = info.Length };
                parser.AddKeywords(model, body);
                body.Content = info.Content;
                body.ContentChanged += ScriptChanged;
                body.HelpSourceChanged += UpdateScriptHelpFromLine;
+               body.RequestShowSearchResult += ShowSearchResults;
                Contents.Add(body);
             }
          }
@@ -272,6 +277,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             _ => null,
          };
          var body = (CodeBody)viewModel;
+         if (InsertAutoActive) body.TryInsertAuto();
+         var delta = body.Content.Length - e.OldValue.Length;
+         var deltaSize = Math.Abs(delta);
+         if (body.CaretPosition >= deltaSize && body.CaretPosition < body.Content.Length - deltaSize) {
+            var start = body.Content[0..(body.CaretPosition + delta)];
+            if (start.EndsWith("<auto>")) InsertAutoActive = true;
+            start = body.Content[0..(body.CaretPosition + delta)];
+            if (start.EndsWith("<auto")) InsertAutoActive = false;
+         }
+
          var codeContent = body.Content;
 
          var run = model.GetNextRun(body.Address);
@@ -320,6 +335,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          else if (mode == CodeMode.TrainerAiScript) help = BattleAIScriptParser.GetHelp(model, context);
          else throw new NotImplementedException();
          codeBody.HelpContent = help;
+      }
+
+      private void ShowSearchResults(object sender, ISet<int> results) {
+         var selection = results.Select(r => (r, r + 1)).ToList();
+         viewPort.OpenSearchResultsTab("Script Search Results", selection);
       }
 
       private void CompileChanges() {
@@ -381,8 +401,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          using (CreateRecursionGuard()) {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
-            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out var movedData, out int ignoreCharacterCount);
-            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount);
+            int caret = body.CaretPosition;
+            body.ClearErrors();
+            parser.CompileError += body.WatchForCompileErrors;
+            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, out var movedData, out int ignoreCharacterCount);
+            parser.CompileError -= body.WatchForCompileErrors;
+            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount + caret - body.CaretPosition);
             if (code == null) {
                return;
             }
@@ -422,7 +446,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   if (start != run.Start) {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
-                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, out movedData, out var _); // recompile for the new location. Could update pointers.
+                     int changedCaret = body.CaretPosition;
+                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref changedCaret, out movedData, out var _); // recompile for the new location. Could update pointers.
+                     // assume that changedCaret == body.CaretPosition? But it's probably not important
                      sources = run.PointerSources;
                   }
                }
@@ -502,11 +528,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          return builder.ToString();
       }
-
-      private void ObserveCompileError(object sender, string error) {
-         ShowErrorText = true;
-         ErrorText += error + Environment.NewLine;
-      }
    }
 
    public class CodeTextFormatter : ITextPreProcessor {
@@ -525,82 +546,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public class CodeBody : ViewModelCore {
-      public event EventHandler<ExtendedPropertyChangedEventArgs<string>> ContentChanged;
-
-      public event EventHandler<HelpContext> HelpSourceChanged;
-
-      private string label;
-      public string Label {
-         get => label;
-         set => TryUpdate(ref label, value);
-      }
-
-      private int address;
-      public int Address {
-         get => address;
-         set => TryUpdate(ref address, value);
-      }
-
-      private int compiledLength;
-      public int CompiledLength {
-         get => compiledLength;
-         set => Set(ref compiledLength, value);
-      }
-
-      public int CaretPosition {
-         get => Editor.CaretIndex;
-         set {
-            if (Editor.CaretIndex == value) return;
-            Editor.CaretIndex = value;
-            var lines = Content.Split('\r', '\n').ToList();
-            var contentBoundaryCount = 0;
-            while (value > lines[0].Length) {
-               if (lines[0].Trim() == "{") contentBoundaryCount += 1;
-               if (lines[0].Trim() == "}") contentBoundaryCount -= 1;
-               value -= lines[0].Length + 1;
-               lines.RemoveAt(0);
-            }
-
-            // only show help if we're not within content curlies.
-            if (contentBoundaryCount != 0) HelpContent = string.Empty;
-            else HelpSourceChanged?.Invoke(this, new(lines[0], value));
-         }
-      }
-
-      public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
-
-      private bool ignoreEditorContentUpdates;
-      public string Content {
-         get => Editor.Content;
-         set {
-            if (Editor.Content != value) {
-               using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
-                  var previousValue = Editor.Content;
-                  Editor.Content = value;
-                  NotifyPropertyChanged();
-                  ContentChanged.Raise(this, new(previousValue, nameof(Content)));
-               }
-            }
-         }
-      }
-
-      private string helpContent;
-      public string HelpContent { get => helpContent; set => TryUpdate(ref helpContent, value); }
-
-      public CodeBody() {
-         Editor.Bind(nameof(Editor.Content), (sender, e) => {
-            if (ignoreEditorContentUpdates) return;
-            NotifyPropertyChanged(nameof(Content));
-            ContentChanged.Raise(this, (ExtendedPropertyChangedEventArgs<string>) e);
-         });
-         Editor.Bind(nameof(Editor.CaretIndex), (sender, e) => {
-            NotifyPropertyChanged(nameof(CaretPosition));
-         });
-      }
-
-      public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
-   }
-
-   public record HelpContext(string Line, int Index);
+   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0);
 }

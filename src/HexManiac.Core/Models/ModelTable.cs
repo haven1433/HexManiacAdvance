@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -160,8 +161,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int GetValue(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
-         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-         if (seg.Type == ElementContentType.Integer) {
+         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
+         if (seg == null) return -1;
+         if (seg.Type == ElementContentType.Integer && seg is ArrayRunSignedSegment signedSeg) {
+            return signedSeg.ReadValue(model, valueAddress);
+         } if (seg.Type == ElementContentType.Integer) {
             return model.ReadMultiByteValue(valueAddress, seg.Length);
          } else {
             return model.ReadMultiByteValue(valueAddress, seg.Length.LimitToRange(0, 3));
@@ -219,9 +223,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunTupleSegment)seg, tokenFactory);
       }
 
+      public object __getindex__(string key) => this[key];                     // for python
+      public void __setindex__(string key, object value) => this[key] = value; // for python
       public object this[string fieldName] {
          get {
-            var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
+            if (seg == null) return null;
             var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
             if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
             if (seg.Type == ElementContentType.Pointer) {
@@ -241,7 +248,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return GetValue(fieldName);
          }
          set {
-            var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
+            var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
             if (seg is ArrayRunEnumSegment) {
                if (value is string str) SetEnumValue(fieldName, str);
                else if (value is BigInteger big) SetValue(fieldName, (int)big);
@@ -271,13 +278,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public void SetAddress(string fieldName, int value) {
+      public void SetAddress(string fieldName, int value, bool writeDestinationFormat = true) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunRecordSegment rSeg) seg = rSeg.CreateConcrete(Model, table, valueAddress);
          if (seg.Type == ElementContentType.Pointer) {
-            model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value);
+            model.UpdateArrayPointer(Token, seg, table.ElementContent, arrayIndex, valueAddress, value, writeDestinationFormat);
          } else {
             // it's not a pointer so don't update any formats to think that this points to them
             // bet we should still update the value.
@@ -361,6 +368,17 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
+      /// <summary>
+      /// Attempts to render a sprite from a pointer field.
+      /// </summary>
+      public ReadonlyPixelViewModel Render(string fieldName) {
+         if (arrayIndex < 0 || arrayIndex >= table.ElementCount || !HasField(fieldName)) return null;
+         var address = GetAddress(fieldName);
+         var spriteRun = model.GetNextRun(address) as ISpriteRun;
+         if (spriteRun == null) return null;
+         return ReadonlyPixelViewModel.Create(Model, spriteRun, true);
+      }
+
       #region DynamicObject
 
       public override bool TryGetMember(GetMemberBinder binder, out object? result) {
@@ -433,7 +451,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public bool HasField(string name) => tuple.Elements.Any(field => field.Name == name);
 
       public int GetValue(string fieldName) {
-         var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+         var tup = tuple.Elements.First(seg => seg.Name == matchName);
          var start = table.Start + table.ElementLength * arrayIndex;
          start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
@@ -441,7 +460,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public void SetValue(string fieldName, int value) {
-         var tup = tuple.Elements.Single(seg => seg.Name == fieldName);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+         var tup = tuple.Elements.First(seg => seg.Name == matchName);
          var start = table.Start + table.ElementLength * arrayIndex + segmentOffset;
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
          tup.Write(model, tokenFactory(), start, bitOffset, value);
@@ -451,7 +471,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override bool TryGetMember(GetMemberBinder binder, out object? result) {
          result = null;
-         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == binder.Name);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), binder.Name).FirstOrDefault();
+         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == matchName);
          if (seg == null) {
             throw new ArgumentException($"Couldn't find a member named {binder.Name}. Available members include: {", ".Join(table.ElementContent.Select(s => s.Name))}");
          }
@@ -460,8 +481,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override bool TrySetMember(SetMemberBinder binder, object? value) {
-         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == binder.Name);
-         if (seg == null) return base.TrySetMember(binder, value);
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), binder.Name).FirstOrDefault();
+         if (matchName == null) return base.TrySetMember(binder, value);
+         var seg = tuple.Elements.FirstOrDefault(segment => segment.Name == matchName);
          this[seg.Name] = value;
          return true;
       }

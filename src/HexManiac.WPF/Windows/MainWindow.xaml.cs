@@ -18,6 +18,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -71,6 +72,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          FillQuickEditMenu();
       }
 
+      protected override AutomationPeer OnCreateAutomationPeer() => new CustomAutomationPeer(this); // prevent memory held by automation peer
+
       private void SetupDebugListener(object sender, RoutedEventArgs e) {
          Trace.Listeners.Clear();
          Trace.Listeners.Add(new CustomTraceListener(FileSystem, ViewModel.Singletons.MetadataInfo.VersionNumber));
@@ -113,7 +116,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             "The error has been logged to crash.log" + Environment.NewLine +
             "You may want to:",
             showYesNoCancel: false,
-            new ProcessModel("Show crash.log in Explorer", "."),
+            new ProcessModel("Show crash.log in Explorer", "/" + Path.GetFullPath("crash.log")),
             new ProcessModel("Report this via Discord", "https://discord.gg/Re6E6ePpFc"),
             new ProcessModel(
                "Report this via GitHub",
@@ -292,6 +295,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void FocusPrimaryContent() {
          if (!ViewModel.SelectedIndex.InRange(0, ViewModel.Count)) return;
          if (GetChild(Tabs, "HexContent", ViewModel[ViewModel.SelectedIndex]) is HexContent hex) {
+            var anchorTextBox = GetChild(Tabs, "AnchorTextBox", ViewModel[ViewModel.SelectedIndex]);
+            if (anchorTextBox != null && anchorTextBox.IsFocused) return;
             hex.Focus();
          } else if (GetChild(Tabs, "MapTab", ViewModel[ViewModel.SelectedIndex]) is MapTab map) {
             map.Focus();
@@ -576,6 +581,8 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private void DeveloperWriteTrace(object sender, RoutedEventArgs e) => Trace.WriteLine("Trace");
 
+      private void DeveloperRunGarbageCollection(object sender, RoutedEventArgs e) => GC.Collect();
+
       private void DeveloperRenderRomOverview() {
          var tab = (ViewPort)ViewModel.SelectedTab;
          var model = tab.Model;
@@ -670,6 +677,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          textbox.Focus();
          e.Handled = true;
       }
+   }
+
+   public class CustomAutomationPeer : WindowAutomationPeer {
+      public CustomAutomationPeer(Window owner) : base(owner) { }
+      protected override List<AutomationPeer> GetChildrenCore() => null;
    }
 
    public class CustomTraceListener : TraceListener {

@@ -252,14 +252,11 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<ModelDelta, string, System.Collections.Generic.IReadOnlyList<string>, string> SetList { get; set; }
+        public Action<ModelDelta, string, IEnumerable<string>, IReadOnlyDictionary<int, string>, string> SetList { get; set; }
         
-        void IDataModel.SetList(ModelDelta changeToken, string name, System.Collections.Generic.IReadOnlyList<string> list, string hash)
+        void IDataModel.SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash)
         {
-            if (this.SetList != null)
-            {
-                this.SetList(changeToken, name, list, hash);
-            }
+         SetList?.Invoke(changeToken, name, list, comments, hash);
         }
         
         public Action<ModelDelta, int, int> ClearPointer { get; set; }
@@ -483,13 +480,13 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
         
-        public Action<ModelDelta, Runs.ArrayRunElementSegment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment>, int, int, int> UpdateArrayPointer { get; set; }
+        public Action<ModelDelta, Runs.ArrayRunElementSegment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment>, int, int, int, bool> UpdateArrayPointer { get; set; }
         
-        void IDataModel.UpdateArrayPointer(ModelDelta changeToken, Runs.ArrayRunElementSegment segment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment> segments, int parentIndex, int address, int destination)
+        void IDataModel.UpdateArrayPointer(ModelDelta changeToken, Runs.ArrayRunElementSegment segment, System.Collections.Generic.IReadOnlyList<Runs.ArrayRunElementSegment> segments, int parentIndex, int address, int destination, bool writeDestinationFormat)
         {
             if (this.UpdateArrayPointer != null)
             {
-                this.UpdateArrayPointer(changeToken, segment, segments, parentIndex, address, destination);
+                this.UpdateArrayPointer(changeToken, segment, segments, parentIndex, address, destination, writeDestinationFormat);
             }
         }
         
@@ -770,5 +767,8 @@ namespace HavenSoft.HexManiac.Core.Models
 
       public Func<IScriptStartRun, IDictionary<int, int>, int> GetScriptLength;
       int IDataModel.GetScriptLength(IScriptStartRun run, IDictionary<int, int> destinationLengths) => GetScriptLength?.Invoke(run, destinationLengths) ?? default;
+
+      public Action<int, GotoShortcutModel> UpdateGotoShortcut;
+      void IDataModel.UpdateGotoShortcut(int index, GotoShortcutModel shortcut) => UpdateGotoShortcut?.Invoke(index, shortcut);
     }
 }

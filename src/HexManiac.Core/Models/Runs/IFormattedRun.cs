@@ -186,7 +186,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          foreach (var t in set) elements[i++] = t;
       }
 
-      private SortedSpan(T[] elements, int length) => (this.elements, Count) = (elements, length);
+      /// <summary>
+      /// Calling this constructor is dangerous!
+      /// You need to guarantee that the array is not shared, and the array elements are already unique and sorted.
+      /// </summary>
+      public SortedSpan(T[] elements, int length) => (this.elements, Count) = (elements, length);
 
       public SortedSpan<T> Add1(T value) {
          var newElements = new T[Count + 1];

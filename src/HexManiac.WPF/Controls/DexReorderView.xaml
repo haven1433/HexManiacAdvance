@@ -16,7 +16,7 @@
             </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
                <DataTemplate>
-                  <Border BorderThickness="2" Margin="-1" Name="PixelImage">
+                  <Border BorderThickness="2" Margin="-1" Name="PixelImage" ToolTip="{Binding Name}">
                      <Border.Style>
                         <Style TargetType="Border">
                            <Style.Triggers>

@@ -1,16 +1,14 @@
-﻿using HavenSoft.HexManiac.Core.Models;
-using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class TupleArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private bool visible;
       public bool Visible { get => visible; set => Set(ref visible, value); }
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => false;
       public string ErrorText => string.Empty;
       public int ZIndex => 0;

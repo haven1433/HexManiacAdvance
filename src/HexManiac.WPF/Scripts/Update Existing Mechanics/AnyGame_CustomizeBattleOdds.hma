@@ -1,5 +1,5 @@
 # Add data.battle.odds tables for editing encounter odds.
-# Each tables odds should increase from 0 to 100.
+# Each table's odds should increase from 0 to 100.
 # The fishing table has 2 spots for old rod, 3 for good, and 5 for super.
 
 # Step 1: add anchors for the 3 required functions

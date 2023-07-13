@@ -288,6 +288,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          set => TryUpdate(ref zoomLevel, value);
       }
 
+      private bool insertAutoActive = true;
+      public bool InsertAutoActive {
+         get => insertAutoActive;
+         set => Set(ref insertAutoActive, value, old => {
+            foreach (var tab in tabs) {
+               if (tab is ViewPort vp) vp.Tools.CodeTool.InsertAutoActive = insertAutoActive;
+            }
+         });
+      }
+
       private bool showError;
       public bool ShowError {
          get => showError;
@@ -452,6 +462,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   diffLeft.RaiseCanExecuteChanged();
                   diffRight.RaiseCanExecuteChanged();
                   if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
+                  MoveFocusToPrimaryContent.Raise(this);
                }
             }
          }
@@ -551,6 +562,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          LogAppStartupProgress = metadata.Contains("LogAppStartupProgress = True");
          UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
          AllowSingleTableMode = !metadata.Contains("AllowSingleTableMode = False");
+         InsertAutoActive = !metadata.Contains("InsertAutoActive = False");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
          FocusOnGotoShortcuts = !metadata.Contains("FocusOnGotoShortcuts = False");
          AnimateScroll = !metadata.Contains("AnimateScroll = False");
@@ -589,6 +601,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"LogAppStartupProgress = {LogAppStartupProgress}",
             $"UseTableEntryHeaders = {UseTableEntryHeaders}",
             $"AllowSingleTableMode = {AllowSingleTableMode}",
+            $"InsertAutoActive = {InsertAutoActive}",
             $"ShowMatrixGrid = {ShowMatrix}",
             $"FocusOnGotoShortcuts = {FocusOnGotoShortcuts}",
             $"ZoomLevel = {ZoomLevel}",
@@ -668,9 +681,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          resetZoom.CanExecute = CanAlwaysExecute;
          resetZoom.Execute = arg => {
             ZoomLevel = 16;
-            foreach(var tab in this) {
-               if (tab is not MapEditorViewModel mapTab) continue;
-               mapTab.ResetZoom();
+            foreach (var tab in this) {
+               if (tab is MapEditorViewModel mapTab) mapTab.ResetZoom();
+               if (tab is ViewPort viewPort) viewPort.Tools.CodeTool.FontSize = 12;
             }
          };
 
@@ -820,6 +833,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             viewModel.AllowMultipleElementsPerLine = AllowMultipleElementsPerLine;
             viewModel.StretchData = StretchData;
             if (content is ViewPort viewPort) {
+               viewPort.Tools.CodeTool.InsertAutoActive = InsertAutoActive;
+               viewPort.Tools.CodeTool.Bind(nameof(InsertAutoActive), (tool, e) => InsertAutoActive = tool.InsertAutoActive);
                bool anyTabsHaveMatchingViewModel = false;
                foreach (var tab in tabs) {
                   if (tab is MapEditorViewModel map) anyTabsHaveMatchingViewModel |= map.ViewPort == viewPort;
@@ -1183,6 +1198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.RequestCanCreatePatch += CanCreatePatch;
          content.RequestCreatePatch += CreatePatch;
          content.PropertyChanged += TabPropertyChanged;
+         content.RequestRefreshGotoShortcuts += RefreshGotoShortcuts;
          if (content.Save != null) content.Save.CanExecuteChanged += RaiseSaveAllCanExecuteChanged;
 
          if (content is IViewPort viewPort) {
@@ -1205,6 +1221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          content.RequestCanCreatePatch -= CanCreatePatch;
          content.RequestCreatePatch -= CreatePatch;
          content.PropertyChanged -= TabPropertyChanged;
+         content.RequestRefreshGotoShortcuts -= RefreshGotoShortcuts;
          if (content.Save != null) content.Save.CanExecuteChanged -= RaiseSaveAllCanExecuteChanged;
 
          if (content is IViewPort viewPort) {
@@ -1213,6 +1230,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                fileSystem.RemoveListenerForFile(viewPort.FileName, viewPort.ConsiderReload);
             }
          }
+      }
+
+      private void RefreshGotoShortcuts(object sender, EventArgs e) {
+         if (SelectedTab != sender) return;
+         var collection = CreateGotoShortcuts(GotoViewModel);
+         if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
       }
 
       private void UpdateGotoViewModel() {

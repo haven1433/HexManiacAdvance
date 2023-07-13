@@ -47,7 +47,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class GotoControlViewModel : ViewModelCore {
-      private readonly IViewPort viewPort;
+      private readonly IEditableViewPort viewPort;
       private bool withinTextChange = false, devMode = false;
 
       #region NotifyProperties
@@ -143,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
       public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher, bool devMode) {
-         viewPort = (tabContent as IViewPort);
+         viewPort = (tabContent as IEditableViewPort);
          this.devMode = devMode;
          if (tabContent is MapEditorViewModel mevm) viewPort = mevm.ViewPort;
          MoveAutoCompleteSelectionUp = new StubCommand {
@@ -256,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                foreach (var token in prefix.Tokens) {
                   var fullName = token.Content;
                   if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
-                  token.UpdateHoverTip(viewPort.Model, fullName);
+                  token.UpdateHoverTip(viewPort, fullName);
                }
             }
          }
@@ -333,7 +333,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (!mapEditorRelease.Value) return new();
 
          var allMaps = model.CurrentCacheScope?.GetAllMaps();
-         var results = allMaps?.Where(map => map.Name.MatchesPartial(text)).ToList() ?? new();
+         var results = allMaps?.Where(map => map.Name.MatchesPartial(text) && map.Name.SkipCount(text) <= text.Length).ToList() ?? new();
          var lower = text.ToLower();
          foreach (var result in results) {
             if (result.Name.ToLower() == lower) return new() { result };
@@ -379,14 +379,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Initialize();
       }
 
-      /// <summary>
-      /// If a '.' is followed by a space, it's not a divider
-      /// </summary>
       private string DotSplit(string content) {
          var parts = content.Split(".");
          var firstPart = parts[0];
          for (int i = 1; i < parts.Length; i++) {
             if (parts[i].Length == 0 || parts[i][0] == ' ' || firstPart.Count('"') % 2 != 0) {
+               // "Mr. Mime" and similar names with ". " should not be split.
+               firstPart += "." + parts[i];
+            } else if (firstPart.Count('(') > firstPart.Count(')')) {
+               // () pairs should not be split
                firstPart += "." + parts[i];
             } else {
                break;
@@ -457,6 +458,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private string content;
       public string Content { get => content; set => Set(ref content, value); }
 
+      private bool isGoto; // true if clicking this button causes a goto, false if it opens another section.
+      public bool IsGoto { get => isGoto; set => Set(ref isGoto, value); }
+
       private ObservableCollection<object> hoverTip;
       public ObservableCollection<object> HoverTip {
          get => hoverTip;
@@ -469,9 +473,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return collection;
       }
 
-      public void UpdateHoverTip(IDataModel model, string fullName) {
+      public void UpdateHoverTip(IEditableViewPort viewPort, string fullName) {
+         var model = viewPort.Model;
+         var matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
          if (address != Pointer.NULL) {
+            IsGoto = true;
             var run = model.GetNextRun(address);
             if (run != null && address == run.Start) {
                var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, -1, address, run);
@@ -480,6 +487,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   return;
                }
             }
+         } else if (matchingMaps.Count == 1 && viewPort.MapEditor != null) {
+            IsGoto = true;
+            var info = matchingMaps[0];
+            var hoverContent = viewPort.MapEditor.GetMapPreview(info.Group, info.Map, null);
+            if (hoverContent != null) {
+               var scale = 1.0;
+               if (hoverContent.PixelWidth >= 240 * 4 || hoverContent.PixelHeight >= 160 * 4) {
+                  scale = .25;
+               } else if (hoverContent.PixelWidth >= 240 * 2 || hoverContent.PixelHeight >= 160 * 2) {
+                  scale = .5;
+               }
+               if (scale < 1) {
+                  hoverContent = new ReadonlyPixelViewModel(hoverContent.PixelWidth, hoverContent.PixelHeight, hoverContent.PixelData, hoverContent.Transparent) {
+                     SpriteScale = scale
+                  };
+               }
+               HoverTip = new ObservableCollection<object> { hoverContent };
+               return;
+            }
+         } else if (model.GetMatchedWords(fullName).Count > 0) {
+            IsGoto = true;
+         } else {
+            IsGoto = false;
          }
 
          HoverTip = null;

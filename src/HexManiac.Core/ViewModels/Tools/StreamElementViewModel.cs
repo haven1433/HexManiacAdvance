@@ -26,6 +26,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool ShowContent => UsageCount != 0;
 
+      public SplitterArrayElementViewModel Parent { get; set; }
+
       private int usageCount;
       public int UsageCount {
          get => usageCount;
@@ -96,6 +98,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly StubCommand createNew = new StubCommand();
       public ICommand CreateNew => createNew;
 
+      private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => !string.IsNullOrEmpty(ErrorText);
 
       private string errorText;

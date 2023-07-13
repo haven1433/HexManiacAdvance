@@ -41,7 +41,10 @@ namespace HavenSoft.HexManiac.Tests {
          group.Single(item => item.Text.StartsWith("Event Script")).Command.Execute();
       }
 
-      public CodeToolTests() => SetFullModel(0xFF);
+      public CodeToolTests() {
+         Model.LoadMetadata(BaseModel.GetDefaultMetadatas().First()); // load default script-related lists, like script_compare
+         SetFullModel(0xFF);
+      }
 
       [Fact]
       public void AddAndRemoveAnchorInSameToken_Undo_NoAnchor() {
@@ -201,7 +204,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.CascadeScript(0);
          var code = ViewPort.Tools.CodeTool.ScriptParser.Parse(Model, 0, 15).SplitLines().Select(line=>line.Trim()).ToArray();
          var expected = new[] {
-            "trainerbattle 00 0 0 <000100> <000110>",
+            "single.battle 0 <000100> <000110>",
             "{",
             "Start",
             "}",
@@ -773,7 +776,7 @@ label2:;goto <000050>;end";
 
          EventScript = "goto <auto>";
 
-         Assert.True(Tool.ShowErrorText);
+         Assert.True(Tool.Contents[0].HasError);
       }
 
       [Fact]
@@ -794,6 +797,54 @@ label2:;goto <000050>;end";
          EventScript = "addvar 1 1;goto <000000>";
 
          Assert.Equal(6, Model.GetNextRun(1).Start);
+      }
+
+      [Fact]
+      public void SelfReferenceScript_Compile_CorrectAnchorFormat() {
+         SetFullModel(0xFF);
+         EventScript = "top:;goto top";
+         Assert.IsType<XSERun>(Model.GetNextRun(0));
+      }
+
+      [Fact]
+      public void TrainerScript_ManyAutos_AllTextPointersAreCorrect() {
+         SetFullModel(0xFF);
+         EventScript = ";".Join(new[] {
+            "if.flag.set.goto 206 <section1>", // 9
+            "msgbox.npc <auto>;{;Text1;};",    // 8
+            "end",                             // 1
+
+            "section1:",
+            "trainerbattle 1 1 0 <auto> <auto> <section2>",  // 18 (2+2+2+4+4+4)
+            "{;Intro;}",
+            "{;Defeat;}",
+            "end",
+
+            "section2:;end"
+         });
+
+         var text1 = Model.TextConverter.Convert(Model, Model.ReadPointer(11), 10);
+         var intro = Model.TextConverter.Convert(Model, Model.ReadPointer(24), 10);
+         var defeat = Model.TextConverter.Convert(Model, Model.ReadPointer(28), 10);
+         Assert.Equal("Text1", text1.Trim('"'));
+         Assert.Equal("Intro", intro.Trim('"'));
+         Assert.Equal("Defeat", defeat.Trim('"'));
+      }
+
+      [Theory]
+      [InlineData("<", 0)]
+      [InlineData("=", 1)]
+      [InlineData(">", 2)]
+      [InlineData("<=", 3)]
+      [InlineData(">=", 4)]
+      [InlineData("!=", 5)]
+      public void IfCompareGotoMacro_Comparisons_CompilesToCompareIf1(string comparisonOperator, byte comparisonBytes) {
+         var expected = $"21 0D 80 64 00 06 {comparisonBytes:X2} 00 01 00 08".ToByteArray();
+
+         EventScript = $"if.compare.goto 0x800D {comparisonOperator} 100 <100>";
+
+         var actual = Model.Take(expected.Length).ToArray();
+         Assert.Equal(expected, actual);
       }
 
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer

@@ -54,6 +54,21 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
 
       public EventGroupModel Events => Element.TryGetSubTable(Format.Events, out var table) ? new(table[0]) : new(null);
 
+      public int NameIndex {
+         get {
+            var code = Element.Model.GetShortGameCode();
+            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            if (!Element.TryGetValue("regionSectionID", out var value)) return -1;
+            return value - offset;
+         }
+         set {
+            if (!Element.HasField("regionSectionID")) return;
+            var code = Element.Model.GetShortGameCode();
+            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            Element.SetValue("regionSectionID", value + offset);
+         }
+      }
+
       public IList<ConnectionModel> Connections {
          get {
             if (Group < 0 || Map < 0) throw new InvalidOperationException("bank/map location unknown.");
@@ -79,8 +94,10 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
    public record LayoutPrototype(int PrimaryBlockset, int SecondaryBlockset, int BorderBlock);
 
    public record BlockCells(IDataModel Model, int Start, int Width, int Height) {
+      public BlockmapRun Run => Model.GetNextRun(Start) as BlockmapRun;
       public BlockCell this[int x, int y] {
          get {
+            if (Start == Pointer.NULL) return null;
             var data = Model.ReadMultiByteValue(Start + (y * Width + x) * 2, 2);
             return new(data & 0x3FF, data >> 10);
          }
@@ -267,7 +284,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          var regionSectionIDFormat = "data.maps.names+88";
          if (isRSE) regionSectionIDFormat = "data.maps.names";
          var field3 = !isRSE ? "kind:" : "unused:1";
-         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag: padding:]/{ObjectCount}";
+         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/{ObjectCount}";
          WarpsFormat = $"[x:|z y:|z elevation.10 warpID. map. bank.]/{WarpCount}";
          ScriptsFormat = $"[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/{ScriptCount}";
          SignpostsFormat = $"[x:|z y:|z elevation.10 kind. unused:1 arg::|h]/{SignpostCount}";

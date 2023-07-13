@@ -65,6 +65,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanDiffEventArgs> ITabContent.RequestCanDiff { add { } remove { } }
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCanCreatePatch { add { } remove { } }
       event EventHandler<CanPatchEventArgs> ITabContent.RequestCreatePatch { add { } remove { } }
+      event EventHandler ITabContent.RequestRefreshGotoShortcuts { add { } remove { } }
 
       public bool CanIpsPatchRight => false;
       public bool CanUpsPatchRight => false;
@@ -310,6 +311,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private double spriteScale;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value); }
 
+      public string Name { get; }
+
       private bool isFilteredOut;
       public bool IsFilteredOut { get => isFilteredOut; set => TryUpdate(ref isFilteredOut, value); }
 
@@ -331,6 +334,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SpriteScale = 1;
 
          filterTerms = GenerateFilterTerms(model, index);
+         Name = filterTerms.FirstOrDefault();
       }
 
       public void AddSource(int canonicalIndex) {

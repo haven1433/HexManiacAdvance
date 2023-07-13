@@ -47,11 +47,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          isOpen = true;
       }
 
-      public void Add(IArrayElementViewModel child) {
+      public void Add(IArrayElementViewModel child, string theme = null) {
+         child.Theme = theme;
          if (currentMember == Members.Count) {
             Members.Add(child);
          } else if (!Members[currentMember].TryCopy(child)) {
             Members[currentMember] = child;
+         } else {
+            Members[currentMember].Theme = child.Theme;
          }
          currentMember += 1;
       }
@@ -63,7 +66,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // Members.RaiseRefresh();
       }
 
-      public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, TableGroupViewModel helperGroup, int splitPortion = -1) {
+      public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, string theme, SplitterArrayElementViewModel header, TableGroupViewModel helperGroup, int splitPortion = -1) {
          var itemAddress = table.Start + table.ElementLength * index;
          var originalItemAddress = itemAddress;
          var currentPartition = 0;
@@ -104,6 +107,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   viewModel = new ColorFieldArrayElementViewModel(viewPort, item.Name, itemAddress);
                } else if (item is ArrayRunCalculatedSegment calcSeg) {
                   viewModel = new CalculatedElementViewModel(viewPort, calcSeg, originalItemAddress);
+               } else if (item is ArrayRunPythonButtonSegment pythonButton) {
+                  viewModel = new PythonButtonElementViewModel(viewPort, pythonButton, originalItemAddress);
                } else if (item is ArrayRunOffsetRenderSegment renderSeg) {
                   viewModel = new OffsetRenderViewModel(viewPort, renderSeg, itemAddress);
                } else if (item is ArrayRunSignedSegment signedSegment) {
@@ -115,8 +120,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                throw new NotImplementedException();
             }
             if (!item.IsUnused()) {
-               Add(viewModel);
-               helperGroup.AddChildrenFromPointerSegment(viewPort, itemAddress, item, viewModel, recursionLevel: 0);
+               Add(viewModel, theme);
+               helperGroup.AddChildrenFromPointerSegment(viewPort, theme, itemAddress, item, viewModel, header, recursionLevel: 0);
             }
             itemAddress += item.Length;
          }
@@ -166,7 +171,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Add(new ButtonArrayElementViewModel("Edit Map", () => viewPort.Goto.Execute(name)));
       }
 
-      private void AddChildrenFromPointerSegment(ViewPort viewPort, int itemAddress, ArrayRunElementSegment item, IArrayElementViewModel parent, int recursionLevel) {
+      private void AddChildrenFromPointerSegment(ViewPort viewPort, string theme, int itemAddress, ArrayRunElementSegment item, IArrayElementViewModel parent, SplitterArrayElementViewModel header, int recursionLevel) {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
          if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = viewPort.Model.ReadPointer(itemAddress);
@@ -191,6 +196,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (streamRun is IPaletteRun paletteRun) streamElement = new PaletteElementViewModel(viewPort, viewPort.ChangeHistory, item.Name, paletteRun.FormatString, paletteRun.PaletteFormat, itemAddress);
          if (streamRun is TrainerPokemonTeamRun tptRun) streamElement = new TrainerPokemonTeamElementViewModel(viewPort, tptRun, item.Name, itemAddress);
          if (streamElement == null) return;
+         streamElement.Parent = header;
 
          var streamAddress = itemAddress;
          var myIndex = currentMember;
@@ -209,7 +215,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!Members[myIndex].TryCopy(newStream)) Members[myIndex] = newStream;
          };
          ForwardModelDataMoved(streamElement);
-         Add(streamElement);
+         Add(streamElement, theme);
 
          if (streamRun is ITableRun tableRun && recursionLevel < 1) {
             int segmentOffset = 0;
@@ -217,7 +223,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (!(tableRun.ElementContent[i] is ArrayRunPointerSegment)) { segmentOffset += tableRun.ElementContent[i].Length; continue; }
                for (int j = 0; j < tableRun.ElementCount; j++) {
                   itemAddress = tableRun.Start + segmentOffset + j * tableRun.ElementLength;
-                  AddChildrenFromPointerSegment(viewPort, itemAddress, tableRun.ElementContent[i], streamElement, recursionLevel + 1);
+                  AddChildrenFromPointerSegment(viewPort, theme, itemAddress, tableRun.ElementContent[i], streamElement, header, recursionLevel + 1);
                }
                segmentOffset += tableRun.ElementContent[i].Length;
             }

@@ -52,7 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public static bool IsUnused(this ArrayRunElementSegment segment) {
-         return segment.Name.StartsWith("unused") || segment.Name.StartsWith("padding");
+         return segment is ArrayRunCommentSegment || segment.Name.StartsWith("unused") || segment.Name.StartsWith("padding");
       }
 
       public static IDataFormat CreateSegmentDataFormat(this ITableRun self, IDataModel data, int index) {
@@ -128,7 +128,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var names = self.ElementNames;
          var offsets = self.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
+         var comments = new Dictionary<int, string>();
+         foreach (var seg in self.ElementContent) {
+            if (seg is not ArrayRunCommentSegment comment) continue;
+            if (comments.ContainsKey(comment.Index)) {
+               comments[comment.Index] += Environment.NewLine + comment.RenderCommentLine();
+            } else {
+               comments[comment.Index] = comment.RenderCommentLine();
+            }
+         }
          for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
+            if (comments.TryGetValue(i, out var comment)) {
+               if (i != 0) text.AppendLine();
+               text.AppendLine(comment);
+            }
             var offset = offsets.SegmentStart;
             var couldBeExtension = offsets.ElementIndex > 0 || self is TableStreamRun streamRun && streamRun.AllowsZeroElements;
             if (offsets.SegmentIndex == 0 && couldBeExtension) text.Append(ArrayRun.ExtendArray);
@@ -424,15 +437,26 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public int BeginningMargin { get; }
       public int EndMargin { get; }
       public ParentOffset(int start = 0, int end = 0) => (BeginningMargin, EndMargin) = (start, end);
-      public static ParentOffset Parse(ref string nameToken) {
+      public static ParentOffset Parse(ref ReadOnlySpan<char> nameToken) {
          var name = nameToken;
          var result = new ParentOffset();
-         var separators = name.Length.Range().Where(i => name[i].IsAny("+-".ToCharArray())).Concat(new[] { name.Length }).ToArray();
-         if (separators.Length == 1) return Default;
-         var textMargins = (separators.Length - 1).Range().Select(i => name.Substring(separators[i], separators[i + 1] - separators[i]));
-         var margins = textMargins.Select(str => int.TryParse(str, out var value) ? value : default).ToArray();
+         var separators = new List<int>();
+
+         for (int i = 0; i < name.Length; i++) {
+            if (name[i].IsAny('+', '-')) separators.Add(i);
+         }
+         separators.Add(name.Length);
+
+         if (separators.Count == 1) return Default;
+
+         var margins = new int[separators.Count - 1];
+         for (int i = 0; i < margins.Length; i++) {
+            var textMargin = name.Slice(separators[i], separators[i + 1] - separators[i]);
+            margins[i] = int.TryParse(textMargin, out var margin) ? margin : default;
+         }
+
          if (margins.Length > 2 || margins.Length < 1) return Default;
-         nameToken = name.Substring(0, separators[0]);
+         nameToken = name.Slice(0, separators[0]);
          if (margins.Length == 1 && margins[0] > 0) return new ParentOffset(end: margins[0]);
          if (margins.Length == 1 && margins[0] < 0) return new ParentOffset(start: margins[0]);
          if (margins.Length == 1) return Default;
@@ -480,7 +504,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string TupleFormatString = "|t";
       public const string ColorFormatString = "|c";
       public const string CalculatedFormatString = "|=";
+      public const string PythonButtonFormatString = "|python=";
       public const string RenderFormatString = "|render=";
+      public const string CommentFormatString = "|comment=";
       public const string SplitterFormatString = "|";
 
       private const int JunkLimit = 80;
@@ -548,15 +574,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool CanAppend => true;
 
-      private ArrayRun(IDataModel data, string format, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
+      private ArrayRun(IDataModel data, string formatText, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
          owner = data;
-         FormatString = format;
+         FormatString = formatText;
+         var format = formatText.AsSpan();
          SupportsInnerPointers = format.StartsWith(AnchorStart.ToString());
-         if (SupportsInnerPointers) format = format.Substring(1);
+         if (SupportsInnerPointers) format = format.Slice(1);
          var closeArray = format.LastIndexOf(ArrayEnd.ToString());
          if (!format.StartsWith(ArrayStart.ToString()) || closeArray == -1) throw new ArrayRunParseException($"Array Content must be wrapped in {ArrayStart}{ArrayEnd}.");
-         var segments = format.Substring(1, closeArray - 1);
-         var length = format.Substring(closeArray + 1);
+         var segments = format.Slice(1, closeArray - 1);
+         var length = format.Slice(closeArray + 1);
          if (!length.All(c => IsValidTableNameCharacter(c) || c.IsAny('-', '+'))) throw new ArrayRunParseException("Array length must be an anchor name or a number."); // the name might end with "-1" so also allow +/-
          ElementContent = ParseSegments(segments, data);
          if (ElementContent.Count == 0) throw new ArrayRunParseException("Array Content must not be empty.");
@@ -1009,7 +1036,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (!owner.TryGetList(LengthFromAnchor, out var originalList)) return;
          var newList = originalList.ToList();
          while (newList.Count < desiredValue) newList.Add($"unnamed{newList.Count}");
-         owner.SetList(token, LengthFromAnchor, newList, originalList.StoredHash);
+         owner.SetList(token, LengthFromAnchor, newList, originalList.Comments, originalList.StoredHash);
       }
 
       private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
@@ -1279,104 +1306,118 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private static bool IsValidFieldNameCharacter(char c) => char.IsLetterOrDigit(c) || c == '_'; // field names can contain underscores
       private static bool IsValidTableNameCharacter(char c) => char.IsLetterOrDigit(c) || c.IsAny('_', '.'); // table names can contain underscores or dots
 
-      public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) {
+      public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) => ParseSegments(segments.AsSpan(), model);
+      public static List<ArrayRunElementSegment> ParseSegments(ReadOnlySpan<char> segments, IDataModel model) {
          var list = new List<ArrayRunElementSegment>();
          segments = segments.Trim();
+         // if (segments.ToString().Contains("python")) ;
          while (segments.Length > 0) {
             if (segments.StartsWith("[")) {
                int subArrayClose = segments.LastIndexOf("]");
                if (subArrayClose == -1) throw new ArrayRunParseException("Found unmatched open bracket ([).");
-               var innerSegments = ParseSegments(segments.Substring(1, subArrayClose - 1), model);
-               segments = segments.Substring(subArrayClose + 1);
+               var innerSegments = ParseSegments(segments.Slice(1, subArrayClose - 1), model);
+               segments = segments.Slice(subArrayClose + 1);
                int repeatLength = 0;
                while (repeatLength < segments.Length && char.IsDigit(segments[repeatLength])) repeatLength++;
-               if (!int.TryParse(segments.Substring(0, repeatLength), out int innerCount)) {
+               if (!int.TryParse(segments.Slice(0, repeatLength), out int innerCount)) {
                   throw new ArrayRunParseException($"Could not parse '{segments}' as a number.");
                }
                for (int i = 0; i < innerCount; i++) list.AddRange(innerSegments);
-               segments = segments.Substring(repeatLength);
+               segments = segments.Slice(repeatLength);
                continue;
             }
 
             int nameEnd = 0;
             while (nameEnd < segments.Length && IsValidFieldNameCharacter(segments[nameEnd])) nameEnd++;
-            var name = segments.Substring(0, nameEnd);
-            segments = segments.Substring(nameEnd);
+            var name = segments.Slice(0, nameEnd).ToString();
+            segments = segments.Slice(nameEnd);
             var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
-            if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException("expected name, but none was found: " + segments);
-            if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException("Cannot have 0-length text: " + name);
+            if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException($"expected name, but none was found: {segments}");
+            if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException($"Cannot have 0-length text: {name}");
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {
-               segments = segments.Substring(formatLength);
+               segments = segments.Slice(formatLength);
                if (segments.StartsWith(HexFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunHexSegment(name, segmentLength));
                } else if (segments.StartsWith(SignedFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunSignedSegment(name, segmentLength));
                } else if (segments.StartsWith(TupleFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var tupleContract = segments.Substring(TupleFormatString.Length, endOfToken - TupleFormatString.Length);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunTupleSegment(name, tupleContract, segmentLength));
+                  var tupleContract = segments.Slice(TupleFormatString.Length, endOfToken - TupleFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunTupleSegment(name, tupleContract.ToString(), segmentLength));
+               } else if (segments.StartsWith(CommentFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var contract = segments.Slice(CommentFormatString.Length, endOfToken - CommentFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunCommentSegment(name, contract.ToString()));
                } else if (segments.StartsWith(ColorFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunColorSegment(name));
                } else if (segments.StartsWith(CalculatedFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var calculationContract = segments.Substring(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunCalculatedSegment(model, name, calculationContract));
+                  var contract = segments.Slice(CalculatedFormatString.Length, endOfToken - CalculatedFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunCalculatedSegment(model, name, contract.ToString()));
+               } else if (segments.StartsWith(PythonButtonFormatString)) {
+                  var endOfToken = segments.IndexOf(' ');
+                  if (endOfToken == -1) endOfToken = segments.Length;
+                  var contract = segments.Slice(PythonButtonFormatString.Length, endOfToken - PythonButtonFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunPythonButtonSegment(model, name, contract.ToString()));
                } else if (segments.StartsWith(RenderFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var contract = segments.Substring(RenderFormatString.Length, endOfToken - RenderFormatString.Length);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunOffsetRenderSegment(name, contract));
+                  var contract = segments.Slice(RenderFormatString.Length, endOfToken - RenderFormatString.Length);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunOffsetRenderSegment(name, contract.ToString()));
                } else if (segments.StartsWith(RecordFormatString)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var recordContract = segments.Substring(0, endOfToken);
-                  segments = segments.Substring(endOfToken).Trim();
-                  if (recordContract.Count('(') != 1 || recordContract.Count(')') != 1) {
+                  var contract = segments.Slice(0, endOfToken);
+                  segments = segments.Slice(endOfToken).Trim();
+                  if (contract.Count('(') != 1 || contract.Count(')') != 1) {
                      throw new ArrayRunParseException("Record format is s={name}({number}={enum}|...).");
                   }
-                  list.Add(new ArrayRunRecordSegment(name, segmentLength, recordContract));
+                  list.Add(new ArrayRunRecordSegment(name, segmentLength, contract.ToString()));
                } else if (int.TryParse(segments, out var elementCount)) {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  segments = segments.Substring(endOfToken).Trim();
+                  segments = segments.Slice(endOfToken).Trim();
                   list.Add(new ArrayRunEnumSegment(name, segmentLength, elementCount.ToString()));
                } else {
                   var endOfToken = segments.IndexOf(' ');
                   if (endOfToken == -1) endOfToken = segments.Length;
-                  var enumName = segments.Substring(0, endOfToken);
-                  segments = segments.Substring(endOfToken).Trim();
-                  list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName));
+                  var enumName = segments.Slice(0, endOfToken);
+                  segments = segments.Slice(endOfToken).Trim();
+                  list.Add(new ArrayRunEnumSegment(name, segmentLength, enumName.ToString()));
                }
             } else if (format == ElementContentType.Pointer && formatLength > 2) {
-               var pointerSegment = new ArrayRunPointerSegment(model.FormatRunFactory, name, segments.Substring(1, formatLength - 2));
+               var pointerSegment = new ArrayRunPointerSegment(model.FormatRunFactory, name, segments.Slice(1, formatLength - 2).ToString());
                if (!pointerSegment.IsInnerFormatValid) throw new ArrayRunParseException($"pointer format '{pointerSegment.InnerFormat}' was not understood.");
                list.Add(pointerSegment);
-               segments = segments.Substring(formatLength).Trim();
+               segments = segments.Slice(formatLength).Trim();
             } else if (format == ElementContentType.BitArray) {
-               var sourceName = segments.Substring(BitArray.SharedFormatString.Length, formatLength - BitArray.SharedFormatString.Length);
-               segments = segments.Substring(formatLength).Trim();
-               list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName));
+               var sourceName = segments.Slice(BitArray.SharedFormatString.Length, formatLength - BitArray.SharedFormatString.Length);
+               segments = segments.Slice(formatLength).Trim();
+               list.Add(new ArrayRunBitArraySegment(name, segmentLength, sourceName.ToString()));
             } else if (format == ElementContentType.Splitter) {
-               segments = segments.Substring(formatLength).Trim();
+               segments = segments.Slice(formatLength).Trim();
                list.Add(new ArrayRunSplitterSegment());
             } else {
-               segments = segments.Substring(formatLength).Trim();
+               segments = segments.Slice(formatLength).Trim();
                if (format == ElementContentType.Unknown) {
                   // default to single byte integer
                   format = ElementContentType.Integer;
@@ -1389,17 +1430,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return list;
       }
 
-      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(string segments, IDataModel model) {
-         if (segments.Length >= 2 && segments.Substring(0, 2) == PCSRun.SharedFormatString) {
+      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(ReadOnlySpan<char> segments,IDataModel model) {
+         if (segments.Length >= 2 && MemoryExtensions.Equals(segments.Slice(0, 2), PCSRun.SharedFormatString, StringComparison.Ordinal)) {
             var format = ElementContentType.PCS;
             var formatLength = 2;
             while (formatLength < segments.Length && char.IsDigit(segments[formatLength])) formatLength++;
-            if (int.TryParse(segments.Substring(2, formatLength - 2), out var segmentLength)) {
+            if (int.TryParse(segments.Slice(2, formatLength - 2), out var segmentLength)) {
                return (format, formatLength, segmentLength);
             }
          } else if (segments.StartsWith(CalculatedFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(RenderFormatString)) {
+            return (ElementContentType.Integer, 0, 0);
+         } else if (segments.StartsWith(CommentFormatString)) {
+            return (ElementContentType.Integer, 0, 0);
+         } else if (segments.StartsWith(PythonButtonFormatString)) {
             return (ElementContentType.Integer, 0, 0);
          } else if (segments.StartsWith(DoubleByteIntegerFormat + string.Empty + DoubleByteIntegerFormat)) {
             return (ElementContentType.Integer, 2, 4);
@@ -1422,8 +1467,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          } else if (segments.StartsWith(BitArray.SharedFormatString)) {
             var endIndex = BitArray.SharedFormatString.Length;
             while (segments.Length > endIndex && IsValidTableNameCharacter(segments[endIndex])) endIndex++;
-            var format = segments.Substring(0, endIndex);
-            var name = format.Substring(BitArray.SharedFormatString.Length);
+            var format = segments.Slice(0, endIndex);
+            var name = format.Slice(BitArray.SharedFormatString.Length).ToString();
             var options = model.GetBitOptions(name);
             var count = options?.Count ?? 8;
             return (ElementContentType.BitArray, format.Length, (int)Math.Ceiling(count / 8.0));
@@ -1434,9 +1479,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return (ElementContentType.Unknown, 0, 0);
       }
 
-      private (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(string length) {
+      private (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(ReadOnlySpan<char> length) {
          var parentOffset = ParentOffset.Parse(ref length);
-         var lengthFromAnchor = length;
+         var lengthFromAnchor = length.ToString();
 
          // length is based on another array
          int address = owner.GetAddressFromAnchor(new ModelDelta(), -1, lengthFromAnchor);
@@ -1525,7 +1570,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                return true;
             case ElementContentType.Integer:
                if (segment is ArrayRunEnumSegment enumSegment) {
-                  var options = enumSegment.GetOptions(owner).ToList();
+                  var options = enumSegment.GetOptions(owner);
                   // don't verify enums that are based on lists.
                   // There could be more elements in use than elements in the list, especially for edited ROMs with default lists.
                   if (options.Count == 0 || parentIndex == 0) return true; // unrecognized, so just allow anything
@@ -1566,6 +1611,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          IsSingleSegment = 0x01,
          AllowJunkAfterText = 0x02,
       }
+   }
+
+   public class ArrayRunCommentSegment : ArrayRunElementSegment {
+      public int Index { get; private set; }
+      public string Comment { get; private set; }
+      public override string SerializeFormat => $"{Name}|comment={Index}|{Comment}";
+      public ArrayRunCommentSegment(string name, string contract) : base(name, ElementContentType.Integer, 0) {
+         var parts = contract.Split('|', 2);
+         if (parts[0].TryParseInt(out var index)) Index = index;
+         Comment = parts[1];
+      }
+      public string RenderCommentLine() => $"# {Comment.Replace('_', ' ')}";
    }
 
    public class ArrayRunParseException : Exception {

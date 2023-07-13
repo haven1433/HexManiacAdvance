@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -12,6 +13,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class TextEditorViewModel : ViewModelCore {
       public ObservableCollection<string> Keywords { get; } = new();
       public ObservableCollection<string> Constants { get; } = new();
+      public ObservableCollection<TextSegment> ErrorLocations { get; } = new();
 
       private string commentHeader = string.Empty, multiLineCommentStart = string.Empty, multiLineCommentEnd = string.Empty;
       public string LineCommentHeader { get => commentHeader; set => Set(ref commentHeader, value); }
@@ -21,6 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ITextPreProcessor PreFormatter { get; set; }
 
       public event EventHandler RequestCaretMove;
+      public event EventHandler RequestKeyboardFocus;
 
       public TextEditorViewModel() {
          Keywords.CollectionChanged += (sender, e) => UpdateLayers();
@@ -39,7 +42,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void SaveCaret(int lengthDelta) => savedCaret = caretIndex + lengthDelta;
+      public void SaveCaret(int lengthDelta) {
+         if (savedCaret == int.MinValue) savedCaret = caretIndex;
+         savedCaret += lengthDelta;
+      }
 
       private int caretIndex, savedCaret = int.MinValue;
       public int CaretIndex {
@@ -67,15 +73,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          RequestCaretMove.Raise(this);
       }
 
+      public void FocusKeyboard() => RequestKeyboardFocus.Raise(this);
+
       private void UpdateLayers() {
          if (content.Length == 0) {
-            PlainContent = AccentContent =
-            ConstantContent = NumericContent =
-            CommentContent = TextContent = string.Empty;
-            NotifyPropertiesChanged(
-               nameof(PlainContent), nameof(AccentContent),
-               nameof(ConstantContent), nameof(NumericContent),
-               nameof(CommentContent), nameof(TextContent));
+            if (PlainContent.Length != 0) {
+               PlainContent = AccentContent =
+               ConstantContent = NumericContent =
+               CommentContent = TextContent = string.Empty;
+               NotifyPropertiesChanged(
+                  nameof(PlainContent), nameof(AccentContent),
+                  nameof(ConstantContent), nameof(NumericContent),
+                  nameof(CommentContent), nameof(TextContent));
+            }
             return;
          }
          var basic = new MutableString(Content);
@@ -175,6 +185,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             nameof(CommentContent),
             nameof(TextContent));
       }
+   }
+
+   public record TextSegment(int Line, int Start, int Length) : INotifyPropertyChanged {
+      public event PropertyChangedEventHandler? PropertyChanged;
    }
 
    public class MutableString {
