@@ -447,7 +447,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (Type != ElementContentType.PCS) {
             var tokens = TableStreamRun.Tokenize(data);
             remainder = ", ".Join(tokens.Skip(1));
-            data = tokens[0];
+            data = tokens.Count > 0 ? tokens[0] : string.Empty;
          }
 
          data = data.Trim();
