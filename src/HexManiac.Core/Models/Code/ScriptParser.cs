@@ -695,7 +695,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      var options = new List<string>();
                      for (int i = 0; i < allOptions.Count; i++) {
                         if (allOptions[i].MatchesPartial(tokens[tokens.Length - 1])) {
-                           if (!isList || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
+                           if (!isList || list.Comments == null || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
                            else comment = " # " + comment;
                            options.Add(allOptions[i] + comment);
                            if (options.Count > 10) break;

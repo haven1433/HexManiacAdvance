@@ -562,7 +562,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          int start;
          if (ScriptAddress != Pointer.NULL && IsValidScriptFreespace(ScriptAddress)) start = ScriptAddress;
          else start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
-         Token.ChangeData(element.Model, start, 2);
+         Token.ChangeData(element.Model, start, new byte[] { 0x6A, 0x5A, 0x6C, 0x02 }); // lock, faceplayer, release, end
          ScriptAddress = start;
          SetDestinationFormat();
          gotoAddress(start);

@@ -278,10 +278,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
          var body = (CodeBody)viewModel;
          if (InsertAutoActive) body.TryInsertAuto();
-         if (body.CaretPosition > 0 && body.CaretPosition < body.Content.Length) {
-            var start = body.Content[0..(body.CaretPosition + 1)];
+         var delta = body.Content.Length - e.OldValue.Length;
+         var deltaSize = Math.Abs(delta);
+         if (body.CaretPosition >= deltaSize && body.CaretPosition < body.Content.Length - deltaSize) {
+            var start = body.Content[0..(body.CaretPosition + delta)];
             if (start.EndsWith("<auto>")) InsertAutoActive = true;
-            start = body.Content[0..(body.CaretPosition - 1)];
+            start = body.Content[0..(body.CaretPosition + delta)];
             if (start.EndsWith("<auto")) InsertAutoActive = false;
          }
 

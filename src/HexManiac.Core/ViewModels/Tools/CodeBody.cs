@@ -352,6 +352,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                while (lines[i].Trim() != "}") {
                   results.Add(new(i, type, lines[i]));
                   i += 1;
+                  if (lines.Length <= i) break;
                }
                continue;
             }

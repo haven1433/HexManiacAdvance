@@ -77,13 +77,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateLayers() {
          if (content.Length == 0) {
-            PlainContent = AccentContent =
-            ConstantContent = NumericContent =
-            CommentContent = TextContent = string.Empty;
-            NotifyPropertiesChanged(
-               nameof(PlainContent), nameof(AccentContent),
-               nameof(ConstantContent), nameof(NumericContent),
-               nameof(CommentContent), nameof(TextContent));
+            if (PlainContent.Length != 0) {
+               PlainContent = AccentContent =
+               ConstantContent = NumericContent =
+               CommentContent = TextContent = string.Empty;
+               NotifyPropertiesChanged(
+                  nameof(PlainContent), nameof(AccentContent),
+                  nameof(ConstantContent), nameof(NumericContent),
+                  nameof(CommentContent), nameof(TextContent));
+            }
             return;
          }
          var basic = new MutableString(Content);

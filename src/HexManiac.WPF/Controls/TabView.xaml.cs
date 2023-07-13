@@ -610,6 +610,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.Key == Key.U && Keyboard.Modifiers == ModifierKeys.Control) {
             e.Handled = true;
             body.InsertFlagOrVar();
+         } else if (e.Key == Key.Escape) {
+            e.Handled = true;
+            CodeContentsPopup.IsOpen = false;
          }
       }
    }

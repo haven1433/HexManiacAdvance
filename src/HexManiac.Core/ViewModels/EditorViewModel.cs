@@ -462,6 +462,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   diffLeft.RaiseCanExecuteChanged();
                   diffRight.RaiseCanExecuteChanged();
                   if (SelectedTab is IViewPort vp) vp.FindBytes = SearchBytes;
+                  MoveFocusToPrimaryContent.Raise(this);
                }
             }
          }
