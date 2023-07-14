@@ -2,6 +2,7 @@
 # Credits to DoesntKnowHowToPlay for making the original patches
 # Credits to Darthatron/Jambo for the FR icon changes
 # Credis to Tlatchi/Xencleamas for the Emerald icon changes
+# Credits to AkameTheBulbasuar for the Thaw check fix
 # Edits and HMA script by AGSMGMaster64
 
 #	This script makes some changes to how physical/special damage is determined in the Gen 3 games
@@ -46,6 +47,12 @@ if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
 @!game(BPRE1_BPGE1) @01F91C
 @!game(BPEE0) @048148
 @!game(All) ^thumb.physicalspecialsplit.datahp2
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @021A70
+@!game(BPRE0_BPGE0) @0234DC
+@!game(BPRE1_BPGE1) @0234F0
+@!game(BPEE0) @04BE98
+@!game(All) ^thumb.physicalspecialsplit.defrost
 
 @!game(AXVE0_AXVE1_AXPE0_AXPE1) @03BA2C
 @!game(BPRE0_BPGE0) @03ECEC
@@ -105,12 +112,21 @@ if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
     ldrb  r6, [r0, #10]
 .end
 @thumb.physicalspecialsplit.datahp2 .thumb
-    cmp   r6, #0					@ if (IS_MOVE_PHYSICAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE) && gCurrentMove != MOVE_PAIN_SPLIT)
+    cmp   r6, #0					@ if (IS_MOVE_PHYSICAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
     bne   <thumb.physicalspecialsplit.datahp2+84>
 .end
 @thumb.physicalspecialsplit.datahp2+84 .thumb
     cmp   r6, #1					@ else if (IS_MOVE_SPECIAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
     bne   <thumb.physicalspecialsplit.datahp2+F2>
+.end
+
+
+
+#	in "Cmd_moveend"
+#	Changes the check for thawing/defrosting to check for any Fire damage and not just special
+
+@thumb.moveend.defrostcheck .thumb
+    add   r0, r0, #4    			@ if (gSpecialStatuses[gBattlerTarget].dmg)
 .end
 
 
@@ -311,12 +327,12 @@ GetMoveCategory:
 #	Change Thick Fat to affect physical moves as well
 @!game(AXVE0_AXVE1_AXPE0_AXPE1)
 @thumb.physicalspecialsplit.thickfat .thumb
-    cmp   r0, #47
+    cmp   r0, #47					@ Abilty ID of Thick Fat
     bne   HustleCheck
     mov   r2, r9
-    cmp   r2, #10
+    cmp   r2, #10					@ Fire Type
     beq   ThickFat
-    cmp   r2, #15
+    cmp   r2, #15					@ Ice Type
     bne   HustleCheck
 ThickFat:
     mov   r3, r8
@@ -330,19 +346,19 @@ ThickFat:
 HustleCheck:
     ldr   r0, [sp, #36]
     ldrb  r4, [r0, #0]
-    cmp   r4, #55
+    cmp   r4, #55					@ Abilty ID of Hustle
     bne   <thumb.physicalspecialsplit.thickfat+2A>
     lsr   r0, r6, #1
     add   r6, r0, r6
 .end
 @!game(BPRE0_BPRE1_BPGE0_BPGE1)
 @thumb.physicalspecialsplit.thickfat .thumb
-    cmp   r0, #47
+    cmp   r0, #47					@ Abilty ID of Thick Fat
     bne   HustleCheck
     mov   r2, r9
-    cmp   r2, #10
+    cmp   r2, #10					@ Fire Type
     beq   ThickFat
-    cmp   r2, #15
+    cmp   r2, #15					@ Ice Type
     bne   HustleCheck
 ThickFat:
     mov   r3, r8
@@ -356,19 +372,19 @@ ThickFat:
 HustleCheck:
     ldr   r0, [sp, #36]
     ldrb  r4, [r0, #0]
-    cmp   r4, #55
+    cmp   r4, #55					@ Abilty ID of Hustle
     bne   <thumb.physicalspecialsplit.thickfat+2A>
     lsr   r0, r7, #1
     add   r7, r0, r7
 .end
 @!game(BPEE0)
 @thumb.physicalspecialsplit.thickfat .thumb
-    cmp   r0, #47
+    cmp   r0, #47					@ Abilty ID of Thick Fat
     bne   HustleCheck
     mov   r2, r10
-    cmp   r2, #10
+    cmp   r2, #10					@ Fire Type
     beq   ThickFat
-    cmp   r2, #15
+    cmp   r2, #15					@ Ice Type
     bne   HustleCheck
 ThickFat:
     mov   r3, r8
@@ -382,7 +398,7 @@ ThickFat:
 HustleCheck:
     ldr   r0, [sp, #40]
     ldrb  r4, [r0, #0]
-    cmp   r4, #55
+    cmp   r4, #55					@ Abilty ID of Hustle
     bne   <thumb.physicalspecialsplit.thickfat+2A>
     lsr   r0, r7, #1
     add   r7, r0, r7
@@ -541,6 +557,7 @@ A1 4A 02 02 08 4C 02 02 E6 4B 02 02
     bx    r1
 .end
 
+#	Adds in the category icons for FRLG and Emerald
 
 @!game(BPRE0) @13A124
 @!game(BPRE1) @13A19C
@@ -878,7 +895,6 @@ CategoryIcons:
 
 
 #	Adds in a list to be referenced by the move stat table to edit a move's category
-#	Anything beyond this currently does not work for build 0.5.2.3
 @!game(All)
 
 .python
