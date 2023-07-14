@@ -6,6 +6,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using HavenSoft.HexManiac.Core.Models.Code;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
@@ -22,6 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
       private const string AnimationScriptReferenceFileName = "resources/animationScriptReference.txt";
       private const string BattleAIScriptReferenceFileName = "resources/battleAIScriptReference.txt";
+      private const string ScriptReferenceDocumetationFileName = "resources/scriptReference.md";
       private const string PythonUtilityFileName = "resources/hma.py";
 
       public IMetadataInfo MetadataInfo { get; }
@@ -167,6 +169,70 @@ namespace HavenSoft.HexManiac.Core.Models {
             else if (Instruction.TryLoadInstruction(line, out var instruction)) instructionTemplates.Add(instruction);
          }
          return (conditionalCodes, instructionTemplates);
+      }
+
+      public void ExportReadableScriptReference() => ExportReadableScriptReference(ScriptLines, ScriptReferenceDocumetationFileName);
+      private void ExportReadableScriptReference(IReadOnlyList<IScriptLine> lines, string filename) {
+         var text = new StringBuilder();
+         var nl = Environment.NewLine;
+         text.AppendLine(@"
+This is a list of all the commands currently available within HexManiacAdvance when writing scripts.
+For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://github.com/haven1433/HexManiacAdvance/wiki).
+");
+         foreach (var line in lines.OrderBy(line => line.LineCommand)) {
+            text.AppendLine("# " + line.LineCommand);
+            text.Append(line.LineCommand);
+            if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
+            foreach (var arg in line.Args) {
+               if (arg is SilentMatchArg) continue;
+               if (arg is ArrayArg array) {
+                  text.Append($" `[{arg.Name}]`");
+               } else {
+                  text.Append($" `{arg.Name}`");
+               }
+            }
+            text.AppendLine();
+            var matches = ScriptLine.GetMatchingGames(line);
+            if (matches.Count < 5) text.AppendLine("  Only available in " + " ".Join(matches));
+            foreach (var arg in line.Args) {
+               if (arg is SilentMatchArg) continue;
+               if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
+                  text.AppendLine($"{nl}  `{arg.Name}` from {arg.EnumTableName}");
+               } else if (arg.Type != ArgType.Pointer) {
+                  if (string.IsNullOrEmpty(arg.EnumTableName)) {
+                     text.AppendLine($"{nl}  `{arg.Name}` is a number.");
+                  } else {
+                     text.AppendLine($"{nl}  `{arg.Name}` is a number (hex).");
+                  }
+               } else if (arg.Type == ArgType.Pointer) {
+                  if (arg.PointerType == ExpectedPointerType.Script) {
+                     text.AppendLine($"{nl}  `{arg.Name}` points to a script or section");
+                  } else if (arg.PointerType == ExpectedPointerType.Mart) {
+                     text.AppendLine($"{nl}  `{arg.Name}` points to pokemart data or auto");
+                  } else if (arg.PointerType == ExpectedPointerType.Movement) {
+                     text.AppendLine($"{nl}  `{arg.Name}` points to movement data or auto");
+                  } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
+                     text.AppendLine($"{nl}  `{arg.Name}` points to sprite-template data or auto");
+                  } else if (arg.PointerType == ExpectedPointerType.Decor) {
+                     text.AppendLine($"{nl}  `{arg.Name}` points to decor data or auto");
+                  } else if (arg.PointerType == ExpectedPointerType.Text) {
+                     text.AppendLine($"{nl}  `{arg.Name}` points to text or auto");
+                  } else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                     text.AppendLine($"{nl}  `{arg.Name}` is a pointer.");
+                  }
+               }
+            }
+            if (line.Documentation != null && line.Documentation.Count > 0) {
+               text.AppendLine("```");
+               foreach (var doc in line.Documentation) {
+                  text.AppendLine($"  {doc}");
+               }
+               text.AppendLine("```");
+            }
+            text.AppendLine();
+         }
+
+         File.WriteAllText(filename, text.ToString());
       }
    }
 
