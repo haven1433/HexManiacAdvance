@@ -170,6 +170,11 @@ BPEE0.scripts.ev.cap.stat       06DC48,06DC4E
 - Money cap: The maximum amount of money the player can carry at once. -----------------------------------
 BPEE0::scripts.money.cap        0E5188
 
+# Coins
+BPEE0:scripts.coins.cap         12AFF8,12BC1C,12E22C,141C9C,141DC0,145CA8,145CC8
+BPEE0:scripts.coins.cap-1       12ABF4,12BC14,1419CC,145C98
+BPEE0:scripts.coins.cap-49      20FC39
+BPEE0:scripts.coins.cap-499     20FC7B
 
 
 - Other -------------------------------------------------------------------------------------------------------------------------
