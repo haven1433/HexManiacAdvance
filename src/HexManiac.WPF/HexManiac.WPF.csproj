@@ -39,6 +39,7 @@
     <None Include="Scripts\Update Existing Mechanics\Emerald_ExpandStarters.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\RS_AddProfessorPokemonConstants.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\RS_FRLG_callasmBattleScriptCommand.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\AnyGame_ItemEffectToChangeSecondaryTypes.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\_Using_HMA_Scripts.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     
   </ItemGroup>

@@ -1181,6 +1181,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return games.Split("_").Select(ConvertAscii).ToList();
       }
 
+      public static IReadOnlyList<string> GetMatchingGames(IScriptLine line) {
+         var names = new[] { "AXVE", "AXPE", "BPRE", "BPGE", "BPEE" };
+         return names.Where(name => line.MatchesGame(ConvertAscii(name))).ToList();
+      }
+
       public static int ConvertAscii(string letters) {
          return letters.Reverse().Aggregate(0, (current, letter) => (current << 8) | (byte)letter);
       }

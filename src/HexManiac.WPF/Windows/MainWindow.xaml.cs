@@ -652,6 +652,10 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          window.Show();
       }
 
+      private void DeveloperUpdateDocs(object sender, RoutedEventArgs e) {
+         ViewModel.Singletons.ExportReadableScriptReference();
+      }
+
       private void DeveloperReloadMetadata(object sender, EventArgs e) {
          var tab = (ViewPort)ViewModel.SelectedTab;
          tab.ConsiderReload(FileSystem);

@@ -128,8 +128,10 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 23 callasm code<>
 24 setcode pointer<>                                    # puts a pointer to some assembly code at a specific place in RAM
 
-25 special function:specials                            # calls a piece of ASM code from a table
-26 special2 variable: function:specials                 # calls a special and puts the ASM's return value in the variable you listed
+25 special function:specials                            # Calls a piece of ASM code from a table.
+                                                        # Check your TOML for a list of specials available in your game.
+26 special2 variable: function:specials                 # Calls a special and puts the ASM's return value in the variable you listed.
+                                                        # Check your TOML for a list of specials available in your game.
 
 27 waitstate                                 # blocks the script until it gets unblocked by a command or some ASM code.
 28 pause time:                               # blocks the script for 'time' ticks
@@ -270,7 +272,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 8C startcontest                              # nop in FireRed. Starts a contest.
 8D showcontestresults                        # nop in FireRed. Shows contest results.
 8E contestlinktransfer                       # nop in FireRed. In Emerald, starts a wireless connection contest
-8F random high:                              # returns 0<=number<high, stored in 800D (LASTRESULT)
+8F random high:                              # returns 0 <= number < high, stored in 800D (LASTRESULT)
 90 givemoney money:: check.                  # if check is 0, gives the player money
 91 paymoney money:: check.                   # if check is 0, takes money from the player
 92 checkmoney money:: check.                 # if check is 0, checks if the player has at least that much money. if so, 800D=1
