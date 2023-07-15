@@ -16,7 +16,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Resolve the pixel-width of a input string,
       /// if the string is shown in a textbox.
       /// </summary>
-      int GetWidth(string input);
+      IReadOnlyList<TextSegment> GetOverflow(string input, int maxWidth);
    }
 
    public class PCSConverter : ITextConverter {
@@ -42,9 +42,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return macros.Keys.Any(key => key.StartsWith(input));
       }
 
-      public int GetWidth(string input) {
+      public IReadOnlyList<TextSegment> GetOverflow(string input, int maxWidth) {
          if (!PCSString.TextMacros.TryGetValue(gameCode, out var macros)) macros = new Dictionary<string, byte[]>();
-         return PCSString.GetWidth(macros, input, spaceWidth);
+         return PCSString.GetOverflow(macros, input, spaceWidth, maxWidth);
       }
    }
 
@@ -212,6 +212,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          var result = new StringBuilder("\"", length * 2);
          if (!TextMacros.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
+         var nextExpectedNewline = NewlineMode.Wrap;
+
          for (int i = 0; i < length; i++) {
             // check macros
             if (textMacros != null) {
@@ -224,14 +226,27 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             var currentByte = data[startIndex + i];
-            if (PCS[currentByte] == null) {
+
+            // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
+            if (length > 1 && (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE)) {
+               if (currentByte == 0xFB) {
+                  result.AppendLine(Environment.NewLine);
+                  nextExpectedNewline = NewlineMode.Wrap;
+               } else if (currentByte == 0xFE && nextExpectedNewline == NewlineMode.Wrap) {
+                  result.AppendLine();
+                  nextExpectedNewline = NewlineMode.Feed;
+               } else if (currentByte == 0xFA && nextExpectedNewline == NewlineMode.Feed) {
+                  result.AppendLine();
+                  nextExpectedNewline = NewlineMode.Feed;
+               } else {
+                  result.AppendLine(PCS[currentByte]);
+                  nextExpectedNewline = NewlineMode.Feed;
+               }
+            } else if (PCS[currentByte] == null) {
                result.Append("\\!" + currentByte.ToHexString());
             } else {
                result.Append(PCS[currentByte]);
             }
-
-            // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
-            if (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE) result.Append(Environment.NewLine);
 
             if (length == 1) break;
 
@@ -250,12 +265,25 @@ namespace HavenSoft.HexManiac.Core.Models {
          return result.ToString();
       }
 
+      /// <summary>
+      /// If it's the first line, there's been no newline.
+      /// If the user species an explicit newline, then no auto-newline is needed.
+      /// If there are 2 newlines in a row, read it as a Paragraph.
+      /// If the most recent newline was a paragraph, the next line should be Wrap.
+      /// If the most recent newline was Wrap or Feed, the next line should be Feed.
+      /// </summary>
+      private enum NewlineMode { None, Explicit, Wrap, Feed, Paragraph }
+      private static readonly string doubleNewline = Environment.NewLine + Environment.NewLine;
+
       public static List<byte> Convert(string input) => Convert(input, out var _);
       public static List<byte> Convert(string input, out bool containsBadCharacters) => Convert(input, string.Empty, out containsBadCharacters);
       public static List<byte> Convert(string input, string macroSet, out bool containsBadCharacters) {
          if (input.StartsWith("\"")) input = input.Substring(1); // trim leading " at start of string
          var result = new List<byte>();
          containsBadCharacters = false;
+
+         var lastNewLine = NewlineMode.None;
+         var nextNewline = NewlineMode.Wrap;
 
          if (!TextMacros.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
@@ -286,6 +314,33 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
                index += 4;
                continue;
+            }
+
+            // check newlines
+            if (index < input.Length - doubleNewline.Length) {
+               var isNewline = input[index..].StartsWith(Environment.NewLine);
+               if (isNewline && nextNewline == NewlineMode.Explicit) {
+                  // don't add anything to result
+                  // lastNewline still says what the most recent newline was
+                  // nextNewline will get reset after the next character
+               } else if (isNewline) {
+                  if (input[index..].StartsWith(doubleNewline)) {
+                     (lastNewLine, nextNewline) = (NewlineMode.Paragraph, NewlineMode.Wrap);
+                     result.Add(0xFB); // paragraph feed
+                     index += doubleNewline.Length; ;
+                     continue;
+                  } else if (nextNewline == NewlineMode.Wrap) {
+                     (lastNewLine, nextNewline) = (NewlineMode.Wrap, NewlineMode.Feed);
+                     result.Add(0xFE); // wrap
+                     index += Environment.NewLine.Length;
+                     continue;
+                  } else {
+                     (lastNewLine, nextNewline) = (NewlineMode.Feed, NewlineMode.Feed);
+                     result.Add(0xFA); // feed
+                     index += Environment.NewLine.Length;
+                     continue;
+                  }
+               }
             }
 
             // check characters and escape codes
@@ -321,11 +376,27 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                   index += 2;
                }
+
+               if (i == 0xFA || i == 0xFB || i == 0xFE) {
+                  // explicit newline
+                  nextNewline = NewlineMode.Explicit;
+                  lastNewLine = i switch {
+                     0xFA => NewlineMode.Feed,
+                     0xFB => NewlineMode.Wrap,
+                     0xFE => NewlineMode.Paragraph,
+                     _ => default
+                  };
+               } else if (nextNewline == NewlineMode.Explicit) {
+                  // refresh implicit newline
+                  nextNewline = lastNewLine == NewlineMode.Paragraph ? NewlineMode.Wrap : NewlineMode.Feed;
+               }
+
                foundMatch = true;
                break;
             }
             containsBadCharacters |= !foundMatch;
-            index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
+
+            index++; // always increment by one, even if the character was not found.
          }
 
          // make sure it ends with the 0xFF end-of-string byte
@@ -369,13 +440,19 @@ namespace HavenSoft.HexManiac.Core.Models {
          return -1;
       }
 
-      public static int GetWidth(IReadOnlyDictionary<string, byte[]> textMacros, ReadOnlySpan<char> input, int spaceWidth) {
-         int maxLength = 0, currentLineLength = 0;
+      private const int DefaultCharacterWidth = 6;
+      public static IReadOnlyList<TextSegment> GetOverflow(IReadOnlyDictionary<string, byte[]> textMacros, ReadOnlySpan<char> input, int spaceWidth, int maxWidth) {
+         var results = new List<TextSegment>();
+         int currentLineWidth = 0;
          var length = input.Length;
          if (input.StartsWith("\"")) input = input[1..]; // trim leading " at start of string
+         var lineNumber = 0;
+         var lineStart = 0;
 
          int index = 0;
          while (index < input.Length) {
+            int initialIndex = index;
+
             // check macros
             if (input[index] == '[' && textMacros != null) {
                var closeMacro = input[index..].IndexOf(']') + index;
@@ -385,7 +462,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                      index += candidate.Length;
                      if (candidate.IsAny("[player]", "[rival]", "[buffer1]", "[buffer2]", "[buffer3]")) {
                         // guess that the character name is 9 characters long
-                        currentLineLength += 6 * 9;
+                        currentLineWidth += DefaultCharacterWidth * 9;
                      } else {
                         // most macros don't actually make the text longer
                      }
@@ -400,9 +477,19 @@ namespace HavenSoft.HexManiac.Core.Models {
                var hex = new string(new[] { input[index + 2], input[index + 3] });
 
                // raw hex, unknown length, just guess
-               currentLineLength += 6;
+               currentLineWidth += DefaultCharacterWidth;
                index += 4;
 
+               continue;
+            }
+
+            // check newline
+            var isNewline = input[index..].StartsWith(Environment.NewLine);
+            if (isNewline) {
+               currentLineWidth = 0;
+               lineNumber++;
+               index += Environment.NewLine.Length;
+               lineStart = index;
                continue;
             }
 
@@ -422,11 +509,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                index += PCS[i].Length - 1;
                if (i == 0xFA || i == 0xFB || i == 0xFE) {
                   // line end
-                  maxLength = Math.Max(currentLineLength, maxLength);
-                  currentLineLength = 0;
+                  currentLineWidth = 0;
                } else if ((i == Escape || i == DynamicEscape || i == ButtonEscape || i == SpecialCharacterEscape) && input.Length > index + 2) {
                   if (byte.TryParse(input.Slice(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
-                     currentLineLength += 6;
+                     currentLineWidth += 6;
                   }
                   index += 2;
                } else if (i == FunctionEscape && input.Length > index + 2) {
@@ -440,21 +526,27 @@ namespace HavenSoft.HexManiac.Core.Models {
                   index += 2;
                } else if (i == 0) {
                   // whitespace
-                  currentLineLength += spaceWidth;
+                  currentLineWidth += spaceWidth;
                } else {
                   // normal character
-                  currentLineLength += 6;
+                  currentLineWidth += 6;
                }
 
                break;
             }
 
             index++; // always increment by one, even if the character was not found. This lets us skip past newlines and such.
+            if (currentLineWidth > maxWidth) {
+               var start = initialIndex - lineStart;
+               if (results.Count > 0 && results[^1].Line == lineNumber) {
+                  start = results[^1].Start;
+                  results.RemoveAt(results.Count - 1);
+               }
+               results.Add(new(lineNumber, start, index - lineStart - start));
+            }
          }
 
-         maxLength = Math.Max(maxLength, currentLineLength);
-
-         return maxLength;
+         return results;
       }
 
       private static string FindMacro(IReadOnlyDictionary<string, byte[]> macros, IReadOnlyList<byte> data, int index) {

@@ -67,7 +67,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var typeface = new Typeface(TransparentLayer.FontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
             var width = new FormattedText(TransparentLayer.Text, CultureInfo.CurrentCulture, FlowDirection, typeface, TransparentLayer.FontSize, Brushes.Transparent, 1).Width;
             foreach (var layer in Layers) layer.Width = width;
-            if (width > TransparentLayer.ViewportWidth) {
+            if (width > TransparentLayer.ViewportWidth && TransparentLayer.ViewportHeight > TransparentLayer.ExtentHeight) {
                CornerCover.Width = 16;
                CornerCover.Height = 17;
             } else {

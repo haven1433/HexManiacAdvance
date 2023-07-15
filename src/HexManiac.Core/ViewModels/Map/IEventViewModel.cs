@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
+using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
@@ -534,19 +535,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             UpdateScriptError(element.GetAddress("script"));
             NotifyPropertyChanged();
             trainerSprite = null;
-            scriptAddressText = npcText =
-               martContentText = martHello = martGoodbye =
+            npcTextEditor =
                trainerAfterText = trainerBeforeText = trainerWinText =
-               tutorFailedText = tutorInfoText = tutorSuccessText = tutorWhichPokemonText =
-               tradeFailedText = tradeInitialText = tradeSuccessText = tradeThanksText = null;
+               martHelloEditor = martGoodbyeEditor =
+               tutorFailedEditor = tutorInfoEditor = tutorSuccessEditor = tutorWhichPokemonEditor =
+               tradeFailedText = tradeInitialText = tradeSuccessText = tradeThanksText =
+               cryText = sampleLegendClearScript =
+               null;
+            scriptAddressText =
+               martContentText =
+               null;
             NotifyPropertiesChanged(
                nameof(ScriptAddressText),
                nameof(ShowItemContents), nameof(ItemContents),
-               nameof(ShowNpcText), nameof(NpcText),
-               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeText), nameof(TrainerAfterText), nameof(TrainerWinText), nameof(TrainerTeam),
-               nameof(ShowMartContents), nameof(MartHello), nameof(MartContent), nameof(MartGoodbye),
+               nameof(ShowNpcText), nameof(NpcTextEditor),
+               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
+               nameof(ShowMartContents), nameof(MartHelloEditor), nameof(MartContent), nameof(MartGoodbyeEditor),
                nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
-               nameof(ShowTradeContent), nameof(TradeFailedText), nameof(TradeIndex), nameof(TradeInitialText), nameof(TradeSuccessText), nameof(TradeThanksText), nameof(TradeWrongSpeciesText),
+               nameof(ShowTradeContent), nameof(TradeFailedEditor), nameof(TradeIndex), nameof(TradeInitialEditor), nameof(TradeSuccessEditor), nameof(TradeThanksEditor), nameof(TradeWrongSpeciesEditor),
+               nameof(ShowLegendaryContent), nameof(Level), nameof(LegendaryFlagText), nameof(HasCryText), nameof(CryEditor), nameof(SampleLegendClearScript),
                nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
          }
       }
@@ -578,14 +585,26 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             SetAddressText(value, ref scriptAddressText, "script", false);
             NotifyPropertyChanged();
+            trainerSprite = null;
+            npcTextEditor =
+               trainerAfterText = trainerBeforeText = trainerWinText =
+               martHelloEditor = martGoodbyeEditor =
+               tutorFailedEditor = tutorInfoEditor = tutorSuccessEditor = tutorWhichPokemonEditor =
+               tradeFailedText = tradeInitialText = tradeSuccessText = tradeThanksText =
+               cryText = sampleLegendClearScript =
+               null;
+            martContentText =
+               null;
+
             NotifyPropertiesChanged(
                nameof(ScriptAddress),
                nameof(ShowItemContents), nameof(ItemContents),
-               nameof(ShowNpcText), nameof(NpcText),
-               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeText), nameof(TrainerAfterText), nameof(TrainerWinText), nameof(TrainerTeam),
-               nameof(ShowMartContents), nameof(MartHello), nameof(MartContent), nameof(MartGoodbye),
+               nameof(ShowNpcText), nameof(NpcTextEditor),
+               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
+               nameof(ShowMartContents), nameof(MartHelloEditor), nameof(MartContent), nameof(MartGoodbyeEditor),
                nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
-               nameof(ShowTradeContent), nameof(TradeFailedText), nameof(TradeIndex), nameof(TradeInitialText), nameof(TradeSuccessText), nameof(TradeThanksText), nameof(TradeWrongSpeciesText),
+               nameof(ShowTradeContent), nameof(TradeFailedEditor), nameof(TradeIndex), nameof(TradeInitialEditor), nameof(TradeSuccessEditor), nameof(TradeThanksEditor), nameof(TradeWrongSpeciesEditor),
+               nameof(ShowLegendaryContent), nameof(Level), nameof(LegendaryFlagText), nameof(HasCryText), nameof(CryEditor), nameof(SampleLegendClearScript),
                nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
             UpdateScriptError(ScriptAddress);
          }
@@ -651,20 +670,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      #region Npc Content
+
       public bool ShowNpcText => EventTemplate.GetNPCTextPointer(element.Model, this) != Pointer.NULL;
 
-      private string npcText;
-      public string NpcText {
-         get {
-            if (npcText != null) return npcText;
-            return npcText = GetText(EventTemplate.GetNPCTextPointer(element.Model, this));
-         }
-         set {
-            npcText = value;
-            var newStart = SetText(EventTemplate.GetNPCTextPointer(element.Model, this), value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
-      }
+      private TextEditorViewModel npcTextEditor;
+      public TextEditorViewModel NpcTextEditor => CreateTextEditor(ref npcTextEditor, () => EventTemplate.GetNPCTextPointer(element.Model, this));
+
+      #endregion
 
       #region Trainer Content
 
@@ -742,56 +755,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          TrainerOptions.Update(options, trainerContent?.TrainerIndex ?? 0);
       }
 
-      private string trainerBeforeText;
-      public string TrainerBeforeText {
-         get {
-            if (trainerBeforeText != null) return trainerBeforeText;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return null;
-            return trainerBeforeText = GetText(trainerContent.BeforeTextPointer);
-         }
-         set {
-            trainerBeforeText = value;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return;
-            var newStart = SetText(trainerContent.BeforeTextPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
-      }
-
-      private string trainerWinText;
-      public string TrainerWinText {
-         get {
-            if (trainerWinText != null) return trainerWinText;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return null;
-            return trainerWinText = GetText(trainerContent.WinTextPointer);
-         }
-         set {
-            trainerWinText = value;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return;
-            var newStart = SetText(trainerContent.WinTextPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
-      }
-
-      private string trainerAfterText;
-      public string TrainerAfterText {
-         get {
-            if (trainerAfterText != null) return trainerAfterText;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return null;
-            return trainerAfterText = GetText(trainerContent.AfterTextPointer);
-         }
-         set {
-            trainerAfterText = value;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return;
-            var newStart = SetText(trainerContent.AfterTextPointer, value);
-            if (newStart != -1) DataMoved.Raise(this, new("Text", newStart));
-         }
-      }
+      private TextEditorViewModel trainerBeforeText, trainerWinText, trainerAfterText;
+      public TextEditorViewModel TrainerBeforeTextEditor => CreateTextEditor(ref trainerBeforeText, () => EventTemplate.GetTrainerContent(element.Model, this)?.BeforeTextPointer);
+      public TextEditorViewModel TrainerWinTextEditor => CreateTextEditor(ref trainerWinText, () => EventTemplate.GetTrainerContent(element.Model, this)?.WinTextPointer);
+      public TextEditorViewModel TrainerAfterTextEditor => CreateTextEditor(ref trainerAfterText, () => EventTemplate.GetTrainerContent(element.Model, this)?.AfterTextPointer);
 
       private string teamText;
       public string TrainerTeam {
@@ -850,11 +817,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool ShowMartContents => martContent.Value != null;
 
-      private string martHello, martContentText, martGoodbye;
-      public string MartHello {
-         get => GetText(ref martHello, martContent.Value?.HelloPointer);
-         set => SetText(ref martHello, martContent.Value?.HelloPointer, value, "Text");
-      }
+      private string martContentText;
 
       public string MartContent {
          get {
@@ -876,10 +839,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      public string MartGoodbye {
-         get => GetText(ref martGoodbye, martContent.Value?.GoodbyePointer);
-         set => SetText(ref martGoodbye, martContent.Value?.GoodbyePointer, value, "Text");
-      }
+      private TextEditorViewModel martHelloEditor, martGoodbyeEditor;
+      public TextEditorViewModel MartHelloEditor => CreateTextEditor(ref martHelloEditor, () => martContent.Value?.HelloPointer);
+      public TextEditorViewModel MartGoodbyeEditor => CreateTextEditor(ref martGoodbyeEditor, () => martContent.Value?.GoodbyePointer);
 
       #endregion
 
@@ -898,26 +860,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private string tutorInfoText, tutorWhichPokemonText, tutorFailedText, tutorSuccessText;
-      public string TutorInfoText {
-         get => GetText(ref tutorInfoText, tutorContent.Value?.InfoPointer);
-         set => SetText(ref tutorInfoText, tutorContent.Value?.InfoPointer, value, "Text");
-      }
-
-      public string TutorWhichPokemonText {
-         get => GetText(ref tutorWhichPokemonText, tutorContent.Value?.WhichPokemonPointer);
-         set => SetText(ref tutorWhichPokemonText, tutorContent.Value?.WhichPokemonPointer, value, "Text");
-      }
-
-      public string TutorFailedText {
-         get => GetText(ref tutorFailedText, tutorContent.Value?.FailedPointer);
-         set => SetText(ref tutorFailedText, tutorContent.Value?.FailedPointer, value, "Text");
-      }
-
-      public string TutorSucessText {
-         get => GetText(ref tutorSuccessText, tutorContent.Value?.SuccessPointer);
-         set => SetText(ref tutorSuccessText, tutorContent.Value?.SuccessPointer, value, "Text");
-      }
+      private TextEditorViewModel tutorInfoEditor, tutorWhichPokemonEditor, tutorFailedEditor, tutorSuccessEditor;
+      public TextEditorViewModel TutorInfoText => CreateTextEditor(ref tutorInfoEditor, () => tutorContent.Value?.InfoPointer);
+      public TextEditorViewModel TutorWhichPokemonText => CreateTextEditor(ref tutorWhichPokemonEditor , () => tutorContent.Value?.WhichPokemonPointer);
+      public TextEditorViewModel TutorFailedText => CreateTextEditor(ref tutorFailedEditor, () => tutorContent.Value?.FailedPointer);
+      public TextEditorViewModel TutorSucessText => CreateTextEditor(ref tutorSuccessEditor, () => tutorContent.Value?.SuccessPointer);
 
       public int TutorNumber {
          get {
@@ -962,31 +909,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private string tradeInitialText, tradeThanksText, tradeSuccessText, tradeFailedText, tradeWrongSpeciesText;
-      public string TradeInitialText {
-         get => GetText(ref tradeInitialText, tradeContent.Value?.InfoPointer);
-         set => SetText(ref tradeInitialText, tradeContent.Value?.InfoPointer, value, "Text");
-      }
-
-      public string TradeThanksText {
-         get => GetText(ref tradeThanksText, tradeContent.Value?.ThanksPointer);
-         set => SetText(ref tradeThanksText, tradeContent.Value?.ThanksPointer, value, "Text");
-      }
-
-      public string TradeSuccessText {
-         get => GetText(ref tradeSuccessText, tradeContent.Value?.SuccessPointer);
-         set => SetText(ref tradeSuccessText, tradeContent.Value?.SuccessPointer, value, "Text");
-      }
-
-      public string TradeFailedText {
-         get => GetText(ref tradeFailedText, tradeContent.Value?.FailedPointer);
-         set => SetText(ref tradeFailedText, tradeContent.Value?.FailedPointer, value, "Text");
-      }
-
-      public string TradeWrongSpeciesText {
-         get => GetText(ref tradeWrongSpeciesText, tradeContent.Value?.WrongSpeciesPointer);
-         set => SetText(ref tradeWrongSpeciesText, tradeContent.Value?.WrongSpeciesPointer, value, "Text");
-      }
+      private TextEditorViewModel tradeInitialText, tradeThanksText, tradeSuccessText, tradeFailedText, tradeWrongSpeciesText;
+      public TextEditorViewModel TradeInitialEditor => CreateTextEditor(ref tradeInitialText, () => tradeContent.Value?.InfoPointer);
+      public TextEditorViewModel TradeThanksEditor => CreateTextEditor(ref tradeThanksText, () => tradeContent.Value?.ThanksPointer);
+      public TextEditorViewModel TradeSuccessEditor => CreateTextEditor(ref tradeSuccessText, () => tradeContent.Value?.SuccessPointer);
+      public TextEditorViewModel TradeFailedEditor => CreateTextEditor(ref tradeFailedText, () => tradeContent.Value?.FailedPointer);
+      public TextEditorViewModel TradeWrongSpeciesEditor => CreateTextEditor(ref tradeWrongSpeciesText, () => tradeContent.Value?.WrongSpeciesPointer);
 
       public int TradeIndex {
          get {
@@ -1057,20 +985,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
       public bool HasCryText => (legendaryContent.Value?.CryTextPointer ?? Pointer.NULL) != Pointer.NULL;
-      private string cryText;
-      public string CryText {
-         get => GetText(ref cryText, legendaryContent.Value?.CryTextPointer);
-         set => SetText(ref cryText, legendaryContent.Value?.CryTextPointer, value, "Cry");
-      }
+
+      private TextEditorViewModel cryText;
+      public TextEditorViewModel CryEditor => CreateTextEditor(ref cryText, () => legendaryContent.Value?.CryTextPointer);
 
       private TextEditorViewModel sampleLegendClearScript;
       public TextEditorViewModel SampleLegendClearScript {
          get {
-            var script = @$"  # where in your script
+            var script = @$"  # somewhere in your script
   if.flag.clear.call 0x{LegendaryFlagText} <show>
-  end
 
-  # add this at the bottom of the script
+  # add this at the bottom
 show:
   clearflag 0x{FlagText}
   return";
@@ -1120,7 +1045,18 @@ show:
       private void SetText(ref string cache, int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
          cache = value;
          if (pointer == null) return;
-         var newStart = SetText((int)pointer, value, propertyName);
+         var newStart = base.SetText((int)pointer, value, propertyName);
+         if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
+      }
+
+      private string GetText(int? pointer) {
+         if (pointer == null) return null;
+         return base.GetText((int)pointer);
+      }
+
+      private void SetText(int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
+         if (pointer == null) return;
+         var newStart = base.SetText((int)pointer, value, propertyName);
          if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
       }
 
@@ -1146,8 +1082,9 @@ show:
             element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, () => element.Token, TrainerOptions.SelectedIndex);
             TeamVisualizations.Clear();
             trainerSprite = null;
-            trainerName = trainerBeforeText = trainerWinText = trainerAfterText = teamText = null;
-            NotifyPropertiesChanged(nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeText), nameof(TrainerWinText), nameof(TrainerAfterText), nameof(TrainerTeam), nameof(TrainerClass));
+            trainerName = teamText = null;
+            trainerBeforeText = trainerWinText = trainerAfterText = null;
+            NotifyPropertiesChanged(nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerTeam), nameof(TrainerClass));
          });
 
          tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
@@ -1233,6 +1170,24 @@ show:
          if (existingRun.Start == ScriptAddress && existingRun is NoInfoRun) {
             element.Model.ObserveRunWritten(Token, new XSERun(ScriptAddress));
          }
+      }
+
+      private TextEditorViewModel CreateTextEditor(ref TextEditorViewModel field, Func<int?> source, [CallerMemberName] string propertyName = null) {
+         if (field != null) return field;
+         var text = GetText(source());
+         if (text == null) return null;
+         var newEditor = new TextEditorViewModel { Content = text };
+         newEditor.Bind(nameof(TextEditorViewModel.Content), (editor, e) => {
+            SetText(source(), editor.Content, "Text", propertyName);
+            UpdateTextErrorContent(editor);
+         });
+         return field = UpdateTextErrorContent(newEditor);
+      }
+
+      private TextEditorViewModel UpdateTextErrorContent(TextEditorViewModel editor) {
+         editor.ErrorLocations.Clear();
+         editor.ErrorLocations.AddRange(Element.Model.TextConverter.GetOverflow(editor.Content, CodeBody.MaxEventTextWidth));
+         return editor;
       }
    }
 
