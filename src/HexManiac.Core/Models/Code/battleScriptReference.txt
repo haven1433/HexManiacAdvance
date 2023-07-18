@@ -36,16 +36,16 @@
 1b cleareffectsonfaint battler.
 1c jumpifstatus battler. status1:: ptr<`bse`>
 1d jumpifstatus2 battler. status2:: ptr<`bse`>
-1e jumpifability param0. ability. ptr<`bse`>
+1e jumpifability battler. ability.data.abilities.names ptr<`bse`>
 1f jumpifsideaffecting battler. sidestatus: ptr<`bse`>
-20 jumpifstat battler. ifflag. stat. value. ptr<`bse`>
+20 jumpifstat battler. ifflag.battle_compare stat. value. ptr<`bse`>
 21 jumpifstatus3condition battler. status3:: param2. ptr<`bse`>
 22 jumpiftype battler. type.data.pokemon.type.names ptr<`bse`>
 23 getexp battler.
-24 checkteamslost ptr<>
+24 checkteamslost ptr<`bse`>
 25 movevaluescleanup
 26 setmultihit value.
-27 decrementmultihit ptr<>
+27 decrementmultihit ptr<`bse`>
 28 goto ptr<`bse`>
 29 jumpifbyte ifflag.battle_compare param1:: param2. ptr<`bse`>
 2a jumpifhalfword ifflag.battle_compare address:: value: ptr<`bse`>
@@ -70,10 +70,10 @@
 3d end
 3e end2
 3f end3
-40 jumpifaffectedbyprotect ptr<>
+40 jumpifaffectedbyprotect ptr<`bse`>
 41 call ptr<`bse`>
-42 jumpiftype2 battler. type.data.pokemon.type.names ptr<>
-43 jumpifabilitypresent ability. ptr<>
+42 jumpiftype2 battler. type.data.pokemon.type.names ptr<`bse`>
+43 jumpifabilitypresent ability.data.abilities.names ptr<`bse`>
 44 endselectionscript
 45 playanimation battler. param1. param2::
 46 playanimation2 battler. param1:: param2::
@@ -98,8 +98,8 @@
 4c getswitchedmondata battler.
 4d switchindataupdate battler.
 4e switchinanim battler. dontclearsubstitutebit.
-4f jumpifcantswitch battler. ptr<>
-50 openpartyscreen param0. ptr<>
+4f jumpifcantswitch battler. ptr<`bse`>
+50 openpartyscreen param0. ptr<`bse`>
 51 switchhandleorder battler. param1.
 52 switchineffects battler.
 53 trainerslidein battler.
@@ -108,11 +108,11 @@
 56 playfaintcry battler.
 57 endlinkbattle
 58 returntoball battler.
-59 handlelearnnewmove param0<> param1<> param2.
-5a yesnoboxlearnmove ptr<>
-5b yesnoboxstoplearningmove ptr<>
+59 handlelearnnewmove param0<`bse`> param1<`bse`> param2.
+5a yesnoboxlearnmove ptr<`bse`>
+5b yesnoboxstoplearningmove ptr<`bse`>
 5c hitanimation battler.
-[BPRE_BPGE] 5d getmoneyreward ptr<>
+[BPRE_BPGE] 5d getmoneyreward ptr<`bse`>
 [BPEE_AXPE_AXVE] 5d getmoneyreward
 5e updatebattlermoves battler.
 5f swapattackerwithtarget
@@ -134,7 +134,7 @@
 6f makevisible battler.
 70 recordlastability battler.
 71 buffermovetolearn
-72 jumpifplayerran ptr<>
+72 jumpifplayerran ptr<`bse`>
 73 hpthresholds battler.
 74 hpthresholds2 battler.
 75 useitemonopponent
@@ -143,31 +143,31 @@
 78 faintifabilitynotdamp
 79 setatkhptozero
 7a jumpifnexttargetvalid ptr<`bse`>
-7b tryhealhalfhealth ptr<> battler.
+7b tryhealhalfhealth ptr<`bse`> battler.
 7c trymirrormove
 7d setrain
 7e setreflect
 7f setseeded
 80 manipulatedamage param0.
-81 trysetrest ptr<>
+81 trysetrest ptr<`bse`>
 82 jumpifnotfirstturn ptr<`bse`>
 83 nop
 84 jumpifcantmakeasleep ptr<`bse`>
 85 stockpile
-86 stockpiletobasedamage ptr<>
-87 stockpiletohpheal ptr<>
+86 stockpiletobasedamage ptr<`bse`>
+87 stockpiletohpheal ptr<`bse`>
 88 negativedamage
-89 statbuffchange param0. ptr<>
+89 statbuffchange stat. ptr<`bse`>
 8a normalisebuffs
 8b setbide
 8c confuseifrepeatingattackends
 8d setmultihitcounter param0.
 8e initmultihitstring
-8f forcerandomswitch ptr<>
-90 tryconversiontypechange ptr<>
+8f forcerandomswitch ptr<`bse`>
+90 tryconversiontypechange ptr<`bse`>
 91 givepaydaymoney
 92 setlightscreen
-93 tryKO ptr<>
+93 tryKO ptr<`bse`>
 94 damagetohalftargethp
 95 setsandstorm
 96 weatherdamage
@@ -177,25 +177,25 @@
 9a setfocusenergy
 9b transformdataexecution
 9c setsubstitute
-9d mimicattackcopy ptr<>
+9d mimicattackcopy ptr<`bse`>
 9e metronome
 9f dmgtolevel
 a0 psywavedamageeffect
-a1 counterdamagecalculator ptr<>
-a2 mirrorcoatdamagecalculator ptr<>
-a3 disablelastusedattack ptr<>
+a1 counterdamagecalculator ptr<`bse`>
+a2 mirrorcoatdamagecalculator ptr<`bse`>
+a3 disablelastusedattack ptr<`bse`>
 a4 trysetencore ptr<`bse`>
-a5 painsplitdmgcalc ptr<>
-a6 settypetorandomresistance ptr<>
+a5 painsplitdmgcalc ptr<`bse`>
+a6 settypetorandomresistance ptr<`bse`>
 a7 setalwayshitflag
-a8 copymovepermanently ptr<>
+a8 copymovepermanently ptr<`bse`>
 a9 trychoosesleeptalkmove ptr<`bse`>
 aa setdestinybond
 ab trysetdestinybondtohappen
 ac remaininghptopower
 ad tryspiteppreduce ptr<`bse`>
 ae healpartystatus
-af cursetarget ptr<>
+af cursetarget ptr<`bse`>
 b0 trysetspikes ptr<`bse`>
 b1 setforesight
 b2 trysetperishsong ptr<`bse`>
@@ -208,35 +208,35 @@ b8 setsafeguard
 b9 magnitudedamagecalculation
 ba jumpifnopursuitswitchdmg ptr<`bse`>
 bb setsunny
-bc maxattackhalvehp ptr<>
-bd copyfoestats ptr<>
+bc maxattackhalvehp ptr<`bse`>
+bd copyfoestats ptr<`bse`>
 be rapidspinfree
 bf setdefensecurlbit
-c0 recoverbasedonsunlight ptr<>
+c0 recoverbasedonsunlight ptr<`bse`>
 c1 hiddenpowercalc
 c2 selectfirstvalidtarget
-c3 trysetfutureattack ptr<>
-c4 trydobeatup param0<> param1<>
+c3 trysetfutureattack ptr<`bse`>
+c4 trydobeatup ptr0<`bse`> ptr1<`bse`>
 c5 setsemiinvulnerablebit
 c6 clearsemiinvulnerablebit
 c7 setminimize
 c8 sethail
-c9 jumpifattackandspecialattackcannotfall ptr<`bse`>
+c9 trymemento ptr<`bse`>
 ca setforcedtarget
 cb setcharge
 cc callterrainattack
-cd cureifburnedparalysedorpoisoned ptr<>
-ce settorment ptr<>
+cd cureifburnedparalysedorpoisoned ptr<`bse`>
+ce settorment ptr<`bse`>
 cf jumpifnodamage ptr<`bse`>
-d0 settaunt ptr<>
+d0 settaunt ptr<`bse`>
 d1 trysethelpinghand ptr<`bse`>
 d2 tryswapitems ptr<`bse`>
 d3 trycopyability ptr<`bse`>
 d4 trywish param0. param1<`bse`>
 d5 trysetroots ptr<`bse`>
 d6 doubledamagedealtifdamaged
-d7 setyawn ptr<>
-d8 setdamagetohealthdifference ptr<>
+d7 setyawn ptr<`bse`>
+d8 setdamagetohealthdifference ptr<`bse`>
 d9 scaledamagebyhealthratio
 da tryswapabilities ptr<`bse`>
 db tryimprison ptr<`bse`>
@@ -245,25 +245,25 @@ dd weightdamagecalculation
 de assistattackselect ptr<>
 df trysetmagiccoat ptr<`bse`>
 e0 trysetsnatch ptr<`bse`>
-e1 trygetintimidatetarget ptr<>
+e1 trygetintimidatetarget ptr<`bse`>
 e2 switchoutabilities battler.
 e3 jumpifhasnohp battler. ptr<`bse`>
 e4 getsecretpowereffect
 e5 pickup
 e6 docastformchangeanimation
 e7 trycastformdatachange
-e8 settypebasedhalvers ptr<>
+e8 settypebasedhalvers ptr<`bse`>
 e9 setweatherballtype
 ea tryrecycleitem ptr<`bse`>
-eb settypetoterrain ptr<>
-ec pursuitdoubles ptr<>
+eb settypetoterrain ptr<`bse`>
+ec pursuitdoubles ptr<`bse`>
 ed snatchsetbattlers
 ee removelightscreenreflect
 ef handleballthrow
 f0 givecaughtmon
-f1 trysetcaughtmondexflags ptr<>
+f1 trysetcaughtmondexflags ptr<`bse`>
 f2 displaydexinfo
-f3 trygivecaughtmonnick ptr<>
+f3 trygivecaughtmonnick ptr<`bse`>
 f4 subattackerhpbydmg
 f5 removeattackerstatus1
 f6 finishaction
