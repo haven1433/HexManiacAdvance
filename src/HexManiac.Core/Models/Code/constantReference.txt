@@ -175,7 +175,12 @@ BPEE0:scripts.coins.cap         12AFF8,12BC1C,12E22C,141C9C,141DC0,145CA8,145CC8
 BPEE0:scripts.coins.cap-1       12ABF4,12BC14,1419CC,145C98
 BPEE0:scripts.coins.cap-49      20FC39
 BPEE0:scripts.coins.cap-499     20FC7B
-
+BPRE0:scripts.coins.cap         0D05E0
+BPRE0:scripts.coins.cap-1       0D05BC
+BPRE0:scripts.coins.cap-9       16C809
+BPRE0:scripts.coins.cap-19      16C8C0,16C920
+BPRE0:scripts.coins.cap-49      16C73A
+BPRE0:scripts.coins.cap-499     16C70C
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
