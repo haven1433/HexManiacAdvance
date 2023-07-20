@@ -253,15 +253,15 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 7C checkattack move:data.pokemon.moves.names # 800D=n, where n is the index of the pokemon that knows the move.
                                              # 800D=6, if no pokemon in your party knows the move
                                              # if successful, 8004 is set to the pokemon species
-7D bufferPokemon buffer.3 species:data.pokemon.names  # species can be a literal or variable. Store the name in the given buffer
-7E bufferfirstPokemon buffer.3               # name of your first pokemon gets stored in the given buffer
-7F bufferpartyPokemon buffer.3 party:        # name of pokemon 'party' from your party gets stored in the buffer
-80 bufferitem buffer.3 item:data.items.stats # stores an item name in a buffer
-81 bufferdecoration buffer.3 decoration:
-82 bufferattack buffer.3 move:data.pokemon.moves.names    # species, party, item, decoration, and move can all be literals or variables
-83 buffernumber buffer.3 number:             # literal or variable gets converted to a string and put in the buffer.
-84 bufferstd buffer.3 index:                 # gets one of the standard strings and pushes it into a buffer
-85 bufferstring buffer.3 pointer<>           # copies the string into the buffer.
+7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # species can be a literal or variable. Store the name in the given buffer
+7E bufferfirstPokemon buffer.bufferNames                            # name of your first pokemon gets stored in the given buffer
+7F bufferpartyPokemon buffer.bufferNames party:                     # name of pokemon 'party' from your party gets stored in the buffer
+80 bufferitem buffer.bufferNames item:data.items.stats              # stores an item name in a buffer
+81 bufferdecoration buffer.bufferNames decoration:
+82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # species, party, item, decoration, and move can all be literals or variables
+83 buffernumber buffer.bufferNames number:             # literal or variable gets converted to a string and put in the buffer.
+84 bufferstd buffer.bufferNames index:                 # gets one of the standard strings and pushes it into a buffer
+85 bufferstring buffer.bufferNames pointer<>           # copies the string into the buffer.
 86 pokemart products<`mart`>                 # products is a list of 2-byte items, terminated with 0000
 87 decorationmart products<`decor`>          # same as pokemart, but with decorations instead of items
 88 decorationmart2 products<`decor`>         # near-clone of decorationmart, but with slightly changed dialogue
@@ -329,14 +329,14 @@ BB virtualgotoif condition. destination<>
 BC virtualcallif condition. destination<>
 BD virtualmsgbox text<>
 BE virtualloadpointer text<>
-BF virtualbuffer buffer.3 text<>             # stores text in a buffer
+BF virtualbuffer buffer.bufferNames text<>   # stores text in a buffer
 C0 showcoins x. y.
 C1 hidecoins x. y.
 C2 updatecoins x. y.
 C3 incrementhiddenvalue a.                   # example: pokecenter nurse uses variable 0xF after you pick yes
 C4 warp6 mapbank. map. warp. x: y:           # sets a particular map to warp to upon using an escape rope/teleport
 C5 waitcry                                   # used after cry, it pauses the script
-[BPRE_BPGE_BPEE] C6 bufferboxname buffer.3 box:               # box can be a variable or a literal
+[BPRE_BPGE_BPEE] C6 bufferboxname buffer.bufferNames box:               # box can be a variable or a literal
 [BPRE_BPGE] C7 textcolor color.              # 00=blue, 01=red, FF=default, XX=black. Only in FR/LG
 [BPEE] C7 nopC7
 [BPRE_BPGE] C8 helptext pointer<>            # something with helptext? Does some tile loading, which can glitch textboxes
@@ -354,12 +354,12 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
 [BPRE_BPGE] D0 setworldmapflag flag:         # This lets the player fly to a given map, if the map has a flight spot
 [BPEE] D0 nopD0                              # (nop in Emerald)
-[BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:      # clone of warpteleport, only used in FR/LG and only with specials
-[BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names          # changes the catch location of a pokemon in your party (0-5)
+[BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:               # clone of warpteleport, only used in FR/LG and only with specials
+[BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokemon in your party (0-5)
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
 [BPRE_BPGE] D3 braillelength pointer<>       # sets variable 8004 based on the braille string's length
                                              # call this, then special 0x1B2 to make a cursor appear at the end of the text
-[BPRE_BPGE] D4 bufferitems2 buffer.3 item: quantity:     # buffers the item name, but pluralized if quantity is 2 or more
+[BPRE_BPGE] D4 bufferitems2 buffer.bufferNames item: quantity:         # buffers the item name, but pluralized if quantity is 2 or more
 [BPEE] D4 turnrotatingtileobjects
 # there is no D5 in ruby nor firered
 [BPEE] D5 initrotatingtilepuzzle isTrickHouse:
@@ -370,12 +370,12 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPEE] DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
 [BPEE] DB preparemsg3 pointer<"">                   # shows a text box with text appearing instantaneously.
 [BPEE] DC fadescreen3 mode.screenfades              # fades the screen in or out, swapping buffers. Emerald only.
-[BPEE] DD buffertrainerclass buffer.3 class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
-[BPEE] DE buffertrainername buffer.3 trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
+[BPEE] DD buffertrainerclass buffer.bufferNames class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
+[BPEE] DE buffertrainername buffer.bufferNames trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
 [BPEE] DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
 [BPEE] E0 warp8 bank. map. exit. x: y:              # warps the player while fading the screen to white
-[BPEE] E1 buffercontesttype buffer.3 contest:       # stores the contest type name in a buffer. (Emerald Only)
-[BPEE] E2 bufferitems2 buffer.3 item:data.items.stats quantity:     # stores pluralized item name in a buffer. (Emerald Only)
+[BPEE] E1 buffercontesttype buffer.bufferNames contest:                                  # stores the contest type name in a buffer. (Emerald Only)
+[BPEE] E2 bufferitems2 buffer.bufferNames item:data.items.stats quantity:                # stores pluralized item name in a buffer. (Emerald Only)
 
 
 # XX msgbox text<> type.                       # multicommand, 8 bytes total
