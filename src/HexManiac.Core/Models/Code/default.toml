@@ -1476,3 +1476,11 @@ Name = '''allowcanceloptions'''
    '''AllowCancel''',
    '''ForbidCancel''',
 ]
+
+[[List]]
+Name = '''bufferNames'''
+0 = [
+   '''buffer1''',
+   '''buffer2''',
+   '''buffer3''',
+]
