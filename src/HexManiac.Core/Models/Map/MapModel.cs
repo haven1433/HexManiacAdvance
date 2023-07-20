@@ -89,6 +89,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public ModelTable MapScripts {
          get => Element.GetSubTable("mapscripts");
       }
+
+      public override string ToString() => $"({Group}, {Map})";
    }
 
    public record LayoutPrototype(int PrimaryBlockset, int SecondaryBlockset, int BorderBlock);
