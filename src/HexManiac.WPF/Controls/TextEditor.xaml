@@ -39,7 +39,7 @@
                UndoLimit="0" AcceptsReturn="True" AcceptsTab="True" ScrollViewer.ScrollChanged="TextScrollChanged" HorizontalScrollBarVisibility="Auto"
          Tag="{Binding Tag, RelativeSource={RelativeSource AncestorType=local:TextEditor}}"
          ContextMenu="{Binding ContextMenuOverride, RelativeSource={RelativeSource AncestorType=local:TextEditor}}"
-         Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" VerticalScrollBarVisibility="Visible" />
+         Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}" />
       <Rectangle Name="CornerCover" HorizontalAlignment="Right" VerticalAlignment="Bottom" Fill="{DynamicResource Background}" Margin="1" SnapsToDevicePixels="True" />
    </Grid>
 </UserControl>

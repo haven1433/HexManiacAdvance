@@ -737,7 +737,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (spriteRun is ITilemapRun tilemapRun) tilemapRun.FindMatchingTileset(model);
 
          var newRun = spriteRun.SetPixels(model, history.CurrentChange, SpritePage, pixels);
-         if (newRun.Start != spriteRun.Start) RaiseMessage("Sprite was move to " + newRun.Start.ToAddress());
+         if (newRun.Start != spriteRun.Start) RaiseMessage("Sprite was moved to " + newRun.Start.ToAddress());
       }
 
       /// <summary>

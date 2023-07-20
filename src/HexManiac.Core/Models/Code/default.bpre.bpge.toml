@@ -170,7 +170,7 @@ Name = '''specials'''
 0x99 = '''Overworld_PlaySpecialMapMusic'''
 0x9d = '''StartOldManTutorialBattle'''
 0x9e = '''ChangePokemonNickname'''
-0x9f = '''ChoosePartyMon'''                     # Chosen index stored in 0x8004. 0x8004=7 for Cancel.
+0x9f = '''ChoosePartyMon'''                     # Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for last pokemon, 0x8004=7 for cancel. Requires `waitforstate` after.
 0xa3 = '''Script_IsFanClubMemberFanOfPlayer'''
 0xa4 = '''Script_GetNumFansOfPlayerInTrainerFanClub'''
 0xa5 = '''Script_BufferFanClubTrainerName'''
@@ -274,7 +274,7 @@ Name = '''specials'''
 0x13f = '''DoFallWarp'''
 0x142 = '''SetEReaderTrainerGfxId'''
 0x143 = '''StartSouthernIslandBattle'''
-0x147 = '''GetPartyMonSpecies'''        # Read party index from 0x8004, return species (recomend returning to 0x800D)
+0x147 = '''GetPartyMonSpecies'''        # Read party index from 0x8004, return species (recomend returning to 0x800D).
 0x148 = '''IsSelectedMonEgg'''
 0x14b = '''LoadPlayerBag'''
 0x14c = '''Script_FadeOutMapMusic'''
