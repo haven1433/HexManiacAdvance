@@ -171,16 +171,26 @@ namespace HavenSoft.HexManiac.Core.Models {
          return (conditionalCodes, instructionTemplates);
       }
 
-      public void ExportReadableScriptReference() => ExportReadableScriptReference(ScriptLines, ScriptReferenceDocumetationFileName);
-      private void ExportReadableScriptReference(IReadOnlyList<IScriptLine> lines, string filename) {
+      public void ExportReadableScriptReference() {
+         var specials = new Dictionary<string, StoredList>(
+            new[] { "axve", "axpe", "bpre", "bpge", "bpee" }
+            .Select<string, KeyValuePair<string,StoredList>>(
+               code => new(code, BaseModel.GetDefaultMetadatas(code).SelectMany(md => md.Lists).Single(list => list.Name == "specials"))
+            )
+         );
+
+         ExportReadableScriptReference(ScriptLines, specials, ScriptReferenceDocumetationFileName);
+      }
+      private void ExportReadableScriptReference(IReadOnlyList<IScriptLine> lines, Dictionary<string, StoredList> specials, string filename) {
          var text = new StringBuilder();
          var nl = Environment.NewLine;
          text.AppendLine(@"
 This is a list of all the commands currently available within HexManiacAdvance when writing scripts.
 For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://github.com/haven1433/HexManiacAdvance/wiki).
 ");
+         text.AppendLine("# Commands");
          foreach (var line in lines.OrderBy(line => line.LineCommand)) {
-            text.AppendLine("# " + line.LineCommand);
+            text.AppendLine("## " + line.LineCommand);
             text.Append(line.LineCommand);
             if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
             foreach (var arg in line.Args) {
@@ -230,6 +240,39 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                text.AppendLine("```");
             }
             text.AppendLine();
+         }
+
+         text.AppendLine("# Specials");
+         text.AppendLine(@"
+This is a list of all the specials available within HexManiacAdvance when writing scripts.
+
+Use `special name` when doing an action with no result.
+
+Use `special2 variable name` when doing an action that has a result.
+* The result will be returned to the variable.
+* You generally want to put results in 0x800D.
+");
+
+
+         var names = specials.Values.SelectMany(list => list.Contents).Distinct().OrderBy(name => name).ToList();
+         foreach (var name in names) {
+            if (string.IsNullOrEmpty(name)) continue;
+            if (name.Length < 2) continue;
+            var supportedGames = specials.Keys.Where(key => specials[key].Contents.Contains(name)).ToList();
+            text.AppendLine($"## {name}");
+            if (supportedGames.Count == specials.Count) {
+               text.AppendLine("*(Supports all games.)*");
+            } else {
+               text.AppendLine($"*(Supports {", ".Join(supportedGames)})*");
+            }
+            text.AppendLine();
+            foreach (var game in supportedGames) {
+               if (specials[game].Comments.TryGetValue(specials[game].IndexOf(name), out var comment)) {
+                  text.AppendLine(comment);
+                  text.AppendLine();
+                  break;
+               }
+            }
          }
 
          File.WriteAllText(filename, text.ToString());

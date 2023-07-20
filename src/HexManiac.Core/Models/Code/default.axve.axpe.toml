@@ -180,7 +180,7 @@ Name = '''specials'''
 0x9c = '''ScrSpecial_ChooseStarter'''
 0x9d = '''ScrSpecial_StartWallyTutorialBattle'''
 0x9e = '''ChangePokemonNickname'''
-0x9f = '''ChoosePartyMon'''                     # Chosen index stored in 0x8004. 0x8004=7 for Cancel.
+0x9f = '''ChoosePartyMon'''                     # Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for last pokemon, 0x8004=7 for cancel. Requires `waitforstate` after.
 0xa0 = '''GetFirstFreePokeblockSlot'''
 0xa1 = '''DoBerryBlending'''
 0xa2 = '''PlayRoulette'''
@@ -348,7 +348,7 @@ Name = '''specials'''
 0x144 = '''SetRoute119Weather'''
 0x145 = '''SetRoute123Weather'''
 0x146 = '''ScriptGetMultiplayerId'''
-0x147 = '''GetPartyMonSpecies'''                     # Chosen index stored in 0x8004. 0x8004=7 for Cancel.
+0x147 = '''GetPartyMonSpecies'''                     # Read party index from 0x8004, return species (recomend returning to 0x800D).
 0x148 = '''IsSelectedMonEgg'''
 0x149 = '''TryInitBattleTowerAwardManObjectEvent'''
 0x14a = '''MoveSecretBase'''
