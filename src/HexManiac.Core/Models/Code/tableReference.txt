@@ -25,6 +25,7 @@
 // `xse`      event script
 // `bse`      battle script
 // `ase`      animation script
+// `tse`      trainer AI script
 // `pie`      pokemon item effect
 // `tpt`      trainer pokemon team
 // `osl`      overworld sprite list
@@ -645,6 +646,23 @@ graphics.newgame.menu.naming.tileset,    , , , , 09F8AC, 09F880, 09F8C0, 09F894,
 graphics.newgame.menu.naming.tilemap.m2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+
+// Introductory Speeches
+scripts.newgame.professor.speeches.welcome,             00A3C0, 00A3C0, 00A3C0, 00A3C0, 12F8F0, 12F8C8, 12F968, 12F940, 0309C4, ""
+scripts.newgame.professor.speeches.preShowcaseMon,            ,       ,       ,       , 12F994, 12F96C, 12FA0C, 12F9E4,       , ""
+scripts.newgame.professor.speeches.showcaseMon,         00A410, 00A410, 00A410, 00A410, 12FB08, 12FAE0, 12FB80, 12FB58, 030A20, ""
+scripts.newgame.professor.speeches.mainSpeech,          00A558, 00A558, 00A558, 00A558, 12FB9C, 12FB74, 12FC14, 12FBEC, 030A64, "" // find a more descriptive name for this
+scripts.newgame.professor.speeches.introduceSelf,       00A5A0, 00A5A0, 00A5A0, 00A5A0, 12FD24, 12FCFC, 12FD9C, 12FD74, 030C0C, ""
+scripts.newgame.professor.speeches.promptGender,        00A790, 00A790, 00A790, 00A790, 12FE34, 12FE0C, 12FEAC, 12FE84, 030DFC, ""
+scripts.newgame.professor.speeches.promptName,          00A9A8, 00A9A8, 00A9A8, 00A9A8, 13010C, 1300E4, 130184, 13015C, 031008, ""
+scripts.newgame.professor.speeches.confirmName,         00AB2C, 00AB2C, 00AB2C, 00AB2C, 1304B0, 130488, 130528, 130500, 031138, ""
+scripts.newgame.professor.speeches.confirmSelf,         00AD40, 00AD40, 00AD40, 00AD40,       ,       ,       ,       , 031334, ""
+scripts.newgame.professor.speeches.ready,               00AECC, 00AECC, 00AECC, 00AECC, 1308C4, 13089C, 13093C, 130914, 0314BC, ""
+scripts.newgame.professor.speeches.introduceRival,            ,       ,       ,       , 130774, 13074C, 1307EC, 1307C4,       , ""
+scripts.newgame.professor.speeches.repromptRivalName,         ,       ,       ,       , 1302DC, 1302B4, 130354, 13032C,       , ""
+scripts.newgame.professor.speeches.confirmRival,              ,       ,       ,       , 1304F8, 1304D0, 130570, 130548,       , ""
+scripts.newgame.professor.speeches.rememberRivalName,         ,       ,       ,       , 1305FC, 1305D4, 130674, 13064C,       , ""
+
 
 graphics.townmap.palette,                      ,       ,       ,       , 0C02EC, 0C02C0, 0C0300, 0C02D4, , `ucp4:01234`
 graphics.townmap.palette,                      ,       ,       ,       ,       ,       ,       , , 122E90, `ucp4:78`
