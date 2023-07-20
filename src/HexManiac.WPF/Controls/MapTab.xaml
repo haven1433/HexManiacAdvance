@@ -438,9 +438,7 @@
                         
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowTrainerContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
-                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
-                                 <Setter Property="FontFamily" Value="Consolas" />
-                                 <Setter Property="AcceptsReturn" Value="True" />
+                              <Style TargetType="local:TextEditor" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type local:TextEditor}}">
                                  <Setter Property="HorizontalAlignment" Value="Right" />
                                  <Setter Property="Width" Value="244" />
                               </Style>
@@ -457,15 +455,15 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Before Battle:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerBeforeText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" />
+                           <local:TextEditor DataContext="{Binding TrainerBeforeTextEditor}" Style="{StaticResource TextBoxStyle}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="When You Win:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerWinText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" />
+                           <local:TextEditor DataContext="{Binding TrainerWinTextEditor}" Style="{StaticResource TextBoxStyle}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="After Battle:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox Text="{Binding TrainerAfterText, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}" />
+                           <local:TextEditor DataContext="{Binding TrainerAfterTextEditor}" Style="{StaticResource TextBoxStyle}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Team:" Margin="4,0"/>
                            </local:AngleBorder>
@@ -479,7 +477,8 @@
                                     </ItemsControl.ItemTemplate>
                                  </ItemsControl>
                               </Viewbox>
-                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBoxStyle}"
+                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}"
+                                       HorizontalAlignment="Right" AcceptsReturn="True" FontFamily="Consolas"
                                        Name="TrainerTeamBox" Background="Transparent" Width="230" CaretBrush="{DynamicResource Secondary}" />
                            </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
@@ -507,39 +506,35 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Text:" Margin="4,0"/>
                            </local:AngleBorder>
-                           <TextBox FontFamily="Consolas" AcceptsReturn="True" HorizontalAlignment="Right" Width="244" Text="{Binding NpcText, UpdateSourceTrigger=PropertyChanged}" />
+                           <local:TextEditor Width="244" DataContext="{Binding NpcTextEditor}" />
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowMartContents, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
-                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
-                                 <Setter Property="FontFamily" Value="Consolas" />
-                                 <Setter Property="AcceptsReturn" Value="True" />
+                              <Style TargetType="local:TextEditor" BasedOn="{StaticResource {x:Type local:TextEditor}}">
                                  <Setter Property="HorizontalAlignment" Value="Right" />
                                  <Setter Property="Width" Value="244" />
                               </Style>
                            </StackPanel.Resources>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Greeting:" />
-                           <TextBox Text="{Binding MartHello, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding MartHelloEditor}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Shop:" />
-                           <TextBox Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <TextBox Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Right" Width="244" FontFamily="Consolas" AcceptsReturn="True" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Goodbye:" />
-                           <TextBox Text="{Binding MartGoodbye, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding MartGoodbyeEditor}" />
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowTutorContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
-                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
-                                 <Setter Property="FontFamily" Value="Consolas" />
-                                 <Setter Property="AcceptsReturn" Value="True" />
+                              <Style TargetType="local:TextEditor" BasedOn="{StaticResource {x:Type local:TextEditor}}">
                                  <Setter Property="HorizontalAlignment" Value="Right" />
                                  <Setter Property="Width" Value="244" />
                               </Style>
                            </StackPanel.Resources>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Info:" />
-                           <TextBox Text="{Binding TutorInfoText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TutorInfoText}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Which Pokemon:" />
-                           <TextBox Text="{Binding TutorWhichPokemonText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TutorWhichPokemonText}" />
 
                            <Grid Margin="0,10,0,0">
                               <Grid.ColumnDefinitions>
@@ -556,22 +551,20 @@
                            </Grid>
 
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Sucess:" />
-                           <TextBox Text="{Binding TutorSucessText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TutorSucessText}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Fail:" />
-                           <TextBox Text="{Binding TutorFailedText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TutorFailedText}" />
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowTradeContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
-                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
-                                 <Setter Property="FontFamily" Value="Consolas" />
-                                 <Setter Property="AcceptsReturn" Value="True" />
+                              <Style TargetType="local:TextEditor" BasedOn="{StaticResource {x:Type local:TextEditor}}">
                                  <Setter Property="HorizontalAlignment" Value="Right" />
                                  <Setter Property="Width" Value="244" />
                               </Style>
                            </StackPanel.Resources>
                            <local:AngleBorder Content="Info:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeInitialText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TradeInitialEditor}" />
 
                            <Grid Margin="0,10,0,0">
                               <Grid.ColumnDefinitions>
@@ -588,23 +581,21 @@
                            </Grid>
 
                            <local:AngleBorder Content="Cancel:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeFailedText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TradeFailedEditor}" />
 
                            <local:AngleBorder Content="Wrong Pokemon:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeWrongSpeciesText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TradeWrongSpeciesEditor}" />
 
                            <local:AngleBorder Content="Success:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeThanksText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TradeThanksEditor}" />
 
                            <local:AngleBorder Content="After Trade:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                           <TextBox Text="{Binding TradeSuccessText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                           <local:TextEditor DataContext="{Binding TradeSuccessEditor}" />
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowLegendaryContent, Converter={StaticResource BoolToVisibility}}">
                            <StackPanel.Resources>
-                              <Style TargetType="TextBox" x:Key="TextBoxStyle" BasedOn="{StaticResource {x:Type TextBox}}">
-                                 <Setter Property="FontFamily" Value="Consolas" />
-                                 <Setter Property="AcceptsReturn" Value="True" />
+                              <Style TargetType="local:TextEditor" BasedOn="{StaticResource {x:Type local:TextEditor}}">
                                  <Setter Property="HorizontalAlignment" Value="Right" />
                                  <Setter Property="Width" Value="244" />
                               </Style>
@@ -646,10 +637,10 @@
 
                            <StackPanel Visibility="{Binding HasCryText, Converter={StaticResource BoolToVisibility}}">
                               <local:AngleBorder Content="Cry:" Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" />
-                              <TextBox Text="{Binding CryText, UpdateSourceTrigger=PropertyChanged}" AcceptsReturn="True" />
+                              <local:TextEditor DataContext="{Binding CryEditor}" />
                            </StackPanel>
 
-                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,5,2" TextWrapping="Wrap" Text="Use this to make the legendary reappear if you haven't captured it:" />
+                           <TextBlock FontStyle="Italic" Foreground="{DynamicResource Secondary}" Margin="5,10,30,2" TextWrapping="Wrap" Text="Use this to make the legendary reappear if you haven't captured it:" />
                            <local:TextEditor IsReadOnly="True" DataContext="{Binding SampleLegendClearScript}" Height="120" />
                            <TextBlock HorizontalAlignment="Right" Margin="4">
                               <Hyperlink Foreground="{DynamicResource Accent}" RequestNavigate="Navigate"

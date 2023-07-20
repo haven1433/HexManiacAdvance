@@ -50,16 +50,22 @@ if.male.goto       A0 21 0D 80 00 00 06 01 ptr<`xse`>
 if.female.goto     A0 21 0D 80 01 00 06 01 ptr<`xse`>
 if.male.call       A0 21 0D 80 00 00 07 01 ptr<`xse`>
 if.female.call     A0 21 0D 80 01 00 07 01 ptr<`xse`>
-if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # compare, if1
-if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # compare, if2
-if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # checkflag, if1
-if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>                                                                                                             # checkflag, if2
-if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>                                                                                                             # checkflag, if1
-if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>                                                                                                             # checkflag, if2
-if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>                                                                                   # checktrainerflag, if1
-if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>                                                                                   # checktrainerflag, if2
-if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>                                                                                   # checktrainerflag, if1
-if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>                                                                                   # checktrainerflag, if2
+if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
+                                                                                                                                                               # If the comparison is true, goto another address or section.
+if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
+                                                                                                                                                               # If the comparison is true, call another address or section.
+if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # If the flag is set, goto another address or section.
+                                                                                                                                                               # (Flags begin as clear.)
+if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>                                                                                                             # If the flag is set, call another address or section
+                                                                                                                                                               # (Flags begin as clear.)
+if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>                                                                                                             # If the flag is clear, goto another address or section
+                                                                                                                                                               # (Flags begin as clear.)
+if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>                                                                                                             # If the flag is clear, call another address or section
+                                                                                                                                                               # (Flags begin as clear.)
+if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>                                                                                   # If the trainer is defeated, goto another address or section
+if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>                                                                                   # If the trainer is defeated, call another address or section
+if.trainer.ready.goto    60 trainer:data.trainers.stats 06 00 pointer<`xse`>                                                                                   # If the trainer is not defeated, goto another address or section
+if.trainer.ready.call    60 trainer:data.trainers.stats 07 00 pointer<`xse`>                                                                                   # If the trainer is not defeated, call another address or section
 
 move.player 4F FF 00 data<`move`> 51 00 00      # Moves the player (NPC object #255) around the map.
                                                 # This macro assumes using "waitmovement 0" instead of "waitmovement 255".
@@ -254,8 +260,8 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                              # 800D=6, if no pokemon in your party knows the move
                                              # if successful, 8004 is set to the pokemon species
 7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # species can be a literal or variable. Store the name in the given buffer
-7E bufferfirstPokemon buffer.bufferNames                            # name of your first pokemon gets stored in the given buffer
-7F bufferpartyPokemon buffer.bufferNames party:                     # name of pokemon 'party' from your party gets stored in the buffer
+7E bufferfirstPokemon buffer.bufferNames                            # Species of your first pokemon gets stored in the given buffer
+7F bufferpartyPokemon buffer.bufferNames party:                     # Speciel of pokemon 'party' from your party gets stored in the buffer
 80 bufferitem buffer.bufferNames item:data.items.stats              # stores an item name in a buffer
 81 bufferdecoration buffer.bufferNames decoration:
 82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # species, party, item, decoration, and move can all be literals or variables

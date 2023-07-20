@@ -10,6 +10,8 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeBody : ViewModelCore {
+      public const int MaxEventTextWidth = 209;
+
       private readonly IDataModel model;
       private readonly ScriptParser parser;
       private readonly IDataInvestigator investigator;
@@ -299,6 +301,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   Editor.Content = value;
                   NotifyPropertyChanged();
                   ContentChanged.Raise(this, new(previousValue, nameof(Content)));
+                  ClearErrors();
                }
             }
          }
@@ -323,15 +326,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
 
-      public void ClearErrors() {
+      private void ClearErrors() {
          HasError = false;
          ErrorText = string.Empty;
          Editor.ErrorLocations.Clear();
 
          foreach (var streamLine in LookForStreamLines()) {
             if (streamLine.Type != ExpectedPointerType.Text) continue; // 35*6
-            if (model.TextConverter.GetWidth(streamLine.Text) <= 209) continue;
-            Editor.ErrorLocations.Add(new(streamLine.LineNumber, streamLine.Text.Length - 1, 1));
+            foreach (var error in model.TextConverter.GetOverflow(streamLine.Text, MaxEventTextWidth)) {
+               Editor.ErrorLocations.Add(error with { Line = error.Line + streamLine.LineNumber });
+            }
          }
       }
 
