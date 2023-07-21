@@ -156,7 +156,7 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06
 45 playanimation battler.bs_battlers animation.effectanimations param2::
 46 playanimation_var battler.bs_battlers param1:: param2::
 47 setgraphicalstatchangevalues
-48 playstatchangeanimation battler.bs_battlers param1. param2.
+48 playstatchangeanimation battler.bs_battlers param1.statanimation param2.
 49 moveend param0. param1.
 4a typecalc2
 4b returnatktoball

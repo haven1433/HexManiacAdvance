@@ -1767,38 +1767,104 @@ Name = '''bs_moveeffects'''
 [[List]]
 Name = '''bs_statchanger'''
 17 = [
-   '''RaiseAtk1'''
-   '''RaiseDef1'''
-   '''RaiseSpeed1'''
-   '''RaiseSpAtk1'''
-   '''RaiseSpDef1'''
-   '''RaiseAcc1'''
-   '''RaiseEvasion1'''
+   '''RaiseAtk1''',
+   '''RaiseDef1''',
+   '''RaiseSpeed1''',
+   '''RaiseSpAtk1''',
+   '''RaiseSpDef1''',
+   '''RaiseAcc1''',
+   '''RaiseEvasion1''',
 ]
 33 = [
-   '''RaiseAtk2'''
-   '''RaiseDef2'''
-   '''RaiseSpeed2'''
-   '''RaiseSpAtk2'''
-   '''RaiseSpDef2'''
-   '''RaiseAcc2'''
-   '''RaiseEvasion2'''
+   '''RaiseAtk2''',
+   '''RaiseDef2''',
+   '''RaiseSpeed2''',
+   '''RaiseSpAtk2''',
+   '''RaiseSpDef2''',
+   '''RaiseAcc2''',
+   '''RaiseEvasion2''',
 ]
 145 = [
-   '''LowerAtk1'''
-   '''LowerDef1'''
-   '''LowerSpeed1'''
-   '''LowerSpAtk1'''
-   '''LowerSpDef1'''
-   '''LowerAcc1'''
-   '''LowerEvasion1'''
+   '''LowerAtk1''',
+   '''LowerDef1''',
+   '''LowerSpeed1''',
+   '''LowerSpAtk1''',
+   '''LowerSpDef1''',
+   '''LowerAcc1''',
+   '''LowerEvasion1''',
 ]
 161 = [
-   '''LowerAtk2'''
-   '''LowerDef2'''
-   '''LowerSpeed2'''
-   '''LowerSpAtk2'''
-   '''LowerSpDef2'''
-   '''LowerAcc2'''
-   '''LowerEvasion2'''
+   '''LowerAtk2''',
+   '''LowerDef2''',
+   '''LowerSpeed2''',
+   '''LowerSpAtk2''',
+   '''LowerSpDef2''',
+   '''LowerAcc2''',
+   '''LowerEvasion2''',
 ]
+
+[[List]]
+Name = '''statanimation'''
+2 = '''Atk'''
+4 = '''Def'''
+6 = '''Atk|Def'''
+8 = '''Speed'''
+10 = '''Atk|Speed'''
+12 = '''Def|Speed'''
+14 = '''Atk|Def|Speed'''
+16 = '''SpAtk'''
+18 = '''Atk|SpAtk'''
+20 = '''Def|SpAtk'''
+22 = '''Atk|Def|SpAtk'''
+24 = '''Speed|SpAtk'''
+26 = '''Atk|Speed|SpAtk'''
+28 = '''Def|Speed|SpAtk'''
+30 = '''Atk|Def|Speed|SpAtk'''
+32 = '''SpDef'''
+34 = '''Atk|SpDef'''
+36 = '''Def|SpDef'''
+38 = '''Atk|Def|SpDef'''
+40 = '''Speed|SpDef'''
+42 = '''Atk|Speed|SpDef'''
+44 = '''Def|Speed|SpDef'''
+46 = '''Atk|Def|Speed|SpDef'''
+48 = '''SpAtk|SpDef'''
+50 = '''Atk|SpAtk|SpDef'''
+52 = '''Def|SpAtk|SpDef'''
+54 = '''Atk|Def|SpAtk|SpDef'''
+56 = '''Speed|SpAtk|SpDef'''
+58 = '''Atk|Speed|SpAtk|SpDef'''
+60 = '''Def|Speed|SpAtk|SpDef'''
+62 = '''Atk|Def|Speed|SpAtk|SpDef'''
+64 = '''Acc'''
+66 = '''Atk|Acc'''
+68 = '''Def|Acc'''
+70 = '''Atk|Def|Acc'''
+72 = '''Speed|Acc'''
+74 = '''Atk|Speed|Acc'''
+76 = '''Def|Speed|Acc'''
+78 = '''Atk|Def|Speed|Acc'''
+80 = '''SpAtk|Acc'''
+82 = '''Atk|SpAtk|Acc'''
+84 = '''Def|SpAtk|Acc'''
+86 = '''Atk|Def|SpAtk|Acc'''
+88 = '''Speed|SpAtk|Acc'''
+90 = '''Atk|Speed|SpAtk|Acc'''
+92 = '''Def|Speed|SpAtk|Acc'''
+94 = '''Atk|Def|Speed|SpAtk|Acc'''
+96 = '''SpDef|Acc'''
+98 = '''Atk|SpDef|Acc'''
+100 = '''Def|SpDef|Acc'''
+102 = '''Atk|Def|SpDef|Acc'''
+104 = '''Speed|SpDef|Acc'''
+106 = '''Atk|Speed|SpDef|Acc'''
+108 = '''Def|Speed|SpDef|Acc'''
+110 = '''Atk|Def|Speed|SpDef|Acc'''
+112 = '''SpAtk|SpDef|Acc'''
+114 = '''Atk|SpAtk|SpDef'''
+116 = '''Def|SpAtk|SpDef'''
+118 = '''Atk|Def|SpAtk|SpDef'''
+120 = '''Speed|SpAtk|SpDef|Acc'''
+122 = '''Atk|Speed|SpAtk|SpDef|Acc'''
+124 = '''Def|Speed|SpAtk|SpDef|Acc'''
+126 = '''Atk|Def|Speed|SpAtk|SpDef|Acc'''
