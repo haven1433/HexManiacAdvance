@@ -199,6 +199,10 @@ BPGE1:scripts.coins.cap-9       16C85D
 BPGE1:scripts.coins.cap-19      16C914,16C974
 BPGE1:scripts.coins.cap-49      16C78E
 BPGE1:scripts.coins.cap-499     16C760
+AXVE0:scripts.coins.cap         11A87C,11A894
+AXVE0:scripts.coins.cap-1       11A85A
+AXPE0:scripts.coins.cap         11A87C,11A894
+AXPE0:scripts.coins.cap-1       11A85A
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
