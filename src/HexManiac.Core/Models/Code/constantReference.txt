@@ -187,6 +187,12 @@ BPRE1:scripts.coins.cap-9       16C881
 BPRE1:scripts.coins.cap-19      16C938,16C998
 BPRE1:scripts.coins.cap-49      16C7B2
 BPRE1:scripts.coins.cap-499     16C784
+BPGE0:scripts.coins.cap         0D05B4
+BPGE0:scripts.coins.cap-1       0D0590
+BPGE0:scripts.coins.cap-9       16C7E5
+BPGE0:scripts.coins.cap-19      16C89C,16C8FC
+BPGE0:scripts.coins.cap-49      16C716
+BPGE0:scripts.coins.cap-499     16C6E8
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
