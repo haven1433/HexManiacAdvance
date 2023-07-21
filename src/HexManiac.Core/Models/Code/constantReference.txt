@@ -203,6 +203,10 @@ AXVE0:scripts.coins.cap         11A87C,11A894
 AXVE0:scripts.coins.cap-1       11A85A
 AXPE0:scripts.coins.cap         11A87C,11A894
 AXPE0:scripts.coins.cap-1       11A85A
+AXVE1:scripts.coins.cap         11A89C,11A8B4
+AXVE1:scripts.coins.cap-1       11A87A
+AXPE1:scripts.coins.cap         11A89C,11A8B4
+AXPE1:scripts.coins.cap-1       11A87A
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
