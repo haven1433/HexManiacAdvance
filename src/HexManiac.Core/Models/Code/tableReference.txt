@@ -237,9 +237,9 @@ scripts.moves.effects,                 0146E4, 0146E4, 0146E4, 0146E4, 016364, 0
 scripts.moves.setupeffects,            ,,,, 1DBA96, 1DBA72, 1DBB06, 1DBAE2, , [effects.moveeffectoptions]!FF
 scripts.moves.setupeffects,            ,,,, ,,,, 2DDE7F,                      [effects.moveeffectoptions]!FF
 scripts.moves.animations.thumb,        075A00, 075A04, 075A20, 075A24, 072858, 072858, 07286C, 07286C, 0A3D14, [code<>]48
-scripts.specials.thumb,                      ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
-scripts.specials.thumb,                0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       ,       , [code<>]342
-scripts.specials.thumb,                      ,       ,       ,       ,       ,       ,       ,       , 099314, [code<>]527
+scripts.commands.events.specials,            ,       ,       ,       , 069F18, 069F18, 069F2C, 069F2C,       , [code<>]444
+scripts.commands.events.specials,      0658B4, 0658B8, 0658D4, 0658D8,       ,       ,       ,       ,       , [code<>]342
+scripts.commands.events.specials,            ,       ,       ,       ,       ,       ,       ,       , 099314, [code<>]527
 scripts.events.thumb,                  065570, 065574, 065590, 065594,       ,       ,       ,       ,       , [code<>]198
 scripts.events.thumb,                        ,       ,       ,       , 069A9C, 069A9C, 069AB0, 069AB0,       , [code<>]213
 scripts.events.thumb,                        ,       ,       ,       ,       ,       ,       ,       , 098EB0, [code<>]227
@@ -845,12 +845,12 @@ data.abilities.pickup.probabilities,               ,       ,       ,       ,    
 data.maps.alteringcave.wild,                       ,       ,       ,       ,       ,       ,       ,       , 06EA54, [pokémon:data.pokemon.names item:data.items.stats]9
 scripts.trig.sinetable.radian,               040E04, 040E04, 040E24, 040E24, 044E48, 044E48, 044E5C, 044E5C, 02CE34, [sine:|z]320
 scripts.trig.sinetable.degree,               040E5C, 040E5C, 040E7C, 040E7C, 044EA0, 044EA0, 044EB4, 044EB4, 06F5A4, [sine:|z]180
-scripts.buffercommands.player,               02C058, 02C058, 02C058, 02C058, 02E3F8, 02E3F8, 02E40C, 02E40C, 057548, [thumb<>]57
-scripts.buffercommands.opponent,             032B40, 032B40, 032B40, 032B40, 035ADC, 035ADC, 035AF0, 035AF0, 05F1C4, [thumb<>]57
-scripts.buffercommands.linkopponent,         037570, 037570, 037570, 037570, 03A6C8, 03A6C8, 03A6DC, 03A6DC, 0643F4, [thumb<>]57
-scripts.events.onstep.callbacks,                   ,       ,       ,       , 06E838, 06E838, 06E84C, 06E84C, 09D8B4, [thumb<>]perstepcallbacks
-scripts.weather.coordevent.functions,        069428, 06942C, 069448, 06944C,       ,       ,       ,       , 09D878, [mapweather:: thumb<>]13
-scripts.weather.functions,                   07C97C,       , 07C99C,       , 079D54,       , 079D68,       , 0AB0F8, [thumb<>]60
+scripts.commands.buffercommands.player,              02C058, 02C058, 02C058, 02C058, 02E3F8, 02E3F8, 02E40C, 02E40C, 057548, [thumb<>]57
+scripts.commands.buffercommands.opponent,            032B40, 032B40, 032B40, 032B40, 035ADC, 035ADC, 035AF0, 035AF0, 05F1C4, [thumb<>]57
+scripts.commands.buffercommands.linkopponent,        037570, 037570, 037570, 037570, 03A6C8, 03A6C8, 03A6DC, 03A6DC, 0643F4, [thumb<>]57
+scripts.commands.events.onstep.callbacks,                  ,       ,       ,       , 06E838, 06E838, 06E84C, 06E84C, 09D8B4, [thumb<>]perstepcallbacks
+scripts.commands.weather.coordevent.functions,       069428, 06942C, 069448, 06944C,       ,       ,       ,       , 09D878, [mapweather:: thumb<>]13
+scripts.commands.weather.functions,                  07C97C,       , 07C99C,       , 079D54,       , 079D68,       , 0AB0F8, [thumb<>]60
 scripts.text.stringvars,                     0673B8, 0673BC, 0673D8, 0673DC, 06BCC0, 06BCC0, 06BCD4, 06BCD4, 09AFF4, [ram::|h]3
 graphics.items.ball.trade.palette,           215954, 2158E4, 21596C, 2158FC, 26CDDC, 26CDBC, 26CE4C, 26CE2C, 338D20, `ucp4`
 graphics.items.ball.trade.sprite,            21594C, 2158DC, 215964, 2158F4, 26CDD4, 26CDB4, 26CE44, 26CE24, 338D18, `ucs4x2x24|graphics.items.ball.trade.palette`
