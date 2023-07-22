@@ -246,10 +246,11 @@ scripts.events.thumb,                        ,       ,       ,       ,       ,  
 scripts.specials.vars,                 06923C, 069240, 06925C, 069260,       ,       ,       ,       ,       , [variable::|h]18
 scripts.specials.vars,                       ,       ,       ,       , 06E520, 06E520, 06E534, 06E534,       , [variable::|h]21
 scripts.specials.vars,                       ,       ,       ,       ,       ,       ,       ,       , 09D674, [variable::|h]22
-scripts.commands.battlescript,         012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
-scripts.commands.battlescript,               ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
-scripts.battle.ai.thumb,               1073FC, 1073FC, 10741C, 10741C, 0C70E0, 0C70B4, 0C70F4, 0C70C8,       , [command<>]94
-scripts.battle.ai.thumb,                     ,       ,       ,       ,       ,       ,       ,       , 130FF0, [command<>]99
+scripts.commands.battle.battlescript,                    012F34, 012F34, 012F34, 012F34, 014C1C, 014C1C, 014C30, 014C30,       , [code<>]248
+scripts.commands.battle.battlescript,                          ,       ,       ,       ,       ,       ,       ,       , 03CD94, [code<>]249
+scripts.commands.battle.ai_script,                       1073FC, 1073FC, 10741C, 10741C, 0C70E0, 0C70B4, 0C70F4, 0C70C8,       , [command<>]94
+scripts.commands.battle.ai_script,                             ,       ,       ,       ,       ,       ,       ,       , 130FF0, [command<>]99
+scripts.commands.battle.animations,                      37F4B8, 37F448, 37F4D0, 37F460, 3ADF5C, 3ADF3C, 3ADFCC, 3ADFAC, 525E98, [code<>]48
 scripts.battle.ai.hpaware.discourage.when.self.high,     1DBF83, 1DBF13, 1DBF9B, 1DBF2B, 1DBB5B, 1DBB37, 1DBBCB, 1DBBA7, 2DE1B7, [effect.moveeffectoptions]!FF
 scripts.battle.ai.hpaware.discourage.when.self.medium,   1DBF92, 1DBF22, 1DBFAA, 1DBF3A, 1DBB6A, 1DBB46, 1DBBDA, 1DBBB6, 2DE1C6, [effect.moveeffectoptions]!FF
 scripts.battle.ai.hpaware.discourage.when.self.low,      1DBF74, 1DBF04, 1DBF8C, 1DBF1C, 1DBB4C, 1DBB28, 1DBBBC, 1DBB98, 2DE1A8, [effect.moveeffectoptions]!FF
@@ -257,7 +258,6 @@ scripts.battle.ai.hpaware.discourage.when.target.high,   1DBFC6, 1DBF56, 1DBFDE,
 scripts.battle.ai.hpaware.discourage.when.target.medium, 1DBFD5, 1DBF65, 1DBFED, 1DBF7D, 1DBBAD, 1DBB89, 1DBC1D, 1DBBF9, 2DE209, [effect.moveeffectoptions]!FF
 scripts.battle.ai.hpaware.discourage.when.target.low,    1DBFB7, 1DBF47, 1DBFCF, 1DBF5F, 1DBB8F, 1DBB6B, 1DBBFF, 1DBBDB, 2DE1EB, [effect.moveeffectoptions]!FF
 scripts.battle.ai.trainer,                               1DA01C, 1DA02C, 1DA034, 1D9FC4, 0C70B8, 0C708C, 0C70CC, 0C70A0, 130FC8, [ai<`tse`>]traineraibits
-scripts.battle.animation.thumb,        37F4B8, 37F448, 37F4D0, 37F460, 3ADF5C, 3ADF3C, 3ADFCC, 3ADFAC, 525E98, [code<>]48
 scripts.newgame.setflags,              052F58, 052F58, 052F78, 052F78, 054B6C, 054B6C, 054B80, 054B80, 0845C8, `xse`
 scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0EB680, 0EB6BC, 0EB694, 16AE54, [item:data.items.stats count:]!00000000
 scripts.credits.panmap,                                           ,,,, 0F3BC0, 0F3B98, 0F3C38, 0F3C10,       , [data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13
