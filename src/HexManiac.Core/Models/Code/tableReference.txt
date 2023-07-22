@@ -263,9 +263,9 @@ scripts.newgame.pc.item,               139C70, 139C70, 139C90, 139C90, 0EB6A8, 0
 scripts.credits.panmap,                                           ,,,, 0F3BC0, 0F3B98, 0F3C38, 0F3C10,       , [data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13
 scripts.credits.text,                        ,       ,       ,       , 0F3F18, 0F3EF0, 0F3F90, 0F3F68,       , [header<""> text<""> bool::|t|unknown.]
 scripts.evolution.routines,            03F588, 03F588, 03F588, 03F588, 042FC0, 042FC0, 042FD4, 042FD4, 06D194, [thumb<>]scripts.evolution.count
-scripts.callstd,                       065AD0, 065AD4, 065AF0, 065AF4,       ,       ,       ,       ,       , [script<`xse`>]8
-scripts.callstd,                             ,       ,       ,       , 069F1C, 069F1C, 069F30, 069F30,       , [script<`xse`>]10
-scripts.callstd,                             ,       ,       ,       ,       ,       ,       ,       , 099530, [script<`xse`>]11
+scripts.commands.events.callstd,       065AD0, 065AD4, 065AF0, 065AF4,       ,       ,       ,       ,       , [script<`xse`>]8
+scripts.commands.events.callstd,             ,       ,       ,       , 069F1C, 069F1C, 069F30, 069F30,       , [script<`xse`>]10
+scripts.commands.events.callstd,             ,       ,       ,       ,       ,       ,       ,       , 099530, [script<`xse`>]11
 
 graphics.pokemon.castform.sprite.coordinates.front, 077DAC, 077DB0, 077DCC, 077DD0, 074720, 074720, 074734, 074734, 0A5F74, [size. yOffset. unused:]4
 graphics.pokemon.castform.sprite.elevations,        077E18, 077E1C, 077E38, 077E3C, 074780, 074780, 074794, 074794, 0A5FE0, [elevation.]graphics.pokemon.castform.sprite.coordinates.front
