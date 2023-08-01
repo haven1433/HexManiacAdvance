@@ -146,14 +146,23 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var inlines = CommentLayer.Inlines;
          inlines.Clear();
          int character = 0, line = 0;
-         var brush = Brush(nameof(Theme.Error));
          var geometry = Geometry.Parse("M0,0 L1,1 2,0");
-         var pen = new Pen(new DrawingBrush(new GeometryDrawing(brush, new(), geometry)) {
+
+         var errorBrush = Brush(nameof(Theme.Error));
+         var errorPen = new Pen(new DrawingBrush(new GeometryDrawing(errorBrush, new(), geometry)) {
             TileMode = TileMode.Tile,
             ViewportUnits = BrushMappingMode.Absolute,
             Viewport = new Rect(0, 0, 3, 2)
          }, 2);
-         var decoration = new TextDecoration(TextDecorationLocation.Underline, pen, 1, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
+         var errorDecoration = new TextDecoration(TextDecorationLocation.Underline, errorPen, 1, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
+
+         var warningBrush = Brush(nameof(Theme.Data1));
+         var warningPen = new Pen(new DrawingBrush(new GeometryDrawing(warningBrush, new(), geometry)) {
+            TileMode = TileMode.Tile,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, 3, 2)
+         }, 2);
+         var warningDecoration = new TextDecoration(TextDecorationLocation.Underline, warningPen, 0, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
 
          var lineEnd = Environment.NewLine.ToCharArray().Last();
 
@@ -166,7 +175,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
             if (error.Start + error.Length > text.Length - character) break;
             inlines.Add(new Run(text.Substring(previousLines, character - previousLines + error.Start)));
-            inlines.Add(new Run(text.Substring(character + error.Start, error.Length)) { TextDecorations = { decoration } });
+            if (error.Type == SegmentType.Error) {
+               inlines.Add(new Run(text.Substring(character + error.Start, error.Length)) { TextDecorations = { errorDecoration } });
+            } else if (error.Type == SegmentType.Warning) {
+               inlines.Add(new Run(text.Substring(character + error.Start, error.Length)) { TextDecorations = { warningDecoration } });
+            } else {
+               throw new NotImplementedException();
+            }
+
             character += error.Start + error.Length;
          }
 

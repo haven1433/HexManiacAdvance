@@ -579,7 +579,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (error == null) {
                   result.AddRange(code);
                } else {
-                  var segment = new TextSegment(i, 0, lines[i].Length);
+                  var segment = new TextSegment(i, 0, lines[i].Length, SegmentType.Error);
                   CompileError?.Invoke(this, new(i + ": " + error, segment));
                   return null;
                }
