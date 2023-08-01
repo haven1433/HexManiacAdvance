@@ -136,6 +136,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void TagAsSaved() {
          ChangeCompleted();
+         hasDataChangeCache = false;
          if (TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved))) {
             NotifyPropertyChanged(nameof(HasDataChange));
          }
@@ -149,9 +150,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return new StubDisposable { Dispose = () => continueCurrentTransaction = previousValue };
       }
 
+      private bool hasDataChangeCache;
       private void OnCurrentTokenDataChanged(object sender, EventArgs e) {
          if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
-         NotifyPropertyChanged(nameof(HasDataChange));
+         var hasDataChange = HasDataChange;
+         if (hasDataChange != hasDataChangeCache) {
+            hasDataChangeCache = hasDataChange;
+            NotifyPropertyChanged(nameof(HasDataChange));
+         }
       }
 
       private void UndoExecuted() {
@@ -191,7 +197,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
       }
 
-      private void VerifyRevertNotInProgress([CallerMemberName]string caller = null) {
+      private void VerifyRevertNotInProgress([CallerMemberName] string caller = null) {
          if (!revertInProgress) return;
          throw new InvalidOperationException($"Cannot execute member {caller} while a revert is in progress.");
       }
