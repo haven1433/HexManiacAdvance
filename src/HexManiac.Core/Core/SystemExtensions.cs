@@ -251,6 +251,7 @@ namespace HavenSoft.HexManiac.Core {
       /// </summary>
       public static int SkipCount(this string full, string partial) {
          int j = 0, skipCount = 0;
+         partial = partial.ToUpper();
 
          for (int i = 0; i < partial.Length; i++) {
             var testPartial = char.ToUpperInvariant(partial[i]);
@@ -262,6 +263,7 @@ namespace HavenSoft.HexManiac.Core {
                if (full[j] == 'á') testFull = 'A';
                j++;
                if (testFull == testPartial) break;
+               if (testFull == partial[0] && i == 1) skipCount = 0;
                if (j == full.Length) return skipCount;
                if (i > 0) skipCount++;
             }
