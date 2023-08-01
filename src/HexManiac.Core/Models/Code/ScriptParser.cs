@@ -695,20 +695,22 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      var isList = model.TryGetList(arg.EnumTableName, out var list);
                      var allOptions = model.GetOptions(arg.EnumTableName);
                      var options = new List<string>();
+                     var token = tokens[tokens.Length - 1];
                      for (int i = 0; i < allOptions.Count; i++) {
-                        if (allOptions[i].MatchesPartial(tokens[tokens.Length - 1])) {
+                        if (allOptions[i].MatchesPartial(token)) {
                            if (!isList || list.Comments == null || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
                            else comment = " # " + comment;
                            options.Add(allOptions[i] + comment);
-                           if (options.Count > 10) break;
                         }
                      }
-                     // var options = model.GetOptions(arg.EnumTableName).Where(option => option.MatchesPartial(tokens[tokens.Length - 1])).ToList();
+                     options.Sort((a, b) => a.SkipCount(token) - b.SkipCount(token));
+                     options.Sort((a, b) => a.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - b.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
+
                      if (options.Count > 10) {
                         while (options.Count > 9) options.RemoveAt(options.Count - 1);
                         options.Add("...");
                      }
-                     if (args.Count == tokens.Length - skipCount && options.Any(option => option == tokens[tokens.Length - 1])) return null; // perfect match on last token
+                     if (args.Count == tokens.Length - skipCount && options.Any(option => option == token)) return null; // perfect match on last token
                      return Environment.NewLine.Join(options);
                   }
                }

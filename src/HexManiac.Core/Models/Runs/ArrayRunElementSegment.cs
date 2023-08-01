@@ -291,7 +291,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (text.StartsWith("\"")) text = text.Substring(1);
          if (text.EndsWith("\"")) text = text.Substring(0, text.Length - 1);
          if (text.Length == 0) return false;
-         var partialMatches = new List<string>();
+         var partialMatches = new List<int>();
          var matches = new List<string>();
 
          // if the ~ character is used, expect that it's saying which match we want
@@ -310,11 +310,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
             if (option.MatchesPartial(text, onlyCheckLettersAndDigits: true)) {
-               partialMatches.Add(option);
+               partialMatches.Add(i);
                if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
             }
          }
-         if (matches.Count == 0 && partialMatches.Count >= desiredMatch) return true; // no full matches, use the partial match
+         if (matches.Count == 0 && partialMatches.Count >= desiredMatch) {
+            // no full matches, use the partial match
+            // match priority, lowest to highest: prefer partial matches with
+            //   lower IDs
+            //   lower skip count
+            //   earlier starts
+            partialMatches.Sort((a, b) => options[a].SkipCount(text) - options[b].SkipCount(text));
+            partialMatches.Sort((a, b) => options[a].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase) - options[b].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase));
+            value = partialMatches[0];
+            return true;
+         }
 
          // we went through the whole array and didn't find it :(
          return false;
