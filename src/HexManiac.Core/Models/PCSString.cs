@@ -542,7 +542,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start = results[^1].Start;
                   results.RemoveAt(results.Count - 1);
                }
-               results.Add(new(lineNumber, start, index - lineStart - start));
+               results.Add(new(lineNumber, start, index - lineStart - start, SegmentType.Warning));
             }
          }
 

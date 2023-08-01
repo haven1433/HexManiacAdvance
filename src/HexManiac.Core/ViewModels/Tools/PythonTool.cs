@@ -1,8 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using Microsoft.Scripting.Hosting;
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Dynamic;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PythonTool : ViewModelCore {
@@ -97,10 +99,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    }
 
    public record TableGetter(EditorViewModel Editor) {
-      public ModelTable this[string name] {
+      public DynamicObject this[string name] {
          get {
             if (Editor.SelectedTab is IViewPort viewPort && viewPort.Model is IDataModel model) {
-               return new ModelTable(model, model.GetAddressFromAnchor(new(), -1, name), () => viewPort.ChangeHistory.CurrentChange);
+               var address = model.GetAddressFromAnchor(new(), -1, name);
+               var run = model.GetNextRun(address);
+               ModelDelta factory() => viewPort.ChangeHistory.CurrentChange;
+               if (run is EggMoveRun eggMoveRun) {
+                  return new EggTable(model, factory, eggMoveRun);
+               } else {
+                  return new ModelTable(model, address, factory);
+               }
             }
             return null;
          }

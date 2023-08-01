@@ -1096,16 +1096,25 @@
                                                          </Setter.Value>
                                                       </Setter>
                                                    </DataTrigger>
-                                                      <DataTrigger Binding="{Binding Tag.CanGotoSource, ElementName=TextEditor}" Value="True">
-                                                         <Setter Property="ContextMenuOverride">
-                                                            <Setter.Value>
-                                                               <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                                                  <MenuItem Header="Goto Source" Command="{Binding GotoSourceCommand}" />
-                                                               </ContextMenu>
-                                                            </Setter.Value>
-                                                         </Setter>
-                                                      </DataTrigger>
-                                                   </Style.Triggers>
+                                                   <DataTrigger Binding="{Binding Tag.CanGotoSource, ElementName=TextEditor}" Value="True">
+                                                      <Setter Property="ContextMenuOverride">
+                                                         <Setter.Value>
+                                                            <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                                               <MenuItem Header="Goto Source" Command="{Binding GotoSourceCommand}" />
+                                                            </ContextMenu>
+                                                         </Setter.Value>
+                                                      </Setter>
+                                                   </DataTrigger>
+                                                   <DataTrigger Binding="{Binding Tag.CanGotoAddress, ElementName=TextEditor}" Value="True">
+                                                      <Setter Property="ContextMenuOverride">
+                                                         <Setter.Value>
+                                                            <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                                               <MenuItem Header="Goto Source" Command="{Binding GotoAddressCommand}" />
+                                                            </ContextMenu>
+                                                         </Setter.Value>
+                                                      </Setter>
+                                                   </DataTrigger>
+                                                </Style.Triggers>
                                              </Style>
                                           </hsg3hv:TextEditor.Style>
                                        </hsg3hv:TextEditor>
@@ -1114,7 +1123,7 @@
                                     </Grid>
                                        <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
                                           Text="{Binding ErrorText}"  Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
-                                    </StackPanel>
+                                 </StackPanel>
                               </DataTemplate>
                            </ItemsControl.ItemTemplate>
                         </ItemsControl>

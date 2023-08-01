@@ -187,7 +187,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
    }
 
-   public record TextSegment(int Line, int Start, int Length) : INotifyPropertyChanged {
+   public enum SegmentType { None, Warning, Error }
+   public record TextSegment(int Line, int Start, int Length, SegmentType Type) : INotifyPropertyChanged {
       public event PropertyChangedEventHandler? PropertyChanged;
    }
 

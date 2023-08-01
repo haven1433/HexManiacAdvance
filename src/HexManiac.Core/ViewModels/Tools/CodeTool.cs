@@ -402,6 +402,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var oldScripts = parser.CollectScripts(model, start);
             var originalCodeContent = codeContent;
             int caret = body.CaretPosition;
+            body.ClearErrors();
             parser.CompileError += body.WatchForCompileErrors;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, out var movedData, out int ignoreCharacterCount);
             parser.CompileError -= body.WatchForCompileErrors;
@@ -545,5 +546,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0);
+   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0, bool IsSelection = false);
 }

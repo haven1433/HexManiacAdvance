@@ -24,7 +24,11 @@
 # You can write individual bytes into set locations in the RAM. Examples?
 
 # macros:
-msgbox.npc       0F 00 ptr<""> 09 02  # loadpointer, callstd 2
+msgbox.npc       0F 00 ptr<""> 09 02  # Equivalent to
+                                      # lock
+                                      # faceplayer
+                                      # msgbox.default
+                                      # release
 msgbox.sign      0F 00 ptr<""> 09 03  # loadpointer, callstd 3
 msgbox.default   0F 00 ptr<""> 09 04  # loadpointer, callstd 4
 msgbox.yesno     0F 00 ptr<""> 09 05  # loadpointer, callstd 5
