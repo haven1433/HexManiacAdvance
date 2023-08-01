@@ -364,7 +364,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Editor.Bind(nameof(Editor.Content), (sender, e) => {
             if (ignoreEditorContentUpdates) return;
             NotifyPropertyChanged(nameof(Content));
-            ContentChanged.Raise(this, (ExtendedPropertyChangedEventArgs<string>) e);
+            ContentChanged.Raise(this, (ExtendedPropertyChangedEventArgs<string>)e);
+            ClearErrors();
          });
          Editor.Bind(nameof(Editor.CaretIndex), (sender, e) => {
             NotifyPropertyChanged(nameof(CaretPosition));
