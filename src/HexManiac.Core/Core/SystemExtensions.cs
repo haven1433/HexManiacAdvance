@@ -350,7 +350,7 @@ namespace HavenSoft.HexManiac.Core {
 
       public static string ToAddress(this int address) => address.ToString("X6"); // for debugging
 
-      public static IList<int> FindMatches(string input, IList<string> options) {
+      public static IList<int> FindMatches(this string input, IReadOnlyList<string> options) {
          var result = new List<int>();
          var seekBits = input.BitLetters();
          for (int i = 0; i < options.Count; i++) {
