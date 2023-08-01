@@ -22,6 +22,8 @@
 // `lzt4`     compressed tiles
 // `lzm4`     compressed tilemap
 // `ucs4x4x4` uncompressed sprite
+// `uct`      uncompressed tiles
+// `ucm`      uncompressed tilemap
 // `xse`      event script
 // `bse`      battle script
 // `ase`      animation script
@@ -160,12 +162,12 @@ graphics.pokedex.menu.palette,            ,,,, ,,,, 55D27C, `ucp4:0123456789ABCD
 graphics.pokemon.moves.animations,          075734, 075738, 075754, 075758, 0725D0, 0725D0, 0725E4, 0725E4, 0A3A44, [animation<`ase`>]data.pokemon.moves.names
 graphics.moves.particles.sprites-13880,     075A60, 075A64, 075A80, 075A84, 0728B8, 0728B8, 0728CC, 0728CC, 0A3D74, [ptr<`lzt4`> size: index:move_particles+10000]move_particles
 graphics.moves.particles.palettes-13880,    075A64, 075A68, 075A84, 075A88, 0728BC, 0728BC, 0728D0, 0728D0, 0A3D78, [ptr<`lzp4`> index:move_particles+10000 unused:]graphics.moves.particles.sprites
-graphics.moves.backgrounds.all,             076E54, 076E58, 076E74, 076E78, 073960, 073960, 073974, 073974,       , [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]27
-graphics.moves.backgrounds.psychic,         37F3A0, 37F330, 37F3B8, 37F348, 3ADE44, 3ADE24, 3ADEB4, 3ADE94,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.opponent, 37F3AC, 37F33C, 37F3C4, 37F354, 3ADE50, 3ADE30, 3ADEC0, 3ADEA0,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.player,   37F3B8, 37F348, 37F3D0, 37F360, 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.contest,  37F3C4, 37F354, 37F3DC, 37F36C, 3ADE68, 3ADE48, 3ADED8, 3ADEB8,       , `lzm4x32x20|graphics.moves.backgrounds.all`
-graphics.moves.backgrounds.impact.fissure,  37F478, 37F408, 37F490, 37F420, 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C,       , `lzm4x32x64|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.all,             076E54, 076E58, 076E74, 076E78, 073960, 073960, 073974, 073974, 0A5038, [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]animationbg
+graphics.moves.backgrounds.psychic,         37F3A0, 37F330, 37F3B8, 37F348, 3ADE44, 3ADE24, 3ADEB4, 3ADE94, 525D80, `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.opponent, 37F3AC, 37F33C, 37F3C4, 37F354, 3ADE50, 3ADE30, 3ADEC0, 3ADEA0, 525D8C, `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.player,   37F3B8, 37F348, 37F3D0, 37F360, 3ADE5C, 3ADE3C, 3ADECC, 3ADEAC, 525D98, `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.contest,  37F3C4, 37F354, 37F3DC, 37F36C, 3ADE68, 3ADE48, 3ADED8, 3ADEB8, 525DA4, `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.fissure,  37F478, 37F408, 37F490, 37F420, 3ADF1C, 3ADEFC, 3ADF8C, 3ADF6C, 525E58, `lzm4x32x64|graphics.moves.backgrounds.all`
 graphics.moves.surf.palette,                0D39FC, 0D39FC, 0D3A1C, 0D3A1C, 0AB464, 0AB438, 0AB478, 0AB44C,       , `lzp4:8`
 graphics.moves.surf.tileset,                0D39F4, 0D39F4, 0D3A14, 0D3A14, 0AB45C, 0AB430, 0AB470, 0AB444,       , `lzt4|graphics.moves.surf.palette`
 graphics.moves.surf.opponent,               0D39A4, 0D39A4, 0D39C4, 0D39C4, 0AB404, 0AB3D8, 0AB418, 0AB3EC,       , `lzm4x32x64|graphics.moves.surf.tileset`
