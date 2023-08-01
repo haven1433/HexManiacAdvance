@@ -174,6 +174,40 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      public bool CanGotoAddress {
+         get {
+            if (CaretPosition < 0) return false;
+            var context = SplitCurrentLine();
+            if (context.ContentBoundaryCount != 0) return false;
+            int left = context.Index, right = context.Index;
+            while (left.InRange(1, context.Line.Length) && context.Line[left] != ' ') left--;
+            while (right < context.Line.Length && context.Line[right] != ' ') right++;
+            var token = context.Line.Substring(left, right - left).Trim();
+            if (token.StartsWith("<")) token = token[1..];
+            if (token.EndsWith(">")) token = token[..^1];
+            return token.TryParseHex(out var _) || model.GetAddressFromAnchor(new(), -1, token) != Pointer.NULL;
+         }
+      }
+
+      public void GotoAddress() {
+         if (CaretPosition < 0) return;
+         var context = SplitCurrentLine();
+         if (context.ContentBoundaryCount != 0) return;
+         int left = context.Index, right = context.Index;
+         while (left.InRange(1, context.Line.Length) && context.Line[left] != ' ') left--;
+         while (right < context.Line.Length && context.Line[right] != ' ') right++;
+         var token = context.Line.Substring(left, right - left).Trim();
+         if (token.StartsWith("<")) token = token[1..];
+         if (token.EndsWith(">")) token = token[..^1];
+         if (token.TryParseHex(out var result)) {
+            RequestShowSearchResult.Raise(this, new HashSet<int> { result });
+            return;
+         }
+         var address = model.GetAddressFromAnchor(new(), -1, token);
+         if (address == Pointer.NULL) return;
+         RequestShowSearchResult.Raise(this, new HashSet<int> { address });
+      }
+
       private bool TryGetSourceInfo(out string table, out string parsedToken) {
          table = null;
          parsedToken = null;
@@ -220,9 +254,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          RequestShowSearchResult.Raise(this, new HashSet<int> { destination });
       }
 
-      private StubCommand findUsesCommand, gotoSourceCommand;
+      private StubCommand findUsesCommand, gotoSourceCommand, gotoAddressCommand;
       public ICommand FindUsesCommand => StubCommand(ref findUsesCommand, FindUses, () => CanFindUses);
       public ICommand GotoSourceCommand => StubCommand(ref gotoSourceCommand, GotoSource, () => CanGotoSource);
+      public ICommand GotoAddressCommand => StubCommand(ref gotoAddressCommand, GotoAddress, () => CanGotoAddress);
 
       #endregion
 
@@ -270,7 +305,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             else HelpSourceChanged?.Invoke(this, context);
 
             NotifyPropertiesChanged(nameof(CanInsertFlag), nameof(CanInsertVar),
-               nameof(CanFindUses), nameof(CanGotoSource));
+               nameof(CanFindUses), nameof(CanGotoSource), nameof(CanGotoAddress));
             findUsesCommand.RaiseCanExecuteChanged();
             gotoSourceCommand.RaiseCanExecuteChanged();
          }
