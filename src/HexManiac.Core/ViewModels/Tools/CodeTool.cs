@@ -545,5 +545,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0);
+   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0, bool IsSelection = false);
 }

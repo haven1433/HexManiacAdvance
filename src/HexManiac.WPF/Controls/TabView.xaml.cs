@@ -400,6 +400,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (codebody == null) return;
 
          codebody.CaretPosition = textbox.SelectionStart;
+         codebody.SelectedText = textbox.SelectedText;
          if (string.IsNullOrEmpty(codebody.HelpContent) || !textbox.IsFocused || textbox.SelectedText.Contains(Environment.NewLine)) {
             CodeContentsPopup.IsOpen = false;
             return;

@@ -668,8 +668,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             // need autocomplete for command?
             if (tokens.Length == 1) {
                candidates = candidates.Where(line => line.LineCommand.StartsWith(tokens[0]) && line.MatchesGame(gameHash)).ToList();
-               foreach (var line in candidates) {
-                  if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
+               if (!context.IsSelection) {
+                  foreach (var line in candidates) {
+                     if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
+                  }
                }
                return Environment.NewLine.Join(candidates.Take(10).Select(line => line.Usage));
             }

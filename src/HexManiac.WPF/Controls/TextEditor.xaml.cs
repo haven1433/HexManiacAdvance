@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -115,6 +116,17 @@ namespace HavenSoft.HexManiac.WPF.Controls {
       private void SuppressBringIntoView(object sender, RequestBringIntoViewEventArgs e) => e.Handled = true;
 
       public void ScrollToVerticalOffset(double offset) => TransparentLayer.ScrollToVerticalOffset(offset);
+
+      protected override void OnMouseDoubleClick(MouseButtonEventArgs e) {
+         base.OnMouseDoubleClick(e);
+
+         // expand the selection left until the next whitespace
+         var start = TransparentLayer.SelectionStart;
+         var length = TransparentLayer.SelectionLength;
+         while (start > 0 && !char.IsWhiteSpace(ViewModel.Content[start - 1])) { start--; length++; }
+         while ((start + length - 1).InRange(0, ViewModel.Content.Length) && !char.IsWhiteSpace(ViewModel.Content[start + length - 1])) length++;
+         TransparentLayer.Select(start, length);
+      }
 
       private void TextScrollChanged(object sender, ScrollChangedEventArgs e) {
          foreach (var layer in Layers) {

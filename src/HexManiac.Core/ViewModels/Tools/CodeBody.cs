@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
@@ -275,6 +276,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private string selectedText;
+      public string SelectedText {
+         get => selectedText;
+         set => Set(ref selectedText, value, old => {
+            if (string.IsNullOrEmpty(selectedText) || selectedText.Contains(Environment.NewLine)) return;
+            var context = SplitCurrentLine();
+            if (context.ContentBoundaryCount != 0) return;
+            HelpSourceChanged.Raise(this, context with { Index = context.Index + selectedText.TrimEnd().Length, IsSelection = true });
+         });
+      }
+
       public HelpContext SplitCurrentLine() {
          int value = Math.Min(CaretPosition, Content.Length);
          var lines = Content.Split('\r', '\n').ToList();
@@ -363,7 +375,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var command = parser.FirstMatch(lines[i]);
             if (command == null) continue;
             queue.Clear();
-            foreach(var arg in command.Args) {
+            foreach (var arg in command.Args) {
                if (arg.Type == ArgType.Pointer && !arg.PointerType.IsAny(ExpectedPointerType.Script, ExpectedPointerType.Unknown)) queue.Enqueue(arg.PointerType);
             }
          }
