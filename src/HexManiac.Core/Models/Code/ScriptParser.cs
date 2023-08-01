@@ -1318,8 +1318,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private bool IsAllFillerZero(IDataModel data, int start) {
          start += LineCode.Count;
          foreach (var arg in Args) {
-            var value = data.ReadMultiByteValue(start, arg.Length(data, start));
-            if (value != 0) return false;
+            if (arg.Name == "filler") {
+               var value = data.ReadMultiByteValue(start, arg.Length(data, start));
+               if (value != 0) return false;
+            }
             start += arg.Length(data, start);
          }
          return true;
