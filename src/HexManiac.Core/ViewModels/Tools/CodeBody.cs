@@ -344,11 +344,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set {
             if (Editor.Content != value) {
                using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
+                  ClearErrors();
                   var previousValue = Editor.Content;
                   Editor.Content = value;
                   NotifyPropertyChanged();
                   ContentChanged.Raise(this, new(previousValue, nameof(Content)));
-                  ClearErrors();
+                  EvaluateTextLength();
                }
             }
          }
@@ -365,7 +366,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (ignoreEditorContentUpdates) return;
             NotifyPropertyChanged(nameof(Content));
             ContentChanged.Raise(this, (ExtendedPropertyChangedEventArgs<string>)e);
-            ClearErrors();
+            EvaluateTextLength();
          });
          Editor.Bind(nameof(Editor.CaretIndex), (sender, e) => {
             NotifyPropertyChanged(nameof(CaretPosition));
@@ -374,11 +375,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
 
-      private void ClearErrors() {
+      public void ClearErrors() {
          HasError = false;
          ErrorText = string.Empty;
          Editor.ErrorLocations.Clear();
+      }
 
+      public void EvaluateTextLength() {
          foreach (var streamLine in LookForStreamLines()) {
             if (streamLine.Type != ExpectedPointerType.Text) continue; // 35*6
             foreach (var error in model.TextConverter.GetOverflow(streamLine.Text, MaxEventTextWidth)) {

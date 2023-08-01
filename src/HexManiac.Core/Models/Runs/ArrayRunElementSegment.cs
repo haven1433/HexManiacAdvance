@@ -322,7 +322,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             //   earlier starts
             partialMatches.Sort((a, b) => options[a].SkipCount(text) - options[b].SkipCount(text));
             partialMatches.Sort((a, b) => options[a].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase) - options[b].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase));
-            value = partialMatches[0];
+            value = partialMatches[desiredMatch.LimitToRange(0, partialMatches.Count - 1)];
             return true;
          }
 
