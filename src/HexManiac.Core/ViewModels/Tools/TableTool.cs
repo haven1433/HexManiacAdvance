@@ -293,10 +293,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          //nameof(Theme.Text1),
          //nameof(Theme.Text2),
          //nameof(Theme.Data1),
-         nameof(Theme.Data2),
-         nameof(Theme.Accent),
+         //nameof(Theme.Data2),
+         //nameof(Theme.Accent),
          //nameof(Theme.Stream1),
          //nameof(Theme.Stream2),
+         nameof(Theme.Background),
       };
 
       private int childIndexGroup = 0, themeIndex = 0;
@@ -405,7 +406,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                var originalTableName = basename;
                if (!string.IsNullOrEmpty(arrayRun.LengthFromAnchor) && model.GetMatchedWords(arrayRun.LengthFromAnchor).Count == 0) basename = arrayRun.LengthFromAnchor; // basename is now a 'parent table' name, if there is one
 
-               var groups = model.GetTableGroups(basename) ?? new[] { new TableGroup(TableGroupViewModel.DefaultName, new[] { originalTableName }) };
+               IReadOnlyList<TableGroup> groups = new[] { new TableGroup(TableGroupViewModel.DefaultName, new[] { originalTableName }) };
+               if (!viewPort.SpartanMode) groups = model.GetTableGroups(basename) ?? groups;
                if (groups.Count == 1) {
                   if (Groups.Count == 2) {
                      streamGroup = Groups[1];
@@ -620,7 +622,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          // maps
-         if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState) {
+         if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState && !viewPort.SpartanMode) {
             var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
             mapOptions.MapPreviews.CollectionChanged += (sender, e) => NotifyPropertyChanged(nameof(HasUsageOptions));
             AddUsageChild(mapOptions); // always add, but invisible when empty

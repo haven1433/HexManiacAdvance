@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
+      bool SpartanMode { get; set; }
       bool HasChanged(int index);
       int ChangeCount { get; }
       void ResetChanges();
@@ -176,6 +177,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             changes.Add(index);
          }
       }
+
+      public bool SpartanMode { get; set; }
 
       public bool HasChanged(int index) => changes.Contains(index);
       public int ChangeCount => changes.Count;

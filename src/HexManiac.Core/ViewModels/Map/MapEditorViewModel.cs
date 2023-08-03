@@ -198,6 +198,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string Name => (primaryMap?.FullName ?? "Map") + (history.HasDataChange ? "*" : string.Empty);
       public string FullFileName => viewPort.FullFileName;
+      public bool SpartanMode { get; set; }
       public bool IsMetadataOnlyChange => false;
       public ICommand Save => viewPort.Save;
       public ICommand SaveAs => viewPort.SaveAs;
@@ -555,6 +556,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private IEnumerable<BlockMapViewModel> GetMapNeighbors(BlockMapViewModel map, int recursionLevel) {
          if (recursionLevel < 1) return new BlockMapViewModel[0];
+         if (SpartanMode) {
+            // return only neighbors based on the current map position
+            var centerX = (map.LeftEdge + map.RightEdge) / 2;
+            var centerY = (map.TopEdge + map.BottomEdge) / 2;
+            if (centerX > 0 && map.LeftEdge > map.TopEdge && map.LeftEdge > -map.BottomEdge) return map.GetNeighbors(MapDirection.Left);
+            if (centerX < 0 && map.RightEdge < map.BottomEdge && map.RightEdge < -map.TopEdge) return map.GetNeighbors(MapDirection.Right);
+            if (centerY > 0) return map.GetNeighbors(MapDirection.Up);
+            if (centerY < 0) return map.GetNeighbors(MapDirection.Down);
+            return Enumerable.Empty<BlockMapViewModel>();
+         }
          var directions = new List<MapDirection> {
             MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right, MapDirection.Dive, MapDirection.Emerge,
          };
@@ -574,14 +585,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
          return newMaps.Values.ToList();
-
-         //var newMaps = new List<BlockMapViewModel>(directions.SelectMany(map.GetNeighbors));
-         //foreach (var m in newMaps) {
-         //   yield return m;
-         //   if (recursionLevel > 1 && m.ZIndex >= 0) {
-         //      foreach (var mm in GetMapNeighbors(m, recursionLevel - 1)) yield return mm;
-         //   }
-         //}
       }
 
       #region Map Interaction
@@ -625,7 +628,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
             map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
-               if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
+               if (!SpartanMode && interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
                   return ShowEventHover(map, ev);
                } else {
                   return EmptyTooltip;
@@ -672,9 +675,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
-
-         var map = MapUnderCursor(x, y);
-         if (map != null) UpdatePrimaryMap(map);
       }
 
       public void DragMove(double x, double y, bool isMiddleClickMap) {
@@ -689,7 +689,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (isMiddleClickMap) Hover(x, y);
       }
 
-      public void DragUp(double x, double y) { }
+      public void DragUp(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map != null) UpdatePrimaryMap(map);
+      }
 
       #region Primary Interaction (left-click)
 

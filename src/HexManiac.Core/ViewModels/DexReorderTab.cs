@@ -24,6 +24,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string FullFileName { get; }
 
+      public bool SpartanMode { get; set; }
+
       private string filter = string.Empty;
       public string Filter {
          get => filter;

@@ -360,6 +360,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool spartanMode = false;
+      public bool SpartanMode {
+         get => spartanMode;
+         set {
+            Set(ref spartanMode, value, arg => {
+               foreach (var tab in tabs) {
+                  tab.SpartanMode = spartanMode;
+                  tab.Refresh();
+               }
+            });
+         }
+      }
+
       private bool focusOnGotoShortcuts = true;
       public bool FocusOnGotoShortcuts {
          get => focusOnGotoShortcuts;
@@ -562,6 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          LogAppStartupProgress = metadata.Contains("LogAppStartupProgress = True");
          UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
          AllowSingleTableMode = !metadata.Contains("AllowSingleTableMode = False");
+         SpartanMode = metadata.Contains("SpartanMode = True");
          InsertAutoActive = !metadata.Contains("InsertAutoActive = False");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
          FocusOnGotoShortcuts = !metadata.Contains("FocusOnGotoShortcuts = False");
@@ -615,6 +629,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"LastUpdateCheck = {LastUpdateCheck}",
             $"AcknowledgeTutorials = {TutorialsAcknowledged}",
             $"Base10Length = {Base10Length}",
+            $"SpartanMode = {SpartanMode}",
             MapTutorials.Serialize(),
             SerializeRecentFiles(),
             string.Empty
@@ -813,6 +828,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Add(ITabContent content) {
+         content.SpartanMode = spartanMode;
          tabs.Add(content);
          SelectedIndex = tabs.Count - 1;
          AddContentListeners(content);

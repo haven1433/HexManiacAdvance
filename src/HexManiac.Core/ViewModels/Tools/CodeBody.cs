@@ -51,7 +51,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool CanInsertFlag {
          get {
-            if (investigator == null) return false;
+            if (investigator == null || model.SpartanMode) return false;
             var context = SplitCurrentLine();
             if (context.ContentBoundaryCount != 0) return false;
 
@@ -72,7 +72,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool CanInsertVar {
          get {
-            if (investigator == null) return false;
+            if (investigator == null || model.SpartanMode) return false;
             var context = SplitCurrentLine();
             if (context.ContentBoundaryCount != 0) return false;
 
@@ -140,7 +140,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       /// </summary>
       public bool CanFindUses {
          get {
-            if (CaretPosition < 0) return false;
+            if (CaretPosition < 0 || model.SpartanMode) return false;
             var context = SplitCurrentLine();
             if (context.ContentBoundaryCount != 0) return false;
             int left = context.Index, right = context.Index;
@@ -176,7 +176,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool CanGotoAddress {
          get {
-            if (CaretPosition < 0) return false;
+            if (CaretPosition < 0 || model.SpartanMode) return false;
             var context = SplitCurrentLine();
             if (context.ContentBoundaryCount != 0) return false;
             int left = context.Index, right = context.Index;
@@ -211,6 +211,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private bool TryGetSourceInfo(out string table, out string parsedToken) {
          table = null;
          parsedToken = null;
+         if (model.SpartanMode) return false;
          var context = SplitCurrentLine();
          var tokens = ScriptLine.Tokenize(context.Line);
          var token = 0;
@@ -264,6 +265,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       #region <auto> complete
 
       public bool TryInsertAuto() {
+         if (model.SpartanMode) return false;
          var context = SplitCurrentLine();
          var tokens = ScriptLine.Tokenize(context.Line);
          if (context.Line.Length > context.Index + 1) return false;
@@ -382,6 +384,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void EvaluateTextLength() {
+         if (model.SpartanMode) return;
          foreach (var streamLine in LookForStreamLines()) {
             if (streamLine.Type != ExpectedPointerType.Text) continue; // 35*6
             foreach (var error in model.TextConverter.GetOverflow(streamLine.Text, MaxEventTextWidth)) {
