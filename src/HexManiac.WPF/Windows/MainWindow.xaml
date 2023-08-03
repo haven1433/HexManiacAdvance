@@ -297,6 +297,7 @@
                   <MenuItem Header="_Wiki" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki" />
                   <MenuItem Header="_Tutorials" Click="WebLink" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials" />
                   <MenuItem Header="_Online Reference Content">
+                     <MenuItem Header="Event Script Reference" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Everything-You-Need-for-Event-Scripting-in-HexManiacAdvance" />
                      <MenuItem Header="Ruby">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
