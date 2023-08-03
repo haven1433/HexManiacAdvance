@@ -263,12 +263,12 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 7C checkattack move:data.pokemon.moves.names # 800D=n, where n is the index of the pokemon that knows the move.
                                              # 800D=6, if no pokemon in your party knows the move
                                              # if successful, 8004 is set to the pokemon species
-7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # species can be a literal or variable. Store the name in the given buffer
+7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # Species can be a literal or variable. Store the name in the given buffer
 7E bufferfirstPokemon buffer.bufferNames                            # Species of your first pokemon gets stored in the given buffer
-7F bufferpartyPokemon buffer.bufferNames party:                     # Speciel of pokemon 'party' from your party gets stored in the buffer
+7F bufferpartyPokemon buffer.bufferNames party:                     # Species of pokemon 'party' from your party gets stored in the buffer
 80 bufferitem buffer.bufferNames item:data.items.stats              # stores an item name in a buffer
 81 bufferdecoration buffer.bufferNames decoration:
-82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # species, party, item, decoration, and move can all be literals or variables
+82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # Species, party, item, decoration, and move can all be literals or variables
 83 buffernumber buffer.bufferNames number:             # literal or variable gets converted to a string and put in the buffer.
 84 bufferstd buffer.bufferNames index:                 # gets one of the standard strings and pushes it into a buffer
 85 bufferstring buffer.bufferNames pointer<>           # copies the string into the buffer.
