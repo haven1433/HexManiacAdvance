@@ -154,7 +154,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ViewportUnits = BrushMappingMode.Absolute,
             Viewport = new Rect(0, 0, 3, 2)
          }, 2);
-         var errorDecoration = new TextDecoration(TextDecorationLocation.Underline, errorPen, 1, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
+         var errorDecoration = new TextDecoration(TextDecorationLocation.Underline, errorPen, -1, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
 
          var warningBrush = Brush(nameof(Theme.Data1));
          var warningPen = new Pen(new DrawingBrush(new GeometryDrawing(warningBrush, new(), geometry)) {
@@ -162,7 +162,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             ViewportUnits = BrushMappingMode.Absolute,
             Viewport = new Rect(0, 0, 3, 2)
          }, 2);
-         var warningDecoration = new TextDecoration(TextDecorationLocation.Underline, warningPen, 0, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
+         var warningDecoration = new TextDecoration(TextDecorationLocation.Underline, warningPen, -1, TextDecorationUnit.Pixel, TextDecorationUnit.Pixel);
 
          var lineEnd = Environment.NewLine.ToCharArray().Last();
 
