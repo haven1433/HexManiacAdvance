@@ -406,3 +406,22 @@ Name = '''MapAttributeBehaviors'''
     '''Unused_Ee''',
     '''Unused_Ef''',
 ]
+
+[[List]]
+Name = '''encountersongs'''
+0 = [
+   '''boy''',
+   '''girl''',
+   '''tubers/young couples''',
+   '''suspicious''',
+   '''intense''',
+   '''cooltrainer''',
+   '''aqua''',
+   '''magma''',
+   '''swimmer''',
+   '''twins''',
+   '''elite4''',
+   '''hiker/sailor''',
+   '''interviewer''',
+   '''rich''',
+]
