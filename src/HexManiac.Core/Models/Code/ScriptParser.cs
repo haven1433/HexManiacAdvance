@@ -652,11 +652,37 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
       }
 
+      private List<string> ReadOptions(IDataModel model, string tableName, string token) {
+         if (!string.IsNullOrEmpty(tableName)) {
+            var isList = model.TryGetList(tableName, out var list);
+            var allOptions = model.GetOptions(tableName);
+            var options = new List<string>();
+            for (int i = 0; i < allOptions.Count; i++) {
+               if (token.Length == 0 || allOptions[i].MatchesPartial(token)) {
+                  if (!isList || list.Comments == null || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
+                  else comment = " # " + comment;
+                  options.Add(allOptions[i] + comment);
+               }
+            }
+            if (token.Length > 0) {
+               options.Sort((a, b) => a.SkipCount(token) - b.SkipCount(token));
+               options.Sort((a, b) => a.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - b.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
+            }
+
+            if (options.Count > 10) {
+               while (options.Count > 9) options.RemoveAt(options.Count - 1);
+               options.Add("...");
+            }
+            return options;
+         }
+         return null;
+      }
+
       public string GetHelp(IDataModel model, HelpContext context) {
          var currentLine = context.Line;
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
-         var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0])).ToList();
+         var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0], StringComparison.CurrentCultureIgnoreCase)).ToList();
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
@@ -667,7 +693,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // need autocomplete for command?
             if (tokens.Length == 1) {
-               candidates = candidates.Where(line => line.LineCommand.StartsWith(tokens[0]) && line.MatchesGame(gameHash)).ToList();
+               candidates = candidates.Where(line => line.LineCommand.Contains(tokens[0], StringComparison.CurrentCultureIgnoreCase) && line.MatchesGame(gameHash)).ToList();
                if (!context.IsSelection) {
                   foreach (var line in candidates) {
                      if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
@@ -677,7 +703,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
 
             // filter down to just perfect matches. There could be several (trainerbattle)
-            candidates = candidates.Where(line => line.LineCommand == tokens[0]).ToList();
+            candidates = candidates.Where(line => line.LineCommand.Equals(tokens[0], StringComparison.CurrentCultureIgnoreCase)).ToList();
             var checkToken = 1;
             while (candidates.Count > 1 && checkToken < tokens.Length) {
                if (!tokens[checkToken].TryParseHex(out var codeValue)) break;
@@ -691,25 +717,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (skipCount == 0) skipCount = 1; // macros
                if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {
                   var arg = args[tokens.Length - 1 - skipCount];
-                  if (!string.IsNullOrEmpty(arg.EnumTableName)) {
-                     var isList = model.TryGetList(arg.EnumTableName, out var list);
-                     var allOptions = model.GetOptions(arg.EnumTableName);
-                     var options = new List<string>();
-                     var token = tokens[tokens.Length - 1];
-                     for (int i = 0; i < allOptions.Count; i++) {
-                        if (allOptions[i].MatchesPartial(token)) {
-                           if (!isList || list.Comments == null || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
-                           else comment = " # " + comment;
-                           options.Add(allOptions[i] + comment);
-                        }
-                     }
-                     options.Sort((a, b) => a.SkipCount(token) - b.SkipCount(token));
-                     options.Sort((a, b) => a.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - b.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
-
-                     if (options.Count > 10) {
-                        while (options.Count > 9) options.RemoveAt(options.Count - 1);
-                        options.Add("...");
-                     }
+                  var token = tokens[tokens.Length - 1];
+                  var options = ReadOptions(model, arg.EnumTableName, token);
+                  if (options != null) {
                      if (args.Count == tokens.Length - skipCount && options.Any(option => option == token)) return null; // perfect match on last token
                      return Environment.NewLine.Join(options);
                   }
@@ -719,10 +729,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          if (candidates.Count > 10) return null;
          if (candidates.Count == 0) return null;
-         if (candidates.Count == 1) {
+
+         string partialDocumentation = string.Empty;
+         if (candidates.Count == 1 && !candidates[0].Documentation.All(string.IsNullOrWhiteSpace)) {
             if (candidates[0].CountShowArgs() <= tokens.Length - 1) return null;
-            return candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
+            partialDocumentation = candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
          }
+
+         if (context.Index > 0 && context.Line[context.Index - 1] == ' ' && tokens.Length > 0) {
+            // I'm directly after a space, I'm at the start of a new token, there is no existing documentation
+            var skipCount = candidates[0].LineCode.Count;
+            if (skipCount == 0) skipCount = 1;
+            var args = candidates[0].Args.Where(arg => arg is ScriptArg).ToList();
+            if ((tokens.Length - skipCount).InRange(0, args.Count)) {
+               var arg = args[tokens.Length - skipCount];
+               var options = ReadOptions(model, arg.EnumTableName, string.Empty);
+               if (options != null) {
+                  if (partialDocumentation.Length > 0) partialDocumentation += Environment.NewLine;
+                  partialDocumentation += Environment.NewLine.Join(options);
+               }
+            }
+         }
+
+         if (partialDocumentation.Length > 0) return partialDocumentation;
+
          var perfectMatch = candidates.FirstOrDefault(candidate => (currentLine + " ").StartsWith(candidate.LineCommand + " "));
          if (perfectMatch != null) {
             if (perfectMatch.CountShowArgs() == tokens.Length - 1) return null;
@@ -1211,7 +1241,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public bool CanCompile(string line) {
-         if (!(line + " ").StartsWith(LineCommand + " ")) return false;
+         if (!(line + " ").StartsWith(LineCommand + " ", StringComparison.CurrentCultureIgnoreCase)) return false;
          if (LineCode.Count == 1) return true;
          var tokens = Tokenize(line).ToList();
          if (tokens.Count < LineCode.Count) return false;
@@ -1226,7 +1256,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public string ErrorCheck(string scriptLine, out string[] tokens) {
          tokens = Tokenize(scriptLine);
-         if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
+         if (!tokens[0].Equals(LineCommand, StringComparison.CurrentCultureIgnoreCase)) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var commandText = LineCommand;
          for (int i = 1; i < LineCode.Count; i++) commandText += " " + LineCode[i].ToString("X2");
          var fillerCount = Args.Count(arg => arg.Name == "filler");
@@ -1456,12 +1486,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
             var enumTableName = token.Split("::").Last();
             return (type, default, name, enumTableName, length);
-         } else if (token.Contains(":")) {
+         } else if (token.Contains(':')) {
             var (type, length) = (ArgType.Short, 2);
             var name = token.Split(':').First();
             var enumTableName = token.Split(':').Last();
             return (type, default, name, enumTableName, length);
-         } else if (token.Contains(".")) {
+         } else if (token.Contains('.')) {
             var (type, length) = (ArgType.Byte, 1);
             var parts = token.Split(new[] { '.' }, 2);
             var name = parts[0];

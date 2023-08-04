@@ -881,6 +881,11 @@
                         </Setter.Value>
                      </Setter>
                      <Setter Property="ToolTipService.InitialShowDelay" Value="0" />
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding Render}" Value="{x:Null}">
+                           <Setter Property="ToolTip" Value="{x:Null}" />
+                        </DataTrigger>
+                     </Style.Triggers>
                   </Style>
                </Grid.Resources>
                <Grid.ColumnDefinitions>

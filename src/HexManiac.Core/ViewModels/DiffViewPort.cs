@@ -70,6 +70,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string FullFileName => Name;
 
+      public bool SpartanMode { get; set; }
+
       public int Width { get => leftWidth + rightWidth + 1; set { } }
 
       private int height;

@@ -91,6 +91,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private string fullFileName;
       public string FullFileName { get => fullFileName; private set => TryUpdate(ref fullFileName, value); }
 
+      private bool spartanMode;
+      public bool SpartanMode {
+         get => spartanMode;
+         set {
+            Set(ref spartanMode, value, arg => {
+               Model.SpartanMode = spartanMode;
+            });
+         }
+      }
+
       #region Scrolling Properties
 
       private readonly ScrollRegion scroll;

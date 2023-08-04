@@ -486,7 +486,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return $"#{red:X2}{green:X2}{blue:X2}";
       }
 
-      public static bool TryParseHex(this string hex, out int result) => int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result);
+      public static bool TryParseHex(this string hex, out int result) {
+         hex = hex.Trim();
+         if (hex.StartsWith("0x")) hex = hex.Substring(2);
+         return int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result);
+      }
 
       public static (byte, byte, byte) ToRgb(this (double hue, double sat, double bright) hsb) => Theme.FromHSB(hsb.hue, hsb.sat, hsb.bright);
 

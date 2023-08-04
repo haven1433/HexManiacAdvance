@@ -266,6 +266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public (int, int) IndexOfNumber(int start) {
          for (int i = start; i < content.Length; i++) {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue;
+            if (i > 0 && content[i - 1] == '_') continue; // non-letter characters that are not considered token splitters
             if (!char.IsDigit(content[i]) && !content[i].IsAny(hexLetters)) continue;
             int length = 1;
             while (true) {

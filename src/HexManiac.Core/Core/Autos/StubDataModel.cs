@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models
         }
         
         public Action ResetChanges { get; set; }
-        
+
         void IDataModel.ResetChanges()
         {
             if (this.ResetChanges != null)
@@ -31,7 +31,9 @@ namespace HavenSoft.HexManiac.Core.Models
                 this.ResetChanges();
             }
         }
-        
+
+        public bool SpartanMode { get; set; }
+
         public delegate System.Collections.Generic.IEnumerable<T> AllDelegate_<T>() where T : Runs.IFormattedRun;
         private readonly Dictionary<Type[], object> AllDelegates_ = new Dictionary<Type[], object>(new EnumerableEqualityComparer<Type>());
         public void ImplementAll<T>(AllDelegate_<T> implementation) where T : Runs.IFormattedRun

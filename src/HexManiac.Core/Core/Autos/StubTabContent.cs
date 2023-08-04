@@ -50,6 +50,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels
                 return this.Name.get();
             }
         }
+
+        public bool SpartanMode { get; set; }
+
         public PropertyImplementation<bool> IsMetadataOnlyChange = new PropertyImplementation<bool>();
         
         bool ITabContent.IsMetadataOnlyChange

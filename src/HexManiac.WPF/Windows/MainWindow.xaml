@@ -242,8 +242,8 @@
                <MenuItem Header="_Tools">
                   <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
                   <Separator/>
-                  <MenuItem Header="Toggle T_able Tool" Command="{Binding Tools.TableToolCommand}"/>
-                  <MenuItem Header="Toggle _Text Tool" Command="{Binding Tools.StringToolCommand}"/>
+                  <MenuItem Header="Toggle _Table Tool" Command="{Binding Tools.TableToolCommand}"/>
+                  <MenuItem Header="Toggle Te_xt Tool" Command="{Binding Tools.StringToolCommand}"/>
                   <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
                   <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
                   <MenuItem Header="Show _Hex Converter" Command="{Binding ShowHexConverter}" InputGestureText="Ctrl+H">
@@ -251,7 +251,19 @@
                         <sys:Boolean>true</sys:Boolean>
                      </MenuItem.CommandParameter>
                   </MenuItem>
-                  <MenuItem Header="Show Automation Tool" IsCheckable="True" IsChecked="{Binding ShowAutomationPanel}" InputGestureText="Ctrl+R" />
+                  <MenuItem Header="Toggle _Automation Tool" IsCheckable="True" IsChecked="{Binding ShowAutomationPanel}" InputGestureText="Ctrl+R" />
+                  <Separator/>
+                  <MenuItem Header="_Spartan Mode" IsCheckable="True" IsChecked="{Binding SpartanMode}">
+                     <MenuItem.ToolTip>
+                        <ToolTip>
+                           <TextBlock>
+                              Spartan Mode runs faster and uses less memory,
+                              <LineBreak/>
+                              but disables optional ease-of-use features.
+                           </TextBlock>
+                        </ToolTip>
+                     </MenuItem.ToolTip>
+                  </MenuItem>
                </MenuItem>
                <MenuItem Header="_Help">
                   <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
@@ -285,6 +297,7 @@
                   <MenuItem Header="_Wiki" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki" />
                   <MenuItem Header="_Tutorials" Click="WebLink" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials" />
                   <MenuItem Header="_Online Reference Content">
+                     <MenuItem Header="Event Script Reference" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Everything-You-Need-for-Event-Scripting-in-HexManiacAdvance" />
                      <MenuItem Header="Ruby">
                         <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
                         <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />

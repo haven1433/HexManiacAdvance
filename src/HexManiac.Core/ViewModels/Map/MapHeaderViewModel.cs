@@ -222,13 +222,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Lazy<IPixelViewModel> render;
       public IDataModel Model { get; }
       public int Address { get; }
-      public IPixelViewModel Render => render.Value;
+      public IPixelViewModel Render => render?.Value;
       public string AddressText => Address.ToAddress();
 
       public BlocksetOption(IDataModel model, int address) {
          Model = model;
          Address = address;
-         render = new Lazy<IPixelViewModel>(() => new BlocksetModel(Model, Address).RenderBlockset(.5));
+         if (!model.SpartanMode) render = new Lazy<IPixelViewModel>(() => new BlocksetModel(Model, Address).RenderBlockset(.5));
       }
    }
 }
