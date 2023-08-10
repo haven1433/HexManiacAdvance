@@ -903,7 +903,7 @@ setwildbattle 1 50 0
          } else if (model.IsEmerald()) {
             script.AppendLine(@"
    setflag 0x08C1
-   special 0x13A
+   special 0x13B
    waitstate
    clearflag 0x08C1
 ");
