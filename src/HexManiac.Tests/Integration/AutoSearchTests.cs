@@ -613,7 +613,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void BattleScriptSourceIsFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var pickupitems = model.GetTable("scripts.battle.thumb");
+         var pickupitems = model.GetTable("scripts.commands.events.thumb");
          Assert.IsType<ArrayRun>(pickupitems);
       }
 

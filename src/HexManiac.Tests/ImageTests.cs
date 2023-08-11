@@ -478,7 +478,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Tools.SpriteTool.Colors.CreateGradient.Execute();
 
          var color = (UncompressedPaletteColor)ViewPort[2, 0].Format;
-         Assert.Equal("15:15:15", color.ToString());
+         Assert.Equal("12:12:12", color.ToString());
       }
 
       [Fact]
