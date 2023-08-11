@@ -189,6 +189,19 @@ namespace HavenSoft.HexManiac.Integration {
       }
 
       [SkippableFact]
+      public void FireRed_MapsWithObjects_HaveValidPointers() {
+         var firered = LoadReadOnlyFireRed();
+         var maps = AllMapsModel.Create(firered.Model).SelectMany(bank => bank);
+         Assert.All(maps, map => {
+            var events = map.Events.Element;
+            if (events.GetValue("objectCount") == 0) return;
+            var objectsAddress = events.GetAddress("objects");
+            var objectTable = firered.Model.GetNextRun(objectsAddress);
+            Assert.IsType<TableStreamRun>(objectTable);
+         });
+      }
+
+      [SkippableFact]
       public void FireRed_SelectMovementPermissionWithoutBlock_CanRectangleDraw() {
          var firered = LoadFireRed();
          firered.Goto.Execute(StartTown);
