@@ -139,8 +139,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       protected void ClearCacheScope() => currentCacheScope = null;
       public ModelCacheScope CurrentCacheScope {
          get {
-            if (currentCacheScope == null) currentCacheScope = new ModelCacheScope(this);
-            return currentCacheScope;
+            var instance = currentCacheScope;
+            if (instance == null) {
+               instance = new ModelCacheScope(this);
+               currentCacheScope = instance;
+            }
+            return instance;
          }
       }
 
