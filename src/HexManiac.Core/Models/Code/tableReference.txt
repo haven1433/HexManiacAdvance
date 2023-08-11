@@ -864,12 +864,12 @@ graphics.menus.trade.windowtemplates.others,       ,       ,       ,       ,    
 graphics.menus.trade.windowtemplates.yesno,        ,       ,       ,       ,       ,       ,       ,       , 078EEC, [background. tilemapleft. tilemaptop. width. height. paletteID. baseblock:]1
 data.statstages.default,                     013104, 013104, 013104, 013104, 014ED4, 014ED4, 014EE8, 014EE8, 03D024, [numerator. denominator. ratio|=numerator÷denominator]13
 scripts.seagallop.destinations,                    ,       ,       ,       , 1471B0, 14718C, 147228, 147204,       , [bank. map. x. y.]scripts.seagallop.count
-data.battlefrontier.battletent.slateport.pokemon,  ,       ,       ,       ,       ,       ,       ,       , 165DA4, [pokemon:data.pokemon.names [move:data.pokemon.moves.names]4item.data.battlefrontier.items EVspread. nature.data.pokemon.natures.names padding:.]70
-data.battlefrontier.battletent.slateport.trainers, ,       ,       ,       ,       ,       ,       ,       , 165D9C, [facilityclass.data.battlefrontier.trainerclass padding:. name""8 [[word:|h]6]3pokemon<>]30
-data.battlefrontier.battletent.verdanturf.pokemon, ,       ,       ,       ,       ,       ,       ,       , 165DC4, [pokemon:data.pokemon.names [move:data.pokemon.moves.names]4item.data.battlefrontier.items EVspread. nature.data.pokemon.natures.names padding:.]45
-data.battlefrontier.battletent.verdanturf.trainers,        ,       ,       ,       ,       ,       ,       ,       , 165DBC, [facilityclass.data.battlefrontier.trainerclass padding:. name""8 [[word:|h]6]3pokemon<>]30
-data.battlefrontier.battletent.fallarbor.pokemon,  ,       ,       ,       ,       ,       ,       ,       , 165DE4, [pokemon:data.pokemon.names [move:data.pokemon.moves.names]4item.data.battlefrontier.items EVspread. nature.data.pokemon.natures.names padding:.]45
-data.battlefrontier.battletent.fallarbor.trainers, ,       ,       ,       ,       ,       ,       ,       , 165DDC, [facilityclass.data.battlefrontier.trainerclass padding:. name""8 [[word:|h]6]3pokemon<>]30 
+data.battlefrontier.battletent.slateport.pokemon,  ,       ,       ,       ,       ,       ,       ,       , 165DA4, [pokemon:data.pokemon.names [move:data.pokemon.moves.names]4 item.data.battlefrontier.items evSpread. nature.data.pokemon.natures.names padding:.]70
+data.battlefrontier.battletent.slateport.trainers, ,       ,       ,       ,       ,       ,       ,       , 165D9C, [facilityclass::data.battlefrontier.trainerclass name""8 [[word:|h]6]3 pokemon<[mon:data.battlefrontier.pokemon]!FFFF>]30
+data.battlefrontier.battletent.verdanturf.pokemon, ,       ,       ,       ,       ,       ,       ,       , 165DC4, [pokemon:data.pokemon.names [move:data.pokemon.moves.names]4 item.data.battlefrontier.items evSpread. nature.data.pokemon.natures.names padding:.]45
+data.battlefrontier.battletent.verdanturf.trainers, ,      ,       ,       ,       ,       ,       ,       , 165DBC, [facilityclass.data.battlefrontier.trainerclass padding:. name""8 [[word:|h]6]3 pokemon<[mon:data.battlefrontier.pokemon]!FFFF>]30
+data.battlefrontier.battletent.fallarbor.pokemon,  ,       ,       ,       ,       ,       ,       ,       , 165DE4, [pokemon:data.pokemon.names [move:data.pokemon.moves.names]4 item.data.battlefrontier.items evSpread. nature.data.pokemon.natures.names padding:.]45
+data.battlefrontier.battletent.fallarbor.trainers, ,       ,       ,       ,       ,       ,       ,       , 165DDC, [facilityclass.data.battlefrontier.trainerclass padding:. name""8 [[word:|h]6]3 pokemon<[data.battlefrontier.pokemon]!FFFF>]30
 
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
