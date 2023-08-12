@@ -1763,7 +1763,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             ViewPort.Tools.SpriteTool.SpriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
             ViewPort.Tools.SpriteTool.PaletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
          }
-         ViewPort.OpenImageEditorTab(ViewPort.Tools.SpriteTool.SpriteAddress, 0, 0, 16);
+
+         var newTab = new ImageEditorViewModel(ViewPort.ChangeHistory, this.model, ViewPort.Tools.SpriteTool.SpriteAddress, ViewPort.Save, ViewPort.Tools.SpriteTool.PaletteAddress);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         ViewPort.MapEditor.RaiseRequestTabChange(args);
+
+         if (newTab.CanEditTilesetWidth) {
+            newTab.CurrentTilesetWidth = 16.LimitToRange(newTab.MinimumTilesetWidth, newTab.MaximumTilesetWidth);
+         }
       }
 
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
