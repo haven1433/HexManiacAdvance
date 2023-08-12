@@ -44,6 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var allowLengthErrors = dimensionsAsText[2].EndsWith("!");
          if (allowLengthErrors) dimensionsAsText[2] = dimensionsAsText[2].Substring(0, dimensionsAsText[2].Length - 1);
          if (!int.TryParse(dimensionsAsText[0], out var bitsPerPixel)) return false;
+         if (!bitsPerPixel.IsAny(1, 2, 4, 8)) return false;
          if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
          if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
          var hint = hintSplit.Length == 2 ? hintSplit[1] : null;

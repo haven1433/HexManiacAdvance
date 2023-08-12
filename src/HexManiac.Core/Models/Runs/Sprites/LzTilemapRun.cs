@@ -85,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var parts = format.Split('x');
          if (parts.Length != 3) return false;
          if (!int.TryParse(parts[0], out int bits)) return false;
+         if (!bits.IsAny(1, 2, 4, 8)) return false;
          if (!int.TryParse(parts[1], out int width)) return false;
          if (!int.TryParse(parts[2], out int height)) return false;
 
