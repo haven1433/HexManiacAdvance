@@ -398,18 +398,27 @@ namespace HavenSoft.HexManiac.Tests {
          var singletons = BaseViewModelTestClass.Singletons;
          foreach (var game in singletons.GameReferenceTables.Keys) {
             var gameTables = singletons.GameReferenceTables[game];
-            var namespaces = new Dictionary<string, int>();
+            var namespaces = new Dictionary<string, HashSet<string>>();
             foreach (var table in gameTables) {
-               var namespaceLength = table.Name.LastIndexOf('.');
-               if (namespaceLength < 0) continue;
-               var currentNamespace = table.Name.Substring(0, namespaceLength);
-               if (!namespaces.ContainsKey(currentNamespace)) namespaces[currentNamespace] = 0;
-               namespaces[currentNamespace] += 1;
+               var tokens = table.Name.Split(".");
+               for (int i = 1; i < tokens.Length; i++) {
+                  var prefix = ".".Join(tokens.Take(i));
+                  if (!namespaces.ContainsKey(prefix)) namespaces[prefix] = new();
+                  namespaces[prefix].Add(tokens[i]);
+               }
             }
-            foreach (var currentNamespace in namespaces.Keys) {
+            var exempt = new[] {
+               "data.pokemon.moves",
+               "data.pokemon",
+               "graphics.menu",
+               "graphics",
+            };
+            Assert.All(namespaces.Keys, currentNamespace => {
                var elements = namespaces[currentNamespace];
-               Assert.InRange(elements, 0, 9); // we shouldn't have found more than 7
-            }
+               var limit = currentNamespace.Contains('.') ? 9 : 16;
+               if (exempt.Contains(currentNamespace)) limit += 4;
+               Assert.True(elements.Count.InRange(0, limit + 1), $"{game}: {currentNamespace} has {elements.Count} entries, but shouldn't have more than {limit}.");
+            });
          }
       }
 

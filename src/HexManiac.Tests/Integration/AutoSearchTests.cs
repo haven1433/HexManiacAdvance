@@ -107,13 +107,13 @@ namespace HavenSoft.HexManiac.Tests {
          var noChange = new NoDataChangeDeltaModel();
          var model = fixture.LoadModel(game);
 
-         foreach (var anchor in model.Anchors) {
+         Assert.All(model.Anchors, anchor => {
             var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
-            if (!(run is ITilemapRun tilemap)) continue;
+            if (!(run is ITilemapRun tilemap)) return;
             var tilesetAddress = tilemap.FindMatchingTileset(model);
             var tileset = model.GetNextRun(tilesetAddress);
-            Assert.IsAssignableFrom<ISpriteRun>(tileset);
-         }
+            Assert.True(tileset is ISpriteRun, $"Could not find tileset for {anchor}!");
+         });
       }
 
       [SkippableTheory]
@@ -123,14 +123,14 @@ namespace HavenSoft.HexManiac.Tests {
          var noChange = new NoDataChangeDeltaModel();
          var model = fixture.LoadModel(game);
 
-         foreach (var anchor in model.Anchors) {
+         Assert.All(model.Anchors, anchor => {
             var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
-            if (!(run is ISpriteRun sprite)) continue;
-            if (sprite.SpriteFormat.BitsPerPixel < 4) continue;
+            if (!(run is ISpriteRun sprite)) return;
+            if (sprite.SpriteFormat.BitsPerPixel < 4) return;
             var palettes = sprite.FindRelatedPalettes(model);
-            if (palettes.Count == 0 && string.IsNullOrEmpty(sprite.SpriteFormat.PaletteHint)) continue;
-            Assert.IsAssignableFrom<IPaletteRun>(palettes[0]);
-         }
+            if (palettes.Count == 0 && string.IsNullOrEmpty(sprite.SpriteFormat.PaletteHint)) return;
+            Assert.True(palettes[0] is IPaletteRun, $"Anchor {anchor} expected a palette!");
+         });
       }
 
       public static IEnumerable<object[]> VanillaTilemapsWithPalettes {
