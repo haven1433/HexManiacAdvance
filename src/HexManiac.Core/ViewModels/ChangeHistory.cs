@@ -175,7 +175,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
-         if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
+         hasDataChangeCache = HasDataChange;
+         if (previouslyHadDataChanged != hasDataChangeCache) NotifyPropertyChanged(nameof(HasDataChange));
          Debug.Assert(redoStack.Count > 0, "Redo should always be available directly after an Undo!");
       }
 
@@ -194,7 +195,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
-         if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
+         hasDataChangeCache = HasDataChange;
+         if (previouslyHadDataChanged != hasDataChangeCache) NotifyPropertyChanged(nameof(HasDataChange));
       }
 
       private void VerifyRevertNotInProgress([CallerMemberName] string caller = null) {

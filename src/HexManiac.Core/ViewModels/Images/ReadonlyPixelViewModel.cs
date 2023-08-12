@@ -27,6 +27,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          return SpriteDecorator.BuildSprite(model, sprite, useTransparency, scale);
       }
 
+      public static ReadonlyPixelViewModel Create(IDataModel model, ISpriteRun sprite, int tableElementAddress, bool useTransparency = false, double scale = 1) {
+         return SpriteDecorator.BuildSprite(model, sprite, tableElementAddress, useTransparency, scale);
+      }
+
       public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, IPaletteRun palette, bool useTransparency = false) {
          return SpriteDecorator.BuildSprite(model, sprite, palette, useTransparency);
       }

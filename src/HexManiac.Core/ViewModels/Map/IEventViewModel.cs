@@ -269,7 +269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          var run = element.Model.GetNextRun(address);
-         if (run.Start < address || (run is not XSERun && run is not NoInfoRun)) {
+         if (run.Start != address || (run is not XSERun && run is not NoInfoRun)) {
             ScriptAddressError = IsValidScriptFreespace(address) ? "Freespace found at that address." : "No script found at that address.";
             HasScriptAddressError = true;
             return;

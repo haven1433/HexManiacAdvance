@@ -439,23 +439,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var right = Elements.Count.Range().Last(i => Elements[i].Selected);
 
          var (r, g, b) = UncompressedPaletteColor.ToRGB(Elements[left].Color);
-         var leftHSB = Theme.ToHSB((byte)(r << 3), (byte)(g << 3), (byte)(b << 3));
+         var leftLAB = Theme.ToOklab((byte)(r * 33 >> 2), (byte)(g * 33 >> 2), (byte)(b * 33 >> 2));
 
          var rightRGB = UncompressedPaletteColor.ToRGB(Elements[right].Color);
-         var rightHSB = Theme.ToHSB((byte)(rightRGB.r << 3), (byte)(rightRGB.g << 3), (byte)(rightRGB.b << 3));
+         var rightLAB = Theme.ToOklab((byte)(rightRGB.r * 33 >> 2), (byte)(rightRGB.g * 33 >> 2), (byte)(rightRGB.b * 33 >> 2));
 
-         var deltaHue = rightHSB.hue - leftHSB.hue;
-         var deltaSat = rightHSB.sat - leftHSB.sat;
-         var deltaBright = rightHSB.bright - leftHSB.bright;
+         var deltaLight = rightLAB.lightness - leftLAB.lightness;
+         var deltaA = rightLAB.a - leftLAB.a;
+         var deltaB = rightLAB.b - leftLAB.b;
 
          var distance = right - left;
          for (int i = 1; i < distance; i++) {
             if (!Elements[left + i].Selected) continue;
             var part = (double)i / distance;
-            var hue = leftHSB.hue + deltaHue * part;
-            var sat = leftHSB.sat + deltaSat * part;
-            var bright = leftHSB.bright + deltaBright * part;
-            var (red, green, blue) = Theme.FromHSB(hue, sat, bright);
+            var light = leftLAB.lightness + deltaLight * part;
+            var a_ = leftLAB.a + deltaA * part;
+            var b_ = leftLAB.b + deltaB * part;
+            var (red, green, blue) = Theme.FromOklab(light, a_, b_);
             Elements[left + i].Color = UncompressedPaletteColor.Pack(red >> 3, green >> 3, blue >> 3);
          }
 

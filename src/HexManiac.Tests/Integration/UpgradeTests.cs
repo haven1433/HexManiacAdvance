@@ -90,6 +90,9 @@ namespace HavenSoft.HexManiac.Tests {
          // every anchor in the upgraded metadata should have the right address and format to match the fresh versions
          foreach (var namedAnchor in upgradedMetadata.NamedAnchors) {
             bool exemptAddress = false, exemptFormat = false;
+            exemptFormat |= new[] {
+               "scripts.commands.events.specials",           // renamed
+            }.Contains(namedAnchor.Name);
             if (tomlName == "_0.4.0.toml") {
                exemptAddress |= new[] { // legitimate moves: same name, new location
                   "graphics.gamecorner.game.palette",

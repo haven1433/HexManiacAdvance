@@ -117,6 +117,26 @@ namespace HavenSoft.HexManiac.Core {
             throw new InvalidOperationException($"Enumerable did not contain any {typeof(T)} elements.");
       }
 
+      public static int MatchPairIndex<T>(this ReadOnlySpan<T> collection, T start, T end) where T : IEquatable<T> {
+         var started = false;
+         var depth = 0;
+         int index = -1;
+         foreach (var c in collection) {
+            index += 1;
+            if (!c.Equals(start) && !c.Equals(end)) continue;
+            if (c.Equals(start)) {
+               started = true;
+               depth += 1;
+               continue;
+            } else {
+               if (!started) continue;
+               depth -= 1;
+               if (depth == 0) return index;
+            }
+         }
+         return -1;
+      }
+
       public static bool IsNullOrEmpty<T>(this IEnumerable<T> list) {
          if (list == null) return true;
          return !list.Any();

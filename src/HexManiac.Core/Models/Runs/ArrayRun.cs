@@ -1313,17 +1313,22 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          // if (segments.ToString().Contains("python")) ;
          while (segments.Length > 0) {
             if (segments.StartsWith("[")) {
-               int subArrayClose = segments.LastIndexOf("]");
+               int subArrayClose = segments.MatchPairIndex('[', ']');
                if (subArrayClose == -1) throw new ArrayRunParseException("Found unmatched open bracket ([).");
                var innerSegments = ParseSegments(segments.Slice(1, subArrayClose - 1), model);
                segments = segments.Slice(subArrayClose + 1);
-               int repeatLength = 0;
-               while (repeatLength < segments.Length && char.IsDigit(segments[repeatLength])) repeatLength++;
-               if (!int.TryParse(segments.Slice(0, repeatLength), out int innerCount)) {
+               var repeatEnd = segments.IndexOf(' ');
+               if (repeatEnd == -1) repeatEnd = segments.Length;
+               if (!int.TryParse(segments.Slice(0, repeatEnd), out int innerCount)) {
                   throw new ArrayRunParseException($"Could not parse '{segments}' as a number.");
                }
                for (int i = 0; i < innerCount; i++) list.AddRange(innerSegments);
-               segments = segments.Slice(repeatLength);
+               segments = segments.Slice(repeatEnd);
+               continue;
+            }
+
+            if (segments[0] == ' ') {
+               segments = segments.Slice(1);
                continue;
             }
 

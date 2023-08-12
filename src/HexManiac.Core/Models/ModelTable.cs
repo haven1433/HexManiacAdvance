@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Start => table.Start + table.ElementLength * arrayIndex;
       public int ArrayIndex => arrayIndex;
       public int Length => table.ElementLength;
-      public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
+      public string Address => Start.ToAddress();
       public ITableRun Table => table;
       public IDataModel Model => model;
       public ModelDelta Token => tokenFactory();
@@ -376,7 +376,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var address = GetAddress(fieldName);
          var spriteRun = model.GetNextRun(address) as ISpriteRun;
          if (spriteRun == null) return null;
-         return ReadonlyPixelViewModel.Create(Model, spriteRun, true);
+         return ReadonlyPixelViewModel.Create(Model, spriteRun, Start, true);
       }
 
       #region DynamicObject

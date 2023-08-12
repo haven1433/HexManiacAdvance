@@ -217,6 +217,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          return BuildSprite(model, sprite, paletteRun, useTransparency, scale);
       }
 
+      public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, int tableElementAddress, bool useTransparency = false, double scale = 1) {
+         if (sprite == null) return null;
+         if (sprite is ITilemapRun tilemap) tilemap.FindMatchingTileset(model);
+         var paletteRuns = sprite.FindRelatedPalettes(model, tableElementAddress);
+         var paletteRun = paletteRuns.FirstOrDefault();
+         return BuildSprite(model, sprite, paletteRun, useTransparency, scale);
+      }
+
       public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, IPaletteRun paletteRun, bool useTransparency = false, double scale = 1) {
          var pixels = sprite.GetPixels(model, 0, -1);
          if (pixels == null) return null;

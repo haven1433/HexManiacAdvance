@@ -545,7 +545,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DrawOnTile(IPixelViewModel tile) {
-         if (!showTiles) return;
+         if (!showTiles || tile == null) return;
          var index = indexForTileImage[tile];
          LzTilemapRun.WriteTileData(blocks[blockIndex], index, drawPalette, drawFlipH, drawFlipV, drawTile);
          var newImage = BlocksetModel.Read(blocks[blockIndex], index, tiles, palettes);

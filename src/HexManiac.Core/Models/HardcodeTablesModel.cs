@@ -22,7 +22,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          MapBankTable = "data.maps.banks",
          RematchTable = "data.trainers.vsseeker",
          WildTableName = "data.pokemon.wild",
-         SpecialsTable = "scripts.specials.thumb",
+         SpecialsTable = "scripts.commands.events.specials",
          MoveDataTable = "data.pokemon.moves.stats.battle",
          ItemsTableName = "data.items.stats",
          MapLayoutTable = "data.maps.layouts",

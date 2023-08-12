@@ -6,6 +6,168 @@
 # 04 A & B   <- at least one common bit
 # 05 A &~ B  <- no common bits
 
+# general macros
+chosen.status1.animation             66 battler.bs_battlers 00 param::                            # Plays regular status animation for the battler. Seemingly unused.
+chosen.status2.animation             66 battler.bs_battlers 01 param::                            # Plays secondary status animation for the battler.
+if.status3.goto                      21 battler.bs_battlers status3:: 00 ptr<`bse`>               # If a certain battler has a certain status3, goto another address or section.
+if.not.status3.goto                  21 battler.bs_battlers status3:: 01 ptr<`bse`>               # If a certain battler does not have a certain status3, goto another address or section.
+[AXPE_AXVE] set.stat.changer         2E 1E 60 01 02 stat.bs_statchanger                           # Sets what stat should be changed and how much it should increase/decrease.
+[AXPE_AXVE] set.move.effect          2E 21 4D 02 02 effect.bs_moveeffects                         # Sets a certain effect for a battle script like burn/confusion/stat drop, not to be confused with move effects for moves themselves
+[AXPE_AXVE] if.move.goto             2A 00 E6 4B 02 02 move:data.pokemon.moves.names ptr<`bse`>   # Compares gCurrentMove with the move being checked.
+                                                                                                  # If the comparison is true, goto another address or section.
+[AXPE_AXVE] if.not.move.goto         2A 01 E6 4B 02 02 move:data.pokemon.moves.names ptr<`bse`>   # Compares gCurrentMove with the move being checked.
+                                                                                                  # If the comparison is false, goto another address or section.
+[AXPE_AXVE] if.move.noeffect.goto    29 04 68 4C 02 02 29 ptr<`bse`>                              # If the move had no effect at all, goto another address or section.
+[AXPE_AXVE] if.battletype.goto       2A 04 F8 39 02 02 param: ptr<`bse`>                          # Checks gBattleTypeFlags to see if the battle flag in the param is set, like if it's a wild or trainer battle
+[AXPE_AXVE] if.not.battletype.goto   2A 05 F8 39 02 02 param: ptr<`bse`>                          # Checks gBattleTypeFlags to see if the battle flag in the param is set
+[BPRE_BPGE] set.stat.changer         2E DE 3F 02 02 stat.bs_statchanger                           # Sets what stat should be changed and how much it should increase/decrease.
+[BPRE_BPGE] set.move.effect          2E 85 3E 02 02 effect.bs_moveeffects                         # Sets a certain effect for a battle script like burn/confusion/stat drop, not to be confused with move effects for moves themselves
+[BPRE_BPGE] if.move.goto             2A 00 4A 3D 02 02 move:data.pokemon.moves.names ptr<`bse`>   # Compares gCurrentMove with the move being checked.
+                                                                                                  # If the comparison is true, goto another address or section.
+[BPRE_BPGE] if.not.move.goto         2A 01 4A 3D 02 02 move:data.pokemon.moves.names ptr<`bse`>   # Compares gCurrentMove with the move being checked.
+                                                                                                  # If the comparison is false, goto another address or section.
+[BPRE_BPGE] if.move.noeffect.goto    29 04 CC 3D 02 02 29 ptr<`bse`>                              # If the move had no effect at all, goto another address or section.
+[BPRE_BPGE] if.battletype.goto       2B 04 4C 2B 02 02 param:: ptr<`bse`>                         # checks gBattleTypeFlags to see if the battle flag in the param is set, like if it's a wild or trainer battle
+[BPRE_BPGE] if.not.battletype.goto   2B 05 4C 2B 02 02 param:: ptr<`bse`>                         # checks gBattleTypeFlags to see if the battle flag in the param is not set
+[BPEE] set.stat.changer              2E 8E 44 02 02 stat.bs_statchanger                           # Sets what stat should be changed and how much it should increase/decrease.
+[BPEE] set.move.effect               2E 35 43 02 02 effect.bs_moveeffects                         # Sets a certain effect for a battle script like burn/confusion/stat drop, not to be confused with move effects for moves themselves
+[BPEE] if.move.goto                  2A 00 EA 41 02 02 move:data.pokemon.moves.names ptr<`bse`>   # Compares gCurrentMove with the move being checked.
+                                                                                                  # If the comparison is true, goto another address or section.
+[BPEE] if.not.move.goto              2A 01 EA 41 02 02 move:data.pokemon.moves.names ptr<`bse`>   # Compares gCurrentMove with the move being checked.
+                                                                                                  # If the comparison is false, goto another address or section.
+[BPEE] if.move.noeffect.goto         29 04 7C 42 02 02 29 ptr<`bse`>                              # If the move had no effect at all, goto another address or section.
+[BPEE] if.battle.type.goto           2B 04 EC 2F 02 02 param:: ptr<`bse`>                         # Checks gBattleTypeFlags to see if the battle flag in the param is set, like if it's a wild or trainer battle
+[BPEE] if.not.battle.type.goto       2B 05 EC 2F 02 02 param:: ptr<`bse`>                         # Checks gBattleTypeFlags to see if the battle flag in the param is not set
+
+# decomp names of general macros
+chosenstatus1animation             66 battler.bs_battlers 00 param::                              # alias for chosen.status1.animation
+chosenstatus2animation             66 battler.bs_battlers 01 param::                              # alias for chosen.status2.animation
+jumpifstatus3                      21 battler.bs_battlers status3:: 00 ptr<`bse`>                 # alias for if.status3.goto
+jumpifnostatus3                    21 battler.bs_battlers status3:: 01 ptr<`bse`>                 # alias for if.not.status3.goto
+[AXPE_AXVE] setstatchanger         2E 1E 60 01 02 stat.bs_statchanger                             # alias for set.stat.changer
+[AXPE_AXVE] setmoveeffect          2E 21 4D 02 02 effect.bs_moveeffects                           # alias for set.move.effect
+[AXPE_AXVE] jumpifmove             2A 00 E6 4B 02 02 move:data.pokemon.moves.names ptr<`bse`>     # alias for if.move.goto
+[AXPE_AXVE] jumpifnotmove          2A 01 E6 4B 02 02 move:data.pokemon.moves.names ptr<`bse`>     # alias for if.not.move.goto
+[AXPE_AXVE] jumpifmovehadnoeffect  29 04 68 4C 02 02 29 ptr<`bse`>                                # alias for if.move.noeffect.goto
+[AXPE_AXVE] jumpifbattletype       2A 04 F8 39 02 02 param: ptr<`bse`>                            # alias for if.battle.type.goto
+[AXPE_AXVE] jumpifnotbattletype    2A 05 F8 39 02 02 param: ptr<`bse`>                            # alias for if.not.battle.type.goto
+[BPRE_BPGE] setstatchanger         2E DE 3F 02 02 stat.bs_statchanger                             # alias for set.stat.changer
+[BPRE_BPGE] setmoveeffect          2E 85 3E 02 02 effect.bs_moveeffects                           # alias for set.move.effect
+[BPRE_BPGE] jumpifmove             2A 00 4A 3D 02 02 move:data.pokemon.moves.names ptr<`bse`>     # alias for if.move.goto
+[BPRE_BPGE] jumpifnotmove          2A 01 4A 3D 02 02 move:data.pokemon.moves.names ptr<`bse`>     # alias for if.not.move.goto
+[BPRE_BPGE] jumpifmovehadnoeffect  29 04 CC 3D 02 02 29 ptr<`bse`>                                # alias for if.move.noeffect.goto
+[BPRE_BPGE] jumpifbattletype       2B 04 4C 2B 02 02 param:: ptr<`bse`>                           # alias for if.battle.type.goto
+[BPRE_BPGE] jumpifnotbattletype    2B 05 4C 2B 02 02 param:: ptr<`bse`>                           # alias for if.not.battle.type.goto
+[BPEE] setstatchanger              2E 8E 44 02 02 stat.bs_statchanger                             # alias for set.stat.changer
+[BPEE] setmoveeffect               2E 35 43 02 02 effect.bs_moveeffects                           # alias for set.move.effect
+[BPEE] jumpifmove                  2A 00 EA 41 02 02 move:data.pokemon.moves.names ptr<`bse`>     # alias for if.move.goto
+[BPEE] jumpifnotmove               2A 01 EA 41 02 02 move:data.pokemon.moves.names ptr<`bse`>     # alias for if.not.move.goto
+[BPEE] jumpifmovehadnoeffect       29 04 7C 42 02 02 29 ptr<`bse`>                                # alias for if.move.noeffect.goto
+[BPEE] jumpifbattletype            2B 04 EC 2F 02 02 param:: ptr<`bse`>                           # alias for if.battle.type.goto
+[BPEE] jumpifnotbattletype         2B 05 EC 2F 02 02 param:: ptr<`bse`>                           # alias for if.not.battle.type.goto
+
+# moveend macros
+[AXPE_AXVE] moveend.all       2E 0C 60 01 02 00 49 00 00       # does all cases for moveend
+[AXPE_AXVE] moveend.case      2E 0C 60 01 02 case. 49 01 00    # does a specific case for moveend
+[AXPE_AXVE] moveend.from      2E 0C 60 01 02 from. 49 00 00    # does all cases from a specific point for moveend
+[AXPE_AXVE] moveend.to        2E 0C 60 01 02 00 49 02 to.      # does all cases up to a specific point for moveend
+[AXPE_AXVE] moveend.from.to   2E 0C 60 01 02 from. 49 02 to.   # does all cases from and up to specific points for moveend
+[BPRE_BPGE] moveend.all       2E D8 3F 02 02 00 49 00 00       # does all cases for moveend
+[BPRE_BPGE] moveend.case      2E D8 3F 02 02 case. 49 01 00    # does a specific case for moveend
+[BPRE_BPGE] moveend.from      2E D8 3F 02 02 from. 49 00 00    # does all cases from a specific point for moveend
+[BPRE_BPGE] moveend.to        2E D8 3F 02 02 00 49 02 to.      # does all cases up to a specific point for moveend
+[BPRE_BPGE] moveend.from.to   2E D8 3F 02 02 from. 49 02 to.   # does all cases from and up to specific points for moveend
+[BPEE] moveend.all            2E 88 44 02 02 00 49 00 00       # does all cases for moveend
+[BPEE] moveend.case           2E 88 44 02 02 case. 49 01 00    # does a specific case for moveend
+[BPEE] moveend.from           2E 88 44 02 02 from. 49 00 00    # does all cases from a specific point for moveend
+[BPEE] moveend.to             2E 88 44 02 02 00 49 02 to.      # does all cases up to a specific point for moveend
+[BPEE] moveend.fromto         2E 88 44 02 02 from. 49 02 to.   # does all cases from and up to specific points for moveend
+
+# decomp names for moveend macros
+[AXPE_AXVE] moveendall       2E 0C 60 01 02 00 49 00 00      # alias for moveend.all
+[AXPE_AXVE] moveendcase      2E 0C 60 01 02 case. 49 01 00   # alias for moveend.case
+[AXPE_AXVE] moveendfrom      2E 0C 60 01 02 from. 49 00 00   # alias for moveend.from
+[AXPE_AXVE] moveendto        2E 0C 60 01 02 00 49 02 to.     # alias for moveend.to
+[AXPE_AXVE] moveendfromto    2E 0C 60 01 02 from. 49 02 to.  # alias for moveend.fromto
+[BPRE_BPGE] moveendall       2E D8 3F 02 02 00 49 00 00      # alias for moveend.all
+[BPRE_BPGE] moveendcase      2E D8 3F 02 02 case. 49 01 00   # alias for moveend.case
+[BPRE_BPGE] moveendfrom      2E D8 3F 02 02 from. 49 00 00   # alias for moveend.from
+[BPRE_BPGE] moveendto        2E D8 3F 02 02 00 49 02 to.     # alias for moveend.to
+[BPRE_BPGE] moveendfromto    2E D8 3F 02 02 from. 49 02 to.  # alias for moveend.fromto
+[BPEE] moveendall            2E 88 44 02 02 00 49 00 00      # alias for moveend.all
+[BPEE] moveendcase           2E 88 44 02 02 case. 49 01 00   # alias for moveend.case
+[BPEE] moveendfrom           2E 88 44 02 02 from. 49 00 00   # alias for moveend.from 
+[BPEE] moveendto             2E 88 44 02 02 00 49 02 to.     # alias for moveend.to
+[BPEE] moveendfromto         2E 88 44 02 02 from. 49 02 to.  # alias for moveend.fromto
+
+# various macros
+cancel.multi.turn.moves                 76 battler.bs_battlers 00       # Cancels any multi-turn moves prematurely for the battler
+set.magiccoat.target                    76 battler.bs_battlers 01       # Sets the target of a move if bounced back by Magic Bounce based on battler
+get.cant.run                            76 01 02                        # Checks if player cannot run and puts result in gBattleCommunication
+get.move.target                         76 01 03                        # Sets the target of a move to the normal target(s) of gCurrentMove
+get.battler.fainted                     76 battler.bs_battlers 04       # Checks if the battler is fainted and puts result in gBattleCommunication
+reset.intimidate.trace.bits             76 battler.bs_battlers 05       # Resets intimidate and trace statuses for the battler
+update.choice.move.lvlup                76 battler.bs_battlers 06       # Resets the locked move from choice items if overwritten on level-up
+[BPRE_BPGE_BPEE] reset.player.fainted   76 01 07                        # Resets player fainted bit for regular trainer battles
+[BPRE_BPGE] get.battlers.recall         76 01 08                        # Checks trainers lost to in the Trainer Tower for FRLG
+[BPRE_BPGE] return.foe.mon1.ball        76 01 09                        # Returns foe's first (only in singles) mon to trainer visually
+[BPRE_BPGE] return.foe.mon2.ball        76 01 0A                        # Returns foe's second (if any) mon to trainer visually
+[BPRE_BPGE] check.pokeflute             76 01 0B                        # Checks any mon affected by the Pokeflute on the field and in both fields' parties?
+[BPRE_BPGE] wait.fanfare                76 01 0C                        # Blocks script execution until any playing fanfare finishes
+[BPEE] palace.flavor.text               76 battler.bs_battlers 08       # Grabs specific Palace flavor text if possible and puts resulting index in gBattleCommunication[MULTISTRING_CHOOSER]
+[BPEE] arena.judgment.window            76 01 09                        # Shows the judgement window for Arena battles
+[BPEE] arena.foe.mon.lost               76 01 0A                        # Sets foe mon to lose in an arena battle
+[BPEE] arena.player.mon.lost            76 01 0B                        # Sets player mon to lose in an arena battle
+[BPEE] arena.both.mon.lost              76 01 0C                        # Sets both foe and player mons to lose in a draw in an arena battle
+[BPEE] forfeit.yesno.box                76 battler.bs_battlers 0D       # Pulls up a yes/no box that is only used in forfeiting a match in the Battle Frontier
+[BPEE] arena.show.ref.textbox           76 01 0E                        # Shows the arena reference textbox in Arena battles
+[BPEE] arena.hide.ref.textbox           76 01 0F                        # Hides the arena reference textbox in Arena battles
+[BPEE] arena.judgment.string            76 id. 10                       # Prints specific judgement string for Arena battles
+[BPEE] arena.wait.message               76 id. 11                       # Waits until specific judgement string is done printing
+[BPEE] wait.cry                         76 01 12                        # Halts script execution until cry is over
+[BPEE] return.foe.mon1.ball             76 01 13                        # Returns foe's first (only in singles) mon to trainer visually
+[BPEE] return.foe.mon2.ball             76 01 14                        # Returns foe's second (if any) mon to trainer visually
+[BPEE] volume.down                      76 01 15                        # Sets music volume to a low amount
+[BPEE] volume.up                        76 01 16                        # Sets music volume to the normal amount
+[BPEE] set.already.status.attempt       76 battler.bs_battlers 17       # Sets bit for the battler if using a status-inflicting move on a mon who already has the status
+[BPEE] palace.try.cure.sleep.freeze     76 battler.bs_battlers 18       # Checks if mon in a Battle Palace battle is unable to attack due to sleep/freeze and try to heal those statuses
+[BPEE] set.outcome.teleport             76 battler.bs_battlers 19       # Sets battle outcome to whoever used Teleport for overworld scripting
+[BPEE] play.trainer.defeat.bgm          76 battler.bs_battlers 1A       # Plays the trainer defeat bgm for use with Trainer Tower link battles
+
+# decomp names for various macros
+cancelmultiturnmoves                  76 battler.bs_battlers 00   # alias for cancel.multi.turn.moves
+setmagiccoattarget                    76 battler.bs_battlers 01   # alias for set.magiccoat.target
+getifcantrunfrombattle                76 01 02                    # alias for get.cant.run
+getmovetarget                         76 01 03                    # alias for get.move.target
+getbattlerfainted                     76 battler.bs_battlers 04   # alias for get.battler.fainted
+resetintimidatetracebits              76 battler.bs_battlers 05   # alias for reset.intimidate.trace.bits
+updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for update.choice.move.lvlup
+[BPRE_BPGE_BPEE] resetplayerfainted   76 01 07                    # alias for reset.player.fainted
+[BPRE_BPGE] getbattlersforrecall      76 01 08                    # alias for get.battlers.recall
+[BPRE_BPGE] returnopponentmon1toball  76 01 09                    # alias for return.foe.mon1.ball
+[BPRE_BPGE] returnopponentmon2toball  76 01 0A                    # alias for return.foe.mon2.ball
+[BPRE_BPGE] checkpokeflute            76 01 0B                    # alias for check.pokeflute
+[BPRE_BPGE] waitfanfare               76 01 0C                    # alias for wait.fanfare
+[BPEE] palaceflavortext               76 battler.bs_battlers 08   # alias for palace.flavor.text
+[BPEE] arenajudgmentwindow            76 01 09                    # alias for arena.judgment.window
+[BPEE] arenaopponentmonlost           76 01 0A                    # alias for arena.foe.mon.lost
+[BPEE] arenaplayermonlost             76 01 0B                    # alias for arena.player.mon.lost
+[BPEE] arenabothmonlost               76 01 0C                    # alias for arena.both.mon.lost
+[BPEE] forfeityesnobox                76 battler.bs_battlers 0D   # alias for forfeit.yesno.box
+[BPEE] arenadrawreftextbox            76 01 0E                    # alias for arena.show.ref.textbox
+[BPEE] arenaerasereftextbox           76 01 0F                    # alias for arena.hide.ref.textbox
+[BPEE] arenajudgmentstring            76 id. 10                   # alias for arena.judgment.string
+[BPEE] arenawaitmessage               76 id. 11                   # alias for arena.wait.message
+[BPEE] waitcry                        76 01 12                    # alias for wait.cry
+[BPEE] returnopponentmon1toball       76 01 13                    # alias for return.foe.mon1.ball
+[BPEE] returnopponentmon2toball       76 01 14                    # alias for return.foe.mon2.ball
+[BPEE] volumedown                     76 01 15                    # alias for volume.down
+[BPEE] volumeup                       76 01 16                    # alias for volume.up
+[BPEE] setalreadystatusedmoveattempt  76 battler.bs_battlers 17   # alias for set.already.status.attempt
+[BPEE] palacetryescapestatus          76 battler.bs_battlers 18   # alias for palace.try.cure.sleep.freeze
+[BPEE] setoutcomeonteleport           76 battler.bs_battlers 19   # alias for set.outcome.teleport
+[BPEE] playtrainerdefeatbgm           76 battler.bs_battlers 1A   # alias for play.trainer.defeat.bgm
+
 00 attackcanceler
 01 accuracycheck ptr<`bse`> param1:
 02 attackstring
@@ -17,8 +179,8 @@
 08 adjustnormaldamage2
 09 attackanimation
 0a waitanimation
-0b healthbarupdate battler.
-0c datahpupdate battler.
+0b healthbarupdate battler.bs_battlers
+0c datahpupdate battler.bs_battlers
 0d critmessage
 0e effectivenesssound
 0f resultmessage
@@ -30,17 +192,17 @@
 15 seteffectwithchance
 16 seteffectprimary
 17 seteffectsecondary
-18 clearstatusfromeffect battler.
-19 tryfaintmon battler. fromMove. ptr<>
-1a dofaintanimation battler.
-1b cleareffectsonfaint battler.
-1c jumpifstatus battler. status1:: ptr<`bse`>
-1d jumpifstatus2 battler. status2:: ptr<`bse`>
-1e jumpifability battler. ability.data.abilities.names ptr<`bse`>
-1f jumpifsideaffecting battler. sidestatus: ptr<`bse`>
-20 jumpifstat battler. ifflag.battle_compare stat. value. ptr<`bse`>
-21 jumpifstatus3condition battler. status3:: param2. ptr<`bse`>
-22 jumpiftype battler. type.data.pokemon.type.names ptr<`bse`>
+18 clearstatusfromeffect battler.bs_battlers
+19 tryfaintmon battler.bs_battlers fromMove. ptr<>
+1a dofaintanimation battler.bs_battlers
+1b cleareffectsonfaint battler.bs_battlers
+1c jumpifstatus battler.bs_battlers status1:: ptr<`bse`>
+1d jumpifstatus2 battler.bs_battlers status2:: ptr<`bse`>
+1e jumpifability battler.bs_battlers ability.data.abilities.names ptr<`bse`>
+1f jumpifsideaffecting battler.bs_battlers sidestatus: ptr<`bse`>
+20 jumpifstat battler.bs_battlers ifflag.battle_compare stat.bs_stats value.stat_stages ptr<`bse`>
+21 jumpifstatus3condition battler.bs_battlers status3:: param2. ptr<`bse`>
+22 jumpiftype battler.bs_battlers type.data.pokemon.type.names ptr<`bse`>
 23 getexp battler.
 24 checkteamslost ptr<`bse`>
 25 movevaluescleanup
@@ -65,85 +227,72 @@
 38 bicword ram:: param1::
 39 pause param0:
 3a waitstate
-3b healthbar_update battler.
+3b healthbar_update battler.bs_battlers
 3c return
 3d end
 3e end2
 3f end3
 40 jumpifaffectedbyprotect ptr<`bse`>
 41 call ptr<`bse`>
-42 jumpiftype2 battler. type.data.pokemon.type.names ptr<`bse`>
+42 jumpiftype2 battler.bs_battlers type.data.pokemon.type.names ptr<`bse`>
 43 jumpifabilitypresent ability.data.abilities.names ptr<`bse`>
 44 endselectionscript
-45 playanimation battler. param1. param2::
-46 playanimation2 battler. param1:: param2::
+45 playanimation battler.bs_battlers animation.effectanimations param2::
+46 playanimation_var battler.bs_battlers param1:: param2::
 47 setgraphicalstatchangevalues
-48 playstatchangeanimation battler. param1. param2.
+48 playstatchangeanimation battler.bs_battlers param1.statanimation param2.
 49 moveend param0. param1.
-
-# Help macros for 5 uses of moveend command	
-#XX moveendall               # All cases
-#   moveend 0, 0
-#XX se moveendcase case      # Chosen case
-#   moveend 1, 0
-#XX om moveendfrom from      # All cases from (inclusive)
-#   moveend 0, 0
-#XX moveendto {to}           # All cases from 0 to (not inclusive)
-#   moveend 2, {to}
-#XX om moveendfromto from, {to}    # Cases from (inclusive) to (not inclusive)
-#   moveend 2, {to}
-
 4a typecalc2
 4b returnatktoball
-4c getswitchedmondata battler.
-4d switchindataupdate battler.
-4e switchinanim battler. dontclearsubstitutebit.
-4f jumpifcantswitch battler. ptr<`bse`>
+4c getswitchedmondata battler.bs_battlers
+4d switchindataupdate battler.bs_battlers
+4e switchinanim battler.bs_battlers dontclearsubstitutebit.
+4f jumpifcantswitch battler.bs_battlers ptr<`bse`>
 50 openpartyscreen param0. ptr<`bse`>
-51 switchhandleorder battler. param1.
-52 switchineffects battler.
-53 trainerslidein battler.
-54 playse song:
-55 fanfare song:
-56 playfaintcry battler.
+51 switchhandleorder battler.bs_battlers param1.
+52 switchineffects battler.bs_battlers
+53 trainerslidein battler.bs_battlers
+54 playse song:songnames
+55 fanfare song:songnames
+56 playfaintcry battler.bs_battlers
 57 endlinkbattle
-58 returntoball battler.
+58 returntoball battler.bs_battlers
 59 handlelearnnewmove param0<`bse`> param1<`bse`> param2.
 5a yesnoboxlearnmove ptr<`bse`>
 5b yesnoboxstoplearningmove ptr<`bse`>
-5c hitanimation battler.
+5c hitanimation battler.bs_battlers
 [BPRE_BPGE] 5d getmoneyreward ptr<`bse`>
 [BPEE_AXPE_AXVE] 5d getmoneyreward
-5e updatebattlermoves battler.
+5e updatebattlermoves battler.bs_battlers
 5f swapattackerwithtarget
 60 incrementgamestat param0.
-61 drawpartystatussummary battler.
-62 hidepartystatussummary battler.
+61 drawpartystatussummary battler.bs_battlers
+62 hidepartystatussummary battler.bs_battlers
 63 jumptocalledmove param0.
-64 statusanimation battler.
-65 status2animation battler. status2::
-66 chosenstatusanimation battler. param1. param2::
+64 statusanimation battler.bs_battlers
+65 status2animation battler.bs_battlers status2::
+66 chosenstatusanimation battler.bs_battlers param1. param2::
 67 yesnobox
 68 cancelallactions
 69 adjustsetdamage
-6a removeitem battler.
+6a removeitem battler.bs_battlers
 6b atknameinbuff1
 6c drawlvlupbox
 6d resetsentmonsvalue
 6e setatktoplayer0
-6f makevisible battler.
-70 recordlastability battler.
+6f makevisible battler.bs_battlers
+70 recordlastability battler.bs_battlers
 71 buffermovetolearn
 72 jumpifplayerran ptr<`bse`>
-73 hpthresholds battler.
-74 hpthresholds2 battler.
+73 hpthresholds battler.bs_battlers
+74 hpthresholds2 battler.bs_battlers
 75 useitemonopponent
-76 various battler. param1.
+76 various battler.bs_battlers param1.
 77 setprotectlike
-78 faintifabilitynotdamp
+78 tryexplosion
 79 setatkhptozero
 7a jumpifnexttargetvalid ptr<`bse`>
-7b tryhealhalfhealth ptr<`bse`> battler.
+7b tryhealhalfhealth ptr<`bse`> battler.bs_battlers
 7c trymirrormove
 7d setrain
 7e setreflect
@@ -172,7 +321,7 @@
 95 setsandstorm
 96 weatherdamage
 97 tryinfatuating ptr<`bse`>
-98 updatestatusicon battler.
+98 updatestatusicon battler.bs_battlers
 99 setmist
 9a setfocusenergy
 9b transformdataexecution
@@ -200,7 +349,7 @@ b0 trysetspikes ptr<`bse`>
 b1 setforesight
 b2 trysetperishsong ptr<`bse`>
 b3 rolloutdamagecalculation
-b4 jumpifconfusedandstatmaxed stat. ptr<`bse`>
+b4 jumpifconfusedandstatmaxed stat.bs_stats ptr<`bse`>
 b5 furycuttercalc
 b6 happinesstodamagecalculation
 b7 presentdamagecalculation
@@ -242,12 +391,12 @@ da tryswapabilities ptr<`bse`>
 db tryimprison ptr<`bse`>
 dc trysetgrudge ptr<`bse`>
 dd weightdamagecalculation
-de assistattackselect ptr<>
+de assistattackselect ptr<`bse`>
 df trysetmagiccoat ptr<`bse`>
 e0 trysetsnatch ptr<`bse`>
 e1 trygetintimidatetarget ptr<`bse`>
-e2 switchoutabilities battler.
-e3 jumpifhasnohp battler. ptr<`bse`>
+e2 switchoutabilities battler.bs_battlers
+e3 jumpifhasnohp battler.bs_battlers ptr<`bse`>
 e4 getsecretpowereffect
 e5 pickup
 e6 docastformchangeanimation
@@ -268,45 +417,9 @@ f4 subattackerhpbydmg
 f5 removeattackerstatus1
 f6 finishaction
 f7 finishturn
-[BPEE] f8 trainerslideout battler.
-
-# various command changed to more readable macros
-#XX cancelmultiturnmoves {battler}
-#	various {battler} 0
-#XX setmagiccoattarget {battler}
-#	various {battler} 1
-#XX getifcantrunfrombattle {battler}
-#	various {battler} 2
-#XX getmovetarget {battler}
-#	various {battler} 3
-#XX various4 {battler}
-#	various {battler} 4
-#XX resetintimidatetracebits {battler}
-#	various {battler} 5
-#XX updatechoicemoveonlvlup {battler}
-#	various {battler} 6
-#XX various7 {battler}
-#	various {battler} 7
-#XX various8 {battler}
-#	various {battler} 8
-#XX returnopponentmon1toball {battler}
-#	various {battler} 9
-#XX returnopponentmon2toball {battler}
-#	various {battler} 10
-#XX checkpokeflute {battler}
-#	various {battler} 11
-#XX waitfanfare {battler}
-#	various {battler} 12
+[BPEE] f8 trainerslideout battler.bs_battlers
 
 # helpful macros
-#XX setstatchanger {stat} {stages} {down}
-#	setbyte sSTATCHANGER {stat} | {stages} << 4 | {down} << 7
-#XX setmoveeffect {effect}
-#	setbyte cEFFECT_CHOOSER {effect}
-#XX chosenstatus1animation {battler} {status}
-#	chosenstatusanimation {battler} 0x0 {status}
-#XX chosenstatus2animation {battler} {status}
-#	chosenstatusanimation {battler} 0x1 {status}
 #XX sethword {dst} {value}
 #	setbyte {dst} {value} & 0xFF
 #	setbyte {dst} + 1 ({value} >> 8) & 0xFF
@@ -325,17 +438,3 @@ f7 finishturn
 #	jumpifarraynotequal {byte1} {byte2} 1 {jumpptr}
 #XX jumpifbyteequal {byte1} {byte2} {jumpptr}
 #	jumpifarrayequal {byte1} {byte2} 1 {jumpptr}
-#XX jumpifmove {move} {jumpptr}
-#	jumpifhalfword CMP_EQUAL gCurrentMove {move} {jumpptr}
-#XX jumpifnotmove {move} {jumpptr}
-#	jumpifhalfword CMP_NOT_EQUAL gCurrentMove {move} {jumpptr}
-#XX jumpifstatus3 {battler} {status} {jumpptr}
-#	jumpifstatus3condition {battler} {status} 0 {jumpptr}
-#XX jumpifnostatus3 {battler} {status} {jumpptr}
-#	jumpifstatus3condition {battler} {status} 1 {jumpptr}
-#XX jumpifmovehadnoeffect {jumpptr}
-#	jumpifbyte CMP_COMMON_BITS gMoveResultFlags MOVE_RESULT_NO_EFFECT {jumpptr}
-#XX jumpifbattletype {flags} {jumpptr}
-#	jumpifword CMP_COMMON_BITS gBattleTypeFlags {flags} {jumpptr}
-#XX jumpifnotbattletype {flags} {jumpptr}
-#	jumpifword CMP_NO_COMMON_BITS gBattleTypeFlags {flags} {jumpptr}

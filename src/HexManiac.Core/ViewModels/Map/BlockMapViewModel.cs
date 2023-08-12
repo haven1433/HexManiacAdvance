@@ -1130,8 +1130,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                for (int yy = 0; yy < h; yy++) {
                   if (x + xx < 0 || y + yy < 0 || x + xx >= width || y + yy >= height) continue;
                   var address = start + ((yy + y) * width + xx + x) * 2;
-                  var block = blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
-                  if (model.ReadMultiByteValue(address, 2) != block) {
+                  var block = blockValues == null ? -1 : blockValues[xx % blockValues.GetLength(0), yy % blockValues.GetLength(1)];
+                  if (block == -1 && collisionHighlight >= 0) {
+                     var existingBlock = (model.ReadMultiByteValue(address, 2) & 0x3F);
+                     block = (existingBlock | (collisionHighlight << 10));
+                  }
+                  if (block != -1 && model.ReadMultiByteValue(address, 2) != block) {
                      model.WriteMultiByteValue(address, 2, futureToken(), block);
                      changeCount++;
                   }
