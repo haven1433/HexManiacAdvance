@@ -2,6 +2,7 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -1355,7 +1356,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             changeToken.AddRun(runs[index]);
          } else if (index < 0) {
             // the pointer points to a location between existing runs
-            IFormattedRun newRun = new NoInfoRun(destination, new SortedSpan<int>(start));
+            var sources = new SortedSpan<int>(start);
+            sources = sources.Add(SearchForPointersInTables(changeToken, destination));
+            IFormattedRun newRun = new NoInfoRun(destination, sources);
             if (includeFormatting) {
                UpdateNewRunFromPointerFormat(ref newRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
             }
@@ -2434,7 +2437,27 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
-      private SortedSpan<int> SpanFromCache(ModelDelta token, int[] destinations) {
+      private SortedSpan<int> SearchForPointersInTables(ModelDelta changeToken, int address){
+         if (sourcesForDestinations != null) return SortedSpan<int>.None;
+         var results = new List<int>();
+         lock (threadlock) {
+            foreach (var run in All<ITableRun>()) {
+               int offset = 0;
+               foreach (var seg in run.ElementContent) {
+                  if (seg.Type == ElementContentType.Pointer) {
+                     for (int i = 0; i < run.ElementCount; i++) {
+                        var source = run.Start + i * run.ElementLength + offset;
+                        if (ReadPointer(source) == address) results.Add(source);
+                     }
+                  }
+                  offset += seg.Length;
+               }
+            }
+         }
+         return new SortedSpan<int>(results);
+      }
+
+      private SortedSpan<int> SpanFromCache(ModelDelta token, params int[] destinations) {
          var results = SortedSpan<int>.None;
          foreach (var destination in destinations) {
             if (sourcesForDestinations.TryGetValue(destination, out var sources)) results = results.Add(sources);

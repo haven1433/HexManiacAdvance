@@ -45,6 +45,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var allowLengthErrors = pageSplit[0].EndsWith("!");
          if (allowLengthErrors) pageSplit[0] = pageSplit[0].Substring(0, pageSplit[0].Length - 1);
          if (!int.TryParse(pageSplit[0], out var bits)) return false;
+         if (!bits.IsAny(1, 2, 4, 8)) return false;
          int pages = 1, pageStart = 0;
          if (pageSplit.Length == 2) {
             var lastPageID = pageSplit[1].ToUpper().LastOrDefault();

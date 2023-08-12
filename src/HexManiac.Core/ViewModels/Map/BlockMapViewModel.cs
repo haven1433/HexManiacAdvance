@@ -836,21 +836,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var matchingWarp0 = mapWarps[warps[0].WarpID];
                warpIsAgainstWall = matchingWarp0.Y == map0.Layout.Height - 1;
                if (warpIsAgainstWall) {
-                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Tile;
-                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Tile;
-                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Tile;
+                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y - 1].Block;
+                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y - 1].Block;
+                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y - 1].Block;
 
-                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Block;
+                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Block;
+                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Block;
                } else {
-                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Tile;
-                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Tile;
-                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Tile;
+                  blockMap[3, 7] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y].Block;
+                  blockMap[4, 7] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y].Block;
+                  blockMap[5, 7] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y].Block;
 
-                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Tile;
-                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Tile;
-                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Tile;
+                  blockMap[3, 8] = map0.Blocks[matchingWarp0.X - 1, matchingWarp0.Y + 1].Block;
+                  blockMap[4, 8] = map0.Blocks[matchingWarp0.X, matchingWarp0.Y + 1].Block;
+                  blockMap[5, 8] = map0.Blocks[matchingWarp0.X + 1, matchingWarp0.Y + 1].Block;
                }
             }
          }
