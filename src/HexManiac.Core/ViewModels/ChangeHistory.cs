@@ -71,7 +71,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
 
-      public bool IsSaved => undoStackSizeAtSaveTag == undoStack.Count && currentChange == null;
+      public bool IsSaved {
+         get {
+            return undoStackSizeAtSaveTag == undoStack.Count && (currentChange == null || !currentChange.HasAnyChange);
+         }
+      }
 
       public bool HasDataChange {
          get {
