@@ -70,6 +70,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel ObjectTemplateImage { get; private set; }
 
+      public IReadOnlyList<IPixelViewModel> OverworldGraphics { get; private set; }
+
       public EventTemplate(IWorkDispatcher dispatcher, IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
          (this.model, this.parser) = (model, parser);
          RefreshLists(owGraphics);
@@ -95,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
+         OverworldGraphics = owGraphics;
          AvailableTemplateTypes.Clear();
          AvailableTemplateTypes.Add(TemplateType.None);
          AvailableTemplateTypes.Add(TemplateType.Npc);

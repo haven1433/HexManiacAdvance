@@ -381,15 +381,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool IsValidState { get; private set; }
 
-      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, out MapEditorViewModel editor) {
+      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, EventTemplate templates, out MapEditorViewModel editor) {
          editor = null;
          var maps = viewPort.Model.GetTable(HardcodeTablesModel.MapBankTable);
          if (maps == null) return false;
-         editor = new MapEditorViewModel(fileSystem, viewPort, singletons, tutorials);
+         editor = new MapEditorViewModel(fileSystem, viewPort, singletons, tutorials, templates);
          return editor.IsValidState;
       }
 
-      private MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials) {
+      private MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, EventTemplate eventTemplate) {
          (this.fileSystem, this.viewPort) = (fileSystem, viewPort);
          (this.singletons, Tutorials) = (singletons, tutorials);
          (model, history) = (viewPort.Model, viewPort.ChangeHistory);
@@ -401,9 +401,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryBlocks = PrimaryTiles;
          this.format = new Format(model);
 
-         var owSprites = BlockMapViewModel.RenderOWs(model);
-         templates = new(singletons.WorkDispatcher, model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
-         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = owSprites };
+         templates = eventTemplate;
+         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = eventTemplate.OverworldGraphics };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
 
