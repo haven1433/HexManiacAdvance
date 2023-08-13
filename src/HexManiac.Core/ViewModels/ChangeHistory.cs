@@ -68,7 +68,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          currentChange = token;
          currentChange.OnNewChange += OnCurrentTokenDataChanged;
          ClearRedoStack();
-         if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
 
       public bool IsSaved {
