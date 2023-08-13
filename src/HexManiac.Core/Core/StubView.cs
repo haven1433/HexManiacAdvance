@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -31,6 +32,11 @@ namespace HavenSoft.HexManiac.Core {
                   continue;
                } else if (ev.EventHandlerType == typeof(PropertyChangedEventHandler)) {
                   ev.AddEventHandler(viewModel, (PropertyChangedEventHandler)((sender, e) => {
+                     EventNotifications.Add(closureCapture.Name);
+                  }));
+                  continue;
+               } else if (ev.EventHandlerType == typeof(NotifyCollectionChangedEventHandler)) {
+                  ev.AddEventHandler(viewModel, (NotifyCollectionChangedEventHandler)((sender, e) => {
                      EventNotifications.Add(closureCapture.Name);
                   }));
                   continue;
