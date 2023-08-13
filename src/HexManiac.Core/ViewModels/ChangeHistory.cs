@@ -160,8 +160,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var hasDataChange = HasDataChange;
          if (hasDataChange != hasDataChangeCache) {
             hasDataChangeCache = hasDataChange;
-            NotifyPropertyChanged(nameof(HasDataChange));
+            NotifyPropertyChanged(nameof(HasDataChange), nameof(IsSaved));
          }
+         if (!hasDataChange && currentChange.HasAnyChange) NotifyPropertyChanged(nameof(IsSaved));
       }
 
       private void UndoExecuted() {
