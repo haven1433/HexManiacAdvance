@@ -34,11 +34,11 @@
     <None Include="Scripts\Patches\Emerald_StevenTeamNaturesFix.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Patches\FRLG_AllowEvolutionWithoutNationalDex.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Patches\RSE_RemoveContestMovesTab.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_callasmBattleScriptCommand.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeBattleOdds.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeNatureStats.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\Emerald_ExpandStarters.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\RS_AddProfessorPokemonConstants.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
-    <None Include="Scripts\Update Existing Mechanics\RS_FRLG_callasmBattleScriptCommand.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\AnyGame_ItemEffectToChangeSecondaryTypes.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\_Using_HMA_Scripts.txt"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     
