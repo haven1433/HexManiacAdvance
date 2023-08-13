@@ -1326,11 +1326,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var receiveSprite = fronts[receive].Render("sprite");
             giveSprite = ReadonlyPixelViewModel.Crop(giveSprite, 0, 0, 32, 32);
             tips.Add(ReadonlyPixelViewModel.Render(receiveSprite, giveSprite, 32, 32));
-            // var transparent = new short[88 * 88]; for (int i = 0; i < transparent.Length; i++) transparent[i] = 0;
-            //var combined = new CanvasPixelViewModel(88, 88) { Transparent = 0 };
-            //combined.Draw(giveSprite, 0, 0);
-            //combined.Draw(receiveSprite, 24, 24);
-            //tips.Add(new ReadonlyPixelViewModel(88, 88, combined.PixelData, 0)); // only ReadOnlyPixelViewModel gets the 'true' transparency effect
          }
 
          foreach (var spot in scriptSpots) {
@@ -1355,7 +1350,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
-            } else if (model[spot.Address] == 0x1A && model[spot.Address + 1] == 0x00 && model[spot.Address + 2] == 0x80 && itemStats != null) {
+            } else if (model[spot.Address] == 0x1A && model[spot.Address + 1] == 0x00 && model[spot.Address + 2] == 0x80 && itemStats != null && itemSprites != null) {
                // copyvarifnotzero (item), likely give.item macro
                var itemAddress = spot.Address + 3;
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
@@ -1432,7 +1427,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var pokemonID = model.ReadMultiByteValue(spot.Address + 1, 2);
                var pokemon = fronts[pokemonID].Render("sprite");
                if (pokemon != null) tips.Add(pokemon);
-            } else if (model[spot.Address] == 0x44) { // additem
+            } else if (model[spot.Address] == 0x44 && itemSprites != null) { // additem
                var itemID = model.ReadMultiByteValue(spot.Address + 1, 2);
                var item = itemSprites[itemID].Render("sprite");
                if (item != null) tips.Add(item);

@@ -1028,7 +1028,7 @@ end
       public void CreateHMObject(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
          var scriptStart = AllMapsModel.Create(model, default)
             .SelectMany(bank => bank)
-            .SelectMany(map => map.Events.Objects)
+            .SelectMany(map => map?.Events.Objects ?? new())
             .Where(obj => obj.Graphics == trainerGraphics)
             .Select(obj => obj.ScriptAddress)
             .ToHistogram()

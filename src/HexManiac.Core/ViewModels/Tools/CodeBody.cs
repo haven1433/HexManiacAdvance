@@ -100,12 +100,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var context = SplitCurrentLine();
          var lineContent = context.Line.Substring(0, context.Index) + newContent;
          var line = parser.FirstMatch(lineContent.Trim());
-         if (line.ErrorCheck(lineContent, out var _) != null) newContent += " ";
-         content.Append(newContent);
+         if (line != null) {
+            if (line.ErrorCheck(lineContent, out var _) != null) newContent += " ";
+            content.Append(newContent);
 
-         content.Append(afterContent);
-         SaveCaret(newContent.Length);
-         Content = content.ToString();
+            content.Append(afterContent);
+            SaveCaret(newContent.Length);
+            Content = content.ToString();
+         }
          Editor.FocusKeyboard();
       }
 
@@ -117,13 +119,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var newContent = $"0x{variable:X4}";
          var context = SplitCurrentLine();
          var lineContent = context.Line.Substring(0, context.Index) + newContent;
-         var line = parser.FirstMatch(lineContent);
-         if (line.ErrorCheck(lineContent, out var _) != null) newContent += " ";
-         content.Append(newContent);
+         var line = parser.FirstMatch(lineContent.Trim());
+         if (line != null) {
+            if (line.ErrorCheck(lineContent, out var _) != null) newContent += " ";
+            content.Append(newContent);
 
-         content.Append(afterContent);
-         SaveCaret(newContent.Length);
-         Content = content.ToString();
+            content.Append(afterContent);
+            SaveCaret(newContent.Length);
+            Content = content.ToString();
+         }
          Editor.FocusKeyboard();
       }
 
