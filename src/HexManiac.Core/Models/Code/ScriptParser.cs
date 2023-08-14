@@ -468,7 +468,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var deferredContent = new List<DeferredStreamToken>();
          int adjustCaret = InsertMissingClosers(ref script, caret);
          caret += adjustCaret;
-         var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
+         var lines = script.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
             .ToArray();
          var result = new List<byte>();
