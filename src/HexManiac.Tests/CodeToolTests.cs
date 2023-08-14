@@ -471,10 +471,11 @@ pokemart <auto>
 
          var run = Model.GetNextRun(6);
          Assert.IsAssignableFrom<ITableRun>(run);
-         Assert.Equal(1, Model.ReadMultiByteValue(6, 2));
-         Assert.Equal(2, Model.ReadMultiByteValue(8, 2));
-         Assert.Equal(3, Model.ReadMultiByteValue(10, 2));
-         Assert.Equal(0, Model.ReadMultiByteValue(12, 2));
+         Assert.Equal(0, Model.ReadMultiByteValue(6, 2)); // alignment
+         Assert.Equal(1, Model.ReadMultiByteValue(8, 2));
+         Assert.Equal(2, Model.ReadMultiByteValue(10, 2));
+         Assert.Equal(3, Model.ReadMultiByteValue(12, 2));
+         Assert.Equal(0, Model.ReadMultiByteValue(14, 2));
       }
 
       [Fact]
