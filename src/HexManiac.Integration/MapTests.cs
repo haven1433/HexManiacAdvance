@@ -213,5 +213,12 @@ namespace HavenSoft.HexManiac.Integration {
          map.PrimaryUp(0, 0);
          // no crash = pass
       }
+
+      [SkippableFact]
+      public void FireRed_DuplicateMapTab_SameTemplate() {
+         var firered = LoadFireRed();
+         var dup = firered.CreateDuplicate();
+         Assert.Same(firered.MapEditor.Templates, dup.MapEditor.Templates);
+      }
    }
 }

@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return new MapBankModel(bank, index);
          }
       }
-      public int Count => Table.Count;
+      public int Count => Table?.Count ?? 0;
 
       private IEnumerable<MapBankModel> Enumerate() {
          for (int i = 0; i < Count; i++) yield return this[i];

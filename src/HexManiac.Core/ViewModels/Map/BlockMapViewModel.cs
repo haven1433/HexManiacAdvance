@@ -1763,7 +1763,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             ViewPort.Tools.SpriteTool.SpriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
             ViewPort.Tools.SpriteTool.PaletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
          }
-         ViewPort.OpenImageEditorTab(ViewPort.Tools.SpriteTool.SpriteAddress, 0, 0, 16);
+
+         var newTab = new ImageEditorViewModel(ViewPort.ChangeHistory, this.model, ViewPort.Tools.SpriteTool.SpriteAddress, ViewPort.Save, ViewPort.Tools.SpriteTool.PaletteAddress);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         ViewPort.MapEditor.RaiseRequestTabChange(args);
+
+         if (newTab.CanEditTilesetWidth) {
+            newTab.CurrentTilesetWidth = 16.LimitToRange(newTab.MinimumTilesetWidth, newTab.MaximumTilesetWidth);
+         }
       }
 
       public ObjectEventViewModel CreateObjectEvent(int graphics, int scriptAddress) {
@@ -2098,7 +2105,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
                var collision = data >> 10;
                data &= 0x3FF;
-               if (blockRenders.Count > data) canvas.Draw(blockRenders[data], x * 16, y * 16);
+               lock (blockRenders) {
+                  if (blockRenders.Count > data) canvas.Draw(blockRenders[data], x * 16, y * 16);
+               }
                if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
                if (collisionHighlight == -1 && selectedEvent is ObjectEventViewModel obj && obj.ShouldHighlight(x - border.West, y - border.North)) {
                   HighlightCollision(canvas.PixelData, x * 16, y * 16);
@@ -2191,7 +2200,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             for (int x = 0; x < width; x++) {
                var data = model.ReadMultiByteValue(start + (y * width + x) * 2, 2);
                data &= 0x3FF;
-               canvas.Draw(blockRenders[data], x * 16, y * 16);
+               lock (blockRenders) {
+                  if (!data.InRange(0, blockRenders.Count)) continue; // can't draw this block. Transient race condition?
+                  canvas.Draw(blockRenders[data], x * 16, y * 16);
+               }
             }
          }
 

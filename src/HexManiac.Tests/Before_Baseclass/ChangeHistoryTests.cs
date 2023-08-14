@@ -496,5 +496,28 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(3, recentChanges.Count);
       }
+
+      [Fact]
+      public void DataChange_Name_ContainsAstrisk() {
+         var view = new StubView(ViewPort);
+
+         ViewPort.Edit("03");
+
+         Assert.EndsWith("*", ViewPort.Name);
+         Assert.True(ViewPort.ChangeHistory.HasDataChange);
+         Assert.Contains(nameof(ViewPort.Name), view.PropertyNotifications);
+         Assert.Contains(nameof(ViewPort.Save), view.CommandCanExecuteChangedNotifications);
+      }
+
+      [Fact]
+      public void NonDataChange_Name_NoAstrisk() {
+         var view = new StubView(ViewPort);
+
+         ViewPort.Edit("^test ");
+
+         Assert.False(ViewPort.Name.EndsWith("*"));
+         Assert.False(ViewPort.ChangeHistory.HasDataChange);
+         Assert.Contains(nameof(ViewPort.Save), view.CommandCanExecuteChangedNotifications);
+      }
    }
 }

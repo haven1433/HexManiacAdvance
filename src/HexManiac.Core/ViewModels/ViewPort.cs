@@ -814,7 +814,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool CanDuplicate => true;
       public IEditableViewPort CreateDuplicate() {
-         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history, mapper?.Templates);
          child.selection.GotoAddress(scroll.DataIndex);
          return child;
       }
@@ -1011,7 +1011,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort() : this(new LoadedFile(string.Empty, new byte[0])) { }
 
-      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null) {
+      public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null, EventTemplate eventTemplate = null) {
          Singletons = singletons ?? new Singletons();
          PythonTool = pythonTool;
          ownsHistory = changeHistory == null;
@@ -1063,12 +1063,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          InitializationWorkload = model.InitializationWorkload.ContinueWith(task => {
             var firstViewPort = changeHistory == null;
             if (firstViewPort) {
+               if (eventTemplate == null) eventTemplate = new EventTemplate(singletons?.WorkDispatcher ?? InstantDispatch.Instance, Model, Tools.CodeTool.ScriptParser, BlockMapViewModel.RenderOWs(Model));
                CascadeScripts();
                ValidateMatchedWords();
             }
             dispatcher.DispatchWork(RefreshBackingData); // this work must be done on the UI thread
             if (fs != null) {
-               if (MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, out mapper)) {
+               if (MapEditorViewModel.TryCreateMapEditor(fs, this, singletons, tutorials, eventTemplate, out mapper)) {
                   Tools.CodeTool.Investigator = mapper.Templates;
                } else {
                   mapper = null;
@@ -1746,7 +1747,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenInNewTab(int destination) {
-         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history);
+         var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history, mapper?.Templates);
          child.selection.GotoAddress(destination);
          RequestTabChange?.Invoke(this, new(child));
       }
