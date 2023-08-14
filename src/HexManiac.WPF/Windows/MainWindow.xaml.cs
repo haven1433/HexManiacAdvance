@@ -451,7 +451,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             TabContainer.ColumnDefinitions[1].Width = ViewModel.ShowAutomationPanel ? new GridLength(1) : new GridLength(0);
             TabContainer.ColumnDefinitions[2].Width = ViewModel.ShowAutomationPanel ? new GridLength(300) : new GridLength(0);
             if (ViewModel.ShowAutomationPanel) {
-               FocusTextBox(PythonTool.InputBox);
+               FocusTextBox(PythonTool.InputBox.TransparentLayer);
             } else {
                FocusPrimaryContent();
             }

@@ -13,8 +13,8 @@
       <Button Command="{hmar:MethodCommand Close}" Width="20" Height="20" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,-20,0,0">
          <Path Data="{hmar:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
       </Button>
-      <TextBox Name="InputBox" Grid.Row="0" Margin="5" Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" VerticalScrollBarVisibility="Visible"
-               AcceptsReturn="True" PreviewKeyDown="PythonTextKeyDown" PreviewMouseWheel="ChangeInputTextSize" />
+      <local:TextEditor x:Name="InputBox" Grid.Row="0" Margin="5" DataContext="{Binding PythonEditor}"
+               PreviewKeyDown="PythonTextKeyDown" PreviewMouseWheel="ChangeInputTextSize" />
       <local:AngleButton HorizontalAlignment="Right" Margin="10,0" Grid.Row="1" Content="Run" Direction="Out" Height="24" Command="{hmar:MethodCommand RunPython}"/>
       <TextBox Grid.Row="2" Margin="5" Text="{Binding ResultText}" FontFamily="Consolas" VerticalScrollBarVisibility="Visible"
                IsReadOnly="True" TextWrapping="Wrap" BorderThickness="0" Background="{DynamicResource Background}" />
