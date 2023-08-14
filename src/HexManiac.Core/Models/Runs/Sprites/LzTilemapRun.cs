@@ -88,6 +88,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (!bits.IsAny(1, 2, 4, 8)) return false;
          if (!int.TryParse(parts[1], out int width)) return false;
          if (!int.TryParse(parts[2], out int height)) return false;
+         if (width < 0 || height < 0) return false;
+         if (width > 100 || height > 100) return false;
 
          tilemapFormat = new TilemapFormat(bits, width, height, hint, tableMember);
          return true;

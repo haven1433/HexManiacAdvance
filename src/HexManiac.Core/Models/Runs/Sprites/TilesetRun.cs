@@ -60,6 +60,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (split.Length < 2 || split.Length > 3) return false;
          if (!int.TryParse(split[0], out int bits) || !int.TryParse(split[1], out int tiles)) return false;
          if (!bits.IsAny(1, 2, 4, 8)) return false;
+         if (tiles < 0 || tiles > 2048) return false;
          var maxTiles = -1;
          if (split.Length == 3 && !int.TryParse(split[2], out maxTiles)) return false;
          tilesetFormat = new TilesetFormat(bits, tiles, maxTiles, hint);
