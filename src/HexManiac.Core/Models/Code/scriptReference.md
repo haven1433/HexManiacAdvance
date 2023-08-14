@@ -93,18 +93,18 @@ braillelength `pointer`
 ## bufferattack
 bufferattack `buffer` `move`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `move` from data.pokemon.moves.names
 ```
-  # species, party, item, decoration, and move can all be literals or variables
+  # Species, party, item, decoration, and move can all be literals or variables
 ```
 
 ## bufferboxname
 bufferboxname `buffer` `box`
   Only available in BPRE BPGE BPEE
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `box` is a number.
 ```
@@ -115,7 +115,7 @@ bufferboxname `buffer` `box`
 buffercontesttype `buffer` `contest`
   Only available in BPEE
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `contest` is a number.
 ```
@@ -125,14 +125,14 @@ buffercontesttype `buffer` `contest`
 ## bufferdecoration
 bufferdecoration `buffer` `decoration`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `decoration` is a number.
 
 ## bufferfirstPokemon
 bufferfirstPokemon `buffer`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 ```
   # Species of your first pokemon gets stored in the given buffer
 ```
@@ -140,7 +140,7 @@ bufferfirstPokemon `buffer`
 ## bufferitem
 bufferitem `buffer` `item`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `item` from data.items.stats
 ```
@@ -151,7 +151,7 @@ bufferitem `buffer` `item`
 bufferitems2 `buffer` `item` `quantity`
   Only available in BPRE BPGE
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `item` is a number.
 
@@ -164,7 +164,7 @@ bufferitems2 `buffer` `item` `quantity`
 bufferitems2 `buffer` `item` `quantity`
   Only available in BPEE
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `item` from data.items.stats
 
@@ -176,7 +176,7 @@ bufferitems2 `buffer` `item` `quantity`
 ## buffernumber
 buffernumber `buffer` `number`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `number` is a number.
 ```
@@ -186,7 +186,7 @@ buffernumber `buffer` `number`
 ## bufferpartyPokemon
 bufferpartyPokemon `buffer` `party`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `party` is a number.
 ```
@@ -196,17 +196,17 @@ bufferpartyPokemon `buffer` `party`
 ## bufferPokemon
 bufferPokemon `buffer` `species`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `species` from data.pokemon.names
 ```
-  # species can be a literal or variable. Store the name in the given buffer
+  # Species can be a literal or variable. Store the name in the given buffer
 ```
 
 ## bufferstd
 bufferstd `buffer` `index`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `index` is a number.
 ```
@@ -216,7 +216,7 @@ bufferstd `buffer` `index`
 ## bufferstring
 bufferstring `buffer` `pointer`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `pointer` is a pointer.
 ```
@@ -227,7 +227,7 @@ bufferstring `buffer` `pointer`
 buffertrainerclass `buffer` `class`
   Only available in BPEE
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `class` from data.trainers.classes.names
 ```
@@ -238,7 +238,7 @@ buffertrainerclass `buffer` `class`
 buffertrainername `buffer` `trainer`
   Only available in BPEE
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `trainer` from data.trainers.stats
 ```
@@ -775,9 +775,6 @@ fadeout `speed`
 fadescreen `effect`
 
   `effect` from screenfades
-```
-  # 00 fades in, 01 fades out
-```
 
 ## fadescreen3
 fadescreen3 `mode`
@@ -791,7 +788,7 @@ fadescreen3 `mode`
 ## fadescreendelay
 fadescreendelay `effect` `delay`
 
-  `effect` is a number.
+  `effect` from screenfades
 
   `delay` is a number.
 
@@ -1356,6 +1353,7 @@ msgbox.fanfare `song` `ptr`
 
 ## msgbox.instant.autoclose
 msgbox.instant.autoclose `ptr`
+  Only available in BPEE
 
   `ptr` points to text or auto
 ```
@@ -1364,6 +1362,7 @@ msgbox.instant.autoclose `ptr`
 
 ## msgbox.instant.default
 msgbox.instant.default `ptr`
+  Only available in BPEE
 
   `ptr` points to text or auto
 ```
@@ -1372,6 +1371,7 @@ msgbox.instant.default `ptr`
 
 ## msgbox.instant.npc
 msgbox.instant.npc `ptr`
+  Only available in BPEE
 
   `ptr` points to text or auto
 ```
@@ -1399,7 +1399,11 @@ msgbox.npc `ptr`
 
   `ptr` points to text or auto
 ```
-  # loadpointer, callstd 2
+  # Equivalent to
+  # lock
+  # faceplayer
+  # msgbox.default
+  # release
 ```
 
 ## msgbox.sign
@@ -2590,7 +2594,7 @@ updatemoney `x` `y` `check`
 ## virtualbuffer
 virtualbuffer `buffer` `text`
 
-  `buffer` from 3
+  `buffer` from bufferNames
 
   `text` is a pointer.
 ```
