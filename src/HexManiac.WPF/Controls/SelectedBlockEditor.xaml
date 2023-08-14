@@ -24,10 +24,17 @@
          <local:AngleComboBox Direction="Out" Grid.Column="1" SelectedIndex="{Binding Behavior}" ItemsSource="{Binding BehaviorOptions}" Margin="2" />
          <local:AngleBorder Direction="Left" Content="Layer:" Grid.Row="1" Margin="0,0,-2,0" />
          <local:AngleComboBox Direction="Out" Grid.Row="1" Grid.Column="1" SelectedIndex="{Binding Layer}" ItemsSource="{Binding LayerOptions}" Margin="2" />
-         <local:AngleBorder Direction="Left" Content="Terrain:" Grid.Row="2" Margin="0,0,-2,0" />
-         <local:AngleComboBox Direction="Out" Grid.Row="2" Grid.Column="1" SelectedIndex="{Binding Terrain}" ItemsSource="{Binding TerrainOptions}" Margin="2" />
-         <local:AngleBorder Direction="Left" Content="Encounter:" Grid.Row="3" Margin="0,0,-2,0" />
-         <local:AngleComboBox Direction="Out" Grid.Row="3" Grid.Column="1" SelectedIndex="{Binding Encounter}" ItemsSource="{Binding EncounterOptions}" Margin="2" />
+
+         <local:AngleBorder Direction="Left" Content="Terrain:" Grid.Row="2" Margin="0,0,-2,0"
+            Visibility="{Binding HasTerrainAndEncounter, Converter={StaticResource BoolToVisibility}}" />
+         <local:AngleComboBox Direction="Out" Grid.Row="2" Grid.Column="1" Margin="2"
+            SelectedIndex="{Binding Terrain}" ItemsSource="{Binding TerrainOptions}"
+            Visibility="{Binding HasTerrainAndEncounter, Converter={StaticResource BoolToVisibility}}" />
+         <local:AngleBorder Direction="Left" Content="Encounter:" Grid.Row="3" Margin="0,0,-2,0"
+            Visibility="{Binding HasTerrainAndEncounter, Converter={StaticResource BoolToVisibility}}" />
+         <local:AngleComboBox Direction="Out" Grid.Row="3" Grid.Column="1" Margin="2"
+            SelectedIndex="{Binding Encounter}" ItemsSource="{Binding EncounterOptions}"
+            Visibility="{Binding HasTerrainAndEncounter, Converter={StaticResource BoolToVisibility}}" />
       </Grid>
       <ContentControl Grid.Column="1" Width="112" Height="112" MouseLeave="MouseExitTiles" MouseWheel="WheelOverImage">
          <ContentControl.Template>

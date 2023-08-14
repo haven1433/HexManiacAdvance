@@ -614,7 +614,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public TupleSegment(string name, int width, string sourceName = null) => (Name, BitWidth, SourceName) = (name, width, sourceName);
       public int Read(IDataModel model, int start, int bitOffset) {
          var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
-         if (requiredByteLength > 4) return 0;
+         while (requiredByteLength > 4) { start += 4; bitOffset -= 32; requiredByteLength -= 4; }
          var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
          bitArray >>= bitOffset;
          bitArray &= (1 << BitWidth) - 1;
@@ -622,7 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
       public bool Write(IDataModel model, ModelDelta token, int start, int bitOffset, int value) {
          var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
-         if (requiredByteLength > 4) return false;
+         while (requiredByteLength > 4) { start += 4; bitOffset -= 32; requiredByteLength -= 4; }
          var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
          var mask = (1 << BitWidth) - 1;
          value &= mask;

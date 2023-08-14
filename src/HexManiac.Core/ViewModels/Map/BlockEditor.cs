@@ -421,6 +421,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.tiles = tiles;
          this.blocks = blocks;
          this.blockAttributes = blockAttributes;
+         hasTerrainAndEncounter = blockAttributes[0].Length > 2;
          images = new CanvasPixelViewModel[8];
          indexForTileImage = new Dictionary<IPixelViewModel, int>();
          if (listSource.TryGetList("MapAttributeBehaviors", out var behaviors)) behaviors.ForEach(BehaviorOptions.Add);

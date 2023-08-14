@@ -468,9 +468,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var deferredContent = new List<DeferredStreamToken>();
          int adjustCaret = InsertMissingClosers(ref script, caret);
          caret += adjustCaret;
-         var lines = script.Split(new[] { '\n', '\r' }, StringSplitOptions.None)
+         var lines = script.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)
             .Select(line => line.Split('#').First())
-            .Where(line => !string.IsNullOrWhiteSpace(line))
             .ToArray();
          var result = new List<byte>();
          var streamInfo = new List<StreamInfo>();
@@ -480,6 +479,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          bool lastCommandIsEndCommand = false;
 
          for (var i = 0; i < lines.Length; i++) {
+            if (string.IsNullOrWhiteSpace(lines[i])) continue;
             var line = lines[i].Trim();
             if (line.EndsWith(":")) continue; // label, not code. Don't parse.
             if (line == "{") {
