@@ -1,4 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
+using System.IO;
 using Xunit;
 
 namespace HavenSoft.HexManiac.Integration {
@@ -22,6 +24,16 @@ namespace HavenSoft.HexManiac.Integration {
          var content = emerald.Tools.CodeTool.Contents[0].Content;
 
          Assert.All(5.Range(i => i + 1), i => Assert.NotEqual(2, content.Split($"section{i}").Length));
+      }
+
+      [SkippableFact]
+      public void FireRed_PixilateStyleAbilities_NoErrors() {
+         var firered = LoadFireRed();
+         var script = new LoadedFile("Pixilate.hma", File.ReadAllBytes("resources/Scripts/Add Mechanics From Later Generations/AnyGame_PixilateStyleAbilities.hma"));
+
+         firered.TryImport(script, default);
+
+         Assert.Empty(Errors);
       }
    }
 }
