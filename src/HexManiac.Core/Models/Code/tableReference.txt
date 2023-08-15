@@ -40,7 +40,9 @@
 data.pokemon.names,                    00FA58, 00FA58, 00FA58, 00FA58, 000144, 000144, 000144, 000144, 000144, [name""11]
 data.pokemon.moves.names,              02E18C, 02E18C, 02E18C, 02E18C, 000148, 000148, 000148, 000148, 000148, ^[name""13]
 data.abilities.names,                  09FE64, 09FE64, 09FE84, 09FE84, 0001C0, 0001C0, 0001C0, 0001C0, 0001C0, [name""13]
-data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8, 0D80A0, 0D8074, 0D80B4, 0D8088, 0183B4, [name""13]
+data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8,       ,       ,       ,       ,       , [name""13]58
+data.trainers.classes.names,                 ,       ,       ,       , 0D80A0, 0D8074, 0D80B4, 0D8088,       , [name""13]107
+data.trainers.classes.names,                 ,       ,       ,       ,       ,       ,       ,       , 0183B4, [name""13]66
 data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]data.pokemon.type.length
 data.items.stats,                      0A98F0, 0A98F0, 0A9910, 0A9910,       ,       ,       ,       , 0001C8, [name""13 unused. index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket.pocketid type.|s=pocket(0=itemtype|1=itemtype|3=itemtype|4=itemtype|5=itemtype) fieldeffect<> battleusage:: battleeffect<> battleextra::]
 data.items.stats,                            ,       ,       ,       , 0001C8, 0001C8, 0001C8, 0001C8,       , [name""13 unused. index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket.pocketid type.|s=pocket(0=itemtype|1=itemtype|2=itemtype|4=itemtype|5=itemtype) fieldeffect<> battleusage:: battleeffect<> battleextra::]

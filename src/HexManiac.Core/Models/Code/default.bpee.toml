@@ -74,6 +74,30 @@ Offset = 0x000004
 Address = 0x06B82C
 Offset = 0x000004
 
+[[OffsetPointer]]
+Address = 0x06E624
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x06F0D0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x14F21C
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x14F504
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x196A98
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x13094C
+Offset = 0x000010
+
 [[List]]
 Name = '''pokenavTowns'''
 0 = [
