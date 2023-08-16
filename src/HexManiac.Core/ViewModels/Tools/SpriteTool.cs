@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -611,6 +612,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var otherColors = palette.Skip(1).ToList();
          while (otherColors.Contains(copy[0])) copy[0] = (short)((copy[0] + 1) % 0x8000);
          return copy;
+      }
+
+      public ErrorInfo TryImport(string fullPath, string importType) {
+         if (!Enum.TryParse<ImportType>(importType, true, out var import)) {
+            return new ErrorInfo($"Expected Cautious, Greedy, or Smart, but got {importType}.");
+         }
+         var fileSystem = viewPort.MapEditor.FileSystem;
+         try {
+            (short[] image, int width) = fileSystem.LoadImage(fullPath);
+            if (image == null) return new ErrorInfo($"Unable to load image {fullPath}.");
+            ImportSpriteAndPalette(fileSystem, image, width, import);
+            return ErrorInfo.NoError;
+         } catch (IOException io) {
+            return new ErrorInfo(io.Message);
+         }
       }
 
       public ErrorInfo TryImport(IFileSystem fileSystem, string currentDirectory, int address, string filePath, ImportType importType) {
