@@ -1112,7 +1112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   if (index < fullPalette.Count) {
                      var color = fullPalette[index];
-                     if (spriteOnlyExpects16Colors) color = fullPalette[index + parent.palettePage * 16];
+                     if (spriteOnlyExpects16Colors && (parent.palettePage * 16 + index).InRange(0, fullPalette.Count)) color = fullPalette[index + parent.palettePage * 16];
                      parent.PixelData[parent.PixelIndex(xx, yy)] = color;
                   }
                }
