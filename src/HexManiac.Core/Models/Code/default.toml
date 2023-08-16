@@ -36,6 +36,7 @@ Name = '''Sprites'''
 0 = [
    '''graphics.pokemon.sprites.front''',
    '''graphics.pokemon.sprites.coordinates.front''',
+   '''graphics.pokemon.sprites.elevation''',
    '''graphics.pokemon.animations.front''',
    '''graphics.pokemon.sprites.back''',
    '''graphics.pokemon.sprites.coordinates.back''',
@@ -44,7 +45,6 @@ Name = '''Sprites'''
    '''graphics.pokemon.palettes.shiny''',
    '''graphics.pokemon.icons.sprites''',
    '''graphics.pokemon.icons.index''',
-   '''graphics.pokemon.sprites.elevation''',
    '''graphics.pokemon.sprites.anchor''',
    '''graphics.pokemon.animations.frames''',
    '''graphics.pokemon.sprites.footprint''',
