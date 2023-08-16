@@ -28,6 +28,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private const int ScriptCountLimit = 100;
 
       /// <summary>
+      /// Some vars are not used in scripts, but are used in thumb code.
+      /// We need to remember these vars explicitly.
+      /// </summary>
+      public static HashSet<int>
+         RS_ThumbVars = new() {
+            0x4040, 0x4041, 0x4042, 0x4046, 0x4047, 0x404A, 0x404B, 0x404C, 0x404F,
+            0x4054, 0x4097, 0x40C2,
+         },
+         FRLG_ThumbVars = new() {
+            0x4035, 0x4037, 0x4038, 0x4039, 0x403B, 0x403C, 0x403D, 0x4040,
+            0x4042, 0x4043, 0x4044, 0x4045, 0x4046, 0x4047, 0x4048, 0x404C, 0x404D, 0x404E, 0x404F,
+            0x40AA, 0x40AB, 0x40AC, 0x40AD, 0x40AE,
+            0x40B4, 0x40B5, 0x40B6, 0x40B7, 0x40B8, 0x40B9, 0x40BA, 0x40BB, 0x40BC,
+            0x40CF,
+            0x40E6, 0x40E7, 0x40E8, 0x40E9, 0x40EA, 0x40EB,
+            0x40F1,
+         },
+         Emerald_ThumbVars = new() {
+            0x4036, 0x4038, 0x403E,
+            0x4040, 0x4041, 0x4042, 0x4046, 0x4047, 0x404A, 0x404B, 0x404C, 0x404F,
+            0x4097, 0x40C2, 0x40CD,
+            0x40D0, 0x40D4, 0x40DD, 0x40DE, 0x40DF,
+            0x40E0, 0x40E1, 0x40E2, 0x40E3, 0x40E4, 0x40E6, 0x40E7, 0x40E8, 0x40E9, 0x40EA, 0x40EB, 0x40EC, 0x40EE, 0x40EF,
+            0x40F0, 0x40F1, 0x40F5, 0x40F6,
+         };
+
+      /// <summary>
       /// IDs of every used flag
       /// </summary>
       public static HashSet<int> GetUsedItemFlags(IDataModel model, ScriptParser parser) {
@@ -62,6 +89,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public static HashSet<int> GetUsedVariables(IDataModel model, ScriptParser parser) {
          var usedVariables = new HashSet<int>();
+         if (model.IsFRLG()) {
+            usedVariables.AddRange(FRLG_ThumbVars);
+         } else if (model.IsEmerald()) {
+            usedVariables.AddRange(Emerald_ThumbVars);
+         } else {
+            usedVariables.AddRange(RS_ThumbVars);
+         }
 
          foreach (var element in GetAllEvents(model, "scripts")) {
             if (!element.HasField("trigger")) continue;
