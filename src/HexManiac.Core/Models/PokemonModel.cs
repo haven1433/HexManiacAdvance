@@ -2702,7 +2702,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   MoveRun(changeToken, sRun, 1, newStart + sRun.Start - run.Start);
                } else {
                   // clear format of any constants/pointers/streams that is considered part of the script
-                  ClearFormat(changeToken, nextRun.Start, nextRun.Length);
+                  ClearFormatAndAnchors(changeToken, nextRun.Start, nextRun.Length);
                }
             }
             while (true);
