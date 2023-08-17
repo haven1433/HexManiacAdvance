@@ -702,6 +702,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
       }
 
+      public static void SortOptions<T>(List<T> options, string token, Func<T, string> compare) {
+         if (token.Length > 0) {
+            options.Sort((a, b) => compare(a).SkipCount(token) - compare(b).SkipCount(token));
+            options.Sort((a, b) => compare(a).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - compare(b).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
+         }
+      }
+
       private List<string> ReadOptions(IDataModel model, string tableName, string token) {
          if (!string.IsNullOrEmpty(tableName)) {
             var isList = model.TryGetList(tableName, out var list);
@@ -714,10 +721,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   options.Add(allOptions[i] + comment);
                }
             }
-            if (token.Length > 0) {
-               options.Sort((a, b) => a.SkipCount(token) - b.SkipCount(token));
-               options.Sort((a, b) => a.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - b.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
-            }
+            SortOptions(options, token, option => option);
 
             if (options.Count > 10) {
                while (options.Count > 9) options.RemoveAt(options.Count - 1);
@@ -728,11 +732,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return null;
       }
 
+      public List<IScriptLine> PartialMatches(string token) {
+         var candidates = engine.Where(line => line.LineCommand.MatchesPartial(token)).ToList();
+         return candidates;
+      }
+
       public string GetHelp(IDataModel model, HelpContext context) {
          var currentLine = context.Line;
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
-         var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0], StringComparison.CurrentCultureIgnoreCase)).ToList();
+         var candidates = PartialMatches(tokens[0]);
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
@@ -743,12 +752,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // need autocomplete for command?
             if (tokens.Length == 1) {
-               candidates = candidates.Where(line => line.LineCommand.Contains(tokens[0], StringComparison.CurrentCultureIgnoreCase) && line.MatchesGame(gameHash)).ToList();
+               candidates = candidates.Where(line => line.LineCommand.MatchesPartial(tokens[0]) && line.MatchesGame(gameHash)).ToList();
                if (!context.IsSelection) {
                   foreach (var line in candidates) {
                      if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
                   }
                }
+               SortOptions(candidates, tokens[0], c => c.LineCommand);
                return Environment.NewLine.Join(candidates.Take(10).Select(line => line.Usage));
             }
 

@@ -277,6 +277,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             _ => null,
          };
          var body = (CodeBody)viewModel;
+         body.TryCompleteCommandToken();
          if (InsertAutoActive) body.TryInsertAuto();
          var delta = body.Content.Length - e.OldValue.Length;
          var deltaSize = Math.Abs(delta);
