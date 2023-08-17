@@ -56,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<byte> Newlines;
       public static IReadOnlyDictionary<byte, byte> ControlCodeLengths;
       public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> TextMacros;
+      public static IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>> TextMacrosIndex;
 
       public static readonly byte DynamicEscape = 0xF7;
       public static readonly byte FunctionEscape = 0xFC;
@@ -69,10 +70,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             PCS = GetPCSFromReference(referenceText);
             ControlCodeLengths = GetControlCodeLengthsFromReference(referenceText);
             TextMacros = GetTextMacrosFromReference(referenceText);
+            TextMacrosIndex = BuildTextMacrosIndex(TextMacros);
          } else {
             PCS = GetDefaultPCS();
             ControlCodeLengths = GetDefaultControlCodeLengths();
             TextMacros = new Dictionary<string, IReadOnlyDictionary<string, byte[]>>();
+            TextMacrosIndex = BuildTextMacrosIndex(TextMacros);
          }
 
          ValidInProgressEscapes = new HashSet<string>(PCS
@@ -126,6 +129,22 @@ namespace HavenSoft.HexManiac.Core.Models {
             macros.Add(game, GetTextMacrosFromReference(reference, game));
          }
          return macros;
+      }
+
+      private static IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>> BuildTextMacrosIndex(IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> allMacros) {
+         var allIndex = new Dictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>>();
+         foreach (var macroKvp in allMacros) {
+            var index = new IReadOnlyDictionary<string, byte[]>[256];
+            foreach(var macro in macroKvp.Value) {
+               var (text, bytes) = macro;
+               if (bytes.Length < 1) continue;
+               var lead = bytes[0];
+               if (index[lead] == null) index[lead] = new Dictionary<string, byte[]>();
+               ((Dictionary<string, byte[]>)index[lead])[text] = bytes;
+            }
+            allIndex[macroKvp.Key] = index;
+         }
+         return allIndex;
       }
 
       private static IReadOnlyDictionary<string, byte[]> GetTextMacrosFromReference(string[] reference, string gameCode) {
@@ -210,7 +229,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static string Convert(string macroSet, IReadOnlyList<byte> data, int startIndex, int length) {
          var result = new StringBuilder("\"", length * 2);
-         if (!TextMacros.TryGetValue(macroSet, out var textMacros)) textMacros = null;
+         if (!TextMacrosIndex.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
          var nextExpectedNewline = NewlineMode.Wrap;
 
@@ -349,7 +368,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var checkCharacter = PCS[i];
                if (input.Length < index + checkCharacter.Length) continue;
                var checkInput = input.Substring(index, checkCharacter.Length);
-               if (checkCharacter.StartsWith("\\") && !ValidInProgressEscapes.Contains(checkInput)) {
+               if (checkCharacter.Length > 0 && checkCharacter[0] == '\\' && !ValidInProgressEscapes.Contains(checkInput)) {
                   // escape sequences don't care about case (if no sequences seem to match the current case)
                   checkCharacter = checkCharacter.ToUpper();
                   checkInput = checkInput.ToUpper();
@@ -499,7 +518,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var checkCharacter = PCS[i];
                if (input.Length < index + checkCharacter.Length) continue;
                var checkInput = input.Slice(index, checkCharacter.Length).ToString();
-               if (checkCharacter.StartsWith("\\") && !ValidInProgressEscapes.Contains(checkInput)) {
+               if (checkCharacter.Length > 0 && checkCharacter[0] == '\\' && !ValidInProgressEscapes.Contains(checkInput)) {
                   // escape sequences don't care about case (if no sequences seem to match the current case)
                   checkCharacter = checkCharacter.ToUpper();
                   checkInput = checkInput.ToUpper();
@@ -549,7 +568,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
-      private static string FindMacro(IReadOnlyDictionary<string, byte[]> macros, IReadOnlyList<byte> data, int index) {
+      private static string FindMacro(IReadOnlyList<IReadOnlyDictionary<string, byte[]>> macrosIndex, IReadOnlyList<byte> data, int index) {
+         var macros = macrosIndex[data[index]];
+         if (macros == null) return null;
          foreach (var kvp in macros) {
             bool matches = true;
             for (int i = 0; i < kvp.Value.Length && matches; i++) {
