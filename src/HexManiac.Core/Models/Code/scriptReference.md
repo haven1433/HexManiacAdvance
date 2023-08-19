@@ -25,6 +25,7 @@ Notes:
 <summary> addelevmenuitem</summary>
 
 addelevmenuitem
+
   Only available in BPEE
 
 Example:
@@ -157,6 +158,7 @@ Notes:
 <summary> braillelength</summary>
 
 braillelength `pointer`
+
   Only available in BPRE BPGE
 
 *  `pointer` is a pointer.
@@ -196,6 +198,7 @@ Notes:
 <summary> bufferboxname</summary>
 
 bufferboxname `buffer` `box`
+
   Only available in BPRE BPGE BPEE
 
 *  `buffer` from bufferNames
@@ -216,6 +219,7 @@ Notes:
 <summary> buffercontesttype</summary>
 
 buffercontesttype `buffer` `contest`
+
   Only available in BPEE
 
 *  `buffer` from bufferNames
@@ -287,6 +291,7 @@ Notes:
 <summary> bufferitems2</summary>
 
 bufferitems2 `buffer` `item` `quantity`
+
   Only available in BPRE BPGE
 
 *  `buffer` from bufferNames
@@ -309,6 +314,7 @@ Notes:
 <summary> bufferitems2</summary>
 
 bufferitems2 `buffer` `item` `quantity`
+
   Only available in BPEE
 
 *  `buffer` from bufferNames
@@ -427,6 +433,7 @@ Notes:
 <summary> buffertrainerclass</summary>
 
 buffertrainerclass `buffer` `class`
+
   Only available in BPEE
 
 *  `buffer` from bufferNames
@@ -447,6 +454,7 @@ Notes:
 <summary> buffertrainername</summary>
 
 buffertrainername `buffer` `trainer`
+
   Only available in BPEE
 
 *  `buffer` from bufferNames
@@ -742,6 +750,7 @@ Notes:
 <summary> checkobedience</summary>
 
 checkobedience `slot`
+
   Only available in BPRE BPGE BPEE
 
 *  `slot` is a number.
@@ -995,6 +1004,7 @@ Notes:
 <summary> comparehiddenvar</summary>
 
 comparehiddenvar `a` `value`
+
   Only available in BPRE BPGE
 
 *  `a` is a number.
@@ -1450,6 +1460,7 @@ Notes:
 <summary> executeram</summary>
 
 executeram
+
   Only available in BPRE BPGE BPEE
 
 Example:
@@ -1543,6 +1554,7 @@ fadescreen FromBlack
 <summary> fadescreen3</summary>
 
 fadescreen3 `mode`
+
   Only available in BPEE
 
 *  `mode` from screenfades
@@ -1610,6 +1622,7 @@ Notes:
 <summary> freerotatingtilepuzzle</summary>
 
 freerotatingtilepuzzle
+
   Only available in BPEE
 
 Example:
@@ -1641,6 +1654,7 @@ Notes:
 <summary> getpokenewsactive</summary>
 
 getpokenewsactive `newsKind`
+
   Only available in BPEE
 
 *  `newsKind` is a number.
@@ -1655,6 +1669,7 @@ getpokenewsactive 0
 <summary> getpricereduction</summary>
 
 getpricereduction `index`
+
   Only available in AXVE AXPE
 
 *  `index` from data.items.stats
@@ -1815,6 +1830,7 @@ Notes:
 <summary> helptext</summary>
 
 helptext `pointer`
+
   Only available in BPRE BPGE
 
 *  `pointer` is a pointer.
@@ -1834,6 +1850,7 @@ Notes:
 <summary> helptext2</summary>
 
 helptext2
+
   Only available in BPRE BPGE
 
 Example:
@@ -1873,6 +1890,7 @@ Notes:
 <summary> hidebox2</summary>
 
 hidebox2
+
   Only available in BPEE
 
 Example:
@@ -2365,6 +2383,7 @@ Notes:
 <summary> initclock</summary>
 
 initclock `hour` `minute`
+
   Only available in AXVE AXPE BPEE
 
 *  `hour` is a number.
@@ -2381,6 +2400,7 @@ initclock 3 4
 <summary> initrotatingtilepuzzle</summary>
 
 initrotatingtilepuzzle `isTrickHouse`
+
   Only available in BPEE
 
 *  `isTrickHouse` is a number.
@@ -2510,6 +2530,7 @@ Notes:
 <summary> lockfortrainer</summary>
 
 lockfortrainer
+
   Only available in BPEE
 
 Example:
@@ -2599,6 +2620,7 @@ Notes:
 <summary> moverotatingtileobjects</summary>
 
 moverotatingtileobjects `puzzleNumber`
+
   Only available in BPEE
 
 *  `puzzleNumber` is a number.
@@ -2704,6 +2726,7 @@ Notes:
 <summary> msgbox.instant.autoclose</summary>
 
 msgbox.instant.autoclose `ptr`
+
   Only available in BPEE
 
 *  `ptr` points to text or auto
@@ -2722,6 +2745,7 @@ Notes:
 <summary> msgbox.instant.default</summary>
 
 msgbox.instant.default `ptr`
+
   Only available in BPEE
 
 *  `ptr` points to text or auto
@@ -2740,6 +2764,7 @@ Notes:
 <summary> msgbox.instant.npc</summary>
 
 msgbox.instant.npc `ptr`
+
   Only available in BPEE
 
 *  `ptr` points to text or auto
@@ -2966,6 +2991,7 @@ Notes:
 <summary> nop2C</summary>
 
 nop2C
+
   Only available in BPRE BPGE
 
 Example:
@@ -2982,6 +3008,7 @@ Notes:
 <summary> nop8A</summary>
 
 nop8A
+
   Only available in BPRE BPGE
 
 Example:
@@ -2994,6 +3021,7 @@ nop8A
 <summary> nop96</summary>
 
 nop96
+
   Only available in BPRE BPGE
 
 Example:
@@ -3006,6 +3034,7 @@ nop96
 <summary> nopB1</summary>
 
 nopB1
+
   Only available in AXVE AXPE
 
 Example:
@@ -3022,6 +3051,7 @@ Notes:
 <summary> nopB1</summary>
 
 nopB1
+
   Only available in BPRE BPGE
 
 Example:
@@ -3034,6 +3064,7 @@ nopB1
 <summary> nopB2</summary>
 
 nopB2
+
   Only available in AXVE AXPE
 
 Example:
@@ -3046,6 +3077,7 @@ nopB2
 <summary> nopB2</summary>
 
 nopB2
+
   Only available in BPRE BPGE
 
 Example:
@@ -3058,6 +3090,7 @@ nopB2
 <summary> nopC7</summary>
 
 nopC7
+
   Only available in BPEE
 
 Example:
@@ -3070,6 +3103,7 @@ nopC7
 <summary> nopC8</summary>
 
 nopC8
+
   Only available in BPEE
 
 Example:
@@ -3082,6 +3116,7 @@ nopC8
 <summary> nopC9</summary>
 
 nopC9
+
   Only available in BPEE
 
 Example:
@@ -3094,6 +3129,7 @@ nopC9
 <summary> nopCA</summary>
 
 nopCA
+
   Only available in BPEE
 
 Example:
@@ -3106,6 +3142,7 @@ nopCA
 <summary> nopCB</summary>
 
 nopCB
+
   Only available in BPEE
 
 Example:
@@ -3118,6 +3155,7 @@ nopCB
 <summary> nopCC</summary>
 
 nopCC
+
   Only available in BPEE
 
 Example:
@@ -3130,6 +3168,7 @@ nopCC
 <summary> nopD0</summary>
 
 nopD0
+
   Only available in BPEE
 
 Example:
@@ -3146,6 +3185,7 @@ Notes:
 <summary> normalmsg</summary>
 
 normalmsg
+
   Only available in BPRE BPGE
 
 Example:
@@ -3283,6 +3323,7 @@ Notes:
 <summary> pokenavcall</summary>
 
 pokenavcall `pointer`
+
   Only available in BPEE
 
 *  `pointer` is a pointer.
@@ -3337,6 +3378,7 @@ Notes:
 <summary> preparemsg3</summary>
 
 preparemsg3 `pointer`
+
   Only available in BPEE
 
 *  `pointer` points to text or auto
@@ -3355,6 +3397,7 @@ Notes:
 <summary> pyramid.battle</summary>
 
 pyramid.battle `trainer` `start` `playerwin`
+
   Only available in BPEE
 
 *  `trainer` from data.trainers.stats
@@ -3590,6 +3633,7 @@ Notes:
 <summary> selectapproachingtrainer</summary>
 
 selectapproachingtrainer
+
   Only available in BPEE
 
 Example:
@@ -3625,6 +3669,7 @@ Notes:
 <summary> setberrytree</summary>
 
 setberrytree `plantID` `berryID` `growth`
+
   Only available in AXVE AXPE BPEE
 
 *  `plantID` is a number.
@@ -3683,6 +3728,7 @@ Notes:
 <summary> setcatchlocation</summary>
 
 setcatchlocation `slot` `location`
+
   Only available in BPRE BPGE BPEE
 
 *  `slot` is a number.
@@ -3913,6 +3959,7 @@ Notes:
 <summary> setobedience</summary>
 
 setobedience `slot`
+
   Only available in BPRE BPGE BPEE
 
 *  `slot` is a number.
@@ -3951,6 +3998,7 @@ Notes:
 <summary> setup.battle.A</summary>
 
 setup.battle.A `trainer` `start` `playerwin`
+
   Only available in BPEE
 
 *  `trainer` from data.trainers.stats
@@ -3973,6 +4021,7 @@ Notes:
 <summary> setup.battle.B</summary>
 
 setup.battle.B `trainer` `start` `playerwin`
+
   Only available in BPEE
 
 *  `trainer` from data.trainers.stats
@@ -4090,6 +4139,7 @@ setwildbattle ELECTRIKE 2 "X SPECIAL"
 <summary> setworldmapflag</summary>
 
 setworldmapflag `flag`
+
   Only available in BPRE BPGE
 
 *  `flag` is a number.
@@ -4174,6 +4224,7 @@ Notes:
 <summary> showelevmenu</summary>
 
 showelevmenu
+
   Only available in BPEE
 
 Example:
@@ -4186,6 +4237,7 @@ showelevmenu
 <summary> showmoney</summary>
 
 showmoney `x` `y`
+
   Only available in AXVE AXPE
 
 *  `x` is a number.
@@ -4206,6 +4258,7 @@ Notes:
 <summary> showmoney</summary>
 
 showmoney `x` `y` `check`
+
   Only available in BPRE BPGE BPEE
 
 *  `x` is a number.
@@ -4287,6 +4340,7 @@ Notes:
 <summary> signmsg</summary>
 
 signmsg
+
   Only available in BPRE BPGE
 
 Example:
@@ -4324,6 +4378,7 @@ Notes:
 <summary> single.battle.canlose</summary>
 
 single.battle.canlose `trainer` `playerlose` `playerwin`
+
   Only available in BPRE BPGE
 
 *  `trainer` from data.trainers.stats
@@ -4652,6 +4707,7 @@ Notes:
 <summary> textcolor</summary>
 
 textcolor `color`
+
   Only available in BPRE BPGE
 
 *  `color` is a number.
@@ -4941,6 +4997,7 @@ Notes:
 <summary> trainerhill.battle</summary>
 
 trainerhill.battle `trainer` `start` `playerwin`
+
   Only available in BPEE
 
 *  `trainer` from data.trainers.stats
@@ -4963,6 +5020,7 @@ Notes:
 <summary> turnrotatingtileobjects</summary>
 
 turnrotatingtileobjects
+
   Only available in BPEE
 
 Example:
@@ -4975,6 +5033,7 @@ turnrotatingtileobjects
 <summary> tutorial.battle</summary>
 
 tutorial.battle `trainer` `playerlose` `playerwin`
+
   Only available in BPRE BPGE
 
 *  `trainer` from data.trainers.stats
@@ -4997,6 +5056,7 @@ Notes:
 <summary> tutorial.battle.canlose</summary>
 
 tutorial.battle.canlose `trainer` `playerlose` `playerwin`
+
   Only available in BPRE BPGE
 
 *  `trainer` from data.trainers.stats
@@ -5034,6 +5094,7 @@ updatecoins 2 3
 <summary> updatemoney</summary>
 
 updatemoney `x` `y`
+
   Only available in AXVE AXPE
 
 *  `x` is a number.
@@ -5054,6 +5115,7 @@ Notes:
 <summary> updatemoney</summary>
 
 updatemoney `x` `y` `check`
+
   Only available in BPRE BPGE BPEE
 
 *  `x` is a number.
@@ -5442,6 +5504,7 @@ Notes:
 <summary> warp7</summary>
 
 warp7 `mapbank` `map` `warp` `x` `y`
+
   Only available in BPEE
 
 *  `mapbank` is a number.
@@ -5468,6 +5531,7 @@ Notes:
 <summary> warp8</summary>
 
 warp8 `bank` `map` `exit` `x` `y`
+
   Only available in BPEE
 
 *  `bank` is a number.
@@ -5563,6 +5627,7 @@ Notes:
 <summary> warpteleport2</summary>
 
 warpteleport2 `bank` `map` `exit` `x` `y`
+
   Only available in BPRE BPGE BPEE
 
 *  `bank` is a number.
@@ -5680,6 +5745,7 @@ Use `special2 variable name` when doing an action that has a result.
 
 <details>
 <summary> AccessHallOfFamePC </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -5690,6 +5756,7 @@ special AccessHallOfFamePC
 
 <details>
 <summary> AnimateElevator </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5700,6 +5767,7 @@ special AnimateElevator
 
 <details>
 <summary> AnimatePcTurnOff </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5710,6 +5778,7 @@ special AnimatePcTurnOff
 
 <details>
 <summary> AnimatePcTurnOn </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5720,6 +5789,7 @@ special AnimatePcTurnOn
 
 <details>
 <summary> AnimateTeleporterCable </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5730,6 +5800,7 @@ special AnimateTeleporterCable
 
 <details>
 <summary> AnimateTeleporterHousing </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5740,6 +5811,7 @@ special AnimateTeleporterHousing
 
 <details>
 <summary> AreLeadMonEVsMaxedOut </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5750,6 +5822,7 @@ special AreLeadMonEVsMaxedOut
 
 <details>
 <summary> AwardBattleTowerRibbons </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -5760,6 +5833,7 @@ special AwardBattleTowerRibbons
 
 <details>
 <summary> BackupHelpContext </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5770,6 +5844,7 @@ special BackupHelpContext
 
 <details>
 <summary> Bag_ChooseBerry </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5780,6 +5855,7 @@ special Bag_ChooseBerry
 
 <details>
 <summary> BattleCardAction </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5790,6 +5866,7 @@ special BattleCardAction
 
 <details>
 <summary> BattlePyramidChooseMonHeldItems </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5800,6 +5877,7 @@ special BattlePyramidChooseMonHeldItems
 
 <details>
 <summary> BattleSetup_StartLatiBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5810,6 +5888,7 @@ special BattleSetup_StartLatiBattle
 
 <details>
 <summary> BattleSetup_StartLegendaryBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5820,6 +5899,7 @@ special BattleSetup_StartLegendaryBattle
 
 <details>
 <summary> BattleSetup_StartRematchBattle </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -5830,6 +5910,7 @@ special BattleSetup_StartRematchBattle
 
 <details>
 <summary> BattleTower_SoftReset </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -5840,6 +5921,7 @@ special BattleTower_SoftReset
 
 <details>
 <summary> BattleTowerMapScript2 </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5850,6 +5932,7 @@ special BattleTowerMapScript2
 
 <details>
 <summary> BattleTowerReconnectLink </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5860,6 +5943,7 @@ special BattleTowerReconnectLink
 
 <details>
 <summary> BattleTowerUtil </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -5870,6 +5954,7 @@ special BattleTowerUtil
 
 <details>
 <summary> BedroomPC </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -5880,6 +5965,7 @@ special BedroomPC
 
 <details>
 <summary> Berry_FadeAndGoToBerryBagMenu </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -5890,6 +5976,7 @@ special Berry_FadeAndGoToBerryBagMenu
 
 <details>
 <summary> BrailleCursorToggle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5900,6 +5987,7 @@ special BrailleCursorToggle
 
 <details>
 <summary> BufferBattleFrontierTutorMoveName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5910,6 +5998,7 @@ special BufferBattleFrontierTutorMoveName
 
 <details>
 <summary> BufferBattleTowerElevatorFloors </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5920,6 +6009,7 @@ special BufferBattleTowerElevatorFloors
 
 <details>
 <summary> BufferBigGuyOrBigGirlString </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5930,6 +6020,7 @@ special BufferBigGuyOrBigGirlString
 
 <details>
 <summary> BufferContestTrainerAndMonNames </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -5940,6 +6031,7 @@ special BufferContestTrainerAndMonNames
 
 <details>
 <summary> BufferContestWinnerMonName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5950,6 +6042,7 @@ special BufferContestWinnerMonName
 
 <details>
 <summary> BufferContestWinnerTrainerName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5960,6 +6053,7 @@ special BufferContestWinnerTrainerName
 
 <details>
 <summary> BufferDeepLinkPhrase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5970,6 +6064,7 @@ special BufferDeepLinkPhrase
 
 <details>
 <summary> BufferEReaderTrainerGreeting </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5980,6 +6075,7 @@ special BufferEReaderTrainerGreeting
 
 <details>
 <summary> BufferEReaderTrainerName </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -5990,6 +6086,7 @@ special BufferEReaderTrainerName
 
 <details>
 <summary> BufferFanClubTrainerName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6000,6 +6097,7 @@ special BufferFanClubTrainerName
 
 <details>
 <summary> BufferFavorLadyItemName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6010,6 +6108,7 @@ special BufferFavorLadyItemName
 
 <details>
 <summary> BufferFavorLadyPlayerName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6020,6 +6119,7 @@ special BufferFavorLadyPlayerName
 
 <details>
 <summary> BufferFavorLadyRequest </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6030,6 +6130,7 @@ special BufferFavorLadyRequest
 
 <details>
 <summary> BufferLottoTicketNumber </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6040,6 +6141,7 @@ special BufferLottoTicketNumber
 
 <details>
 <summary> BufferMonNickname </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6050,6 +6152,7 @@ special BufferMonNickname
 
 <details>
 <summary> BufferMoveDeleterNicknameAndMove </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6060,6 +6163,7 @@ special BufferMoveDeleterNicknameAndMove
 
 <details>
 <summary> BufferQuizAuthorNameAndCheckIfLady </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6070,6 +6174,7 @@ special2 0x800D BufferQuizAuthorNameAndCheckIfLady
 
 <details>
 <summary> BufferQuizCorrectAnswer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6080,6 +6185,7 @@ special BufferQuizCorrectAnswer
 
 <details>
 <summary> BufferQuizPrizeItem </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6090,6 +6196,7 @@ special BufferQuizPrizeItem
 
 <details>
 <summary> BufferQuizPrizeName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6100,6 +6207,7 @@ special BufferQuizPrizeName
 
 <details>
 <summary> BufferRandomHobbyOrLifestyleString </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6110,6 +6218,7 @@ special BufferRandomHobbyOrLifestyleString
 
 <details>
 <summary> BufferSecretBaseOwnerName </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6120,6 +6229,7 @@ special BufferSecretBaseOwnerName
 
 <details>
 <summary> BufferSonOrDaughterString </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6130,6 +6240,7 @@ special BufferSonOrDaughterString
 
 <details>
 <summary> BufferStreakTrainerText </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6140,6 +6251,7 @@ special BufferStreakTrainerText
 
 <details>
 <summary> BufferTMHMMoveName </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6150,6 +6262,7 @@ special BufferTMHMMoveName
 
 <details>
 <summary> BufferTrendyPhraseString </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6160,6 +6273,7 @@ special BufferTrendyPhraseString
 
 <details>
 <summary> BufferUnionRoomPlayerName </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6170,6 +6284,7 @@ special2 0x800D BufferUnionRoomPlayerName
 
 <details>
 <summary> BufferVarsForIVRater </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6180,6 +6295,7 @@ special BufferVarsForIVRater
 
 <details>
 <summary> CableCar </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6190,6 +6306,7 @@ special CableCar
 
 <details>
 <summary> CableCarWarp </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6200,6 +6317,7 @@ special CableCarWarp
 
 <details>
 <summary> CableClub_AskSaveTheGame </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6210,6 +6328,7 @@ special CableClub_AskSaveTheGame
 
 <details>
 <summary> CableClubSaveGame </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6220,6 +6339,7 @@ special CableClubSaveGame
 
 <details>
 <summary> CalculatePlayerPartyCount </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6230,6 +6350,7 @@ special2 0x800D CalculatePlayerPartyCount
 
 <details>
 <summary> CallApprenticeFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6240,6 +6361,7 @@ special CallApprenticeFunction
 
 <details>
 <summary> CallBattleArenaFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6250,6 +6372,7 @@ special CallBattleArenaFunction
 
 <details>
 <summary> CallBattleDomeFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6260,6 +6383,7 @@ special CallBattleDomeFunction
 
 <details>
 <summary> CallBattleFactoryFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6270,6 +6394,7 @@ special CallBattleFactoryFunction
 
 <details>
 <summary> CallBattlePalaceFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6280,6 +6405,7 @@ special CallBattlePalaceFunction
 
 <details>
 <summary> CallBattlePikeFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6290,6 +6416,7 @@ special CallBattlePikeFunction
 
 <details>
 <summary> CallBattlePyramidFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6300,6 +6427,7 @@ special CallBattlePyramidFunction
 
 <details>
 <summary> CallBattleTowerFunc </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6310,6 +6438,7 @@ special CallBattleTowerFunc
 
 <details>
 <summary> CallFallarborTentFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6320,6 +6449,7 @@ special CallFallarborTentFunction
 
 <details>
 <summary> CallFrontierUtilFunc </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6330,6 +6460,7 @@ special CallFrontierUtilFunc
 
 <details>
 <summary> CallSlateportTentFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6340,6 +6471,7 @@ special CallSlateportTentFunction
 
 <details>
 <summary> CallTrainerHillFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6350,6 +6482,7 @@ special CallTrainerHillFunction
 
 <details>
 <summary> CallTrainerTowerFunc </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6360,6 +6493,7 @@ special CallTrainerTowerFunc
 
 <details>
 <summary> CallVerdanturfTentFunction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6370,6 +6504,7 @@ special CallVerdanturfTentFunction
 
 <details>
 <summary> CapeBrinkGetMoveToTeachLeadPokemon </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6380,6 +6515,7 @@ special2 0x800D CapeBrinkGetMoveToTeachLeadPokemon
 
 <details>
 <summary> ChangeBoxPokemonNickname </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6390,6 +6526,7 @@ special ChangeBoxPokemonNickname
 
 <details>
 <summary> ChangePokemonNickname </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6400,6 +6537,7 @@ special ChangePokemonNickname
 
 <details>
 <summary> CheckAddCoins </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6410,6 +6548,7 @@ special CheckAddCoins
 
 <details>
 <summary> CheckDaycareMonReceivedMail </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6420,6 +6559,7 @@ special2 0x800D CheckDaycareMonReceivedMail
 
 <details>
 <summary> CheckForBigMovieOrEmergencyNewsOnTV </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6430,6 +6570,7 @@ special CheckForBigMovieOrEmergencyNewsOnTV
 
 <details>
 <summary> CheckForPlayersHouseNews </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6440,6 +6581,7 @@ special CheckForPlayersHouseNews
 
 <details>
 <summary> CheckFreePokemonStorageSpace </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6450,6 +6592,7 @@ special2 0x800D CheckFreePokemonStorageSpace
 
 <details>
 <summary> CheckInteractedWithFriendsCushionDecor </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6460,6 +6603,7 @@ special CheckInteractedWithFriendsCushionDecor
 
 <details>
 <summary> CheckInteractedWithFriendsDollDecor </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6470,6 +6614,7 @@ special CheckInteractedWithFriendsDollDecor
 
 <details>
 <summary> CheckInteractedWithFriendsFurnitureBottom </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6480,6 +6625,7 @@ special CheckInteractedWithFriendsFurnitureBottom
 
 <details>
 <summary> CheckInteractedWithFriendsFurnitureMiddle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6490,6 +6636,7 @@ special CheckInteractedWithFriendsFurnitureMiddle
 
 <details>
 <summary> CheckInteractedWithFriendsFurnitureTop </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6500,6 +6647,7 @@ special CheckInteractedWithFriendsFurnitureTop
 
 <details>
 <summary> CheckInteractedWithFriendsPosterDecor </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6510,6 +6658,7 @@ special CheckInteractedWithFriendsPosterDecor
 
 <details>
 <summary> CheckInteractedWithFriendsSandOrnament </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6520,6 +6669,7 @@ special CheckInteractedWithFriendsSandOrnament
 
 <details>
 <summary> CheckLeadMonBeauty </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6530,6 +6680,7 @@ special2 0x800D CheckLeadMonBeauty
 
 <details>
 <summary> CheckLeadMonCool </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6540,6 +6691,7 @@ special2 0x800D CheckLeadMonCool
 
 <details>
 <summary> CheckLeadMonCute </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6550,6 +6702,7 @@ special2 0x800D CheckLeadMonCute
 
 <details>
 <summary> CheckLeadMonSmart </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6560,6 +6713,7 @@ special2 0x800D CheckLeadMonSmart
 
 <details>
 <summary> CheckLeadMonTough </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6570,6 +6724,7 @@ special2 0x800D CheckLeadMonTough
 
 <details>
 <summary> CheckPartyBattleTowerBanlist </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6580,6 +6735,7 @@ special CheckPartyBattleTowerBanlist
 
 <details>
 <summary> CheckPlayerHasSecretBase </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6590,6 +6746,7 @@ special CheckPlayerHasSecretBase
 
 <details>
 <summary> CheckRelicanthWailord </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6600,6 +6757,7 @@ special2 0x800D CheckRelicanthWailord
 
 <details>
 <summary> ChooseBattleTowerPlayerParty </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6610,6 +6768,7 @@ special ChooseBattleTowerPlayerParty
 
 <details>
 <summary> ChooseHalfPartyForBattle </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6620,6 +6779,7 @@ special ChooseHalfPartyForBattle
 
 <details>
 <summary> ChooseItemsToTossFromPyramidBag </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6630,6 +6790,7 @@ special ChooseItemsToTossFromPyramidBag
 
 <details>
 <summary> ChooseMonForMoveRelearner </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6640,6 +6801,7 @@ special ChooseMonForMoveRelearner
 
 <details>
 <summary> ChooseMonForMoveTutor </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6650,6 +6812,7 @@ special ChooseMonForMoveTutor
 
 <details>
 <summary> ChooseMonForWirelessMinigame </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6660,6 +6823,7 @@ special ChooseMonForWirelessMinigame
 
 <details>
 <summary> ChooseNextBattleTowerTrainer </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6670,6 +6834,7 @@ special ChooseNextBattleTowerTrainer
 
 <details>
 <summary> ChoosePartyForBattleFrontier </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6680,6 +6845,7 @@ special ChoosePartyForBattleFrontier
 
 <details>
 <summary> ChoosePartyMon </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6692,6 +6858,7 @@ Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for
 
 <details>
 <summary> ChooseSendDaycareMon </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6702,6 +6869,7 @@ special ChooseSendDaycareMon
 
 <details>
 <summary> ChooseStarter </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6712,6 +6880,7 @@ special ChooseStarter
 
 <details>
 <summary> CleanupLinkRoomState </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6722,6 +6891,7 @@ special CleanupLinkRoomState
 
 <details>
 <summary> ClearAndLeaveSecretBase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6732,6 +6902,7 @@ special ClearAndLeaveSecretBase
 
 <details>
 <summary> ClearLinkContestFlags </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6742,6 +6913,7 @@ special ClearLinkContestFlags
 
 <details>
 <summary> ClearQuizLadyPlayerAnswer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6752,6 +6924,7 @@ special ClearQuizLadyPlayerAnswer
 
 <details>
 <summary> ClearQuizLadyQuestionAndAnswer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6762,6 +6935,7 @@ special ClearQuizLadyQuestionAndAnswer
 
 <details>
 <summary> CloseBattleFrontierTutorWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6772,6 +6946,7 @@ special CloseBattleFrontierTutorWindow
 
 <details>
 <summary> CloseBattlePikeCurtain </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6782,6 +6957,7 @@ special CloseBattlePikeCurtain
 
 <details>
 <summary> CloseBattlePointsWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6792,6 +6968,7 @@ special CloseBattlePointsWindow
 
 <details>
 <summary> CloseDeptStoreElevatorWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6802,6 +6979,7 @@ special CloseDeptStoreElevatorWindow
 
 <details>
 <summary> CloseElevatorCurrentFloorWindow </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6812,6 +6990,7 @@ special CloseElevatorCurrentFloorWindow
 
 <details>
 <summary> CloseFrontierExchangeCornerItemIconWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6822,6 +7001,7 @@ special CloseFrontierExchangeCornerItemIconWindow
 
 <details>
 <summary> CloseLink </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6832,6 +7012,7 @@ special CloseLink
 
 <details>
 <summary> CloseMuseumFossilPic </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6842,6 +7023,7 @@ special CloseMuseumFossilPic
 
 <details>
 <summary> ColosseumPlayerSpotTriggered </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6852,6 +7034,7 @@ special ColosseumPlayerSpotTriggered
 
 <details>
 <summary> CompareBarboachSize </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6862,6 +7045,7 @@ special CompareBarboachSize
 
 <details>
 <summary> CompareHeracrossSize </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6872,6 +7056,7 @@ special CompareHeracrossSize
 
 <details>
 <summary> CompareLotadSize </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6882,6 +7067,7 @@ special CompareLotadSize
 
 <details>
 <summary> CompareMagikarpSize </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6892,6 +7078,7 @@ special CompareMagikarpSize
 
 <details>
 <summary> CompareSeedotSize </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6902,6 +7089,7 @@ special CompareSeedotSize
 
 <details>
 <summary> CompareShroomishSize </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6912,6 +7100,7 @@ special CompareShroomishSize
 
 <details>
 <summary> CompletedHoennPokedex </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6922,6 +7111,7 @@ special2 0x800D CompletedHoennPokedex
 
 <details>
 <summary> CopyCurSecretBaseOwnerName_StrVar1 </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6932,6 +7122,7 @@ special CopyCurSecretBaseOwnerName_StrVar1
 
 <details>
 <summary> CopyEReaderTrainerGreeting </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6942,6 +7133,7 @@ special CopyEReaderTrainerGreeting
 
 <details>
 <summary> CountAlivePartyMonsExceptSelectedOne </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6952,6 +7144,7 @@ special2 0x800D CountAlivePartyMonsExceptSelectedOne
 
 <details>
 <summary> CountPartyAliveNonEggMons </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6962,6 +7155,7 @@ special2 0x800D CountPartyAliveNonEggMons
 
 <details>
 <summary> CountPartyAliveNonEggMons_IgnoreVar0x8004Slot </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6972,6 +7166,7 @@ special2 0x800D CountPartyAliveNonEggMons_IgnoreVar0x8004Slot
 
 <details>
 <summary> CountPartyNonEggMons </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6982,6 +7177,7 @@ special2 0x800D CountPartyNonEggMons
 
 <details>
 <summary> CountPlayerMuseumPaintings </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6992,6 +7188,7 @@ special2 0x8004 CountPlayerMuseumPaintings
 
 <details>
 <summary> CountPlayerTrainerStars </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7002,6 +7199,7 @@ special2 0x800D CountPlayerTrainerStars
 
 <details>
 <summary> CreateAbnormalWeatherEvent </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7012,6 +7210,7 @@ special CreateAbnormalWeatherEvent
 
 <details>
 <summary> CreateEventLegalEnemyMon </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7022,6 +7221,7 @@ special CreateEventLegalEnemyMon
 
 <details>
 <summary> CreateInGameTradePokemon </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7032,6 +7232,7 @@ special CreateInGameTradePokemon
 
 <details>
 <summary> CreatePCMenu </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7042,6 +7243,7 @@ special CreatePCMenu
 
 <details>
 <summary> DaisyMassageServices </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7052,6 +7254,7 @@ special DaisyMassageServices
 
 <details>
 <summary> DaycareMonReceivedMail </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7062,6 +7265,7 @@ special2 0x800D DaycareMonReceivedMail
 
 <details>
 <summary> DeclinedSecretBaseBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7072,6 +7276,7 @@ special DeclinedSecretBaseBattle
 
 <details>
 <summary> DeleteMonMove </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7082,6 +7287,7 @@ special DeleteMonMove
 
 <details>
 <summary> DestroyMewEmergingGrassSprite </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7092,6 +7298,7 @@ special DestroyMewEmergingGrassSprite
 
 <details>
 <summary> DetermineBattleTowerPrize </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7102,6 +7309,7 @@ special DetermineBattleTowerPrize
 
 <details>
 <summary> DidFavorLadyLikeItem </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7112,6 +7320,7 @@ special2 0x800D DidFavorLadyLikeItem
 
 <details>
 <summary> DisableMsgBoxWalkaway </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7122,6 +7331,7 @@ special DisableMsgBoxWalkaway
 
 <details>
 <summary> DisplayBerryPowderVendorMenu </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7132,6 +7342,7 @@ special DisplayBerryPowderVendorMenu
 
 <details>
 <summary> DisplayCurrentElevatorFloor </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7142,6 +7353,7 @@ special DisplayCurrentElevatorFloor
 
 <details>
 <summary> DisplayMoveTutorMenu </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7152,6 +7364,7 @@ special DisplayMoveTutorMenu
 
 <details>
 <summary> DoBattlePyramidMonsHaveHeldItem </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7162,6 +7375,7 @@ special DoBattlePyramidMonsHaveHeldItem
 
 <details>
 <summary> DoBerryBlending </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7172,6 +7386,7 @@ special DoBerryBlending
 
 <details>
 <summary> DoBrailleWait </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7182,6 +7397,7 @@ special DoBrailleWait
 
 <details>
 <summary> DoCableClubWarp </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7192,6 +7408,7 @@ special DoCableClubWarp
 
 <details>
 <summary> DoContestHallWarp </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7202,6 +7419,7 @@ special DoContestHallWarp
 
 <details>
 <summary> DoCredits </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7212,6 +7430,7 @@ special DoCredits
 
 <details>
 <summary> DoDeoxysRockInteraction </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7222,6 +7441,7 @@ special DoDeoxysRockInteraction
 
 <details>
 <summary> DoDeoxysTriangleInteraction </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7232,6 +7452,7 @@ special DoDeoxysTriangleInteraction
 
 <details>
 <summary> DoDiveWarp </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7242,6 +7463,7 @@ special DoDiveWarp
 
 <details>
 <summary> DoDomeConfetti </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7252,6 +7474,7 @@ special DoDomeConfetti
 
 <details>
 <summary> DoesContestCategoryHaveMuseumPainting </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7262,6 +7485,7 @@ special DoesContestCategoryHaveMuseumPainting
 
 <details>
 <summary> DoesPartyHaveEnigmaBerry </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7272,6 +7496,7 @@ special2 0x800D DoesPartyHaveEnigmaBerry
 
 <details>
 <summary> DoesPlayerPartyContainSpecies </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7284,6 +7509,7 @@ read species from 0x8004, if it's in the party, return 1 (recomend returning to 
 
 <details>
 <summary> DoFallWarp </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7294,6 +7520,7 @@ special DoFallWarp
 
 <details>
 <summary> DoInGameTradeScene </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7304,6 +7531,7 @@ special DoInGameTradeScene
 
 <details>
 <summary> DoLotteryCornerComputerEffect </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7314,6 +7542,7 @@ special DoLotteryCornerComputerEffect
 
 <details>
 <summary> DoMirageTowerCeilingCrumble </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7324,6 +7553,7 @@ special DoMirageTowerCeilingCrumble
 
 <details>
 <summary> DoOrbEffect </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7334,6 +7564,7 @@ special DoOrbEffect
 
 <details>
 <summary> DoPCTurnOffEffect </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7344,6 +7575,7 @@ special DoPCTurnOffEffect
 
 <details>
 <summary> DoPCTurnOnEffect </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7354,6 +7586,7 @@ special DoPCTurnOnEffect
 
 <details>
 <summary> DoPicboxCancel </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7364,6 +7597,7 @@ special DoPicboxCancel
 
 <details>
 <summary> DoPokemonLeagueLightingEffect </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7374,6 +7608,7 @@ special DoPokemonLeagueLightingEffect
 
 <details>
 <summary> DoPokeNews </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7384,6 +7619,7 @@ special DoPokeNews
 
 <details>
 <summary> DoSeagallopFerryScene </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7394,6 +7630,7 @@ special DoSeagallopFerryScene
 
 <details>
 <summary> DoSealedChamberShakingEffect1 </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7404,6 +7641,7 @@ special DoSealedChamberShakingEffect1
 
 <details>
 <summary> DoSealedChamberShakingEffect2 </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7414,6 +7652,7 @@ special DoSealedChamberShakingEffect2
 
 <details>
 <summary> DoSecretBasePCTurnOffEffect </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7424,6 +7663,7 @@ special DoSecretBasePCTurnOffEffect
 
 <details>
 <summary> DoSoftReset </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7434,6 +7674,7 @@ special DoSoftReset
 
 <details>
 <summary> DoSpecialTrainerBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7444,6 +7685,7 @@ special DoSpecialTrainerBattle
 
 <details>
 <summary> DoSSAnneDepartureCutscene </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7454,6 +7696,7 @@ special DoSSAnneDepartureCutscene
 
 <details>
 <summary> DoTrainerApproach </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7464,6 +7707,7 @@ special DoTrainerApproach
 
 <details>
 <summary> DoTVShow </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7474,6 +7718,7 @@ special DoTVShow
 
 <details>
 <summary> DoTVShowInSearchOfTrainers </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7484,6 +7729,7 @@ special DoTVShowInSearchOfTrainers
 
 <details>
 <summary> DoWaldaNamingScreen </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7494,6 +7740,7 @@ special DoWaldaNamingScreen
 
 <details>
 <summary> DoWateringBerryTreeAnim </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7504,6 +7751,7 @@ special DoWateringBerryTreeAnim
 
 <details>
 <summary> DrawElevatorCurrentFloorWindow </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7514,6 +7762,7 @@ special DrawElevatorCurrentFloorWindow
 
 <details>
 <summary> DrawSeagallopDestinationMenu </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7524,6 +7773,7 @@ special DrawSeagallopDestinationMenu
 
 <details>
 <summary> DrawWholeMapView </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7534,6 +7784,7 @@ special DrawWholeMapView
 
 <details>
 <summary> DrewSecretBaseBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7544,6 +7795,7 @@ special DrewSecretBaseBattle
 
 <details>
 <summary> Dummy_TryEnableBravoTrainerBattleTower </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7554,6 +7806,7 @@ special Dummy_TryEnableBravoTrainerBattleTower
 
 <details>
 <summary> EggHatch </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7564,6 +7817,7 @@ special EggHatch
 
 <details>
 <summary> EnableNationalPokedex </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7574,6 +7828,7 @@ special EnableNationalPokedex
 
 <details>
 <summary> EndLotteryCornerComputerEffect </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7584,6 +7839,7 @@ special EndLotteryCornerComputerEffect
 
 <details>
 <summary> EndTrainerApproach </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7594,6 +7850,7 @@ special EndTrainerApproach
 
 <details>
 <summary> EnterColosseumPlayerSpot </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7604,6 +7861,7 @@ special EnterColosseumPlayerSpot
 
 <details>
 <summary> EnterHallOfFame </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7614,6 +7872,7 @@ special EnterHallOfFame
 
 <details>
 <summary> EnterNewlyCreatedSecretBase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7624,6 +7883,7 @@ special EnterNewlyCreatedSecretBase
 
 <details>
 <summary> EnterSafariMode </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7634,6 +7894,7 @@ special EnterSafariMode
 
 <details>
 <summary> EnterSecretBase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7644,6 +7905,7 @@ special EnterSecretBase
 
 <details>
 <summary> EnterTradeSeat </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7654,6 +7916,7 @@ special EnterTradeSeat
 
 <details>
 <summary> ExecuteWhiteOut </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7664,6 +7927,7 @@ special ExecuteWhiteOut
 
 <details>
 <summary> ExitLinkRoom </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7674,6 +7938,7 @@ special ExitLinkRoom
 
 <details>
 <summary> ExitSafariMode </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7684,6 +7949,7 @@ special ExitSafariMode
 
 <details>
 <summary> FadeOutOrbEffect </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7694,6 +7960,7 @@ special FadeOutOrbEffect
 
 <details>
 <summary> FavorLadyGetPrize </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7704,6 +7971,7 @@ special2 0x8004 FavorLadyGetPrize
 
 <details>
 <summary> Field_AskSaveTheGame </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7714,6 +7982,7 @@ special Field_AskSaveTheGame
 
 <details>
 <summary> FieldShowRegionMap </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7724,6 +7993,7 @@ special FieldShowRegionMap
 
 <details>
 <summary> FinishCyclingRoadChallenge </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7734,6 +8004,7 @@ special FinishCyclingRoadChallenge
 
 <details>
 <summary> ForcePlayerOntoBike </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7744,6 +8015,7 @@ special ForcePlayerOntoBike
 
 <details>
 <summary> ForcePlayerToStartSurfing </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7754,6 +8026,7 @@ special ForcePlayerToStartSurfing
 
 <details>
 <summary> FoundAbandonedShipRoom1Key </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7764,6 +8037,7 @@ special2 0x800D FoundAbandonedShipRoom1Key
 
 <details>
 <summary> FoundAbandonedShipRoom2Key </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7774,6 +8048,7 @@ special2 0x800D FoundAbandonedShipRoom2Key
 
 <details>
 <summary> FoundAbandonedShipRoom4Key </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7784,6 +8059,7 @@ special2 0x800D FoundAbandonedShipRoom4Key
 
 <details>
 <summary> FoundAbandonedShipRoom6Key </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7794,6 +8070,7 @@ special2 0x800D FoundAbandonedShipRoom6Key
 
 <details>
 <summary> FoundBlackGlasses </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7804,6 +8081,7 @@ special2 0x800D FoundBlackGlasses
 
 <details>
 <summary> GabbyAndTyAfterInterview </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7814,6 +8092,7 @@ special GabbyAndTyAfterInterview
 
 <details>
 <summary> GabbyAndTyBeforeInterview </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7824,6 +8103,7 @@ special GabbyAndTyBeforeInterview
 
 <details>
 <summary> GabbyAndTyGetBattleNum </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7834,6 +8114,7 @@ special2 0x800D GabbyAndTyGetBattleNum
 
 <details>
 <summary> GabbyAndTyGetLastBattleTrivia </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7844,6 +8125,7 @@ special2 0x800D GabbyAndTyGetLastBattleTrivia
 
 <details>
 <summary> GabbyAndTyGetLastQuote </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7854,6 +8136,7 @@ special2 0x800D GabbyAndTyGetLastQuote
 
 <details>
 <summary> GabbyAndTySetScriptVarsToObjectEventLocalIds </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7864,6 +8147,7 @@ special GabbyAndTySetScriptVarsToObjectEventLocalIds
 
 <details>
 <summary> GameClear </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7874,6 +8158,7 @@ special GameClear
 
 <details>
 <summary> GenerateContestRand </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7884,6 +8169,7 @@ special GenerateContestRand
 
 <details>
 <summary> GetAbnormalWeatherMapNameAndType </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7894,6 +8180,7 @@ special2 0x800D GetAbnormalWeatherMapNameAndType
 
 <details>
 <summary> GetBarboachSizeRecordInfo </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7904,6 +8191,7 @@ special GetBarboachSizeRecordInfo
 
 <details>
 <summary> GetBattleFrontierTutorMoveIndex </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7914,6 +8202,7 @@ special GetBattleFrontierTutorMoveIndex
 
 <details>
 <summary> GetBattleOutcome </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7924,6 +8213,7 @@ special2 0x800D GetBattleOutcome
 
 <details>
 <summary> GetBattlePyramidHint </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7934,6 +8224,7 @@ special GetBattlePyramidHint
 
 <details>
 <summary> GetBestBattleTowerStreak </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7944,6 +8235,7 @@ special2 0x800D GetBestBattleTowerStreak
 
 <details>
 <summary> GetContestantNamesAtRank </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7954,6 +8246,7 @@ special GetContestantNamesAtRank
 
 <details>
 <summary> GetContestLadyCategory </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7964,6 +8257,7 @@ special2 0x800D GetContestLadyCategory
 
 <details>
 <summary> GetContestLadyMonSpecies </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7974,6 +8268,7 @@ special GetContestLadyMonSpecies
 
 <details>
 <summary> GetContestMonCondition </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7984,6 +8279,7 @@ special GetContestMonCondition
 
 <details>
 <summary> GetContestMonConditionRanking </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7994,6 +8290,7 @@ special GetContestMonConditionRanking
 
 <details>
 <summary> GetContestMultiplayerId </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8004,6 +8301,7 @@ special GetContestMultiplayerId
 
 <details>
 <summary> GetContestPlayerId </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8014,6 +8312,7 @@ special GetContestPlayerId
 
 <details>
 <summary> GetContestWinnerId </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8024,6 +8323,7 @@ special GetContestWinnerId
 
 <details>
 <summary> GetCostToWithdrawRoute5DaycareMon </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8034,6 +8334,7 @@ special GetCostToWithdrawRoute5DaycareMon
 
 <details>
 <summary> GetCurSecretBaseRegistrationValidity </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8044,6 +8345,7 @@ special GetCurSecretBaseRegistrationValidity
 
 <details>
 <summary> GetDaycareCost </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8054,6 +8356,7 @@ special GetDaycareCost
 
 <details>
 <summary> GetDaycareMonNicknames </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8064,6 +8367,7 @@ special GetDaycareMonNicknames
 
 <details>
 <summary> GetDaycarePokemonCount </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8074,6 +8378,7 @@ special GetDaycarePokemonCount
 
 <details>
 <summary> GetDaycareState </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8084,6 +8389,7 @@ special2 0x800D GetDaycareState
 
 <details>
 <summary> GetDaysUntilPacifidlogTMAvailable </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8094,6 +8400,7 @@ special2 0x800D GetDaysUntilPacifidlogTMAvailable
 
 <details>
 <summary> GetDeptStoreDefaultFloorChoice </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8104,6 +8411,7 @@ special2 0x800D GetDeptStoreDefaultFloorChoice
 
 <details>
 <summary> GetDewfordHallPaintingNameIndex </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8114,6 +8422,7 @@ special GetDewfordHallPaintingNameIndex
 
 <details>
 <summary> GetElevatorFloor </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8124,6 +8433,7 @@ special GetElevatorFloor
 
 <details>
 <summary> GetFavorLadyState </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8134,6 +8444,7 @@ special2 0x800D GetFavorLadyState
 
 <details>
 <summary> GetFirstFreePokeblockSlot </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8144,6 +8455,7 @@ special2 0x800D GetFirstFreePokeblockSlot
 
 <details>
 <summary> GetFrontierBattlePoints </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8154,6 +8466,7 @@ special2 0x4001 GetFrontierBattlePoints
 
 <details>
 <summary> GetGabbyAndTyLocalIds </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8164,6 +8477,7 @@ special GetGabbyAndTyLocalIds
 
 <details>
 <summary> GetHeracrossSizeRecordInfo </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8174,6 +8488,7 @@ special GetHeracrossSizeRecordInfo
 
 <details>
 <summary> GetInGameTradeSpeciesInfo </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8184,6 +8499,7 @@ special2 0x800D GetInGameTradeSpeciesInfo
 
 <details>
 <summary> GetLeadMonFriendship </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8194,6 +8510,7 @@ special2 0x800D GetLeadMonFriendship
 
 <details>
 <summary> GetLeadMonFriendshipScore </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8204,6 +8521,7 @@ special2 0x800D GetLeadMonFriendshipScore
 
 <details>
 <summary> GetLilycoveSSTidalSelection </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8214,6 +8532,7 @@ special GetLilycoveSSTidalSelection
 
 <details>
 <summary> GetLinkPartnerNames </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8224,6 +8543,7 @@ special2 0x800D GetLinkPartnerNames
 
 <details>
 <summary> GetLotadSizeRecordInfo </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8234,6 +8554,7 @@ special GetLotadSizeRecordInfo
 
 <details>
 <summary> GetMagikarpSizeRecordInfo </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8244,6 +8565,7 @@ special GetMagikarpSizeRecordInfo
 
 <details>
 <summary> GetMartClerkObjectId </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8254,6 +8576,7 @@ special GetMartClerkObjectId
 
 <details>
 <summary> GetMartEmployeeObjectEventId </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8264,6 +8587,7 @@ special GetMartEmployeeObjectEventId
 
 <details>
 <summary> GetMENewsJisanItemAndState </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8274,6 +8598,7 @@ special2 0x8004 GetMENewsJisanItemAndState
 
 <details>
 <summary> GetMomOrDadStringForTVMessage </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8284,6 +8609,7 @@ special GetMomOrDadStringForTVMessage
 
 <details>
 <summary> GetMysteryEventCardVal </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8294,6 +8620,7 @@ special GetMysteryEventCardVal
 
 <details>
 <summary> GetNameOfEnigmaBerryInPlayerParty </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8304,6 +8631,7 @@ special2 0x800D GetNameOfEnigmaBerryInPlayerParty
 
 <details>
 <summary> GetNextActiveShowIfMassOutbreak </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8314,6 +8642,7 @@ special GetNextActiveShowIfMassOutbreak
 
 <details>
 <summary> GetNonMassOutbreakActiveTVShow </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8324,6 +8653,7 @@ special GetNonMassOutbreakActiveTVShow
 
 <details>
 <summary> GetNpcContestantLocalId </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8334,6 +8664,7 @@ special GetNpcContestantLocalId
 
 <details>
 <summary> GetNumFansOfPlayerInTrainerFanClub </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8344,6 +8675,7 @@ special2 0x800D GetNumFansOfPlayerInTrainerFanClub
 
 <details>
 <summary> GetNumLevelsGainedForRoute5DaycareMon </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8354,6 +8686,7 @@ special2 0x800D GetNumLevelsGainedForRoute5DaycareMon
 
 <details>
 <summary> GetNumLevelsGainedFromDaycare </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8364,6 +8697,7 @@ special2 0x800D GetNumLevelsGainedFromDaycare
 
 <details>
 <summary> GetNumMovedLilycoveFanClubMembers </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8374,6 +8708,7 @@ special2 0x800D GetNumMovedLilycoveFanClubMembers
 
 <details>
 <summary> GetNumMovesSelectedMonHas </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8384,6 +8719,7 @@ special GetNumMovesSelectedMonHas
 
 <details>
 <summary> GetNumValidDaycarePartyMons </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8394,6 +8730,7 @@ special2 0x800D GetNumValidDaycarePartyMons
 
 <details>
 <summary> GetObjectEventLocalIdByFlag </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8404,6 +8741,7 @@ special GetObjectEventLocalIdByFlag
 
 <details>
 <summary> GetPartyMonSpecies </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8416,6 +8754,7 @@ Read party index from 0x8004, return species
 
 <details>
 <summary> GetPCBoxToSendMon </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8426,6 +8765,7 @@ special2 0x800D GetPCBoxToSendMon
 
 <details>
 <summary> GetPlayerAvatarBike </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8436,6 +8776,7 @@ special2 0x800D GetPlayerAvatarBike
 
 <details>
 <summary> GetPlayerBigGuyGirlString </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8446,6 +8787,7 @@ special GetPlayerBigGuyGirlString
 
 <details>
 <summary> GetPlayerFacingDirection </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8456,6 +8798,7 @@ special2 0x800D GetPlayerFacingDirection
 
 <details>
 <summary> GetPlayerTrainerIdOnesDigit </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8466,6 +8809,7 @@ special2 0x800D GetPlayerTrainerIdOnesDigit
 
 <details>
 <summary> GetPlayerXY </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8476,6 +8820,7 @@ special GetPlayerXY
 
 <details>
 <summary> GetPokeblockFeederInFront </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8486,6 +8831,7 @@ special GetPokeblockFeederInFront
 
 <details>
 <summary> GetPokeblockNameByMonNature </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8496,6 +8842,7 @@ special2 0x800D GetPokeblockNameByMonNature
 
 <details>
 <summary> GetPokedexCount </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8506,6 +8853,7 @@ special2 0x800D GetPokedexCount
 
 <details>
 <summary> GetProfOaksRatingMessage </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8516,6 +8864,7 @@ special GetProfOaksRatingMessage
 
 <details>
 <summary> GetQuestLogState </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8526,6 +8875,7 @@ special GetQuestLogState
 
 <details>
 <summary> GetQuizAuthor </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8536,6 +8886,7 @@ special2 0x800D GetQuizAuthor
 
 <details>
 <summary> GetQuizLadyState </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8546,6 +8897,7 @@ special2 0x800D GetQuizLadyState
 
 <details>
 <summary> GetRandomActiveShowIdx </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8556,6 +8908,7 @@ special GetRandomActiveShowIdx
 
 <details>
 <summary> GetRandomSlotMachineId </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8566,6 +8919,7 @@ special2 0x800D GetRandomSlotMachineId
 
 <details>
 <summary> GetRecordedCyclingRoadResults </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8576,6 +8930,7 @@ special2 0x800D GetRecordedCyclingRoadResults
 
 <details>
 <summary> GetRivalSonDaughterString </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8586,6 +8941,7 @@ special GetRivalSonDaughterString
 
 <details>
 <summary> GetSeagallopNumber </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8596,6 +8952,7 @@ special2 0x800D GetSeagallopNumber
 
 <details>
 <summary> GetSecretBaseNearbyMapName </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8606,6 +8963,7 @@ special GetSecretBaseNearbyMapName
 
 <details>
 <summary> GetSecretBaseOwnerAndState </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8616,6 +8974,7 @@ special GetSecretBaseOwnerAndState
 
 <details>
 <summary> GetSecretBaseTypeInFrontOfPlayer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8626,6 +8985,7 @@ special GetSecretBaseTypeInFrontOfPlayer
 
 <details>
 <summary> GetSeedotSizeRecordInfo </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8636,6 +8996,7 @@ special GetSeedotSizeRecordInfo
 
 <details>
 <summary> GetSelectedDaycareMonNickname </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8646,6 +9007,7 @@ special2 0x8005 GetSelectedDaycareMonNickname
 
 <details>
 <summary> GetSelectedMonNicknameAndSpecies </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8656,6 +9018,7 @@ special2 0x8005 GetSelectedMonNicknameAndSpecies
 
 <details>
 <summary> GetSelectedSeagallopDestination </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8666,6 +9029,7 @@ special2 0x8006 GetSelectedSeagallopDestination
 
 <details>
 <summary> GetSelectedTVShow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8676,6 +9040,7 @@ special GetSelectedTVShow
 
 <details>
 <summary> GetShieldToyTVDecorationInfo </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8686,6 +9051,7 @@ special GetShieldToyTVDecorationInfo
 
 <details>
 <summary> GetShroomishSizeRecordInfo </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8696,6 +9062,7 @@ special GetShroomishSizeRecordInfo
 
 <details>
 <summary> GetSlotMachineId </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8706,6 +9073,7 @@ special2 0x800D GetSlotMachineId
 
 <details>
 <summary> GetStarterSpecies </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8716,6 +9084,7 @@ special2 0x800D GetStarterSpecies
 
 <details>
 <summary> GetTradeSpecies </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8726,6 +9095,7 @@ special2 0x800D GetTradeSpecies
 
 <details>
 <summary> GetTrainerBattleMode </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8736,6 +9106,7 @@ special GetTrainerBattleMode
 
 <details>
 <summary> GetTrainerFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8746,6 +9117,7 @@ special GetTrainerFlag
 
 <details>
 <summary> GetTVShowType </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8756,6 +9128,7 @@ special GetTVShowType
 
 <details>
 <summary> GetWeekCount </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8766,6 +9139,7 @@ special2 0x800D GetWeekCount
 
 <details>
 <summary> GetWirelessCommType </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8776,6 +9150,7 @@ special GetWirelessCommType
 
 <details>
 <summary> GiveBattleTowerPrize </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -8786,6 +9161,7 @@ special GiveBattleTowerPrize
 
 <details>
 <summary> GiveEggFromDaycare </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8796,6 +9172,7 @@ special GiveEggFromDaycare
 
 <details>
 <summary> GiveFrontierBattlePoints </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8806,6 +9183,7 @@ special GiveFrontierBattlePoints
 
 <details>
 <summary> GiveLeadMonEffortRibbon </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8816,6 +9194,7 @@ special GiveLeadMonEffortRibbon
 
 <details>
 <summary> GiveMonArtistRibbon </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8826,6 +9205,7 @@ special GiveMonArtistRibbon
 
 <details>
 <summary> GiveMonContestRibbon </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8836,6 +9216,7 @@ special GiveMonContestRibbon
 
 <details>
 <summary> GivLeadMonEffortRibbon </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8846,6 +9227,7 @@ special GivLeadMonEffortRibbon
 
 <details>
 <summary> HallOfFamePCBeginFade </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8856,6 +9238,7 @@ special HallOfFamePCBeginFade
 
 <details>
 <summary> HasAllHoennMons </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8866,6 +9249,7 @@ special2 0x800D HasAllHoennMons
 
 <details>
 <summary> HasAllKantoMons </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8876,6 +9260,7 @@ special2 0x800D HasAllKantoMons
 
 <details>
 <summary> HasAllMons </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8886,6 +9271,7 @@ special2 0x800D HasAllMons
 
 <details>
 <summary> HasAnotherPlayerGivenFavorLadyItem </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8896,6 +9282,7 @@ special2 0x800D HasAnotherPlayerGivenFavorLadyItem
 
 <details>
 <summary> HasAtLeastOneBerry </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8906,6 +9293,7 @@ special HasAtLeastOneBerry
 
 <details>
 <summary> HasEnoughBerryPowder </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8916,6 +9304,7 @@ special2 0x800D HasEnoughBerryPowder
 
 <details>
 <summary> HasEnoughMoneyFor </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8926,6 +9315,7 @@ special2 0x800D HasEnoughMoneyFor
 
 <details>
 <summary> HasEnoughMonsForDoubleBattle </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8936,6 +9326,7 @@ special HasEnoughMonsForDoubleBattle
 
 <details>
 <summary> HasLeadMonBeenRenamed </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8946,6 +9337,7 @@ special HasLeadMonBeenRenamed
 
 <details>
 <summary> HasLearnedAllMovesFromCapeBrinkTutor </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8956,6 +9348,7 @@ special2 0x800D HasLearnedAllMovesFromCapeBrinkTutor
 
 <details>
 <summary> HasMonWonThisContestBefore </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8966,6 +9359,7 @@ special HasMonWonThisContestBefore
 
 <details>
 <summary> HasPlayerGivenContestLadyPokeblock </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8976,6 +9370,7 @@ special2 0x800D HasPlayerGivenContestLadyPokeblock
 
 <details>
 <summary> HealPlayerParty </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8986,6 +9381,7 @@ special HealPlayerParty
 
 <details>
 <summary> HelpSystem_Disable </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8996,6 +9392,7 @@ special HelpSystem_Disable
 
 <details>
 <summary> HelpSystem_Enable </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9006,6 +9403,7 @@ special HelpSystem_Enable
 
 <details>
 <summary> HideContestEntryMonPic </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9016,6 +9414,7 @@ special HideContestEntryMonPic
 
 <details>
 <summary> IncrementDailyPickedBerries </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9026,6 +9425,7 @@ special IncrementDailyPickedBerries
 
 <details>
 <summary> IncrementDailyPlantedBerries </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9036,6 +9436,7 @@ special IncrementDailyPlantedBerries
 
 <details>
 <summary> InitBirchState </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9046,6 +9447,7 @@ special InitBirchState
 
 <details>
 <summary> InitElevatorFloorSelectMenuPos </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9056,6 +9458,7 @@ special2 0x800D InitElevatorFloorSelectMenuPos
 
 <details>
 <summary> InitRoamer </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9066,6 +9469,7 @@ special InitRoamer
 
 <details>
 <summary> InitSecretBaseDecorationSprites </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9076,6 +9480,7 @@ special InitSecretBaseDecorationSprites
 
 <details>
 <summary> InitSecretBaseVars </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9086,6 +9491,7 @@ special InitSecretBaseVars
 
 <details>
 <summary> InitUnionRoom </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9096,6 +9502,7 @@ special InitUnionRoom
 
 <details>
 <summary> InteractWithShieldOrTVDecoration </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9106,6 +9513,7 @@ special InteractWithShieldOrTVDecoration
 
 <details>
 <summary> InterviewAfter </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9116,6 +9524,7 @@ special InterviewAfter
 
 <details>
 <summary> InterviewBefore </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9126,6 +9535,7 @@ special InterviewBefore
 
 <details>
 <summary> IsBadEggInParty </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9136,6 +9546,7 @@ special2 0x800D IsBadEggInParty
 
 <details>
 <summary> IsContestDebugActive </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9146,6 +9557,7 @@ special2 0x800D IsContestDebugActive
 
 <details>
 <summary> IsContestWithRSPlayer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9156,6 +9568,7 @@ special2 0x800D IsContestWithRSPlayer
 
 <details>
 <summary> IsCurSecretBaseOwnedByAnotherPlayer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9166,6 +9579,7 @@ special IsCurSecretBaseOwnedByAnotherPlayer
 
 <details>
 <summary> IsDodrioInParty </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9176,6 +9590,7 @@ special IsDodrioInParty
 
 <details>
 <summary> IsEnigmaBerryValid </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9186,6 +9601,7 @@ special2 0x800D IsEnigmaBerryValid
 
 <details>
 <summary> IsEnoughForCostInVar0x8005 </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9196,6 +9612,7 @@ special2 0x800D IsEnoughForCostInVar0x8005
 
 <details>
 <summary> IsFanClubMemberFanOfPlayer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9206,6 +9623,7 @@ special2 0x800D IsFanClubMemberFanOfPlayer
 
 <details>
 <summary> IsFavorLadyThresholdMet </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9216,6 +9634,7 @@ special2 0x800D IsFavorLadyThresholdMet
 
 <details>
 <summary> IsGabbyAndTyShowOnTheAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9226,6 +9645,7 @@ special IsGabbyAndTyShowOnTheAir
 
 <details>
 <summary> IsGrassTypeInParty </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9236,6 +9656,7 @@ special IsGrassTypeInParty
 
 <details>
 <summary> IsLastMonThatKnowsSurf </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9246,6 +9667,7 @@ special IsLastMonThatKnowsSurf
 
 <details>
 <summary> IsLeadMonNicknamedOrNotEnglish </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9256,6 +9678,7 @@ special2 0x800D IsLeadMonNicknamedOrNotEnglish
 
 <details>
 <summary> IsMirageIslandPresent </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9266,6 +9689,7 @@ special2 0x800D IsMirageIslandPresent
 
 <details>
 <summary> IsMonOTIDNotPlayers </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9276,6 +9700,7 @@ special IsMonOTIDNotPlayers
 
 <details>
 <summary> IsMonOTNameNotPlayers </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9286,6 +9711,7 @@ special2 0x800D IsMonOTNameNotPlayers
 
 <details>
 <summary> IsNationalPokedexEnabled </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9296,6 +9722,7 @@ special2 0x800D IsNationalPokedexEnabled
 
 <details>
 <summary> IsPlayerLeftOfVermilionSailor </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9306,6 +9733,7 @@ special2 0x800D IsPlayerLeftOfVermilionSailor
 
 <details>
 <summary> IsPlayerNotInTrainerTowerLobby </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9316,6 +9744,7 @@ special2 0x800D IsPlayerNotInTrainerTowerLobby
 
 <details>
 <summary> IsPokemonJumpSpeciesInParty </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9326,6 +9755,7 @@ special IsPokemonJumpSpeciesInParty
 
 <details>
 <summary> IsPokerusInParty </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9336,6 +9766,7 @@ special2 0x800D IsPokerusInParty
 
 <details>
 <summary> IsQuizAnswerCorrect </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9346,6 +9777,7 @@ special2 0x800D IsQuizAnswerCorrect
 
 <details>
 <summary> IsQuizLadyWaitingForChallenger </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9356,6 +9788,7 @@ special2 0x800D IsQuizLadyWaitingForChallenger
 
 <details>
 <summary> IsSelectedMonEgg </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9366,6 +9799,7 @@ special IsSelectedMonEgg
 
 <details>
 <summary> IsStarterFirstStageInParty </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9376,6 +9810,7 @@ special IsStarterFirstStageInParty
 
 <details>
 <summary> IsStarterInParty </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9386,6 +9821,7 @@ special2 0x800D IsStarterInParty
 
 <details>
 <summary> IsThereMonInRoute5Daycare </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9396,6 +9832,7 @@ special2 0x800D IsThereMonInRoute5Daycare
 
 <details>
 <summary> IsThereRoomInAnyBoxForMorePokemon </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9406,6 +9843,7 @@ special2 0x800D IsThereRoomInAnyBoxForMorePokemon
 
 <details>
 <summary> IsTrainerReadyForRematch </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9416,6 +9854,7 @@ special2 0x800D IsTrainerReadyForRematch
 
 <details>
 <summary> IsTrainerRegistered </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9426,6 +9865,7 @@ special2 0x800D IsTrainerRegistered
 
 <details>
 <summary> IsTrendyPhraseBoring </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9436,6 +9876,7 @@ special IsTrendyPhraseBoring
 
 <details>
 <summary> IsTVShowAlreadyInQueue </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9446,6 +9887,7 @@ special IsTVShowAlreadyInQueue
 
 <details>
 <summary> IsTVShowInSearchOfTrainersAiring </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9456,6 +9898,7 @@ special IsTVShowInSearchOfTrainersAiring
 
 <details>
 <summary> IsWirelessAdapterConnected </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9466,6 +9909,7 @@ special2 0x800D IsWirelessAdapterConnected
 
 <details>
 <summary> IsWirelessContest </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9476,6 +9920,7 @@ special2 0x800D IsWirelessContest
 
 <details>
 <summary> LeadMonHasEffortRibbon </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9486,6 +9931,7 @@ special2 0x800D LeadMonHasEffortRibbon
 
 <details>
 <summary> LeadMonNicknamed </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9496,6 +9942,7 @@ special2 0x800D LeadMonNicknamed
 
 <details>
 <summary> LinkContestTryHideWirelessIndicator </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9506,6 +9953,7 @@ special LinkContestTryHideWirelessIndicator
 
 <details>
 <summary> LinkContestTryShowWirelessIndicator </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9516,6 +9964,7 @@ special LinkContestTryShowWirelessIndicator
 
 <details>
 <summary> LinkContestWaitForConnection </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9526,6 +9975,7 @@ special LinkContestWaitForConnection
 
 <details>
 <summary> LinkRetireStatusWithBattleTowerPartner </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9536,6 +9986,7 @@ special LinkRetireStatusWithBattleTowerPartner
 
 <details>
 <summary> ListMenu </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9546,6 +9997,7 @@ special ListMenu
 
 <details>
 <summary> LoadLinkContestPlayerPalettes </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9556,6 +10008,7 @@ special LoadLinkContestPlayerPalettes
 
 <details>
 <summary> LoadPlayerBag </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9566,6 +10019,7 @@ special LoadPlayerBag
 
 <details>
 <summary> LoadPlayerParty </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9576,6 +10030,7 @@ special LoadPlayerParty
 
 <details>
 <summary> LookThroughPorthole </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9586,6 +10041,7 @@ special LookThroughPorthole
 
 <details>
 <summary> LoopWingFlapSE </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9596,6 +10052,7 @@ special LoopWingFlapSE
 
 <details>
 <summary> LoopWingFlapSound </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9606,6 +10063,7 @@ special LoopWingFlapSound
 
 <details>
 <summary> LostSecretBaseBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9616,6 +10074,7 @@ special LostSecretBaseBattle
 
 <details>
 <summary> MauvilleGymDeactivatePuzzle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9626,6 +10085,7 @@ special MauvilleGymDeactivatePuzzle
 
 <details>
 <summary> MauvilleGymPressSwitch </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9636,6 +10096,7 @@ special MauvilleGymPressSwitch
 
 <details>
 <summary> MauvilleGymSetDefaultBarriers </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9646,6 +10107,7 @@ special MauvilleGymSetDefaultBarriers
 
 <details>
 <summary> MauvilleGymSpecial1 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9656,6 +10118,7 @@ special MauvilleGymSpecial1
 
 <details>
 <summary> MauvilleGymSpecial2 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9666,6 +10129,7 @@ special MauvilleGymSpecial2
 
 <details>
 <summary> MauvilleGymSpecial3 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9676,6 +10140,7 @@ special MauvilleGymSpecial3
 
 <details>
 <summary> MonOTNameMatchesPlayer </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9686,6 +10151,7 @@ special2 0x800D MonOTNameMatchesPlayer
 
 <details>
 <summary> MonOTNameNotPlayer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9696,6 +10162,7 @@ special2 0x800D MonOTNameNotPlayer
 
 <details>
 <summary> MoveDeleterChooseMoveToForget </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9706,6 +10173,7 @@ special MoveDeleterChooseMoveToForget
 
 <details>
 <summary> MoveDeleterForgetMove </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9716,6 +10184,7 @@ special MoveDeleterForgetMove
 
 <details>
 <summary> MoveElevator </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9726,6 +10195,7 @@ special MoveElevator
 
 <details>
 <summary> MoveOutOfSecretBase </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9736,6 +10206,7 @@ special MoveOutOfSecretBase
 
 <details>
 <summary> MoveOutOfSecretBaseFromOutside </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9746,6 +10217,7 @@ special MoveOutOfSecretBaseFromOutside
 
 <details>
 <summary> MoveSecretBase </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9756,6 +10228,7 @@ special MoveSecretBase
 
 <details>
 <summary> NameRaterWasNicknameChanged </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9766,6 +10239,7 @@ special2 0x800D NameRaterWasNicknameChanged
 
 <details>
 <summary> ObjectEventInteractionGetBerryCountString </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9776,6 +10250,7 @@ special ObjectEventInteractionGetBerryCountString
 
 <details>
 <summary> ObjectEventInteractionGetBerryName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9786,6 +10261,7 @@ special ObjectEventInteractionGetBerryName
 
 <details>
 <summary> ObjectEventInteractionGetBerryTreeData </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9796,6 +10272,7 @@ special ObjectEventInteractionGetBerryTreeData
 
 <details>
 <summary> ObjectEventInteractionPickBerryTree </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9806,6 +10283,7 @@ special ObjectEventInteractionPickBerryTree
 
 <details>
 <summary> ObjectEventInteractionPlantBerryTree </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9816,6 +10294,7 @@ special ObjectEventInteractionPlantBerryTree
 
 <details>
 <summary> ObjectEventInteractionRemoveBerryTree </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9826,6 +10305,7 @@ special ObjectEventInteractionRemoveBerryTree
 
 <details>
 <summary> ObjectEventInteractionWaterBerryTree </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9836,6 +10316,7 @@ special ObjectEventInteractionWaterBerryTree
 
 <details>
 <summary> OffsetCameraForBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9846,6 +10327,7 @@ special OffsetCameraForBattle
 
 <details>
 <summary> OpenMuseumFossilPic </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9856,6 +10338,7 @@ special OpenMuseumFossilPic
 
 <details>
 <summary> OpenPokeblockCaseForContestLady </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9866,6 +10349,7 @@ special OpenPokeblockCaseForContestLady
 
 <details>
 <summary> OpenPokeblockCaseOnFeeder </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9876,6 +10360,7 @@ special OpenPokeblockCaseOnFeeder
 
 <details>
 <summary> OpenPokenavForTutorial </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9886,6 +10371,7 @@ special OpenPokenavForTutorial
 
 <details>
 <summary> Overworld_PlaySpecialMapMusic </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9896,6 +10382,7 @@ special Overworld_PlaySpecialMapMusic
 
 <details>
 <summary> OverworldWhiteOutGetMoneyLoss </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9906,6 +10393,7 @@ special OverworldWhiteOutGetMoneyLoss
 
 <details>
 <summary> PayMoneyFor </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9916,6 +10404,7 @@ special PayMoneyFor
 
 <details>
 <summary> PetalburgGymOpenDoorsInstantly </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9926,6 +10415,7 @@ special PetalburgGymOpenDoorsInstantly
 
 <details>
 <summary> PetalburgGymSlideOpenDoors </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9936,6 +10426,7 @@ special PetalburgGymSlideOpenDoors
 
 <details>
 <summary> PetalburgGymSlideOpenRoomDoors </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9946,6 +10437,7 @@ special PetalburgGymSlideOpenRoomDoors
 
 <details>
 <summary> PetalburgGymUnlockRoomDoors </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9956,6 +10448,7 @@ special PetalburgGymUnlockRoomDoors
 
 <details>
 <summary> PickLotteryCornerTicket </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9966,6 +10459,7 @@ special PickLotteryCornerTicket
 
 <details>
 <summary> PlayerEnteredTradeSeat </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9976,6 +10470,7 @@ special PlayerEnteredTradeSeat
 
 <details>
 <summary> PlayerFaceTrainerAfterBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9986,6 +10481,7 @@ special PlayerFaceTrainerAfterBattle
 
 <details>
 <summary> PlayerHasBerries </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9996,6 +10492,7 @@ special2 0x800D PlayerHasBerries
 
 <details>
 <summary> PlayerHasGrassPokemonInParty </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10006,6 +10503,7 @@ special PlayerHasGrassPokemonInParty
 
 <details>
 <summary> PlayerNotAtTrainerHillEntrance </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10016,6 +10514,7 @@ special2 0x800D PlayerNotAtTrainerHillEntrance
 
 <details>
 <summary> PlayerPartyContainsSpeciesWithPlayerID </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10026,6 +10525,7 @@ special2 0x800D PlayerPartyContainsSpeciesWithPlayerID
 
 <details>
 <summary> PlayerPC </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -10036,6 +10536,7 @@ special PlayerPC
 
 <details>
 <summary> PlayRoulette </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10046,6 +10547,7 @@ special PlayRoulette
 
 <details>
 <summary> PlayTrainerEncounterMusic </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -10056,6 +10558,7 @@ special PlayTrainerEncounterMusic
 
 <details>
 <summary> PrepSecretBaseBattleFlags </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10066,6 +10569,7 @@ special PrepSecretBaseBattleFlags
 
 <details>
 <summary> PrintBattleTowerTrainerGreeting </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -10076,6 +10580,7 @@ special PrintBattleTowerTrainerGreeting
 
 <details>
 <summary> PrintEReaderTrainerGreeting </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10086,6 +10591,7 @@ special PrintEReaderTrainerGreeting
 
 <details>
 <summary> PrintPlayerBerryPowderAmount </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10096,6 +10602,7 @@ special PrintPlayerBerryPowderAmount
 
 <details>
 <summary> PutAwayDecorationIteration </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10106,6 +10613,7 @@ special PutAwayDecorationIteration
 
 <details>
 <summary> PutFanClubSpecialOnTheAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10116,6 +10624,7 @@ special PutFanClubSpecialOnTheAir
 
 <details>
 <summary> PutLilycoveContestLadyShowOnTheAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10126,6 +10635,7 @@ special PutLilycoveContestLadyShowOnTheAir
 
 <details>
 <summary> PutMonInRoute5Daycare </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10136,6 +10646,7 @@ special PutMonInRoute5Daycare
 
 <details>
 <summary> PutZigzagoonInPlayerParty </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10146,6 +10657,7 @@ special PutZigzagoonInPlayerParty
 
 <details>
 <summary> QuestLog_CutRecording </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10156,6 +10668,7 @@ special QuestLog_CutRecording
 
 <details>
 <summary> QuestLog_StartRecordingInputsAfterDeferredEvent </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10166,6 +10679,7 @@ special QuestLog_StartRecordingInputsAfterDeferredEvent
 
 <details>
 <summary> QuizLadyGetPlayerAnswer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10176,6 +10690,7 @@ special QuizLadyGetPlayerAnswer
 
 <details>
 <summary> QuizLadyPickNewQuestion </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10186,6 +10701,7 @@ special QuizLadyPickNewQuestion
 
 <details>
 <summary> QuizLadyRecordCustomQuizData </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10196,6 +10712,7 @@ special QuizLadyRecordCustomQuizData
 
 <details>
 <summary> QuizLadySetCustomQuestion </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10206,6 +10723,7 @@ special QuizLadySetCustomQuestion
 
 <details>
 <summary> QuizLadySetWaitingForChallenger </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10216,6 +10734,7 @@ special QuizLadySetWaitingForChallenger
 
 <details>
 <summary> QuizLadyShowQuizQuestion </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10226,6 +10745,7 @@ special QuizLadyShowQuizQuestion
 
 <details>
 <summary> QuizLadyTakePrizeForCustomQuiz </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10236,6 +10756,7 @@ special QuizLadyTakePrizeForCustomQuiz
 
 <details>
 <summary> ReadTrainerTowerAndValidate </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10246,6 +10767,7 @@ special ReadTrainerTowerAndValidate
 
 <details>
 <summary> RecordMixingPlayerSpotTriggered </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10256,6 +10778,7 @@ special RecordMixingPlayerSpotTriggered
 
 <details>
 <summary> ReducePlayerPartyToSelectedMons </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10266,6 +10789,7 @@ special ReducePlayerPartyToSelectedMons
 
 <details>
 <summary> ReducePlayerPartyToThree </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -10276,6 +10800,7 @@ special ReducePlayerPartyToThree
 
 <details>
 <summary> RegisteredItemHandleBikeSwap </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10286,6 +10811,7 @@ special RegisteredItemHandleBikeSwap
 
 <details>
 <summary> RejectEggFromDayCare </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -10296,6 +10822,7 @@ special RejectEggFromDayCare
 
 <details>
 <summary> RemoveBerryPowderVendorMenu </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10306,6 +10833,7 @@ special RemoveBerryPowderVendorMenu
 
 <details>
 <summary> RemoveCameraDummy </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10316,6 +10844,7 @@ special RemoveCameraDummy
 
 <details>
 <summary> RemoveCameraObject </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10326,6 +10855,7 @@ special RemoveCameraObject
 
 <details>
 <summary> RemoveRecordsWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10336,6 +10866,7 @@ special RemoveRecordsWindow
 
 <details>
 <summary> ResetHealLocationFromDewford </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10346,6 +10877,7 @@ special ResetHealLocationFromDewford
 
 <details>
 <summary> ResetSSTidalFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10356,6 +10888,7 @@ special ResetSSTidalFlag
 
 <details>
 <summary> ResetTrickHouseEndRoomFlag </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10366,6 +10899,7 @@ special ResetTrickHouseEndRoomFlag
 
 <details>
 <summary> ResetTrickHouseNuggetFlag </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10376,6 +10910,7 @@ special ResetTrickHouseNuggetFlag
 
 <details>
 <summary> ResetTVShowState </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10386,6 +10921,7 @@ special ResetTVShowState
 
 <details>
 <summary> RestoreHelpContext </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10396,6 +10932,7 @@ special RestoreHelpContext
 
 <details>
 <summary> RetrieveLotteryNumber </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10406,6 +10943,7 @@ special RetrieveLotteryNumber
 
 <details>
 <summary> RetrieveWonderNewsVal </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10416,6 +10954,7 @@ special RetrieveWonderNewsVal
 
 <details>
 <summary> ReturnFromLinkRoom </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10426,6 +10965,7 @@ special ReturnFromLinkRoom
 
 <details>
 <summary> ReturnToListMenu </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10436,6 +10976,7 @@ special ReturnToListMenu
 
 <details>
 <summary> RockSmashWildEncounter </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10446,6 +10987,7 @@ special RockSmashWildEncounter
 
 <details>
 <summary> RotatingGate_InitPuzzle </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10456,6 +10998,7 @@ special RotatingGate_InitPuzzle
 
 <details>
 <summary> RotatingGate_InitPuzzleAndGraphics </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10466,6 +11009,7 @@ special RotatingGate_InitPuzzleAndGraphics
 
 <details>
 <summary> RunUnionRoom </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10476,6 +11020,7 @@ special RunUnionRoom
 
 <details>
 <summary> SafariZoneGetPokeblockNameInFeeder </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10486,6 +11031,7 @@ special SafariZoneGetPokeblockNameInFeeder
 
 <details>
 <summary> SampleResortGorgeousMonAndReward </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10496,6 +11042,7 @@ special SampleResortGorgeousMonAndReward
 
 <details>
 <summary> SaveBattleTowerProgress </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -10506,6 +11053,7 @@ special SaveBattleTowerProgress
 
 <details>
 <summary> SaveForBattleTowerLink </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10516,6 +11064,7 @@ special SaveForBattleTowerLink
 
 <details>
 <summary> SaveGame </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10526,6 +11075,7 @@ special SaveGame
 
 <details>
 <summary> SaveMuseumContestPainting </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10536,6 +11086,7 @@ special SaveMuseumContestPainting
 
 <details>
 <summary> SavePlayerParty </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -10546,6 +11097,7 @@ special SavePlayerParty
 
 <details>
 <summary> Script_BufferContestLadyCategoryAndMonName </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10556,6 +11108,7 @@ special Script_BufferContestLadyCategoryAndMonName
 
 <details>
 <summary> Script_BufferFanClubTrainerName </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10566,6 +11119,7 @@ special Script_BufferFanClubTrainerName
 
 <details>
 <summary> Script_ClearHeldMovement </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10576,6 +11130,7 @@ special Script_ClearHeldMovement
 
 <details>
 <summary> Script_DoesFavorLadyLikeItem </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10586,6 +11141,7 @@ special2 0x800D Script_DoesFavorLadyLikeItem
 
 <details>
 <summary> Script_DoRayquazaScene </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10596,6 +11152,7 @@ special Script_DoRayquazaScene
 
 <details>
 <summary> Script_FacePlayer </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10606,6 +11163,7 @@ special Script_FacePlayer
 
 <details>
 <summary> Script_FadeOutMapMusic </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10616,6 +11174,7 @@ special Script_FadeOutMapMusic
 
 <details>
 <summary> Script_FavorLadyOpenBagMenu </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10626,6 +11185,7 @@ special Script_FavorLadyOpenBagMenu
 
 <details>
 <summary> Script_GetLilycoveLadyId </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10636,6 +11196,7 @@ special Script_GetLilycoveLadyId
 
 <details>
 <summary> Script_GetNumFansOfPlayerInTrainerFanClub </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10646,6 +11207,7 @@ special2 0x800D Script_GetNumFansOfPlayerInTrainerFanClub
 
 <details>
 <summary> Script_HasEnoughBerryPowder </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10656,6 +11218,7 @@ special2 0x800D Script_HasEnoughBerryPowder
 
 <details>
 <summary> Script_HasTrainerBeenFought </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10666,6 +11229,7 @@ special Script_HasTrainerBeenFought
 
 <details>
 <summary> Script_IsFanClubMemberFanOfPlayer </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10676,6 +11240,7 @@ special2 0x800D Script_IsFanClubMemberFanOfPlayer
 
 <details>
 <summary> Script_QuizLadyOpenBagMenu </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10686,6 +11251,7 @@ special Script_QuizLadyOpenBagMenu
 
 <details>
 <summary> Script_ResetUnionRoomTrade </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10696,6 +11262,7 @@ special Script_ResetUnionRoomTrade
 
 <details>
 <summary> Script_SetHelpContext </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10706,6 +11273,7 @@ special Script_SetHelpContext
 
 <details>
 <summary> Script_SetPlayerGotFirstFans </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10716,6 +11284,7 @@ special Script_SetPlayerGotFirstFans
 
 <details>
 <summary> Script_ShowLinkTrainerCard </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10726,6 +11295,7 @@ special Script_ShowLinkTrainerCard
 
 <details>
 <summary> Script_TakeBerryPowder </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10736,6 +11306,7 @@ special Script_TakeBerryPowder
 
 <details>
 <summary> Script_TryGainNewFanFromCounter </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10746,6 +11317,7 @@ special Script_TryGainNewFanFromCounter
 
 <details>
 <summary> Script_TryLoseFansFromPlayTime </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10756,6 +11328,7 @@ special Script_TryLoseFansFromPlayTime
 
 <details>
 <summary> Script_TryLoseFansFromPlayTimeAfterLinkBattle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10766,6 +11339,7 @@ special Script_TryLoseFansFromPlayTimeAfterLinkBattle
 
 <details>
 <summary> Script_UpdateTrainerFanClubGameClear </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10776,6 +11350,7 @@ special Script_UpdateTrainerFanClubGameClear
 
 <details>
 <summary> ScriptCheckFreePokemonStorageSpace </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10786,6 +11361,7 @@ special2 0x800D ScriptCheckFreePokemonStorageSpace
 
 <details>
 <summary> ScriptGetMultiplayerId </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10796,6 +11372,7 @@ special ScriptGetMultiplayerId
 
 <details>
 <summary> ScriptGetPokedexInfo </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10806,6 +11383,7 @@ special2 0x800D ScriptGetPokedexInfo
 
 <details>
 <summary> ScriptHatchMon </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -10816,6 +11394,7 @@ special ScriptHatchMon
 
 <details>
 <summary> ScriptMenu_CreateLilycoveSSTidalMultichoice </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10826,6 +11405,7 @@ special ScriptMenu_CreateLilycoveSSTidalMultichoice
 
 <details>
 <summary> ScriptMenu_CreatePCMultichoice </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10836,6 +11416,7 @@ special ScriptMenu_CreatePCMultichoice
 
 <details>
 <summary> ScriptMenu_CreateStartMenuForPokenavTutorial </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10846,6 +11427,7 @@ special ScriptMenu_CreateStartMenuForPokenavTutorial
 
 <details>
 <summary> ScriptRandom </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10856,6 +11438,7 @@ special ScriptRandom
 
 <details>
 <summary> ScrollableMultichoice_ClosePersistentMenu </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10866,6 +11449,7 @@ special ScrollableMultichoice_ClosePersistentMenu
 
 <details>
 <summary> ScrollableMultichoice_RedrawPersistentMenu </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10876,6 +11460,7 @@ special ScrollableMultichoice_RedrawPersistentMenu
 
 <details>
 <summary> ScrollableMultichoice_TryReturnToList </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10886,6 +11471,7 @@ special ScrollableMultichoice_TryReturnToList
 
 <details>
 <summary> ScrollRankingHallRecordsWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10896,6 +11482,7 @@ special ScrollRankingHallRecordsWindow
 
 <details>
 <summary> ScrSpecial_AreLeadMonEVsMaxedOut </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10906,6 +11493,7 @@ special2 0x800D ScrSpecial_AreLeadMonEVsMaxedOut
 
 <details>
 <summary> ScrSpecial_BeginCyclingRoadChallenge </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10916,6 +11504,7 @@ special ScrSpecial_BeginCyclingRoadChallenge
 
 <details>
 <summary> ScrSpecial_CanMonParticipateInSelectedLinkContest </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10926,6 +11515,7 @@ special ScrSpecial_CanMonParticipateInSelectedLinkContest
 
 <details>
 <summary> ScrSpecial_CheckSelectedMonAndInitContest </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10936,6 +11526,7 @@ special ScrSpecial_CheckSelectedMonAndInitContest
 
 <details>
 <summary> ScrSpecial_ChooseStarter </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10946,6 +11537,7 @@ special ScrSpecial_ChooseStarter
 
 <details>
 <summary> ScrSpecial_CountContestMonsWithBetterCondition </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10956,6 +11548,7 @@ special ScrSpecial_CountContestMonsWithBetterCondition
 
 <details>
 <summary> ScrSpecial_CountPokemonMoves </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10966,6 +11559,7 @@ special ScrSpecial_CountPokemonMoves
 
 <details>
 <summary> ScrSpecial_DoesPlayerHaveNoDecorations </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10976,6 +11570,7 @@ special ScrSpecial_DoesPlayerHaveNoDecorations
 
 <details>
 <summary> ScrSpecial_GenerateGiddyLine </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10986,6 +11581,7 @@ special ScrSpecial_GenerateGiddyLine
 
 <details>
 <summary> ScrSpecial_GetContestPlayerMonIdx </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10996,6 +11592,7 @@ special ScrSpecial_GetContestPlayerMonIdx
 
 <details>
 <summary> ScrSpecial_GetContestWinnerIdx </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11006,6 +11603,7 @@ special ScrSpecial_GetContestWinnerIdx
 
 <details>
 <summary> ScrSpecial_GetContestWinnerNick </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11016,6 +11614,7 @@ special ScrSpecial_GetContestWinnerNick
 
 <details>
 <summary> ScrSpecial_GetContestWinnerTrainerName </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11026,6 +11625,7 @@ special ScrSpecial_GetContestWinnerTrainerName
 
 <details>
 <summary> ScrSpecial_GetCurrentMauvilleMan </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11036,6 +11636,7 @@ special ScrSpecial_GetCurrentMauvilleMan
 
 <details>
 <summary> ScrSpecial_GetHipsterSpokenFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11046,6 +11647,7 @@ special ScrSpecial_GetHipsterSpokenFlag
 
 <details>
 <summary> ScrSpecial_GetMonCondition </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11056,6 +11658,7 @@ special ScrSpecial_GetMonCondition
 
 <details>
 <summary> ScrSpecial_GetPokemonNicknameAndMoveName </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11066,6 +11669,7 @@ special ScrSpecial_GetPokemonNicknameAndMoveName
 
 <details>
 <summary> ScrSpecial_GetTraderTradedFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11076,6 +11680,7 @@ special ScrSpecial_GetTraderTradedFlag
 
 <details>
 <summary> ScrSpecial_GetTrainerBattleMode </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11086,6 +11691,7 @@ special ScrSpecial_GetTrainerBattleMode
 
 <details>
 <summary> ScrSpecial_GiddyShouldTellAnotherTale </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11096,6 +11702,7 @@ special ScrSpecial_GiddyShouldTellAnotherTale
 
 <details>
 <summary> ScrSpecial_GiveContestRibbon </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11106,6 +11713,7 @@ special ScrSpecial_GiveContestRibbon
 
 <details>
 <summary> ScrSpecial_HasBardSongBeenChanged </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11116,6 +11724,7 @@ special ScrSpecial_HasBardSongBeenChanged
 
 <details>
 <summary> ScrSpecial_HasStorytellerAlreadyRecorded </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11126,6 +11735,7 @@ special2 0x800D ScrSpecial_HasStorytellerAlreadyRecorded
 
 <details>
 <summary> ScrSpecial_HealPlayerParty </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11136,6 +11746,7 @@ special ScrSpecial_HealPlayerParty
 
 <details>
 <summary> ScrSpecial_HipsterTeachWord </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11146,6 +11757,7 @@ special ScrSpecial_HipsterTeachWord
 
 <details>
 <summary> ScrSpecial_IsDecorationFull </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11156,6 +11768,7 @@ special ScrSpecial_IsDecorationFull
 
 <details>
 <summary> ScrSpecial_PlayBardSong </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11166,6 +11779,7 @@ special ScrSpecial_PlayBardSong
 
 <details>
 <summary> ScrSpecial_RockSmashWildEncounter </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11176,6 +11790,7 @@ special ScrSpecial_RockSmashWildEncounter
 
 <details>
 <summary> ScrSpecial_SaveBardSongLyrics </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11186,6 +11801,7 @@ special ScrSpecial_SaveBardSongLyrics
 
 <details>
 <summary> ScrSpecial_SetHipsterSpokenFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11196,6 +11812,7 @@ special ScrSpecial_SetHipsterSpokenFlag
 
 <details>
 <summary> ScrSpecial_SetLinkContestTrainerGfxIdx </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11206,6 +11823,7 @@ special ScrSpecial_SetLinkContestTrainerGfxIdx
 
 <details>
 <summary> ScrSpecial_SetMauvilleOldManObjEventGfx </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11216,6 +11834,7 @@ special ScrSpecial_SetMauvilleOldManObjEventGfx
 
 <details>
 <summary> ScrSpecial_ShowDiploma </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11226,6 +11845,7 @@ special ScrSpecial_ShowDiploma
 
 <details>
 <summary> ScrSpecial_ShowTrainerNonBattlingSpeech </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11236,6 +11856,7 @@ special ScrSpecial_ShowTrainerNonBattlingSpeech
 
 <details>
 <summary> ScrSpecial_StartGroudonKyogreBattle </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11246,6 +11867,7 @@ special ScrSpecial_StartGroudonKyogreBattle
 
 <details>
 <summary> ScrSpecial_StartRayquazaBattle </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11256,6 +11878,7 @@ special ScrSpecial_StartRayquazaBattle
 
 <details>
 <summary> ScrSpecial_StartRegiBattle </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11266,6 +11889,7 @@ special ScrSpecial_StartRegiBattle
 
 <details>
 <summary> ScrSpecial_StartSouthernIslandBattle </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11276,6 +11900,7 @@ special ScrSpecial_StartSouthernIslandBattle
 
 <details>
 <summary> ScrSpecial_StartWallyTutorialBattle </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11286,6 +11911,7 @@ special ScrSpecial_StartWallyTutorialBattle
 
 <details>
 <summary> ScrSpecial_StorytellerDisplayStory </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11296,6 +11922,7 @@ special ScrSpecial_StorytellerDisplayStory
 
 <details>
 <summary> ScrSpecial_StorytellerGetFreeStorySlot </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11306,6 +11933,7 @@ special2 0x800D ScrSpecial_StorytellerGetFreeStorySlot
 
 <details>
 <summary> ScrSpecial_StorytellerInitializeRandomStat </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11316,6 +11944,7 @@ special2 0x800D ScrSpecial_StorytellerInitializeRandomStat
 
 <details>
 <summary> ScrSpecial_StorytellerStoryListMenu </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11326,6 +11955,7 @@ special ScrSpecial_StorytellerStoryListMenu
 
 <details>
 <summary> ScrSpecial_StorytellerUpdateStat </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11336,6 +11966,7 @@ special2 0x800D ScrSpecial_StorytellerUpdateStat
 
 <details>
 <summary> ScrSpecial_TraderDoDecorationTrade </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11346,6 +11977,7 @@ special ScrSpecial_TraderDoDecorationTrade
 
 <details>
 <summary> ScrSpecial_TraderMenuGetDecoration </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11356,6 +11988,7 @@ special ScrSpecial_TraderMenuGetDecoration
 
 <details>
 <summary> ScrSpecial_TraderMenuGiveDecoration </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11366,6 +11999,7 @@ special ScrSpecial_TraderMenuGiveDecoration
 
 <details>
 <summary> ScrSpecial_ViewWallClock </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11376,6 +12010,7 @@ special ScrSpecial_ViewWallClock
 
 <details>
 <summary> SeafoamIslandsB4F_CurrentDumpsPlayerOnLand </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11386,6 +12021,7 @@ special SeafoamIslandsB4F_CurrentDumpsPlayerOnLand
 
 <details>
 <summary> SecretBasePC_Decoration </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11396,6 +12032,7 @@ special SecretBasePC_Decoration
 
 <details>
 <summary> SecretBasePC_Registry </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11406,6 +12043,7 @@ special SecretBasePC_Registry
 
 <details>
 <summary> SelectMove </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11416,6 +12054,7 @@ special SelectMove
 
 <details>
 <summary> SelectMoveDeleterMove </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11426,6 +12065,7 @@ special SelectMoveDeleterMove
 
 <details>
 <summary> SelectMoveTutorMon </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -11436,6 +12076,7 @@ special SelectMoveTutorMon
 
 <details>
 <summary> SetBattledOwnerFromResult </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11446,6 +12087,7 @@ special SetBattledOwnerFromResult
 
 <details>
 <summary> SetBattledTrainerFlag </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11456,6 +12098,7 @@ special SetBattledTrainerFlag
 
 <details>
 <summary> SetBattleTowerLinkPlayerGfx </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11466,6 +12109,7 @@ special SetBattleTowerLinkPlayerGfx
 
 <details>
 <summary> SetBattleTowerParty </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -11476,6 +12120,7 @@ special SetBattleTowerParty
 
 <details>
 <summary> SetBattleTowerProperty </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -11486,6 +12131,7 @@ special SetBattleTowerProperty
 
 <details>
 <summary> SetCableClubWarp </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -11496,6 +12142,7 @@ special SetCableClubWarp
 
 <details>
 <summary> SetCB2WhiteOut </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -11506,6 +12153,7 @@ special SetCB2WhiteOut
 
 <details>
 <summary> SetChampionSaveWarp </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11516,6 +12164,7 @@ special SetChampionSaveWarp
 
 <details>
 <summary> SetContestCategoryStringVarForInterview </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11526,6 +12175,7 @@ special SetContestCategoryStringVarForInterview
 
 <details>
 <summary> SetContestLadyGivenPokeblock </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11536,6 +12186,7 @@ special SetContestLadyGivenPokeblock
 
 <details>
 <summary> SetContestTrainerGfxIds </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11546,6 +12197,7 @@ special SetContestTrainerGfxIds
 
 <details>
 <summary> SetDaycareCompatibilityString </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -11556,6 +12208,7 @@ special SetDaycareCompatibilityString
 
 <details>
 <summary> SetDecoration </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11566,6 +12219,7 @@ special SetDecoration
 
 <details>
 <summary> SetDeoxysRockPalette </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11576,6 +12230,7 @@ special SetDeoxysRockPalette
 
 <details>
 <summary> SetDeoxysTrianglePalette </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11586,6 +12241,7 @@ special SetDeoxysTrianglePalette
 
 <details>
 <summary> SetDepartmentStoreFloorVar </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11596,6 +12252,7 @@ special SetDepartmentStoreFloorVar
 
 <details>
 <summary> SetDeptStoreFloor </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11606,6 +12263,7 @@ special SetDeptStoreFloor
 
 <details>
 <summary> SetEReaderTrainerGfxId </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -11616,6 +12274,7 @@ special SetEReaderTrainerGfxId
 
 <details>
 <summary> SetFavorLadyState_Complete </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11626,6 +12285,7 @@ special SetFavorLadyState_Complete
 
 <details>
 <summary> SetFlavorTextFlagFromSpecialVars </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11636,6 +12296,7 @@ special SetFlavorTextFlagFromSpecialVars
 
 <details>
 <summary> SetHelpContextForMap </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11646,6 +12307,7 @@ special SetHelpContextForMap
 
 <details>
 <summary> SetHiddenItemFlag </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -11656,6 +12318,7 @@ special SetHiddenItemFlag
 
 <details>
 <summary> SetIcefallCaveCrackedIceMetatiles </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11666,6 +12329,7 @@ special SetIcefallCaveCrackedIceMetatiles
 
 <details>
 <summary> SetLilycoveLadyGfx </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11676,6 +12340,7 @@ special SetLilycoveLadyGfx
 
 <details>
 <summary> SetLinkContestPlayerGfx </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11686,6 +12351,7 @@ special SetLinkContestPlayerGfx
 
 <details>
 <summary> SetMatchCallRegisteredFlag </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11696,6 +12362,7 @@ special SetMatchCallRegisteredFlag
 
 <details>
 <summary> SetMewAboveGrass </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11706,6 +12373,7 @@ special SetMewAboveGrass
 
 <details>
 <summary> SetMirageTowerVisibility </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11716,6 +12384,7 @@ special SetMirageTowerVisibility
 
 <details>
 <summary> SetPacifidlogTMReceivedDay </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11726,6 +12395,7 @@ special SetPacifidlogTMReceivedDay
 
 <details>
 <summary> SetPlayerGotFirstFans </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11736,6 +12406,7 @@ special SetPlayerGotFirstFans
 
 <details>
 <summary> SetPlayerSecretBase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11746,6 +12417,7 @@ special SetPlayerSecretBase
 
 <details>
 <summary> SetPostgameFlags </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11756,6 +12428,7 @@ special SetPostgameFlags
 
 <details>
 <summary> SetQuizLadyState_Complete </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11766,6 +12439,7 @@ special SetQuizLadyState_Complete
 
 <details>
 <summary> SetQuizLadyState_GivePrize </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11776,6 +12450,7 @@ special SetQuizLadyState_GivePrize
 
 <details>
 <summary> SetRoute119Weather </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11786,6 +12461,7 @@ special SetRoute119Weather
 
 <details>
 <summary> SetRoute123Weather </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11796,6 +12472,7 @@ special SetRoute123Weather
 
 <details>
 <summary> SetSecretBaseOwnerGfxId </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11806,6 +12483,7 @@ special SetSecretBaseOwnerGfxId
 
 <details>
 <summary> SetSeenMon </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11816,6 +12494,7 @@ special SetSeenMon
 
 <details>
 <summary> SetSootopolisGymCrackedIceMetatiles </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11826,6 +12505,7 @@ special SetSootopolisGymCrackedIceMetatiles
 
 <details>
 <summary> SetSSTidalFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11836,6 +12516,7 @@ special SetSSTidalFlag
 
 <details>
 <summary> SetTrainerFacingDirection </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11846,6 +12527,7 @@ special SetTrainerFacingDirection
 
 <details>
 <summary> SetTrickHouseEndRoomFlag </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11856,6 +12538,7 @@ special SetTrickHouseEndRoomFlag
 
 <details>
 <summary> SetTrickHouseNuggetFlag </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11866,6 +12549,7 @@ special SetTrickHouseNuggetFlag
 
 <details>
 <summary> SetUnlockedPokedexFlags </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -11876,6 +12560,7 @@ special SetUnlockedPokedexFlags
 
 <details>
 <summary> SetUpTrainerMovement </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -11886,6 +12571,7 @@ special SetUpTrainerMovement
 
 <details>
 <summary> SetUsedPkmnCenterQuestLogEvent </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11896,6 +12582,7 @@ special SetUsedPkmnCenterQuestLogEvent
 
 <details>
 <summary> SetVermilionTrashCans </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11906,6 +12593,7 @@ special SetVermilionTrashCans
 
 <details>
 <summary> SetWalkingIntoSignVars </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11916,6 +12604,7 @@ special SetWalkingIntoSignVars
 
 <details>
 <summary> ShakeCamera </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11926,6 +12615,7 @@ special ShakeCamera
 
 <details>
 <summary> ShakeScreen </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11936,6 +12626,7 @@ special ShakeScreen
 
 <details>
 <summary> ShakeScreenInElevator </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11946,6 +12637,7 @@ special ShakeScreenInElevator
 
 <details>
 <summary> ShouldContestLadyShowGoOnAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11956,6 +12648,7 @@ special2 0x800D ShouldContestLadyShowGoOnAir
 
 <details>
 <summary> ShouldDistributeEonTicket </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11966,6 +12659,7 @@ special2 0x800D ShouldDistributeEonTicket
 
 <details>
 <summary> ShouldDoBrailleRegicePuzzle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11976,6 +12670,7 @@ special ShouldDoBrailleRegicePuzzle
 
 <details>
 <summary> ShouldDoBrailleRegirockEffectOld </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11986,6 +12681,7 @@ special ShouldDoBrailleRegirockEffectOld
 
 <details>
 <summary> ShouldHideFanClubInterviewer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11996,6 +12692,7 @@ special2 0x800D ShouldHideFanClubInterviewer
 
 <details>
 <summary> ShouldMoveLilycoveFanClubMember </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12006,6 +12703,7 @@ special2 0x800D ShouldMoveLilycoveFanClubMember
 
 <details>
 <summary> ShouldReadyContestArtist </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12016,6 +12714,7 @@ special ShouldReadyContestArtist
 
 <details>
 <summary> ShouldShowBoxWasFullMessage </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12026,6 +12725,7 @@ special2 0x800D ShouldShowBoxWasFullMessage
 
 <details>
 <summary> ShouldTryGetTrainerScript </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12036,6 +12736,7 @@ special ShouldTryGetTrainerScript
 
 <details>
 <summary> ShouldTryRematchBattle </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12046,6 +12747,7 @@ special2 0x800D ShouldTryRematchBattle
 
 <details>
 <summary> ShowBattlePointsWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12056,6 +12758,7 @@ special ShowBattlePointsWindow
 
 <details>
 <summary> ShowBattleRecords </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12066,6 +12769,7 @@ special ShowBattleRecords
 
 <details>
 <summary> ShowBattleTowerRecords </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12076,6 +12780,7 @@ special ShowBattleTowerRecords
 
 <details>
 <summary> ShowBerryBlenderRecordWindow </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12086,6 +12791,7 @@ special ShowBerryBlenderRecordWindow
 
 <details>
 <summary> ShowBerryCrushRankings </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12096,6 +12802,7 @@ special ShowBerryCrushRankings
 
 <details>
 <summary> ShowContestEntryMonPic </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12106,6 +12813,7 @@ special ShowContestEntryMonPic
 
 <details>
 <summary> ShowContestPainting  @ unused </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12116,6 +12824,7 @@ special ShowContestPainting  @ unused
 
 <details>
 <summary> ShowContestWinner </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12126,6 +12835,7 @@ special ShowContestWinner
 
 <details>
 <summary> ShowDaycareLevelMenu </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12136,6 +12846,7 @@ special ShowDaycareLevelMenu
 
 <details>
 <summary> ShowDeptStoreElevatorFloorSelect </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12146,6 +12857,7 @@ special ShowDeptStoreElevatorFloorSelect
 
 <details>
 <summary> ShowDiploma </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12156,6 +12868,7 @@ special ShowDiploma
 
 <details>
 <summary> ShowDodrioBerryPickingRecords </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12166,6 +12879,7 @@ special ShowDodrioBerryPickingRecords
 
 <details>
 <summary> ShowEasyChatMessage </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12176,6 +12890,7 @@ special ShowEasyChatMessage
 
 <details>
 <summary> ShowEasyChatProfile </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12186,6 +12901,7 @@ special ShowEasyChatProfile
 
 <details>
 <summary> ShowEasyChatScreen </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12196,6 +12912,7 @@ special ShowEasyChatScreen
 
 <details>
 <summary> ShowFieldMessageStringVar4 </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12206,6 +12923,7 @@ special ShowFieldMessageStringVar4
 
 <details>
 <summary> ShowFrontierExchangeCornerItemIconWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12216,6 +12934,7 @@ special ShowFrontierExchangeCornerItemIconWindow
 
 <details>
 <summary> ShowFrontierGamblerGoMessage </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12226,6 +12945,7 @@ special ShowFrontierGamblerGoMessage
 
 <details>
 <summary> ShowFrontierGamblerLookingMessage </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12236,6 +12956,7 @@ special ShowFrontierGamblerLookingMessage
 
 <details>
 <summary> ShowFrontierManiacMessage </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12246,6 +12967,7 @@ special ShowFrontierManiacMessage
 
 <details>
 <summary> ShowGlassWorkshopMenu </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12256,6 +12978,7 @@ special ShowGlassWorkshopMenu
 
 <details>
 <summary> ShowLinkBattleRecords </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12266,6 +12989,7 @@ special ShowLinkBattleRecords
 
 <details>
 <summary> ShowMapNamePopup </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12276,6 +13000,7 @@ special ShowMapNamePopup
 
 <details>
 <summary> ShowNatureGirlMessage </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12286,6 +13011,7 @@ special ShowNatureGirlMessage
 
 <details>
 <summary> ShowPokedexRatingMessage </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12296,6 +13022,7 @@ special ShowPokedexRatingMessage
 
 <details>
 <summary> ShowPokemonJumpRecords </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12306,6 +13033,7 @@ special ShowPokemonJumpRecords
 
 <details>
 <summary> ShowPokemonStorageSystem </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12316,6 +13044,7 @@ special ShowPokemonStorageSystem
 
 <details>
 <summary> ShowPokemonStorageSystemPC </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12326,6 +13055,7 @@ special ShowPokemonStorageSystemPC
 
 <details>
 <summary> ShowRankingHallRecordsWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12336,6 +13066,7 @@ special ShowRankingHallRecordsWindow
 
 <details>
 <summary> ShowScrollableMultichoice </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12346,6 +13077,7 @@ special ShowScrollableMultichoice
 
 <details>
 <summary> ShowSecretBaseDecorationMenu </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12356,6 +13088,7 @@ special ShowSecretBaseDecorationMenu
 
 <details>
 <summary> ShowSecretBaseRegistryMenu </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12366,6 +13099,7 @@ special ShowSecretBaseRegistryMenu
 
 <details>
 <summary> ShowTownMap </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12376,6 +13110,7 @@ special ShowTownMap
 
 <details>
 <summary> ShowTrainerCantBattleSpeech </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12386,6 +13121,7 @@ special ShowTrainerCantBattleSpeech
 
 <details>
 <summary> ShowTrainerHillRecords </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12396,6 +13132,7 @@ special ShowTrainerHillRecords
 
 <details>
 <summary> ShowTrainerIntroSpeech </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12406,6 +13143,7 @@ special ShowTrainerIntroSpeech
 
 <details>
 <summary> ShowWirelessCommunicationScreen </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12416,6 +13154,7 @@ special ShowWirelessCommunicationScreen
 
 <details>
 <summary> sp0C8_whiteout_maybe </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12426,6 +13165,7 @@ special sp0C8_whiteout_maybe
 
 <details>
 <summary> sp13E_warp_to_last_warp </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12436,6 +13176,7 @@ special sp13E_warp_to_last_warp
 
 <details>
 <summary> SpawnBerryBlenderLinkPlayerSprites </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12446,6 +13187,7 @@ special SpawnBerryBlenderLinkPlayerSprites
 
 <details>
 <summary> SpawnCameraDummy </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12456,6 +13198,7 @@ special SpawnCameraDummy
 
 <details>
 <summary> SpawnCameraObject </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12466,6 +13209,7 @@ special SpawnCameraObject
 
 <details>
 <summary> SpawnLinkPartnerObjectEvent </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12476,6 +13220,7 @@ special SpawnLinkPartnerObjectEvent
 
 <details>
 <summary> special_0x44 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12486,6 +13231,7 @@ special special_0x44
 
 <details>
 <summary> Special_AreLeadMonEVsMaxedOut </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12496,6 +13242,7 @@ special2 0x800D Special_AreLeadMonEVsMaxedOut
 
 <details>
 <summary> Special_BeginCyclingRoadChallenge </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12506,6 +13253,7 @@ special Special_BeginCyclingRoadChallenge
 
 <details>
 <summary> Special_ShowDiploma </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12516,6 +13264,7 @@ special Special_ShowDiploma
 
 <details>
 <summary> Special_ViewWallClock </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12526,6 +13275,7 @@ special Special_ViewWallClock
 
 <details>
 <summary> StartDroughtWeatherBlend </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12536,6 +13286,7 @@ special StartDroughtWeatherBlend
 
 <details>
 <summary> StartGroudonKyogreBattle </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12546,6 +13297,7 @@ special StartGroudonKyogreBattle
 
 <details>
 <summary> StartLegendaryBattle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12556,6 +13308,7 @@ special StartLegendaryBattle
 
 <details>
 <summary> StartMarowakBattle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12566,6 +13319,7 @@ special StartMarowakBattle
 
 <details>
 <summary> StartMirageTowerDisintegration </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12576,6 +13330,7 @@ special StartMirageTowerDisintegration
 
 <details>
 <summary> StartMirageTowerFossilFallAndSink </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12586,6 +13341,7 @@ special StartMirageTowerFossilFallAndSink
 
 <details>
 <summary> StartMirageTowerShake </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12596,6 +13352,7 @@ special StartMirageTowerShake
 
 <details>
 <summary> StartOldManTutorialBattle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12606,6 +13363,7 @@ special StartOldManTutorialBattle
 
 <details>
 <summary> StartPlayerDescendMirageTower </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12616,6 +13374,7 @@ special StartPlayerDescendMirageTower
 
 <details>
 <summary> StartRegiBattle </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12626,6 +13385,7 @@ special StartRegiBattle
 
 <details>
 <summary> StartRematchBattle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12636,6 +13396,7 @@ special StartRematchBattle
 
 <details>
 <summary> StartSouthernIslandBattle </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12646,6 +13407,7 @@ special StartSouthernIslandBattle
 
 <details>
 <summary> StartSpecialBattle </summary>
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -12656,6 +13418,7 @@ special StartSpecialBattle
 
 <details>
 <summary> StartWallClock </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12666,6 +13429,7 @@ special StartWallClock
 
 <details>
 <summary> StartWallyTutorialBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12676,6 +13440,7 @@ special StartWallyTutorialBattle
 
 <details>
 <summary> StartWiredCableClubTrade </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12686,6 +13451,7 @@ special StartWiredCableClubTrade
 
 <details>
 <summary> StickerManGetBragFlags </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12696,6 +13462,7 @@ special2 0x8008 StickerManGetBragFlags
 
 <details>
 <summary> StopMapMusic </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12706,6 +13473,7 @@ special StopMapMusic
 
 <details>
 <summary> StorePlayerCoordsInVars </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12716,6 +13484,7 @@ special StorePlayerCoordsInVars
 
 <details>
 <summary> StoreSelectedPokemonInDaycare </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12726,6 +13495,7 @@ special StoreSelectedPokemonInDaycare
 
 <details>
 <summary> sub_8064EAC </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12736,6 +13506,7 @@ special sub_8064EAC
 
 <details>
 <summary> sub_8064ED4 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12746,6 +13517,7 @@ special sub_8064ED4
 
 <details>
 <summary> sub_807E25C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12756,6 +13528,7 @@ special sub_807E25C
 
 <details>
 <summary> sub_80810DC </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12766,6 +13539,7 @@ special sub_80810DC
 
 <details>
 <summary> sub_8081334 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12776,6 +13550,7 @@ special sub_8081334
 
 <details>
 <summary> sub_80818A4 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12786,6 +13561,7 @@ special sub_80818A4
 
 <details>
 <summary> sub_80818FC </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12796,6 +13572,7 @@ special sub_80818FC
 
 <details>
 <summary> sub_8081924 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12806,6 +13583,7 @@ special sub_8081924
 
 <details>
 <summary> sub_808347C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12816,6 +13594,7 @@ special sub_808347C
 
 <details>
 <summary> sub_80834E4 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12826,6 +13605,7 @@ special sub_80834E4
 
 <details>
 <summary> sub_808350C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12836,6 +13616,7 @@ special sub_808350C
 
 <details>
 <summary> sub_80835D8 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12846,6 +13627,7 @@ special sub_80835D8
 
 <details>
 <summary> sub_8083614 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12856,6 +13638,7 @@ special sub_8083614
 
 <details>
 <summary> sub_808363C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12866,6 +13649,7 @@ special sub_808363C
 
 <details>
 <summary> sub_8083820 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12876,6 +13660,7 @@ special sub_8083820
 
 <details>
 <summary> sub_80839A4 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12886,6 +13671,7 @@ special sub_80839A4
 
 <details>
 <summary> sub_80839D0 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12896,6 +13682,7 @@ special sub_80839D0
 
 <details>
 <summary> sub_8083B5C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12906,6 +13693,7 @@ special sub_8083B5C
 
 <details>
 <summary> sub_8083B80 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12916,6 +13704,7 @@ special sub_8083B80
 
 <details>
 <summary> sub_8083B90 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12926,6 +13715,7 @@ special sub_8083B90
 
 <details>
 <summary> sub_8083BDC </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12936,6 +13726,7 @@ special sub_8083BDC
 
 <details>
 <summary> sub_80BB70C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12946,6 +13737,7 @@ special sub_80BB70C
 
 <details>
 <summary> sub_80BB8CC </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12956,6 +13748,7 @@ special sub_80BB8CC
 
 <details>
 <summary> sub_80BBAF0 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12966,6 +13759,7 @@ special sub_80BBAF0
 
 <details>
 <summary> sub_80BBC78 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12976,6 +13770,7 @@ special sub_80BBC78
 
 <details>
 <summary> sub_80BBDD0 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12986,6 +13781,7 @@ special sub_80BBDD0
 
 <details>
 <summary> sub_80BC114 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12996,6 +13792,7 @@ special sub_80BC114
 
 <details>
 <summary> sub_80BC440 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13006,6 +13803,7 @@ special sub_80BC440
 
 <details>
 <summary> sub_80BCE1C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13016,6 +13814,7 @@ special sub_80BCE1C
 
 <details>
 <summary> sub_80BCE4C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13026,6 +13825,7 @@ special sub_80BCE4C
 
 <details>
 <summary> sub_80BCE90 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13036,6 +13836,7 @@ special sub_80BCE90
 
 <details>
 <summary> sub_80C5044 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13046,6 +13847,7 @@ special2 0x800D sub_80C5044
 
 <details>
 <summary> sub_80C5164 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13056,6 +13858,7 @@ special sub_80C5164
 
 <details>
 <summary> sub_80C5568 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13066,6 +13869,7 @@ special sub_80C5568
 
 <details>
 <summary> sub_80C7958 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13076,6 +13880,7 @@ special sub_80C7958
 
 <details>
 <summary> sub_80EB7C4 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13086,6 +13891,7 @@ special sub_80EB7C4
 
 <details>
 <summary> sub_80F83D0 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13096,6 +13902,7 @@ special sub_80F83D0
 
 <details>
 <summary> sub_80FF474 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13106,6 +13913,7 @@ special sub_80FF474
 
 <details>
 <summary> sub_8100A7C </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13116,6 +13924,7 @@ special sub_8100A7C
 
 <details>
 <summary> sub_8100B20 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13126,6 +13935,7 @@ special sub_8100B20
 
 <details>
 <summary> sub_810FA74 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13136,6 +13946,7 @@ special sub_810FA74
 
 <details>
 <summary> sub_810FF48 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13146,6 +13957,7 @@ special sub_810FF48
 
 <details>
 <summary> sub_810FF60 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13156,6 +13968,7 @@ special sub_810FF60
 
 <details>
 <summary> sub_8134548 </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13166,6 +13979,7 @@ special sub_8134548
 
 <details>
 <summary> SubtractMoneyFromVar0x8005 </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13176,6 +13990,7 @@ special SubtractMoneyFromVar0x8005
 
 <details>
 <summary> SwapRegisteredBike </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13186,6 +14001,7 @@ special SwapRegisteredBike
 
 <details>
 <summary> TakeBerryPowder </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13196,6 +14012,7 @@ special TakeBerryPowder
 
 <details>
 <summary> TakeFrontierBattlePoints </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13206,6 +14023,7 @@ special TakeFrontierBattlePoints
 
 <details>
 <summary> TakePokemonFromDaycare </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -13216,6 +14034,7 @@ special2 0x800D TakePokemonFromDaycare
 
 <details>
 <summary> TakePokemonFromRoute5Daycare </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13226,6 +14045,7 @@ special2 0x800D TakePokemonFromRoute5Daycare
 
 <details>
 <summary> TeachMoveRelearnerMove </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13236,6 +14056,7 @@ special TeachMoveRelearnerMove
 
 <details>
 <summary> ToggleCurSecretBaseRegistry </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13246,6 +14067,7 @@ special ToggleCurSecretBaseRegistry
 
 <details>
 <summary> TrendyPhraseIsOld </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13256,6 +14078,7 @@ special TrendyPhraseIsOld
 
 <details>
 <summary> TryBattleLinkup </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13266,6 +14089,7 @@ special TryBattleLinkup
 
 <details>
 <summary> TryBecomeLinkLeader </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13276,6 +14100,7 @@ special TryBecomeLinkLeader
 
 <details>
 <summary> TryBerryBlenderLinkup </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13286,6 +14111,7 @@ special TryBerryBlenderLinkup
 
 <details>
 <summary> TryBufferWaldaPhrase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13296,6 +14122,7 @@ special2 0x800D TryBufferWaldaPhrase
 
 <details>
 <summary> TryContestEModeLinkup </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13306,6 +14133,7 @@ special TryContestEModeLinkup
 
 <details>
 <summary> TryContestGModeLinkup </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13316,6 +14144,7 @@ special TryContestGModeLinkup
 
 <details>
 <summary> TryContestLinkup </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13326,6 +14155,7 @@ special TryContestLinkup
 
 <details>
 <summary> TryEnableBravoTrainerBattleTower </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13336,6 +14166,7 @@ special TryEnableBravoTrainerBattleTower
 
 <details>
 <summary> TryEnterContestMon </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13346,6 +14177,7 @@ special TryEnterContestMon
 
 <details>
 <summary> TryFieldPoisonWhiteOut </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13356,6 +14188,7 @@ special TryFieldPoisonWhiteOut
 
 <details>
 <summary> TryGetWallpaperWithWaldaPhrase </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13366,6 +14199,7 @@ special2 0x800D TryGetWallpaperWithWaldaPhrase
 
 <details>
 <summary> TryHideBattleTowerReporter </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13376,6 +14210,7 @@ special TryHideBattleTowerReporter
 
 <details>
 <summary> TryInitBattleTowerAwardManObjectEvent </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13386,6 +14221,7 @@ special TryInitBattleTowerAwardManObjectEvent
 
 <details>
 <summary> TryJoinLinkGroup </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13396,6 +14232,7 @@ special TryJoinLinkGroup
 
 <details>
 <summary> TryLoseFansFromPlayTime </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13406,6 +14243,7 @@ special TryLoseFansFromPlayTime
 
 <details>
 <summary> TryLoseFansFromPlayTimeAfterLinkBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13416,6 +14254,7 @@ special TryLoseFansFromPlayTimeAfterLinkBattle
 
 <details>
 <summary> TryPrepareSecondApproachingTrainer </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13426,6 +14265,7 @@ special TryPrepareSecondApproachingTrainer
 
 <details>
 <summary> TryPutLotteryWinnerReportOnAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13436,6 +14276,7 @@ special TryPutLotteryWinnerReportOnAir
 
 <details>
 <summary> TryPutNameRaterShowOnTheAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13446,6 +14287,7 @@ special2 0x800D TryPutNameRaterShowOnTheAir
 
 <details>
 <summary> TryPutTrainerFanClubOnAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13456,6 +14298,7 @@ special TryPutTrainerFanClubOnAir
 
 <details>
 <summary> TryPutTreasureInvestigatorsOnAir </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13466,6 +14309,7 @@ special TryPutTreasureInvestigatorsOnAir
 
 <details>
 <summary> TryRecordMixLinkup </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13476,6 +14320,7 @@ special TryRecordMixLinkup
 
 <details>
 <summary> TrySetBattleTowerLinkType </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13486,6 +14331,7 @@ special TrySetBattleTowerLinkType
 
 <details>
 <summary> TryStoreHeldItemsInPyramidBag </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13496,6 +14342,7 @@ special TryStoreHeldItemsInPyramidBag
 
 <details>
 <summary> TryTradeLinkup </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13506,6 +14353,7 @@ special TryTradeLinkup
 
 <details>
 <summary> TryUpdateRusturfTunnelState </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13516,6 +14364,7 @@ special2 0x800D TryUpdateRusturfTunnelState
 
 <details>
 <summary> TurnOffTVScreen </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13526,6 +14375,7 @@ special TurnOffTVScreen
 
 <details>
 <summary> TurnOnTVScreen </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13536,6 +14386,7 @@ special TurnOnTVScreen
 
 <details>
 <summary> TV_CheckMonOTIDEqualsPlayerID </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13546,6 +14397,7 @@ special TV_CheckMonOTIDEqualsPlayerID
 
 <details>
 <summary> TV_CopyNicknameToStringVar1AndEnsureTerminated </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13556,6 +14408,7 @@ special TV_CopyNicknameToStringVar1AndEnsureTerminated
 
 <details>
 <summary> TV_IsScriptShowKindAlreadyInQueue </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13566,6 +14419,7 @@ special TV_IsScriptShowKindAlreadyInQueue
 
 <details>
 <summary> TV_PutNameRaterShowOnTheAirIfNicnkameChanged </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13576,6 +14430,7 @@ special2 0x800D TV_PutNameRaterShowOnTheAirIfNicnkameChanged
 
 <details>
 <summary> UnionRoomSpecial </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13586,6 +14441,7 @@ special UnionRoomSpecial
 
 <details>
 <summary> Unused_SetWeatherSunny </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13596,6 +14452,7 @@ special Unused_SetWeatherSunny
 
 <details>
 <summary> UpdateBattlePointsWindow </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13606,6 +14463,7 @@ special UpdateBattlePointsWindow
 
 <details>
 <summary> UpdateCyclingRoadState </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13616,6 +14474,7 @@ special UpdateCyclingRoadState
 
 <details>
 <summary> UpdateLoreleiDollCollection </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13626,6 +14485,7 @@ special UpdateLoreleiDollCollection
 
 <details>
 <summary> UpdateMovedLilycoveFanClubMembers </summary>
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13636,6 +14496,7 @@ special UpdateMovedLilycoveFanClubMembers
 
 <details>
 <summary> UpdatePickStateFromSpecialVar8005 </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13646,6 +14507,7 @@ special UpdatePickStateFromSpecialVar8005
 
 <details>
 <summary> UpdateShoalTideFlag </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13656,6 +14518,7 @@ special UpdateShoalTideFlag
 
 <details>
 <summary> UpdateTrainerCardPhotoIcons </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13666,6 +14529,7 @@ special UpdateTrainerCardPhotoIcons
 
 <details>
 <summary> UpdateTrainerFanClubGameClear </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13676,6 +14540,7 @@ special UpdateTrainerFanClubGameClear
 
 <details>
 <summary> ValidateEReaderTrainer </summary>
+
 *(Supports all games.)*
 
 Example Usage:
@@ -13686,6 +14551,7 @@ special ValidateEReaderTrainer
 
 <details>
 <summary> ValidateMixingGameLanguage </summary>
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13696,6 +14562,7 @@ special ValidateMixingGameLanguage
 
 <details>
 <summary> ValidateReceivedWonderCard </summary>
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13706,6 +14573,7 @@ special2 0x800D ValidateReceivedWonderCard
 
 <details>
 <summary> VsSeekerFreezeObjectsAfterChargeComplete </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13716,6 +14584,7 @@ special VsSeekerFreezeObjectsAfterChargeComplete
 
 <details>
 <summary> VsSeekerResetObjectMovementAfterChargeComplete </summary>
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13726,6 +14595,7 @@ special VsSeekerResetObjectMovementAfterChargeComplete
 
 <details>
 <summary> WaitWeather </summary>
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13736,6 +14606,7 @@ special WaitWeather
 
 <details>
 <summary> WonSecretBaseBattle </summary>
+
 *(Supports bpee)*
 
 Example Usage:

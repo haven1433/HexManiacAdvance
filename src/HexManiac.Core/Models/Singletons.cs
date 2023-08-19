@@ -208,7 +208,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
             }
             text.AppendLine();
             var matches = ScriptLine.GetMatchingGames(line);
-            if (matches.Count < 5) text.AppendLine("  Only available in " + " ".Join(matches));
+            if (matches.Count < 5) text.AppendLine($"{nl}  Only available in " + " ".Join(matches));
             foreach (var arg in line.Args) {
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
@@ -298,6 +298,7 @@ Use `special2 variable name` when doing an action that has a result.
             var supportedGames = specials.Keys.Where(key => specials[key].Contents.Contains(name)).ToList();
             text.AppendLine("<details>");
             text.AppendLine($"<summary> {name} </summary>");
+            text.AppendLine();
             if (supportedGames.Count == specials.Count) {
                text.AppendLine("*(Supports all games.)*");
             } else {
