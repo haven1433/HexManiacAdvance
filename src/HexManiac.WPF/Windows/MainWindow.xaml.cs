@@ -653,7 +653,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void DeveloperUpdateDocs(object sender, RoutedEventArgs e) {
-         ViewModel.Singletons.ExportReadableScriptReference();
+         ViewModel.Singletons.ExportReadableScriptReference(ViewModel);
       }
 
       private void DeveloperReloadMetadata(object sender, EventArgs e) {

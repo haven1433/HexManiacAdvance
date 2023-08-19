@@ -8,6 +8,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
 
 
@@ -171,7 +173,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return (conditionalCodes, instructionTemplates);
       }
 
-      public void ExportReadableScriptReference() {
+      public void ExportReadableScriptReference(EditorViewModel editor) {
          var specials = new Dictionary<string, StoredList>(
             new[] { "axve", "axpe", "bpre", "bpge", "bpee" }
             .Select<string, KeyValuePair<string,StoredList>>(
@@ -179,9 +181,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             )
          );
 
-         ExportReadableScriptReference(ScriptLines, specials, ScriptReferenceDocumetationFileName);
+         ExportReadableScriptReference(editor, ScriptLines, specials, ScriptReferenceDocumetationFileName);
       }
-      private void ExportReadableScriptReference(IReadOnlyList<IScriptLine> lines, Dictionary<string, StoredList> specials, string filename) {
+      private void ExportReadableScriptReference(EditorViewModel editor, IReadOnlyList<IScriptLine> lines, Dictionary<string, StoredList> specials, string filename) {
+         var rnd = new Random(0x5eed);
          var text = new StringBuilder();
          var nl = Environment.NewLine;
          text.AppendLine(@"
@@ -190,11 +193,13 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
 ");
          text.AppendLine("# Commands");
          foreach (var line in lines.OrderBy(line => line.LineCommand)) {
-            text.AppendLine("## " + line.LineCommand);
+            text.AppendLine("<details>");
+            text.AppendLine($"<summary> {line.LineCommand}</summary>");
+            text.AppendLine();
             text.Append(line.LineCommand);
             if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
             foreach (var arg in line.Args) {
-               if (arg is SilentMatchArg) continue;
+               if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (arg is ArrayArg array) {
                   text.Append($" `[{arg.Name}]`");
                } else {
@@ -205,40 +210,72 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
             var matches = ScriptLine.GetMatchingGames(line);
             if (matches.Count < 5) text.AppendLine("  Only available in " + " ".Join(matches));
             foreach (var arg in line.Args) {
-               if (arg is SilentMatchArg) continue;
+               if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
-                  text.AppendLine($"{nl}  `{arg.Name}` from {arg.EnumTableName}");
+                  text.AppendLine($"{nl}*  `{arg.Name}` from {arg.EnumTableName}");
                } else if (arg.Type != ArgType.Pointer) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) {
-                     text.AppendLine($"{nl}  `{arg.Name}` is a number.");
+                     text.AppendLine($"{nl}*  `{arg.Name}` is a number.");
                   } else {
-                     text.AppendLine($"{nl}  `{arg.Name}` is a number (hex).");
+                     text.AppendLine($"{nl}*  `{arg.Name}` is a number (hex).");
                   }
                } else if (arg.Type == ArgType.Pointer) {
                   if (arg.PointerType == ExpectedPointerType.Script) {
-                     text.AppendLine($"{nl}  `{arg.Name}` points to a script or section");
+                     text.AppendLine($"{nl}*  `{arg.Name}` points to a script or section");
                   } else if (arg.PointerType == ExpectedPointerType.Mart) {
-                     text.AppendLine($"{nl}  `{arg.Name}` points to pokemart data or auto");
+                     text.AppendLine($"{nl}*  `{arg.Name}` points to pokemart data or auto");
                   } else if (arg.PointerType == ExpectedPointerType.Movement) {
-                     text.AppendLine($"{nl}  `{arg.Name}` points to movement data or auto");
+                     text.AppendLine($"{nl}*  `{arg.Name}` points to movement data or auto");
                   } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
-                     text.AppendLine($"{nl}  `{arg.Name}` points to sprite-template data or auto");
+                     text.AppendLine($"{nl}*  `{arg.Name}` points to sprite-template data or auto");
                   } else if (arg.PointerType == ExpectedPointerType.Decor) {
-                     text.AppendLine($"{nl}  `{arg.Name}` points to decor data or auto");
+                     text.AppendLine($"{nl}*  `{arg.Name}` points to decor data or auto");
                   } else if (arg.PointerType == ExpectedPointerType.Text) {
-                     text.AppendLine($"{nl}  `{arg.Name}` points to text or auto");
+                     text.AppendLine($"{nl}*  `{arg.Name}` points to text or auto");
                   } else if (arg.PointerType == ExpectedPointerType.Unknown) {
-                     text.AppendLine($"{nl}  `{arg.Name}` is a pointer.");
+                     text.AppendLine($"{nl}*  `{arg.Name}` is a pointer.");
                   }
                }
             }
+            text.AppendLine("");
+            text.AppendLine("Example:");
+            text.AppendLine("```");
+            text.Append(line.LineCommand);
+            if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
+            foreach (var arg in line.Args) {
+               if (arg is SilentMatchArg || arg.Name == "filler") continue;
+               if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
+                  var model = ((IViewPort)editor[0]).Model;
+                  var options = model.GetOptions(arg.EnumTableName);
+                  if (options.Count == 0 && int.TryParse(arg.EnumTableName, out var count)) options = count.Range().Select(i => i.ToString()).ToList();
+                  text.Append(" " + rnd.From(options));
+               } else if (arg.Type != ArgType.Pointer) {
+                  if (string.IsNullOrEmpty(arg.EnumTableName)) {
+                     text.Append($" {rnd.Next(5)}");
+                  } else {
+                     text.Append($" 0x{rnd.Next(16):X2}");
+                  }
+               } else if (arg.Type == ArgType.Pointer) {
+                  if (arg.PointerType == ExpectedPointerType.Script) {
+                     text.Append(" <section1>");
+                  } else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                     text.AppendLine(" <F00000>");
+                  } else {
+                     text.Append(" <auto>");
+                  }
+               }
+            }
+            text.AppendLine();
+            text.AppendLine("```");
             if (line.Documentation != null && line.Documentation.Count > 0) {
+               text.AppendLine("Notes:");
                text.AppendLine("```");
                foreach (var doc in line.Documentation) {
                   text.AppendLine($"  {doc}");
                }
                text.AppendLine("```");
             }
+            text.AppendLine("</details>");
             text.AppendLine();
          }
 
@@ -250,22 +287,31 @@ Use `special name` when doing an action with no result.
 
 Use `special2 variable name` when doing an action that has a result.
 * The result will be returned to the variable.
-* You generally want to put results in 0x800D.
 ");
 
+         var variableForSpecial = GetVariableForSpecialReference(editor);
 
          var names = specials.Values.SelectMany(list => list.Contents).Distinct().OrderBy(name => name).ToList();
          foreach (var name in names) {
             if (string.IsNullOrEmpty(name)) continue;
             if (name.Length < 2) continue;
             var supportedGames = specials.Keys.Where(key => specials[key].Contents.Contains(name)).ToList();
-            text.AppendLine($"## {name}");
+            text.AppendLine("<details>");
+            text.AppendLine($"<summary> {name} </summary>");
             if (supportedGames.Count == specials.Count) {
                text.AppendLine("*(Supports all games.)*");
             } else {
                text.AppendLine($"*(Supports {", ".Join(supportedGames)})*");
             }
             text.AppendLine();
+            var usage = "special " + name;
+            if (variableForSpecial.TryGetValue(name, out int variableID)) {
+               usage = $"special2 0x{variableID:X4} {name}";
+            }
+            text.AppendLine("Example Usage:");
+            text.AppendLine("```");
+            text.AppendLine(usage);
+            text.AppendLine("```");
             foreach (var game in supportedGames) {
                if (specials[game].Comments.TryGetValue(specials[game].IndexOf(name), out var comment)) {
                   text.AppendLine(comment);
@@ -273,9 +319,35 @@ Use `special2 variable name` when doing an action that has a result.
                   break;
                }
             }
+            text.AppendLine("</details>");
+            text.AppendLine();
          }
 
          File.WriteAllText(filename, text.ToString());
+      }
+
+
+      public static IReadOnlyDictionary<string, int> GetVariableForSpecialReference(EditorViewModel editor) {
+         var collection = new Dictionary<string, int>();
+         foreach (var tab in editor) {
+            if (tab is not IEditableViewPort viewPort) continue;
+            CollectSpecialReference(viewPort.Model, viewPort.Tools.CodeTool.ScriptParser, collection);
+         }
+         return collection;
+      }
+
+      public static void CollectSpecialReference(IDataModel model, ScriptParser parser, Dictionary<string, int> collection) {
+         if (!model.TryGetList("specials", out var list)) return;
+         foreach (var spot in Flags.GetAllScriptSpots(model, parser, Flags.GetAllTopLevelScripts(model), 0x26)) {
+            var variable = model.ReadMultiByteValue(spot.Address + 1, 2);
+            if (variable < 0x100) continue;
+            var specialID = model.ReadMultiByteValue(spot.Address + 3, 2);
+            if (specialID.InRange(0, list.Count) && list[specialID] != null) {
+               var name = list[specialID];
+               if (collection.ContainsKey(name)) continue;
+               collection[name] = variable;
+            }
+         }
       }
    }
 
