@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeBody : ViewModelCore {
-      public const int MaxEventTextWidth = 209;
+      public const int MaxEventTextWidth = 214;
 
       private readonly IDataModel model;
       private readonly ScriptParser parser;

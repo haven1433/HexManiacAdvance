@@ -770,7 +770,7 @@ namespace HavenSoft.HexManiac.Tests {
       }
 
       private void HackTextConverter(string game) {
-         var converter = new PCSConverter(game);
+         var converter = New.PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
          property = property.DeclaringType.GetProperty(nameof(Model.TextConverter));
          property.GetSetMethod(true).Invoke(Model, new object[] { converter });

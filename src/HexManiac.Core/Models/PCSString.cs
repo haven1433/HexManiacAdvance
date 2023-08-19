@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -21,12 +22,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class PCSConverter : ITextConverter {
       private readonly string gameCode;
-      private readonly int spaceWidth;
+      private readonly IDataModel model;
+      private Lazy<int[]> fontWidth;
 
-      public PCSConverter(string gameCode) {
+      public PCSConverter(string gameCode, IDataModel model) {
          this.gameCode = gameCode;
          if (this.gameCode.Length > 4) this.gameCode = gameCode.Substring(4);
-         spaceWidth = gameCode.IsAny("BPRE", "BPGE") ? 6 : 3;
+         this.model = model;
+         fontWidth = new(UpdateFontWidthCache);
       }
 
       public List<byte> Convert(string text, out bool containsBadCharacters) {
@@ -44,7 +47,17 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public IReadOnlyList<TextSegment> GetOverflow(string input, int maxWidth) {
          if (!PCSString.TextMacros.TryGetValue(gameCode, out var macros)) macros = new Dictionary<string, byte[]>();
-         return PCSString.GetOverflow(macros, input, spaceWidth, maxWidth);
+         if (fontWidth == null) UpdateFontWidthCache();
+         return PCSString.GetOverflow(macros, fontWidth.Value, input, maxWidth);
+      }
+
+      private int[] UpdateFontWidthCache() {
+         if (model == null) return Array.Empty<int>();
+         var table = model.GetTable(HardcodeTablesModel.FontWidthTable) ?? model.GetTable(HardcodeTablesModel.BackupFontWidthTable);
+         if (table == null) return Array.Empty<int>();
+         var result = new int[table.ElementCount];
+         for (int i = 0; i < result.Length; i++) result[i] = model[table.Start + i];
+         return result;
       }
    }
 
@@ -460,7 +473,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private const int DefaultCharacterWidth = 6;
-      public static IReadOnlyList<TextSegment> GetOverflow(IReadOnlyDictionary<string, byte[]> textMacros, ReadOnlySpan<char> input, int spaceWidth, int maxWidth) {
+      public static IReadOnlyList<TextSegment> GetOverflow(IReadOnlyDictionary<string, byte[]> textMacros, int[] fontWidth, ReadOnlySpan<char> input, int maxWidth) {
          var results = new List<TextSegment>();
          int currentLineWidth = 0;
          var length = input.Length;
@@ -543,11 +556,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                      }
                   }
                   index += 2;
-               } else if (i == 0) {
-                  // whitespace
-                  currentLineWidth += spaceWidth;
+               } else if (fontWidth.Length > i) {
+                  currentLineWidth += fontWidth[i];
                } else {
-                  // normal character
+                  // unknown character
                   currentLineWidth += 6;
                }
 

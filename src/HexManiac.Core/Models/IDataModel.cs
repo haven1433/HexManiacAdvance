@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          RawData = data;
          var code = data.GetGameCode();
          if (code.Length > 4) code = code.Substring(0, 4);
-         TextConverter = new PCSConverter(code);
+         TextConverter = new PCSConverter(code, this);
          InitializationWorkload = Task.CompletedTask;
       }
 
