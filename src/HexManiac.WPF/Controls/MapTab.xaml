@@ -1140,7 +1140,13 @@
 
                <local:AngleBorder Grid.Row="0" Grid.Column="0" Direction="Left" VerticalAlignment="Stretch" Content="Map Name:" />
                <local:AngleComboBox DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=StackPanel}}"
-                                    Grid.Row="0" Grid.Column="1" Height="18" Direction="Out" ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />
+                                    Grid.Row="0" Grid.Column="1" Margin="0,0,20,0" Height="18" Direction="Out"
+                                    ItemsSource="{Binding PrimaryMap.AvailableNames}" SelectedIndex="{Binding PrimaryMap.SelectedNameIndex}" />
+               <local:AngleButton DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=StackPanel}}"
+                                  Grid.Row="0" Grid.Column="1" HorizontalAlignment="Right" Direction="Right" Padding="0" 
+                                  Command="{res:MethodCommand GotoMapNames}" VerticalAlignment="Center" Width="20" Height="18">
+                  <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
+               </local:AngleButton>
 
                <local:AngleBorder  Grid.Row="1" Content="Music:" Direction="Left" />
                <local:AngleComboBox Grid.Row="1" Grid.Column="1" Direction="Out" Margin="0,2,4,2"

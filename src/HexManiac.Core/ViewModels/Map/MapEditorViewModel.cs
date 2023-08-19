@@ -439,6 +439,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (forwardStack.Count == 1) forwardCommand.RaiseCanExecuteChanged();
       }
 
+      public void GotoMapNames() {
+         var table = model.GetTable(HardcodeTablesModel.MapNameTable);
+         if (table == null) return;
+         var index = PrimaryMap.SelectedNameIndex;
+         viewPort.Goto.Execute(table.Start + index * table.ElementLength);
+      }
+
       private void UpdatePrimaryMap(BlockMapViewModel map) {
          if (!map.IsValidMap) {
             if (primaryMap != null && primaryMap.IsValidMap) return;
