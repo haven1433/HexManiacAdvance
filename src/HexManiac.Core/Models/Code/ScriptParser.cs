@@ -660,6 +660,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
 
                lastCommandIsEndCommand = command.IsEndingCommand;
+            } else {
+               CompileError.Raise(this, new($"{i}: {line} is not a valid command", new(i, 0, lines[i].Length, SegmentType.Error)));
+               return null;
             }
          }
 

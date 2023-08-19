@@ -848,6 +848,14 @@ label2:;goto <000050>;end";
          Assert.Equal(expected, actual);
       }
 
+
+      [Fact]
+      public void InvalidCommand_Compile_HasError() {
+         EventScript = "not_a_command";
+
+         Assert.True(Tool.Contents[0].HasError);
+      }
+
       // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
    }
 }
