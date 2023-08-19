@@ -991,84 +991,6 @@
                                     <Border Margin="6,0" BorderThickness="1,1,1,0" BorderBrush="{DynamicResource Backlight}">
                                        <Grid>
                                           <TextBlock Text="{Binding Label}" Margin="2,0" VerticalAlignment="Center" />
-                                          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,12,0">
-                                             <Decorator Width="20" Height="20" Margin="2,0" >
-                                                <Decorator.ToolTip>
-                                                   <ToolTip>
-                                                      <TextBlock>
-                                                         Automatically insert an (U)nused variable.
-                                                         <LineBreak />
-                                                         <Italic>(Ctrl+U)</Italic>
-                                                      </TextBlock>
-                                                   </ToolTip>
-                                                </Decorator.ToolTip>
-                                                <Button Padding="0" IsEnabled="{Binding CanInserVar}" Command="{hsv:MethodCommand InsertVar}">
-                                                   <Grid Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                      <Path Data="{hsv:Icon ThinPlus}" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Stretch="Uniform">
-                                                         <Path.Style>
-                                                            <Style TargetType="Path">
-                                                               <Setter Property="Fill" Value="{DynamicResource Stream2}" />
-                                                               <Style.Triggers>
-                                                                  <DataTrigger Binding="{Binding CanInsertVar}" Value="False">
-                                                                     <Setter Property="Fill" Value="{DynamicResource Secondary}" />
-                                                                  </DataTrigger>
-                                                               </Style.Triggers>
-                                                            </Style>
-                                                         </Path.Style>
-                                                      </Path>
-                                                      <Path Data="{hsv:Icon Var}" Stretch="Uniform">
-                                                         <Path.Style>
-                                                            <Style TargetType="Path">
-                                                               <Setter Property="Fill" Value="{DynamicResource Primary}" />
-                                                               <Style.Triggers>
-                                                                  <DataTrigger Binding="{Binding CanInsertVar}" Value="False">
-                                                                     <Setter Property="Fill" Value="{DynamicResource Secondary}" />
-                                                                  </DataTrigger>
-                                                               </Style.Triggers>
-                                                            </Style>
-                                                         </Path.Style>
-                                                      </Path>
-                                                   </Grid>
-                                                </Button>
-                                             </Decorator>
-                                             <Decorator Width="20" Height="20" Margin="2,0">
-                                                <Decorator.ToolTip>
-                                                   <TextBlock>
-                                                      Automatically insert an (U)nused flag.
-                                                      <LineBreak />
-                                                      <Italic>(Ctrl+U)</Italic>
-                                                   </TextBlock>
-                                                </Decorator.ToolTip>
-                                                <Button Padding="0" IsEnabled="{Binding CanInsertFlag}" Command="{hsv:MethodCommand InsertFlag}">
-                                                   <Grid Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                                      <Path Data="{hsv:Icon Flag}" Stretch="Uniform">
-                                                         <Path.Style>
-                                                            <Style TargetType="Path">
-                                                               <Setter Property="Fill" Value="{DynamicResource Primary}" />
-                                                               <Style.Triggers>
-                                                                  <DataTrigger Binding="{Binding CanInsertFlag}" Value="False">
-                                                                     <Setter Property="Fill" Value="{DynamicResource Secondary}" />
-                                                                  </DataTrigger>
-                                                               </Style.Triggers>
-                                                            </Style>
-                                                         </Path.Style>
-                                                      </Path>
-                                                      <Path Data="{hsv:Icon ThinPlus}" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Stretch="Uniform">
-                                                         <Path.Style>
-                                                            <Style TargetType="Path">
-                                                               <Setter Property="Fill" Value="{DynamicResource Stream2}" />
-                                                               <Style.Triggers>
-                                                                  <DataTrigger Binding="{Binding CanInsertFlag}" Value="False">
-                                                                     <Setter Property="Fill" Value="{DynamicResource Secondary}" />
-                                                                  </DataTrigger>
-                                                               </Style.Triggers>
-                                                            </Style>
-                                                         </Path.Style>
-                                                      </Path>
-                                                   </Grid>
-                                                </Button>
-                                             </Decorator>
-                                          </StackPanel>
                                        </Grid>
                                     </Border>
                                     <Grid Margin="5,0,5,5">
@@ -1117,11 +1039,83 @@
                                              </Style>
                                           </hsg3hv:TextEditor.Style>
                                        </hsg3hv:TextEditor>
-                                       <TextBlock Visibility="{Binding IsOpen, ElementName=CodeContentsPopup, Converter={StaticResource BoolToVisibility}}"
-                                             HorizontalAlignment="Left" VerticalAlignment="Top" IsHitTestVisible="False" FontFamily="Consolas" FontWeight="Bold"/>
+                                       <Button Name="FloatingInsertVarButton" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Top" BorderBrush="{DynamicResource Secondary}"
+                                          Visibility="{Binding CanInsertVar, Converter={StaticResource BoolToVisibility}}" Command="{hsv:MethodCommand InsertVar}">
+                                          <Button.ToolTip>
+                                             <ToolTip>
+                                                <TextBlock>
+                                                   Automatically insert an (U)nused variable.
+                                                   <LineBreak />
+                                                   <Italic>(Ctrl+U)</Italic>
+                                                </TextBlock>
+                                             </ToolTip>
+                                          </Button.ToolTip>
+                                          <Grid Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                             <Path Data="{hsv:Icon ThinPlus}" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Stretch="Uniform">
+                                                <Path.Style>
+                                                   <Style TargetType="Path">
+                                                      <Setter Property="Fill" Value="{DynamicResource Stream2}" />
+                                                      <Style.Triggers>
+                                                         <DataTrigger Binding="{Binding CanInsertVar}" Value="False">
+                                                            <Setter Property="Fill" Value="{DynamicResource Secondary}" />
+                                                         </DataTrigger>
+                                                      </Style.Triggers>
+                                                   </Style>
+                                                </Path.Style>
+                                             </Path>
+                                             <Path Data="{hsv:Icon Var}" Stretch="Uniform">
+                                                <Path.Style>
+                                                   <Style TargetType="Path">
+                                                      <Setter Property="Fill" Value="{DynamicResource Primary}" />
+                                                      <Style.Triggers>
+                                                         <DataTrigger Binding="{Binding CanInsertVar}" Value="False">
+                                                            <Setter Property="Fill" Value="{DynamicResource Secondary}" />
+                                                         </DataTrigger>
+                                                      </Style.Triggers>
+                                                   </Style>
+                                                </Path.Style>
+                                             </Path>
+                                          </Grid>
+                                       </Button>
+                                       <Button Name="FloatingInsertFlagButton" Padding="0" HorizontalAlignment="Left" VerticalAlignment="Top" BorderBrush="{DynamicResource Secondary}"
+                                          Visibility="{Binding CanInsertFlag, Converter={StaticResource BoolToVisibility}}" Command="{hsv:MethodCommand InsertFlag}">
+                                          <Button.ToolTip>
+                                             <TextBlock>
+                                                Automatically insert an (U)nused flag.
+                                                <LineBreak />
+                                                <Italic>(Ctrl+U)</Italic>
+                                             </TextBlock>
+                                          </Button.ToolTip>
+                                          <Grid Width="18" Height="18" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                             <Path Data="{hsv:Icon Flag}" Stretch="Uniform">
+                                                <Path.Style>
+                                                   <Style TargetType="Path">
+                                                      <Setter Property="Fill" Value="{DynamicResource Primary}" />
+                                                      <Style.Triggers>
+                                                         <DataTrigger Binding="{Binding CanInsertFlag}" Value="False">
+                                                            <Setter Property="Fill" Value="{DynamicResource Secondary}" />
+                                                         </DataTrigger>
+                                                      </Style.Triggers>
+                                                   </Style>
+                                                </Path.Style>
+                                             </Path>
+                                             <Path Data="{hsv:Icon ThinPlus}" Width="8" Height="8" HorizontalAlignment="Right" VerticalAlignment="Bottom" Stretch="Uniform">
+                                                <Path.Style>
+                                                   <Style TargetType="Path">
+                                                      <Setter Property="Fill" Value="{DynamicResource Stream2}" />
+                                                      <Style.Triggers>
+                                                         <DataTrigger Binding="{Binding CanInsertFlag}" Value="False">
+                                                            <Setter Property="Fill" Value="{DynamicResource Secondary}" />
+                                                         </DataTrigger>
+                                                      </Style.Triggers>
+                                                   </Style>
+                                                </Path.Style>
+                                             </Path>
+                                          </Grid>
+                                       </Button>
                                     </Grid>
-                                       <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
-                                          Text="{Binding ErrorText}"  Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
+                                    <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
+                                       Text="{Binding ErrorText}"  Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
                                  </StackPanel>
                               </DataTemplate>
                            </ItemsControl.ItemTemplate>

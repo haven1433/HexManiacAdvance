@@ -4,9 +4,11 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Implementations;
+using HavenSoft.HexManiac.WPF.Windows;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -403,20 +405,36 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
          codebody.CaretPosition = textbox.SelectionStart;
          codebody.SelectedText = textbox.SelectedText;
+         bool earlyExit = false;
          if (string.IsNullOrEmpty(codebody.HelpContent) || !textbox.IsFocused || textbox.SelectedText.Contains(Environment.NewLine)) {
             CodeContentsPopup.IsOpen = false;
-            return;
+            if (!codebody.CanInsertFlag && !codebody.CanInsertVar) return;
+            earlyExit = true;
          }
 
          var linesBeforeSelection = textbox.Text.Substring(0, textbox.SelectionStart).Split(Environment.NewLine).Length - 1;
-         var totalLines = textbox.Text.Split(Environment.NewLine).Length;
-         var lineHeight = textbox.ExtentHeight / totalLines;
+         var lines = textbox.Text.Split(Environment.NewLine);
+         var lineHeight = textbox.ExtentHeight / lines.Length;
          var verticalStart = lineHeight * (linesBeforeSelection + 1) + 2;
 
          CodeContentsPopup.Placement = PlacementMode.Absolute;
          var corner = textbox.PointToScreen(new System.Windows.Point(40, verticalStart));
          CodeContentsPopup.HorizontalOffset = corner.X;
          CodeContentsPopup.VerticalOffset = corner.Y;
+
+         var visual = CodeToolMultiTextBoxItems.ItemContainerGenerator.ContainerFromItem(codebody);
+         if (visual is FrameworkElement element) {
+            var culture = CultureInfo.CurrentCulture;
+            var direction = FlowDirection.LeftToRight;
+            var black = Brushes.Black;
+            var typeface = new Typeface(textbox.FontFamily, textbox.FontStyle, textbox.FontWeight, textbox.FontStretch);
+            var formattedText = new FormattedText(lines[linesBeforeSelection], culture, direction, typeface, textbox.FontSize, black, 96);
+            var transform = new TranslateTransform(formattedText.Width + 16, lineHeight * linesBeforeSelection);
+            if (MainWindow.GetChild(element, "FloatingInsertVarButton", codebody) is Button insertVar) insertVar.RenderTransform = transform;
+            if (MainWindow.GetChild(element, "FloatingInsertFlagButton", codebody) is Button insertFlag) insertFlag.RenderTransform = transform;
+         }
+
+         if (earlyExit) return;
 
          var helpParts = codebody.HelpContent.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None);
          var keyword = helpParts[0].Split(' ')[0];
