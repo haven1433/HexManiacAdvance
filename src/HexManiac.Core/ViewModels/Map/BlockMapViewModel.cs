@@ -364,7 +364,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             if (!value.InRange(0, availableNames.Count)) return;
             var name = availableNames[value];
-            viewPort.Goto.Execute($"({name})");
+            // find the first map with that name
+            var mapWithName = AllMapsModel.Create(model).SelectMany(bank => bank).FirstOrDefault(map => map.NameIndex == value);
+            if (mapWithName == null) {
+               viewPort.RaiseError($"Could not find a map named {name}");
+            } else {
+               name = name.Split("~")[0];
+               viewPort.Goto.Execute($"maps.{mapWithName.Group}-{mapWithName.Map} ({name})");
+            }
          }
       }
 
