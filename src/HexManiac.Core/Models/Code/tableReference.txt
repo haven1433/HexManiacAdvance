@@ -822,8 +822,8 @@ graphics.text.font.japan.japan0.characters,  1E6B34, 1E6AC4, 1E6B4C, 1E6ADC, , ,
 graphics.text.font.japan.japan1.characters,  1E6B40, 1E6AD0, 1E6B58, 1E6AE8, , , , , , `ucs1x16x16` 
 graphics.text.font.japan.japan3.characters,  1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , , `ucs4x16x31`
 graphics.text.font.japan.japan4.characters,  1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
-graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
-graphics.text.font.palette, 		002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
+graphics.text.font.braille,                  002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
+graphics.text.font.palette,                  002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
 
 graphics.text.font.buttons.characters,        ,       ,       ,       , 006414, 006414, 006428, 006428, 006334, `ucs4x16x4|graphics.menu.downarrow.palette`
 graphics.text.font.buttons.data,              ,       ,       ,       , 006410, 006410, 006424, 006424, 006330, [tileOffset: width. height.]13
