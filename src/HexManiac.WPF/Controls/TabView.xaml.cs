@@ -69,6 +69,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.OldValue is ViewPort viewPortOld) {
             viewPortOld.Tools.StringTool.PropertyChanged -= HandleStringToolPropertyChanged;
             viewPortOld.FocusToolPanel -= FocusToolPanel;
+            viewPortOld.Tools.CodeTool.AttentionNewContent -= FocusNewCodeContent;
          }
          if (e.NewValue is IViewPort viewPortNew1) {
             viewPortNew1.PropertyChanged += HandleViewPortScrollChanged;
@@ -78,6 +79,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (e.NewValue is ViewPort viewPortNew) {
             viewPortNew.Tools.StringTool.PropertyChanged += HandleStringToolPropertyChanged;
             viewPortNew.FocusToolPanel += FocusToolPanel;
+            viewPortNew.Tools.CodeTool.AttentionNewContent += FocusNewCodeContent;
          }
       }
 
@@ -521,6 +523,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             }
          }
          FocusElement.Raise(ToolPanel);
+      }
+
+      private void FocusNewCodeContent(object sender, EventArgs e) {
+         if (DataContext is not ViewPort viewPort) return;
+         var vm = viewPort.Tools.CodeTool.Contents.Last();
+         var visual = CodeToolMultiTextBoxItems.ItemContainerGenerator.ContainerFromItem(vm);
+         if (visual == null) return;
+         FocusElement.Raise(visual);
       }
 
       private void ResetLeftToolsPane(object sender, MouseButtonEventArgs e) {

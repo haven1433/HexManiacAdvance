@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IRaiseMessageTab messageTab;
 
       public event EventHandler<ErrorInfo> ModelDataChanged;
+      public event EventHandler AttentionNewContent;
 
       public bool IsReadOnly => Mode == CodeMode.Raw;
       public bool UseSingleContent => !UseMultiContent;
@@ -239,6 +240,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
             var label = scriptStart.ToString("X6");
             var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart);
+            bool needsAnimation = false;
 
             if (Contents.Count > i) {
                Contents[i].ContentChanged -= ScriptChanged;
@@ -259,7 +261,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.HelpSourceChanged += UpdateScriptHelpFromLine;
                body.RequestShowSearchResult += ShowSearchResults;
                Contents.Add(body);
+               needsAnimation = currentScriptLength != -1;
             }
+
+            if (needsAnimation) AttentionNewContent.Raise(this);
          }
 
          while (Contents.Count > scripts.Count - skippedScripts) {
