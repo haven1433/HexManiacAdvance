@@ -40,7 +40,9 @@
 data.pokemon.names,                    00FA58, 00FA58, 00FA58, 00FA58, 000144, 000144, 000144, 000144, 000144, [name""11]
 data.pokemon.moves.names,              02E18C, 02E18C, 02E18C, 02E18C, 000148, 000148, 000148, 000148, 000148, ^[name""13]
 data.abilities.names,                  09FE64, 09FE64, 09FE84, 09FE84, 0001C0, 0001C0, 0001C0, 0001C0, 0001C0, [name""13]
-data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8, 0D80A0, 0D8074, 0D80B4, 0D8088, 0183B4, [name""13]
+data.trainers.classes.names,           1217BC, 1217BC, 0F70A8, 0F70A8,       ,       ,       ,       ,       , [name""13]58
+data.trainers.classes.names,                 ,       ,       ,       , 0D80A0, 0D8074, 0D80B4, 0D8088,       , [name""13]107
+data.trainers.classes.names,                 ,       ,       ,       ,       ,       ,       ,       , 0183B4, [name""13]66
 data.pokemon.type.names,               02E3A8, 02E3A8, 02E3A8, 02E3A8, 0309C8, 0309C8, 0309DC, 0309DC, 0166F4, ^[name""7]data.pokemon.type.length
 data.items.stats,                      0A98F0, 0A98F0, 0A9910, 0A9910,       ,       ,       ,       , 0001C8, [name""13 unused. index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket.pocketid type.|s=pocket(0=itemtype|1=itemtype|3=itemtype|4=itemtype|5=itemtype) fieldeffect<> battleusage:: battleeffect<> battleextra::]
 data.items.stats,                            ,       ,       ,       , 0001C8, 0001C8, 0001C8, 0001C8,       , [name""13 unused. index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket.pocketid type.|s=pocket(0=itemtype|1=itemtype|2=itemtype|4=itemtype|5=itemtype) fieldeffect<> battleusage:: battleeffect<> battleextra::]
@@ -820,8 +822,8 @@ graphics.text.font.japan.japan0.characters,  1E6B34, 1E6AC4, 1E6B4C, 1E6ADC, , ,
 graphics.text.font.japan.japan1.characters,  1E6B40, 1E6AD0, 1E6B58, 1E6AE8, , , , , , `ucs1x16x16` 
 graphics.text.font.japan.japan3.characters,  1E6B58, 1E6AE8, 1E6B70, 1E6B00, , , , , , `ucs4x16x31`
 graphics.text.font.japan.japan4.characters,  1E6B64, 1E6AF4, 1E6B7C, 1E6B0C, , , , , , `ucs4x16x14`
-graphics.text.font.braille, 		002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
-graphics.text.font.palette, 		002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
+graphics.text.font.braille,                  002BF8, 002BF8, 002BF8, 002BF8, , , , , , `ucs1x8x24`
+graphics.text.font.palette,                  002A30, 002A30, 002A30, 002A30, , , , , , `ucp4`
 
 graphics.text.font.buttons.characters,        ,       ,       ,       , 006414, 006414, 006428, 006428, 006334, `ucs4x16x4|graphics.menu.downarrow.palette`
 graphics.text.font.buttons.data,              ,       ,       ,       , 006410, 006410, 006424, 006424, 006330, [tileOffset: width. height.]13

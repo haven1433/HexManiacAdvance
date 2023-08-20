@@ -11,13 +11,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private Lazy<ScriptEngine> engine;
       private Lazy<ScriptScope> scope;
       private readonly EditorViewModel editor;
+      private readonly TextEditorViewModel content;
 
-      private string text, resultText;
-      public string Text { get => text; set => Set(ref text, value); }
+      private string resultText;
+      public string Text { get => content.Content; set => content.Content = value; }
       public string ResultText { get => resultText; set => Set(ref resultText, value); }
+      public TextEditorViewModel PythonEditor => content;
 
       public PythonTool(EditorViewModel editor) {
          this.editor = editor;
+         content = SetupPythonEditor();
          engine = new(() => {
             var engine = IronPython.Hosting.Python.CreateEngine();
             var paths = engine.GetSearchPaths();
@@ -52,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void RunPython() {
-         ResultText = RunPythonScript(text).ErrorMessage ?? "null";
+         ResultText = RunPythonScript(Text).ErrorMessage ?? "null";
          editor.SelectedTab?.Refresh();
       }
 
@@ -93,6 +96,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void Printer(string text) {
          editor.FileSystem.ShowCustomMessageBox(text, false);
+      }
+
+      public static TextEditorViewModel SetupPythonEditor() {
+         var editor = new TextEditorViewModel() {
+            Keywords = {
+               "for", "while", "in",
+               "if", "elif", "else",
+               "def", "return", "break", "yield",
+               "class", "lambda",
+               "import", "from",
+               "try", "except",
+               "with", "pass", "as", "is", "not",
+               "len", "print", "zip", "range", "open", "round",
+            },
+            Constants = {
+               "True",
+               "False",
+               "None",
+               "str",
+            },
+            LineCommentHeader = "#",
+            MultiLineCommentHeader = "'''",
+            MultiLineCommentFooter = "'''",
+         };
+         return editor;
       }
 
       public void Close() => editor.ShowAutomationPanel = false;

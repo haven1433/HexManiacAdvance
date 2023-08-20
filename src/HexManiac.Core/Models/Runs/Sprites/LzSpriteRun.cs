@@ -48,7 +48,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (!int.TryParse(dimensionsAsText[1], out var width)) return false;
          if (!int.TryParse(dimensionsAsText[2], out var height)) return false;
          if (width < 1 || height < 1) return false;
-         if (width > 100 || height > 100) return false;
+         if (width > 100 || height > 1024) return false;
          var hint = hintSplit.Length == 2 ? hintSplit[1] : null;
          spriteFormat = new SpriteFormat(bitsPerPixel, width, height, hint, allowLengthErrors);
          return true;

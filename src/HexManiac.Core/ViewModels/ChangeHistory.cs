@@ -80,7 +80,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          get {
             if (IsSaved) return false;
             var addedElements = undoStack.Count - undoStackSizeAtSaveTag;
-            var undoItems = undoStack.ToArray();
+            var undoItems = undoStack.Reverse().ToArray();
             var redoItems = redoStack.ToArray();
             if (undoStackSizeAtSaveTag == -1) return true;
             for (int i = 0; i < addedElements; i++) {

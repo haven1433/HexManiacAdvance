@@ -229,7 +229,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                yield return (i, closeIndex - i + 1);
                i = closeIndex + 1;
             }
-            if (!char.IsLetter(content[i])) continue;
+            if (i < content.Length && !char.IsLetter(content[i])) continue;
             int length = 1;                                                                                               
             while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~_".ToCharArray()))) length++;
             yield return (i, length);

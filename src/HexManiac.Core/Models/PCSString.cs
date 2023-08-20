@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -21,12 +22,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    public class PCSConverter : ITextConverter {
       private readonly string gameCode;
-      private readonly int spaceWidth;
+      private readonly IDataModel model;
+      private Lazy<int[]> fontWidth;
 
-      public PCSConverter(string gameCode) {
+      public PCSConverter(string gameCode, IDataModel model) {
          this.gameCode = gameCode;
          if (this.gameCode.Length > 4) this.gameCode = gameCode.Substring(4);
-         spaceWidth = gameCode.IsAny("BPRE", "BPGE") ? 6 : 3;
+         this.model = model;
+         fontWidth = new(UpdateFontWidthCache);
       }
 
       public List<byte> Convert(string text, out bool containsBadCharacters) {
@@ -44,7 +47,17 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public IReadOnlyList<TextSegment> GetOverflow(string input, int maxWidth) {
          if (!PCSString.TextMacros.TryGetValue(gameCode, out var macros)) macros = new Dictionary<string, byte[]>();
-         return PCSString.GetOverflow(macros, input, spaceWidth, maxWidth);
+         if (fontWidth == null) UpdateFontWidthCache();
+         return PCSString.GetOverflow(macros, fontWidth.Value, input, maxWidth);
+      }
+
+      private int[] UpdateFontWidthCache() {
+         if (model == null) return Array.Empty<int>();
+         var table = model.GetTable(HardcodeTablesModel.FontWidthTable) ?? model.GetTable(HardcodeTablesModel.BackupFontWidthTable);
+         if (table == null) return Array.Empty<int>();
+         var result = new int[table.ElementCount];
+         for (int i = 0; i < result.Length; i++) result[i] = model[table.Start + i];
+         return result;
       }
    }
 
@@ -56,6 +69,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public static IReadOnlyList<byte> Newlines;
       public static IReadOnlyDictionary<byte, byte> ControlCodeLengths;
       public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> TextMacros;
+      public static IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>> TextMacrosIndex;
 
       public static readonly byte DynamicEscape = 0xF7;
       public static readonly byte FunctionEscape = 0xFC;
@@ -69,10 +83,12 @@ namespace HavenSoft.HexManiac.Core.Models {
             PCS = GetPCSFromReference(referenceText);
             ControlCodeLengths = GetControlCodeLengthsFromReference(referenceText);
             TextMacros = GetTextMacrosFromReference(referenceText);
+            TextMacrosIndex = BuildTextMacrosIndex(TextMacros);
          } else {
             PCS = GetDefaultPCS();
             ControlCodeLengths = GetDefaultControlCodeLengths();
             TextMacros = new Dictionary<string, IReadOnlyDictionary<string, byte[]>>();
+            TextMacrosIndex = BuildTextMacrosIndex(TextMacros);
          }
 
          ValidInProgressEscapes = new HashSet<string>(PCS
@@ -126,6 +142,22 @@ namespace HavenSoft.HexManiac.Core.Models {
             macros.Add(game, GetTextMacrosFromReference(reference, game));
          }
          return macros;
+      }
+
+      private static IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>> BuildTextMacrosIndex(IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> allMacros) {
+         var allIndex = new Dictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>>();
+         foreach (var macroKvp in allMacros) {
+            var index = new IReadOnlyDictionary<string, byte[]>[256];
+            foreach(var macro in macroKvp.Value) {
+               var (text, bytes) = macro;
+               if (bytes.Length < 1) continue;
+               var lead = bytes[0];
+               if (index[lead] == null) index[lead] = new Dictionary<string, byte[]>();
+               ((Dictionary<string, byte[]>)index[lead])[text] = bytes;
+            }
+            allIndex[macroKvp.Key] = index;
+         }
+         return allIndex;
       }
 
       private static IReadOnlyDictionary<string, byte[]> GetTextMacrosFromReference(string[] reference, string gameCode) {
@@ -210,7 +242,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static string Convert(string macroSet, IReadOnlyList<byte> data, int startIndex, int length) {
          var result = new StringBuilder("\"", length * 2);
-         if (!TextMacros.TryGetValue(macroSet, out var textMacros)) textMacros = null;
+         if (!TextMacrosIndex.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
          var nextExpectedNewline = NewlineMode.Wrap;
 
@@ -349,7 +381,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var checkCharacter = PCS[i];
                if (input.Length < index + checkCharacter.Length) continue;
                var checkInput = input.Substring(index, checkCharacter.Length);
-               if (checkCharacter.StartsWith("\\") && !ValidInProgressEscapes.Contains(checkInput)) {
+               if (checkCharacter.Length > 0 && checkCharacter[0] == '\\' && !ValidInProgressEscapes.Contains(checkInput)) {
                   // escape sequences don't care about case (if no sequences seem to match the current case)
                   checkCharacter = checkCharacter.ToUpper();
                   checkInput = checkInput.ToUpper();
@@ -441,7 +473,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private const int DefaultCharacterWidth = 6;
-      public static IReadOnlyList<TextSegment> GetOverflow(IReadOnlyDictionary<string, byte[]> textMacros, ReadOnlySpan<char> input, int spaceWidth, int maxWidth) {
+      public static IReadOnlyList<TextSegment> GetOverflow(IReadOnlyDictionary<string, byte[]> textMacros, int[] fontWidth, ReadOnlySpan<char> input, int maxWidth) {
          var results = new List<TextSegment>();
          int currentLineWidth = 0;
          var length = input.Length;
@@ -499,7 +531,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var checkCharacter = PCS[i];
                if (input.Length < index + checkCharacter.Length) continue;
                var checkInput = input.Slice(index, checkCharacter.Length).ToString();
-               if (checkCharacter.StartsWith("\\") && !ValidInProgressEscapes.Contains(checkInput)) {
+               if (checkCharacter.Length > 0 && checkCharacter[0] == '\\' && !ValidInProgressEscapes.Contains(checkInput)) {
                   // escape sequences don't care about case (if no sequences seem to match the current case)
                   checkCharacter = checkCharacter.ToUpper();
                   checkInput = checkInput.ToUpper();
@@ -524,11 +556,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                      }
                   }
                   index += 2;
-               } else if (i == 0) {
-                  // whitespace
-                  currentLineWidth += spaceWidth;
+               } else if (fontWidth.Length > i) {
+                  currentLineWidth += fontWidth[i];
                } else {
-                  // normal character
+                  // unknown character
                   currentLineWidth += 6;
                }
 
@@ -549,7 +580,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
-      private static string FindMacro(IReadOnlyDictionary<string, byte[]> macros, IReadOnlyList<byte> data, int index) {
+      private static string FindMacro(IReadOnlyList<IReadOnlyDictionary<string, byte[]>> macrosIndex, IReadOnlyList<byte> data, int index) {
+         var macros = macrosIndex[data[index]];
+         if (macros == null) return null;
          foreach (var kvp in macros) {
             bool matches = true;
             for (int i = 0; i < kvp.Value.Length && matches; i++) {

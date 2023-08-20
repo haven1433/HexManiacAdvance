@@ -113,6 +113,32 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      continue;
                   }
                }
+               // child script has a 2-byte margin (probably aligned mart data) and has only one source
+               if (destinations.TryGetValue(address + length + 2, out childLength)) {
+                  // there was a skip... should we ignore it?
+                  // If something points to that position, we can't keep going.
+                  var anchor = model.GetNextAnchor(address + length);
+                  if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+                  anchor = model.GetNextAnchor(address + length + 2);
+                  if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1) {
+                     length += childLength + 2;
+                     continue;
+                  }
+               }
+               // child script has a 3-byte margin (probably aligned mart data) and has only one source
+               if (destinations.TryGetValue(address + length + 3, out childLength)) {
+                  // there was a skip... should we ignore it?
+                  // If something points to that position, we can't keep going.
+                  var anchor = model.GetNextAnchor(address + length);
+                  if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+                  anchor = model.GetNextAnchor(address + length + 3);
+                  if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1) {
+                     length += childLength + 3;
+                     continue;
+                  }
+               }
                break;
             }
 
@@ -175,6 +201,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                anchor = model.GetNextAnchor(address + length + 1);
                if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
                   length += additionalLength + 1;
+                  continue;
+               }
+            }
+            if (destinations.TryGetValue(address + length + 2, out additionalLength)) {
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+               anchor = model.GetNextAnchor(address + length + 2);
+               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1) {
+                  length += additionalLength + 2;
+                  continue;
+               }
+            }
+            if (destinations.TryGetValue(address + length + 3, out additionalLength)) {
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+               anchor = model.GetNextAnchor(address + length + 3);
+               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1) {
+                  length += additionalLength + 3;
                   continue;
                }
             }
@@ -589,14 +639,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      var destination = result.ReadMultiByteValue(currentSize + pointerOffset, 4) + Pointer.NULL;
                      if (destination == DeferredStreamToken.AutoSentinel + Pointer.NULL) {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
-                        (string format, byte[] defaultContent) = arg.PointerType switch {
-                           ExpectedPointerType.Text => ("\"\"", new byte[] { 0xFF }),
-                           ExpectedPointerType.Mart => ($"[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }),
-                           ExpectedPointerType.Decor => ($"[item:{HardcodeTablesModel.DecorationsTableName}]!0000", new byte[] { 0, 0 }),
-                           ExpectedPointerType.Movement => ($"[move.movementtypes]!FE", new byte[] { 0xFE }),
-                           _ => ("^", new byte[0])
+                        (string format, byte[] defaultContent, int alignment) = arg.PointerType switch {
+                           ExpectedPointerType.Text => ("\"\"", new byte[] { 0xFF }, 1),
+                           ExpectedPointerType.Mart => ($"[item:{HardcodeTablesModel.ItemsTableName}]!0000", new byte[] { 0, 0 }, 4),
+                           ExpectedPointerType.Decor => ($"[item:{HardcodeTablesModel.DecorationsTableName}]!0000", new byte[] { 0, 0 }, 1),
+                           ExpectedPointerType.Movement => ($"[move.movementtypes]!FE", new byte[] { 0xFE }, 1),
+                           _ => ("^", new byte[0], 1)
                         };
-                        deferredContent.Add(new(currentSize + pointerOffset, format, defaultContent));
+                        deferredContent.Add(new(currentSize + pointerOffset, format, defaultContent, alignment));
                      } else if (destination >= 0 && arg.PointerType != ExpectedPointerType.Script) {
                         streamInfo.Add(new(arg.PointerType, start + currentSize + pointerOffset, destination));
                         if (arg.PointerType == ExpectedPointerType.Text) {
@@ -610,6 +660,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
 
                lastCommandIsEndCommand = command.IsEndingCommand;
+            } else {
+               CompileError.Raise(this, new($"{i}: {line} is not a valid command", new(i, 0, lines[i].Length, SegmentType.Error)));
+               return null;
             }
          }
 
@@ -652,6 +705,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
       }
 
+      public static void SortOptions<T>(List<T> options, string token, Func<T, string> compare) {
+         if (token.Length > 0) {
+            options.Sort((a, b) => compare(a).SkipCount(token) - compare(b).SkipCount(token));
+            options.Sort((a, b) => compare(a).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - compare(b).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
+         }
+      }
+
       private List<string> ReadOptions(IDataModel model, string tableName, string token) {
          if (!string.IsNullOrEmpty(tableName)) {
             var isList = model.TryGetList(tableName, out var list);
@@ -664,10 +724,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   options.Add(allOptions[i] + comment);
                }
             }
-            if (token.Length > 0) {
-               options.Sort((a, b) => a.SkipCount(token) - b.SkipCount(token));
-               options.Sort((a, b) => a.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - b.IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
-            }
+            SortOptions(options, token, option => option);
 
             if (options.Count > 10) {
                while (options.Count > 9) options.RemoveAt(options.Count - 1);
@@ -678,11 +735,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return null;
       }
 
+      public List<IScriptLine> PartialMatches(string token) {
+         var candidates = engine.Where(line => line.LineCommand.MatchesPartial(token)).ToList();
+         return candidates;
+      }
+
       public string GetHelp(IDataModel model, HelpContext context) {
          var currentLine = context.Line;
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
-         var candidates = engine.Where(line => line.LineCommand.Contains(tokens[0], StringComparison.CurrentCultureIgnoreCase)).ToList();
+         var candidates = PartialMatches(tokens[0]);
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
@@ -693,12 +755,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // need autocomplete for command?
             if (tokens.Length == 1) {
-               candidates = candidates.Where(line => line.LineCommand.Contains(tokens[0], StringComparison.CurrentCultureIgnoreCase) && line.MatchesGame(gameHash)).ToList();
+               candidates = candidates.Where(line => line.LineCommand.MatchesPartial(tokens[0]) && line.MatchesGame(gameHash)).ToList();
                if (!context.IsSelection) {
                   foreach (var line in candidates) {
                      if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
                   }
                }
+               SortOptions(candidates, tokens[0], c => c.LineCommand);
                return Environment.NewLine.Join(candidates.Take(10).Select(line => line.Usage));
             }
 
@@ -834,10 +897,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                length -= compiledByteLength;
 
                // if we point to shortly after, keep going
-               if (destinations.ContainsKey(index) && nextAnchor is IStreamRun && nextAnchor.Start == index) continue;
-               if (destinations.ContainsKey(index + 1) && nextAnchor is IStreamRun && nextAnchor.Start == index + 1) continue;
                if (destinations.ContainsKey(index) && nextAnchor is IScriptStartRun && nextAnchor.Start == index) continue;
                if (destinations.ContainsKey(index + 1) && nextAnchor is IScriptStartRun && nextAnchor.Start == index + 1) continue;
+               if (destinations.ContainsKey(index) && nextAnchor is IStreamRun && nextAnchor.Start == index) continue;
+               if (destinations.ContainsKey(index + 1) && nextAnchor is IStreamRun && nextAnchor.Start == index + 1) continue;
+               if (destinations.ContainsKey(index + 2) && nextAnchor is IStreamRun && nextAnchor.Start == index + 2) continue;
+               if (destinations.ContainsKey(index + 3) && nextAnchor is IStreamRun && nextAnchor.Start == index + 3) continue;
 
                // if we're at an end command, don't keep going
                if (line.IsEndingCommand) break;
@@ -1742,6 +1807,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   continue;
                }
             }
+            if (destinationLengths.TryGetValue(address + length + 2, out argLength)) {
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+               anchor = model.GetNextAnchor(address + length + 2);
+               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1) {
+                  length += argLength + 2;
+                  continue;
+               }
+            }
+            if (destinationLengths.TryGetValue(address + length + 3, out argLength)) {
+               // there was a skip... should we ignore it?
+               // If something points to that position, we can't keep going.
+               var anchor = model.GetNextAnchor(address + length);
+               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+
+               anchor = model.GetNextAnchor(address + length + 3);
+               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1) {
+                  length += argLength + 3;
+                  continue;
+               }
+            }
             break;
          }
 
@@ -1755,13 +1844,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly int pointerOffset;
       private readonly string format;
       private byte[] content;
+      private int alignment;
 
       public int ContentLength => content.Length;
 
-      public DeferredStreamToken(int pointerOffset, string format, byte[] defaultContent) {
+      public DeferredStreamToken(int pointerOffset, string format, byte[] defaultContent, int alignment) {
          this.pointerOffset = pointerOffset;
          this.format = format;
          this.content = defaultContent;
+         this.alignment = alignment;
       }
 
       // need the model not for insertion, but for text encoding
@@ -1813,6 +1904,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public void WriteData(IList<byte> data, int scriptStart) {
+         while ((scriptStart + data.Count) % alignment != 0) data.Add(0);
          var address = scriptStart + data.Count - Pointer.NULL;
          data[pointerOffset + 0] = (byte)(address >> 0);
          data[pointerOffset + 1] = (byte)(address >> 8);

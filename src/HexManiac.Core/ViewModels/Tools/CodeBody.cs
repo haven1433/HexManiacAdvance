@@ -11,7 +11,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CodeBody : ViewModelCore {
-      public const int MaxEventTextWidth = 209;
+      public const int MaxEventTextWidth = 214;
 
       private readonly IDataModel model;
       private readonly ScriptParser parser;
@@ -271,6 +271,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool TryInsertAuto() {
          if (model.SpartanMode) return false;
          var context = SplitCurrentLine();
+         if (context.ContentBoundaryCount != 0) return false;
          var tokens = ScriptLine.Tokenize(context.Line);
          if (context.Line.Length > context.Index + 1) return false;
          if (!context.Line.EndsWith(" ")) return false;
@@ -295,6 +296,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
          }
          return false;
+      }
+
+      #endregion
+
+      #region Command completion
+
+      public bool TryCompleteCommandToken() {
+         if (model.SpartanMode) return false;
+         var context = SplitCurrentLine();
+         if (context.ContentBoundaryCount != 0) return false;
+         var tokens = ScriptLine.Tokenize(context.Line);
+         if (tokens.Length != 1) return false;
+         if (context.Line.Length > context.Index + 1) return false;
+         if (!context.Line.EndsWith(" ")) return false;
+         var line = parser.FirstMatch(context.Line.Trim());
+         if (line != null) return false;
+
+         var candidates = parser.PartialMatches(tokens[0]);
+         if (candidates.Count == 0) return false;
+         ScriptParser.SortOptions(candidates, tokens[0], c => c.LineCommand);
+
+         var before = Content[..(CaretPosition - tokens[0].Length)];
+         var after = Content[(CaretPosition)..];
+         using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
+            Editor.Content = before + candidates[0].LineCommand + after;
+            Editor.SaveCaret(candidates[0].LineCommand.Length - tokens[0].Length + 1);
+            return true;
+         }
       }
 
       #endregion

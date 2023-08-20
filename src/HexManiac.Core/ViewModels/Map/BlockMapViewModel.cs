@@ -364,7 +364,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             if (!value.InRange(0, availableNames.Count)) return;
             var name = availableNames[value];
-            viewPort.Goto.Execute($"({name})");
+            // find the first map with that name
+            var mapWithName = AllMapsModel.Create(model).SelectMany(bank => bank).FirstOrDefault(map => map.NameIndex == value);
+            if (mapWithName == null) {
+               viewPort.RaiseError($"Could not find a map named {name}");
+            } else {
+               name = name.Split("~")[0];
+               viewPort.Goto.Execute($"maps.{mapWithName.Group}-{mapWithName.Map} ({name})");
+            }
          }
       }
 
@@ -2108,13 +2115,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                lock (blockRenders) {
                   if (blockRenders.Count > data) canvas.Draw(blockRenders[data], x * 16, y * 16);
                }
-               if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
-               if (collisionHighlight == -1 && selectedEvent is ObjectEventViewModel obj && obj.ShouldHighlight(x - border.West, y - border.North)) {
-                  HighlightCollision(canvas.PixelData, x * 16, y * 16);
-               }
-               if (collisionHighlight != -1 && blockHighlight != -1 && collision != collisionHighlight && data == blockHighlight) {
-                  // this matches the chosen block, but not the chosen collision
-                  HighlightBlock(canvas.PixelData, x * 16, y * 16);
+               if (showEvents != MapDisplayOptions.NoEvents) {
+                  if (collision == collisionHighlight) HighlightCollision(canvas.PixelData, x * 16, y * 16);
+                  if (collisionHighlight == -1 && selectedEvent is ObjectEventViewModel obj && obj.ShouldHighlight(x - border.West, y - border.North)) {
+                     HighlightCollision(canvas.PixelData, x * 16, y * 16);
+                  }
+                  if (collisionHighlight != -1 && blockHighlight != -1 && collision != collisionHighlight && data == blockHighlight) {
+                     // this matches the chosen block, but not the chosen collision
+                     HighlightBlock(canvas.PixelData, x * 16, y * 16);
+                  }
                }
             }
          }

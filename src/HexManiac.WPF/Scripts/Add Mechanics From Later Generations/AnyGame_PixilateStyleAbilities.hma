@@ -112,7 +112,7 @@
         ldr   r4, [pc, <gSideStatuses>]
         ldr   r5, [pc, <gBattlerTarget>]
         @ return to original script
-        ldr   r0, =<scripts.battle.thumb/5/code/+8>  @ damagecalc
+        ldr   r0, =<scripts.commands.battle.battlescript/5/code/+8>  @ damagecalc
         bx    r0
     divide:
         ldr   r2, =<thumb.divide+1>
@@ -221,7 +221,7 @@
         strh  r0, [r5, #0]   @ gDynamicBasePower = gDynamicBasePower * scale / 100
     end:
         @ return to original script
-        ldr   r0, =<scripts.battle.thumb/5/code/+8>  @ damagecalc
+        ldr   r0, =<scripts.commands.battle.battlescript/5/code/+8>  @ damagecalc
         bx    r0
     divide:
         ldr   r2, =<thumb.divide+1>
@@ -239,11 +239,11 @@
 
 
 # hook atk05_damagecalc
-@scripts.battle.thumb/5/code/-1 .thumb
+@scripts.commands.battle.battlescript/5/code/-1 .thumb
     ldr   r0, =0
     bx    r0
 .end
-@scripts.battle.thumb/5/code/+3 <thumb.abilities.typeswaps+1>
+@scripts.commands.battle.battlescript/5/code/+3 <thumb.abilities.typeswaps+1>
 
 
 

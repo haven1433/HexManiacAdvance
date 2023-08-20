@@ -519,5 +519,17 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.False(ViewPort.ChangeHistory.HasDataChange);
          Assert.Contains(nameof(ViewPort.Save), view.CommandCanExecuteChangedNotifications);
       }
+
+      [Fact]
+      public void SavedDataChange_NonDataChanges_DoesNotReportUnsavedDataChange() {
+         history.CurrentChange.Add(1);
+         history.TagAsSaved();
+
+         var change = history.CurrentChange;
+         history.ChangeCompleted();
+         change = history.CurrentChange;
+
+         Assert.False(history.HasDataChange);
+      }
    }
 }

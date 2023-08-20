@@ -133,7 +133,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IToolTrayViewModel Tools => null;
 
-      public byte[] FindBytes { get; set; }
+      public byte[] FindBytes {
+         get { return left[0].FindBytes; }
+         set {
+            foreach (var child in left.Concat(right)) child.FindBytes = value;
+            NotifyPropertyChanged();
+            Refresh();
+         }
+      }
 
       public string Name => left[0].Parent.Name.Trim('*') + " -> " + right[0].Parent.Name.Trim('*');
       public bool IsMetadataOnlyChange => false;
