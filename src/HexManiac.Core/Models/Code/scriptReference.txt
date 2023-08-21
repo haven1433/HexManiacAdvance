@@ -249,7 +249,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 74 clearbox x. y. width. height.                # clear only a part of a custom box
 75 showpokepic species:data.pokemon.names x. y. # show the pokemon in a box. Can be a literal or a variable.
 76 hidepokepic                                  # hides all shown pokepics
-77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a wenner of the given contest.
+77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
 79 givePokemon species:data.pokemon.names level. item:data.items.stats filler. filler:: filler::
                                              # gives the player one of that pokemon. the last 9 bytes are all 00.
@@ -271,7 +271,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # Species, party, item, decoration, and move can all be literals or variables
 83 buffernumber buffer.bufferNames number:             # literal or variable gets converted to a string and put in the buffer.
 84 bufferstd buffer.bufferNames index:                 # gets one of the standard strings and pushes it into a buffer
-85 bufferstring buffer.bufferNames pointer<>           # copies the string into the buffer.
+85 bufferstring buffer.bufferNames pointer<"">         # copies the string into the buffer.
 86 pokemart products<`mart`>                 # products is a list of 2-byte items, terminated with 0000
 87 decorationmart products<`decor`>          # same as pokemart, but with decorations instead of items
 88 decorationmart2 products<`decor`>         # near-clone of decorationmart, but with slightly changed dialogue
@@ -333,12 +333,12 @@ B5 removecoins count:
 B6 setwildbattle species:data.pokemon.names level. item:data.items.stats
 B7 dowildbattle                              # runs a battle setup with setwildbattle
 B8 setvirtualaddress value::                 # some kind of jump? Complicated.
-B9 virtualgoto destination<>                 # ???
-BA virtualcall destination<>
+B9 virtualgoto destination<`xse`>            # ???
+BA virtualcall destination<`xse`>
 BB virtualgotoif condition. destination<>
 BC virtualcallif condition. destination<>
-BD virtualmsgbox text<>
-BE virtualloadpointer text<>
+BD virtualmsgbox text<"">
+BE virtualloadpointer text<"">
 BF virtualbuffer buffer.bufferNames text<>   # stores text in a buffer
 C0 showcoins x. y.
 C1 hidecoins x. y.
@@ -382,7 +382,7 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPEE] DC fadescreen3 mode.screenfades              # fades the screen in or out, swapping buffers. Emerald only.
 [BPEE] DD buffertrainerclass buffer.bufferNames class:data.trainers.classes.names        # stores a trainer class into a specific buffer (Emerald only)
 [BPEE] DE buffertrainername buffer.bufferNames trainer:data.trainers.stats               # stores a trainer name into a specific buffer  (Emerald only)
-[BPEE] DF pokenavcall pointer<>                     # displays a pokenav call. (Emerald only)
+[BPEE] DF pokenavcall text<"">                      # displays a pokenav call. (Emerald only)
 [BPEE] E0 warp8 bank. map. exit. x: y:              # warps the player while fading the screen to white
 [BPEE] E1 buffercontesttype buffer.bufferNames contest:                                  # stores the contest type name in a buffer. (Emerald Only)
 [BPEE] E2 bufferitems2 buffer.bufferNames item:data.items.stats quantity:                # stores pluralized item name in a buffer. (Emerald Only)
