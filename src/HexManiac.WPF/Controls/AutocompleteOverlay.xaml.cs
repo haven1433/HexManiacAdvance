@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Resources;
 using System;
@@ -71,6 +72,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             getAutocomplete = tools.StringTool.GetAutocomplete;
          } else if (DataContext is StreamElementViewModel streamViewModel) {
             getAutocomplete = streamViewModel.GetAutoCompleteOptions;
+         } else if (DataContext is ObjectEventViewModel mapObjectViewModel) {
+            getAutocomplete = mapObjectViewModel.GetMartAutocomplete;
          } else {
             return;
          }

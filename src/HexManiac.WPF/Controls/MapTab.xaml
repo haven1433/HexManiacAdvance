@@ -519,7 +519,10 @@
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Greeting:" />
                            <local:TextEditor DataContext="{Binding MartHelloEditor}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Shop:" />
-                           <TextBox Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Right" Width="244" FontFamily="Consolas" AcceptsReturn="True" />
+                           <Grid HorizontalAlignment="Right" Width="244">
+                              <TextBox Name="MartTextBox" Text="{Binding MartContent, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" AcceptsReturn="True" />
+                              <local:AutocompleteOverlay Target="{Binding ElementName=MartTextBox}"/>
+                           </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Goodbye:" />
                            <local:TextEditor DataContext="{Binding MartGoodbyeEditor}" />
                         </StackPanel>
