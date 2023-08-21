@@ -335,9 +335,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Editor.CaretIndex = value;
             var context = SplitCurrentLine();
 
-            // only show help if we're not within content curlies.
-            if (context.ContentBoundaryCount != 0) HelpContent = string.Empty;
-            else HelpSourceChanged?.Invoke(this, context);
+            HelpSourceChanged.Raise(this, context);
 
             NotifyPropertiesChanged(nameof(CanInsertFlag), nameof(CanInsertVar),
                nameof(CanFindUses), nameof(CanGotoSource), nameof(CanGotoAddress));
@@ -352,7 +350,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => Set(ref selectedText, value, old => {
             if (string.IsNullOrEmpty(selectedText) || selectedText.Contains(Environment.NewLine)) return;
             var context = SplitCurrentLine();
-            if (context.ContentBoundaryCount != 0) return;
             HelpSourceChanged.Raise(this, context with { Index = context.Index + selectedText.TrimEnd().Length, IsSelection = true });
          });
       }
@@ -361,17 +358,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int value = Math.Min(CaretPosition, Content.Length);
          var lines = Content.Split('\r', '\n').ToList();
          var contentBoundaryCount = 0;
+         var contentBoundaryIndex = 0;
          int i = 0;
          while (value > lines[i].Length) {
-            if (lines[i].Trim() == "{") contentBoundaryCount += 1;
+            if (lines[i].Trim() == "{") { contentBoundaryCount += 1; contentBoundaryIndex += 1; }
             if (lines[i].Trim() == "}") contentBoundaryCount -= 1;
             value -= lines[i].Length + 1;
             i++;
          }
-         return new(lines[i], value, contentBoundaryCount);
+         return new(lines[i], value, contentBoundaryCount, contentBoundaryIndex - 1);
       }
 
       public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
+
+      public IReadOnlyList<ExpectedPointerType> StreamTypes { get; set; }
 
       private bool ignoreEditorContentUpdates;
       public string Content {

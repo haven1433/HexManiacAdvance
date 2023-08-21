@@ -238,8 +238,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                skippedScripts += 1;
                continue;
             }
+
             var label = scriptStart.ToString("X6");
-            var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart);
+            var body = Contents.Count > i ? Contents[i] :
+               new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label };
+
+            var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart, body);
             bool needsAnimation = false;
 
             if (Contents.Count > i) {
@@ -254,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
                Contents[i].ContentChanged += ScriptChanged;
             } else {
-               var body = new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label, CompiledLength = info.Length };
+               body.CompiledLength = info.Length;
                parser.AddKeywords(model, body);
                body.Content = info.Content;
                body.ContentChanged += ScriptChanged;
@@ -335,10 +339,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void UpdateScriptHelpFromLine(object sender, HelpContext context) {
          var codeBody = (CodeBody)sender;
          string help;
-         if (mode == CodeMode.Script) help = ScriptParser.GetHelp(model, context);
-         else if (mode == CodeMode.BattleScript) help = BattleScriptParser.GetHelp(model, context);
-         else if (mode == CodeMode.AnimationScript) help = AnimationScriptParser.GetHelp(model, context);
-         else if (mode == CodeMode.TrainerAiScript) help = BattleAIScriptParser.GetHelp(model, context);
+         if (mode == CodeMode.Script) help = ScriptParser.GetHelp(model, codeBody, context);
+         else if (mode == CodeMode.BattleScript) help = BattleScriptParser.GetHelp(model, codeBody, context);
+         else if (mode == CodeMode.AnimationScript) help = AnimationScriptParser.GetHelp(model, codeBody, context);
+         else if (mode == CodeMode.TrainerAiScript) help = BattleAIScriptParser.GetHelp(model, codeBody, context);
          else throw new NotImplementedException();
          codeBody.HelpContent = help;
       }
@@ -410,7 +414,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             int caret = body.CaretPosition;
             body.ClearErrors();
             parser.CompileError += body.WatchForCompileErrors;
-            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, out var movedData, out int ignoreCharacterCount);
+            var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, body, out var movedData, out int ignoreCharacterCount);
             parser.CompileError -= body.WatchForCompileErrors;
             if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount + caret - body.CaretPosition);
             if (code == null) {
@@ -453,7 +457,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      ModelDataMoved?.Invoke(this, (start, run.Start));
                      start = run.Start;
                      int changedCaret = body.CaretPosition;
-                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref changedCaret, out movedData, out var _); // recompile for the new location. Could update pointers.
+                     code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref changedCaret, body, out movedData, out var _); // recompile for the new location. Could update pointers.
                      // assume that changedCaret == body.CaretPosition? But it's probably not important
                      sources = run.PointerSources;
                   }
@@ -552,5 +556,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0, bool IsSelection = false);
+   public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0, int ContentBoundaryIndex = -1, bool IsSelection = false);
 }
