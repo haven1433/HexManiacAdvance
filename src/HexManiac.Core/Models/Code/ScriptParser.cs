@@ -121,7 +121,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
                   anchor = model.GetNextAnchor(address + length + 2);
-                  if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1) {
+                  if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
                      length += childLength + 2;
                      continue;
                   }
@@ -134,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
                   anchor = model.GetNextAnchor(address + length + 3);
-                  if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1) {
+                  if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
                      length += childLength + 3;
                      continue;
                   }
@@ -211,7 +211,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
                anchor = model.GetNextAnchor(address + length + 2);
-               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1) {
+               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
                   length += additionalLength + 2;
                   continue;
                }
@@ -223,7 +223,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
                anchor = model.GetNextAnchor(address + length + 3);
-               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1) {
+               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
                   length += additionalLength + 3;
                   continue;
                }
@@ -700,6 +700,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                continue;
             }
             foreach (var command in engine) {
+               if (!command.MatchesGame(gameHash)) continue;
                if (!command.CanCompile(line)) continue;
                length += command.CompiledByteLength(model, line);
                break;
@@ -1835,7 +1836,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
                anchor = model.GetNextAnchor(address + length + 2);
-               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1) {
+               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
                   length += argLength + 2;
                   continue;
                }
@@ -1847,7 +1848,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
 
                anchor = model.GetNextAnchor(address + length + 3);
-               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1) {
+               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
                   length += argLength + 3;
                   continue;
                }
