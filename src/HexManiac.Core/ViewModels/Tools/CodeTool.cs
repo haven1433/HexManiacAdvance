@@ -347,9 +347,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          codeBody.HelpContent = help;
       }
 
-      private void ShowSearchResults(object sender, ISet<int> results) {
-         var selection = results.Select(r => (r, r + 1)).ToList();
-         viewPort.OpenSearchResultsTab("Script Search Results", selection);
+      private void ShowSearchResults(object sender, ISet<(int, int)> results) {
+         viewPort.OpenSearchResultsTab("Script Search Results", results.ToList());
       }
 
       private void CompileChanges() {

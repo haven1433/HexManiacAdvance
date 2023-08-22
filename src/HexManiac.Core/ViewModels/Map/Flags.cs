@@ -73,15 +73,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       /// <returns>Every address where this flag is used</returns>
-      public static HashSet<int> FindFlagUsages(IDataModel model, ScriptParser parser, int flag) {
-         var usages = new HashSet<int>();
+      public static HashSet<(int, int)> FindFlagUsages(IDataModel model, ScriptParser parser, int flag) {
+         var usages = new HashSet<(int, int)>();
 
          foreach (var element in GetAllEvents(model, "objects")) {
-            if (element.GetValue("flag") == flag) usages.Add(element.Start + 20);
+            if (element.GetValue("flag") == flag) usages.Add((element.Start, element.Start + element.Length - 1));
          }
 
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {
-            if (model.ReadMultiByteValue(spot.Address + 1, 2) == flag) usages.Add(spot.Address + 1);
+            var address = spot.Address;
+            if (model.ReadMultiByteValue(address + 1, 2) == flag) {
+               usages.Add((address, address + spot.Line.CompiledByteLength(model, address, null) - 1));
+            }
          }
 
          return usages;
@@ -109,16 +112,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return usedVariables;
       }
 
-      public static HashSet<int> FindVarUsages(IDataModel model, ScriptParser parser, int variable) {
-         var usages = new HashSet<int>();
+      public static HashSet<(int, int)> FindVarUsages(IDataModel model, ScriptParser parser, int variable) {
+         var usages = new HashSet<(int, int)>();
 
          foreach (var element in GetAllEvents(model, "scripts")) {
             if (!element.HasField("trigger")) continue;
-            if (element.GetValue("trigger") == variable) usages.Add(element.Start + 6);
+            if (element.GetValue("trigger") == variable) usages.Add((element.Start, element.Start + element.Length - 1));
          }
 
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x16, 0x17, 0x18, 0x19, 0x1A, 0x21, 0x22, 0x26)) { // setvar, addvar, subvar, copyvar, setorcopyvar, compare, comparevars, special2
-            if (model.ReadMultiByteValue(spot.Address + 1, 2) == variable) usages.Add(spot.Address + 1);
+            var address = spot.Address;
+            if (model.ReadMultiByteValue(address + 1, 2) == variable) {
+               usages.Add((address, address + spot.Line.CompiledByteLength(model, address, null) - 1));
+            }
          }
 
          return usages;

@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<ExtendedPropertyChangedEventArgs<string>> ContentChanged;
 
-      public event EventHandler<ISet<int>> RequestShowSearchResult;
+      public event EventHandler<ISet<(int, int)>> RequestShowSearchResult;
 
       public event EventHandler<HelpContext> HelpSourceChanged;
 
@@ -204,12 +204,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (token.StartsWith("<")) token = token[1..];
          if (token.EndsWith(">")) token = token[..^1];
          if (token.TryParseHex(out var result)) {
-            RequestShowSearchResult.Raise(this, new HashSet<int> { result });
+            RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (result, 1) });
             return;
          }
          var address = model.GetAddressFromAnchor(new(), -1, token);
          if (address == Pointer.NULL) return;
-         RequestShowSearchResult.Raise(this, new HashSet<int> { address });
+         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (address, 1) });
       }
 
       private bool TryGetSourceInfo(out string table, out string parsedToken) {
@@ -256,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!ArrayRunEnumSegment.TryParse(tableName, model, token, out var index)) return;
          var run = model.GetTable(tableName);
          var destination = run.Start + run.ElementLength * index;
-         RequestShowSearchResult.Raise(this, new HashSet<int> { destination });
+         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (destination, 1) });
       }
 
       private StubCommand findUsesCommand, gotoSourceCommand, gotoAddressCommand;
