@@ -84,5 +84,14 @@ namespace HavenSoft.HexManiac.Integration {
             Assert.Empty(overflow);
          });
       }
+
+      [SkippableFact]
+      public void Emerald_HM04_HasUses() {
+         var emerald = LoadEmerald();
+
+         var results = emerald.Tools.TableTool.FindXseScriptUses(HardcodeTablesModel.ItemsTableName, 342).ToList();
+
+         Assert.NotEmpty(results);
+      }
    }
 }

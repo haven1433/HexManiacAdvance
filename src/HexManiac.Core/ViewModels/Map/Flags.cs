@@ -369,11 +369,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (script == null) continue;
                   if (script.GetValue("type").IsAny(2, 4)) {
                      var start = script.GetAddress("pointer");
+                     int childCount = 0;
                      if (start >= model.Count || start < 0) continue;
                      while (!model.ReadMultiByteValue(start, 2).IsAny(0, 0xFFFF)) {
-                        scriptAddresses.Add(start + 4);
+                        scriptAddresses.Add(model.ReadPointer(start + 4));
                         start += 8;
-                        if (scriptAddresses.Count > 100) break; // sanity check
+                        childCount += 1;
+                        if (childCount > 100) break; // sanity check
                      }
                   } else {
                      scriptAddresses.Add(script.GetAddress("pointer"));
