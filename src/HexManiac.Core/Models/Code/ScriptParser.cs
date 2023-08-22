@@ -762,7 +762,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
          if (context.ContentBoundaryCount > 0 && body != null) return GetContentHelp(model, body, context);
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
-         var candidates = PartialMatches(tokens[0]);
+         var candidates = PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
@@ -773,7 +773,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // need autocomplete for command?
             if (tokens.Length == 1) {
-               candidates = candidates.Where(line => line.LineCommand.MatchesPartial(tokens[0]) && line.MatchesGame(gameHash)).ToList();
+               candidates = candidates.Where(line => line.LineCommand.MatchesPartial(tokens[0])).ToList();
                if (!context.IsSelection) {
                   foreach (var line in candidates) {
                      if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args

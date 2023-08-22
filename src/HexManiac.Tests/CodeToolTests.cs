@@ -848,7 +848,6 @@ label2:;goto <000050>;end";
          Assert.Equal(expected, actual);
       }
 
-
       [Fact]
       public void InvalidCommand_Compile_HasError() {
          EventScript = "not_a_command";
@@ -856,6 +855,15 @@ label2:;goto <000050>;end";
          Assert.True(Tool.Contents[0].HasError);
       }
 
-      // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
+      [Fact]
+      public void FireRed_ShowMoney_Reserve4Bytes() {
+         SetGameCode("BPRE0");
+         Tool.ScriptParser.RefreshGameHash(Model);
+
+         var script = "if1 0 <section2>;showmoney 5 6 7;section2:;end".Replace(";", Environment.NewLine);
+         var bytes = Tool.ScriptParser.Compile(Token, Model, 0, ref script, out var _);
+
+         Assert.Equal(10, bytes[2]);
+      }
    }
 }
