@@ -382,8 +382,8 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPEE] D5 initrotatingtilepuzzle isTrickHouse:
 [BPEE] D6 freerotatingtilepuzzle
 [BPEE] D7 warp7 mapbank. map. warp. x: y:           # used in Mossdeep City's gym
-[BPEE] D8 selectapproachingtrainer                  # unknown
-[BPEE] D9 lockfortrainer                            # unknown
+[BPEE] D8 selectapproachingtrainer                  # Sets the selected sprite to the ID of the currently approaching trainer.
+[BPEE] D9 lockfortrainer                            # Locks the movement of the NPCs that are not the player nor the approaching trainer.
 [BPEE] DA hidebox2                                  # hides a displayed Braille textbox. Only for Emerald
 [BPEE] DB preparemsg3 pointer<"">                   # shows a text box with text appearing instantaneously.
 [BPEE] DC fadescreen3 mode.screenfades              # fades the screen in or out, swapping buffers. Emerald only.
