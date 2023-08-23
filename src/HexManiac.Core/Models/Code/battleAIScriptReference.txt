@@ -92,9 +92,9 @@
 5b if_level_cond cond. ptr<`tse`>
 5c if_target_taunted ptr<`tse`>
 5d if_target_not_taunted ptr<`tse`>
-5e if_target_is_ally ptr<`tse`>
-5f is_of_type battler.AI_targets type.data.pokemon.type.names
-60 check_ability battler.AI_targets ability.data.abilities.names
-61 if_flash_fired battler.AI_targets ptr<`tse`>
-62 if_holds_item battler.AI_targets item:data.items.stats ptr<`tse`>
+[BPEE] 5e if_target_is_ally ptr<`tse`>
+[BPEE] 5f is_of_type battler.AI_targets type.data.pokemon.type.names
+[BPEE] 60 check_ability battler.AI_targets ability.data.abilities.names
+[BPEE] 61 if_flash_fired battler.AI_targets ptr<`tse`>
+[BPEE] 62 if_holds_item battler.AI_targets item:data.items.stats ptr<`tse`>
 
