@@ -796,6 +796,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newMap;
       }
 
+      public void UpdateClone(BlockMapViewModel neighbor, ObjectEventViewModel parentEvent) {
+         if (!model.IsFRLG() || neighbor == null || parentEvent == null) return;
+         var obj = EventGroup.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.ObjectID && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
+         var (thisX, thisY) = ConvertCoordinates(0, 0);
+         var (thatX, thatY) = neighbor.ConvertCoordinates(0, 0);
+         var (xDif, yDif) = (thisX - thatX, thisY - thatY);
+         var desiredX = parentEvent.X + xDif;
+         var desiredY = parentEvent.Y + yDif;
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var needClone = desiredX >= -8 && desiredY >= -8 && desiredX <= width + 8 && desiredY <= height + 8;
+         if (obj == null && needClone) {
+            obj = CreateObjectEvent(parentEvent.Graphics, Pointer.NULL);
+            obj.Kind = true;
+            obj.Elevation = parentEvent.ObjectID;
+            obj.TrainerType = neighbor.map;
+            obj.TrainerRangeOrBerryID = neighbor.group;
+         } else if (!needClone) {
+            if (obj != null) {
+               obj.Delete();
+               ClearCaches();
+            }
+            return;
+         }
+
+         obj.X = desiredX;
+         obj.Y = desiredY;
+         ClearCaches();
+      }
+
       // from the maps that use this blockmap/blockset/border,
       // figure out appropriate wall/floor tiles to make a small prototype map
       private (IPixelViewModel, int[,], bool) RenderPrototype(List<WarpEventModel> warps) {
@@ -877,6 +907,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Draw / Paint
 
+      private (int, int) ConvertCoordinates(double x, double y) {
+         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
+         (x, y) = (x / 16, y / 16);
+
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
+         var border = GetBorderThickness(layout);
+         var (xx, yy) = ((int)Math.Floor(x) - border.West, (int)Math.Floor(y) - border.North);
+         return (xx, yy);
+      }
+
       /// <summary>
       /// Gets the block index and collision index.
       /// </summary>
@@ -904,12 +945,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// If blockIndex is not valid, it's ignored.
       /// </summary>
       public void DrawBlock(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
-         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
-         (x, y) = (x / 16, y / 16);
-
-         var layout = GetLayout();
-         var border = GetBorderThickness(layout);
-         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         var (xx, yy) = ConvertCoordinates(x, y);
          DrawBlock(token, blockIndex, collisionIndex, xx, yy);
       }
 
@@ -944,22 +980,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Draw9Grid(ModelDelta token, int[,] grid, double x, double y) {
-         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
-         (x, y) = (x / 16, y / 16);
-
-         var layout = GetLayout();
-         var border = GetBorderThickness(layout);
-         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         var (xx, yy) = ConvertCoordinates(x, y);
          Draw9Grid(token, grid, xx, yy);
       }
 
       public void Draw25Grid(ModelDelta token, int[,] grid, double x, double y) {
-         (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
-         (x, y) = (x / 16, y / 16);
-
-         var layout = GetLayout();
-         var border = GetBorderThickness(layout);
-         var (xx, yy) = ((int)x - border.West, (int)y - border.North);
+         var (xx, yy) = ConvertCoordinates(x, y);
          Draw25Grid(token, grid, xx, yy);
       }
 

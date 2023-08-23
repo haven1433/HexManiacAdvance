@@ -593,6 +593,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newMaps.Values.ToList();
       }
 
+      private IEnumerable<BlockMapViewModel> PreferLoaded(IEnumerable<BlockMapViewModel> maps) {
+         foreach (var map in maps) {
+            var match = VisibleMaps.FirstOrDefault(m => m.MapID == map.MapID);
+            yield return match ?? map;
+         }
+      }
+
       #region Map Interaction
 
       private double cursorX, cursorY, deltaX, deltaY;
@@ -901,6 +908,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void EventUp(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (selectedEvent is ObjectEventViewModel objEvent) {
+            foreach (var neighbor in PreferLoaded(GetMapNeighbors(primaryMap, 1))) neighbor.UpdateClone(primaryMap, objEvent);
+         }
+
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
@@ -915,7 +927,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventCreationType == EventCreationType.WaveFunction) {
             eventCreationType = EventCreationType.None;
             // user wants to do a wave function collapse at this position
-            var map = MapUnderCursor(x, y);
             if (map != primaryMap) return;
             map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
          }
