@@ -370,7 +370,7 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPRE_BPGE_BPEE] CF trywondercardscript      # Tries a wonder card script.
 [BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
 [BPRE_BPGE] D0 setworldmapflag flag:         # This lets the player fly to a given map, if the map has a flight spot
-[BPEE] D0 nopD0 flag:                        # (nop in Emerald)
+[BPEE] D0 nopD0                              # (nop in Emerald)
 [BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:               # clone of warpteleport, only used in FR/LG and only with specials
 [BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokemon in your party (0-5)
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
