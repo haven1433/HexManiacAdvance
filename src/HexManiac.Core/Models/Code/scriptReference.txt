@@ -349,14 +349,14 @@ C0 showcoins x. y.
 C1 hidecoins x. y.                           # the X & Y coordinates are required even though they end up being unused
 C2 updatecoins x. y.                         # the X & Y coordinates are required even though they end up being unused
 C3 incrementhiddenvalue a.                   # example: pokecenter nurse uses variable 0xF after you pick yes
-C4 warp6 mapbank. map. warp. x: y:           # sets a particular map to warp to upon using an escape rope/teleport
+C4 warp6 mapbank. map. warp. x: y:           # sets a particular map to warp to upon using an escape rope/Dig
 C5 waitcry                                   # used after cry, it pauses the script
 [BPRE_BPGE_BPEE] C6 bufferboxname buffer.bufferNames box:               # box can be a variable or a literal
 [BPRE_BPGE] C7 textcolor color.              # 00=blue, 01=red, FF=default, XX=black. Only in FR/LG
 [BPEE] C7 nopC7
-[BPRE_BPGE] C8 helptext pointer<>            # something with helptext? Does some tile loading, which can glitch textboxes
+[BPRE_BPGE] C8 helptext pointer<"">          # something with helptext? Does some tile loading, which can glitch textboxes
 [BPEE] C8 nopC8
-[BPRE_BPGE] C9 helptext2                     # related to help-text box that appears in the opened Main Menu
+[BPRE_BPGE] C9 unloadhelptext                # related to help-text box that appears in the opened Main Menu
 [BPEE] C9 nopC9
 [BPRE_BPGE] CA signmsg                       # makes message boxes look like signposts
 [BPEE] CA nopCA
@@ -364,11 +364,13 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPEE] CB nopCB
 [BPRE_BPGE] CC comparehiddenvar a. value::   # compares a hidden value to a given value.
 [BPEE] CC nopCC
-[BPRE_BPGE_BPEE] CD setobedience slot:       # a pokemon in your party becomes obedient (no longer disobeys)
-[BPRE_BPGE_BPEE] CE checkobedience slot:     # if the pokemon is disobedient, 800D=1. If obedient (or empty), 800D=0
+[BPRE_BPGE_BPEE] CD setmodernfatefulencounter slot:       # a pokemon in your party now has its modern fateful encounter attribute set
+[BPRE_BPGE_BPEE] CE checkmodernfatefulencounter slot:     # if the pokemon is not a modern fateful encounter, then 800D = 1.
+                                                          # if the pokemon is a fateful encounter (or the specified slot is invalid), then 800D = 0.
+[BPRE_BPGE_BPEE] CF trywondercardscript      # Tries a wonder card script.
 [BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
 [BPRE_BPGE] D0 setworldmapflag flag:         # This lets the player fly to a given map, if the map has a flight spot
-[BPEE] D0 nopD0                              # (nop in Emerald)
+[BPEE] D0 nopD0 flag:                        # (nop in Emerald)
 [BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:               # clone of warpteleport, only used in FR/LG and only with specials
 [BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokemon in your party (0-5)
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
