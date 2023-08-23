@@ -109,8 +109,11 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 09 callstd function.                            # call a built-in function
 0A gotostdif condition.script_compare function. # goto a built in function if the condition is met
 0B callstdif condition.script_compare function. # call a built in function if the condition is met
+0C returnram                                    # pops back to the last calling command used in a RAM script.
 0C jumpram                                      # executes a script from the default RAM location (???)
+0D endram                                       # ends a RAM script
 0D killscript                                   # kill the script, reset script RAM
+0E setmysteryeventstatus value.                 # sets the mystery event script status
 0E setbyte byte.                                # sets a predefined address to the specified byte value
 0F loadpointer bank.4 pointer<"">               # loads a pointer into script RAM so other commands can use it
 10 setbyte2 bank.4 value.                       # sets a memory bank to the specified byte value.
