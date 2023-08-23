@@ -158,9 +158,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 2F sound number:songnames                    # 0000 mutes the music
 30 waitsound                                 # blocks script execution until any playing sounds finish
 31 fanfare song:songnames                    # plays a song from the song list as a fanfare
-32 waitfanfare                               # blocks script execution until any playing fanfair finishes
-33 playsong song:songnames mode.songloopoptions       # plays a song once or loop
-34 playsong2 song:songnames                           # seems buggy? (saves the background music)
+32 waitfanfare                               # blocks script execution until any playing fanfare finishes
+33 playsong song:songnames mode.songloopoptions       # plays a song once or loop (loop saves the background music)
+34 savesong song:songnames                            # saves the specified background music to be played via special Overworld_PlaySpecialMapMusic
 35 fadedefault                               # fades the music back to the default song
 36 fadesong song:songnames                   # fades the music into the given song
 37 fadeout speed.                            # fades out the current song to silent
