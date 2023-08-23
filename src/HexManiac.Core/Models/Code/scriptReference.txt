@@ -248,9 +248,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 70 multichoice2 x. y. list. default. canCancel.allowcanceloptions    # like multichoice, but you can choose which option is selected at the start
 71 multichoicegrid x. y. list. per_row. canCancel.allowcanceloptions # like multichoice, but shows multiple columns.
 71 multichoice3 x. y. list. per_row. canCancel.allowcanceloptions    # like multichoice, but shows multiple columns.
-72 showbox x. y. width. height.
+72 showbox x. y. width. height.                 # nop in Emerald
 73 hidebox x. y. width. height.                 # ruby/sapphire only
-74 clearbox x. y. width. height.                # clear only a part of a custom box
+74 clearbox x. y. width. height.                # clear only a part of a custom box (nop in Emerald)
 75 showpokepic species:data.pokemon.names x. y. # show the pokemon in a box. Can be a literal or a variable.
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
@@ -269,7 +269,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                              # if successful, 8004 is set to the pokemon species
 7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # Species can be a literal or variable. Store the name in the given buffer
 7E bufferfirstPokemon buffer.bufferNames                            # Species of your first pokemon gets stored in the given buffer
-7F bufferpartyPokemon buffer.bufferNames party:                     # Species of pokemon 'party' from your party gets stored in the buffer
+7F bufferpartyPokemon buffer.bufferNames party:                     # Nickname of pokemon 'party' from your party gets stored in the buffer
 80 bufferitem buffer.bufferNames item:data.items.stats              # stores an item name in a buffer
 81 bufferdecoration buffer.bufferNames decoration:
 82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # Species, party, item, decoration, and move can all be literals or variables
