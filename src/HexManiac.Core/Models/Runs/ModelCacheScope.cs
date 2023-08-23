@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
@@ -151,11 +152,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // stores start, length, and contents
       private readonly Dictionary<int, ScriptInfo> cachedScripts = new();
 
-      public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart) {
+      public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart, CodeBody updateBody) {
          if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo)) return scriptInfo;
          var destinations = ScriptDestinations(scriptStart);
          var scriptLength = parser.FindLength(model, scriptStart, destinations);
-         var content = parser.Parse(model, scriptStart, scriptLength);
+         var content = parser.Parse(model, scriptStart, scriptLength, updateBody);
          scriptInfo = new ScriptInfo(scriptStart, scriptLength, content);
          destinations[scriptStart] = scriptLength;
          cachedScripts[scriptStart] = scriptInfo;

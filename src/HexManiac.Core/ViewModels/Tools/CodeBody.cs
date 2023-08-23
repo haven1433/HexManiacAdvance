@@ -19,7 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public event EventHandler<ExtendedPropertyChangedEventArgs<string>> ContentChanged;
 
-      public event EventHandler<ISet<int>> RequestShowSearchResult;
+      public event EventHandler<ISet<(int, int)>> RequestShowSearchResult;
 
       public event EventHandler<HelpContext> HelpSourceChanged;
 
@@ -204,12 +204,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (token.StartsWith("<")) token = token[1..];
          if (token.EndsWith(">")) token = token[..^1];
          if (token.TryParseHex(out var result)) {
-            RequestShowSearchResult.Raise(this, new HashSet<int> { result });
+            RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (result, 1) });
             return;
          }
          var address = model.GetAddressFromAnchor(new(), -1, token);
          if (address == Pointer.NULL) return;
-         RequestShowSearchResult.Raise(this, new HashSet<int> { address });
+         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (address, 1) });
       }
 
       private bool TryGetSourceInfo(out string table, out string parsedToken) {
@@ -256,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!ArrayRunEnumSegment.TryParse(tableName, model, token, out var index)) return;
          var run = model.GetTable(tableName);
          var destination = run.Start + run.ElementLength * index;
-         RequestShowSearchResult.Raise(this, new HashSet<int> { destination });
+         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (destination, 1) });
       }
 
       private StubCommand findUsesCommand, gotoSourceCommand, gotoAddressCommand;
@@ -335,9 +335,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Editor.CaretIndex = value;
             var context = SplitCurrentLine();
 
-            // only show help if we're not within content curlies.
-            if (context.ContentBoundaryCount != 0) HelpContent = string.Empty;
-            else HelpSourceChanged?.Invoke(this, context);
+            HelpSourceChanged.Raise(this, context);
 
             NotifyPropertiesChanged(nameof(CanInsertFlag), nameof(CanInsertVar),
                nameof(CanFindUses), nameof(CanGotoSource), nameof(CanGotoAddress));
@@ -352,7 +350,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          set => Set(ref selectedText, value, old => {
             if (string.IsNullOrEmpty(selectedText) || selectedText.Contains(Environment.NewLine)) return;
             var context = SplitCurrentLine();
-            if (context.ContentBoundaryCount != 0) return;
             HelpSourceChanged.Raise(this, context with { Index = context.Index + selectedText.TrimEnd().Length, IsSelection = true });
          });
       }
@@ -361,17 +358,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          int value = Math.Min(CaretPosition, Content.Length);
          var lines = Content.Split('\r', '\n').ToList();
          var contentBoundaryCount = 0;
+         var contentBoundaryIndex = 0;
          int i = 0;
          while (value > lines[i].Length) {
-            if (lines[i].Trim() == "{") contentBoundaryCount += 1;
+            if (lines[i].Trim() == "{") { contentBoundaryCount += 1; contentBoundaryIndex += 1; }
             if (lines[i].Trim() == "}") contentBoundaryCount -= 1;
             value -= lines[i].Length + 1;
             i++;
          }
-         return new(lines[i], value, contentBoundaryCount);
+         return new(lines[i], value, contentBoundaryCount, contentBoundaryIndex - 1);
       }
 
       public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
+
+      public IReadOnlyList<ExpectedPointerType> StreamTypes { get; set; }
 
       private bool ignoreEditorContentUpdates;
       public string Content {

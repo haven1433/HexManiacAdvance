@@ -629,7 +629,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
-      private IEnumerable<(int, int)> FindXseScriptUses(string basename, int index) {
+      public IEnumerable<(int, int)> FindXseScriptUses(string basename, int index) {
          var parser = viewPort.Tools.CodeTool.ScriptParser;
          var lines = parser.DependsOn(basename).ToList();
          var filter = new List<byte>();

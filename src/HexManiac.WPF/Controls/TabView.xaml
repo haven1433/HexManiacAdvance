@@ -1008,15 +1008,6 @@
                                                    </Setter.Value>
                                                 </Setter>
                                                 <Style.Triggers>
-                                                   <DataTrigger Binding="{Binding Tag.CanFindUses, ElementName=TextEditor}" Value="True">
-                                                      <Setter Property="ContextMenuOverride">
-                                                         <Setter.Value>
-                                                            <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                                               <MenuItem Header="Find Uses" Command="{Binding FindUsesCommand}" />
-                                                            </ContextMenu>
-                                                         </Setter.Value>
-                                                      </Setter>
-                                                   </DataTrigger>
                                                    <DataTrigger Binding="{Binding Tag.CanGotoSource, ElementName=TextEditor}" Value="True">
                                                       <Setter Property="ContextMenuOverride">
                                                          <Setter.Value>
@@ -1031,6 +1022,15 @@
                                                          <Setter.Value>
                                                             <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
                                                                <MenuItem Header="Goto Source" Command="{Binding GotoAddressCommand}" />
+                                                            </ContextMenu>
+                                                         </Setter.Value>
+                                                      </Setter>
+                                                   </DataTrigger>
+                                                   <DataTrigger Binding="{Binding Tag.CanFindUses, ElementName=TextEditor}" Value="True">
+                                                      <Setter Property="ContextMenuOverride">
+                                                         <Setter.Value>
+                                                            <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                                               <MenuItem Header="Find Uses" Command="{Binding FindUsesCommand}" />
                                                             </ContextMenu>
                                                          </Setter.Value>
                                                       </Setter>

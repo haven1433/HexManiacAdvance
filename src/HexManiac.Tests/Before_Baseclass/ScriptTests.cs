@@ -592,11 +592,12 @@ Script:
          ViewPort.ChangeHistory.TagAsSaved();
 
          ViewPort.SelectionStart = new(0, 1);
-         ViewPort.SelectionStart = new(0, 0); // should load as an auto
+         ViewPort.SelectionStart = new(0, 0);
          ViewPort.Tools.CodeTool.Contents[0].Content += " ";
 
-         var text = Model.TextConverter.Convert(Model, 9, 5); // should move the text based on the auto
+         var text = Model.TextConverter.Convert(Model, 0xA, 5); // should not move, there's 1 unused byte between
          Assert.Equal("\"text\"", text);
+         Assert.True(ViewPort.ChangeHistory.IsSaved);
       }
 
       [Fact]

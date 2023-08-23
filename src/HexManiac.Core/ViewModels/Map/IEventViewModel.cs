@@ -843,6 +843,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public TextEditorViewModel MartHelloEditor => CreateTextEditor(ref martHelloEditor, () => martContent.Value?.HelloPointer);
       public TextEditorViewModel MartGoodbyeEditor => CreateTextEditor(ref martGoodbyeEditor, () => martContent.Value?.GoodbyePointer);
 
+      public IReadOnlyList<AutocompleteItem> GetMartAutocomplete(string line, int lineIndex, int characterIndex) {
+         if (martContent.Value == null) return null;
+         var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
+         if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
+         return stream.GetAutoCompleteOptions(line, lineIndex, characterIndex);
+      }
+
       #endregion
 
       #region Tutor Content

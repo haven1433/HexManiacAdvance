@@ -439,6 +439,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var helpParts = codebody.HelpContent.Split(new[] { Environment.NewLine }, 2, StringSplitOptions.None);
          var keyword = helpParts[0].Split(' ')[0];
          var args = helpParts[0].Split(new[] { ' ' }, 2).Last();
+         if (keyword.StartsWith('\"')) {
+            keyword += " " + args;
+            args = string.Empty;
+         }
          if (args == keyword) args = string.Empty;
          CodeContentsPopupKeywordText.Text = keyword;
          CodeContentsPopupArgsText.Text = " " + args;
