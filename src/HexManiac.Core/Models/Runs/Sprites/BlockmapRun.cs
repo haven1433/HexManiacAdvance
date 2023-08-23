@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -144,7 +145,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          blockModel2.WriteBlockAttributes(secondary.Take(maxUsedSecondary).ToArray(), tokenFactory);
       }
 
-      public static IEnumerable<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, int[][,] tiles, short[][] palettes) {
+      public static IEnumerable<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, int[][,] tiles, IReadOnlyList<short>[] palettes) {
+         palettes = palettes.Select(SpriteTool.CreatePaletteWithUniqueTransparentColor).ToArray();
          for (int i = 0; i < blocks.Length; i++) {
             yield return BlocksetModel.RenderBlock(blocks[i], tiles, palettes);
          }
@@ -516,7 +518,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public static IPixelViewModel RenderBlock(byte[] block, int[][,] tiles, short[][] palettes) {
+      public static IPixelViewModel RenderBlock(byte[] block, int[][,] tiles, IReadOnlyList<short>[] palettes) {
          var canvas = new CanvasPixelViewModel(16, 16);
 
          // bottom layer
@@ -584,7 +586,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          if (tileCount < 1) tileCount = 1;
       }
 
-      public static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, short[][] palettes) {
+      public static IPixelViewModel Read(byte[] block, int index, int[][,] tiles, IReadOnlyList<short>[] palettes) {
          var (pal, hFlip, vFlip, tile) = LzTilemapRun.ReadTileData(block, index, 2);
 
          if (pal >= palettes.Length) return new ReadonlyPixelViewModel(8, 8, new short[64]);

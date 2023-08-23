@@ -716,7 +716,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var pixelData = new short[8 * 8 * TilesPerRow * tileLines];
          for (int i = 0; i < pixelData.Length; i++) pixelData[i] = short.MinValue;
          var render = new CanvasPixelViewModel(8 * 16, 8 * 16 * 4, pixelData) { SpriteScale = 3, Transparent = short.MinValue };
-         var palette = palettes[paletteIndex];
+         var palette = SpriteTool.CreatePaletteWithUniqueTransparentColor(palettes[paletteIndex]);
          for (int y = 0; y < 64; y++) {
             for (int x = 0; x < 16; x++) {
                var tile = new ReadonlyPixelViewModel(8, 8, SpriteTool.Render(tiles[y * 16 + x], palette, 0, 0), palette[0]);
@@ -730,7 +730,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void UpdateDrawTileRender() {
-         var palette = palettes[drawPalette];
+         var palette = SpriteTool.CreatePaletteWithUniqueTransparentColor(palettes[drawPalette]);
          drawTileRender = new CanvasPixelViewModel(8, 8, SpriteTool.Render(tiles[drawTile], palette, 0, 0)) { Transparent = palette[0], SpriteScale = 4 };
          NotifyPropertiesChanged(nameof(DrawTileRender));
       }
