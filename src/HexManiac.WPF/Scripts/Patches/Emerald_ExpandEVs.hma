@@ -1,15 +1,14 @@
-
 @!game(BPEE0)
 
 # change Emerald EV limit to 1512 instead of 510.
-# Research by Somber Till Dawn
+# Research by Shiny Till Dawn
 # Script by Haven
 
 # --- 0x5E7 = 1511, the target value - 1
 @06C480 E7 05
 @06CA6C E7 05
 @06DC88 E7 05
-@1393F2 57 05
+@1393F2 E7 05
 
 # --- 189*8 = 1512, the target value
 @06815A .thumb
