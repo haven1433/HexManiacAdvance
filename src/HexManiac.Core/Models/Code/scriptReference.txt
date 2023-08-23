@@ -346,8 +346,8 @@ BD virtualmsgbox text<"">
 BE virtualloadpointer text<"">               # uses gStringVar4
 BF virtualbuffer buffer.bufferNames text<>   # stores text in a buffer
 C0 showcoins x. y.
-C1 hidecoins x. y.
-C2 updatecoins x. y.
+C1 hidecoins x. y.                           # the X & Y coordinates are required even though they end up being unused
+C2 updatecoins x. y.                         # the X & Y coordinates are required even though they end up being unused
 C3 incrementhiddenvalue a.                   # example: pokecenter nurse uses variable 0xF after you pick yes
 C4 warp6 mapbank. map. warp. x: y:           # sets a particular map to warp to upon using an escape rope/teleport
 C5 waitcry                                   # used after cry, it pauses the script
