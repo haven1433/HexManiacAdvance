@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.Models.Code;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
@@ -353,7 +354,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Returns a sorted list of options based on 'best match'
       /// </summary>
       public static IEnumerable<string> GetBestOptions(IEnumerable<string> options, string text, bool onlyCheckLettersAndDigits = false) {
-         return options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false).OrderBy(option => option.SkipCount(text));
+         var ops = options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false);
+         ops = ScriptParser.SortOptions(ops, text, op => op);
+         return ops;
       }
 
       private static readonly List<string> numericOptions = new();

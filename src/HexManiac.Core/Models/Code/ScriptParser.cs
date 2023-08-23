@@ -709,11 +709,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return new LabelLibrary(model, labels) { RequireCompleteAddresses = RequireCompleteAddresses };
       }
 
-      public static void SortOptions<T>(List<T> options, string token, Func<T, string> compare) {
+      public static IEnumerable<T> SortOptions<T>(IEnumerable<T> options, string token, Func<T, string> compare) {
          if (token.Length > 0) {
-            options.Sort((a, b) => compare(a).SkipCount(token) - compare(b).SkipCount(token));
-            options.Sort((a, b) => compare(a).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase) - compare(b).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
+            options = options.OrderBy(a => compare(a).Length);
+            options = options.OrderBy(a => compare(a).SkipCount(token));
+            options = options.OrderBy(a => compare(a).IndexOf(token[0], StringComparison.CurrentCultureIgnoreCase));
          }
+         return options;
       }
 
       private List<string> ReadOptions(IDataModel model, string tableName, string token) {
@@ -728,7 +730,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   options.Add(allOptions[i] + comment);
                }
             }
-            SortOptions(options, token, option => option);
+            options = SortOptions(options, token, option => option).ToList();
 
             if (options.Count > 10) {
                while (options.Count > 9) options.RemoveAt(options.Count - 1);
@@ -780,7 +782,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      if (line.LineCommand == tokens[0] && line.CountShowArgs() == 0) return null; // perfect match with no args
                   }
                }
-               SortOptions(candidates, tokens[0], c => c.LineCommand);
+               candidates = SortOptions(candidates, tokens[0], c => c.LineCommand).ToList();
                return Environment.NewLine.Join(candidates.Take(10).Select(line => line.Usage));
             }
 

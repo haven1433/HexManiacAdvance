@@ -447,7 +447,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var cell = (UnderEdit)ViewPort[0, 0].Format;
          var options = cell.AutocompleteOptions.Select(option => option.CompletionText.Trim()).ToArray();
-         Assert.Equal(new[] { "beforeTEXT", "TEXTafter", "TEmiddleXT" }, options);
+         Assert.Equal(new[] { "TEXTafter", "TEmiddleXT", "beforeTEXT" }, options); // sorted
       }
 
       [Fact]

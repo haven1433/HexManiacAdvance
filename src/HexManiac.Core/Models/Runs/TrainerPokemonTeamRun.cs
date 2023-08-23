@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+﻿using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using Mono.Unix.Native;
@@ -322,11 +323,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (parenIndex == -1 && atIndex == -1) {
             var level = start.Substring(0, spaceIndex);
             var pokemon = start.Substring(spaceIndex + 1);
-            return ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.PokemonNameTable)
+            var ops = ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.PokemonNameTable)
                .Where(option => option.MatchesPartial(pokemon, onlyCheckLettersAndDigits: true))
                .Where(option => option.Contains("-") || !pokemon.Contains("-"))
                .Where(option => option.Contains("'") || !pokemon.Contains("'"))
-               .Where(option => option.Contains(".") || !pokemon.Contains("."))
+               .Where(option => option.Contains(".") || !pokemon.Contains("."));
+            ops = ScriptParser.SortOptions(ops, pokemon, op => op);
+            return ops
                .Select(option => new AutocompleteItem(option, $"{level} {option} {end}"));
          }
 
@@ -338,10 +341,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var item = start.Substring(atIndex + 1);
          start = start.Substring(0, atIndex);
          var options = ArrayRunEnumSegment.GetOptions(model, HardcodeTablesModel.ItemsTableName).ToList();
-         return options
+         var itemOps = options
             .Where(option => option.MatchesPartial(item, onlyCheckLettersAndDigits: true))
             .Where(option => option.Contains("-") || !item.Contains("-"))
-            .Where(option => option.Contains("'") || !item.Contains("'"))
+            .Where(option => option.Contains("'") || !item.Contains("'"));
+         itemOps = ScriptParser.SortOptions(itemOps, item, op => op);
+         return itemOps
             .Select(option => new AutocompleteItem(option, $"{start.Trim()} @{option}"));
       }
 
