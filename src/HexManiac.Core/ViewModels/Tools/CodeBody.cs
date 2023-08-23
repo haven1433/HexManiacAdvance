@@ -204,12 +204,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (token.StartsWith("<")) token = token[1..];
          if (token.EndsWith(">")) token = token[..^1];
          if (token.TryParseHex(out var result)) {
-            RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (result, 1) });
+            RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (result, result) });
             return;
          }
          var address = model.GetAddressFromAnchor(new(), -1, token);
          if (address == Pointer.NULL) return;
-         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (address, 1) });
+         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (address, address) });
       }
 
       private bool TryGetSourceInfo(out string table, out string parsedToken) {
@@ -256,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (!ArrayRunEnumSegment.TryParse(tableName, model, token, out var index)) return;
          var run = model.GetTable(tableName);
          var destination = run.Start + run.ElementLength * index;
-         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (destination, 1) });
+         RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (destination, destination) });
       }
 
       private StubCommand findUsesCommand, gotoSourceCommand, gotoAddressCommand;
@@ -315,7 +315,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var candidates = parser.PartialMatches(tokens[0]);
          if (candidates.Count == 0) return false;
-         ScriptParser.SortOptions(candidates, tokens[0], c => c.LineCommand);
+         candidates = ScriptParser.SortOptions(candidates, tokens[0], c => c.LineCommand).ToList();
 
          var before = Content[..(CaretPosition - tokens[0].Length)];
          var after = Content[(CaretPosition)..];
