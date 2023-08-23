@@ -57,6 +57,9 @@ data.menus.text.options,                     ,       ,       ,       , 088DDC, 0
 data.menus.text.pc,                          ,       ,       ,       , 08FBC8, 08FB9C, 08FBDC, 08FBB0, 0CAC7C, [text<""> msgvar::messagevars]31
 data.menus.text.pokemon,                     ,       ,       ,       , 121DF4, 121DCC, 121E6C, 121E44,       , [text<"">]27
 data.menus.text.pcoptions,                   ,       ,       ,       , 0EB80C, 0EB7E4, 0EB820, 0EB80C,       , [text<""> code<>]3
+data.menus.namescreen.content,               ,       ,       ,       , 09F664, 09F638, 09F678, 09F64C, 0E4A5C, [line""8]12
+data.menus.namescreen.draw,                  ,       ,       ,       , 09FA5C, 09FA30, 09FA70, 09FA44, 0E4E58, [line<[unknown:|h gap. character""1]!FF>]12
+
 scripts.newgame.names.male,            00B7BC, 00B7BC, 00B7BC, 00B7BC,       ,       ,       ,       ,       , [name<""> unused::]5
 scripts.newgame.names.male,                  ,       ,       ,       , 1316F0, 1316C8, 131768, 131740,       , [name<"">]19
 scripts.newgame.names.male,                  ,       ,       ,       ,       ,       ,       ,       , 031DE0, [name<"">]20
