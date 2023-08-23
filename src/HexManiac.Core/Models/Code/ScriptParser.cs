@@ -259,6 +259,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             constantCache = new HashSet<string>();
             keywordCache = new HashSet<string>();
             foreach (var line in engine) {
+               if (!line.MatchesGame(gameHash)) continue;
                keywordCache.Add(line.LineCommand);
                foreach (var arg in line.Args) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) continue;
