@@ -193,9 +193,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 4F applymovement npc: data<`move`>           # has character 'npc' move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
-50 applymovement2 npc: data<`move`> map. bank.                     # like applymovement, but could be used if an NPC will move to another map.
+50 applymovement2 npc: data<`move`> bank. map.                     # like applymovement, but could be used if an NPC will move to another map.
 51 waitmovement npc:                         # block further script execution until the npc movement is completed
-52 waitmovementpos npc: x. y.                # seems bugged. x/y do nothing, only works for FF (the player). Do not use.
+52 waitmovement2 npc: bank. map.             # like waitmovement, but has extra parameters for a specifiable map.
 53 hidesprite npc:                           # hides an NPC, but only if they have a Person ID. Doesn't work on the player.
 54 hidespritepos npc: x. y.                  # removes the object at the specified coordinates. Do not use.
 55 showsprite npc:                           # opposite of hidesprite
