@@ -315,34 +315,35 @@ A3 resetweather                              # queues a weather change to the ma
 A4 setweather type:                          #
 A5 doweather                                 # actually does the weather change from resetweather or setweather
 A6 changewalktile method.                    # used with ash-grass(1), breaking ice(4), and crumbling floor (7). Complicated.
-A7 setmapfooter footer:                      # updates the current map's footer.
-A8 spritelevelup npc: bank. map. unknown.    # the chosen npc goes 'up one level'
+A7 setmapfooter footer:                      # updates the current map's footer. typically used on transition level scripts.
+A8 spritelevelup npc: bank. map. subpriority.    # the chosen npc goes 'up one level'
 A9 restorespritelevel npc: bank. map.        # the chosen npc is restored to its original level
-AA createsprite sprite. virtualNPC. x: y: behavior. facing.
+AA createsprite sprite. virtualNPC. x: y: behavior. facing.     # creates a virtual sprite that can be used to bypass the 16 NPCs limit.
 AB spriteface2 virtualNPC. facing.
 AC setdooropened x: y:                       # queues the animation, but doesn't do it
 AD setdoorclosed x: y:                       # queues the animation, but doesn't do it
 AE doorchange                                # runs the animation from the queue
-AF setdooropened2 x: y:                      # clone
-B0 setdoorclosed2 x: y:                      # clone
-[AXVE_AXPE] B1 nopB1                         # ???
+AF setdooropened2 x: y:                      # sets the specified door tile to be open without an animation
+B0 setdoorclosed2 x: y:                      # sets the specified door tile to be closed without an animation
+[AXVE_AXPE] B1 addelevmenuitem param1. param2: param3: param4:    # Adds an elevator menu item. Unused in Ruby & Sapphire.
 [BPRE_BPGE] B1 nopB1
-[BPEE] B1 addelevmenuitem                    # ???
-[AXVE_AXPE] B2 nopB2
+[BPEE] B1 nopB1
+[AXVE_AXPE] B2 showelevmenu                  # Shows an elevator menu.
 [BPRE_BPGE] B2 nopB2
-[BPEE] B2 showelevmenu
+[BPEE] B2 nopB2
 B3 checkcoins output:                        # your number of coins is stored to the given variable
 B4 givecoins count:
 B5 removecoins count:
 B6 setwildbattle species:data.pokemon.names level. item:data.items.stats
 B7 dowildbattle                              # runs a battle setup with setwildbattle
-B8 setvirtualaddress value::                 # some kind of jump? Complicated.
+B8 setvirtualaddress pointer::|h             # Sets a relative address to be used by other virtual commands.
+                                             # This is usually used in Mystery Gift scripts.
 B9 virtualgoto destination<`xse`>            # ???
 BA virtualcall destination<`xse`>
 BB virtualgotoif condition. destination<>
 BC virtualcallif condition. destination<>
 BD virtualmsgbox text<"">
-BE virtualloadpointer text<"">
+BE virtualloadpointer text<"">               # uses gStringVar4
 BF virtualbuffer buffer.bufferNames text<>   # stores text in a buffer
 C0 showcoins x. y.
 C1 hidecoins x. y.
