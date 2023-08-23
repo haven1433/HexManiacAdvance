@@ -224,7 +224,8 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                              # playerwin is the text that the character says when the player wins
                                              # rematches are weird. Look into them later.
 
-5D repeattrainerbattle                       # do the last trainer battle again
+5D repeattrainerbattle                       # starts a trainer battle with information stored in the RAM.
+                                             # in most cases, it does the last trainer battle again.
 5E endtrainerbattle                          # returns from the trainerbattle screen without starting message (go to after battle script)
 5F endtrainerbattle2                         # same as 5E? (go to beaten battle script)
 60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated. Similar to checkflag
