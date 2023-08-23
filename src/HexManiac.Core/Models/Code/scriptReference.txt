@@ -306,9 +306,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 9C doanimation animation:                    # executes field move animation
 9D setanimation animation. slot:             # which party pokemon to use for the next field animation?
 9E checkanimation animation:                 # if the given animation is playing, pause the script until the animation completes
-9F sethealingplace flightspot:               # where does the player warp when they die?
+9F sethealingplace flightspot:               # sets where the player warps when they white out
 A0 checkgender                               # if male, 800D=0. If female, 800D=1
-A1 cry species:data.pokemon.names effect:    # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
+A1 cry species:data.pokemon.names effect:    # plays that pokemon's cry. Can use a variable or a literal. effect uses a cry mode constant.
 A2 setmaptile x: y: tile: isWall:            # sets the tile at x/y to be the given tile: with the attribute.
                                              # 0 = passable (false), 1 = impassable (true)
 A3 resetweather                              # queues a weather change to the map's default weather
