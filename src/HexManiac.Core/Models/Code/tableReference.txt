@@ -876,6 +876,9 @@ data.battlefrontier.battletent.fallarbor.pokemon,  ,       ,       ,       ,    
 data.battlefrontier.battletent.fallarbor.trainers, ,       ,       ,       ,       ,       ,       ,       , 165DDC, [facilityclass.data.battlefrontier.trainerclass padding:. name""8 [[word:|h]6]3 pokemon<[data.battlefrontier.pokemon]!FFFF>]30
 
 scripts.fromthumb.safari.end,                      ,       ,       ,       , 0A0F38, 0A0F0C, 0A0F4C, 0A0F20, 0FC17C, `xse`
+scripts.text.names,        ,,,, 12DB00, 12DAD8, 12DB78, 12DB50, , [text<"">]
+scripts.text.interviews,   ,,,, 12CE00, 12CDD8, 12CE78, 12CE50, , [text<"">]
+scripts.text.destinations, ,,,, 09D824, 09D7F8, 09D838, 09D80C, , [text<"">]
 
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13

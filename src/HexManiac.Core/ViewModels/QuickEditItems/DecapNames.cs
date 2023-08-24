@@ -1,6 +1,7 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using HavenSoft.HexManiac.Core.ViewModels.Map;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -76,16 +77,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             "scripts.newgame.names.female",
             "scripts.newgame.names.male",
             "scripts.newgame.names.rival",
+            "data.maps.dungeons.stats",
+            "scripts.text.names",
+            "scripts.text.interviews",
+            "scripts.text.destinations",
          }) {
             var tableAddress = model.GetAddressFromAnchor(viewPort.CurrentChange, -1, tableName);
             if (tableAddress == Pointer.NULL) continue;
             var tableRun = model.GetNextRun(tableAddress);
             if (tableRun.Start != tableAddress || tableRun is not ITableRun table) continue;
             for (int i = 0; i < table.ElementCount; i++) {
-               var segment = table.ElementContent.FirstOfTypeOrDefault<ArrayRunPointerSegment>();
-               var offset = table.ElementContent.Until(seg => seg == segment).Sum(seg => seg.Length);
-               var destination = model.ReadPointer(table.Start + table.ElementLength * i + offset);
-               Decapitalize(model, viewPort.CurrentChange, destination);
+               foreach (ArrayRunPointerSegment segment in table.ElementContent.OfType<ArrayRunPointerSegment>()) {
+                  if (segment.InnerFormat != "\"\"") continue;
+                  var offset = table.ElementContent.Until(seg => seg == segment).Sum(seg => seg.Length);
+                  var destination = model.ReadPointer(table.Start + table.ElementLength * i + offset);
+                  Decapitalize(model, viewPort.CurrentChange, destination);
+               }
             }
          }
 
@@ -121,6 +128,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          }
 
          await viewPort.UpdateProgress(.2);
+
+         // scripts
+         var scriptAddresses = Flags.GetAllTopLevelScripts(model);
+         var spots = Flags.GetAllScriptSpots(model, viewPort.Tools.CodeTool.ScriptParser, scriptAddresses, false, 0x0F, 0x67); // loadpointer, preparemsg
+         foreach (var spot in spots) {
+            var offset = spot.Line.LineCode[0] switch { 0x0F => 2, 0x67 => 1, _ => throw new NotImplementedException() };
+            var textStart = model.ReadPointer(spot.Address + offset);
+            Decapitalize(model, viewPort.CurrentChange, textStart);
+         }
+
+         await viewPort.UpdateProgress(.3);
 
          // POKéMON
          var findResults = model.Find(model.TextConverter.Convert("POKéMON", out var _).Take(7).ToArray()).ToList();

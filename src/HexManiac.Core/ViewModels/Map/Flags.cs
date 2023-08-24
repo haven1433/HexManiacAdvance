@@ -327,6 +327,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public static IEnumerable<ScriptSpot> GetAllScriptSpots(IDataModel model, ScriptParser parser, IEnumerable<int> initialAddresses, params byte[] filter) {
+         return GetAllScriptSpots(model, parser, initialAddresses, true, filter);
+      }
+
+      public static IEnumerable<ScriptSpot> GetAllScriptSpots(IDataModel model, ScriptParser parser, IEnumerable<int> initialAddresses, bool includeMacros, params byte[] filter) {
          foreach (var scriptStart in initialAddresses) {
             if (scriptStart < 0 || scriptStart >= model.Count) continue;
             var scriptsToCheck = new List<int> { scriptStart };
@@ -334,7 +338,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var address = scriptsToCheck[i];
                int currentScriptLength = 0;
                while (currentScriptLength < ScriptLengthLimit) {
-                  IScriptLine line = parser.GetMacro(model, address);
+                  IScriptLine line = includeMacros ? parser.GetMacro(model, address) : null;
                   if (line == null) line = parser.GetLine(model, address);
                   if (line == null) break;
                   var length = line.CompiledByteLength(model, address, null);
