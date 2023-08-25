@@ -602,7 +602,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          borderBlock = null;
          berryInfo = null;
          WildPokemon.ClearCache();
-         RefreshMapSize();
+         RefreshMapSize(false);
          if (blockEditor != null) {
             RefreshBlockAttributeCache();
             blockEditor.BlocksChanged -= HandleBlocksChanged;
@@ -2083,13 +2083,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private void RefreshMapSize() {
+      private void RefreshMapSize(bool clearPixels = true) {
          var layout = GetLayout();
          if (layout == null) return;
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
          (pixelWidth, pixelHeight) = ((width + border.West + border.East) * 16, (height + border.North + border.South) * 16);
-         ClearPixelCache();
+         if (clearPixels) ClearPixelCache();
       }
 
       private void RefreshMapEvents(ModelArrayElement layout) {

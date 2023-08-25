@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -285,8 +286,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Refresh() {
          format.Refresh();
+         primaryMap.ClearCaches(); // needs to reset first, so the width/height is correct when calculating everything else
          UpdatePrimaryMap(primaryMap);
-         foreach (var map in VisibleMaps) map.ClearCaches();
+         foreach (var map in VisibleMaps.Except(primaryMap)) map.ClearCaches();
       }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
@@ -519,16 +521,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (!match) VisibleMaps.Add(newM);
          }
 
-         // refresh connection buttons
+         RefreshConnectionButtons();
+
+         UpdateBlockBagVisual();
+         IsValidState = true;
+      }
+
+      private void RefreshConnectionButtons() {
          var newButtons = primaryMap.GetMapSliders().ToList();
          for (int i = 0; i < MapButtons.Count && i < newButtons.Count; i++) {
             if (!MapButtons[i].TryUpdate(newButtons[i])) MapButtons[i] = newButtons[i];
          }
          for (int i = MapButtons.Count; i < newButtons.Count; i++) MapButtons.Add(newButtons[i]);
          while (MapButtons.Count > newButtons.Count) MapButtons.RemoveAt(MapButtons.Count - 1);
-
-         UpdateBlockBagVisual();
-         IsValidState = true;
       }
 
       private void UpdateMapShortcut(BlockMapViewModel map) {
@@ -1798,6 +1803,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (deltaX, deltaY) = (0, 0);
          shiftButton = ButtonUnderCursor(x, y);
          HighlightCursorWidth = HighlightCursorHeight = 0;
+
+         var layout = primaryMap.GetLayout();
+         var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
+         run?.StoreContentBackupForSizeChange();
       }
 
       public void ShiftMove(double x, double y) {
@@ -1812,7 +1821,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          shiftButton.Move(intX, intY);
       }
 
-      public void ShiftUp(double x, double y) => history.ChangeCompleted();
+      public void ShiftUp(double x, double y) {
+         history.ChangeCompleted();
+      }
 
       private MapSlider ButtonUnderCursor(double x, double y) {
          int left, right, top, bottom;
