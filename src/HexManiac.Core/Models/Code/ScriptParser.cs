@@ -37,9 +37,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(gameHash, model, address, new Dictionary<int, int>());
 
-      public string Parse(IDataModel data, int start, int length, CodeBody updateBody = null) {
+      public string Parse(IDataModel data, int start, int length, ref int existingSectionCount, CodeBody updateBody = null) {
          var builder = new StringBuilder();
-         foreach (var line in Decompile(data, start, length, updateBody)) builder.AppendLine(line);
+         foreach (var line in Decompile(data, start, length, updateBody, ref existingSectionCount)) builder.AppendLine(line);
          return builder.ToString();
       }
 
@@ -877,7 +877,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return -1;
       }
 
-      private string[] Decompile(IDataModel data, int index, int length, CodeBody updateBody) {
+      private string[] Decompile(IDataModel data, int index, int length, CodeBody updateBody, ref int existingSectionCount) {
          var results = new List<string>();
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
@@ -947,7 +947,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // post processing: change the section labels to be in address order
-         var sections = labels.FinalizeLabels();
+         var sections = labels.FinalizeLabels(ref existingSectionCount);
          foreach (int i in linesWithLabelsToUpdate) {
             results[i] = labels.FinalizeLine(sections, results[i]);
          }

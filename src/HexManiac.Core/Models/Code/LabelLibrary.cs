@@ -83,15 +83,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return address.ToAddress();
       }
 
-      public IReadOnlyDictionary<string,string> FinalizeLabels() {
+      public IReadOnlyDictionary<string, string> FinalizeLabels(ref int existingSectionCount) {
+         var usedLabels = new HashSet<int>();
          var matches = labels.Keys.Where(key => labels[key].StartsWith(SENTINEL)).ToList();
          matches.Sort();
          var results = new Dictionary<string, string>();
 
          for (int i = 0; i < matches.Count; i++) {
-            results[labels[matches[i]]] = "section" + i;
+            results[labels[matches[i]]] = "section" + (existingSectionCount + i);
          }
 
+         existingSectionCount += matches.Count;
          return results;
       }
 
