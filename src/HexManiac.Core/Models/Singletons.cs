@@ -26,6 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       private const string AnimationScriptReferenceFileName = "resources/animationScriptReference.txt";
       private const string BattleAIScriptReferenceFileName = "resources/battleAIScriptReference.txt";
       private const string ScriptReferenceDocumetationFileName = "resources/scriptReference.md";
+      private const string DocReferenceFileName = "resources/docReference.txt";
       private const string PythonUtilityFileName = "resources/hma.py";
 
       public IMetadataInfo MetadataInfo { get; }
@@ -37,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public IReadOnlyList<IScriptLine> BattleScriptLines { get; }
       public IReadOnlyList<IScriptLine> AnimationScriptLines { get; }
       public IReadOnlyList<IScriptLine> BattleAIScriptLines { get; }
+      public IReadOnlyDictionary<string, IReadOnlyList<DocLabel>> DocReference { get; }
       public IWorkDispatcher WorkDispatcher { get; }
       public string PythonUtility { get; }
       public int CopyLimit { get; }
@@ -50,6 +52,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          BattleScriptLines = LoadScriptReference<BSEScriptLine>(BattleScriptReferenceFileName);
          AnimationScriptLines = LoadScriptReference<ASEScriptLine>(AnimationScriptReferenceFileName);
          BattleAIScriptLines = LoadScriptReference<TSEScriptLine>(BattleAIScriptReferenceFileName);
+         DocReference = LoadDocReference(DocReferenceFileName);
          WorkDispatcher = dispatcher ?? InstantDispatch.Instance;
          PythonUtility = File.ReadAllText(PythonUtilityFileName);
          CopyLimit = copyLimit;
@@ -100,6 +103,34 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          return scriptLines.ToArray();
+      }
+
+      private IReadOnlyDictionary<string, IReadOnlyList<DocLabel>> LoadDocReference(string file) {
+         var dict = new Dictionary<string, IReadOnlyList<DocLabel>>();
+         if (!File.Exists(file)) return dict;
+         var lines = File.ReadAllLines(file);
+         var lists = new List<List<DocLabel>>();
+         foreach (var line in lines) {
+            var trim = line.Trim();
+            if (string.IsNullOrWhiteSpace(trim)) continue;
+            if (trim.StartsWith("[")) {
+               lists.Clear();
+               var content = trim.Split('[', ']', StringSplitOptions.RemoveEmptyEntries)[0];
+               var keys = content.Split("_");
+               foreach (var key in keys) {
+                  if (!dict.TryGetValue(key, out var list)) dict[key] = list = new List<DocLabel>();
+                  lists.Add((List<DocLabel>)list);
+               }
+            } else if (trim.StartsWith("#")) {
+               continue;
+            } else {
+               var content = trim.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+               if (content.Length != 2) continue;
+               var label = new DocLabel(content[0], content[1]);
+               lists.ForEach(list => list.Add(label));
+            }
+         }
+         return dict;
       }
 
       public static IReadOnlyList<string> ReferenceOrder { get; } = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };
@@ -327,7 +358,6 @@ Use `special2 variable name` when doing an action that has a result.
          File.WriteAllText(filename, text.ToString());
       }
 
-
       public static IReadOnlyDictionary<string, int> GetVariableForSpecialReference(EditorViewModel editor) {
          var collection = new Dictionary<string, int>();
          foreach (var tab in editor) {
@@ -495,4 +525,6 @@ Use `special2 variable name` when doing an action that has a result.
          if (fvi.FilePrivatePart != 0) VersionNumber += "." + fvi.FilePrivatePart;
       }
    }
+
+   public record DocLabel(string Label, string Url);
 }

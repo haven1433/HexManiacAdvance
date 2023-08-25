@@ -340,6 +340,26 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash) { }
 
       public void UpdateGotoShortcut(int index, GotoShortcutModel model) => gotoShortcuts[index] = model;
+
+      public IList<DocLabel> GenerateDocumentationLabels(IReadOnlyList<IScriptLine> scriptLines) {
+         // TODO figure out what the labels actually are
+
+         var docs = new List<DocLabel>();
+         var page = "https://github.com/haven1433/HexManiacAdvance/blob/master/src/HexManiac.Core/Models/Code/scriptReference.md";
+         var gameHash = this.GetShortGameCode();
+
+         foreach (var line in scriptLines) {
+            if (!line.MatchesGame(gameHash)) continue;
+            var command = line.LineCommand;
+            docs.Add(new("documentation.scripting.overworld.reference.commands." + command, page + "#" + command));
+         }
+
+         foreach (var option in new ModelCacheScope(this).GetOptions("specials")) {
+            docs.Add(new("documentation.scripting.overworld.reference.specials." + option, page + "#" + option));
+         }
+
+         return docs;
+      }
    }
 
    public static class IDataModelExtensions {

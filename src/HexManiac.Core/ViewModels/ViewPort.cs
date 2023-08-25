@@ -268,6 +268,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      }
                      return;
                   }
+
+                  // documentation check
+                  var matches = docs.Where(doc => doc.Label.Equals(str, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                  var prefixes = new[] { "scripting.overworld.reference.commands", "scripting.overworld.reference.specials" };
+                  foreach (var prefix in prefixes) {
+                     if (matches.Count != 1) matches = docs.Where(doc => doc.Label.Equals($"documentation.{prefix}.{str}", StringComparison.InvariantCultureIgnoreCase)).ToList();
+                  }
+                  if (matches.Count == 1) {
+                     OpenLink(matches[0].Url);
+                     return;
+                  }
                }
 
                selection.Goto.Execute(arg);
@@ -875,6 +886,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectionEnd = ConvertAddressToViewPoint(start + size - 1);
       }
 
+      private IReadOnlyList<DocLabel> docs;
       private readonly ToolTray tools;
       public bool HasTools => tools != null;
       public IToolTrayViewModel Tools => tools;
@@ -1013,8 +1025,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null, EventTemplate eventTemplate = null) {
          Singletons = singletons ?? new Singletons();
+         this.docs = Singletons.DocReference.TryGetValue(model.GetGameCode().Substring(4), out var docs) ? docs : new List<DocLabel>();
          PythonTool = pythonTool;
          ownsHistory = changeHistory == null;
+
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
          this.dispatcher = dispatcher ?? InstantDispatch.Instance;
@@ -1074,6 +1088,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                } else {
                   mapper = null;
                }
+            }
+            if (model is BaseModel bm) {
+               this.docs = this.docs.Concat(bm.GenerateDocumentationLabels(Singletons.ScriptLines)).ToList();
             }
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
@@ -3321,6 +3338,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
+
+      private void OpenLink(string link) => NativeProcess.Start(link);
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
    }
