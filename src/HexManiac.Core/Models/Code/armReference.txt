@@ -54,7 +54,6 @@ nv=1111  @    never
 0100000000 rm rd    |     and   rd, rd, rm    @ alias
 0100000001 rm rd    |     eor   rd, rm        @ rd ^= rm
 0100000001 rm rd    |     eor   rd, rd, rm    @ rd ^= rm
-0100000001 rm rd    |     eor   rd, rm, rd    @ rd ^= rm
 0100000010 rs rd    |     lsl   rd, rs        @ rd <<= rs
 0100000011 rs rd    |     lsr   rd, rs        @ rd >>= rs
 0100000100 rs rd    |     asr   rd, rs        @ rd >>>= rs
