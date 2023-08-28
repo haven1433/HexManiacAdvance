@@ -1588,7 +1588,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (paletteFormat.InitialBlankPages > 0) {
             for (int x = 0; x < pixels.GetLength(0); x++) {
                for (int y = 0; y < pixels.GetLength(1); y++) {
-                  pixels[x, y] = Math.Max(0, pixels[x, y] - (paletteFormat.InitialBlankPages << 4));
+                  if (pixels[x, y] >= 16) {
+                     pixels[x, y] = Math.Max(0, pixels[x, y] - (paletteFormat.InitialBlankPages << 4));
+                  }
                }
             }
          }

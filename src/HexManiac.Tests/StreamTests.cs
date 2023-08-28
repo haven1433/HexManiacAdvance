@@ -153,7 +153,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var options = stream.GetAutoCompleteOptions("match, 3", caretLineIndex: 0, caretCharacterIndex: 5).Select(option => option.Text).ToArray();
 
-         Assert.Equal(new[] { "Xmatch", "matchX", "matXch" }, options);
+         Assert.Equal(new[] { "matchX", "matXch", "Xmatch" }, options); // results are sorted
       }
 
       [Fact]
@@ -163,7 +163,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var options = stream.GetAutoCompleteOptions("match, 3", caretLineIndex: 0, caretCharacterIndex: 5).ToArray();
 
-         Assert.Equal("matchX, 3", options[1].LineText);
+         Assert.Equal("matchX, 3", options[0].LineText);
       }
 
       [Fact]
@@ -173,7 +173,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var options = stream.GetAutoCompleteOptions("match", caretLineIndex: 0, caretCharacterIndex: 5).ToArray();
 
-         Assert.Equal("matXch, ", options[2].LineText);
+         Assert.Equal("Xmatch, ", options[2].LineText);
       }
 
       [Fact]
@@ -193,8 +193,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var options = stream.GetAutoCompleteOptions("match", 0, 5).ToArray();
 
-         Assert.Equal("Xmatch", options[0].Text);
-         Assert.Equal("(Xmatch ", options[0].LineText);
+         Assert.Equal("matchX", options[0].Text);
+         Assert.Equal("(matchX ", options[0].LineText);
       }
 
       [Fact]
@@ -204,8 +204,8 @@ namespace HavenSoft.HexManiac.Tests {
 
          var options = stream.GetAutoCompleteOptions("(Xmatch match", 0, 13).ToArray();
 
-         Assert.Equal("Xmatch", options[0].Text);
-         Assert.Equal("(Xmatch Xmatch)", options[0].LineText);
+         Assert.Equal("matchX", options[0].Text);
+         Assert.Equal("(Xmatch matchX)", options[0].LineText);
       }
 
       [Fact]

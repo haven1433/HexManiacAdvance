@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using System;
 using System.Collections;
@@ -298,21 +299,10 @@ namespace HavenSoft.HexManiac.Core {
          var matchIndex = names.IndexOf(input);
          if (matchIndex != -1) return matchIndex;
 
-         // no perfect match found. How about a substring match?
-         var match = names.FirstOrDefault(name => name.Contains(input));
-         if (match != null) names.IndexOf(match);
-
-         // well how about just "all the characters are in the right order"?
-         for (var i = 0; i < names.Count; i++) {
-            if (names[i].MatchesPartial(input)) return i;
-         }
-
-         // last ditch effort: "all the letters/numbers are in the right order"
-         for (var i = 0; i < names.Count; i++) {
-            if (names[i].MatchesPartial(input, true)) return i;
-         }
-
-         return -1;
+         var partialList = names.Count.Range().Where(i => names[i].MatchesPartial(input)).ToList();
+         partialList = ScriptParser.SortOptions(partialList, input, i => names[i]).ToList();
+         if (partialList.Count == 0) return -1;
+         return partialList[0];
       }
 
       public static IEnumerable<string> EnumerateOrders(IReadOnlyList<string> parts) {

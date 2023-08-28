@@ -536,7 +536,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapIndex = map.MapID % 1000;
          var shortcut = model.GotoShortcuts.FirstOrDefault(shortcut => shortcut.DisplayText == "Maps");
          var index = model.GotoShortcuts.IndexOf(shortcut);
-         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.{groupIndex}-{mapIndex}", "Maps");
+         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.{map.FullName}", "Maps");
          model.UpdateGotoShortcut(index, newShortcut);
          RequestRefreshGotoShortcuts.Raise(this);
       }
@@ -591,6 +591,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
          return newMaps.Values.ToList();
+      }
+
+      private IEnumerable<BlockMapViewModel> PreferLoaded(IEnumerable<BlockMapViewModel> maps) {
+         foreach (var map in maps) {
+            var match = VisibleMaps.FirstOrDefault(m => m.MapID == map.MapID);
+            yield return match ?? map;
+         }
       }
 
       #region Map Interaction
@@ -901,6 +908,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void EventUp(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (selectedEvent is ObjectEventViewModel objEvent) {
+            foreach (var neighbor in PreferLoaded(GetMapNeighbors(primaryMap, 1))) neighbor.UpdateClone(primaryMap, objEvent);
+         }
+
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
@@ -915,7 +927,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventCreationType == EventCreationType.WaveFunction) {
             eventCreationType = EventCreationType.None;
             // user wants to do a wave function collapse at this position
-            var map = MapUnderCursor(x, y);
             if (map != primaryMap) return;
             map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
          }
