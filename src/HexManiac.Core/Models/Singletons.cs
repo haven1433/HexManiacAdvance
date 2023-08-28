@@ -115,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (string.IsNullOrWhiteSpace(trim)) continue;
             if (trim.StartsWith("[")) {
                lists.Clear();
-               var content = trim.Split('[', ']', StringSplitOptions.RemoveEmptyEntries)[0];
+               var content = trim.Split(new[] { '[', ']' }, StringSplitOptions.RemoveEmptyEntries)[0];
                var keys = content.Split("_");
                foreach (var key in keys) {
                   if (!dict.TryGetValue(key, out var list)) dict[key] = list = new List<DocLabel>();
