@@ -223,10 +223,22 @@ This is a list of all the commands currently available within HexManiacAdvance w
 For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://github.com/haven1433/HexManiacAdvance/wiki).
 ");
          text.AppendLine("# Commands");
+         string lastCommand = null;
          foreach (var line in lines.OrderBy(line => line.LineCommand)) {
-            text.AppendLine("<details>");
-            text.AppendLine($"<summary> {line.LineCommand}</summary>");
+            if (lastCommand != null && lastCommand != line.LineCommand) {
+               text.AppendLine("</details>");
+               text.AppendLine();
+            }
+            if (lastCommand != line.LineCommand) {
+               text.AppendLine("<details>");
+               text.AppendLine($"<summary> {line.LineCommand}</summary>");
+               text.AppendLine();
+               text.AppendLine($"## {line.LineCommand}");
+               text.AppendLine();
+            }
+            lastCommand = line.LineCommand;
             text.AppendLine();
+
             text.Append(line.LineCommand);
             if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
             foreach (var arg in line.Args) {
@@ -306,9 +318,9 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                }
                text.AppendLine("```");
             }
-            text.AppendLine("</details>");
-            text.AppendLine();
          }
+         text.AppendLine("</details>");
+         text.AppendLine();
 
          text.AppendLine("# Specials");
          text.AppendLine(@"
@@ -329,6 +341,8 @@ Use `special2 variable name` when doing an action that has a result.
             var supportedGames = specials.Keys.Where(key => specials[key].Contents.Contains(name)).ToList();
             text.AppendLine("<details>");
             text.AppendLine($"<summary> {name} </summary>");
+            text.AppendLine();
+            text.AppendLine($"## {name}");
             text.AppendLine();
             if (supportedGames.Count == specials.Count) {
                text.AppendLine("*(Supports all games.)*");

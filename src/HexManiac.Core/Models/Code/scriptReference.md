@@ -6,6 +6,9 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
 <details>
 <summary> adddecoration</summary>
 
+## adddecoration
+
+
 adddecoration `decoration`
 
 *  `decoration` from data.decorations.stats
@@ -16,7 +19,7 @@ adddecoration "COLORFUL PLANT"
 ```
 Notes:
 ```
-  # adds a decoration to the player's PC in FR/LG, this is a NOP
+  # adds a decoration to the player's PC; in FR/LG, this is a NOP
   # decoration can be either a literal or a variable
 ```
 </details>
@@ -24,22 +27,36 @@ Notes:
 <details>
 <summary> addelevmenuitem</summary>
 
-addelevmenuitem
+## addelevmenuitem
 
-  Only available in BPEE
+
+addelevmenuitem `param1` `param2` `param3` `param4`
+
+  Only available in AXVE AXPE
+
+*  `param1` is a number.
+
+*  `param2` is a number.
+
+*  `param3` is a number.
+
+*  `param4` is a number.
 
 Example:
 ```
-addelevmenuitem
+addelevmenuitem 0 4 2 3
 ```
 Notes:
 ```
-  # ???
+  # Adds an elevator menu item. Unused in Ruby & Sapphire.
 ```
 </details>
 
 <details>
 <summary> additem</summary>
+
+## additem
+
 
 additem `item` `quantity`
 
@@ -49,7 +66,7 @@ additem `item` `quantity`
 
 Example:
 ```
-additem "HP UP" 4
+additem ????????~2 0
 ```
 Notes:
 ```
@@ -61,6 +78,9 @@ Notes:
 <details>
 <summary> addpcitem</summary>
 
+## addpcitem
+
+
 addpcitem `item` `quantity`
 
 *  `item` from data.items.stats
@@ -69,7 +89,7 @@ addpcitem `item` `quantity`
 
 Example:
 ```
-addpcitem "WEPEAR BERRY" 3
+addpcitem TM17 2
 ```
 Notes:
 ```
@@ -80,6 +100,9 @@ Notes:
 <details>
 <summary> addvar</summary>
 
+## addvar
+
+
 addvar `variable` `value`
 
 *  `variable` is a number.
@@ -88,7 +111,7 @@ addvar `variable` `value`
 
 Example:
 ```
-addvar 0 0
+addvar 1 2
 ```
 Notes:
 ```
@@ -99,6 +122,9 @@ Notes:
 <details>
 <summary> applymovement</summary>
 
+## applymovement
+
+
 applymovement `npc` `data`
 
 *  `npc` is a number.
@@ -107,7 +133,7 @@ applymovement `npc` `data`
 
 Example:
 ```
-applymovement 4 <auto>
+applymovement 3 <auto>
 ```
 Notes:
 ```
@@ -120,24 +146,34 @@ Notes:
 <details>
 <summary> applymovement2</summary>
 
-applymovement2 `npc` `data`
+## applymovement2
+
+
+applymovement2 `npc` `data` `bank` `map`
 
 *  `npc` is a number.
 
 *  `data` points to movement data or auto
 
+*  `bank` is a number.
+
+*  `map` is a number.
+
 Example:
 ```
-applymovement2 2 <auto>
+applymovement2 1 <auto> 0 4
 ```
 Notes:
 ```
-  # like applymovement, but only uses variables, not literals
+  # like applymovement, but could be used if an NPC will move to another map.
 ```
 </details>
 
 <details>
 <summary> braille</summary>
+
+## braille
+
 
 braille `text`
 
@@ -156,6 +192,9 @@ Notes:
 
 <details>
 <summary> braillelength</summary>
+
+## braillelength
+
 
 braillelength `pointer`
 
@@ -178,6 +217,9 @@ Notes:
 <details>
 <summary> bufferattack</summary>
 
+## bufferattack
+
+
 bufferattack `buffer` `move`
 
 *  `buffer` from bufferNames
@@ -186,7 +228,7 @@ bufferattack `buffer` `move`
 
 Example:
 ```
-bufferattack buffer1 "FALSE SWIPE"
+bufferattack buffer2 "KARATE CHOP"
 ```
 Notes:
 ```
@@ -196,6 +238,9 @@ Notes:
 
 <details>
 <summary> bufferboxname</summary>
+
+## bufferboxname
+
 
 bufferboxname `buffer` `box`
 
@@ -207,7 +252,7 @@ bufferboxname `buffer` `box`
 
 Example:
 ```
-bufferboxname buffer2 1
+bufferboxname buffer2 2
 ```
 Notes:
 ```
@@ -217,6 +262,9 @@ Notes:
 
 <details>
 <summary> buffercontesttype</summary>
+
+## buffercontesttype
+
 
 buffercontesttype `buffer` `contest`
 
@@ -228,7 +276,7 @@ buffercontesttype `buffer` `contest`
 
 Example:
 ```
-buffercontesttype buffer1 4
+buffercontesttype buffer3 3
 ```
 Notes:
 ```
@@ -239,6 +287,9 @@ Notes:
 <details>
 <summary> bufferdecoration</summary>
 
+## bufferdecoration
+
+
 bufferdecoration `buffer` `decoration`
 
 *  `buffer` from bufferNames
@@ -247,12 +298,15 @@ bufferdecoration `buffer` `decoration`
 
 Example:
 ```
-bufferdecoration buffer2 0
+bufferdecoration buffer3 4
 ```
 </details>
 
 <details>
 <summary> bufferfirstPokemon</summary>
+
+## bufferfirstPokemon
+
 
 bufferfirstPokemon `buffer`
 
@@ -271,6 +325,9 @@ Notes:
 <details>
 <summary> bufferitem</summary>
 
+## bufferitem
+
+
 bufferitem `buffer` `item`
 
 *  `buffer` from bufferNames
@@ -279,7 +336,7 @@ bufferitem `buffer` `item`
 
 Example:
 ```
-bufferitem buffer2 "ACRO BIKE"
+bufferitem buffer2 "WHITE HERB"
 ```
 Notes:
 ```
@@ -289,6 +346,9 @@ Notes:
 
 <details>
 <summary> bufferitems2</summary>
+
+## bufferitems2
+
 
 bufferitems2 `buffer` `item` `quantity`
 
@@ -302,16 +362,12 @@ bufferitems2 `buffer` `item` `quantity`
 
 Example:
 ```
-bufferitems2 buffer3 3 4
+bufferitems2 buffer1 3 3
 ```
 Notes:
 ```
   # buffers the item name, but pluralized if quantity is 2 or more
 ```
-</details>
-
-<details>
-<summary> bufferitems2</summary>
 
 bufferitems2 `buffer` `item` `quantity`
 
@@ -325,7 +381,7 @@ bufferitems2 `buffer` `item` `quantity`
 
 Example:
 ```
-bufferitems2 buffer2 ????????~31 2
+bufferitems2 buffer1 LEFTOVERS 2
 ```
 Notes:
 ```
@@ -336,6 +392,9 @@ Notes:
 <details>
 <summary> buffernumber</summary>
 
+## buffernumber
+
+
 buffernumber `buffer` `number`
 
 *  `buffer` from bufferNames
@@ -344,7 +403,7 @@ buffernumber `buffer` `number`
 
 Example:
 ```
-buffernumber buffer1 3
+buffernumber buffer1 1
 ```
 Notes:
 ```
@@ -355,6 +414,9 @@ Notes:
 <details>
 <summary> bufferpartyPokemon</summary>
 
+## bufferpartyPokemon
+
+
 bufferpartyPokemon `buffer` `party`
 
 *  `buffer` from bufferNames
@@ -363,16 +425,19 @@ bufferpartyPokemon `buffer` `party`
 
 Example:
 ```
-bufferpartyPokemon buffer3 0
+bufferpartyPokemon buffer1 4
 ```
 Notes:
 ```
-  # Species of pokemon 'party' from your party gets stored in the buffer
+  # Nickname of pokemon 'party' from your party gets stored in the buffer
 ```
 </details>
 
 <details>
 <summary> bufferPokemon</summary>
+
+## bufferPokemon
+
 
 bufferPokemon `buffer` `species`
 
@@ -382,7 +447,7 @@ bufferPokemon `buffer` `species`
 
 Example:
 ```
-bufferPokemon buffer2 GLIGAR
+bufferPokemon buffer3 SLOWKING
 ```
 Notes:
 ```
@@ -393,6 +458,9 @@ Notes:
 <details>
 <summary> bufferstd</summary>
 
+## bufferstd
+
+
 bufferstd `buffer` `index`
 
 *  `buffer` from bufferNames
@@ -401,7 +469,7 @@ bufferstd `buffer` `index`
 
 Example:
 ```
-bufferstd buffer1 1
+bufferstd buffer3 0
 ```
 Notes:
 ```
@@ -412,16 +480,18 @@ Notes:
 <details>
 <summary> bufferstring</summary>
 
+## bufferstring
+
+
 bufferstring `buffer` `pointer`
 
 *  `buffer` from bufferNames
 
-*  `pointer` is a pointer.
+*  `pointer` points to text or auto
 
 Example:
 ```
-bufferstring buffer1 <F00000>
-
+bufferstring buffer1 <auto>
 ```
 Notes:
 ```
@@ -431,6 +501,9 @@ Notes:
 
 <details>
 <summary> buffertrainerclass</summary>
+
+## buffertrainerclass
+
 
 buffertrainerclass `buffer` `class`
 
@@ -442,7 +515,7 @@ buffertrainerclass `buffer` `class`
 
 Example:
 ```
-buffertrainerclass buffer3 SAILOR
+buffertrainerclass buffer1 "MAGMA LEADER"
 ```
 Notes:
 ```
@@ -452,6 +525,9 @@ Notes:
 
 <details>
 <summary> buffertrainername</summary>
+
+## buffertrainername
+
 
 buffertrainername `buffer` `trainer`
 
@@ -463,7 +539,7 @@ buffertrainername `buffer` `trainer`
 
 Example:
 ```
-buffertrainername buffer2 VIVIAN
+buffertrainername buffer1 NOB~4
 ```
 Notes:
 ```
@@ -473,6 +549,9 @@ Notes:
 
 <details>
 <summary> call</summary>
+
+## call
+
 
 call `pointer`
 
@@ -491,6 +570,9 @@ Notes:
 <details>
 <summary> callasm</summary>
 
+## callasm
+
+
 callasm `code`
 
 *  `code` is a pointer.
@@ -505,13 +587,16 @@ callasm <F00000>
 <details>
 <summary> callstd</summary>
 
+## callstd
+
+
 callstd `function`
 
 *  `function` is a number.
 
 Example:
 ```
-callstd 0
+callstd 1
 ```
 Notes:
 ```
@@ -522,6 +607,9 @@ Notes:
 <details>
 <summary> callstdif</summary>
 
+## callstdif
+
+
 callstdif `condition` `function`
 
 *  `condition` from script_compare
@@ -530,7 +618,7 @@ callstdif `condition` `function`
 
 Example:
 ```
-callstdif = 0
+callstdif < 0
 ```
 Notes:
 ```
@@ -541,13 +629,16 @@ Notes:
 <details>
 <summary> changewalktile</summary>
 
+## changewalktile
+
+
 changewalktile `method`
 
 *  `method` is a number.
 
 Example:
 ```
-changewalktile 4
+changewalktile 1
 ```
 Notes:
 ```
@@ -558,13 +649,16 @@ Notes:
 <details>
 <summary> checkanimation</summary>
 
+## checkanimation
+
+
 checkanimation `animation`
 
 *  `animation` is a number.
 
 Example:
 ```
-checkanimation 1
+checkanimation 0
 ```
 Notes:
 ```
@@ -575,13 +669,16 @@ Notes:
 <details>
 <summary> checkattack</summary>
 
+## checkattack
+
+
 checkattack `move`
 
 *  `move` from data.pokemon.moves.names
 
 Example:
 ```
-checkattack HYPNOSIS
+checkattack "MIRROR COAT"
 ```
 Notes:
 ```
@@ -594,13 +691,16 @@ Notes:
 <details>
 <summary> checkcoins</summary>
 
+## checkcoins
+
+
 checkcoins `output`
 
 *  `output` is a number.
 
 Example:
 ```
-checkcoins 1
+checkcoins 0
 ```
 Notes:
 ```
@@ -610,6 +710,9 @@ Notes:
 
 <details>
 <summary> checkdailyflags</summary>
+
+## checkdailyflags
+
 
 checkdailyflags
 
@@ -626,13 +729,16 @@ Notes:
 <details>
 <summary> checkdecoration</summary>
 
+## checkdecoration
+
+
 checkdecoration `decoration`
 
 *  `decoration` from data.decorations.stats
 
 Example:
 ```
-checkdecoration "PRETTY DESK"
+checkdecoration "GREEN POSTER"
 ```
 Notes:
 ```
@@ -643,13 +749,16 @@ Notes:
 <details>
 <summary> checkflag</summary>
 
+## checkflag
+
+
 checkflag `flag`
 
 *  `flag` is a number (hex).
 
 Example:
 ```
-checkflag 0x02
+checkflag 0x04
 ```
 Notes:
 ```
@@ -659,6 +768,9 @@ Notes:
 
 <details>
 <summary> checkgender</summary>
+
+## checkgender
+
 
 checkgender
 
@@ -675,6 +787,9 @@ Notes:
 <details>
 <summary> checkitem</summary>
 
+## checkitem
+
+
 checkitem `item` `quantity`
 
 *  `item` from data.items.stats
@@ -683,7 +798,7 @@ checkitem `item` `quantity`
 
 Example:
 ```
-checkitem ZINC 0
+checkitem HM02 2
 ```
 Notes:
 ```
@@ -694,6 +809,9 @@ Notes:
 <details>
 <summary> checkitemroom</summary>
 
+## checkitemroom
+
+
 checkitemroom `item` `quantity`
 
 *  `item` from data.items.stats
@@ -702,7 +820,7 @@ checkitemroom `item` `quantity`
 
 Example:
 ```
-checkitemroom ????????~51 0
+checkitemroom "PP UP" 1
 ```
 Notes:
 ```
@@ -713,13 +831,16 @@ Notes:
 <details>
 <summary> checkitemtype</summary>
 
+## checkitemtype
+
+
 checkitemtype `item`
 
 *  `item` from data.items.stats
 
 Example:
 ```
-checkitemtype DEEPSEASCALE
+checkitemtype ETHER
 ```
 Notes:
 ```
@@ -728,7 +849,33 @@ Notes:
 </details>
 
 <details>
+<summary> checkmodernfatefulencounter</summary>
+
+## checkmodernfatefulencounter
+
+
+checkmodernfatefulencounter `slot`
+
+  Only available in BPRE BPGE BPEE
+
+*  `slot` is a number.
+
+Example:
+```
+checkmodernfatefulencounter 1
+```
+Notes:
+```
+  # if the pokemon is not a modern fateful encounter, then 800D = 1.
+  # if the pokemon is a fateful encounter (or the specified slot is invalid), then 800D = 0.
+```
+</details>
+
+<details>
 <summary> checkmoney</summary>
+
+## checkmoney
+
 
 checkmoney `money` `check`
 
@@ -738,7 +885,7 @@ checkmoney `money` `check`
 
 Example:
 ```
-checkmoney 1 4
+checkmoney 0 1
 ```
 Notes:
 ```
@@ -747,26 +894,10 @@ Notes:
 </details>
 
 <details>
-<summary> checkobedience</summary>
-
-checkobedience `slot`
-
-  Only available in BPRE BPGE BPEE
-
-*  `slot` is a number.
-
-Example:
-```
-checkobedience 2
-```
-Notes:
-```
-  # if the pokemon is disobedient, 800D=1. If obedient (or empty), 800D=0
-```
-</details>
-
-<details>
 <summary> checkpcitem</summary>
+
+## checkpcitem
+
 
 checkpcitem `item` `quantity`
 
@@ -776,7 +907,7 @@ checkpcitem `item` `quantity`
 
 Example:
 ```
-checkpcitem "PP UP" 1
+checkpcitem "FRESH WATER" 1
 ```
 Notes:
 ```
@@ -787,13 +918,16 @@ Notes:
 <details>
 <summary> checktrainerflag</summary>
 
+## checktrainerflag
+
+
 checktrainerflag `trainer`
 
 *  `trainer` from data.trainers.stats
 
 Example:
 ```
-checktrainerflag RICKY~3
+checktrainerflag ERNEST~3
 ```
 Notes:
 ```
@@ -803,6 +937,9 @@ Notes:
 
 <details>
 <summary> choosecontextpkmn</summary>
+
+## choosecontextpkmn
+
 
 choosecontextpkmn
 
@@ -819,6 +956,9 @@ Notes:
 <details>
 <summary> clearbox</summary>
 
+## clearbox
+
+
 clearbox `x` `y` `width` `height`
 
 *  `x` is a number.
@@ -831,16 +971,19 @@ clearbox `x` `y` `width` `height`
 
 Example:
 ```
-clearbox 1 0 1 0
+clearbox 0 1 0 0
 ```
 Notes:
 ```
-  # clear only a part of a custom box
+  # clear only a part of a custom box (nop in Emerald)
 ```
 </details>
 
 <details>
 <summary> clearflag</summary>
+
+## clearflag
+
 
 clearflag `flag`
 
@@ -848,7 +991,7 @@ clearflag `flag`
 
 Example:
 ```
-clearflag 0x04
+clearflag 0x01
 ```
 Notes:
 ```
@@ -858,6 +1001,9 @@ Notes:
 
 <details>
 <summary> closeonkeypress</summary>
+
+## closeonkeypress
+
 
 closeonkeypress
 
@@ -874,6 +1020,9 @@ Notes:
 <details>
 <summary> compare</summary>
 
+## compare
+
+
 compare `variable` `value`
 
 *  `variable` is a number.
@@ -882,12 +1031,15 @@ compare `variable` `value`
 
 Example:
 ```
-compare 3 0
+compare 3 2
 ```
 </details>
 
 <details>
 <summary> comparebanks</summary>
+
+## comparebanks
+
 
 comparebanks `bankA` `bankB`
 
@@ -897,7 +1049,7 @@ comparebanks `bankA` `bankB`
 
 Example:
 ```
-comparebanks 1 0
+comparebanks 2 1
 ```
 Notes:
 ```
@@ -908,6 +1060,9 @@ Notes:
 <details>
 <summary> comparebanktobyte</summary>
 
+## comparebanktobyte
+
+
 comparebanktobyte `bank` `value`
 
 *  `bank` from 4
@@ -916,7 +1071,7 @@ comparebanktobyte `bank` `value`
 
 Example:
 ```
-comparebanktobyte 0 0
+comparebanktobyte 1 2
 ```
 Notes:
 ```
@@ -927,6 +1082,9 @@ Notes:
 <details>
 <summary> compareBankTofarbyte</summary>
 
+## compareBankTofarbyte
+
+
 compareBankTofarbyte `bank` `pointer`
 
 *  `bank` from 4
@@ -935,7 +1093,7 @@ compareBankTofarbyte `bank` `pointer`
 
 Example:
 ```
-compareBankTofarbyte 3 0x08
+compareBankTofarbyte 3 0x0B
 ```
 Notes:
 ```
@@ -946,6 +1104,9 @@ Notes:
 <details>
 <summary> compareFarBytes</summary>
 
+## compareFarBytes
+
+
 compareFarBytes `a` `b`
 
 *  `a` is a number (hex).
@@ -954,7 +1115,7 @@ compareFarBytes `a` `b`
 
 Example:
 ```
-compareFarBytes 0x0A 0x05
+compareFarBytes 0x03 0x01
 ```
 Notes:
 ```
@@ -965,6 +1126,9 @@ Notes:
 <details>
 <summary> compareFarByteToBank</summary>
 
+## compareFarByteToBank
+
+
 compareFarByteToBank `pointer` `bank`
 
 *  `pointer` is a number (hex).
@@ -973,7 +1137,7 @@ compareFarByteToBank `pointer` `bank`
 
 Example:
 ```
-compareFarByteToBank 0x07 2
+compareFarByteToBank 0x07 3
 ```
 Notes:
 ```
@@ -984,6 +1148,9 @@ Notes:
 <details>
 <summary> compareFarByteToByte</summary>
 
+## compareFarByteToByte
+
+
 compareFarByteToByte `pointer` `value`
 
 *  `pointer` is a number (hex).
@@ -992,7 +1159,7 @@ compareFarByteToByte `pointer` `value`
 
 Example:
 ```
-compareFarByteToByte 0x0E 3
+compareFarByteToByte 0x09 3
 ```
 Notes:
 ```
@@ -1002,6 +1169,9 @@ Notes:
 
 <details>
 <summary> comparehiddenvar</summary>
+
+## comparehiddenvar
+
 
 comparehiddenvar `a` `value`
 
@@ -1013,7 +1183,7 @@ comparehiddenvar `a` `value`
 
 Example:
 ```
-comparehiddenvar 1 0
+comparehiddenvar 2 1
 ```
 Notes:
 ```
@@ -1024,6 +1194,9 @@ Notes:
 <details>
 <summary> comparevars</summary>
 
+## comparevars
+
+
 comparevars `var1` `var2`
 
 *  `var1` is a number.
@@ -1032,12 +1205,15 @@ comparevars `var1` `var2`
 
 Example:
 ```
-comparevars 2 4
+comparevars 4 0
 ```
 </details>
 
 <details>
 <summary> contestlinktransfer</summary>
+
+## contestlinktransfer
+
 
 contestlinktransfer
 
@@ -1054,6 +1230,9 @@ Notes:
 <details>
 <summary> copybyte</summary>
 
+## copybyte
+
+
 copybyte `destination` `source`
 
 *  `destination` is a number (hex).
@@ -1062,7 +1241,7 @@ copybyte `destination` `source`
 
 Example:
 ```
-copybyte 0x09 0x0B
+copybyte 0x04 0x09
 ```
 Notes:
 ```
@@ -1073,6 +1252,9 @@ Notes:
 <details>
 <summary> copyscriptbanks</summary>
 
+## copyscriptbanks
+
+
 copyscriptbanks `destination` `source`
 
 *  `destination` from 4
@@ -1081,7 +1263,7 @@ copyscriptbanks `destination` `source`
 
 Example:
 ```
-copyscriptbanks 1 1
+copyscriptbanks 2 1
 ```
 Notes:
 ```
@@ -1092,6 +1274,9 @@ Notes:
 <details>
 <summary> copyvar</summary>
 
+## copyvar
+
+
 copyvar `variable` `source`
 
 *  `variable` is a number.
@@ -1100,7 +1285,7 @@ copyvar `variable` `source`
 
 Example:
 ```
-copyvar 4 0
+copyvar 1 3
 ```
 Notes:
 ```
@@ -1111,6 +1296,9 @@ Notes:
 <details>
 <summary> copyvarifnotzero</summary>
 
+## copyvarifnotzero
+
+
 copyvarifnotzero `variable` `source`
 
 *  `variable` is a number.
@@ -1119,7 +1307,7 @@ copyvarifnotzero `variable` `source`
 
 Example:
 ```
-copyvarifnotzero 1 3
+copyvarifnotzero 0 4
 ```
 Notes:
 ```
@@ -1130,6 +1318,9 @@ Notes:
 
 <details>
 <summary> countPokemon</summary>
+
+## countPokemon
+
 
 countPokemon
 
@@ -1145,6 +1336,9 @@ Notes:
 
 <details>
 <summary> createsprite</summary>
+
+## createsprite
+
 
 createsprite `sprite` `virtualNPC` `x` `y` `behavior` `facing`
 
@@ -1162,12 +1356,19 @@ createsprite `sprite` `virtualNPC` `x` `y` `behavior` `facing`
 
 Example:
 ```
-createsprite 3 1 1 3 0 4
+createsprite 0 2 2 0 4 4
+```
+Notes:
+```
+  # creates a virtual sprite that can be used to bypass the 16 NPCs limit.
 ```
 </details>
 
 <details>
 <summary> cry</summary>
+
+## cry
+
 
 cry `species` `effect`
 
@@ -1177,16 +1378,19 @@ cry `species` `effect`
 
 Example:
 ```
-cry BEEDRILL 2
+cry JIRACHI 0
 ```
 Notes:
 ```
-  # plays that pokemon's cry. Can use a variable or a literal. what's effect do?
+  # plays that pokemon's cry. Can use a variable or a literal. effect uses a cry mode constant.
 ```
 </details>
 
 <details>
 <summary> darken</summary>
+
+## darken
+
 
 darken `flashSize`
 
@@ -1194,7 +1398,7 @@ darken `flashSize`
 
 Example:
 ```
-darken 2
+darken 1
 ```
 Notes:
 ```
@@ -1204,6 +1408,9 @@ Notes:
 
 <details>
 <summary> decorationmart</summary>
+
+## decorationmart
+
 
 decorationmart `products`
 
@@ -1222,6 +1429,9 @@ Notes:
 <details>
 <summary> decorationmart2</summary>
 
+## decorationmart2
+
+
 decorationmart2 `products`
 
 *  `products` points to decor data or auto
@@ -1239,13 +1449,16 @@ Notes:
 <details>
 <summary> defeatedtrainer</summary>
 
+## defeatedtrainer
+
+
 defeatedtrainer `trainer`
 
 *  `trainer` from data.trainers.stats
 
 Example:
 ```
-defeatedtrainer JESSICA~2
+defeatedtrainer VALERIE~3
 ```
 Notes:
 ```
@@ -1256,13 +1469,16 @@ Notes:
 <details>
 <summary> doanimation</summary>
 
+## doanimation
+
+
 doanimation `animation`
 
 *  `animation` is a number.
 
 Example:
 ```
-doanimation 4
+doanimation 2
 ```
 Notes:
 ```
@@ -1272,6 +1488,9 @@ Notes:
 
 <details>
 <summary> doorchange</summary>
+
+## doorchange
+
 
 doorchange
 
@@ -1288,6 +1507,9 @@ Notes:
 <details>
 <summary> double.battle</summary>
 
+## double.battle
+
+
 double.battle `trainer` `start` `playerwin` `needmorepokemonText`
 
 *  `trainer` from data.trainers.stats
@@ -1300,7 +1522,7 @@ double.battle `trainer` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-double.battle TRENT <auto> <auto> <auto>
+double.battle MELISSA <auto> <auto> <auto>
 ```
 Notes:
 ```
@@ -1310,6 +1532,9 @@ Notes:
 
 <details>
 <summary> double.battle.continue.music</summary>
+
+## double.battle.continue.music
+
 
 double.battle.continue.music `trainer` `start` `playerwin` `needmorepokemonText` `continuescript`
 
@@ -1325,7 +1550,7 @@ double.battle.continue.music `trainer` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-double.battle.continue.music "RITA & SAM~3" <auto> <auto> <auto> <section1>
+double.battle.continue.music BRENDAN~8 <auto> <auto> <auto> <section1>
 ```
 Notes:
 ```
@@ -1335,6 +1560,9 @@ Notes:
 
 <details>
 <summary> double.battle.continue.silent</summary>
+
+## double.battle.continue.silent
+
 
 double.battle.continue.silent `trainer` `start` `playerwin` `needmorepokemonText` `continuescript`
 
@@ -1350,7 +1578,7 @@ double.battle.continue.silent `trainer` `start` `playerwin` `needmorepokemonText
 
 Example:
 ```
-double.battle.continue.silent WILTON~3 <auto> <auto> <auto> <section1>
+double.battle.continue.silent WATTSON <auto> <auto> <auto> <section1>
 ```
 Notes:
 ```
@@ -1360,6 +1588,9 @@ Notes:
 
 <details>
 <summary> double.battle.rematch</summary>
+
+## double.battle.rematch
+
 
 double.battle.rematch `trainer` `start` `playerwin` `needmorepokemonText`
 
@@ -1373,7 +1604,7 @@ double.battle.rematch `trainer` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-double.battle.rematch BERNIE~5 <auto> <auto> <auto>
+double.battle.rematch ELLIOT <auto> <auto> <auto>
 ```
 Notes:
 ```
@@ -1383,6 +1614,9 @@ Notes:
 
 <details>
 <summary> doweather</summary>
+
+## doweather
+
 
 doweather
 
@@ -1399,6 +1633,9 @@ Notes:
 <details>
 <summary> dowildbattle</summary>
 
+## dowildbattle
+
+
 dowildbattle
 
 Example:
@@ -1414,6 +1651,9 @@ Notes:
 <details>
 <summary> end</summary>
 
+## end
+
+
 end
 
 Example:
@@ -1427,7 +1667,28 @@ Notes:
 </details>
 
 <details>
+<summary> endram</summary>
+
+## endram
+
+
+endram
+
+Example:
+```
+endram
+```
+Notes:
+```
+  # ends a RAM script
+```
+</details>
+
+<details>
 <summary> endtrainerbattle</summary>
+
+## endtrainerbattle
+
 
 endtrainerbattle
 
@@ -1444,6 +1705,9 @@ Notes:
 <details>
 <summary> endtrainerbattle2</summary>
 
+## endtrainerbattle2
+
+
 endtrainerbattle2
 
 Example:
@@ -1458,6 +1722,9 @@ Notes:
 
 <details>
 <summary> executeram</summary>
+
+## executeram
+
 
 executeram
 
@@ -1476,6 +1743,9 @@ Notes:
 <details>
 <summary> faceplayer</summary>
 
+## faceplayer
+
+
 faceplayer
 
 Example:
@@ -1490,6 +1760,9 @@ Notes:
 
 <details>
 <summary> fadedefault</summary>
+
+## fadedefault
+
 
 fadedefault
 
@@ -1506,13 +1779,16 @@ Notes:
 <details>
 <summary> fadein</summary>
 
+## fadein
+
+
 fadein `speed`
 
 *  `speed` is a number.
 
 Example:
 ```
-fadein 0
+fadein 2
 ```
 Notes:
 ```
@@ -1523,13 +1799,16 @@ Notes:
 <details>
 <summary> fadeout</summary>
 
+## fadeout
+
+
 fadeout `speed`
 
 *  `speed` is a number.
 
 Example:
 ```
-fadeout 2
+fadeout 0
 ```
 Notes:
 ```
@@ -1540,18 +1819,24 @@ Notes:
 <details>
 <summary> fadescreen</summary>
 
+## fadescreen
+
+
 fadescreen `effect`
 
 *  `effect` from screenfades
 
 Example:
 ```
-fadescreen FromBlack
+fadescreen ToWhite
 ```
 </details>
 
 <details>
 <summary> fadescreen3</summary>
+
+## fadescreen3
+
 
 fadescreen3 `mode`
 
@@ -1572,6 +1857,9 @@ Notes:
 <details>
 <summary> fadescreendelay</summary>
 
+## fadescreendelay
+
+
 fadescreendelay `effect` `delay`
 
 *  `effect` from screenfades
@@ -1580,12 +1868,15 @@ fadescreendelay `effect` `delay`
 
 Example:
 ```
-fadescreendelay ToBlack 2
+fadescreendelay FromBlack 3
 ```
 </details>
 
 <details>
 <summary> fadesong</summary>
+
+## fadesong
+
 
 fadesong `song`
 
@@ -1593,7 +1884,7 @@ fadesong `song`
 
 Example:
 ```
-fadesong se_m_flatter
+fadesong se_m_headbutt
 ```
 Notes:
 ```
@@ -1604,13 +1895,16 @@ Notes:
 <details>
 <summary> fanfare</summary>
 
+## fanfare
+
+
 fanfare `song`
 
 *  `song` from songnames
 
 Example:
 ```
-fanfare se_field_poison
+fanfare mus_rustboro
 ```
 Notes:
 ```
@@ -1620,6 +1914,9 @@ Notes:
 
 <details>
 <summary> freerotatingtilepuzzle</summary>
+
+## freerotatingtilepuzzle
+
 
 freerotatingtilepuzzle
 
@@ -1634,6 +1931,9 @@ freerotatingtilepuzzle
 <details>
 <summary> getplayerpos</summary>
 
+## getplayerpos
+
+
 getplayerpos `varX` `varY`
 
 *  `varX` is a number.
@@ -1642,7 +1942,7 @@ getplayerpos `varX` `varY`
 
 Example:
 ```
-getplayerpos 4 3
+getplayerpos 1 0
 ```
 Notes:
 ```
@@ -1653,6 +1953,9 @@ Notes:
 <details>
 <summary> getpokenewsactive</summary>
 
+## getpokenewsactive
+
+
 getpokenewsactive `newsKind`
 
   Only available in BPEE
@@ -1661,12 +1964,15 @@ getpokenewsactive `newsKind`
 
 Example:
 ```
-getpokenewsactive 0
+getpokenewsactive 1
 ```
 </details>
 
 <details>
 <summary> getpricereduction</summary>
+
+## getpricereduction
+
 
 getpricereduction `index`
 
@@ -1676,12 +1982,33 @@ getpricereduction `index`
 
 Example:
 ```
-getpricereduction "DEVON GOODS"
+getpricereduction TM25
+```
+</details>
+
+<details>
+<summary> gettime</summary>
+
+## gettime
+
+
+gettime
+
+Example:
+```
+gettime
+```
+Notes:
+```
+  # sets 0x8000, 0x8001, and 0x8002 to the current hour, minute, and second, respectively
 ```
 </details>
 
 <details>
 <summary> give.item</summary>
+
+## give.item
+
 
 give.item `item` `count`
 
@@ -1691,7 +2018,7 @@ give.item `item` `count`
 
 Example:
 ```
-give.item ????????~34 4
+give.item "KING'S ROCK" 1
 ```
 Notes:
 ```
@@ -1702,18 +2029,24 @@ Notes:
 <details>
 <summary> givecoins</summary>
 
+## givecoins
+
+
 givecoins `count`
 
 *  `count` is a number.
 
 Example:
 ```
-givecoins 1
+givecoins 2
 ```
 </details>
 
 <details>
 <summary> giveEgg</summary>
+
+## giveEgg
+
 
 giveEgg `species`
 
@@ -1721,7 +2054,7 @@ giveEgg `species`
 
 Example:
 ```
-giveEgg PERSIAN
+giveEgg PRIMEAPE
 ```
 Notes:
 ```
@@ -1732,6 +2065,9 @@ Notes:
 <details>
 <summary> givemoney</summary>
 
+## givemoney
+
+
 givemoney `money` `check`
 
 *  `money` is a number.
@@ -1740,7 +2076,7 @@ givemoney `money` `check`
 
 Example:
 ```
-givemoney 1 4
+givemoney 4 1
 ```
 Notes:
 ```
@@ -1750,6 +2086,9 @@ Notes:
 
 <details>
 <summary> givePokemon</summary>
+
+## givePokemon
+
 
 givePokemon `species` `level` `item`
 
@@ -1761,7 +2100,7 @@ givePokemon `species` `level` `item`
 
 Example:
 ```
-givePokemon PILOSWINE 1 "SITRUS BERRY"
+givePokemon PHANPY 2 "MECH MAIL"
 ```
 Notes:
 ```
@@ -1775,6 +2114,9 @@ Notes:
 
 <details>
 <summary> goto</summary>
+
+## goto
+
 
 goto `pointer`
 
@@ -1793,6 +2135,9 @@ Notes:
 <details>
 <summary> gotostd</summary>
 
+## gotostd
+
+
 gotostd `function`
 
 *  `function` is a number.
@@ -1810,6 +2155,9 @@ Notes:
 <details>
 <summary> gotostdif</summary>
 
+## gotostdif
+
+
 gotostdif `condition` `function`
 
 *  `condition` from script_compare
@@ -1818,7 +2166,7 @@ gotostdif `condition` `function`
 
 Example:
 ```
-gotostdif != 1
+gotostdif < 0
 ```
 Notes:
 ```
@@ -1829,16 +2177,18 @@ Notes:
 <details>
 <summary> helptext</summary>
 
+## helptext
+
+
 helptext `pointer`
 
   Only available in BPRE BPGE
 
-*  `pointer` is a pointer.
+*  `pointer` points to text or auto
 
 Example:
 ```
-helptext <F00000>
-
+helptext <auto>
 ```
 Notes:
 ```
@@ -1847,24 +2197,10 @@ Notes:
 </details>
 
 <details>
-<summary> helptext2</summary>
-
-helptext2
-
-  Only available in BPRE BPGE
-
-Example:
-```
-helptext2
-```
-Notes:
-```
-  # related to help-text box that appears in the opened Main Menu
-```
-</details>
-
-<details>
 <summary> hidebox</summary>
+
+## hidebox
+
 
 hidebox `x` `y` `width` `height`
 
@@ -1878,7 +2214,7 @@ hidebox `x` `y` `width` `height`
 
 Example:
 ```
-hidebox 2 2 1 0
+hidebox 2 4 2 2
 ```
 Notes:
 ```
@@ -1888,6 +2224,9 @@ Notes:
 
 <details>
 <summary> hidebox2</summary>
+
+## hidebox2
+
 
 hidebox2
 
@@ -1906,6 +2245,9 @@ Notes:
 <details>
 <summary> hidecoins</summary>
 
+## hidecoins
+
+
 hidecoins `x` `y`
 
 *  `x` is a number.
@@ -1914,12 +2256,19 @@ hidecoins `x` `y`
 
 Example:
 ```
-hidecoins 0 0
+hidecoins 1 4
+```
+Notes:
+```
+  # the X & Y coordinates are required even though they end up being unused
 ```
 </details>
 
 <details>
 <summary> hidemoney</summary>
+
+## hidemoney
+
 
 hidemoney `x` `y`
 
@@ -1929,12 +2278,15 @@ hidemoney `x` `y`
 
 Example:
 ```
-hidemoney 2 4
+hidemoney 3 1
 ```
 </details>
 
 <details>
 <summary> hidepokepic</summary>
+
+## hidepokepic
+
 
 hidepokepic
 
@@ -1951,43 +2303,52 @@ Notes:
 <details>
 <summary> hidesprite</summary>
 
+## hidesprite
+
+
 hidesprite `npc`
 
 *  `npc` is a number.
 
 Example:
 ```
-hidesprite 2
+hidesprite 4
 ```
 Notes:
 ```
-  # hides an NPC, but only if they have a Person ID. Doesn't work on the player.
+  # hides an NPC, but only if they have an associated flag. Doesn't work on the player.
 ```
 </details>
 
 <details>
-<summary> hidespritepos</summary>
+<summary> hidesprite2</summary>
 
-hidespritepos `npc` `x` `y`
+## hidesprite2
+
+
+hidesprite2 `npc` `bank` `map`
 
 *  `npc` is a number.
 
-*  `x` is a number.
+*  `bank` is a number.
 
-*  `y` is a number.
+*  `map` is a number.
 
 Example:
 ```
-hidespritepos 2 1 4
+hidesprite2 0 1 0
 ```
 Notes:
 ```
-  # removes the object at the specified coordinates. Do not use.
+  # like hidesprite, but has extra parameters for a specifiable map.
 ```
 </details>
 
 <details>
 <summary> if.compare.call</summary>
+
+## if.compare.call
+
 
 if.compare.call `variable` `value` `condition` `pointer`
 
@@ -2001,7 +2362,7 @@ if.compare.call `variable` `value` `condition` `pointer`
 
 Example:
 ```
-if.compare.call 3 1 != <section1>
+if.compare.call 1 4 != <section1>
 ```
 Notes:
 ```
@@ -2012,6 +2373,9 @@ Notes:
 
 <details>
 <summary> if.compare.goto</summary>
+
+## if.compare.goto
+
 
 if.compare.goto `variable` `value` `condition` `pointer`
 
@@ -2025,7 +2389,7 @@ if.compare.goto `variable` `value` `condition` `pointer`
 
 Example:
 ```
-if.compare.goto 0 1 = <section1>
+if.compare.goto 0 3 >= <section1>
 ```
 Notes:
 ```
@@ -2036,6 +2400,9 @@ Notes:
 
 <details>
 <summary> if.female.call</summary>
+
+## if.female.call
+
 
 if.female.call `ptr`
 
@@ -2050,6 +2417,9 @@ if.female.call <section1>
 <details>
 <summary> if.female.goto</summary>
 
+## if.female.goto
+
+
 if.female.goto `ptr`
 
 *  `ptr` points to a script or section
@@ -2063,6 +2433,9 @@ if.female.goto <section1>
 <details>
 <summary> if.flag.clear.call</summary>
 
+## if.flag.clear.call
+
+
 if.flag.clear.call `flag` `pointer`
 
 *  `flag` is a number (hex).
@@ -2071,7 +2444,7 @@ if.flag.clear.call `flag` `pointer`
 
 Example:
 ```
-if.flag.clear.call 0x06 <section1>
+if.flag.clear.call 0x03 <section1>
 ```
 Notes:
 ```
@@ -2083,6 +2456,9 @@ Notes:
 <details>
 <summary> if.flag.clear.goto</summary>
 
+## if.flag.clear.goto
+
+
 if.flag.clear.goto `flag` `pointer`
 
 *  `flag` is a number (hex).
@@ -2091,7 +2467,7 @@ if.flag.clear.goto `flag` `pointer`
 
 Example:
 ```
-if.flag.clear.goto 0x0E <section1>
+if.flag.clear.goto 0x00 <section1>
 ```
 Notes:
 ```
@@ -2103,6 +2479,9 @@ Notes:
 <details>
 <summary> if.flag.set.call</summary>
 
+## if.flag.set.call
+
+
 if.flag.set.call `flag` `pointer`
 
 *  `flag` is a number (hex).
@@ -2111,7 +2490,7 @@ if.flag.set.call `flag` `pointer`
 
 Example:
 ```
-if.flag.set.call 0x0E <section1>
+if.flag.set.call 0x0A <section1>
 ```
 Notes:
 ```
@@ -2123,6 +2502,9 @@ Notes:
 <details>
 <summary> if.flag.set.goto</summary>
 
+## if.flag.set.goto
+
+
 if.flag.set.goto `flag` `pointer`
 
 *  `flag` is a number (hex).
@@ -2131,7 +2513,7 @@ if.flag.set.goto `flag` `pointer`
 
 Example:
 ```
-if.flag.set.goto 0x02 <section1>
+if.flag.set.goto 0x00 <section1>
 ```
 Notes:
 ```
@@ -2142,6 +2524,9 @@ Notes:
 
 <details>
 <summary> if.gender.call</summary>
+
+## if.gender.call
+
 
 if.gender.call `male` `female`
 
@@ -2158,6 +2543,9 @@ if.gender.call <section1> <section1>
 <details>
 <summary> if.gender.goto</summary>
 
+## if.gender.goto
+
+
 if.gender.goto `male` `female`
 
 *  `male` points to a script or section
@@ -2173,6 +2561,9 @@ if.gender.goto <section1> <section1>
 <details>
 <summary> if.male.call</summary>
 
+## if.male.call
+
+
 if.male.call `ptr`
 
 *  `ptr` points to a script or section
@@ -2185,6 +2576,9 @@ if.male.call <section1>
 
 <details>
 <summary> if.male.goto</summary>
+
+## if.male.goto
+
 
 if.male.goto `ptr`
 
@@ -2199,6 +2593,9 @@ if.male.goto <section1>
 <details>
 <summary> if.no.call</summary>
 
+## if.no.call
+
+
 if.no.call `ptr`
 
 *  `ptr` points to a script or section
@@ -2211,6 +2608,9 @@ if.no.call <section1>
 
 <details>
 <summary> if.no.goto</summary>
+
+## if.no.goto
+
 
 if.no.goto `ptr`
 
@@ -2225,6 +2625,9 @@ if.no.goto <section1>
 <details>
 <summary> if.trainer.defeated.call</summary>
 
+## if.trainer.defeated.call
+
+
 if.trainer.defeated.call `trainer` `pointer`
 
 *  `trainer` from data.trainers.stats
@@ -2233,7 +2636,7 @@ if.trainer.defeated.call `trainer` `pointer`
 
 Example:
 ```
-if.trainer.defeated.call DIANA~4 <section1>
+if.trainer.defeated.call SHELBY~5 <section1>
 ```
 Notes:
 ```
@@ -2244,6 +2647,9 @@ Notes:
 <details>
 <summary> if.trainer.defeated.goto</summary>
 
+## if.trainer.defeated.goto
+
+
 if.trainer.defeated.goto `trainer` `pointer`
 
 *  `trainer` from data.trainers.stats
@@ -2252,7 +2658,7 @@ if.trainer.defeated.goto `trainer` `pointer`
 
 Example:
 ```
-if.trainer.defeated.goto DWAYNE <section1>
+if.trainer.defeated.goto MAY~2 <section1>
 ```
 Notes:
 ```
@@ -2263,6 +2669,9 @@ Notes:
 <details>
 <summary> if.trainer.ready.call</summary>
 
+## if.trainer.ready.call
+
+
 if.trainer.ready.call `trainer` `pointer`
 
 *  `trainer` from data.trainers.stats
@@ -2271,7 +2680,7 @@ if.trainer.ready.call `trainer` `pointer`
 
 Example:
 ```
-if.trainer.ready.call AUSTIN <section1>
+if.trainer.ready.call JAMES <section1>
 ```
 Notes:
 ```
@@ -2282,6 +2691,9 @@ Notes:
 <details>
 <summary> if.trainer.ready.goto</summary>
 
+## if.trainer.ready.goto
+
+
 if.trainer.ready.goto `trainer` `pointer`
 
 *  `trainer` from data.trainers.stats
@@ -2290,7 +2702,7 @@ if.trainer.ready.goto `trainer` `pointer`
 
 Example:
 ```
-if.trainer.ready.goto ROSE~4 <section1>
+if.trainer.ready.goto GRUNT~14 <section1>
 ```
 Notes:
 ```
@@ -2300,6 +2712,9 @@ Notes:
 
 <details>
 <summary> if.yes.call</summary>
+
+## if.yes.call
+
 
 if.yes.call `ptr`
 
@@ -2314,6 +2729,9 @@ if.yes.call <section1>
 <details>
 <summary> if.yes.goto</summary>
 
+## if.yes.goto
+
+
 if.yes.goto `ptr`
 
 *  `ptr` points to a script or section
@@ -2327,6 +2745,9 @@ if.yes.goto <section1>
 <details>
 <summary> if1</summary>
 
+## if1
+
+
 if1 `condition` `pointer`
 
 *  `condition` from script_compare
@@ -2335,7 +2756,7 @@ if1 `condition` `pointer`
 
 Example:
 ```
-if1 >= <section1>
+if1 <= <section1>
 ```
 Notes:
 ```
@@ -2346,6 +2767,9 @@ Notes:
 <details>
 <summary> if2</summary>
 
+## if2
+
+
 if2 `condition` `pointer`
 
 *  `condition` from script_compare
@@ -2354,7 +2778,7 @@ if2 `condition` `pointer`
 
 Example:
 ```
-if2 < <section1>
+if2 != <section1>
 ```
 Notes:
 ```
@@ -2365,13 +2789,16 @@ Notes:
 <details>
 <summary> incrementhiddenvalue</summary>
 
+## incrementhiddenvalue
+
+
 incrementhiddenvalue `a`
 
 *  `a` is a number.
 
 Example:
 ```
-incrementhiddenvalue 2
+incrementhiddenvalue 0
 ```
 Notes:
 ```
@@ -2381,6 +2808,9 @@ Notes:
 
 <details>
 <summary> initclock</summary>
+
+## initclock
+
 
 initclock `hour` `minute`
 
@@ -2392,12 +2822,15 @@ initclock `hour` `minute`
 
 Example:
 ```
-initclock 3 4
+initclock 4 0
 ```
 </details>
 
 <details>
 <summary> initrotatingtilepuzzle</summary>
+
+## initrotatingtilepuzzle
+
 
 initrotatingtilepuzzle `isTrickHouse`
 
@@ -2407,12 +2840,15 @@ initrotatingtilepuzzle `isTrickHouse`
 
 Example:
 ```
-initrotatingtilepuzzle 0
+initrotatingtilepuzzle 1
 ```
 </details>
 
 <details>
 <summary> jumpram</summary>
+
+## jumpram
+
 
 jumpram
 
@@ -2429,6 +2865,9 @@ Notes:
 <details>
 <summary> killscript</summary>
 
+## killscript
+
+
 killscript
 
 Example:
@@ -2444,13 +2883,16 @@ Notes:
 <details>
 <summary> lighten</summary>
 
+## lighten
+
+
 lighten `flashSize`
 
 *  `flashSize` is a number.
 
 Example:
 ```
-lighten 2
+lighten 0
 ```
 Notes:
 ```
@@ -2460,6 +2902,9 @@ Notes:
 
 <details>
 <summary> loadbytefrompointer</summary>
+
+## loadbytefrompointer
+
 
 loadbytefrompointer `bank` `pointer`
 
@@ -2480,6 +2925,9 @@ Notes:
 <details>
 <summary> loadpointer</summary>
 
+## loadpointer
+
+
 loadpointer `bank` `pointer`
 
 *  `bank` from 4
@@ -2488,7 +2936,7 @@ loadpointer `bank` `pointer`
 
 Example:
 ```
-loadpointer 3 <auto>
+loadpointer 0 <auto>
 ```
 Notes:
 ```
@@ -2498,6 +2946,9 @@ Notes:
 
 <details>
 <summary> lock</summary>
+
+## lock
+
 
 lock
 
@@ -2514,6 +2965,9 @@ Notes:
 <details>
 <summary> lockall</summary>
 
+## lockall
+
+
 lockall
 
 Example:
@@ -2529,6 +2983,9 @@ Notes:
 <details>
 <summary> lockfortrainer</summary>
 
+## lockfortrainer
+
+
 lockfortrainer
 
   Only available in BPEE
@@ -2539,12 +2996,15 @@ lockfortrainer
 ```
 Notes:
 ```
-  # unknown
+  # Locks the movement of the NPCs that are not the player nor the approaching trainer.
 ```
 </details>
 
 <details>
 <summary> move.camera</summary>
+
+## move.camera
+
 
 move.camera `data`
 
@@ -2564,6 +3024,9 @@ Notes:
 <details>
 <summary> move.npc</summary>
 
+## move.npc
+
+
 move.npc `npc` `data`
 
 *  `npc` is a number.
@@ -2572,7 +3035,7 @@ move.npc `npc` `data`
 
 Example:
 ```
-move.npc 0 <auto>
+move.npc 1 <auto>
 ```
 Notes:
 ```
@@ -2583,6 +3046,9 @@ Notes:
 
 <details>
 <summary> move.player</summary>
+
+## move.player
+
 
 move.player `data`
 
@@ -2602,13 +3068,16 @@ Notes:
 <details>
 <summary> moveoffscreen</summary>
 
+## moveoffscreen
+
+
 moveoffscreen `npc`
 
 *  `npc` is a number.
 
 Example:
 ```
-moveoffscreen 1
+moveoffscreen 4
 ```
 Notes:
 ```
@@ -2619,6 +3088,9 @@ Notes:
 <details>
 <summary> moverotatingtileobjects</summary>
 
+## moverotatingtileobjects
+
+
 moverotatingtileobjects `puzzleNumber`
 
   Only available in BPEE
@@ -2627,12 +3099,15 @@ moverotatingtileobjects `puzzleNumber`
 
 Example:
 ```
-moverotatingtileobjects 0
+moverotatingtileobjects 2
 ```
 </details>
 
 <details>
 <summary> movesprite</summary>
+
+## movesprite
+
 
 movesprite `npc` `x` `y`
 
@@ -2644,12 +3119,15 @@ movesprite `npc` `x` `y`
 
 Example:
 ```
-movesprite 4 1 1
+movesprite 2 1 4
 ```
 </details>
 
 <details>
 <summary> movesprite2</summary>
+
+## movesprite2
+
 
 movesprite2 `npc` `x` `y`
 
@@ -2661,7 +3139,7 @@ movesprite2 `npc` `x` `y`
 
 Example:
 ```
-movesprite2 1 4 2
+movesprite2 0 2 0
 ```
 Notes:
 ```
@@ -2671,6 +3149,9 @@ Notes:
 
 <details>
 <summary> msgbox.autoclose</summary>
+
+## msgbox.autoclose
+
 
 msgbox.autoclose `ptr`
 
@@ -2689,6 +3170,9 @@ Notes:
 <details>
 <summary> msgbox.default</summary>
 
+## msgbox.default
+
+
 msgbox.default `ptr`
 
 *  `ptr` points to text or auto
@@ -2706,6 +3190,9 @@ Notes:
 <details>
 <summary> msgbox.fanfare</summary>
 
+## msgbox.fanfare
+
+
 msgbox.fanfare `song` `ptr`
 
 *  `song` from songnames
@@ -2714,7 +3201,7 @@ msgbox.fanfare `song` `ptr`
 
 Example:
 ```
-msgbox.fanfare se_m_encore <auto>
+msgbox.fanfare se_shiny <auto>
 ```
 Notes:
 ```
@@ -2724,6 +3211,9 @@ Notes:
 
 <details>
 <summary> msgbox.instant.autoclose</summary>
+
+## msgbox.instant.autoclose
+
 
 msgbox.instant.autoclose `ptr`
 
@@ -2744,6 +3234,9 @@ Notes:
 <details>
 <summary> msgbox.instant.default</summary>
 
+## msgbox.instant.default
+
+
 msgbox.instant.default `ptr`
 
   Only available in BPEE
@@ -2762,6 +3255,9 @@ Notes:
 
 <details>
 <summary> msgbox.instant.npc</summary>
+
+## msgbox.instant.npc
+
 
 msgbox.instant.npc `ptr`
 
@@ -2782,6 +3278,9 @@ Notes:
 <details>
 <summary> msgbox.item</summary>
 
+## msgbox.item
+
+
 msgbox.item `msg` `item` `count` `song`
 
 *  `msg` points to text or auto
@@ -2794,7 +3293,7 @@ msgbox.item `msg` `item` `count` `song`
 
 Example:
 ```
-msgbox.item <auto> "WAVE MAIL" 4 se_effective
+msgbox.item <auto> "YELLOW SCARF" 0 se_m_dragon_rage
 ```
 Notes:
 ```
@@ -2806,6 +3305,9 @@ Notes:
 
 <details>
 <summary> msgbox.npc</summary>
+
+## msgbox.npc
+
 
 msgbox.npc `ptr`
 
@@ -2828,6 +3330,9 @@ Notes:
 <details>
 <summary> msgbox.sign</summary>
 
+## msgbox.sign
+
+
 msgbox.sign `ptr`
 
 *  `ptr` points to text or auto
@@ -2844,6 +3349,9 @@ Notes:
 
 <details>
 <summary> msgbox.yesno</summary>
+
+## msgbox.yesno
+
 
 msgbox.yesno `ptr`
 
@@ -2862,6 +3370,9 @@ Notes:
 <details>
 <summary> multichoice</summary>
 
+## multichoice
+
+
 multichoice `x` `y` `list` `allowCancel`
 
 *  `x` is a number.
@@ -2874,7 +3385,7 @@ multichoice `x` `y` `list` `allowCancel`
 
 Example:
 ```
-multichoice 2 0 1 ForbidCancel
+multichoice 2 4 3 ForbidCancel
 ```
 Notes:
 ```
@@ -2884,6 +3395,9 @@ Notes:
 
 <details>
 <summary> multichoice2</summary>
+
+## multichoice2
+
 
 multichoice2 `x` `y` `list` `default` `canCancel`
 
@@ -2899,7 +3413,7 @@ multichoice2 `x` `y` `list` `default` `canCancel`
 
 Example:
 ```
-multichoice2 0 1 2 4 ForbidCancel
+multichoice2 4 2 2 2 ForbidCancel
 ```
 Notes:
 ```
@@ -2909,6 +3423,9 @@ Notes:
 
 <details>
 <summary> multichoice3</summary>
+
+## multichoice3
+
 
 multichoice3 `x` `y` `list` `per_row` `canCancel`
 
@@ -2924,7 +3441,7 @@ multichoice3 `x` `y` `list` `per_row` `canCancel`
 
 Example:
 ```
-multichoice3 4 4 2 2 AllowCancel
+multichoice3 2 1 1 4 AllowCancel
 ```
 Notes:
 ```
@@ -2934,6 +3451,9 @@ Notes:
 
 <details>
 <summary> multichoicegrid</summary>
+
+## multichoicegrid
+
 
 multichoicegrid `x` `y` `list` `per_row` `canCancel`
 
@@ -2949,7 +3469,7 @@ multichoicegrid `x` `y` `list` `per_row` `canCancel`
 
 Example:
 ```
-multichoicegrid 3 2 1 1 ForbidCancel
+multichoicegrid 0 0 4 0 ForbidCancel
 ```
 Notes:
 ```
@@ -2959,6 +3479,9 @@ Notes:
 
 <details>
 <summary> nop</summary>
+
+## nop
+
 
 nop
 
@@ -2975,6 +3498,9 @@ Notes:
 <details>
 <summary> nop1</summary>
 
+## nop1
+
+
 nop1
 
 Example:
@@ -2989,6 +3515,9 @@ Notes:
 
 <details>
 <summary> nop2C</summary>
+
+## nop2C
+
 
 nop2C
 
@@ -3007,6 +3536,9 @@ Notes:
 <details>
 <summary> nop8A</summary>
 
+## nop8A
+
+
 nop8A
 
   Only available in BPRE BPGE
@@ -3020,6 +3552,9 @@ nop8A
 <details>
 <summary> nop96</summary>
 
+## nop96
+
+
 nop96
 
   Only available in BPRE BPGE
@@ -3033,26 +3568,21 @@ nop96
 <details>
 <summary> nopB1</summary>
 
+## nopB1
+
+
 nopB1
 
-  Only available in AXVE AXPE
+  Only available in BPRE BPGE
 
 Example:
 ```
 nopB1
 ```
-Notes:
-```
-  # ???
-```
-</details>
-
-<details>
-<summary> nopB1</summary>
 
 nopB1
 
-  Only available in BPRE BPGE
+  Only available in BPEE
 
 Example:
 ```
@@ -3063,22 +3593,21 @@ nopB1
 <details>
 <summary> nopB2</summary>
 
+## nopB2
+
+
 nopB2
 
-  Only available in AXVE AXPE
+  Only available in BPRE BPGE
 
 Example:
 ```
 nopB2
 ```
-</details>
-
-<details>
-<summary> nopB2</summary>
 
 nopB2
 
-  Only available in BPRE BPGE
+  Only available in BPEE
 
 Example:
 ```
@@ -3088,6 +3617,9 @@ nopB2
 
 <details>
 <summary> nopC7</summary>
+
+## nopC7
+
 
 nopC7
 
@@ -3102,6 +3634,9 @@ nopC7
 <details>
 <summary> nopC8</summary>
 
+## nopC8
+
+
 nopC8
 
   Only available in BPEE
@@ -3114,6 +3649,9 @@ nopC8
 
 <details>
 <summary> nopC9</summary>
+
+## nopC9
+
 
 nopC9
 
@@ -3128,6 +3666,9 @@ nopC9
 <details>
 <summary> nopCA</summary>
 
+## nopCA
+
+
 nopCA
 
   Only available in BPEE
@@ -3140,6 +3681,9 @@ nopCA
 
 <details>
 <summary> nopCB</summary>
+
+## nopCB
+
 
 nopCB
 
@@ -3154,6 +3698,9 @@ nopCB
 <details>
 <summary> nopCC</summary>
 
+## nopCC
+
+
 nopCC
 
   Only available in BPEE
@@ -3166,6 +3713,9 @@ nopCC
 
 <details>
 <summary> nopD0</summary>
+
+## nopD0
+
 
 nopD0
 
@@ -3184,6 +3734,9 @@ Notes:
 <details>
 <summary> normalmsg</summary>
 
+## normalmsg
+
+
 normalmsg
 
   Only available in BPRE BPGE
@@ -3201,6 +3754,9 @@ Notes:
 <details>
 <summary> npc.item</summary>
 
+## npc.item
+
+
 npc.item `item` `count`
 
 *  `item` from data.items.stats
@@ -3209,7 +3765,7 @@ npc.item `item` `count`
 
 Example:
 ```
-npc.item ETHER 0
+npc.item ????????~49 3
 ```
 Notes:
 ```
@@ -3220,13 +3776,16 @@ Notes:
 <details>
 <summary> pause</summary>
 
+## pause
+
+
 pause `time`
 
 *  `time` is a number.
 
 Example:
 ```
-pause 0
+pause 4
 ```
 Notes:
 ```
@@ -3237,6 +3796,9 @@ Notes:
 <details>
 <summary> paymoney</summary>
 
+## paymoney
+
+
 paymoney `money` `check`
 
 *  `money` is a number.
@@ -3245,7 +3807,7 @@ paymoney `money` `check`
 
 Example:
 ```
-paymoney 4 0
+paymoney 3 0
 ```
 Notes:
 ```
@@ -3255,6 +3817,9 @@ Notes:
 
 <details>
 <summary> playsong</summary>
+
+## playsong
+
 
 playsong `song` `mode`
 
@@ -3268,29 +3833,15 @@ playsong  loop
 ```
 Notes:
 ```
-  # plays a song once or loop
-```
-</details>
-
-<details>
-<summary> playsong2</summary>
-
-playsong2 `song`
-
-*  `song` from songnames
-
-Example:
-```
-playsong2 
-```
-Notes:
-```
-  # seems buggy? (saves the background music)
+  # plays a song once or loop (loop saves the background music)
 ```
 </details>
 
 <details>
 <summary> pokecasino</summary>
+
+## pokecasino
+
 
 pokecasino `index`
 
@@ -3298,12 +3849,15 @@ pokecasino `index`
 
 Example:
 ```
-pokecasino 4
+pokecasino 3
 ```
 </details>
 
 <details>
 <summary> pokemart</summary>
+
+## pokemart
+
 
 pokemart `products`
 
@@ -3322,16 +3876,18 @@ Notes:
 <details>
 <summary> pokenavcall</summary>
 
-pokenavcall `pointer`
+## pokenavcall
+
+
+pokenavcall `text`
 
   Only available in BPEE
 
-*  `pointer` is a pointer.
+*  `text` points to text or auto
 
 Example:
 ```
-pokenavcall <F00000>
-
+pokenavcall <auto>
 ```
 Notes:
 ```
@@ -3341,6 +3897,9 @@ Notes:
 
 <details>
 <summary> preparemsg</summary>
+
+## preparemsg
+
 
 preparemsg `text`
 
@@ -3360,6 +3919,9 @@ Notes:
 <details>
 <summary> preparemsg2</summary>
 
+## preparemsg2
+
+
 preparemsg2 `pointer`
 
 *  `pointer` points to text or auto
@@ -3370,12 +3932,15 @@ preparemsg2 <auto>
 ```
 Notes:
 ```
-  # unknown
+  # prepares a message that automatically scrolls at a fixed speed
 ```
 </details>
 
 <details>
 <summary> preparemsg3</summary>
+
+## preparemsg3
+
 
 preparemsg3 `pointer`
 
@@ -3396,6 +3961,9 @@ Notes:
 <details>
 <summary> pyramid.battle</summary>
 
+## pyramid.battle
+
+
 pyramid.battle `trainer` `start` `playerwin`
 
   Only available in BPEE
@@ -3408,7 +3976,7 @@ pyramid.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-pyramid.battle MAY~6 <auto> <auto>
+pyramid.battle "TYRA & IVY" <auto> <auto>
 ```
 Notes:
 ```
@@ -3418,6 +3986,9 @@ Notes:
 
 <details>
 <summary> random</summary>
+
+## random
+
 
 random `high`
 
@@ -3436,13 +4007,16 @@ Notes:
 <details>
 <summary> readytrainer</summary>
 
+## readytrainer
+
+
 readytrainer `trainer`
 
 *  `trainer` from data.trainers.stats
 
 Example:
 ```
-readytrainer EDWIN~2
+readytrainer BEVERLY
 ```
 Notes:
 ```
@@ -3453,6 +4027,9 @@ Notes:
 <details>
 <summary> register.matchcall</summary>
 
+## register.matchcall
+
+
 register.matchcall `trainer` `trainer`
 
 *  `trainer` from data.trainers.stats
@@ -3461,7 +4038,7 @@ register.matchcall `trainer` `trainer`
 
 Example:
 ```
-register.matchcall "MIU & YUKI" EDWIN~2
+register.matchcall BECKY RANDY
 ```
 Notes:
 ```
@@ -3471,6 +4048,9 @@ Notes:
 
 <details>
 <summary> release</summary>
+
+## release
+
 
 release
 
@@ -3487,6 +4067,9 @@ Notes:
 <details>
 <summary> releaseall</summary>
 
+## releaseall
+
+
 releaseall
 
 Example:
@@ -3502,18 +4085,24 @@ Notes:
 <details>
 <summary> removecoins</summary>
 
+## removecoins
+
+
 removecoins `count`
 
 *  `count` is a number.
 
 Example:
 ```
-removecoins 4
+removecoins 2
 ```
 </details>
 
 <details>
 <summary> removedecoration</summary>
+
+## removedecoration
+
 
 removedecoration `decoration`
 
@@ -3521,16 +4110,19 @@ removedecoration `decoration`
 
 Example:
 ```
-removedecoration "PRETTY DESK"
+removedecoration "FIRE BLAST MAT"
 ```
 Notes:
 ```
-  # removes a decoration to the player's PC in FR/LG, this is a NOP
+  # removes a decoration to the player's PC; in FR/LG, this is a NOP
 ```
 </details>
 
 <details>
 <summary> removeitem</summary>
+
+## removeitem
+
 
 removeitem `item` `quantity`
 
@@ -3540,7 +4132,7 @@ removeitem `item` `quantity`
 
 Example:
 ```
-removeitem "LAX INCENSE" 3
+removeitem "BLUE ORB" 4
 ```
 Notes:
 ```
@@ -3551,6 +4143,9 @@ Notes:
 <details>
 <summary> repeattrainerbattle</summary>
 
+## repeattrainerbattle
+
+
 repeattrainerbattle
 
 Example:
@@ -3559,27 +4154,16 @@ repeattrainerbattle
 ```
 Notes:
 ```
-  # do the last trainer battle again
-```
-</details>
-
-<details>
-<summary> resetvars</summary>
-
-resetvars
-
-Example:
-```
-resetvars
-```
-Notes:
-```
-  # sets x8000, x8001, and x8002 to 0
+  # starts a trainer battle with information stored in the RAM.
+  # in most cases, it does the last trainer battle again.
 ```
 </details>
 
 <details>
 <summary> resetweather</summary>
+
+## resetweather
+
 
 resetweather
 
@@ -3596,6 +4180,9 @@ Notes:
 <details>
 <summary> restorespritelevel</summary>
 
+## restorespritelevel
+
+
 restorespritelevel `npc` `bank` `map`
 
 *  `npc` is a number.
@@ -3606,7 +4193,7 @@ restorespritelevel `npc` `bank` `map`
 
 Example:
 ```
-restorespritelevel 1 2 2
+restorespritelevel 2 1 0
 ```
 Notes:
 ```
@@ -3616,6 +4203,9 @@ Notes:
 
 <details>
 <summary> return</summary>
+
+## return
+
 
 return
 
@@ -3630,7 +4220,48 @@ Notes:
 </details>
 
 <details>
+<summary> returnram</summary>
+
+## returnram
+
+
+returnram
+
+Example:
+```
+returnram
+```
+Notes:
+```
+  # pops back to the last calling command used in a RAM script.
+```
+</details>
+
+<details>
+<summary> savesong</summary>
+
+## savesong
+
+
+savesong `song`
+
+*  `song` from songnames
+
+Example:
+```
+savesong se_m_flame_wheel
+```
+Notes:
+```
+  # saves the specified background music to be played via special Overworld_PlaySpecialMapMusic
+```
+</details>
+
+<details>
 <summary> selectapproachingtrainer</summary>
+
+## selectapproachingtrainer
+
 
 selectapproachingtrainer
 
@@ -3642,12 +4273,15 @@ selectapproachingtrainer
 ```
 Notes:
 ```
-  # unknown
+  # Sets the selected sprite to the ID of the currently approaching trainer.
 ```
 </details>
 
 <details>
 <summary> setanimation</summary>
+
+## setanimation
+
 
 setanimation `animation` `slot`
 
@@ -3657,7 +4291,7 @@ setanimation `animation` `slot`
 
 Example:
 ```
-setanimation 3 4
+setanimation 3 3
 ```
 Notes:
 ```
@@ -3667,6 +4301,9 @@ Notes:
 
 <details>
 <summary> setberrytree</summary>
+
+## setberrytree
+
 
 setberrytree `plantID` `berryID` `growth`
 
@@ -3680,7 +4317,7 @@ setberrytree `plantID` `berryID` `growth`
 
 Example:
 ```
-setberrytree 2 BLUK 0
+setberrytree 3 BLUK 1
 ```
 Notes:
 ```
@@ -3691,13 +4328,16 @@ Notes:
 <details>
 <summary> setbyte</summary>
 
+## setbyte
+
+
 setbyte `byte`
 
 *  `byte` is a number.
 
 Example:
 ```
-setbyte 1
+setbyte 0
 ```
 Notes:
 ```
@@ -3708,6 +4348,9 @@ Notes:
 <details>
 <summary> setbyte2</summary>
 
+## setbyte2
+
+
 setbyte2 `bank` `value`
 
 *  `bank` from 4
@@ -3716,7 +4359,7 @@ setbyte2 `bank` `value`
 
 Example:
 ```
-setbyte2 2 3
+setbyte2 1 4
 ```
 Notes:
 ```
@@ -3726,6 +4369,9 @@ Notes:
 
 <details>
 <summary> setcatchlocation</summary>
+
+## setcatchlocation
+
 
 setcatchlocation `slot` `location`
 
@@ -3737,7 +4383,7 @@ setcatchlocation `slot` `location`
 
 Example:
 ```
-setcatchlocation 3 "ROUTE 119"
+setcatchlocation 4 "ROUTE 120"
 ```
 Notes:
 ```
@@ -3747,6 +4393,9 @@ Notes:
 
 <details>
 <summary> setcode</summary>
+
+## setcode
+
 
 setcode `pointer`
 
@@ -3765,6 +4414,9 @@ Notes:
 
 <details>
 <summary> setdoorclosed</summary>
+
+## setdoorclosed
+
 
 setdoorclosed `x` `y`
 
@@ -3785,6 +4437,9 @@ Notes:
 <details>
 <summary> setdoorclosed2</summary>
 
+## setdoorclosed2
+
+
 setdoorclosed2 `x` `y`
 
 *  `x` is a number.
@@ -3793,16 +4448,19 @@ setdoorclosed2 `x` `y`
 
 Example:
 ```
-setdoorclosed2 2 4
+setdoorclosed2 0 1
 ```
 Notes:
 ```
-  # clone
+  # sets the specified door tile to be closed without an animation
 ```
 </details>
 
 <details>
 <summary> setdooropened</summary>
+
+## setdooropened
+
 
 setdooropened `x` `y`
 
@@ -3812,7 +4470,7 @@ setdooropened `x` `y`
 
 Example:
 ```
-setdooropened 4 2
+setdooropened 3 2
 ```
 Notes:
 ```
@@ -3823,6 +4481,9 @@ Notes:
 <details>
 <summary> setdooropened2</summary>
 
+## setdooropened2
+
+
 setdooropened2 `x` `y`
 
 *  `x` is a number.
@@ -3831,16 +4492,19 @@ setdooropened2 `x` `y`
 
 Example:
 ```
-setdooropened2 1 0
+setdooropened2 0 2
 ```
 Notes:
 ```
-  # clone
+  # sets the specified door tile to be open without an animation
 ```
 </details>
 
 <details>
 <summary> setfarbyte</summary>
+
+## setfarbyte
+
 
 setfarbyte `bank` `pointer`
 
@@ -3850,7 +4514,7 @@ setfarbyte `bank` `pointer`
 
 Example:
 ```
-setfarbyte 0 0x06
+setfarbyte 0 0x04
 ```
 Notes:
 ```
@@ -3861,13 +4525,16 @@ Notes:
 <details>
 <summary> setflag</summary>
 
+## setflag
+
+
 setflag `flag`
 
 *  `flag` is a number (hex).
 
 Example:
 ```
-setflag 0x0A
+setflag 0x0C
 ```
 Notes:
 ```
@@ -3877,6 +4544,9 @@ Notes:
 
 <details>
 <summary> sethealingplace</summary>
+
+## sethealingplace
+
 
 sethealingplace `flightspot`
 
@@ -3888,12 +4558,15 @@ sethealingplace 2
 ```
 Notes:
 ```
-  # where does the player warp when they die?
+  # sets where the player warps when they white out
 ```
 </details>
 
 <details>
 <summary> setmapfooter</summary>
+
+## setmapfooter
+
 
 setmapfooter `footer`
 
@@ -3901,16 +4574,19 @@ setmapfooter `footer`
 
 Example:
 ```
-setmapfooter 0
+setmapfooter 2
 ```
 Notes:
 ```
-  # updates the current map's footer.
+  # updates the current map's footer. typically used on transition level scripts.
 ```
 </details>
 
 <details>
 <summary> setmaptile</summary>
+
+## setmaptile
+
 
 setmaptile `x` `y` `tile` `isWall`
 
@@ -3924,7 +4600,7 @@ setmaptile `x` `y` `tile` `isWall`
 
 Example:
 ```
-setmaptile 2 0 1 3
+setmaptile 0 4 4 4
 ```
 Notes:
 ```
@@ -3934,7 +4610,32 @@ Notes:
 </details>
 
 <details>
+<summary> setmodernfatefulencounter</summary>
+
+## setmodernfatefulencounter
+
+
+setmodernfatefulencounter `slot`
+
+  Only available in BPRE BPGE BPEE
+
+*  `slot` is a number.
+
+Example:
+```
+setmodernfatefulencounter 1
+```
+Notes:
+```
+  # a pokemon in your party now has its modern fateful encounter attribute set
+```
+</details>
+
+<details>
 <summary> setmonmove</summary>
+
+## setmonmove
+
 
 setmonmove `pokemonSlot` `attackSlot` `newMove`
 
@@ -3946,7 +4647,7 @@ setmonmove `pokemonSlot` `attackSlot` `newMove`
 
 Example:
 ```
-setmonmove 2 2 FLY
+setmonmove 1 0 PROTECT
 ```
 Notes:
 ```
@@ -3956,26 +4657,30 @@ Notes:
 </details>
 
 <details>
-<summary> setobedience</summary>
+<summary> setmysteryeventstatus</summary>
 
-setobedience `slot`
+## setmysteryeventstatus
 
-  Only available in BPRE BPGE BPEE
 
-*  `slot` is a number.
+setmysteryeventstatus `value`
+
+*  `value` is a number.
 
 Example:
 ```
-setobedience 4
+setmysteryeventstatus 2
 ```
 Notes:
 ```
-  # a pokemon in your party becomes obedient (no longer disobeys)
+  # sets the mystery event script status
 ```
 </details>
 
 <details>
 <summary> setorcopyvar</summary>
+
+## setorcopyvar
+
 
 setorcopyvar `variable` `source`
 
@@ -3985,7 +4690,7 @@ setorcopyvar `variable` `source`
 
 Example:
 ```
-setorcopyvar 4 4
+setorcopyvar 4 1
 ```
 Notes:
 ```
@@ -3996,6 +4701,9 @@ Notes:
 
 <details>
 <summary> setup.battle.A</summary>
+
+## setup.battle.A
+
 
 setup.battle.A `trainer` `start` `playerwin`
 
@@ -4009,7 +4717,7 @@ setup.battle.A `trainer` `start` `playerwin`
 
 Example:
 ```
-setup.battle.A PHOEBE <auto> <auto>
+setup.battle.A ARCHIE <auto> <auto>
 ```
 Notes:
 ```
@@ -4019,6 +4727,9 @@ Notes:
 
 <details>
 <summary> setup.battle.B</summary>
+
+## setup.battle.B
+
 
 setup.battle.B `trainer` `start` `playerwin`
 
@@ -4032,7 +4743,7 @@ setup.battle.B `trainer` `start` `playerwin`
 
 Example:
 ```
-setup.battle.B CLIFF <auto> <auto>
+setup.battle.B GRUNT <auto> <auto>
 ```
 Notes:
 ```
@@ -4043,6 +4754,9 @@ Notes:
 <details>
 <summary> setvar</summary>
 
+## setvar
+
+
 setvar `variable` `value`
 
 *  `variable` is a number.
@@ -4051,7 +4765,7 @@ setvar `variable` `value`
 
 Example:
 ```
-setvar 0 2
+setvar 1 1
 ```
 Notes:
 ```
@@ -4062,22 +4776,29 @@ Notes:
 <details>
 <summary> setvirtualaddress</summary>
 
-setvirtualaddress `value`
+## setvirtualaddress
 
-*  `value` is a number.
+
+setvirtualaddress `pointer`
+
+*  `pointer` is a number (hex).
 
 Example:
 ```
-setvirtualaddress 2
+setvirtualaddress 0x0D
 ```
 Notes:
 ```
-  # some kind of jump? Complicated.
+  # Sets a relative address to be used by other virtual commands.
+  # This is usually used in Mystery Gift scripts.
 ```
 </details>
 
 <details>
 <summary> setwarpplace</summary>
+
+## setwarpplace
+
 
 setwarpplace `mapbank` `map` `warp` `x` `y`
 
@@ -4093,7 +4814,7 @@ setwarpplace `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-setwarpplace 4 1 0 0 1
+setwarpplace 2 1 4 4 3
 ```
 Notes:
 ```
@@ -4104,13 +4825,16 @@ Notes:
 <details>
 <summary> setweather</summary>
 
+## setweather
+
+
 setweather `type`
 
 *  `type` is a number.
 
 Example:
 ```
-setweather 1
+setweather 2
 ```
 Notes:
 ```
@@ -4120,6 +4844,9 @@ Notes:
 
 <details>
 <summary> setwildbattle</summary>
+
+## setwildbattle
+
 
 setwildbattle `species` `level` `item`
 
@@ -4131,12 +4858,15 @@ setwildbattle `species` `level` `item`
 
 Example:
 ```
-setwildbattle ELECTRIKE 2 "X SPECIAL"
+setwildbattle GLIGAR 0 "MAX ELIXIR"
 ```
 </details>
 
 <details>
 <summary> setworldmapflag</summary>
+
+## setworldmapflag
+
 
 setworldmapflag `flag`
 
@@ -4157,6 +4887,9 @@ Notes:
 <details>
 <summary> showbox</summary>
 
+## showbox
+
+
 showbox `x` `y` `width` `height`
 
 *  `x` is a number.
@@ -4169,12 +4902,19 @@ showbox `x` `y` `width` `height`
 
 Example:
 ```
-showbox 4 3 2 2
+showbox 1 4 4 0
+```
+Notes:
+```
+  # nop in Emerald
 ```
 </details>
 
 <details>
 <summary> showcoins</summary>
+
+## showcoins
+
 
 showcoins `x` `y`
 
@@ -4184,12 +4924,15 @@ showcoins `x` `y`
 
 Example:
 ```
-showcoins 0 0
+showcoins 4 2
 ```
 </details>
 
 <details>
 <summary> showcontestresults</summary>
+
+## showcontestresults
+
 
 showcontestresults
 
@@ -4206,35 +4949,48 @@ Notes:
 <details>
 <summary> showcontestwinner</summary>
 
+## showcontestwinner
+
+
 showcontestwinner `contest`
 
 *  `contest` is a number.
 
 Example:
 ```
-showcontestwinner 4
+showcontestwinner 0
 ```
 Notes:
 ```
-  # nop in FireRed. Shows the painting of a wenner of the given contest.
+  # nop in FireRed. Shows the painting of a winner of the given contest.
 ```
 </details>
 
 <details>
 <summary> showelevmenu</summary>
 
+## showelevmenu
+
+
 showelevmenu
 
-  Only available in BPEE
+  Only available in AXVE AXPE
 
 Example:
 ```
 showelevmenu
 ```
+Notes:
+```
+  # Shows an elevator menu.
+```
 </details>
 
 <details>
 <summary> showmoney</summary>
+
+## showmoney
+
 
 showmoney `x` `y`
 
@@ -4246,16 +5002,12 @@ showmoney `x` `y`
 
 Example:
 ```
-showmoney 1 4
+showmoney 1 2
 ```
 Notes:
 ```
   # shows how much money the player has in a separate box
 ```
-</details>
-
-<details>
-<summary> showmoney</summary>
 
 showmoney `x` `y` `check`
 
@@ -4269,16 +5021,19 @@ showmoney `x` `y` `check`
 
 Example:
 ```
-showmoney 4 0 4
+showmoney 2 1 1
 ```
 Notes:
 ```
-  # shows how much money the player has in a separate box
+  # shows how much money the player has in a separate box (only works if check is 0)
 ```
 </details>
 
 <details>
 <summary> showpokepic</summary>
+
+## showpokepic
+
 
 showpokepic `species` `x` `y`
 
@@ -4290,7 +5045,7 @@ showpokepic `species` `x` `y`
 
 Example:
 ```
-showpokepic HOUNDOOM 0 1
+showpokepic NINETALES 2 4
 ```
 Notes:
 ```
@@ -4301,13 +5056,16 @@ Notes:
 <details>
 <summary> showsprite</summary>
 
+## showsprite
+
+
 showsprite `npc`
 
 *  `npc` is a number.
 
 Example:
 ```
-showsprite 2
+showsprite 4
 ```
 Notes:
 ```
@@ -4316,28 +5074,34 @@ Notes:
 </details>
 
 <details>
-<summary> showspritepos</summary>
+<summary> showsprite2</summary>
 
-showspritepos `npc` `x` `y`
+## showsprite2
+
+
+showsprite2 `npc` `bank` `map`
 
 *  `npc` is a number.
 
-*  `x` is a number.
+*  `bank` is a number.
 
-*  `y` is a number.
+*  `map` is a number.
 
 Example:
 ```
-showspritepos 2 1 1
+showsprite2 3 1 4
 ```
 Notes:
 ```
-  # shows a previously hidden sprite, then moves it to (x,y)
+  # shows a previously hidden sprite; it also has extra parameters for a specifiable map.
 ```
 </details>
 
 <details>
 <summary> signmsg</summary>
+
+## signmsg
+
 
 signmsg
 
@@ -4356,6 +5120,9 @@ Notes:
 <details>
 <summary> single.battle</summary>
 
+## single.battle
+
+
 single.battle `trainer` `start` `playerwin`
 
 *  `trainer` from data.trainers.stats
@@ -4366,7 +5133,7 @@ single.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-single.battle RICKY <auto> <auto>
+single.battle ROXANNE <auto> <auto>
 ```
 Notes:
 ```
@@ -4376,6 +5143,9 @@ Notes:
 
 <details>
 <summary> single.battle.canlose</summary>
+
+## single.battle.canlose
+
 
 single.battle.canlose `trainer` `playerlose` `playerwin`
 
@@ -4389,7 +5159,7 @@ single.battle.canlose `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-single.battle.canlose CALEB <auto> <auto>
+single.battle.canlose MADELINE~5 <auto> <auto>
 ```
 Notes:
 ```
@@ -4399,6 +5169,9 @@ Notes:
 
 <details>
 <summary> single.battle.continue.music</summary>
+
+## single.battle.continue.music
+
 
 single.battle.continue.music `trainer` `start` `playerwin` `winscript`
 
@@ -4412,7 +5185,7 @@ single.battle.continue.music `trainer` `start` `playerwin` `winscript`
 
 Example:
 ```
-single.battle.continue.music "DEZ & LUKE" <auto> <auto> <section1>
+single.battle.continue.music VIRGIL <auto> <auto> <section1>
 ```
 Notes:
 ```
@@ -4422,6 +5195,9 @@ Notes:
 
 <details>
 <summary> single.battle.continue.silent</summary>
+
+## single.battle.continue.silent
+
 
 single.battle.continue.silent `trainer` `start` `playerwin` `winscript`
 
@@ -4435,7 +5211,7 @@ single.battle.continue.silent `trainer` `start` `playerwin` `winscript`
 
 Example:
 ```
-single.battle.continue.silent LYLE <auto> <auto> <section1>
+single.battle.continue.silent PHILLIP <auto> <auto> <section1>
 ```
 Notes:
 ```
@@ -4446,6 +5222,9 @@ Notes:
 <details>
 <summary> single.battle.nointro</summary>
 
+## single.battle.nointro
+
+
 single.battle.nointro `trainer` `playerwin`
 
 *  `trainer` from data.trainers.stats
@@ -4454,7 +5233,7 @@ single.battle.nointro `trainer` `playerwin`
 
 Example:
 ```
-single.battle.nointro SONNY <auto>
+single.battle.nointro DIANA~2 <auto>
 ```
 Notes:
 ```
@@ -4464,6 +5243,9 @@ Notes:
 
 <details>
 <summary> single.battle.rematch</summary>
+
+## single.battle.rematch
+
 
 single.battle.rematch `trainer` `start` `playerwin`
 
@@ -4475,7 +5257,7 @@ single.battle.rematch `trainer` `start` `playerwin`
 
 Example:
 ```
-single.battle.rematch BERNIE~4 <auto> <auto>
+single.battle.rematch MADELINE <auto> <auto>
 ```
 Notes:
 ```
@@ -4486,13 +5268,16 @@ Notes:
 <details>
 <summary> sound</summary>
 
+## sound
+
+
 sound `number`
 
 *  `number` from songnames
 
 Example:
 ```
-sound mus_cycling
+sound se_ship
 ```
 Notes:
 ```
@@ -4503,13 +5288,16 @@ Notes:
 <details>
 <summary> special</summary>
 
+## special
+
+
 special `function`
 
 *  `function` from specials
 
 Example:
 ```
-special SwapRegisteredBike
+special LeadMonHasEffortRibbon
 ```
 Notes:
 ```
@@ -4521,6 +5309,9 @@ Notes:
 <details>
 <summary> special2</summary>
 
+## special2
+
+
 special2 `variable` `function`
 
 *  `variable` is a number.
@@ -4529,7 +5320,7 @@ special2 `variable` `function`
 
 Example:
 ```
-special2 3 ScrSpecial_DoesPlayerHaveNoDecorations
+special2 2 AccessHallOfFamePC
 ```
 Notes:
 ```
@@ -4541,6 +5332,9 @@ Notes:
 <details>
 <summary> spritebehave</summary>
 
+## spritebehave
+
+
 spritebehave `npc` `behavior`
 
 *  `npc` is a number.
@@ -4549,7 +5343,7 @@ spritebehave `npc` `behavior`
 
 Example:
 ```
-spritebehave 3 3
+spritebehave 3 1
 ```
 Notes:
 ```
@@ -4560,6 +5354,9 @@ Notes:
 <details>
 <summary> spriteface</summary>
 
+## spriteface
+
+
 spriteface `npc` `direction`
 
 *  `npc` is a number.
@@ -4568,12 +5365,15 @@ spriteface `npc` `direction`
 
 Example:
 ```
-spriteface 3 0
+spriteface 4 Southwest
 ```
 </details>
 
 <details>
 <summary> spriteface2</summary>
+
+## spriteface2
+
 
 spriteface2 `virtualNPC` `facing`
 
@@ -4583,12 +5383,15 @@ spriteface2 `virtualNPC` `facing`
 
 Example:
 ```
-spriteface2 4 2
+spriteface2 2 0
 ```
 </details>
 
 <details>
 <summary> spriteinvisible</summary>
+
+## spriteinvisible
+
 
 spriteinvisible `npc` `bank` `map`
 
@@ -4600,18 +5403,21 @@ spriteinvisible `npc` `bank` `map`
 
 Example:
 ```
-spriteinvisible 3 3 1
+spriteinvisible 0 2 1
 ```
 Notes:
 ```
-  # hides the sprite on the given map
+  # hides the sprite on the given map by setting its invisibility to true.
 ```
 </details>
 
 <details>
 <summary> spritelevelup</summary>
 
-spritelevelup `npc` `bank` `map` `unknown`
+## spritelevelup
+
+
+spritelevelup `npc` `bank` `map` `subpriority`
 
 *  `npc` is a number.
 
@@ -4619,11 +5425,11 @@ spritelevelup `npc` `bank` `map` `unknown`
 
 *  `map` is a number.
 
-*  `unknown` is a number.
+*  `subpriority` is a number.
 
 Example:
 ```
-spritelevelup 4 3 2 0
+spritelevelup 4 3 4 3
 ```
 Notes:
 ```
@@ -4633,6 +5439,9 @@ Notes:
 
 <details>
 <summary> spritevisible</summary>
+
+## spritevisible
+
 
 spritevisible `npc` `bank` `map`
 
@@ -4644,16 +5453,19 @@ spritevisible `npc` `bank` `map`
 
 Example:
 ```
-spritevisible 0 2 1
+spritevisible 3 4 2
 ```
 Notes:
 ```
-  # shows the sprite on the given map
+  # shows the sprite on the given map by setting its invisibility to false.
 ```
 </details>
 
 <details>
 <summary> startcontest</summary>
+
+## startcontest
+
 
 startcontest
 
@@ -4670,6 +5482,9 @@ Notes:
 <details>
 <summary> subvar</summary>
 
+## subvar
+
+
 subvar `variable` `value`
 
 *  `variable` is a number.
@@ -4678,7 +5493,7 @@ subvar `variable` `value`
 
 Example:
 ```
-subvar 4 3
+subvar 1 0
 ```
 Notes:
 ```
@@ -4689,13 +5504,16 @@ Notes:
 <details>
 <summary> testdecoration</summary>
 
+## testdecoration
+
+
 testdecoration `decoration`
 
 *  `decoration` from data.decorations.stats
 
 Example:
 ```
-testdecoration "BALL CUSHION"
+testdecoration "GOLD SHIELD"
 ```
 Notes:
 ```
@@ -4706,6 +5524,9 @@ Notes:
 <details>
 <summary> textcolor</summary>
 
+## textcolor
+
+
 textcolor `color`
 
   Only available in BPRE BPGE
@@ -4714,7 +5535,7 @@ textcolor `color`
 
 Example:
 ```
-textcolor 3
+textcolor 0
 ```
 Notes:
 ```
@@ -4724,6 +5545,9 @@ Notes:
 
 <details>
 <summary> trainerbattle</summary>
+
+## trainerbattle
+
 
 trainerbattle 0 `trainer` `arg` `start` `playerwin`
 
@@ -4737,12 +5561,8 @@ trainerbattle 0 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 0 GRACE 4 <auto> <auto>
+trainerbattle 0 MAY~2 3 <auto> <auto>
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 1 `trainer` `arg` `start` `playerwin` `winscript`
 
@@ -4758,16 +5578,12 @@ trainerbattle 1 `trainer` `arg` `start` `playerwin` `winscript`
 
 Example:
 ```
-trainerbattle 1 EDDIE 1 <auto> <auto> <section1>
+trainerbattle 1 WINSTON~3 1 <auto> <auto> <section1>
 ```
 Notes:
 ```
   # doesn't play encounter music, continues with winscript
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 2 `trainer` `arg` `start` `playerwin` `winscript`
 
@@ -4783,16 +5599,12 @@ trainerbattle 2 `trainer` `arg` `start` `playerwin` `winscript`
 
 Example:
 ```
-trainerbattle 2 WENDY 1 <auto> <auto> <section1>
+trainerbattle 2 ~14 1 <auto> <auto> <section1>
 ```
 Notes:
 ```
   # does play encounter music, continues with winscript
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 3 `trainer` `arg` `playerwin`
 
@@ -4804,16 +5616,12 @@ trainerbattle 3 `trainer` `arg` `playerwin`
 
 Example:
 ```
-trainerbattle 3 CHIP 3 <auto>
+trainerbattle 3 JAMES~3 0 <auto>
 ```
 Notes:
 ```
   # no intro text
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 4 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
@@ -4829,16 +5637,12 @@ trainerbattle 4 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-trainerbattle 4 BECKY 1 <auto> <auto> <auto>
+trainerbattle 4 COLE 2 <auto> <auto> <auto>
 ```
 Notes:
 ```
   # double battles
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 5 `trainer` `arg` `start` `playerwin`
 
@@ -4852,16 +5656,12 @@ trainerbattle 5 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 5 ATSUSHI 3 <auto> <auto>
+trainerbattle 5 COURTNEY~2 3 <auto> <auto>
 ```
 Notes:
 ```
   # clone of 0, but with rematch potential
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 6 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `continuescript`
 
@@ -4879,16 +5679,12 @@ trainerbattle 6 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `conti
 
 Example:
 ```
-trainerbattle 6 RODNEY 4 <auto> <auto> <auto> <section1>
+trainerbattle 6 DYLAN~2 2 <auto> <auto> <auto> <section1>
 ```
 Notes:
 ```
   # double battles, continues the script
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 7 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
@@ -4904,16 +5700,12 @@ trainerbattle 7 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-trainerbattle 7 VALERIE~5 1 <auto> <auto> <auto>
+trainerbattle 7 TRENT~4 0 <auto> <auto> <auto>
 ```
 Notes:
 ```
   # clone of 4, but with rematch potential
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 8 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `continuescript`
 
@@ -4931,16 +5723,12 @@ trainerbattle 8 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `conti
 
 Example:
 ```
-trainerbattle 8 AARON 4 <auto> <auto> <auto> <section1>
+trainerbattle 8 ELLIOT~4 3 <auto> <auto> <auto> <section1>
 ```
 Notes:
 ```
   # clone of 6, does not play encounter music
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle 9 `trainer` `arg` `start` `playerwin`
 
@@ -4954,16 +5742,12 @@ trainerbattle 9 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 9 "GINA & MIA~2" 2 <auto> <auto>
+trainerbattle 9 CHESTER 2 <auto> <auto>
 ```
 Notes:
 ```
   # tutorial battle (can't lose) (set arg=3 for oak's naration) (Pyramid type for Emerald)
 ```
-</details>
-
-<details>
-<summary> trainerbattle</summary>
 
 trainerbattle `other` `trainer` `arg` `start` `playerwin`
 
@@ -4979,7 +5763,7 @@ trainerbattle `other` `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 2 TRENT~4 0 <auto> <auto>
+trainerbattle 3 MAURA 2 <auto> <auto>
 ```
 Notes:
 ```
@@ -4996,6 +5780,9 @@ Notes:
 <details>
 <summary> trainerhill.battle</summary>
 
+## trainerhill.battle
+
+
 trainerhill.battle `trainer` `start` `playerwin`
 
   Only available in BPEE
@@ -5008,7 +5795,7 @@ trainerhill.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-trainerhill.battle ELLIOT~4 <auto> <auto>
+trainerhill.battle FRITZ <auto> <auto>
 ```
 Notes:
 ```
@@ -5017,7 +5804,30 @@ Notes:
 </details>
 
 <details>
+<summary> trywondercardscript</summary>
+
+## trywondercardscript
+
+
+trywondercardscript
+
+  Only available in BPRE BPGE BPEE
+
+Example:
+```
+trywondercardscript
+```
+Notes:
+```
+  # Tries a wonder card script.
+```
+</details>
+
+<details>
 <summary> turnrotatingtileobjects</summary>
+
+## turnrotatingtileobjects
+
 
 turnrotatingtileobjects
 
@@ -5032,6 +5842,9 @@ turnrotatingtileobjects
 <details>
 <summary> tutorial.battle</summary>
 
+## tutorial.battle
+
+
 tutorial.battle `trainer` `playerlose` `playerwin`
 
   Only available in BPRE BPGE
@@ -5044,7 +5857,7 @@ tutorial.battle `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-tutorial.battle DANA <auto> <auto>
+tutorial.battle WENDY <auto> <auto>
 ```
 Notes:
 ```
@@ -5054,6 +5867,9 @@ Notes:
 
 <details>
 <summary> tutorial.battle.canlose</summary>
+
+## tutorial.battle.canlose
+
 
 tutorial.battle.canlose `trainer` `playerlose` `playerwin`
 
@@ -5067,7 +5883,7 @@ tutorial.battle.canlose `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-tutorial.battle.canlose CHESTER <auto> <auto>
+tutorial.battle.canlose ELLIOT <auto> <auto>
 ```
 Notes:
 ```
@@ -5076,7 +5892,30 @@ Notes:
 </details>
 
 <details>
+<summary> unloadhelptext</summary>
+
+## unloadhelptext
+
+
+unloadhelptext
+
+  Only available in BPRE BPGE
+
+Example:
+```
+unloadhelptext
+```
+Notes:
+```
+  # related to help-text box that appears in the opened Main Menu
+```
+</details>
+
+<details>
 <summary> updatecoins</summary>
+
+## updatecoins
+
 
 updatecoins `x` `y`
 
@@ -5086,12 +5925,19 @@ updatecoins `x` `y`
 
 Example:
 ```
-updatecoins 2 3
+updatecoins 4 3
+```
+Notes:
+```
+  # the X & Y coordinates are required even though they end up being unused
 ```
 </details>
 
 <details>
 <summary> updatemoney</summary>
+
+## updatemoney
+
 
 updatemoney `x` `y`
 
@@ -5103,16 +5949,12 @@ updatemoney `x` `y`
 
 Example:
 ```
-updatemoney 1 2
+updatemoney 4 1
 ```
 Notes:
 ```
   # updates the amount of money shown after a money change
 ```
-</details>
-
-<details>
-<summary> updatemoney</summary>
 
 updatemoney `x` `y` `check`
 
@@ -5126,16 +5968,19 @@ updatemoney `x` `y` `check`
 
 Example:
 ```
-updatemoney 1 0 2
+updatemoney 2 4 2
 ```
 Notes:
 ```
-  # updates the amount of money shown after a money change
+  # updates the amount of money shown after a money change (only works if check is 0)
 ```
 </details>
 
 <details>
 <summary> virtualbuffer</summary>
+
+## virtualbuffer
+
 
 virtualbuffer `buffer` `text`
 
@@ -5145,7 +5990,7 @@ virtualbuffer `buffer` `text`
 
 Example:
 ```
-virtualbuffer buffer3 <F00000>
+virtualbuffer buffer2 <F00000>
 
 ```
 Notes:
@@ -5157,19 +6002,24 @@ Notes:
 <details>
 <summary> virtualcall</summary>
 
+## virtualcall
+
+
 virtualcall `destination`
 
-*  `destination` is a pointer.
+*  `destination` points to a script or section
 
 Example:
 ```
-virtualcall <F00000>
-
+virtualcall <section1>
 ```
 </details>
 
 <details>
 <summary> virtualcallif</summary>
+
+## virtualcallif
+
 
 virtualcallif `condition` `destination`
 
@@ -5179,7 +6029,7 @@ virtualcallif `condition` `destination`
 
 Example:
 ```
-virtualcallif 3 <F00000>
+virtualcallif 0 <F00000>
 
 ```
 </details>
@@ -5187,14 +6037,16 @@ virtualcallif 3 <F00000>
 <details>
 <summary> virtualgoto</summary>
 
+## virtualgoto
+
+
 virtualgoto `destination`
 
-*  `destination` is a pointer.
+*  `destination` points to a script or section
 
 Example:
 ```
-virtualgoto <F00000>
-
+virtualgoto <section1>
 ```
 Notes:
 ```
@@ -5204,6 +6056,9 @@ Notes:
 
 <details>
 <summary> virtualgotoif</summary>
+
+## virtualgotoif
+
 
 virtualgotoif `condition` `destination`
 
@@ -5221,33 +6076,44 @@ virtualgotoif 4 <F00000>
 <details>
 <summary> virtualloadpointer</summary>
 
+## virtualloadpointer
+
+
 virtualloadpointer `text`
 
-*  `text` is a pointer.
+*  `text` points to text or auto
 
 Example:
 ```
-virtualloadpointer <F00000>
-
+virtualloadpointer <auto>
+```
+Notes:
+```
+  # uses gStringVar4
 ```
 </details>
 
 <details>
 <summary> virtualmsgbox</summary>
 
+## virtualmsgbox
+
+
 virtualmsgbox `text`
 
-*  `text` is a pointer.
+*  `text` points to text or auto
 
 Example:
 ```
-virtualmsgbox <F00000>
-
+virtualmsgbox <auto>
 ```
 </details>
 
 <details>
 <summary> waitcry</summary>
+
+## waitcry
+
 
 waitcry
 
@@ -5264,6 +6130,9 @@ Notes:
 <details>
 <summary> waitfanfare</summary>
 
+## waitfanfare
+
+
 waitfanfare
 
 Example:
@@ -5272,13 +6141,16 @@ waitfanfare
 ```
 Notes:
 ```
-  # blocks script execution until any playing fanfair finishes
+  # blocks script execution until any playing fanfare finishes
 ```
 </details>
 
 <details>
 <summary> waitkeypress</summary>
 
+## waitkeypress
+
+
 waitkeypress
 
 Example:
@@ -5287,12 +6159,15 @@ waitkeypress
 ```
 Notes:
 ```
-  # blocks script execution until the player pushes a button
+  # blocks script execution until the player pushes the A or B button
 ```
 </details>
 
 <details>
 <summary> waitmovement</summary>
+
+## waitmovement
+
 
 waitmovement `npc`
 
@@ -5300,7 +6175,7 @@ waitmovement `npc`
 
 Example:
 ```
-waitmovement 1
+waitmovement 0
 ```
 Notes:
 ```
@@ -5309,28 +6184,34 @@ Notes:
 </details>
 
 <details>
-<summary> waitmovementpos</summary>
+<summary> waitmovement2</summary>
 
-waitmovementpos `npc` `x` `y`
+## waitmovement2
+
+
+waitmovement2 `npc` `bank` `map`
 
 *  `npc` is a number.
 
-*  `x` is a number.
+*  `bank` is a number.
 
-*  `y` is a number.
+*  `map` is a number.
 
 Example:
 ```
-waitmovementpos 2 4 2
+waitmovement2 2 4 1
 ```
 Notes:
 ```
-  # seems bugged. x/y do nothing, only works for FF (the player). Do not use.
+  # like waitmovement, but has extra parameters for a specifiable map.
 ```
 </details>
 
 <details>
 <summary> waitmsg</summary>
+
+## waitmsg
+
 
 waitmsg
 
@@ -5347,6 +6228,9 @@ Notes:
 <details>
 <summary> waitsound</summary>
 
+## waitsound
+
+
 waitsound
 
 Example:
@@ -5361,6 +6245,9 @@ Notes:
 
 <details>
 <summary> waitstate</summary>
+
+## waitstate
+
 
 waitstate
 
@@ -5377,6 +6264,9 @@ Notes:
 <details>
 <summary> warp</summary>
 
+## warp
+
+
 warp `mapbank` `map` `warp` `x` `y`
 
 *  `mapbank` is a number.
@@ -5391,7 +6281,7 @@ warp `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp 2 0 4 0 2
+warp 0 0 1 3 0
 ```
 Notes:
 ```
@@ -5402,6 +6292,9 @@ Notes:
 
 <details>
 <summary> warp3</summary>
+
+## warp3
+
 
 warp3 `mapbank` `map` `warp` `x` `y`
 
@@ -5417,7 +6310,7 @@ warp3 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp3 4 1 0 0 1
+warp3 0 1 0 3 3
 ```
 Notes:
 ```
@@ -5427,6 +6320,9 @@ Notes:
 
 <details>
 <summary> warp4</summary>
+
+## warp4
+
 
 warp4 `mapbank` `map` `warp` `x` `y`
 
@@ -5442,7 +6338,7 @@ warp4 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp4 3 0 0 1 0
+warp4 4 2 2 4 1
 ```
 Notes:
 ```
@@ -5452,6 +6348,9 @@ Notes:
 
 <details>
 <summary> warp5</summary>
+
+## warp5
+
 
 warp5 `mapbank` `map` `warp` `x` `y`
 
@@ -5467,7 +6366,7 @@ warp5 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp5 3 3 4 2 2
+warp5 2 1 4 0 1
 ```
 Notes:
 ```
@@ -5477,6 +6376,9 @@ Notes:
 
 <details>
 <summary> warp6</summary>
+
+## warp6
+
 
 warp6 `mapbank` `map` `warp` `x` `y`
 
@@ -5492,16 +6394,19 @@ warp6 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp6 4 1 2 1 4
+warp6 1 1 1 0 0
 ```
 Notes:
 ```
-  # sets a particular map to warp to upon using an escape rope/teleport
+  # sets a particular map to warp to upon using an escape rope/Dig
 ```
 </details>
 
 <details>
 <summary> warp7</summary>
+
+## warp7
+
 
 warp7 `mapbank` `map` `warp` `x` `y`
 
@@ -5519,7 +6424,7 @@ warp7 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp7 0 1 1 1 1
+warp7 4 1 0 2 4
 ```
 Notes:
 ```
@@ -5529,6 +6434,9 @@ Notes:
 
 <details>
 <summary> warp8</summary>
+
+## warp8
+
 
 warp8 `bank` `map` `exit` `x` `y`
 
@@ -5546,7 +6454,7 @@ warp8 `bank` `map` `exit` `x` `y`
 
 Example:
 ```
-warp8 0 0 4 1 0
+warp8 0 4 3 1 1
 ```
 Notes:
 ```
@@ -5557,6 +6465,9 @@ Notes:
 <details>
 <summary> warphole</summary>
 
+## warphole
+
+
 warphole `mapbank` `map`
 
 *  `mapbank` is a number.
@@ -5565,7 +6476,7 @@ warphole `mapbank` `map`
 
 Example:
 ```
-warphole 2 4
+warphole 3 0
 ```
 Notes:
 ```
@@ -5575,6 +6486,9 @@ Notes:
 
 <details>
 <summary> warpmuted</summary>
+
+## warpmuted
+
 
 warpmuted `mapbank` `map` `warp` `x` `y`
 
@@ -5590,7 +6504,7 @@ warpmuted `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warpmuted 0 4 3 1 1
+warpmuted 3 1 0 0 3
 ```
 Notes:
 ```
@@ -5600,6 +6514,9 @@ Notes:
 
 <details>
 <summary> warpteleport</summary>
+
+## warpteleport
+
 
 warpteleport `mapbank` `map` `warp` `x` `y`
 
@@ -5615,7 +6532,7 @@ warpteleport `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warpteleport 3 0 3 1 0
+warpteleport 4 1 1 4 1
 ```
 Notes:
 ```
@@ -5625,6 +6542,9 @@ Notes:
 
 <details>
 <summary> warpteleport2</summary>
+
+## warpteleport2
+
 
 warpteleport2 `bank` `map` `exit` `x` `y`
 
@@ -5642,7 +6562,7 @@ warpteleport2 `bank` `map` `exit` `x` `y`
 
 Example:
 ```
-warpteleport2 0 3 4 1 1
+warpteleport2 3 0 2 3 1
 ```
 Notes:
 ```
@@ -5652,6 +6572,9 @@ Notes:
 
 <details>
 <summary> warpwalk</summary>
+
+## warpwalk
+
 
 warpwalk `mapbank` `map` `warp` `x` `y`
 
@@ -5667,16 +6590,19 @@ warpwalk `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warpwalk 4 1 3 0 2
+warpwalk 2 3 4 4 3
 ```
 Notes:
 ```
-  # same as warp, but with a walking effect
+  # same as warp, but with a walking to an opening door effect
 ```
 </details>
 
 <details>
 <summary> wild.battle</summary>
+
+## wild.battle
+
 
 wild.battle `species` `level` `item`
 
@@ -5688,7 +6614,7 @@ wild.battle `species` `level` `item`
 
 Example:
 ```
-wild.battle DUSTOX 1 "IAPAPA BERRY"
+wild.battle MACHOKE 2 "BLUE SHARD"
 ```
 Notes:
 ```
@@ -5699,6 +6625,9 @@ Notes:
 <details>
 <summary> writebytetooffset</summary>
 
+## writebytetooffset
+
+
 writebytetooffset `value` `offset`
 
 *  `value` is a number.
@@ -5707,7 +6636,7 @@ writebytetooffset `value` `offset`
 
 Example:
 ```
-writebytetooffset 3 0x0F
+writebytetooffset 4 0x05
 ```
 Notes:
 ```
@@ -5718,6 +6647,9 @@ Notes:
 <details>
 <summary> yesnobox</summary>
 
+## yesnobox
+
+
 yesnobox `x` `y`
 
 *  `x` is a number.
@@ -5726,7 +6658,7 @@ yesnobox `x` `y`
 
 Example:
 ```
-yesnobox 4 3
+yesnobox 3 3
 ```
 Notes:
 ```
@@ -5746,6 +6678,8 @@ Use `special2 variable name` when doing an action that has a result.
 <details>
 <summary> AccessHallOfFamePC </summary>
 
+## AccessHallOfFamePC
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -5756,6 +6690,8 @@ special AccessHallOfFamePC
 
 <details>
 <summary> AnimateElevator </summary>
+
+## AnimateElevator
 
 *(Supports bpre, bpge)*
 
@@ -5768,6 +6704,8 @@ special AnimateElevator
 <details>
 <summary> AnimatePcTurnOff </summary>
 
+## AnimatePcTurnOff
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5778,6 +6716,8 @@ special AnimatePcTurnOff
 
 <details>
 <summary> AnimatePcTurnOn </summary>
+
+## AnimatePcTurnOn
 
 *(Supports bpre, bpge)*
 
@@ -5790,6 +6730,8 @@ special AnimatePcTurnOn
 <details>
 <summary> AnimateTeleporterCable </summary>
 
+## AnimateTeleporterCable
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5800,6 +6742,8 @@ special AnimateTeleporterCable
 
 <details>
 <summary> AnimateTeleporterHousing </summary>
+
+## AnimateTeleporterHousing
 
 *(Supports bpre, bpge)*
 
@@ -5812,6 +6756,8 @@ special AnimateTeleporterHousing
 <details>
 <summary> AreLeadMonEVsMaxedOut </summary>
 
+## AreLeadMonEVsMaxedOut
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5822,6 +6768,8 @@ special AreLeadMonEVsMaxedOut
 
 <details>
 <summary> AwardBattleTowerRibbons </summary>
+
+## AwardBattleTowerRibbons
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -5834,6 +6782,8 @@ special AwardBattleTowerRibbons
 <details>
 <summary> BackupHelpContext </summary>
 
+## BackupHelpContext
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5844,6 +6794,8 @@ special BackupHelpContext
 
 <details>
 <summary> Bag_ChooseBerry </summary>
+
+## Bag_ChooseBerry
 
 *(Supports bpee)*
 
@@ -5856,6 +6808,8 @@ special Bag_ChooseBerry
 <details>
 <summary> BattleCardAction </summary>
 
+## BattleCardAction
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5866,6 +6820,8 @@ special BattleCardAction
 
 <details>
 <summary> BattlePyramidChooseMonHeldItems </summary>
+
+## BattlePyramidChooseMonHeldItems
 
 *(Supports bpee)*
 
@@ -5878,6 +6834,8 @@ special BattlePyramidChooseMonHeldItems
 <details>
 <summary> BattleSetup_StartLatiBattle </summary>
 
+## BattleSetup_StartLatiBattle
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5888,6 +6846,8 @@ special BattleSetup_StartLatiBattle
 
 <details>
 <summary> BattleSetup_StartLegendaryBattle </summary>
+
+## BattleSetup_StartLegendaryBattle
 
 *(Supports bpee)*
 
@@ -5900,6 +6860,8 @@ special BattleSetup_StartLegendaryBattle
 <details>
 <summary> BattleSetup_StartRematchBattle </summary>
 
+## BattleSetup_StartRematchBattle
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -5910,6 +6872,8 @@ special BattleSetup_StartRematchBattle
 
 <details>
 <summary> BattleTower_SoftReset </summary>
+
+## BattleTower_SoftReset
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -5922,6 +6886,8 @@ special BattleTower_SoftReset
 <details>
 <summary> BattleTowerMapScript2 </summary>
 
+## BattleTowerMapScript2
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -5932,6 +6898,8 @@ special BattleTowerMapScript2
 
 <details>
 <summary> BattleTowerReconnectLink </summary>
+
+## BattleTowerReconnectLink
 
 *(Supports bpee)*
 
@@ -5944,6 +6912,8 @@ special BattleTowerReconnectLink
 <details>
 <summary> BattleTowerUtil </summary>
 
+## BattleTowerUtil
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -5954,6 +6924,8 @@ special BattleTowerUtil
 
 <details>
 <summary> BedroomPC </summary>
+
+## BedroomPC
 
 *(Supports all games.)*
 
@@ -5966,6 +6938,8 @@ special BedroomPC
 <details>
 <summary> Berry_FadeAndGoToBerryBagMenu </summary>
 
+## Berry_FadeAndGoToBerryBagMenu
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -5976,6 +6950,8 @@ special Berry_FadeAndGoToBerryBagMenu
 
 <details>
 <summary> BrailleCursorToggle </summary>
+
+## BrailleCursorToggle
 
 *(Supports bpre, bpge)*
 
@@ -5988,6 +6964,8 @@ special BrailleCursorToggle
 <details>
 <summary> BufferBattleFrontierTutorMoveName </summary>
 
+## BufferBattleFrontierTutorMoveName
+
 *(Supports bpee)*
 
 Example Usage:
@@ -5998,6 +6976,8 @@ special BufferBattleFrontierTutorMoveName
 
 <details>
 <summary> BufferBattleTowerElevatorFloors </summary>
+
+## BufferBattleTowerElevatorFloors
 
 *(Supports bpee)*
 
@@ -6010,6 +6990,8 @@ special BufferBattleTowerElevatorFloors
 <details>
 <summary> BufferBigGuyOrBigGirlString </summary>
 
+## BufferBigGuyOrBigGirlString
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6020,6 +7002,8 @@ special BufferBigGuyOrBigGirlString
 
 <details>
 <summary> BufferContestTrainerAndMonNames </summary>
+
+## BufferContestTrainerAndMonNames
 
 *(Supports axve, axpe, bpee)*
 
@@ -6032,6 +7016,8 @@ special BufferContestTrainerAndMonNames
 <details>
 <summary> BufferContestWinnerMonName </summary>
 
+## BufferContestWinnerMonName
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6042,6 +7028,8 @@ special BufferContestWinnerMonName
 
 <details>
 <summary> BufferContestWinnerTrainerName </summary>
+
+## BufferContestWinnerTrainerName
 
 *(Supports bpee)*
 
@@ -6054,6 +7042,8 @@ special BufferContestWinnerTrainerName
 <details>
 <summary> BufferDeepLinkPhrase </summary>
 
+## BufferDeepLinkPhrase
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6064,6 +7054,8 @@ special BufferDeepLinkPhrase
 
 <details>
 <summary> BufferEReaderTrainerGreeting </summary>
+
+## BufferEReaderTrainerGreeting
 
 *(Supports bpre, bpge)*
 
@@ -6076,6 +7068,8 @@ special BufferEReaderTrainerGreeting
 <details>
 <summary> BufferEReaderTrainerName </summary>
 
+## BufferEReaderTrainerName
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6086,6 +7080,8 @@ special BufferEReaderTrainerName
 
 <details>
 <summary> BufferFanClubTrainerName </summary>
+
+## BufferFanClubTrainerName
 
 *(Supports bpee)*
 
@@ -6098,6 +7094,8 @@ special BufferFanClubTrainerName
 <details>
 <summary> BufferFavorLadyItemName </summary>
 
+## BufferFavorLadyItemName
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6108,6 +7106,8 @@ special BufferFavorLadyItemName
 
 <details>
 <summary> BufferFavorLadyPlayerName </summary>
+
+## BufferFavorLadyPlayerName
 
 *(Supports bpee)*
 
@@ -6120,6 +7120,8 @@ special BufferFavorLadyPlayerName
 <details>
 <summary> BufferFavorLadyRequest </summary>
 
+## BufferFavorLadyRequest
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6130,6 +7132,8 @@ special BufferFavorLadyRequest
 
 <details>
 <summary> BufferLottoTicketNumber </summary>
+
+## BufferLottoTicketNumber
 
 *(Supports axve, axpe, bpee)*
 
@@ -6142,6 +7146,8 @@ special BufferLottoTicketNumber
 <details>
 <summary> BufferMonNickname </summary>
 
+## BufferMonNickname
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6152,6 +7158,8 @@ special BufferMonNickname
 
 <details>
 <summary> BufferMoveDeleterNicknameAndMove </summary>
+
+## BufferMoveDeleterNicknameAndMove
 
 *(Supports bpre, bpge, bpee)*
 
@@ -6164,6 +7172,8 @@ special BufferMoveDeleterNicknameAndMove
 <details>
 <summary> BufferQuizAuthorNameAndCheckIfLady </summary>
 
+## BufferQuizAuthorNameAndCheckIfLady
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6174,6 +7184,8 @@ special2 0x800D BufferQuizAuthorNameAndCheckIfLady
 
 <details>
 <summary> BufferQuizCorrectAnswer </summary>
+
+## BufferQuizCorrectAnswer
 
 *(Supports bpee)*
 
@@ -6186,6 +7198,8 @@ special BufferQuizCorrectAnswer
 <details>
 <summary> BufferQuizPrizeItem </summary>
 
+## BufferQuizPrizeItem
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6196,6 +7210,8 @@ special BufferQuizPrizeItem
 
 <details>
 <summary> BufferQuizPrizeName </summary>
+
+## BufferQuizPrizeName
 
 *(Supports bpee)*
 
@@ -6208,6 +7224,8 @@ special BufferQuizPrizeName
 <details>
 <summary> BufferRandomHobbyOrLifestyleString </summary>
 
+## BufferRandomHobbyOrLifestyleString
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6218,6 +7236,8 @@ special BufferRandomHobbyOrLifestyleString
 
 <details>
 <summary> BufferSecretBaseOwnerName </summary>
+
+## BufferSecretBaseOwnerName
 
 *(Supports axve, axpe)*
 
@@ -6230,6 +7250,8 @@ special BufferSecretBaseOwnerName
 <details>
 <summary> BufferSonOrDaughterString </summary>
 
+## BufferSonOrDaughterString
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6240,6 +7262,8 @@ special BufferSonOrDaughterString
 
 <details>
 <summary> BufferStreakTrainerText </summary>
+
+## BufferStreakTrainerText
 
 *(Supports axve, axpe)*
 
@@ -6252,6 +7276,8 @@ special BufferStreakTrainerText
 <details>
 <summary> BufferTMHMMoveName </summary>
 
+## BufferTMHMMoveName
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6262,6 +7288,8 @@ special BufferTMHMMoveName
 
 <details>
 <summary> BufferTrendyPhraseString </summary>
+
+## BufferTrendyPhraseString
 
 *(Supports axve, axpe, bpee)*
 
@@ -6274,6 +7302,8 @@ special BufferTrendyPhraseString
 <details>
 <summary> BufferUnionRoomPlayerName </summary>
 
+## BufferUnionRoomPlayerName
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6284,6 +7314,8 @@ special2 0x800D BufferUnionRoomPlayerName
 
 <details>
 <summary> BufferVarsForIVRater </summary>
+
+## BufferVarsForIVRater
 
 *(Supports bpee)*
 
@@ -6296,6 +7328,8 @@ special BufferVarsForIVRater
 <details>
 <summary> CableCar </summary>
 
+## CableCar
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6306,6 +7340,8 @@ special CableCar
 
 <details>
 <summary> CableCarWarp </summary>
+
+## CableCarWarp
 
 *(Supports axve, axpe, bpee)*
 
@@ -6318,6 +7354,8 @@ special CableCarWarp
 <details>
 <summary> CableClub_AskSaveTheGame </summary>
 
+## CableClub_AskSaveTheGame
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6328,6 +7366,8 @@ special CableClub_AskSaveTheGame
 
 <details>
 <summary> CableClubSaveGame </summary>
+
+## CableClubSaveGame
 
 *(Supports bpee)*
 
@@ -6340,6 +7380,8 @@ special CableClubSaveGame
 <details>
 <summary> CalculatePlayerPartyCount </summary>
 
+## CalculatePlayerPartyCount
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6350,6 +7392,8 @@ special2 0x800D CalculatePlayerPartyCount
 
 <details>
 <summary> CallApprenticeFunction </summary>
+
+## CallApprenticeFunction
 
 *(Supports bpee)*
 
@@ -6362,6 +7406,8 @@ special CallApprenticeFunction
 <details>
 <summary> CallBattleArenaFunction </summary>
 
+## CallBattleArenaFunction
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6372,6 +7418,8 @@ special CallBattleArenaFunction
 
 <details>
 <summary> CallBattleDomeFunction </summary>
+
+## CallBattleDomeFunction
 
 *(Supports bpee)*
 
@@ -6384,6 +7432,8 @@ special CallBattleDomeFunction
 <details>
 <summary> CallBattleFactoryFunction </summary>
 
+## CallBattleFactoryFunction
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6394,6 +7444,8 @@ special CallBattleFactoryFunction
 
 <details>
 <summary> CallBattlePalaceFunction </summary>
+
+## CallBattlePalaceFunction
 
 *(Supports bpee)*
 
@@ -6406,6 +7458,8 @@ special CallBattlePalaceFunction
 <details>
 <summary> CallBattlePikeFunction </summary>
 
+## CallBattlePikeFunction
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6416,6 +7470,8 @@ special CallBattlePikeFunction
 
 <details>
 <summary> CallBattlePyramidFunction </summary>
+
+## CallBattlePyramidFunction
 
 *(Supports bpee)*
 
@@ -6428,6 +7484,8 @@ special CallBattlePyramidFunction
 <details>
 <summary> CallBattleTowerFunc </summary>
 
+## CallBattleTowerFunc
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6438,6 +7496,8 @@ special CallBattleTowerFunc
 
 <details>
 <summary> CallFallarborTentFunction </summary>
+
+## CallFallarborTentFunction
 
 *(Supports bpee)*
 
@@ -6450,6 +7510,8 @@ special CallFallarborTentFunction
 <details>
 <summary> CallFrontierUtilFunc </summary>
 
+## CallFrontierUtilFunc
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6460,6 +7522,8 @@ special CallFrontierUtilFunc
 
 <details>
 <summary> CallSlateportTentFunction </summary>
+
+## CallSlateportTentFunction
 
 *(Supports bpee)*
 
@@ -6472,6 +7536,8 @@ special CallSlateportTentFunction
 <details>
 <summary> CallTrainerHillFunction </summary>
 
+## CallTrainerHillFunction
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6482,6 +7548,8 @@ special CallTrainerHillFunction
 
 <details>
 <summary> CallTrainerTowerFunc </summary>
+
+## CallTrainerTowerFunc
 
 *(Supports bpre, bpge)*
 
@@ -6494,6 +7562,8 @@ special CallTrainerTowerFunc
 <details>
 <summary> CallVerdanturfTentFunction </summary>
 
+## CallVerdanturfTentFunction
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6504,6 +7574,8 @@ special CallVerdanturfTentFunction
 
 <details>
 <summary> CapeBrinkGetMoveToTeachLeadPokemon </summary>
+
+## CapeBrinkGetMoveToTeachLeadPokemon
 
 *(Supports bpre, bpge)*
 
@@ -6516,6 +7588,8 @@ special2 0x800D CapeBrinkGetMoveToTeachLeadPokemon
 <details>
 <summary> ChangeBoxPokemonNickname </summary>
 
+## ChangeBoxPokemonNickname
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6526,6 +7600,8 @@ special ChangeBoxPokemonNickname
 
 <details>
 <summary> ChangePokemonNickname </summary>
+
+## ChangePokemonNickname
 
 *(Supports all games.)*
 
@@ -6538,6 +7614,8 @@ special ChangePokemonNickname
 <details>
 <summary> CheckAddCoins </summary>
 
+## CheckAddCoins
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -6548,6 +7626,8 @@ special CheckAddCoins
 
 <details>
 <summary> CheckDaycareMonReceivedMail </summary>
+
+## CheckDaycareMonReceivedMail
 
 *(Supports bpee)*
 
@@ -6560,6 +7640,8 @@ special2 0x800D CheckDaycareMonReceivedMail
 <details>
 <summary> CheckForBigMovieOrEmergencyNewsOnTV </summary>
 
+## CheckForBigMovieOrEmergencyNewsOnTV
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6570,6 +7652,8 @@ special CheckForBigMovieOrEmergencyNewsOnTV
 
 <details>
 <summary> CheckForPlayersHouseNews </summary>
+
+## CheckForPlayersHouseNews
 
 *(Supports bpee)*
 
@@ -6582,6 +7666,8 @@ special CheckForPlayersHouseNews
 <details>
 <summary> CheckFreePokemonStorageSpace </summary>
 
+## CheckFreePokemonStorageSpace
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -6592,6 +7678,8 @@ special2 0x800D CheckFreePokemonStorageSpace
 
 <details>
 <summary> CheckInteractedWithFriendsCushionDecor </summary>
+
+## CheckInteractedWithFriendsCushionDecor
 
 *(Supports bpee)*
 
@@ -6604,6 +7692,8 @@ special CheckInteractedWithFriendsCushionDecor
 <details>
 <summary> CheckInteractedWithFriendsDollDecor </summary>
 
+## CheckInteractedWithFriendsDollDecor
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6614,6 +7704,8 @@ special CheckInteractedWithFriendsDollDecor
 
 <details>
 <summary> CheckInteractedWithFriendsFurnitureBottom </summary>
+
+## CheckInteractedWithFriendsFurnitureBottom
 
 *(Supports bpee)*
 
@@ -6626,6 +7718,8 @@ special CheckInteractedWithFriendsFurnitureBottom
 <details>
 <summary> CheckInteractedWithFriendsFurnitureMiddle </summary>
 
+## CheckInteractedWithFriendsFurnitureMiddle
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6636,6 +7730,8 @@ special CheckInteractedWithFriendsFurnitureMiddle
 
 <details>
 <summary> CheckInteractedWithFriendsFurnitureTop </summary>
+
+## CheckInteractedWithFriendsFurnitureTop
 
 *(Supports bpee)*
 
@@ -6648,6 +7744,8 @@ special CheckInteractedWithFriendsFurnitureTop
 <details>
 <summary> CheckInteractedWithFriendsPosterDecor </summary>
 
+## CheckInteractedWithFriendsPosterDecor
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6658,6 +7756,8 @@ special CheckInteractedWithFriendsPosterDecor
 
 <details>
 <summary> CheckInteractedWithFriendsSandOrnament </summary>
+
+## CheckInteractedWithFriendsSandOrnament
 
 *(Supports bpee)*
 
@@ -6670,6 +7770,8 @@ special CheckInteractedWithFriendsSandOrnament
 <details>
 <summary> CheckLeadMonBeauty </summary>
 
+## CheckLeadMonBeauty
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6680,6 +7782,8 @@ special2 0x800D CheckLeadMonBeauty
 
 <details>
 <summary> CheckLeadMonCool </summary>
+
+## CheckLeadMonCool
 
 *(Supports axve, axpe, bpee)*
 
@@ -6692,6 +7796,8 @@ special2 0x800D CheckLeadMonCool
 <details>
 <summary> CheckLeadMonCute </summary>
 
+## CheckLeadMonCute
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6702,6 +7808,8 @@ special2 0x800D CheckLeadMonCute
 
 <details>
 <summary> CheckLeadMonSmart </summary>
+
+## CheckLeadMonSmart
 
 *(Supports axve, axpe, bpee)*
 
@@ -6714,6 +7822,8 @@ special2 0x800D CheckLeadMonSmart
 <details>
 <summary> CheckLeadMonTough </summary>
 
+## CheckLeadMonTough
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6724,6 +7834,8 @@ special2 0x800D CheckLeadMonTough
 
 <details>
 <summary> CheckPartyBattleTowerBanlist </summary>
+
+## CheckPartyBattleTowerBanlist
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -6736,6 +7848,8 @@ special CheckPartyBattleTowerBanlist
 <details>
 <summary> CheckPlayerHasSecretBase </summary>
 
+## CheckPlayerHasSecretBase
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -6746,6 +7860,8 @@ special CheckPlayerHasSecretBase
 
 <details>
 <summary> CheckRelicanthWailord </summary>
+
+## CheckRelicanthWailord
 
 *(Supports axve, axpe, bpee)*
 
@@ -6758,6 +7874,8 @@ special2 0x800D CheckRelicanthWailord
 <details>
 <summary> ChooseBattleTowerPlayerParty </summary>
 
+## ChooseBattleTowerPlayerParty
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6768,6 +7886,8 @@ special ChooseBattleTowerPlayerParty
 
 <details>
 <summary> ChooseHalfPartyForBattle </summary>
+
+## ChooseHalfPartyForBattle
 
 *(Supports bpre, bpge, bpee)*
 
@@ -6780,6 +7900,8 @@ special ChooseHalfPartyForBattle
 <details>
 <summary> ChooseItemsToTossFromPyramidBag </summary>
 
+## ChooseItemsToTossFromPyramidBag
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6790,6 +7912,8 @@ special ChooseItemsToTossFromPyramidBag
 
 <details>
 <summary> ChooseMonForMoveRelearner </summary>
+
+## ChooseMonForMoveRelearner
 
 *(Supports bpee)*
 
@@ -6802,6 +7926,8 @@ special ChooseMonForMoveRelearner
 <details>
 <summary> ChooseMonForMoveTutor </summary>
 
+## ChooseMonForMoveTutor
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6812,6 +7938,8 @@ special ChooseMonForMoveTutor
 
 <details>
 <summary> ChooseMonForWirelessMinigame </summary>
+
+## ChooseMonForWirelessMinigame
 
 *(Supports bpre, bpge, bpee)*
 
@@ -6824,6 +7952,8 @@ special ChooseMonForWirelessMinigame
 <details>
 <summary> ChooseNextBattleTowerTrainer </summary>
 
+## ChooseNextBattleTowerTrainer
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -6835,6 +7965,8 @@ special ChooseNextBattleTowerTrainer
 <details>
 <summary> ChoosePartyForBattleFrontier </summary>
 
+## ChoosePartyForBattleFrontier
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6845,6 +7977,8 @@ special ChoosePartyForBattleFrontier
 
 <details>
 <summary> ChoosePartyMon </summary>
+
+## ChoosePartyMon
 
 *(Supports all games.)*
 
@@ -6859,6 +7993,8 @@ Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for
 <details>
 <summary> ChooseSendDaycareMon </summary>
 
+## ChooseSendDaycareMon
+
 *(Supports all games.)*
 
 Example Usage:
@@ -6869,6 +8005,8 @@ special ChooseSendDaycareMon
 
 <details>
 <summary> ChooseStarter </summary>
+
+## ChooseStarter
 
 *(Supports bpee)*
 
@@ -6881,6 +8019,8 @@ special ChooseStarter
 <details>
 <summary> CleanupLinkRoomState </summary>
 
+## CleanupLinkRoomState
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -6891,6 +8031,8 @@ special CleanupLinkRoomState
 
 <details>
 <summary> ClearAndLeaveSecretBase </summary>
+
+## ClearAndLeaveSecretBase
 
 *(Supports bpee)*
 
@@ -6903,6 +8045,8 @@ special ClearAndLeaveSecretBase
 <details>
 <summary> ClearLinkContestFlags </summary>
 
+## ClearLinkContestFlags
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6913,6 +8057,8 @@ special ClearLinkContestFlags
 
 <details>
 <summary> ClearQuizLadyPlayerAnswer </summary>
+
+## ClearQuizLadyPlayerAnswer
 
 *(Supports bpee)*
 
@@ -6925,6 +8071,8 @@ special ClearQuizLadyPlayerAnswer
 <details>
 <summary> ClearQuizLadyQuestionAndAnswer </summary>
 
+## ClearQuizLadyQuestionAndAnswer
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6935,6 +8083,8 @@ special ClearQuizLadyQuestionAndAnswer
 
 <details>
 <summary> CloseBattleFrontierTutorWindow </summary>
+
+## CloseBattleFrontierTutorWindow
 
 *(Supports bpee)*
 
@@ -6947,6 +8097,8 @@ special CloseBattleFrontierTutorWindow
 <details>
 <summary> CloseBattlePikeCurtain </summary>
 
+## CloseBattlePikeCurtain
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6957,6 +8109,8 @@ special CloseBattlePikeCurtain
 
 <details>
 <summary> CloseBattlePointsWindow </summary>
+
+## CloseBattlePointsWindow
 
 *(Supports bpee)*
 
@@ -6969,6 +8123,8 @@ special CloseBattlePointsWindow
 <details>
 <summary> CloseDeptStoreElevatorWindow </summary>
 
+## CloseDeptStoreElevatorWindow
+
 *(Supports bpee)*
 
 Example Usage:
@@ -6979,6 +8135,8 @@ special CloseDeptStoreElevatorWindow
 
 <details>
 <summary> CloseElevatorCurrentFloorWindow </summary>
+
+## CloseElevatorCurrentFloorWindow
 
 *(Supports bpre, bpge)*
 
@@ -6991,6 +8149,8 @@ special CloseElevatorCurrentFloorWindow
 <details>
 <summary> CloseFrontierExchangeCornerItemIconWindow </summary>
 
+## CloseFrontierExchangeCornerItemIconWindow
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7001,6 +8161,8 @@ special CloseFrontierExchangeCornerItemIconWindow
 
 <details>
 <summary> CloseLink </summary>
+
+## CloseLink
 
 *(Supports all games.)*
 
@@ -7013,6 +8175,8 @@ special CloseLink
 <details>
 <summary> CloseMuseumFossilPic </summary>
 
+## CloseMuseumFossilPic
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7023,6 +8187,8 @@ special CloseMuseumFossilPic
 
 <details>
 <summary> ColosseumPlayerSpotTriggered </summary>
+
+## ColosseumPlayerSpotTriggered
 
 *(Supports bpee)*
 
@@ -7035,6 +8201,8 @@ special ColosseumPlayerSpotTriggered
 <details>
 <summary> CompareBarboachSize </summary>
 
+## CompareBarboachSize
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7045,6 +8213,8 @@ special CompareBarboachSize
 
 <details>
 <summary> CompareHeracrossSize </summary>
+
+## CompareHeracrossSize
 
 *(Supports bpre, bpge)*
 
@@ -7057,6 +8227,8 @@ special CompareHeracrossSize
 <details>
 <summary> CompareLotadSize </summary>
 
+## CompareLotadSize
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7067,6 +8239,8 @@ special CompareLotadSize
 
 <details>
 <summary> CompareMagikarpSize </summary>
+
+## CompareMagikarpSize
 
 *(Supports bpre, bpge)*
 
@@ -7079,6 +8253,8 @@ special CompareMagikarpSize
 <details>
 <summary> CompareSeedotSize </summary>
 
+## CompareSeedotSize
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7089,6 +8265,8 @@ special CompareSeedotSize
 
 <details>
 <summary> CompareShroomishSize </summary>
+
+## CompareShroomishSize
 
 *(Supports axve, axpe)*
 
@@ -7101,6 +8279,8 @@ special CompareShroomishSize
 <details>
 <summary> CompletedHoennPokedex </summary>
 
+## CompletedHoennPokedex
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7111,6 +8291,8 @@ special2 0x800D CompletedHoennPokedex
 
 <details>
 <summary> CopyCurSecretBaseOwnerName_StrVar1 </summary>
+
+## CopyCurSecretBaseOwnerName_StrVar1
 
 *(Supports bpee)*
 
@@ -7123,6 +8305,8 @@ special CopyCurSecretBaseOwnerName_StrVar1
 <details>
 <summary> CopyEReaderTrainerGreeting </summary>
 
+## CopyEReaderTrainerGreeting
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7133,6 +8317,8 @@ special CopyEReaderTrainerGreeting
 
 <details>
 <summary> CountAlivePartyMonsExceptSelectedOne </summary>
+
+## CountAlivePartyMonsExceptSelectedOne
 
 *(Supports axve, axpe)*
 
@@ -7145,6 +8331,8 @@ special2 0x800D CountAlivePartyMonsExceptSelectedOne
 <details>
 <summary> CountPartyAliveNonEggMons </summary>
 
+## CountPartyAliveNonEggMons
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7155,6 +8343,8 @@ special2 0x800D CountPartyAliveNonEggMons
 
 <details>
 <summary> CountPartyAliveNonEggMons_IgnoreVar0x8004Slot </summary>
+
+## CountPartyAliveNonEggMons_IgnoreVar0x8004Slot
 
 *(Supports bpre, bpge, bpee)*
 
@@ -7167,6 +8357,8 @@ special2 0x800D CountPartyAliveNonEggMons_IgnoreVar0x8004Slot
 <details>
 <summary> CountPartyNonEggMons </summary>
 
+## CountPartyNonEggMons
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7177,6 +8369,8 @@ special2 0x800D CountPartyNonEggMons
 
 <details>
 <summary> CountPlayerMuseumPaintings </summary>
+
+## CountPlayerMuseumPaintings
 
 *(Supports axve, axpe, bpee)*
 
@@ -7189,6 +8383,8 @@ special2 0x8004 CountPlayerMuseumPaintings
 <details>
 <summary> CountPlayerTrainerStars </summary>
 
+## CountPlayerTrainerStars
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7199,6 +8395,8 @@ special2 0x800D CountPlayerTrainerStars
 
 <details>
 <summary> CreateAbnormalWeatherEvent </summary>
+
+## CreateAbnormalWeatherEvent
 
 *(Supports bpee)*
 
@@ -7211,6 +8409,8 @@ special CreateAbnormalWeatherEvent
 <details>
 <summary> CreateEventLegalEnemyMon </summary>
 
+## CreateEventLegalEnemyMon
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7221,6 +8421,8 @@ special CreateEventLegalEnemyMon
 
 <details>
 <summary> CreateInGameTradePokemon </summary>
+
+## CreateInGameTradePokemon
 
 *(Supports all games.)*
 
@@ -7233,6 +8435,8 @@ special CreateInGameTradePokemon
 <details>
 <summary> CreatePCMenu </summary>
 
+## CreatePCMenu
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7243,6 +8447,8 @@ special CreatePCMenu
 
 <details>
 <summary> DaisyMassageServices </summary>
+
+## DaisyMassageServices
 
 *(Supports bpre, bpge)*
 
@@ -7255,6 +8461,8 @@ special DaisyMassageServices
 <details>
 <summary> DaycareMonReceivedMail </summary>
 
+## DaycareMonReceivedMail
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7265,6 +8473,8 @@ special2 0x800D DaycareMonReceivedMail
 
 <details>
 <summary> DeclinedSecretBaseBattle </summary>
+
+## DeclinedSecretBaseBattle
 
 *(Supports bpee)*
 
@@ -7277,6 +8487,8 @@ special DeclinedSecretBaseBattle
 <details>
 <summary> DeleteMonMove </summary>
 
+## DeleteMonMove
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7287,6 +8499,8 @@ special DeleteMonMove
 
 <details>
 <summary> DestroyMewEmergingGrassSprite </summary>
+
+## DestroyMewEmergingGrassSprite
 
 *(Supports bpee)*
 
@@ -7299,6 +8513,8 @@ special DestroyMewEmergingGrassSprite
 <details>
 <summary> DetermineBattleTowerPrize </summary>
 
+## DetermineBattleTowerPrize
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7309,6 +8525,8 @@ special DetermineBattleTowerPrize
 
 <details>
 <summary> DidFavorLadyLikeItem </summary>
+
+## DidFavorLadyLikeItem
 
 *(Supports bpee)*
 
@@ -7321,6 +8539,8 @@ special2 0x800D DidFavorLadyLikeItem
 <details>
 <summary> DisableMsgBoxWalkaway </summary>
 
+## DisableMsgBoxWalkaway
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7331,6 +8551,8 @@ special DisableMsgBoxWalkaway
 
 <details>
 <summary> DisplayBerryPowderVendorMenu </summary>
+
+## DisplayBerryPowderVendorMenu
 
 *(Supports bpre, bpge, bpee)*
 
@@ -7343,6 +8565,8 @@ special DisplayBerryPowderVendorMenu
 <details>
 <summary> DisplayCurrentElevatorFloor </summary>
 
+## DisplayCurrentElevatorFloor
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7353,6 +8577,8 @@ special DisplayCurrentElevatorFloor
 
 <details>
 <summary> DisplayMoveTutorMenu </summary>
+
+## DisplayMoveTutorMenu
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -7365,6 +8591,8 @@ special DisplayMoveTutorMenu
 <details>
 <summary> DoBattlePyramidMonsHaveHeldItem </summary>
 
+## DoBattlePyramidMonsHaveHeldItem
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7375,6 +8603,8 @@ special DoBattlePyramidMonsHaveHeldItem
 
 <details>
 <summary> DoBerryBlending </summary>
+
+## DoBerryBlending
 
 *(Supports axve, axpe, bpee)*
 
@@ -7387,6 +8617,8 @@ special DoBerryBlending
 <details>
 <summary> DoBrailleWait </summary>
 
+## DoBrailleWait
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -7397,6 +8629,8 @@ special DoBrailleWait
 
 <details>
 <summary> DoCableClubWarp </summary>
+
+## DoCableClubWarp
 
 *(Supports all games.)*
 
@@ -7409,6 +8643,8 @@ special DoCableClubWarp
 <details>
 <summary> DoContestHallWarp </summary>
 
+## DoContestHallWarp
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7419,6 +8655,8 @@ special DoContestHallWarp
 
 <details>
 <summary> DoCredits </summary>
+
+## DoCredits
 
 *(Supports bpre, bpge)*
 
@@ -7431,6 +8669,8 @@ special DoCredits
 <details>
 <summary> DoDeoxysRockInteraction </summary>
 
+## DoDeoxysRockInteraction
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7441,6 +8681,8 @@ special DoDeoxysRockInteraction
 
 <details>
 <summary> DoDeoxysTriangleInteraction </summary>
+
+## DoDeoxysTriangleInteraction
 
 *(Supports bpre, bpge)*
 
@@ -7453,6 +8695,8 @@ special DoDeoxysTriangleInteraction
 <details>
 <summary> DoDiveWarp </summary>
 
+## DoDiveWarp
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7463,6 +8707,8 @@ special DoDiveWarp
 
 <details>
 <summary> DoDomeConfetti </summary>
+
+## DoDomeConfetti
 
 *(Supports bpee)*
 
@@ -7475,6 +8721,8 @@ special DoDomeConfetti
 <details>
 <summary> DoesContestCategoryHaveMuseumPainting </summary>
 
+## DoesContestCategoryHaveMuseumPainting
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7486,6 +8734,8 @@ special DoesContestCategoryHaveMuseumPainting
 <details>
 <summary> DoesPartyHaveEnigmaBerry </summary>
 
+## DoesPartyHaveEnigmaBerry
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7496,6 +8746,8 @@ special2 0x800D DoesPartyHaveEnigmaBerry
 
 <details>
 <summary> DoesPlayerPartyContainSpecies </summary>
+
+## DoesPlayerPartyContainSpecies
 
 *(Supports bpre, bpge)*
 
@@ -7510,6 +8762,8 @@ read species from 0x8004, if it's in the party, return 1 (recomend returning to 
 <details>
 <summary> DoFallWarp </summary>
 
+## DoFallWarp
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7520,6 +8774,8 @@ special DoFallWarp
 
 <details>
 <summary> DoInGameTradeScene </summary>
+
+## DoInGameTradeScene
 
 *(Supports all games.)*
 
@@ -7532,6 +8788,8 @@ special DoInGameTradeScene
 <details>
 <summary> DoLotteryCornerComputerEffect </summary>
 
+## DoLotteryCornerComputerEffect
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7542,6 +8800,8 @@ special DoLotteryCornerComputerEffect
 
 <details>
 <summary> DoMirageTowerCeilingCrumble </summary>
+
+## DoMirageTowerCeilingCrumble
 
 *(Supports bpee)*
 
@@ -7554,6 +8814,8 @@ special DoMirageTowerCeilingCrumble
 <details>
 <summary> DoOrbEffect </summary>
 
+## DoOrbEffect
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7564,6 +8826,8 @@ special DoOrbEffect
 
 <details>
 <summary> DoPCTurnOffEffect </summary>
+
+## DoPCTurnOffEffect
 
 *(Supports axve, axpe, bpee)*
 
@@ -7576,6 +8840,8 @@ special DoPCTurnOffEffect
 <details>
 <summary> DoPCTurnOnEffect </summary>
 
+## DoPCTurnOnEffect
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7586,6 +8852,8 @@ special DoPCTurnOnEffect
 
 <details>
 <summary> DoPicboxCancel </summary>
+
+## DoPicboxCancel
 
 *(Supports bpre, bpge)*
 
@@ -7598,6 +8866,8 @@ special DoPicboxCancel
 <details>
 <summary> DoPokemonLeagueLightingEffect </summary>
 
+## DoPokemonLeagueLightingEffect
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7608,6 +8878,8 @@ special DoPokemonLeagueLightingEffect
 
 <details>
 <summary> DoPokeNews </summary>
+
+## DoPokeNews
 
 *(Supports axve, axpe, bpee)*
 
@@ -7620,6 +8892,8 @@ special DoPokeNews
 <details>
 <summary> DoSeagallopFerryScene </summary>
 
+## DoSeagallopFerryScene
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7630,6 +8904,8 @@ special DoSeagallopFerryScene
 
 <details>
 <summary> DoSealedChamberShakingEffect1 </summary>
+
+## DoSealedChamberShakingEffect1
 
 *(Supports axve, axpe, bpee)*
 
@@ -7642,6 +8918,8 @@ special DoSealedChamberShakingEffect1
 <details>
 <summary> DoSealedChamberShakingEffect2 </summary>
 
+## DoSealedChamberShakingEffect2
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7652,6 +8930,8 @@ special DoSealedChamberShakingEffect2
 
 <details>
 <summary> DoSecretBasePCTurnOffEffect </summary>
+
+## DoSecretBasePCTurnOffEffect
 
 *(Supports axve, axpe, bpee)*
 
@@ -7664,6 +8944,8 @@ special DoSecretBasePCTurnOffEffect
 <details>
 <summary> DoSoftReset </summary>
 
+## DoSoftReset
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7674,6 +8956,8 @@ special DoSoftReset
 
 <details>
 <summary> DoSpecialTrainerBattle </summary>
+
+## DoSpecialTrainerBattle
 
 *(Supports bpee)*
 
@@ -7686,6 +8970,8 @@ special DoSpecialTrainerBattle
 <details>
 <summary> DoSSAnneDepartureCutscene </summary>
 
+## DoSSAnneDepartureCutscene
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7696,6 +8982,8 @@ special DoSSAnneDepartureCutscene
 
 <details>
 <summary> DoTrainerApproach </summary>
+
+## DoTrainerApproach
 
 *(Supports bpee)*
 
@@ -7708,6 +8996,8 @@ special DoTrainerApproach
 <details>
 <summary> DoTVShow </summary>
 
+## DoTVShow
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -7718,6 +9008,8 @@ special DoTVShow
 
 <details>
 <summary> DoTVShowInSearchOfTrainers </summary>
+
+## DoTVShowInSearchOfTrainers
 
 *(Supports axve, axpe, bpee)*
 
@@ -7730,6 +9022,8 @@ special DoTVShowInSearchOfTrainers
 <details>
 <summary> DoWaldaNamingScreen </summary>
 
+## DoWaldaNamingScreen
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7740,6 +9034,8 @@ special DoWaldaNamingScreen
 
 <details>
 <summary> DoWateringBerryTreeAnim </summary>
+
+## DoWateringBerryTreeAnim
 
 *(Supports all games.)*
 
@@ -7752,6 +9048,8 @@ special DoWateringBerryTreeAnim
 <details>
 <summary> DrawElevatorCurrentFloorWindow </summary>
 
+## DrawElevatorCurrentFloorWindow
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7762,6 +9060,8 @@ special DrawElevatorCurrentFloorWindow
 
 <details>
 <summary> DrawSeagallopDestinationMenu </summary>
+
+## DrawSeagallopDestinationMenu
 
 *(Supports bpre, bpge)*
 
@@ -7774,6 +9074,8 @@ special DrawSeagallopDestinationMenu
 <details>
 <summary> DrawWholeMapView </summary>
 
+## DrawWholeMapView
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7784,6 +9086,8 @@ special DrawWholeMapView
 
 <details>
 <summary> DrewSecretBaseBattle </summary>
+
+## DrewSecretBaseBattle
 
 *(Supports bpee)*
 
@@ -7796,6 +9100,8 @@ special DrewSecretBaseBattle
 <details>
 <summary> Dummy_TryEnableBravoTrainerBattleTower </summary>
 
+## Dummy_TryEnableBravoTrainerBattleTower
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7806,6 +9112,8 @@ special Dummy_TryEnableBravoTrainerBattleTower
 
 <details>
 <summary> EggHatch </summary>
+
+## EggHatch
 
 *(Supports all games.)*
 
@@ -7818,6 +9126,8 @@ special EggHatch
 <details>
 <summary> EnableNationalPokedex </summary>
 
+## EnableNationalPokedex
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7828,6 +9138,8 @@ special EnableNationalPokedex
 
 <details>
 <summary> EndLotteryCornerComputerEffect </summary>
+
+## EndLotteryCornerComputerEffect
 
 *(Supports axve, axpe, bpee)*
 
@@ -7840,6 +9152,8 @@ special EndLotteryCornerComputerEffect
 <details>
 <summary> EndTrainerApproach </summary>
 
+## EndTrainerApproach
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -7850,6 +9164,8 @@ special EndTrainerApproach
 
 <details>
 <summary> EnterColosseumPlayerSpot </summary>
+
+## EnterColosseumPlayerSpot
 
 *(Supports bpre, bpge)*
 
@@ -7862,6 +9178,8 @@ special EnterColosseumPlayerSpot
 <details>
 <summary> EnterHallOfFame </summary>
 
+## EnterHallOfFame
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7872,6 +9190,8 @@ special EnterHallOfFame
 
 <details>
 <summary> EnterNewlyCreatedSecretBase </summary>
+
+## EnterNewlyCreatedSecretBase
 
 *(Supports bpee)*
 
@@ -7884,6 +9204,8 @@ special EnterNewlyCreatedSecretBase
 <details>
 <summary> EnterSafariMode </summary>
 
+## EnterSafariMode
+
 *(Supports all games.)*
 
 Example Usage:
@@ -7894,6 +9216,8 @@ special EnterSafariMode
 
 <details>
 <summary> EnterSecretBase </summary>
+
+## EnterSecretBase
 
 *(Supports bpee)*
 
@@ -7906,6 +9230,8 @@ special EnterSecretBase
 <details>
 <summary> EnterTradeSeat </summary>
 
+## EnterTradeSeat
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7916,6 +9242,8 @@ special EnterTradeSeat
 
 <details>
 <summary> ExecuteWhiteOut </summary>
+
+## ExecuteWhiteOut
 
 *(Supports axve, axpe)*
 
@@ -7928,6 +9256,8 @@ special ExecuteWhiteOut
 <details>
 <summary> ExitLinkRoom </summary>
 
+## ExitLinkRoom
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -7938,6 +9268,8 @@ special ExitLinkRoom
 
 <details>
 <summary> ExitSafariMode </summary>
+
+## ExitSafariMode
 
 *(Supports all games.)*
 
@@ -7950,6 +9282,8 @@ special ExitSafariMode
 <details>
 <summary> FadeOutOrbEffect </summary>
 
+## FadeOutOrbEffect
+
 *(Supports bpee)*
 
 Example Usage:
@@ -7960,6 +9294,8 @@ special FadeOutOrbEffect
 
 <details>
 <summary> FavorLadyGetPrize </summary>
+
+## FavorLadyGetPrize
 
 *(Supports bpee)*
 
@@ -7972,6 +9308,8 @@ special2 0x8004 FavorLadyGetPrize
 <details>
 <summary> Field_AskSaveTheGame </summary>
 
+## Field_AskSaveTheGame
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -7982,6 +9320,8 @@ special Field_AskSaveTheGame
 
 <details>
 <summary> FieldShowRegionMap </summary>
+
+## FieldShowRegionMap
 
 *(Supports axve, axpe, bpee)*
 
@@ -7994,6 +9334,8 @@ special FieldShowRegionMap
 <details>
 <summary> FinishCyclingRoadChallenge </summary>
 
+## FinishCyclingRoadChallenge
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8004,6 +9346,8 @@ special FinishCyclingRoadChallenge
 
 <details>
 <summary> ForcePlayerOntoBike </summary>
+
+## ForcePlayerOntoBike
 
 *(Supports bpre, bpge)*
 
@@ -8016,6 +9360,8 @@ special ForcePlayerOntoBike
 <details>
 <summary> ForcePlayerToStartSurfing </summary>
 
+## ForcePlayerToStartSurfing
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8026,6 +9372,8 @@ special ForcePlayerToStartSurfing
 
 <details>
 <summary> FoundAbandonedShipRoom1Key </summary>
+
+## FoundAbandonedShipRoom1Key
 
 *(Supports axve, axpe, bpee)*
 
@@ -8038,6 +9386,8 @@ special2 0x800D FoundAbandonedShipRoom1Key
 <details>
 <summary> FoundAbandonedShipRoom2Key </summary>
 
+## FoundAbandonedShipRoom2Key
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8048,6 +9398,8 @@ special2 0x800D FoundAbandonedShipRoom2Key
 
 <details>
 <summary> FoundAbandonedShipRoom4Key </summary>
+
+## FoundAbandonedShipRoom4Key
 
 *(Supports axve, axpe, bpee)*
 
@@ -8060,6 +9412,8 @@ special2 0x800D FoundAbandonedShipRoom4Key
 <details>
 <summary> FoundAbandonedShipRoom6Key </summary>
 
+## FoundAbandonedShipRoom6Key
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8070,6 +9424,8 @@ special2 0x800D FoundAbandonedShipRoom6Key
 
 <details>
 <summary> FoundBlackGlasses </summary>
+
+## FoundBlackGlasses
 
 *(Supports axve, axpe, bpee)*
 
@@ -8082,6 +9438,8 @@ special2 0x800D FoundBlackGlasses
 <details>
 <summary> GabbyAndTyAfterInterview </summary>
 
+## GabbyAndTyAfterInterview
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8092,6 +9450,8 @@ special GabbyAndTyAfterInterview
 
 <details>
 <summary> GabbyAndTyBeforeInterview </summary>
+
+## GabbyAndTyBeforeInterview
 
 *(Supports axve, axpe, bpee)*
 
@@ -8104,6 +9464,8 @@ special GabbyAndTyBeforeInterview
 <details>
 <summary> GabbyAndTyGetBattleNum </summary>
 
+## GabbyAndTyGetBattleNum
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8114,6 +9476,8 @@ special2 0x800D GabbyAndTyGetBattleNum
 
 <details>
 <summary> GabbyAndTyGetLastBattleTrivia </summary>
+
+## GabbyAndTyGetLastBattleTrivia
 
 *(Supports axve, axpe, bpee)*
 
@@ -8126,6 +9490,8 @@ special2 0x800D GabbyAndTyGetLastBattleTrivia
 <details>
 <summary> GabbyAndTyGetLastQuote </summary>
 
+## GabbyAndTyGetLastQuote
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8136,6 +9502,8 @@ special2 0x800D GabbyAndTyGetLastQuote
 
 <details>
 <summary> GabbyAndTySetScriptVarsToObjectEventLocalIds </summary>
+
+## GabbyAndTySetScriptVarsToObjectEventLocalIds
 
 *(Supports axve, axpe)*
 
@@ -8148,6 +9516,8 @@ special GabbyAndTySetScriptVarsToObjectEventLocalIds
 <details>
 <summary> GameClear </summary>
 
+## GameClear
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8158,6 +9528,8 @@ special GameClear
 
 <details>
 <summary> GenerateContestRand </summary>
+
+## GenerateContestRand
 
 *(Supports bpee)*
 
@@ -8170,6 +9542,8 @@ special GenerateContestRand
 <details>
 <summary> GetAbnormalWeatherMapNameAndType </summary>
 
+## GetAbnormalWeatherMapNameAndType
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8180,6 +9554,8 @@ special2 0x800D GetAbnormalWeatherMapNameAndType
 
 <details>
 <summary> GetBarboachSizeRecordInfo </summary>
+
+## GetBarboachSizeRecordInfo
 
 *(Supports axve, axpe)*
 
@@ -8192,6 +9568,8 @@ special GetBarboachSizeRecordInfo
 <details>
 <summary> GetBattleFrontierTutorMoveIndex </summary>
 
+## GetBattleFrontierTutorMoveIndex
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8202,6 +9580,8 @@ special GetBattleFrontierTutorMoveIndex
 
 <details>
 <summary> GetBattleOutcome </summary>
+
+## GetBattleOutcome
 
 *(Supports all games.)*
 
@@ -8214,6 +9594,8 @@ special2 0x800D GetBattleOutcome
 <details>
 <summary> GetBattlePyramidHint </summary>
 
+## GetBattlePyramidHint
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8224,6 +9606,8 @@ special GetBattlePyramidHint
 
 <details>
 <summary> GetBestBattleTowerStreak </summary>
+
+## GetBestBattleTowerStreak
 
 *(Supports axve, axpe, bpee)*
 
@@ -8236,6 +9620,8 @@ special2 0x800D GetBestBattleTowerStreak
 <details>
 <summary> GetContestantNamesAtRank </summary>
 
+## GetContestantNamesAtRank
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8246,6 +9632,8 @@ special GetContestantNamesAtRank
 
 <details>
 <summary> GetContestLadyCategory </summary>
+
+## GetContestLadyCategory
 
 *(Supports bpee)*
 
@@ -8258,6 +9646,8 @@ special2 0x800D GetContestLadyCategory
 <details>
 <summary> GetContestLadyMonSpecies </summary>
 
+## GetContestLadyMonSpecies
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8268,6 +9658,8 @@ special GetContestLadyMonSpecies
 
 <details>
 <summary> GetContestMonCondition </summary>
+
+## GetContestMonCondition
 
 *(Supports bpee)*
 
@@ -8280,6 +9672,8 @@ special GetContestMonCondition
 <details>
 <summary> GetContestMonConditionRanking </summary>
 
+## GetContestMonConditionRanking
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8290,6 +9684,8 @@ special GetContestMonConditionRanking
 
 <details>
 <summary> GetContestMultiplayerId </summary>
+
+## GetContestMultiplayerId
 
 *(Supports bpee)*
 
@@ -8302,6 +9698,8 @@ special GetContestMultiplayerId
 <details>
 <summary> GetContestPlayerId </summary>
 
+## GetContestPlayerId
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8312,6 +9710,8 @@ special GetContestPlayerId
 
 <details>
 <summary> GetContestWinnerId </summary>
+
+## GetContestWinnerId
 
 *(Supports bpee)*
 
@@ -8324,6 +9724,8 @@ special GetContestWinnerId
 <details>
 <summary> GetCostToWithdrawRoute5DaycareMon </summary>
 
+## GetCostToWithdrawRoute5DaycareMon
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8334,6 +9736,8 @@ special GetCostToWithdrawRoute5DaycareMon
 
 <details>
 <summary> GetCurSecretBaseRegistrationValidity </summary>
+
+## GetCurSecretBaseRegistrationValidity
 
 *(Supports axve, axpe, bpee)*
 
@@ -8346,6 +9750,8 @@ special GetCurSecretBaseRegistrationValidity
 <details>
 <summary> GetDaycareCost </summary>
 
+## GetDaycareCost
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8356,6 +9762,8 @@ special GetDaycareCost
 
 <details>
 <summary> GetDaycareMonNicknames </summary>
+
+## GetDaycareMonNicknames
 
 *(Supports all games.)*
 
@@ -8368,6 +9776,8 @@ special GetDaycareMonNicknames
 <details>
 <summary> GetDaycarePokemonCount </summary>
 
+## GetDaycarePokemonCount
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8378,6 +9788,8 @@ special GetDaycarePokemonCount
 
 <details>
 <summary> GetDaycareState </summary>
+
+## GetDaycareState
 
 *(Supports all games.)*
 
@@ -8390,6 +9802,8 @@ special2 0x800D GetDaycareState
 <details>
 <summary> GetDaysUntilPacifidlogTMAvailable </summary>
 
+## GetDaysUntilPacifidlogTMAvailable
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8400,6 +9814,8 @@ special2 0x800D GetDaysUntilPacifidlogTMAvailable
 
 <details>
 <summary> GetDeptStoreDefaultFloorChoice </summary>
+
+## GetDeptStoreDefaultFloorChoice
 
 *(Supports bpee)*
 
@@ -8412,6 +9828,8 @@ special2 0x800D GetDeptStoreDefaultFloorChoice
 <details>
 <summary> GetDewfordHallPaintingNameIndex </summary>
 
+## GetDewfordHallPaintingNameIndex
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8422,6 +9840,8 @@ special GetDewfordHallPaintingNameIndex
 
 <details>
 <summary> GetElevatorFloor </summary>
+
+## GetElevatorFloor
 
 *(Supports bpre, bpge)*
 
@@ -8434,6 +9854,8 @@ special GetElevatorFloor
 <details>
 <summary> GetFavorLadyState </summary>
 
+## GetFavorLadyState
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8444,6 +9866,8 @@ special2 0x800D GetFavorLadyState
 
 <details>
 <summary> GetFirstFreePokeblockSlot </summary>
+
+## GetFirstFreePokeblockSlot
 
 *(Supports axve, axpe, bpee)*
 
@@ -8456,6 +9880,8 @@ special2 0x800D GetFirstFreePokeblockSlot
 <details>
 <summary> GetFrontierBattlePoints </summary>
 
+## GetFrontierBattlePoints
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8466,6 +9892,8 @@ special2 0x4001 GetFrontierBattlePoints
 
 <details>
 <summary> GetGabbyAndTyLocalIds </summary>
+
+## GetGabbyAndTyLocalIds
 
 *(Supports bpee)*
 
@@ -8478,6 +9906,8 @@ special GetGabbyAndTyLocalIds
 <details>
 <summary> GetHeracrossSizeRecordInfo </summary>
 
+## GetHeracrossSizeRecordInfo
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8488,6 +9918,8 @@ special GetHeracrossSizeRecordInfo
 
 <details>
 <summary> GetInGameTradeSpeciesInfo </summary>
+
+## GetInGameTradeSpeciesInfo
 
 *(Supports all games.)*
 
@@ -8500,6 +9932,8 @@ special2 0x800D GetInGameTradeSpeciesInfo
 <details>
 <summary> GetLeadMonFriendship </summary>
 
+## GetLeadMonFriendship
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8510,6 +9944,8 @@ special2 0x800D GetLeadMonFriendship
 
 <details>
 <summary> GetLeadMonFriendshipScore </summary>
+
+## GetLeadMonFriendshipScore
 
 *(Supports axve, axpe, bpee)*
 
@@ -8522,6 +9958,8 @@ special2 0x800D GetLeadMonFriendshipScore
 <details>
 <summary> GetLilycoveSSTidalSelection </summary>
 
+## GetLilycoveSSTidalSelection
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8532,6 +9970,8 @@ special GetLilycoveSSTidalSelection
 
 <details>
 <summary> GetLinkPartnerNames </summary>
+
+## GetLinkPartnerNames
 
 *(Supports axve, axpe, bpee)*
 
@@ -8544,6 +9984,8 @@ special2 0x800D GetLinkPartnerNames
 <details>
 <summary> GetLotadSizeRecordInfo </summary>
 
+## GetLotadSizeRecordInfo
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8554,6 +9996,8 @@ special GetLotadSizeRecordInfo
 
 <details>
 <summary> GetMagikarpSizeRecordInfo </summary>
+
+## GetMagikarpSizeRecordInfo
 
 *(Supports bpre, bpge)*
 
@@ -8566,6 +10010,8 @@ special GetMagikarpSizeRecordInfo
 <details>
 <summary> GetMartClerkObjectId </summary>
 
+## GetMartClerkObjectId
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8576,6 +10022,8 @@ special GetMartClerkObjectId
 
 <details>
 <summary> GetMartEmployeeObjectEventId </summary>
+
+## GetMartEmployeeObjectEventId
 
 *(Supports bpee)*
 
@@ -8588,6 +10036,8 @@ special GetMartEmployeeObjectEventId
 <details>
 <summary> GetMENewsJisanItemAndState </summary>
 
+## GetMENewsJisanItemAndState
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8598,6 +10048,8 @@ special2 0x8004 GetMENewsJisanItemAndState
 
 <details>
 <summary> GetMomOrDadStringForTVMessage </summary>
+
+## GetMomOrDadStringForTVMessage
 
 *(Supports axve, axpe, bpee)*
 
@@ -8610,6 +10062,8 @@ special GetMomOrDadStringForTVMessage
 <details>
 <summary> GetMysteryEventCardVal </summary>
 
+## GetMysteryEventCardVal
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8620,6 +10074,8 @@ special GetMysteryEventCardVal
 
 <details>
 <summary> GetNameOfEnigmaBerryInPlayerParty </summary>
+
+## GetNameOfEnigmaBerryInPlayerParty
 
 *(Supports axve, axpe)*
 
@@ -8632,6 +10088,8 @@ special2 0x800D GetNameOfEnigmaBerryInPlayerParty
 <details>
 <summary> GetNextActiveShowIfMassOutbreak </summary>
 
+## GetNextActiveShowIfMassOutbreak
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8642,6 +10100,8 @@ special GetNextActiveShowIfMassOutbreak
 
 <details>
 <summary> GetNonMassOutbreakActiveTVShow </summary>
+
+## GetNonMassOutbreakActiveTVShow
 
 *(Supports axve, axpe)*
 
@@ -8654,6 +10114,8 @@ special GetNonMassOutbreakActiveTVShow
 <details>
 <summary> GetNpcContestantLocalId </summary>
 
+## GetNpcContestantLocalId
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8664,6 +10126,8 @@ special GetNpcContestantLocalId
 
 <details>
 <summary> GetNumFansOfPlayerInTrainerFanClub </summary>
+
+## GetNumFansOfPlayerInTrainerFanClub
 
 *(Supports bpee)*
 
@@ -8676,6 +10140,8 @@ special2 0x800D GetNumFansOfPlayerInTrainerFanClub
 <details>
 <summary> GetNumLevelsGainedForRoute5DaycareMon </summary>
 
+## GetNumLevelsGainedForRoute5DaycareMon
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8686,6 +10152,8 @@ special2 0x800D GetNumLevelsGainedForRoute5DaycareMon
 
 <details>
 <summary> GetNumLevelsGainedFromDaycare </summary>
+
+## GetNumLevelsGainedFromDaycare
 
 *(Supports all games.)*
 
@@ -8698,6 +10166,8 @@ special2 0x800D GetNumLevelsGainedFromDaycare
 <details>
 <summary> GetNumMovedLilycoveFanClubMembers </summary>
 
+## GetNumMovedLilycoveFanClubMembers
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8708,6 +10178,8 @@ special2 0x800D GetNumMovedLilycoveFanClubMembers
 
 <details>
 <summary> GetNumMovesSelectedMonHas </summary>
+
+## GetNumMovesSelectedMonHas
 
 *(Supports bpre, bpge, bpee)*
 
@@ -8720,6 +10192,8 @@ special GetNumMovesSelectedMonHas
 <details>
 <summary> GetNumValidDaycarePartyMons </summary>
 
+## GetNumValidDaycarePartyMons
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -8731,6 +10205,8 @@ special2 0x800D GetNumValidDaycarePartyMons
 <details>
 <summary> GetObjectEventLocalIdByFlag </summary>
 
+## GetObjectEventLocalIdByFlag
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8741,6 +10217,8 @@ special GetObjectEventLocalIdByFlag
 
 <details>
 <summary> GetPartyMonSpecies </summary>
+
+## GetPartyMonSpecies
 
 *(Supports all games.)*
 
@@ -8755,6 +10233,8 @@ Read party index from 0x8004, return species
 <details>
 <summary> GetPCBoxToSendMon </summary>
 
+## GetPCBoxToSendMon
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -8765,6 +10245,8 @@ special2 0x800D GetPCBoxToSendMon
 
 <details>
 <summary> GetPlayerAvatarBike </summary>
+
+## GetPlayerAvatarBike
 
 *(Supports all games.)*
 
@@ -8777,6 +10259,8 @@ special2 0x800D GetPlayerAvatarBike
 <details>
 <summary> GetPlayerBigGuyGirlString </summary>
 
+## GetPlayerBigGuyGirlString
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8787,6 +10271,8 @@ special GetPlayerBigGuyGirlString
 
 <details>
 <summary> GetPlayerFacingDirection </summary>
+
+## GetPlayerFacingDirection
 
 *(Supports all games.)*
 
@@ -8799,6 +10285,8 @@ special2 0x800D GetPlayerFacingDirection
 <details>
 <summary> GetPlayerTrainerIdOnesDigit </summary>
 
+## GetPlayerTrainerIdOnesDigit
+
 *(Supports all games.)*
 
 Example Usage:
@@ -8809,6 +10297,8 @@ special2 0x800D GetPlayerTrainerIdOnesDigit
 
 <details>
 <summary> GetPlayerXY </summary>
+
+## GetPlayerXY
 
 *(Supports bpre, bpge)*
 
@@ -8821,6 +10311,8 @@ special GetPlayerXY
 <details>
 <summary> GetPokeblockFeederInFront </summary>
 
+## GetPokeblockFeederInFront
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8831,6 +10323,8 @@ special GetPokeblockFeederInFront
 
 <details>
 <summary> GetPokeblockNameByMonNature </summary>
+
+## GetPokeblockNameByMonNature
 
 *(Supports axve, axpe, bpee)*
 
@@ -8843,6 +10337,8 @@ special2 0x800D GetPokeblockNameByMonNature
 <details>
 <summary> GetPokedexCount </summary>
 
+## GetPokedexCount
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8853,6 +10349,8 @@ special2 0x800D GetPokedexCount
 
 <details>
 <summary> GetProfOaksRatingMessage </summary>
+
+## GetProfOaksRatingMessage
 
 *(Supports bpre, bpge)*
 
@@ -8865,6 +10363,8 @@ special GetProfOaksRatingMessage
 <details>
 <summary> GetQuestLogState </summary>
 
+## GetQuestLogState
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8875,6 +10375,8 @@ special GetQuestLogState
 
 <details>
 <summary> GetQuizAuthor </summary>
+
+## GetQuizAuthor
 
 *(Supports bpee)*
 
@@ -8887,6 +10389,8 @@ special2 0x800D GetQuizAuthor
 <details>
 <summary> GetQuizLadyState </summary>
 
+## GetQuizLadyState
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8897,6 +10401,8 @@ special2 0x800D GetQuizLadyState
 
 <details>
 <summary> GetRandomActiveShowIdx </summary>
+
+## GetRandomActiveShowIdx
 
 *(Supports bpee)*
 
@@ -8909,6 +10415,8 @@ special GetRandomActiveShowIdx
 <details>
 <summary> GetRandomSlotMachineId </summary>
 
+## GetRandomSlotMachineId
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -8919,6 +10427,8 @@ special2 0x800D GetRandomSlotMachineId
 
 <details>
 <summary> GetRecordedCyclingRoadResults </summary>
+
+## GetRecordedCyclingRoadResults
 
 *(Supports axve, axpe, bpee)*
 
@@ -8931,6 +10441,8 @@ special2 0x800D GetRecordedCyclingRoadResults
 <details>
 <summary> GetRivalSonDaughterString </summary>
 
+## GetRivalSonDaughterString
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8941,6 +10453,8 @@ special GetRivalSonDaughterString
 
 <details>
 <summary> GetSeagallopNumber </summary>
+
+## GetSeagallopNumber
 
 *(Supports bpre, bpge)*
 
@@ -8953,6 +10467,8 @@ special2 0x800D GetSeagallopNumber
 <details>
 <summary> GetSecretBaseNearbyMapName </summary>
 
+## GetSecretBaseNearbyMapName
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -8963,6 +10479,8 @@ special GetSecretBaseNearbyMapName
 
 <details>
 <summary> GetSecretBaseOwnerAndState </summary>
+
+## GetSecretBaseOwnerAndState
 
 *(Supports bpee)*
 
@@ -8975,6 +10493,8 @@ special GetSecretBaseOwnerAndState
 <details>
 <summary> GetSecretBaseTypeInFrontOfPlayer </summary>
 
+## GetSecretBaseTypeInFrontOfPlayer
+
 *(Supports bpee)*
 
 Example Usage:
@@ -8985,6 +10505,8 @@ special GetSecretBaseTypeInFrontOfPlayer
 
 <details>
 <summary> GetSeedotSizeRecordInfo </summary>
+
+## GetSeedotSizeRecordInfo
 
 *(Supports bpee)*
 
@@ -8997,6 +10519,8 @@ special GetSeedotSizeRecordInfo
 <details>
 <summary> GetSelectedDaycareMonNickname </summary>
 
+## GetSelectedDaycareMonNickname
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9007,6 +10531,8 @@ special2 0x8005 GetSelectedDaycareMonNickname
 
 <details>
 <summary> GetSelectedMonNicknameAndSpecies </summary>
+
+## GetSelectedMonNicknameAndSpecies
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9019,6 +10545,8 @@ special2 0x8005 GetSelectedMonNicknameAndSpecies
 <details>
 <summary> GetSelectedSeagallopDestination </summary>
 
+## GetSelectedSeagallopDestination
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9029,6 +10557,8 @@ special2 0x8006 GetSelectedSeagallopDestination
 
 <details>
 <summary> GetSelectedTVShow </summary>
+
+## GetSelectedTVShow
 
 *(Supports bpee)*
 
@@ -9041,6 +10571,8 @@ special GetSelectedTVShow
 <details>
 <summary> GetShieldToyTVDecorationInfo </summary>
 
+## GetShieldToyTVDecorationInfo
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9051,6 +10583,8 @@ special GetShieldToyTVDecorationInfo
 
 <details>
 <summary> GetShroomishSizeRecordInfo </summary>
+
+## GetShroomishSizeRecordInfo
 
 *(Supports axve, axpe)*
 
@@ -9063,6 +10597,8 @@ special GetShroomishSizeRecordInfo
 <details>
 <summary> GetSlotMachineId </summary>
 
+## GetSlotMachineId
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9073,6 +10609,8 @@ special2 0x800D GetSlotMachineId
 
 <details>
 <summary> GetStarterSpecies </summary>
+
+## GetStarterSpecies
 
 *(Supports bpre, bpge)*
 
@@ -9085,6 +10623,8 @@ special2 0x800D GetStarterSpecies
 <details>
 <summary> GetTradeSpecies </summary>
 
+## GetTradeSpecies
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9095,6 +10635,8 @@ special2 0x800D GetTradeSpecies
 
 <details>
 <summary> GetTrainerBattleMode </summary>
+
+## GetTrainerBattleMode
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9107,6 +10649,8 @@ special GetTrainerBattleMode
 <details>
 <summary> GetTrainerFlag </summary>
 
+## GetTrainerFlag
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9117,6 +10661,8 @@ special GetTrainerFlag
 
 <details>
 <summary> GetTVShowType </summary>
+
+## GetTVShowType
 
 *(Supports axve, axpe)*
 
@@ -9129,6 +10675,8 @@ special GetTVShowType
 <details>
 <summary> GetWeekCount </summary>
 
+## GetWeekCount
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9139,6 +10687,8 @@ special2 0x800D GetWeekCount
 
 <details>
 <summary> GetWirelessCommType </summary>
+
+## GetWirelessCommType
 
 *(Supports bpee)*
 
@@ -9151,6 +10701,8 @@ special GetWirelessCommType
 <details>
 <summary> GiveBattleTowerPrize </summary>
 
+## GiveBattleTowerPrize
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -9161,6 +10713,8 @@ special GiveBattleTowerPrize
 
 <details>
 <summary> GiveEggFromDaycare </summary>
+
+## GiveEggFromDaycare
 
 *(Supports all games.)*
 
@@ -9173,6 +10727,8 @@ special GiveEggFromDaycare
 <details>
 <summary> GiveFrontierBattlePoints </summary>
 
+## GiveFrontierBattlePoints
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9183,6 +10739,8 @@ special GiveFrontierBattlePoints
 
 <details>
 <summary> GiveLeadMonEffortRibbon </summary>
+
+## GiveLeadMonEffortRibbon
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9195,16 +10753,20 @@ special GiveLeadMonEffortRibbon
 <details>
 <summary> GiveMonArtistRibbon </summary>
 
+## GiveMonArtistRibbon
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
 ```
-special GiveMonArtistRibbon
+special2 0x800D GiveMonArtistRibbon
 ```
 </details>
 
 <details>
 <summary> GiveMonContestRibbon </summary>
+
+## GiveMonContestRibbon
 
 *(Supports bpee)*
 
@@ -9217,6 +10779,8 @@ special GiveMonContestRibbon
 <details>
 <summary> GivLeadMonEffortRibbon </summary>
 
+## GivLeadMonEffortRibbon
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9227,6 +10791,8 @@ special GivLeadMonEffortRibbon
 
 <details>
 <summary> HallOfFamePCBeginFade </summary>
+
+## HallOfFamePCBeginFade
 
 *(Supports bpre, bpge)*
 
@@ -9239,6 +10805,8 @@ special HallOfFamePCBeginFade
 <details>
 <summary> HasAllHoennMons </summary>
 
+## HasAllHoennMons
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9249,6 +10817,8 @@ special2 0x800D HasAllHoennMons
 
 <details>
 <summary> HasAllKantoMons </summary>
+
+## HasAllKantoMons
 
 *(Supports bpre, bpge)*
 
@@ -9261,6 +10831,8 @@ special2 0x800D HasAllKantoMons
 <details>
 <summary> HasAllMons </summary>
 
+## HasAllMons
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9271,6 +10843,8 @@ special2 0x800D HasAllMons
 
 <details>
 <summary> HasAnotherPlayerGivenFavorLadyItem </summary>
+
+## HasAnotherPlayerGivenFavorLadyItem
 
 *(Supports bpee)*
 
@@ -9283,6 +10857,8 @@ special2 0x800D HasAnotherPlayerGivenFavorLadyItem
 <details>
 <summary> HasAtLeastOneBerry </summary>
 
+## HasAtLeastOneBerry
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9293,6 +10869,8 @@ special HasAtLeastOneBerry
 
 <details>
 <summary> HasEnoughBerryPowder </summary>
+
+## HasEnoughBerryPowder
 
 *(Supports bpee)*
 
@@ -9305,6 +10883,8 @@ special2 0x800D HasEnoughBerryPowder
 <details>
 <summary> HasEnoughMoneyFor </summary>
 
+## HasEnoughMoneyFor
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -9315,6 +10895,8 @@ special2 0x800D HasEnoughMoneyFor
 
 <details>
 <summary> HasEnoughMonsForDoubleBattle </summary>
+
+## HasEnoughMonsForDoubleBattle
 
 *(Supports all games.)*
 
@@ -9327,6 +10909,8 @@ special HasEnoughMonsForDoubleBattle
 <details>
 <summary> HasLeadMonBeenRenamed </summary>
 
+## HasLeadMonBeenRenamed
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9337,6 +10921,8 @@ special HasLeadMonBeenRenamed
 
 <details>
 <summary> HasLearnedAllMovesFromCapeBrinkTutor </summary>
+
+## HasLearnedAllMovesFromCapeBrinkTutor
 
 *(Supports bpre, bpge)*
 
@@ -9349,16 +10935,20 @@ special2 0x800D HasLearnedAllMovesFromCapeBrinkTutor
 <details>
 <summary> HasMonWonThisContestBefore </summary>
 
+## HasMonWonThisContestBefore
+
 *(Supports bpee)*
 
 Example Usage:
 ```
-special HasMonWonThisContestBefore
+special2 0x800D HasMonWonThisContestBefore
 ```
 </details>
 
 <details>
 <summary> HasPlayerGivenContestLadyPokeblock </summary>
+
+## HasPlayerGivenContestLadyPokeblock
 
 *(Supports bpee)*
 
@@ -9371,6 +10961,8 @@ special2 0x800D HasPlayerGivenContestLadyPokeblock
 <details>
 <summary> HealPlayerParty </summary>
 
+## HealPlayerParty
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9381,6 +10973,8 @@ special HealPlayerParty
 
 <details>
 <summary> HelpSystem_Disable </summary>
+
+## HelpSystem_Disable
 
 *(Supports bpre, bpge)*
 
@@ -9393,6 +10987,8 @@ special HelpSystem_Disable
 <details>
 <summary> HelpSystem_Enable </summary>
 
+## HelpSystem_Enable
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9403,6 +10999,8 @@ special HelpSystem_Enable
 
 <details>
 <summary> HideContestEntryMonPic </summary>
+
+## HideContestEntryMonPic
 
 *(Supports bpee)*
 
@@ -9415,6 +11013,8 @@ special HideContestEntryMonPic
 <details>
 <summary> IncrementDailyPickedBerries </summary>
 
+## IncrementDailyPickedBerries
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9425,6 +11025,8 @@ special IncrementDailyPickedBerries
 
 <details>
 <summary> IncrementDailyPlantedBerries </summary>
+
+## IncrementDailyPlantedBerries
 
 *(Supports bpee)*
 
@@ -9437,6 +11039,8 @@ special IncrementDailyPlantedBerries
 <details>
 <summary> InitBirchState </summary>
 
+## InitBirchState
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9447,6 +11051,8 @@ special InitBirchState
 
 <details>
 <summary> InitElevatorFloorSelectMenuPos </summary>
+
+## InitElevatorFloorSelectMenuPos
 
 *(Supports bpre, bpge)*
 
@@ -9459,6 +11065,8 @@ special2 0x800D InitElevatorFloorSelectMenuPos
 <details>
 <summary> InitRoamer </summary>
 
+## InitRoamer
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9469,6 +11077,8 @@ special InitRoamer
 
 <details>
 <summary> InitSecretBaseDecorationSprites </summary>
+
+## InitSecretBaseDecorationSprites
 
 *(Supports bpee)*
 
@@ -9481,6 +11091,8 @@ special InitSecretBaseDecorationSprites
 <details>
 <summary> InitSecretBaseVars </summary>
 
+## InitSecretBaseVars
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9491,6 +11103,8 @@ special InitSecretBaseVars
 
 <details>
 <summary> InitUnionRoom </summary>
+
+## InitUnionRoom
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9503,6 +11117,8 @@ special InitUnionRoom
 <details>
 <summary> InteractWithShieldOrTVDecoration </summary>
 
+## InteractWithShieldOrTVDecoration
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9513,6 +11129,8 @@ special InteractWithShieldOrTVDecoration
 
 <details>
 <summary> InterviewAfter </summary>
+
+## InterviewAfter
 
 *(Supports axve, axpe, bpee)*
 
@@ -9525,6 +11143,8 @@ special InterviewAfter
 <details>
 <summary> InterviewBefore </summary>
 
+## InterviewBefore
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9535,6 +11155,8 @@ special InterviewBefore
 
 <details>
 <summary> IsBadEggInParty </summary>
+
+## IsBadEggInParty
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9547,6 +11169,8 @@ special2 0x800D IsBadEggInParty
 <details>
 <summary> IsContestDebugActive </summary>
 
+## IsContestDebugActive
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9557,6 +11181,8 @@ special2 0x800D IsContestDebugActive
 
 <details>
 <summary> IsContestWithRSPlayer </summary>
+
+## IsContestWithRSPlayer
 
 *(Supports bpee)*
 
@@ -9569,6 +11195,8 @@ special2 0x800D IsContestWithRSPlayer
 <details>
 <summary> IsCurSecretBaseOwnedByAnotherPlayer </summary>
 
+## IsCurSecretBaseOwnedByAnotherPlayer
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9579,6 +11207,8 @@ special IsCurSecretBaseOwnedByAnotherPlayer
 
 <details>
 <summary> IsDodrioInParty </summary>
+
+## IsDodrioInParty
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9591,6 +11221,8 @@ special IsDodrioInParty
 <details>
 <summary> IsEnigmaBerryValid </summary>
 
+## IsEnigmaBerryValid
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9601,6 +11233,8 @@ special2 0x800D IsEnigmaBerryValid
 
 <details>
 <summary> IsEnoughForCostInVar0x8005 </summary>
+
+## IsEnoughForCostInVar0x8005
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9613,6 +11247,8 @@ special2 0x800D IsEnoughForCostInVar0x8005
 <details>
 <summary> IsFanClubMemberFanOfPlayer </summary>
 
+## IsFanClubMemberFanOfPlayer
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9623,6 +11259,8 @@ special2 0x800D IsFanClubMemberFanOfPlayer
 
 <details>
 <summary> IsFavorLadyThresholdMet </summary>
+
+## IsFavorLadyThresholdMet
 
 *(Supports bpee)*
 
@@ -9635,6 +11273,8 @@ special2 0x800D IsFavorLadyThresholdMet
 <details>
 <summary> IsGabbyAndTyShowOnTheAir </summary>
 
+## IsGabbyAndTyShowOnTheAir
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9645,6 +11285,8 @@ special IsGabbyAndTyShowOnTheAir
 
 <details>
 <summary> IsGrassTypeInParty </summary>
+
+## IsGrassTypeInParty
 
 *(Supports axve, axpe, bpee)*
 
@@ -9657,6 +11299,8 @@ special IsGrassTypeInParty
 <details>
 <summary> IsLastMonThatKnowsSurf </summary>
 
+## IsLastMonThatKnowsSurf
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9667,6 +11311,8 @@ special IsLastMonThatKnowsSurf
 
 <details>
 <summary> IsLeadMonNicknamedOrNotEnglish </summary>
+
+## IsLeadMonNicknamedOrNotEnglish
 
 *(Supports bpee)*
 
@@ -9679,6 +11325,8 @@ special2 0x800D IsLeadMonNicknamedOrNotEnglish
 <details>
 <summary> IsMirageIslandPresent </summary>
 
+## IsMirageIslandPresent
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9689,6 +11337,8 @@ special2 0x800D IsMirageIslandPresent
 
 <details>
 <summary> IsMonOTIDNotPlayers </summary>
+
+## IsMonOTIDNotPlayers
 
 *(Supports bpre, bpge, bpee)*
 
@@ -9701,6 +11351,8 @@ special IsMonOTIDNotPlayers
 <details>
 <summary> IsMonOTNameNotPlayers </summary>
 
+## IsMonOTNameNotPlayers
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9711,6 +11363,8 @@ special2 0x800D IsMonOTNameNotPlayers
 
 <details>
 <summary> IsNationalPokedexEnabled </summary>
+
+## IsNationalPokedexEnabled
 
 *(Supports bpre, bpge)*
 
@@ -9723,6 +11377,8 @@ special2 0x800D IsNationalPokedexEnabled
 <details>
 <summary> IsPlayerLeftOfVermilionSailor </summary>
 
+## IsPlayerLeftOfVermilionSailor
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9733,6 +11389,8 @@ special2 0x800D IsPlayerLeftOfVermilionSailor
 
 <details>
 <summary> IsPlayerNotInTrainerTowerLobby </summary>
+
+## IsPlayerNotInTrainerTowerLobby
 
 *(Supports bpre, bpge)*
 
@@ -9745,6 +11403,8 @@ special2 0x800D IsPlayerNotInTrainerTowerLobby
 <details>
 <summary> IsPokemonJumpSpeciesInParty </summary>
 
+## IsPokemonJumpSpeciesInParty
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9755,6 +11415,8 @@ special IsPokemonJumpSpeciesInParty
 
 <details>
 <summary> IsPokerusInParty </summary>
+
+## IsPokerusInParty
 
 *(Supports all games.)*
 
@@ -9767,6 +11429,8 @@ special2 0x800D IsPokerusInParty
 <details>
 <summary> IsQuizAnswerCorrect </summary>
 
+## IsQuizAnswerCorrect
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9777,6 +11441,8 @@ special2 0x800D IsQuizAnswerCorrect
 
 <details>
 <summary> IsQuizLadyWaitingForChallenger </summary>
+
+## IsQuizLadyWaitingForChallenger
 
 *(Supports bpee)*
 
@@ -9789,6 +11455,8 @@ special2 0x800D IsQuizLadyWaitingForChallenger
 <details>
 <summary> IsSelectedMonEgg </summary>
 
+## IsSelectedMonEgg
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9799,6 +11467,8 @@ special IsSelectedMonEgg
 
 <details>
 <summary> IsStarterFirstStageInParty </summary>
+
+## IsStarterFirstStageInParty
 
 *(Supports bpre, bpge)*
 
@@ -9811,6 +11481,8 @@ special IsStarterFirstStageInParty
 <details>
 <summary> IsStarterInParty </summary>
 
+## IsStarterInParty
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -9821,6 +11493,8 @@ special2 0x800D IsStarterInParty
 
 <details>
 <summary> IsThereMonInRoute5Daycare </summary>
+
+## IsThereMonInRoute5Daycare
 
 *(Supports bpre, bpge)*
 
@@ -9833,6 +11507,8 @@ special2 0x800D IsThereMonInRoute5Daycare
 <details>
 <summary> IsThereRoomInAnyBoxForMorePokemon </summary>
 
+## IsThereRoomInAnyBoxForMorePokemon
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9843,6 +11519,8 @@ special2 0x800D IsThereRoomInAnyBoxForMorePokemon
 
 <details>
 <summary> IsTrainerReadyForRematch </summary>
+
+## IsTrainerReadyForRematch
 
 *(Supports all games.)*
 
@@ -9855,6 +11533,8 @@ special2 0x800D IsTrainerReadyForRematch
 <details>
 <summary> IsTrainerRegistered </summary>
 
+## IsTrainerRegistered
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9865,6 +11545,8 @@ special2 0x800D IsTrainerRegistered
 
 <details>
 <summary> IsTrendyPhraseBoring </summary>
+
+## IsTrendyPhraseBoring
 
 *(Supports bpee)*
 
@@ -9877,6 +11559,8 @@ special IsTrendyPhraseBoring
 <details>
 <summary> IsTVShowAlreadyInQueue </summary>
 
+## IsTVShowAlreadyInQueue
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9887,6 +11571,8 @@ special IsTVShowAlreadyInQueue
 
 <details>
 <summary> IsTVShowInSearchOfTrainersAiring </summary>
+
+## IsTVShowInSearchOfTrainersAiring
 
 *(Supports axve, axpe)*
 
@@ -9899,6 +11585,8 @@ special IsTVShowInSearchOfTrainersAiring
 <details>
 <summary> IsWirelessAdapterConnected </summary>
 
+## IsWirelessAdapterConnected
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -9909,6 +11597,8 @@ special2 0x800D IsWirelessAdapterConnected
 
 <details>
 <summary> IsWirelessContest </summary>
+
+## IsWirelessContest
 
 *(Supports bpee)*
 
@@ -9921,6 +11611,8 @@ special2 0x800D IsWirelessContest
 <details>
 <summary> LeadMonHasEffortRibbon </summary>
 
+## LeadMonHasEffortRibbon
+
 *(Supports all games.)*
 
 Example Usage:
@@ -9931,6 +11623,8 @@ special2 0x800D LeadMonHasEffortRibbon
 
 <details>
 <summary> LeadMonNicknamed </summary>
+
+## LeadMonNicknamed
 
 *(Supports axve, axpe)*
 
@@ -9943,6 +11637,8 @@ special2 0x800D LeadMonNicknamed
 <details>
 <summary> LinkContestTryHideWirelessIndicator </summary>
 
+## LinkContestTryHideWirelessIndicator
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9953,6 +11649,8 @@ special LinkContestTryHideWirelessIndicator
 
 <details>
 <summary> LinkContestTryShowWirelessIndicator </summary>
+
+## LinkContestTryShowWirelessIndicator
 
 *(Supports bpee)*
 
@@ -9965,6 +11663,8 @@ special LinkContestTryShowWirelessIndicator
 <details>
 <summary> LinkContestWaitForConnection </summary>
 
+## LinkContestWaitForConnection
+
 *(Supports bpee)*
 
 Example Usage:
@@ -9975,6 +11675,8 @@ special LinkContestWaitForConnection
 
 <details>
 <summary> LinkRetireStatusWithBattleTowerPartner </summary>
+
+## LinkRetireStatusWithBattleTowerPartner
 
 *(Supports bpee)*
 
@@ -9987,6 +11689,8 @@ special LinkRetireStatusWithBattleTowerPartner
 <details>
 <summary> ListMenu </summary>
 
+## ListMenu
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -9997,6 +11701,8 @@ special ListMenu
 
 <details>
 <summary> LoadLinkContestPlayerPalettes </summary>
+
+## LoadLinkContestPlayerPalettes
 
 *(Supports bpee)*
 
@@ -10009,6 +11715,8 @@ special LoadLinkContestPlayerPalettes
 <details>
 <summary> LoadPlayerBag </summary>
 
+## LoadPlayerBag
+
 *(Supports all games.)*
 
 Example Usage:
@@ -10019,6 +11727,8 @@ special LoadPlayerBag
 
 <details>
 <summary> LoadPlayerParty </summary>
+
+## LoadPlayerParty
 
 *(Supports all games.)*
 
@@ -10031,6 +11741,8 @@ special LoadPlayerParty
 <details>
 <summary> LookThroughPorthole </summary>
 
+## LookThroughPorthole
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10041,6 +11753,8 @@ special LookThroughPorthole
 
 <details>
 <summary> LoopWingFlapSE </summary>
+
+## LoopWingFlapSE
 
 *(Supports bpee)*
 
@@ -10053,6 +11767,8 @@ special LoopWingFlapSE
 <details>
 <summary> LoopWingFlapSound </summary>
 
+## LoopWingFlapSound
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10063,6 +11779,8 @@ special LoopWingFlapSound
 
 <details>
 <summary> LostSecretBaseBattle </summary>
+
+## LostSecretBaseBattle
 
 *(Supports bpee)*
 
@@ -10075,6 +11793,8 @@ special LostSecretBaseBattle
 <details>
 <summary> MauvilleGymDeactivatePuzzle </summary>
 
+## MauvilleGymDeactivatePuzzle
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10085,6 +11805,8 @@ special MauvilleGymDeactivatePuzzle
 
 <details>
 <summary> MauvilleGymPressSwitch </summary>
+
+## MauvilleGymPressSwitch
 
 *(Supports bpee)*
 
@@ -10097,6 +11819,8 @@ special MauvilleGymPressSwitch
 <details>
 <summary> MauvilleGymSetDefaultBarriers </summary>
 
+## MauvilleGymSetDefaultBarriers
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10107,6 +11831,8 @@ special MauvilleGymSetDefaultBarriers
 
 <details>
 <summary> MauvilleGymSpecial1 </summary>
+
+## MauvilleGymSpecial1
 
 *(Supports axve, axpe)*
 
@@ -10119,6 +11845,8 @@ special MauvilleGymSpecial1
 <details>
 <summary> MauvilleGymSpecial2 </summary>
 
+## MauvilleGymSpecial2
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10129,6 +11857,8 @@ special MauvilleGymSpecial2
 
 <details>
 <summary> MauvilleGymSpecial3 </summary>
+
+## MauvilleGymSpecial3
 
 *(Supports axve, axpe)*
 
@@ -10141,6 +11871,8 @@ special MauvilleGymSpecial3
 <details>
 <summary> MonOTNameMatchesPlayer </summary>
 
+## MonOTNameMatchesPlayer
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10151,6 +11883,8 @@ special2 0x800D MonOTNameMatchesPlayer
 
 <details>
 <summary> MonOTNameNotPlayer </summary>
+
+## MonOTNameNotPlayer
 
 *(Supports bpee)*
 
@@ -10163,6 +11897,8 @@ special2 0x800D MonOTNameNotPlayer
 <details>
 <summary> MoveDeleterChooseMoveToForget </summary>
 
+## MoveDeleterChooseMoveToForget
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10173,6 +11909,8 @@ special MoveDeleterChooseMoveToForget
 
 <details>
 <summary> MoveDeleterForgetMove </summary>
+
+## MoveDeleterForgetMove
 
 *(Supports bpre, bpge, bpee)*
 
@@ -10185,6 +11923,8 @@ special MoveDeleterForgetMove
 <details>
 <summary> MoveElevator </summary>
 
+## MoveElevator
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10195,6 +11935,8 @@ special MoveElevator
 
 <details>
 <summary> MoveOutOfSecretBase </summary>
+
+## MoveOutOfSecretBase
 
 *(Supports axve, axpe, bpee)*
 
@@ -10207,6 +11949,8 @@ special MoveOutOfSecretBase
 <details>
 <summary> MoveOutOfSecretBaseFromOutside </summary>
 
+## MoveOutOfSecretBaseFromOutside
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10217,6 +11961,8 @@ special MoveOutOfSecretBaseFromOutside
 
 <details>
 <summary> MoveSecretBase </summary>
+
+## MoveSecretBase
 
 *(Supports axve, axpe)*
 
@@ -10229,6 +11975,8 @@ special MoveSecretBase
 <details>
 <summary> NameRaterWasNicknameChanged </summary>
 
+## NameRaterWasNicknameChanged
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10239,6 +11987,8 @@ special2 0x800D NameRaterWasNicknameChanged
 
 <details>
 <summary> ObjectEventInteractionGetBerryCountString </summary>
+
+## ObjectEventInteractionGetBerryCountString
 
 *(Supports bpee)*
 
@@ -10251,6 +12001,8 @@ special ObjectEventInteractionGetBerryCountString
 <details>
 <summary> ObjectEventInteractionGetBerryName </summary>
 
+## ObjectEventInteractionGetBerryName
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10261,6 +12013,8 @@ special ObjectEventInteractionGetBerryName
 
 <details>
 <summary> ObjectEventInteractionGetBerryTreeData </summary>
+
+## ObjectEventInteractionGetBerryTreeData
 
 *(Supports axve, axpe, bpee)*
 
@@ -10273,6 +12027,8 @@ special ObjectEventInteractionGetBerryTreeData
 <details>
 <summary> ObjectEventInteractionPickBerryTree </summary>
 
+## ObjectEventInteractionPickBerryTree
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10283,6 +12039,8 @@ special ObjectEventInteractionPickBerryTree
 
 <details>
 <summary> ObjectEventInteractionPlantBerryTree </summary>
+
+## ObjectEventInteractionPlantBerryTree
 
 *(Supports axve, axpe, bpee)*
 
@@ -10295,6 +12053,8 @@ special ObjectEventInteractionPlantBerryTree
 <details>
 <summary> ObjectEventInteractionRemoveBerryTree </summary>
 
+## ObjectEventInteractionRemoveBerryTree
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10305,6 +12065,8 @@ special ObjectEventInteractionRemoveBerryTree
 
 <details>
 <summary> ObjectEventInteractionWaterBerryTree </summary>
+
+## ObjectEventInteractionWaterBerryTree
 
 *(Supports axve, axpe, bpee)*
 
@@ -10317,6 +12079,8 @@ special ObjectEventInteractionWaterBerryTree
 <details>
 <summary> OffsetCameraForBattle </summary>
 
+## OffsetCameraForBattle
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10327,6 +12091,8 @@ special OffsetCameraForBattle
 
 <details>
 <summary> OpenMuseumFossilPic </summary>
+
+## OpenMuseumFossilPic
 
 *(Supports bpre, bpge)*
 
@@ -10339,6 +12105,8 @@ special OpenMuseumFossilPic
 <details>
 <summary> OpenPokeblockCaseForContestLady </summary>
 
+## OpenPokeblockCaseForContestLady
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10349,6 +12117,8 @@ special OpenPokeblockCaseForContestLady
 
 <details>
 <summary> OpenPokeblockCaseOnFeeder </summary>
+
+## OpenPokeblockCaseOnFeeder
 
 *(Supports axve, axpe, bpee)*
 
@@ -10361,6 +12131,8 @@ special OpenPokeblockCaseOnFeeder
 <details>
 <summary> OpenPokenavForTutorial </summary>
 
+## OpenPokenavForTutorial
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10371,6 +12143,8 @@ special OpenPokenavForTutorial
 
 <details>
 <summary> Overworld_PlaySpecialMapMusic </summary>
+
+## Overworld_PlaySpecialMapMusic
 
 *(Supports all games.)*
 
@@ -10383,6 +12157,8 @@ special Overworld_PlaySpecialMapMusic
 <details>
 <summary> OverworldWhiteOutGetMoneyLoss </summary>
 
+## OverworldWhiteOutGetMoneyLoss
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10393,6 +12169,8 @@ special OverworldWhiteOutGetMoneyLoss
 
 <details>
 <summary> PayMoneyFor </summary>
+
+## PayMoneyFor
 
 *(Supports axve, axpe)*
 
@@ -10405,6 +12183,8 @@ special PayMoneyFor
 <details>
 <summary> PetalburgGymOpenDoorsInstantly </summary>
 
+## PetalburgGymOpenDoorsInstantly
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10415,6 +12195,8 @@ special PetalburgGymOpenDoorsInstantly
 
 <details>
 <summary> PetalburgGymSlideOpenDoors </summary>
+
+## PetalburgGymSlideOpenDoors
 
 *(Supports axve, axpe)*
 
@@ -10427,6 +12209,8 @@ special PetalburgGymSlideOpenDoors
 <details>
 <summary> PetalburgGymSlideOpenRoomDoors </summary>
 
+## PetalburgGymSlideOpenRoomDoors
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10437,6 +12221,8 @@ special PetalburgGymSlideOpenRoomDoors
 
 <details>
 <summary> PetalburgGymUnlockRoomDoors </summary>
+
+## PetalburgGymUnlockRoomDoors
 
 *(Supports bpee)*
 
@@ -10449,6 +12235,8 @@ special PetalburgGymUnlockRoomDoors
 <details>
 <summary> PickLotteryCornerTicket </summary>
 
+## PickLotteryCornerTicket
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10459,6 +12247,8 @@ special PickLotteryCornerTicket
 
 <details>
 <summary> PlayerEnteredTradeSeat </summary>
+
+## PlayerEnteredTradeSeat
 
 *(Supports bpee)*
 
@@ -10471,6 +12261,8 @@ special PlayerEnteredTradeSeat
 <details>
 <summary> PlayerFaceTrainerAfterBattle </summary>
 
+## PlayerFaceTrainerAfterBattle
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10481,6 +12273,8 @@ special PlayerFaceTrainerAfterBattle
 
 <details>
 <summary> PlayerHasBerries </summary>
+
+## PlayerHasBerries
 
 *(Supports axve, axpe, bpee)*
 
@@ -10493,6 +12287,8 @@ special2 0x800D PlayerHasBerries
 <details>
 <summary> PlayerHasGrassPokemonInParty </summary>
 
+## PlayerHasGrassPokemonInParty
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10503,6 +12299,8 @@ special PlayerHasGrassPokemonInParty
 
 <details>
 <summary> PlayerNotAtTrainerHillEntrance </summary>
+
+## PlayerNotAtTrainerHillEntrance
 
 *(Supports bpee)*
 
@@ -10515,6 +12313,8 @@ special2 0x800D PlayerNotAtTrainerHillEntrance
 <details>
 <summary> PlayerPartyContainsSpeciesWithPlayerID </summary>
 
+## PlayerPartyContainsSpeciesWithPlayerID
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10525,6 +12325,8 @@ special2 0x800D PlayerPartyContainsSpeciesWithPlayerID
 
 <details>
 <summary> PlayerPC </summary>
+
+## PlayerPC
 
 *(Supports all games.)*
 
@@ -10537,6 +12339,8 @@ special PlayerPC
 <details>
 <summary> PlayRoulette </summary>
 
+## PlayRoulette
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10547,6 +12351,8 @@ special PlayRoulette
 
 <details>
 <summary> PlayTrainerEncounterMusic </summary>
+
+## PlayTrainerEncounterMusic
 
 *(Supports all games.)*
 
@@ -10559,6 +12365,8 @@ special PlayTrainerEncounterMusic
 <details>
 <summary> PrepSecretBaseBattleFlags </summary>
 
+## PrepSecretBaseBattleFlags
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10569,6 +12377,8 @@ special PrepSecretBaseBattleFlags
 
 <details>
 <summary> PrintBattleTowerTrainerGreeting </summary>
+
+## PrintBattleTowerTrainerGreeting
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -10581,6 +12391,8 @@ special PrintBattleTowerTrainerGreeting
 <details>
 <summary> PrintEReaderTrainerGreeting </summary>
 
+## PrintEReaderTrainerGreeting
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10591,6 +12403,8 @@ special PrintEReaderTrainerGreeting
 
 <details>
 <summary> PrintPlayerBerryPowderAmount </summary>
+
+## PrintPlayerBerryPowderAmount
 
 *(Supports bpre, bpge, bpee)*
 
@@ -10603,6 +12417,8 @@ special PrintPlayerBerryPowderAmount
 <details>
 <summary> PutAwayDecorationIteration </summary>
 
+## PutAwayDecorationIteration
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10613,6 +12429,8 @@ special PutAwayDecorationIteration
 
 <details>
 <summary> PutFanClubSpecialOnTheAir </summary>
+
+## PutFanClubSpecialOnTheAir
 
 *(Supports bpee)*
 
@@ -10625,6 +12443,8 @@ special PutFanClubSpecialOnTheAir
 <details>
 <summary> PutLilycoveContestLadyShowOnTheAir </summary>
 
+## PutLilycoveContestLadyShowOnTheAir
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10635,6 +12455,8 @@ special PutLilycoveContestLadyShowOnTheAir
 
 <details>
 <summary> PutMonInRoute5Daycare </summary>
+
+## PutMonInRoute5Daycare
 
 *(Supports bpre, bpge)*
 
@@ -10647,6 +12469,8 @@ special PutMonInRoute5Daycare
 <details>
 <summary> PutZigzagoonInPlayerParty </summary>
 
+## PutZigzagoonInPlayerParty
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10657,6 +12481,8 @@ special PutZigzagoonInPlayerParty
 
 <details>
 <summary> QuestLog_CutRecording </summary>
+
+## QuestLog_CutRecording
 
 *(Supports bpre, bpge)*
 
@@ -10669,6 +12495,8 @@ special QuestLog_CutRecording
 <details>
 <summary> QuestLog_StartRecordingInputsAfterDeferredEvent </summary>
 
+## QuestLog_StartRecordingInputsAfterDeferredEvent
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10679,6 +12507,8 @@ special QuestLog_StartRecordingInputsAfterDeferredEvent
 
 <details>
 <summary> QuizLadyGetPlayerAnswer </summary>
+
+## QuizLadyGetPlayerAnswer
 
 *(Supports bpee)*
 
@@ -10691,6 +12521,8 @@ special QuizLadyGetPlayerAnswer
 <details>
 <summary> QuizLadyPickNewQuestion </summary>
 
+## QuizLadyPickNewQuestion
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10701,6 +12533,8 @@ special QuizLadyPickNewQuestion
 
 <details>
 <summary> QuizLadyRecordCustomQuizData </summary>
+
+## QuizLadyRecordCustomQuizData
 
 *(Supports bpee)*
 
@@ -10713,6 +12547,8 @@ special QuizLadyRecordCustomQuizData
 <details>
 <summary> QuizLadySetCustomQuestion </summary>
 
+## QuizLadySetCustomQuestion
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10723,6 +12559,8 @@ special QuizLadySetCustomQuestion
 
 <details>
 <summary> QuizLadySetWaitingForChallenger </summary>
+
+## QuizLadySetWaitingForChallenger
 
 *(Supports bpee)*
 
@@ -10735,6 +12573,8 @@ special QuizLadySetWaitingForChallenger
 <details>
 <summary> QuizLadyShowQuizQuestion </summary>
 
+## QuizLadyShowQuizQuestion
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10745,6 +12585,8 @@ special QuizLadyShowQuizQuestion
 
 <details>
 <summary> QuizLadyTakePrizeForCustomQuiz </summary>
+
+## QuizLadyTakePrizeForCustomQuiz
 
 *(Supports bpee)*
 
@@ -10757,6 +12599,8 @@ special QuizLadyTakePrizeForCustomQuiz
 <details>
 <summary> ReadTrainerTowerAndValidate </summary>
 
+## ReadTrainerTowerAndValidate
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10767,6 +12611,8 @@ special ReadTrainerTowerAndValidate
 
 <details>
 <summary> RecordMixingPlayerSpotTriggered </summary>
+
+## RecordMixingPlayerSpotTriggered
 
 *(Supports axve, axpe, bpee)*
 
@@ -10779,6 +12625,8 @@ special RecordMixingPlayerSpotTriggered
 <details>
 <summary> ReducePlayerPartyToSelectedMons </summary>
 
+## ReducePlayerPartyToSelectedMons
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10789,6 +12637,8 @@ special ReducePlayerPartyToSelectedMons
 
 <details>
 <summary> ReducePlayerPartyToThree </summary>
+
+## ReducePlayerPartyToThree
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -10801,6 +12651,8 @@ special ReducePlayerPartyToThree
 <details>
 <summary> RegisteredItemHandleBikeSwap </summary>
 
+## RegisteredItemHandleBikeSwap
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -10811,6 +12663,8 @@ special RegisteredItemHandleBikeSwap
 
 <details>
 <summary> RejectEggFromDayCare </summary>
+
+## RejectEggFromDayCare
 
 *(Supports all games.)*
 
@@ -10823,6 +12677,8 @@ special RejectEggFromDayCare
 <details>
 <summary> RemoveBerryPowderVendorMenu </summary>
 
+## RemoveBerryPowderVendorMenu
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10833,6 +12689,8 @@ special RemoveBerryPowderVendorMenu
 
 <details>
 <summary> RemoveCameraDummy </summary>
+
+## RemoveCameraDummy
 
 *(Supports axve, axpe)*
 
@@ -10845,6 +12703,8 @@ special RemoveCameraDummy
 <details>
 <summary> RemoveCameraObject </summary>
 
+## RemoveCameraObject
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10855,6 +12715,8 @@ special RemoveCameraObject
 
 <details>
 <summary> RemoveRecordsWindow </summary>
+
+## RemoveRecordsWindow
 
 *(Supports bpee)*
 
@@ -10867,6 +12729,8 @@ special RemoveRecordsWindow
 <details>
 <summary> ResetHealLocationFromDewford </summary>
 
+## ResetHealLocationFromDewford
+
 *(Supports bpee)*
 
 Example Usage:
@@ -10877,6 +12741,8 @@ special ResetHealLocationFromDewford
 
 <details>
 <summary> ResetSSTidalFlag </summary>
+
+## ResetSSTidalFlag
 
 *(Supports axve, axpe, bpee)*
 
@@ -10889,6 +12755,8 @@ special ResetSSTidalFlag
 <details>
 <summary> ResetTrickHouseEndRoomFlag </summary>
 
+## ResetTrickHouseEndRoomFlag
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -10899,6 +12767,8 @@ special ResetTrickHouseEndRoomFlag
 
 <details>
 <summary> ResetTrickHouseNuggetFlag </summary>
+
+## ResetTrickHouseNuggetFlag
 
 *(Supports bpee)*
 
@@ -10911,6 +12781,8 @@ special ResetTrickHouseNuggetFlag
 <details>
 <summary> ResetTVShowState </summary>
 
+## ResetTVShowState
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10921,6 +12793,8 @@ special ResetTVShowState
 
 <details>
 <summary> RestoreHelpContext </summary>
+
+## RestoreHelpContext
 
 *(Supports bpre, bpge)*
 
@@ -10933,6 +12807,8 @@ special RestoreHelpContext
 <details>
 <summary> RetrieveLotteryNumber </summary>
 
+## RetrieveLotteryNumber
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -10943,6 +12819,8 @@ special RetrieveLotteryNumber
 
 <details>
 <summary> RetrieveWonderNewsVal </summary>
+
+## RetrieveWonderNewsVal
 
 *(Supports bpee)*
 
@@ -10955,6 +12833,8 @@ special RetrieveWonderNewsVal
 <details>
 <summary> ReturnFromLinkRoom </summary>
 
+## ReturnFromLinkRoom
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10965,6 +12845,8 @@ special ReturnFromLinkRoom
 
 <details>
 <summary> ReturnToListMenu </summary>
+
+## ReturnToListMenu
 
 *(Supports bpre, bpge)*
 
@@ -10977,6 +12859,8 @@ special ReturnToListMenu
 <details>
 <summary> RockSmashWildEncounter </summary>
 
+## RockSmashWildEncounter
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -10987,6 +12871,8 @@ special RockSmashWildEncounter
 
 <details>
 <summary> RotatingGate_InitPuzzle </summary>
+
+## RotatingGate_InitPuzzle
 
 *(Supports axve, axpe, bpee)*
 
@@ -10999,6 +12885,8 @@ special RotatingGate_InitPuzzle
 <details>
 <summary> RotatingGate_InitPuzzleAndGraphics </summary>
 
+## RotatingGate_InitPuzzleAndGraphics
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11009,6 +12897,8 @@ special RotatingGate_InitPuzzleAndGraphics
 
 <details>
 <summary> RunUnionRoom </summary>
+
+## RunUnionRoom
 
 *(Supports bpee)*
 
@@ -11021,6 +12911,8 @@ special RunUnionRoom
 <details>
 <summary> SafariZoneGetPokeblockNameInFeeder </summary>
 
+## SafariZoneGetPokeblockNameInFeeder
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11031,6 +12923,8 @@ special SafariZoneGetPokeblockNameInFeeder
 
 <details>
 <summary> SampleResortGorgeousMonAndReward </summary>
+
+## SampleResortGorgeousMonAndReward
 
 *(Supports bpre, bpge)*
 
@@ -11043,6 +12937,8 @@ special SampleResortGorgeousMonAndReward
 <details>
 <summary> SaveBattleTowerProgress </summary>
 
+## SaveBattleTowerProgress
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -11053,6 +12949,8 @@ special SaveBattleTowerProgress
 
 <details>
 <summary> SaveForBattleTowerLink </summary>
+
+## SaveForBattleTowerLink
 
 *(Supports bpee)*
 
@@ -11065,6 +12963,8 @@ special SaveForBattleTowerLink
 <details>
 <summary> SaveGame </summary>
 
+## SaveGame
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11075,6 +12975,8 @@ special SaveGame
 
 <details>
 <summary> SaveMuseumContestPainting </summary>
+
+## SaveMuseumContestPainting
 
 *(Supports axve, axpe, bpee)*
 
@@ -11087,6 +12989,8 @@ special SaveMuseumContestPainting
 <details>
 <summary> SavePlayerParty </summary>
 
+## SavePlayerParty
+
 *(Supports all games.)*
 
 Example Usage:
@@ -11097,6 +13001,8 @@ special SavePlayerParty
 
 <details>
 <summary> Script_BufferContestLadyCategoryAndMonName </summary>
+
+## Script_BufferContestLadyCategoryAndMonName
 
 *(Supports bpee)*
 
@@ -11109,6 +13015,8 @@ special Script_BufferContestLadyCategoryAndMonName
 <details>
 <summary> Script_BufferFanClubTrainerName </summary>
 
+## Script_BufferFanClubTrainerName
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11119,6 +13027,8 @@ special Script_BufferFanClubTrainerName
 
 <details>
 <summary> Script_ClearHeldMovement </summary>
+
+## Script_ClearHeldMovement
 
 *(Supports bpre, bpge, bpee)*
 
@@ -11131,6 +13041,8 @@ special Script_ClearHeldMovement
 <details>
 <summary> Script_DoesFavorLadyLikeItem </summary>
 
+## Script_DoesFavorLadyLikeItem
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11141,6 +13053,8 @@ special2 0x800D Script_DoesFavorLadyLikeItem
 
 <details>
 <summary> Script_DoRayquazaScene </summary>
+
+## Script_DoRayquazaScene
 
 *(Supports bpee)*
 
@@ -11153,6 +13067,8 @@ special Script_DoRayquazaScene
 <details>
 <summary> Script_FacePlayer </summary>
 
+## Script_FacePlayer
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -11163,6 +13079,8 @@ special Script_FacePlayer
 
 <details>
 <summary> Script_FadeOutMapMusic </summary>
+
+## Script_FadeOutMapMusic
 
 *(Supports bpre, bpge, bpee)*
 
@@ -11175,6 +13093,8 @@ special Script_FadeOutMapMusic
 <details>
 <summary> Script_FavorLadyOpenBagMenu </summary>
 
+## Script_FavorLadyOpenBagMenu
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11185,6 +13105,8 @@ special Script_FavorLadyOpenBagMenu
 
 <details>
 <summary> Script_GetLilycoveLadyId </summary>
+
+## Script_GetLilycoveLadyId
 
 *(Supports bpee)*
 
@@ -11197,6 +13119,8 @@ special Script_GetLilycoveLadyId
 <details>
 <summary> Script_GetNumFansOfPlayerInTrainerFanClub </summary>
 
+## Script_GetNumFansOfPlayerInTrainerFanClub
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11207,6 +13131,8 @@ special2 0x800D Script_GetNumFansOfPlayerInTrainerFanClub
 
 <details>
 <summary> Script_HasEnoughBerryPowder </summary>
+
+## Script_HasEnoughBerryPowder
 
 *(Supports bpre, bpge)*
 
@@ -11219,6 +13145,8 @@ special2 0x800D Script_HasEnoughBerryPowder
 <details>
 <summary> Script_HasTrainerBeenFought </summary>
 
+## Script_HasTrainerBeenFought
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11229,6 +13157,8 @@ special Script_HasTrainerBeenFought
 
 <details>
 <summary> Script_IsFanClubMemberFanOfPlayer </summary>
+
+## Script_IsFanClubMemberFanOfPlayer
 
 *(Supports bpre, bpge)*
 
@@ -11241,6 +13171,8 @@ special2 0x800D Script_IsFanClubMemberFanOfPlayer
 <details>
 <summary> Script_QuizLadyOpenBagMenu </summary>
 
+## Script_QuizLadyOpenBagMenu
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11251,6 +13183,8 @@ special Script_QuizLadyOpenBagMenu
 
 <details>
 <summary> Script_ResetUnionRoomTrade </summary>
+
+## Script_ResetUnionRoomTrade
 
 *(Supports bpre, bpge, bpee)*
 
@@ -11263,6 +13197,8 @@ special Script_ResetUnionRoomTrade
 <details>
 <summary> Script_SetHelpContext </summary>
 
+## Script_SetHelpContext
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11273,6 +13209,8 @@ special Script_SetHelpContext
 
 <details>
 <summary> Script_SetPlayerGotFirstFans </summary>
+
+## Script_SetPlayerGotFirstFans
 
 *(Supports bpre, bpge)*
 
@@ -11285,6 +13223,8 @@ special Script_SetPlayerGotFirstFans
 <details>
 <summary> Script_ShowLinkTrainerCard </summary>
 
+## Script_ShowLinkTrainerCard
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -11295,6 +13235,8 @@ special Script_ShowLinkTrainerCard
 
 <details>
 <summary> Script_TakeBerryPowder </summary>
+
+## Script_TakeBerryPowder
 
 *(Supports bpre, bpge)*
 
@@ -11307,6 +13249,8 @@ special Script_TakeBerryPowder
 <details>
 <summary> Script_TryGainNewFanFromCounter </summary>
 
+## Script_TryGainNewFanFromCounter
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -11317,6 +13261,8 @@ special Script_TryGainNewFanFromCounter
 
 <details>
 <summary> Script_TryLoseFansFromPlayTime </summary>
+
+## Script_TryLoseFansFromPlayTime
 
 *(Supports bpre, bpge)*
 
@@ -11329,6 +13275,8 @@ special Script_TryLoseFansFromPlayTime
 <details>
 <summary> Script_TryLoseFansFromPlayTimeAfterLinkBattle </summary>
 
+## Script_TryLoseFansFromPlayTimeAfterLinkBattle
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -11339,6 +13287,8 @@ special Script_TryLoseFansFromPlayTimeAfterLinkBattle
 
 <details>
 <summary> Script_UpdateTrainerFanClubGameClear </summary>
+
+## Script_UpdateTrainerFanClubGameClear
 
 *(Supports bpre, bpge)*
 
@@ -11351,6 +13301,8 @@ special Script_UpdateTrainerFanClubGameClear
 <details>
 <summary> ScriptCheckFreePokemonStorageSpace </summary>
 
+## ScriptCheckFreePokemonStorageSpace
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11361,6 +13313,8 @@ special2 0x800D ScriptCheckFreePokemonStorageSpace
 
 <details>
 <summary> ScriptGetMultiplayerId </summary>
+
+## ScriptGetMultiplayerId
 
 *(Supports axve, axpe)*
 
@@ -11373,6 +13327,8 @@ special ScriptGetMultiplayerId
 <details>
 <summary> ScriptGetPokedexInfo </summary>
 
+## ScriptGetPokedexInfo
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11383,6 +13339,8 @@ special2 0x800D ScriptGetPokedexInfo
 
 <details>
 <summary> ScriptHatchMon </summary>
+
+## ScriptHatchMon
 
 *(Supports all games.)*
 
@@ -11395,6 +13353,8 @@ special ScriptHatchMon
 <details>
 <summary> ScriptMenu_CreateLilycoveSSTidalMultichoice </summary>
 
+## ScriptMenu_CreateLilycoveSSTidalMultichoice
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11405,6 +13365,8 @@ special ScriptMenu_CreateLilycoveSSTidalMultichoice
 
 <details>
 <summary> ScriptMenu_CreatePCMultichoice </summary>
+
+## ScriptMenu_CreatePCMultichoice
 
 *(Supports axve, axpe, bpee)*
 
@@ -11417,6 +13379,8 @@ special ScriptMenu_CreatePCMultichoice
 <details>
 <summary> ScriptMenu_CreateStartMenuForPokenavTutorial </summary>
 
+## ScriptMenu_CreateStartMenuForPokenavTutorial
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11427,6 +13391,8 @@ special ScriptMenu_CreateStartMenuForPokenavTutorial
 
 <details>
 <summary> ScriptRandom </summary>
+
+## ScriptRandom
 
 *(Supports axve, axpe)*
 
@@ -11439,6 +13405,8 @@ special ScriptRandom
 <details>
 <summary> ScrollableMultichoice_ClosePersistentMenu </summary>
 
+## ScrollableMultichoice_ClosePersistentMenu
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11449,6 +13417,8 @@ special ScrollableMultichoice_ClosePersistentMenu
 
 <details>
 <summary> ScrollableMultichoice_RedrawPersistentMenu </summary>
+
+## ScrollableMultichoice_RedrawPersistentMenu
 
 *(Supports bpee)*
 
@@ -11461,6 +13431,8 @@ special ScrollableMultichoice_RedrawPersistentMenu
 <details>
 <summary> ScrollableMultichoice_TryReturnToList </summary>
 
+## ScrollableMultichoice_TryReturnToList
+
 *(Supports bpee)*
 
 Example Usage:
@@ -11471,6 +13443,8 @@ special ScrollableMultichoice_TryReturnToList
 
 <details>
 <summary> ScrollRankingHallRecordsWindow </summary>
+
+## ScrollRankingHallRecordsWindow
 
 *(Supports bpee)*
 
@@ -11483,6 +13457,8 @@ special ScrollRankingHallRecordsWindow
 <details>
 <summary> ScrSpecial_AreLeadMonEVsMaxedOut </summary>
 
+## ScrSpecial_AreLeadMonEVsMaxedOut
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11493,6 +13469,8 @@ special2 0x800D ScrSpecial_AreLeadMonEVsMaxedOut
 
 <details>
 <summary> ScrSpecial_BeginCyclingRoadChallenge </summary>
+
+## ScrSpecial_BeginCyclingRoadChallenge
 
 *(Supports axve, axpe)*
 
@@ -11505,16 +13483,20 @@ special ScrSpecial_BeginCyclingRoadChallenge
 <details>
 <summary> ScrSpecial_CanMonParticipateInSelectedLinkContest </summary>
 
+## ScrSpecial_CanMonParticipateInSelectedLinkContest
+
 *(Supports axve, axpe)*
 
 Example Usage:
 ```
-special ScrSpecial_CanMonParticipateInSelectedLinkContest
+special2 0x800D ScrSpecial_CanMonParticipateInSelectedLinkContest
 ```
 </details>
 
 <details>
 <summary> ScrSpecial_CheckSelectedMonAndInitContest </summary>
+
+## ScrSpecial_CheckSelectedMonAndInitContest
 
 *(Supports axve, axpe)*
 
@@ -11527,6 +13509,8 @@ special ScrSpecial_CheckSelectedMonAndInitContest
 <details>
 <summary> ScrSpecial_ChooseStarter </summary>
 
+## ScrSpecial_ChooseStarter
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11537,6 +13521,8 @@ special ScrSpecial_ChooseStarter
 
 <details>
 <summary> ScrSpecial_CountContestMonsWithBetterCondition </summary>
+
+## ScrSpecial_CountContestMonsWithBetterCondition
 
 *(Supports axve, axpe)*
 
@@ -11549,6 +13535,8 @@ special ScrSpecial_CountContestMonsWithBetterCondition
 <details>
 <summary> ScrSpecial_CountPokemonMoves </summary>
 
+## ScrSpecial_CountPokemonMoves
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11559,6 +13547,8 @@ special ScrSpecial_CountPokemonMoves
 
 <details>
 <summary> ScrSpecial_DoesPlayerHaveNoDecorations </summary>
+
+## ScrSpecial_DoesPlayerHaveNoDecorations
 
 *(Supports axve, axpe, bpee)*
 
@@ -11571,6 +13561,8 @@ special ScrSpecial_DoesPlayerHaveNoDecorations
 <details>
 <summary> ScrSpecial_GenerateGiddyLine </summary>
 
+## ScrSpecial_GenerateGiddyLine
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11581,6 +13573,8 @@ special ScrSpecial_GenerateGiddyLine
 
 <details>
 <summary> ScrSpecial_GetContestPlayerMonIdx </summary>
+
+## ScrSpecial_GetContestPlayerMonIdx
 
 *(Supports axve, axpe)*
 
@@ -11593,6 +13587,8 @@ special ScrSpecial_GetContestPlayerMonIdx
 <details>
 <summary> ScrSpecial_GetContestWinnerIdx </summary>
 
+## ScrSpecial_GetContestWinnerIdx
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11603,6 +13599,8 @@ special ScrSpecial_GetContestWinnerIdx
 
 <details>
 <summary> ScrSpecial_GetContestWinnerNick </summary>
+
+## ScrSpecial_GetContestWinnerNick
 
 *(Supports axve, axpe)*
 
@@ -11615,6 +13613,8 @@ special ScrSpecial_GetContestWinnerNick
 <details>
 <summary> ScrSpecial_GetContestWinnerTrainerName </summary>
 
+## ScrSpecial_GetContestWinnerTrainerName
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11625,6 +13625,8 @@ special ScrSpecial_GetContestWinnerTrainerName
 
 <details>
 <summary> ScrSpecial_GetCurrentMauvilleMan </summary>
+
+## ScrSpecial_GetCurrentMauvilleMan
 
 *(Supports axve, axpe, bpee)*
 
@@ -11637,6 +13639,8 @@ special ScrSpecial_GetCurrentMauvilleMan
 <details>
 <summary> ScrSpecial_GetHipsterSpokenFlag </summary>
 
+## ScrSpecial_GetHipsterSpokenFlag
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11647,6 +13651,8 @@ special ScrSpecial_GetHipsterSpokenFlag
 
 <details>
 <summary> ScrSpecial_GetMonCondition </summary>
+
+## ScrSpecial_GetMonCondition
 
 *(Supports axve, axpe)*
 
@@ -11659,6 +13665,8 @@ special ScrSpecial_GetMonCondition
 <details>
 <summary> ScrSpecial_GetPokemonNicknameAndMoveName </summary>
 
+## ScrSpecial_GetPokemonNicknameAndMoveName
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11669,6 +13677,8 @@ special ScrSpecial_GetPokemonNicknameAndMoveName
 
 <details>
 <summary> ScrSpecial_GetTraderTradedFlag </summary>
+
+## ScrSpecial_GetTraderTradedFlag
 
 *(Supports axve, axpe, bpee)*
 
@@ -11681,6 +13691,8 @@ special ScrSpecial_GetTraderTradedFlag
 <details>
 <summary> ScrSpecial_GetTrainerBattleMode </summary>
 
+## ScrSpecial_GetTrainerBattleMode
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11691,6 +13703,8 @@ special ScrSpecial_GetTrainerBattleMode
 
 <details>
 <summary> ScrSpecial_GiddyShouldTellAnotherTale </summary>
+
+## ScrSpecial_GiddyShouldTellAnotherTale
 
 *(Supports axve, axpe, bpee)*
 
@@ -11703,6 +13717,8 @@ special ScrSpecial_GiddyShouldTellAnotherTale
 <details>
 <summary> ScrSpecial_GiveContestRibbon </summary>
 
+## ScrSpecial_GiveContestRibbon
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11713,6 +13729,8 @@ special ScrSpecial_GiveContestRibbon
 
 <details>
 <summary> ScrSpecial_HasBardSongBeenChanged </summary>
+
+## ScrSpecial_HasBardSongBeenChanged
 
 *(Supports axve, axpe, bpee)*
 
@@ -11725,6 +13743,8 @@ special ScrSpecial_HasBardSongBeenChanged
 <details>
 <summary> ScrSpecial_HasStorytellerAlreadyRecorded </summary>
 
+## ScrSpecial_HasStorytellerAlreadyRecorded
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11735,6 +13755,8 @@ special2 0x800D ScrSpecial_HasStorytellerAlreadyRecorded
 
 <details>
 <summary> ScrSpecial_HealPlayerParty </summary>
+
+## ScrSpecial_HealPlayerParty
 
 *(Supports axve, axpe)*
 
@@ -11747,6 +13769,8 @@ special ScrSpecial_HealPlayerParty
 <details>
 <summary> ScrSpecial_HipsterTeachWord </summary>
 
+## ScrSpecial_HipsterTeachWord
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11757,6 +13781,8 @@ special ScrSpecial_HipsterTeachWord
 
 <details>
 <summary> ScrSpecial_IsDecorationFull </summary>
+
+## ScrSpecial_IsDecorationFull
 
 *(Supports axve, axpe, bpee)*
 
@@ -11769,6 +13795,8 @@ special ScrSpecial_IsDecorationFull
 <details>
 <summary> ScrSpecial_PlayBardSong </summary>
 
+## ScrSpecial_PlayBardSong
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11779,6 +13807,8 @@ special ScrSpecial_PlayBardSong
 
 <details>
 <summary> ScrSpecial_RockSmashWildEncounter </summary>
+
+## ScrSpecial_RockSmashWildEncounter
 
 *(Supports axve, axpe)*
 
@@ -11791,6 +13821,8 @@ special ScrSpecial_RockSmashWildEncounter
 <details>
 <summary> ScrSpecial_SaveBardSongLyrics </summary>
 
+## ScrSpecial_SaveBardSongLyrics
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11801,6 +13833,8 @@ special ScrSpecial_SaveBardSongLyrics
 
 <details>
 <summary> ScrSpecial_SetHipsterSpokenFlag </summary>
+
+## ScrSpecial_SetHipsterSpokenFlag
 
 *(Supports axve, axpe, bpee)*
 
@@ -11813,6 +13847,8 @@ special ScrSpecial_SetHipsterSpokenFlag
 <details>
 <summary> ScrSpecial_SetLinkContestTrainerGfxIdx </summary>
 
+## ScrSpecial_SetLinkContestTrainerGfxIdx
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11823,6 +13859,8 @@ special ScrSpecial_SetLinkContestTrainerGfxIdx
 
 <details>
 <summary> ScrSpecial_SetMauvilleOldManObjEventGfx </summary>
+
+## ScrSpecial_SetMauvilleOldManObjEventGfx
 
 *(Supports bpee)*
 
@@ -11835,6 +13873,8 @@ special ScrSpecial_SetMauvilleOldManObjEventGfx
 <details>
 <summary> ScrSpecial_ShowDiploma </summary>
 
+## ScrSpecial_ShowDiploma
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11845,6 +13885,8 @@ special ScrSpecial_ShowDiploma
 
 <details>
 <summary> ScrSpecial_ShowTrainerNonBattlingSpeech </summary>
+
+## ScrSpecial_ShowTrainerNonBattlingSpeech
 
 *(Supports axve, axpe)*
 
@@ -11857,6 +13899,8 @@ special ScrSpecial_ShowTrainerNonBattlingSpeech
 <details>
 <summary> ScrSpecial_StartGroudonKyogreBattle </summary>
 
+## ScrSpecial_StartGroudonKyogreBattle
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11867,6 +13911,8 @@ special ScrSpecial_StartGroudonKyogreBattle
 
 <details>
 <summary> ScrSpecial_StartRayquazaBattle </summary>
+
+## ScrSpecial_StartRayquazaBattle
 
 *(Supports axve, axpe)*
 
@@ -11879,6 +13925,8 @@ special ScrSpecial_StartRayquazaBattle
 <details>
 <summary> ScrSpecial_StartRegiBattle </summary>
 
+## ScrSpecial_StartRegiBattle
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11889,6 +13937,8 @@ special ScrSpecial_StartRegiBattle
 
 <details>
 <summary> ScrSpecial_StartSouthernIslandBattle </summary>
+
+## ScrSpecial_StartSouthernIslandBattle
 
 *(Supports axve, axpe)*
 
@@ -11901,6 +13951,8 @@ special ScrSpecial_StartSouthernIslandBattle
 <details>
 <summary> ScrSpecial_StartWallyTutorialBattle </summary>
 
+## ScrSpecial_StartWallyTutorialBattle
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -11911,6 +13963,8 @@ special ScrSpecial_StartWallyTutorialBattle
 
 <details>
 <summary> ScrSpecial_StorytellerDisplayStory </summary>
+
+## ScrSpecial_StorytellerDisplayStory
 
 *(Supports axve, axpe, bpee)*
 
@@ -11923,6 +13977,8 @@ special ScrSpecial_StorytellerDisplayStory
 <details>
 <summary> ScrSpecial_StorytellerGetFreeStorySlot </summary>
 
+## ScrSpecial_StorytellerGetFreeStorySlot
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11933,6 +13989,8 @@ special2 0x800D ScrSpecial_StorytellerGetFreeStorySlot
 
 <details>
 <summary> ScrSpecial_StorytellerInitializeRandomStat </summary>
+
+## ScrSpecial_StorytellerInitializeRandomStat
 
 *(Supports axve, axpe, bpee)*
 
@@ -11945,6 +14003,8 @@ special2 0x800D ScrSpecial_StorytellerInitializeRandomStat
 <details>
 <summary> ScrSpecial_StorytellerStoryListMenu </summary>
 
+## ScrSpecial_StorytellerStoryListMenu
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11955,6 +14015,8 @@ special ScrSpecial_StorytellerStoryListMenu
 
 <details>
 <summary> ScrSpecial_StorytellerUpdateStat </summary>
+
+## ScrSpecial_StorytellerUpdateStat
 
 *(Supports axve, axpe, bpee)*
 
@@ -11967,6 +14029,8 @@ special2 0x800D ScrSpecial_StorytellerUpdateStat
 <details>
 <summary> ScrSpecial_TraderDoDecorationTrade </summary>
 
+## ScrSpecial_TraderDoDecorationTrade
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11977,6 +14041,8 @@ special ScrSpecial_TraderDoDecorationTrade
 
 <details>
 <summary> ScrSpecial_TraderMenuGetDecoration </summary>
+
+## ScrSpecial_TraderMenuGetDecoration
 
 *(Supports axve, axpe, bpee)*
 
@@ -11989,6 +14055,8 @@ special ScrSpecial_TraderMenuGetDecoration
 <details>
 <summary> ScrSpecial_TraderMenuGiveDecoration </summary>
 
+## ScrSpecial_TraderMenuGiveDecoration
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -11999,6 +14067,8 @@ special ScrSpecial_TraderMenuGiveDecoration
 
 <details>
 <summary> ScrSpecial_ViewWallClock </summary>
+
+## ScrSpecial_ViewWallClock
 
 *(Supports axve, axpe)*
 
@@ -12011,6 +14081,8 @@ special ScrSpecial_ViewWallClock
 <details>
 <summary> SeafoamIslandsB4F_CurrentDumpsPlayerOnLand </summary>
 
+## SeafoamIslandsB4F_CurrentDumpsPlayerOnLand
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12021,6 +14093,8 @@ special SeafoamIslandsB4F_CurrentDumpsPlayerOnLand
 
 <details>
 <summary> SecretBasePC_Decoration </summary>
+
+## SecretBasePC_Decoration
 
 *(Supports axve, axpe)*
 
@@ -12033,6 +14107,8 @@ special SecretBasePC_Decoration
 <details>
 <summary> SecretBasePC_Registry </summary>
 
+## SecretBasePC_Registry
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12043,6 +14119,8 @@ special SecretBasePC_Registry
 
 <details>
 <summary> SelectMove </summary>
+
+## SelectMove
 
 *(Supports axve, axpe)*
 
@@ -12055,6 +14133,8 @@ special SelectMove
 <details>
 <summary> SelectMoveDeleterMove </summary>
 
+## SelectMoveDeleterMove
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12065,6 +14145,8 @@ special SelectMoveDeleterMove
 
 <details>
 <summary> SelectMoveTutorMon </summary>
+
+## SelectMoveTutorMon
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -12077,6 +14159,8 @@ special SelectMoveTutorMon
 <details>
 <summary> SetBattledOwnerFromResult </summary>
 
+## SetBattledOwnerFromResult
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12087,6 +14171,8 @@ special SetBattledOwnerFromResult
 
 <details>
 <summary> SetBattledTrainerFlag </summary>
+
+## SetBattledTrainerFlag
 
 *(Supports bpre, bpge)*
 
@@ -12099,6 +14185,8 @@ special SetBattledTrainerFlag
 <details>
 <summary> SetBattleTowerLinkPlayerGfx </summary>
 
+## SetBattleTowerLinkPlayerGfx
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12109,6 +14197,8 @@ special SetBattleTowerLinkPlayerGfx
 
 <details>
 <summary> SetBattleTowerParty </summary>
+
+## SetBattleTowerParty
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -12121,6 +14211,8 @@ special SetBattleTowerParty
 <details>
 <summary> SetBattleTowerProperty </summary>
 
+## SetBattleTowerProperty
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -12131,6 +14223,8 @@ special SetBattleTowerProperty
 
 <details>
 <summary> SetCableClubWarp </summary>
+
+## SetCableClubWarp
 
 *(Supports all games.)*
 
@@ -12143,6 +14237,8 @@ special SetCableClubWarp
 <details>
 <summary> SetCB2WhiteOut </summary>
 
+## SetCB2WhiteOut
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12153,6 +14249,8 @@ special SetCB2WhiteOut
 
 <details>
 <summary> SetChampionSaveWarp </summary>
+
+## SetChampionSaveWarp
 
 *(Supports bpee)*
 
@@ -12165,6 +14263,8 @@ special SetChampionSaveWarp
 <details>
 <summary> SetContestCategoryStringVarForInterview </summary>
 
+## SetContestCategoryStringVarForInterview
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12175,6 +14275,8 @@ special SetContestCategoryStringVarForInterview
 
 <details>
 <summary> SetContestLadyGivenPokeblock </summary>
+
+## SetContestLadyGivenPokeblock
 
 *(Supports bpee)*
 
@@ -12187,6 +14289,8 @@ special SetContestLadyGivenPokeblock
 <details>
 <summary> SetContestTrainerGfxIds </summary>
 
+## SetContestTrainerGfxIds
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12197,6 +14301,8 @@ special SetContestTrainerGfxIds
 
 <details>
 <summary> SetDaycareCompatibilityString </summary>
+
+## SetDaycareCompatibilityString
 
 *(Supports all games.)*
 
@@ -12209,6 +14315,8 @@ special SetDaycareCompatibilityString
 <details>
 <summary> SetDecoration </summary>
 
+## SetDecoration
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12219,6 +14327,8 @@ special SetDecoration
 
 <details>
 <summary> SetDeoxysRockPalette </summary>
+
+## SetDeoxysRockPalette
 
 *(Supports bpee)*
 
@@ -12231,6 +14341,8 @@ special SetDeoxysRockPalette
 <details>
 <summary> SetDeoxysTrianglePalette </summary>
 
+## SetDeoxysTrianglePalette
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12241,6 +14353,8 @@ special SetDeoxysTrianglePalette
 
 <details>
 <summary> SetDepartmentStoreFloorVar </summary>
+
+## SetDepartmentStoreFloorVar
 
 *(Supports axve, axpe)*
 
@@ -12253,6 +14367,8 @@ special SetDepartmentStoreFloorVar
 <details>
 <summary> SetDeptStoreFloor </summary>
 
+## SetDeptStoreFloor
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12263,6 +14379,8 @@ special SetDeptStoreFloor
 
 <details>
 <summary> SetEReaderTrainerGfxId </summary>
+
+## SetEReaderTrainerGfxId
 
 *(Supports all games.)*
 
@@ -12275,6 +14393,8 @@ special SetEReaderTrainerGfxId
 <details>
 <summary> SetFavorLadyState_Complete </summary>
 
+## SetFavorLadyState_Complete
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12285,6 +14405,8 @@ special SetFavorLadyState_Complete
 
 <details>
 <summary> SetFlavorTextFlagFromSpecialVars </summary>
+
+## SetFlavorTextFlagFromSpecialVars
 
 *(Supports bpre, bpge)*
 
@@ -12297,6 +14419,8 @@ special SetFlavorTextFlagFromSpecialVars
 <details>
 <summary> SetHelpContextForMap </summary>
 
+## SetHelpContextForMap
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12307,6 +14431,8 @@ special SetHelpContextForMap
 
 <details>
 <summary> SetHiddenItemFlag </summary>
+
+## SetHiddenItemFlag
 
 *(Supports all games.)*
 
@@ -12319,6 +14445,8 @@ special SetHiddenItemFlag
 <details>
 <summary> SetIcefallCaveCrackedIceMetatiles </summary>
 
+## SetIcefallCaveCrackedIceMetatiles
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12329,6 +14457,8 @@ special SetIcefallCaveCrackedIceMetatiles
 
 <details>
 <summary> SetLilycoveLadyGfx </summary>
+
+## SetLilycoveLadyGfx
 
 *(Supports bpee)*
 
@@ -12341,6 +14471,8 @@ special SetLilycoveLadyGfx
 <details>
 <summary> SetLinkContestPlayerGfx </summary>
 
+## SetLinkContestPlayerGfx
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12351,6 +14483,8 @@ special SetLinkContestPlayerGfx
 
 <details>
 <summary> SetMatchCallRegisteredFlag </summary>
+
+## SetMatchCallRegisteredFlag
 
 *(Supports bpee)*
 
@@ -12363,6 +14497,8 @@ special SetMatchCallRegisteredFlag
 <details>
 <summary> SetMewAboveGrass </summary>
 
+## SetMewAboveGrass
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12373,6 +14509,8 @@ special SetMewAboveGrass
 
 <details>
 <summary> SetMirageTowerVisibility </summary>
+
+## SetMirageTowerVisibility
 
 *(Supports bpee)*
 
@@ -12385,6 +14523,8 @@ special SetMirageTowerVisibility
 <details>
 <summary> SetPacifidlogTMReceivedDay </summary>
 
+## SetPacifidlogTMReceivedDay
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12395,6 +14535,8 @@ special SetPacifidlogTMReceivedDay
 
 <details>
 <summary> SetPlayerGotFirstFans </summary>
+
+## SetPlayerGotFirstFans
 
 *(Supports bpee)*
 
@@ -12407,6 +14549,8 @@ special SetPlayerGotFirstFans
 <details>
 <summary> SetPlayerSecretBase </summary>
 
+## SetPlayerSecretBase
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12417,6 +14561,8 @@ special SetPlayerSecretBase
 
 <details>
 <summary> SetPostgameFlags </summary>
+
+## SetPostgameFlags
 
 *(Supports bpre, bpge)*
 
@@ -12429,6 +14575,8 @@ special SetPostgameFlags
 <details>
 <summary> SetQuizLadyState_Complete </summary>
 
+## SetQuizLadyState_Complete
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12439,6 +14587,8 @@ special SetQuizLadyState_Complete
 
 <details>
 <summary> SetQuizLadyState_GivePrize </summary>
+
+## SetQuizLadyState_GivePrize
 
 *(Supports bpee)*
 
@@ -12451,6 +14601,8 @@ special SetQuizLadyState_GivePrize
 <details>
 <summary> SetRoute119Weather </summary>
 
+## SetRoute119Weather
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12461,6 +14613,8 @@ special SetRoute119Weather
 
 <details>
 <summary> SetRoute123Weather </summary>
+
+## SetRoute123Weather
 
 *(Supports axve, axpe, bpee)*
 
@@ -12473,6 +14627,8 @@ special SetRoute123Weather
 <details>
 <summary> SetSecretBaseOwnerGfxId </summary>
 
+## SetSecretBaseOwnerGfxId
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12483,6 +14639,8 @@ special SetSecretBaseOwnerGfxId
 
 <details>
 <summary> SetSeenMon </summary>
+
+## SetSeenMon
 
 *(Supports bpre, bpge)*
 
@@ -12495,6 +14653,8 @@ special SetSeenMon
 <details>
 <summary> SetSootopolisGymCrackedIceMetatiles </summary>
 
+## SetSootopolisGymCrackedIceMetatiles
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12505,6 +14665,8 @@ special SetSootopolisGymCrackedIceMetatiles
 
 <details>
 <summary> SetSSTidalFlag </summary>
+
+## SetSSTidalFlag
 
 *(Supports axve, axpe, bpee)*
 
@@ -12517,6 +14679,8 @@ special SetSSTidalFlag
 <details>
 <summary> SetTrainerFacingDirection </summary>
 
+## SetTrainerFacingDirection
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12527,6 +14691,8 @@ special SetTrainerFacingDirection
 
 <details>
 <summary> SetTrickHouseEndRoomFlag </summary>
+
+## SetTrickHouseEndRoomFlag
 
 *(Supports axve, axpe)*
 
@@ -12539,6 +14705,8 @@ special SetTrickHouseEndRoomFlag
 <details>
 <summary> SetTrickHouseNuggetFlag </summary>
 
+## SetTrickHouseNuggetFlag
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12549,6 +14717,8 @@ special SetTrickHouseNuggetFlag
 
 <details>
 <summary> SetUnlockedPokedexFlags </summary>
+
+## SetUnlockedPokedexFlags
 
 *(Supports bpre, bpge, bpee)*
 
@@ -12561,6 +14731,8 @@ special SetUnlockedPokedexFlags
 <details>
 <summary> SetUpTrainerMovement </summary>
 
+## SetUpTrainerMovement
+
 *(Supports axve, axpe, bpre, bpge)*
 
 Example Usage:
@@ -12571,6 +14743,8 @@ special SetUpTrainerMovement
 
 <details>
 <summary> SetUsedPkmnCenterQuestLogEvent </summary>
+
+## SetUsedPkmnCenterQuestLogEvent
 
 *(Supports bpre, bpge)*
 
@@ -12583,6 +14757,8 @@ special SetUsedPkmnCenterQuestLogEvent
 <details>
 <summary> SetVermilionTrashCans </summary>
 
+## SetVermilionTrashCans
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12593,6 +14769,8 @@ special SetVermilionTrashCans
 
 <details>
 <summary> SetWalkingIntoSignVars </summary>
+
+## SetWalkingIntoSignVars
 
 *(Supports bpre, bpge)*
 
@@ -12605,6 +14783,8 @@ special SetWalkingIntoSignVars
 <details>
 <summary> ShakeCamera </summary>
 
+## ShakeCamera
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12615,6 +14795,8 @@ special ShakeCamera
 
 <details>
 <summary> ShakeScreen </summary>
+
+## ShakeScreen
 
 *(Supports bpre, bpge)*
 
@@ -12627,6 +14809,8 @@ special ShakeScreen
 <details>
 <summary> ShakeScreenInElevator </summary>
 
+## ShakeScreenInElevator
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12637,6 +14821,8 @@ special ShakeScreenInElevator
 
 <details>
 <summary> ShouldContestLadyShowGoOnAir </summary>
+
+## ShouldContestLadyShowGoOnAir
 
 *(Supports bpee)*
 
@@ -12649,6 +14835,8 @@ special2 0x800D ShouldContestLadyShowGoOnAir
 <details>
 <summary> ShouldDistributeEonTicket </summary>
 
+## ShouldDistributeEonTicket
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12659,6 +14847,8 @@ special2 0x800D ShouldDistributeEonTicket
 
 <details>
 <summary> ShouldDoBrailleRegicePuzzle </summary>
+
+## ShouldDoBrailleRegicePuzzle
 
 *(Supports bpee)*
 
@@ -12671,6 +14861,8 @@ special ShouldDoBrailleRegicePuzzle
 <details>
 <summary> ShouldDoBrailleRegirockEffectOld </summary>
 
+## ShouldDoBrailleRegirockEffectOld
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12681,6 +14873,8 @@ special ShouldDoBrailleRegirockEffectOld
 
 <details>
 <summary> ShouldHideFanClubInterviewer </summary>
+
+## ShouldHideFanClubInterviewer
 
 *(Supports bpee)*
 
@@ -12693,6 +14887,8 @@ special2 0x800D ShouldHideFanClubInterviewer
 <details>
 <summary> ShouldMoveLilycoveFanClubMember </summary>
 
+## ShouldMoveLilycoveFanClubMember
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12703,6 +14899,8 @@ special2 0x800D ShouldMoveLilycoveFanClubMember
 
 <details>
 <summary> ShouldReadyContestArtist </summary>
+
+## ShouldReadyContestArtist
 
 *(Supports axve, axpe, bpee)*
 
@@ -12715,6 +14913,8 @@ special ShouldReadyContestArtist
 <details>
 <summary> ShouldShowBoxWasFullMessage </summary>
 
+## ShouldShowBoxWasFullMessage
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12725,6 +14925,8 @@ special2 0x800D ShouldShowBoxWasFullMessage
 
 <details>
 <summary> ShouldTryGetTrainerScript </summary>
+
+## ShouldTryGetTrainerScript
 
 *(Supports bpee)*
 
@@ -12737,6 +14939,8 @@ special ShouldTryGetTrainerScript
 <details>
 <summary> ShouldTryRematchBattle </summary>
 
+## ShouldTryRematchBattle
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12747,6 +14951,8 @@ special2 0x800D ShouldTryRematchBattle
 
 <details>
 <summary> ShowBattlePointsWindow </summary>
+
+## ShowBattlePointsWindow
 
 *(Supports bpee)*
 
@@ -12759,6 +14965,8 @@ special ShowBattlePointsWindow
 <details>
 <summary> ShowBattleRecords </summary>
 
+## ShowBattleRecords
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -12769,6 +14977,8 @@ special ShowBattleRecords
 
 <details>
 <summary> ShowBattleTowerRecords </summary>
+
+## ShowBattleTowerRecords
 
 *(Supports axve, axpe)*
 
@@ -12781,6 +14991,8 @@ special ShowBattleTowerRecords
 <details>
 <summary> ShowBerryBlenderRecordWindow </summary>
 
+## ShowBerryBlenderRecordWindow
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12791,6 +15003,8 @@ special ShowBerryBlenderRecordWindow
 
 <details>
 <summary> ShowBerryCrushRankings </summary>
+
+## ShowBerryCrushRankings
 
 *(Supports bpre, bpge, bpee)*
 
@@ -12803,6 +15017,8 @@ special ShowBerryCrushRankings
 <details>
 <summary> ShowContestEntryMonPic </summary>
 
+## ShowContestEntryMonPic
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12813,6 +15029,8 @@ special ShowContestEntryMonPic
 
 <details>
 <summary> ShowContestPainting  @ unused </summary>
+
+## ShowContestPainting  @ unused
 
 *(Supports bpee)*
 
@@ -12825,6 +15043,8 @@ special ShowContestPainting  @ unused
 <details>
 <summary> ShowContestWinner </summary>
 
+## ShowContestWinner
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -12835,6 +15055,8 @@ special ShowContestWinner
 
 <details>
 <summary> ShowDaycareLevelMenu </summary>
+
+## ShowDaycareLevelMenu
 
 *(Supports all games.)*
 
@@ -12847,6 +15069,8 @@ special ShowDaycareLevelMenu
 <details>
 <summary> ShowDeptStoreElevatorFloorSelect </summary>
 
+## ShowDeptStoreElevatorFloorSelect
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12857,6 +15081,8 @@ special ShowDeptStoreElevatorFloorSelect
 
 <details>
 <summary> ShowDiploma </summary>
+
+## ShowDiploma
 
 *(Supports bpre, bpge)*
 
@@ -12869,6 +15095,8 @@ special ShowDiploma
 <details>
 <summary> ShowDodrioBerryPickingRecords </summary>
 
+## ShowDodrioBerryPickingRecords
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -12879,6 +15107,8 @@ special ShowDodrioBerryPickingRecords
 
 <details>
 <summary> ShowEasyChatMessage </summary>
+
+## ShowEasyChatMessage
 
 *(Supports bpre, bpge)*
 
@@ -12891,6 +15121,8 @@ special ShowEasyChatMessage
 <details>
 <summary> ShowEasyChatProfile </summary>
 
+## ShowEasyChatProfile
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12901,6 +15133,8 @@ special ShowEasyChatProfile
 
 <details>
 <summary> ShowEasyChatScreen </summary>
+
+## ShowEasyChatScreen
 
 *(Supports all games.)*
 
@@ -12913,6 +15147,8 @@ special ShowEasyChatScreen
 <details>
 <summary> ShowFieldMessageStringVar4 </summary>
 
+## ShowFieldMessageStringVar4
+
 *(Supports all games.)*
 
 Example Usage:
@@ -12923,6 +15159,8 @@ special ShowFieldMessageStringVar4
 
 <details>
 <summary> ShowFrontierExchangeCornerItemIconWindow </summary>
+
+## ShowFrontierExchangeCornerItemIconWindow
 
 *(Supports bpee)*
 
@@ -12935,6 +15173,8 @@ special ShowFrontierExchangeCornerItemIconWindow
 <details>
 <summary> ShowFrontierGamblerGoMessage </summary>
 
+## ShowFrontierGamblerGoMessage
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12945,6 +15185,8 @@ special ShowFrontierGamblerGoMessage
 
 <details>
 <summary> ShowFrontierGamblerLookingMessage </summary>
+
+## ShowFrontierGamblerLookingMessage
 
 *(Supports bpee)*
 
@@ -12957,6 +15199,8 @@ special ShowFrontierGamblerLookingMessage
 <details>
 <summary> ShowFrontierManiacMessage </summary>
 
+## ShowFrontierManiacMessage
+
 *(Supports bpee)*
 
 Example Usage:
@@ -12967,6 +15211,8 @@ special ShowFrontierManiacMessage
 
 <details>
 <summary> ShowGlassWorkshopMenu </summary>
+
+## ShowGlassWorkshopMenu
 
 *(Supports axve, axpe, bpee)*
 
@@ -12979,6 +15225,8 @@ special ShowGlassWorkshopMenu
 <details>
 <summary> ShowLinkBattleRecords </summary>
 
+## ShowLinkBattleRecords
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -12989,6 +15237,8 @@ special ShowLinkBattleRecords
 
 <details>
 <summary> ShowMapNamePopup </summary>
+
+## ShowMapNamePopup
 
 *(Supports bpee)*
 
@@ -13001,6 +15251,8 @@ special ShowMapNamePopup
 <details>
 <summary> ShowNatureGirlMessage </summary>
 
+## ShowNatureGirlMessage
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13011,6 +15263,8 @@ special ShowNatureGirlMessage
 
 <details>
 <summary> ShowPokedexRatingMessage </summary>
+
+## ShowPokedexRatingMessage
 
 *(Supports axve, axpe, bpee)*
 
@@ -13023,6 +15277,8 @@ special ShowPokedexRatingMessage
 <details>
 <summary> ShowPokemonJumpRecords </summary>
 
+## ShowPokemonJumpRecords
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13033,6 +15289,8 @@ special ShowPokemonJumpRecords
 
 <details>
 <summary> ShowPokemonStorageSystem </summary>
+
+## ShowPokemonStorageSystem
 
 *(Supports axve, axpe)*
 
@@ -13045,6 +15303,8 @@ special ShowPokemonStorageSystem
 <details>
 <summary> ShowPokemonStorageSystemPC </summary>
 
+## ShowPokemonStorageSystemPC
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13055,6 +15315,8 @@ special ShowPokemonStorageSystemPC
 
 <details>
 <summary> ShowRankingHallRecordsWindow </summary>
+
+## ShowRankingHallRecordsWindow
 
 *(Supports bpee)*
 
@@ -13067,6 +15329,8 @@ special ShowRankingHallRecordsWindow
 <details>
 <summary> ShowScrollableMultichoice </summary>
 
+## ShowScrollableMultichoice
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13077,6 +15341,8 @@ special ShowScrollableMultichoice
 
 <details>
 <summary> ShowSecretBaseDecorationMenu </summary>
+
+## ShowSecretBaseDecorationMenu
 
 *(Supports bpee)*
 
@@ -13089,6 +15355,8 @@ special ShowSecretBaseDecorationMenu
 <details>
 <summary> ShowSecretBaseRegistryMenu </summary>
 
+## ShowSecretBaseRegistryMenu
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13099,6 +15367,8 @@ special ShowSecretBaseRegistryMenu
 
 <details>
 <summary> ShowTownMap </summary>
+
+## ShowTownMap
 
 *(Supports bpre, bpge)*
 
@@ -13111,6 +15381,8 @@ special ShowTownMap
 <details>
 <summary> ShowTrainerCantBattleSpeech </summary>
 
+## ShowTrainerCantBattleSpeech
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13121,6 +15393,8 @@ special ShowTrainerCantBattleSpeech
 
 <details>
 <summary> ShowTrainerHillRecords </summary>
+
+## ShowTrainerHillRecords
 
 *(Supports bpee)*
 
@@ -13133,6 +15407,8 @@ special ShowTrainerHillRecords
 <details>
 <summary> ShowTrainerIntroSpeech </summary>
 
+## ShowTrainerIntroSpeech
+
 *(Supports all games.)*
 
 Example Usage:
@@ -13143,6 +15419,8 @@ special ShowTrainerIntroSpeech
 
 <details>
 <summary> ShowWirelessCommunicationScreen </summary>
+
+## ShowWirelessCommunicationScreen
 
 *(Supports bpre, bpge, bpee)*
 
@@ -13155,6 +15433,8 @@ special ShowWirelessCommunicationScreen
 <details>
 <summary> sp0C8_whiteout_maybe </summary>
 
+## sp0C8_whiteout_maybe
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13165,6 +15445,8 @@ special sp0C8_whiteout_maybe
 
 <details>
 <summary> sp13E_warp_to_last_warp </summary>
+
+## sp13E_warp_to_last_warp
 
 *(Supports axve, axpe)*
 
@@ -13177,6 +15459,8 @@ special sp13E_warp_to_last_warp
 <details>
 <summary> SpawnBerryBlenderLinkPlayerSprites </summary>
 
+## SpawnBerryBlenderLinkPlayerSprites
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13187,6 +15471,8 @@ special SpawnBerryBlenderLinkPlayerSprites
 
 <details>
 <summary> SpawnCameraDummy </summary>
+
+## SpawnCameraDummy
 
 *(Supports axve, axpe)*
 
@@ -13199,6 +15485,8 @@ special SpawnCameraDummy
 <details>
 <summary> SpawnCameraObject </summary>
 
+## SpawnCameraObject
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13209,6 +15497,8 @@ special SpawnCameraObject
 
 <details>
 <summary> SpawnLinkPartnerObjectEvent </summary>
+
+## SpawnLinkPartnerObjectEvent
 
 *(Supports bpee)*
 
@@ -13221,6 +15511,8 @@ special SpawnLinkPartnerObjectEvent
 <details>
 <summary> special_0x44 </summary>
 
+## special_0x44
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13231,6 +15523,8 @@ special special_0x44
 
 <details>
 <summary> Special_AreLeadMonEVsMaxedOut </summary>
+
+## Special_AreLeadMonEVsMaxedOut
 
 *(Supports bpee)*
 
@@ -13243,6 +15537,8 @@ special2 0x800D Special_AreLeadMonEVsMaxedOut
 <details>
 <summary> Special_BeginCyclingRoadChallenge </summary>
 
+## Special_BeginCyclingRoadChallenge
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13253,6 +15549,8 @@ special Special_BeginCyclingRoadChallenge
 
 <details>
 <summary> Special_ShowDiploma </summary>
+
+## Special_ShowDiploma
 
 *(Supports bpee)*
 
@@ -13265,6 +15563,8 @@ special Special_ShowDiploma
 <details>
 <summary> Special_ViewWallClock </summary>
 
+## Special_ViewWallClock
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13275,6 +15575,8 @@ special Special_ViewWallClock
 
 <details>
 <summary> StartDroughtWeatherBlend </summary>
+
+## StartDroughtWeatherBlend
 
 *(Supports bpre, bpge, bpee)*
 
@@ -13287,6 +15589,8 @@ special StartDroughtWeatherBlend
 <details>
 <summary> StartGroudonKyogreBattle </summary>
 
+## StartGroudonKyogreBattle
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13297,6 +15601,8 @@ special StartGroudonKyogreBattle
 
 <details>
 <summary> StartLegendaryBattle </summary>
+
+## StartLegendaryBattle
 
 *(Supports bpre, bpge)*
 
@@ -13309,6 +15615,8 @@ special StartLegendaryBattle
 <details>
 <summary> StartMarowakBattle </summary>
 
+## StartMarowakBattle
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13319,6 +15627,8 @@ special StartMarowakBattle
 
 <details>
 <summary> StartMirageTowerDisintegration </summary>
+
+## StartMirageTowerDisintegration
 
 *(Supports bpee)*
 
@@ -13331,6 +15641,8 @@ special StartMirageTowerDisintegration
 <details>
 <summary> StartMirageTowerFossilFallAndSink </summary>
 
+## StartMirageTowerFossilFallAndSink
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13341,6 +15653,8 @@ special StartMirageTowerFossilFallAndSink
 
 <details>
 <summary> StartMirageTowerShake </summary>
+
+## StartMirageTowerShake
 
 *(Supports bpee)*
 
@@ -13353,6 +15667,8 @@ special StartMirageTowerShake
 <details>
 <summary> StartOldManTutorialBattle </summary>
 
+## StartOldManTutorialBattle
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13363,6 +15679,8 @@ special StartOldManTutorialBattle
 
 <details>
 <summary> StartPlayerDescendMirageTower </summary>
+
+## StartPlayerDescendMirageTower
 
 *(Supports bpee)*
 
@@ -13375,6 +15693,8 @@ special StartPlayerDescendMirageTower
 <details>
 <summary> StartRegiBattle </summary>
 
+## StartRegiBattle
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -13385,6 +15705,8 @@ special StartRegiBattle
 
 <details>
 <summary> StartRematchBattle </summary>
+
+## StartRematchBattle
 
 *(Supports bpre, bpge)*
 
@@ -13397,6 +15719,8 @@ special StartRematchBattle
 <details>
 <summary> StartSouthernIslandBattle </summary>
 
+## StartSouthernIslandBattle
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13407,6 +15731,8 @@ special StartSouthernIslandBattle
 
 <details>
 <summary> StartSpecialBattle </summary>
+
+## StartSpecialBattle
 
 *(Supports axve, axpe, bpre, bpge)*
 
@@ -13419,6 +15745,8 @@ special StartSpecialBattle
 <details>
 <summary> StartWallClock </summary>
 
+## StartWallClock
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -13429,6 +15757,8 @@ special StartWallClock
 
 <details>
 <summary> StartWallyTutorialBattle </summary>
+
+## StartWallyTutorialBattle
 
 *(Supports bpee)*
 
@@ -13441,6 +15771,8 @@ special StartWallyTutorialBattle
 <details>
 <summary> StartWiredCableClubTrade </summary>
 
+## StartWiredCableClubTrade
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -13451,6 +15783,8 @@ special StartWiredCableClubTrade
 
 <details>
 <summary> StickerManGetBragFlags </summary>
+
+## StickerManGetBragFlags
 
 *(Supports bpre, bpge)*
 
@@ -13463,6 +15797,8 @@ special2 0x8008 StickerManGetBragFlags
 <details>
 <summary> StopMapMusic </summary>
 
+## StopMapMusic
+
 *(Supports bpee)*
 
 Example Usage:
@@ -13473,6 +15809,8 @@ special StopMapMusic
 
 <details>
 <summary> StorePlayerCoordsInVars </summary>
+
+## StorePlayerCoordsInVars
 
 *(Supports axve, axpe, bpee)*
 
@@ -13485,6 +15823,8 @@ special StorePlayerCoordsInVars
 <details>
 <summary> StoreSelectedPokemonInDaycare </summary>
 
+## StoreSelectedPokemonInDaycare
+
 *(Supports all games.)*
 
 Example Usage:
@@ -13495,6 +15835,8 @@ special StoreSelectedPokemonInDaycare
 
 <details>
 <summary> sub_8064EAC </summary>
+
+## sub_8064EAC
 
 *(Supports axve, axpe)*
 
@@ -13507,6 +15849,8 @@ special sub_8064EAC
 <details>
 <summary> sub_8064ED4 </summary>
 
+## sub_8064ED4
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13517,6 +15861,8 @@ special sub_8064ED4
 
 <details>
 <summary> sub_807E25C </summary>
+
+## sub_807E25C
 
 *(Supports axve, axpe)*
 
@@ -13529,6 +15875,8 @@ special sub_807E25C
 <details>
 <summary> sub_80810DC </summary>
 
+## sub_80810DC
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13539,6 +15887,8 @@ special sub_80810DC
 
 <details>
 <summary> sub_8081334 </summary>
+
+## sub_8081334
 
 *(Supports axve, axpe)*
 
@@ -13551,6 +15901,8 @@ special sub_8081334
 <details>
 <summary> sub_80818A4 </summary>
 
+## sub_80818A4
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13561,6 +15913,8 @@ special sub_80818A4
 
 <details>
 <summary> sub_80818FC </summary>
+
+## sub_80818FC
 
 *(Supports axve, axpe)*
 
@@ -13573,6 +15927,8 @@ special sub_80818FC
 <details>
 <summary> sub_8081924 </summary>
 
+## sub_8081924
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13583,6 +15939,8 @@ special sub_8081924
 
 <details>
 <summary> sub_808347C </summary>
+
+## sub_808347C
 
 *(Supports axve, axpe)*
 
@@ -13595,6 +15953,8 @@ special sub_808347C
 <details>
 <summary> sub_80834E4 </summary>
 
+## sub_80834E4
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13605,6 +15965,8 @@ special sub_80834E4
 
 <details>
 <summary> sub_808350C </summary>
+
+## sub_808350C
 
 *(Supports axve, axpe)*
 
@@ -13617,6 +15979,8 @@ special sub_808350C
 <details>
 <summary> sub_80835D8 </summary>
 
+## sub_80835D8
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13627,6 +15991,8 @@ special sub_80835D8
 
 <details>
 <summary> sub_8083614 </summary>
+
+## sub_8083614
 
 *(Supports axve, axpe)*
 
@@ -13639,6 +16005,8 @@ special sub_8083614
 <details>
 <summary> sub_808363C </summary>
 
+## sub_808363C
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13649,6 +16017,8 @@ special sub_808363C
 
 <details>
 <summary> sub_8083820 </summary>
+
+## sub_8083820
 
 *(Supports axve, axpe)*
 
@@ -13661,6 +16031,8 @@ special sub_8083820
 <details>
 <summary> sub_80839A4 </summary>
 
+## sub_80839A4
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13671,6 +16043,8 @@ special sub_80839A4
 
 <details>
 <summary> sub_80839D0 </summary>
+
+## sub_80839D0
 
 *(Supports axve, axpe)*
 
@@ -13683,6 +16057,8 @@ special sub_80839D0
 <details>
 <summary> sub_8083B5C </summary>
 
+## sub_8083B5C
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13693,6 +16069,8 @@ special sub_8083B5C
 
 <details>
 <summary> sub_8083B80 </summary>
+
+## sub_8083B80
 
 *(Supports axve, axpe)*
 
@@ -13705,6 +16083,8 @@ special sub_8083B80
 <details>
 <summary> sub_8083B90 </summary>
 
+## sub_8083B90
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13715,6 +16095,8 @@ special sub_8083B90
 
 <details>
 <summary> sub_8083BDC </summary>
+
+## sub_8083BDC
 
 *(Supports axve, axpe)*
 
@@ -13727,6 +16109,8 @@ special sub_8083BDC
 <details>
 <summary> sub_80BB70C </summary>
 
+## sub_80BB70C
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13737,6 +16121,8 @@ special sub_80BB70C
 
 <details>
 <summary> sub_80BB8CC </summary>
+
+## sub_80BB8CC
 
 *(Supports axve, axpe)*
 
@@ -13749,6 +16135,8 @@ special sub_80BB8CC
 <details>
 <summary> sub_80BBAF0 </summary>
 
+## sub_80BBAF0
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13759,6 +16147,8 @@ special sub_80BBAF0
 
 <details>
 <summary> sub_80BBC78 </summary>
+
+## sub_80BBC78
 
 *(Supports axve, axpe)*
 
@@ -13771,6 +16161,8 @@ special sub_80BBC78
 <details>
 <summary> sub_80BBDD0 </summary>
 
+## sub_80BBDD0
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13781,6 +16173,8 @@ special sub_80BBDD0
 
 <details>
 <summary> sub_80BC114 </summary>
+
+## sub_80BC114
 
 *(Supports axve, axpe)*
 
@@ -13793,6 +16187,8 @@ special sub_80BC114
 <details>
 <summary> sub_80BC440 </summary>
 
+## sub_80BC440
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13803,6 +16199,8 @@ special sub_80BC440
 
 <details>
 <summary> sub_80BCE1C </summary>
+
+## sub_80BCE1C
 
 *(Supports axve, axpe)*
 
@@ -13815,6 +16213,8 @@ special sub_80BCE1C
 <details>
 <summary> sub_80BCE4C </summary>
 
+## sub_80BCE4C
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13825,6 +16225,8 @@ special sub_80BCE4C
 
 <details>
 <summary> sub_80BCE90 </summary>
+
+## sub_80BCE90
 
 *(Supports axve, axpe)*
 
@@ -13837,6 +16239,8 @@ special sub_80BCE90
 <details>
 <summary> sub_80C5044 </summary>
 
+## sub_80C5044
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13847,6 +16251,8 @@ special2 0x800D sub_80C5044
 
 <details>
 <summary> sub_80C5164 </summary>
+
+## sub_80C5164
 
 *(Supports axve, axpe)*
 
@@ -13859,6 +16265,8 @@ special sub_80C5164
 <details>
 <summary> sub_80C5568 </summary>
 
+## sub_80C5568
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13869,6 +16277,8 @@ special sub_80C5568
 
 <details>
 <summary> sub_80C7958 </summary>
+
+## sub_80C7958
 
 *(Supports axve, axpe)*
 
@@ -13881,6 +16291,8 @@ special sub_80C7958
 <details>
 <summary> sub_80EB7C4 </summary>
 
+## sub_80EB7C4
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13891,6 +16303,8 @@ special sub_80EB7C4
 
 <details>
 <summary> sub_80F83D0 </summary>
+
+## sub_80F83D0
 
 *(Supports axve, axpe)*
 
@@ -13903,6 +16317,8 @@ special sub_80F83D0
 <details>
 <summary> sub_80FF474 </summary>
 
+## sub_80FF474
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13913,6 +16329,8 @@ special sub_80FF474
 
 <details>
 <summary> sub_8100A7C </summary>
+
+## sub_8100A7C
 
 *(Supports axve, axpe)*
 
@@ -13925,6 +16343,8 @@ special sub_8100A7C
 <details>
 <summary> sub_8100B20 </summary>
 
+## sub_8100B20
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13935,6 +16355,8 @@ special sub_8100B20
 
 <details>
 <summary> sub_810FA74 </summary>
+
+## sub_810FA74
 
 *(Supports axve, axpe)*
 
@@ -13947,6 +16369,8 @@ special sub_810FA74
 <details>
 <summary> sub_810FF48 </summary>
 
+## sub_810FF48
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13957,6 +16381,8 @@ special sub_810FF48
 
 <details>
 <summary> sub_810FF60 </summary>
+
+## sub_810FF60
 
 *(Supports axve, axpe)*
 
@@ -13969,6 +16395,8 @@ special sub_810FF60
 <details>
 <summary> sub_8134548 </summary>
 
+## sub_8134548
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -13979,6 +16407,8 @@ special sub_8134548
 
 <details>
 <summary> SubtractMoneyFromVar0x8005 </summary>
+
+## SubtractMoneyFromVar0x8005
 
 *(Supports bpre, bpge, bpee)*
 
@@ -13991,6 +16421,8 @@ special SubtractMoneyFromVar0x8005
 <details>
 <summary> SwapRegisteredBike </summary>
 
+## SwapRegisteredBike
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -14001,6 +16433,8 @@ special SwapRegisteredBike
 
 <details>
 <summary> TakeBerryPowder </summary>
+
+## TakeBerryPowder
 
 *(Supports bpee)*
 
@@ -14013,6 +16447,8 @@ special TakeBerryPowder
 <details>
 <summary> TakeFrontierBattlePoints </summary>
 
+## TakeFrontierBattlePoints
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14023,6 +16459,8 @@ special TakeFrontierBattlePoints
 
 <details>
 <summary> TakePokemonFromDaycare </summary>
+
+## TakePokemonFromDaycare
 
 *(Supports all games.)*
 
@@ -14035,6 +16473,8 @@ special2 0x800D TakePokemonFromDaycare
 <details>
 <summary> TakePokemonFromRoute5Daycare </summary>
 
+## TakePokemonFromRoute5Daycare
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14045,6 +16485,8 @@ special2 0x800D TakePokemonFromRoute5Daycare
 
 <details>
 <summary> TeachMoveRelearnerMove </summary>
+
+## TeachMoveRelearnerMove
 
 *(Supports bpee)*
 
@@ -14057,6 +16499,8 @@ special TeachMoveRelearnerMove
 <details>
 <summary> ToggleCurSecretBaseRegistry </summary>
 
+## ToggleCurSecretBaseRegistry
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -14067,6 +16511,8 @@ special ToggleCurSecretBaseRegistry
 
 <details>
 <summary> TrendyPhraseIsOld </summary>
+
+## TrendyPhraseIsOld
 
 *(Supports axve, axpe)*
 
@@ -14079,6 +16525,8 @@ special TrendyPhraseIsOld
 <details>
 <summary> TryBattleLinkup </summary>
 
+## TryBattleLinkup
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -14089,6 +16537,8 @@ special TryBattleLinkup
 
 <details>
 <summary> TryBecomeLinkLeader </summary>
+
+## TryBecomeLinkLeader
 
 *(Supports bpre, bpge, bpee)*
 
@@ -14101,6 +16551,8 @@ special TryBecomeLinkLeader
 <details>
 <summary> TryBerryBlenderLinkup </summary>
 
+## TryBerryBlenderLinkup
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14111,6 +16563,8 @@ special TryBerryBlenderLinkup
 
 <details>
 <summary> TryBufferWaldaPhrase </summary>
+
+## TryBufferWaldaPhrase
 
 *(Supports bpee)*
 
@@ -14123,6 +16577,8 @@ special2 0x800D TryBufferWaldaPhrase
 <details>
 <summary> TryContestEModeLinkup </summary>
 
+## TryContestEModeLinkup
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14133,6 +16589,8 @@ special TryContestEModeLinkup
 
 <details>
 <summary> TryContestGModeLinkup </summary>
+
+## TryContestGModeLinkup
 
 *(Supports bpee)*
 
@@ -14145,6 +16603,8 @@ special TryContestGModeLinkup
 <details>
 <summary> TryContestLinkup </summary>
 
+## TryContestLinkup
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14155,6 +16615,8 @@ special TryContestLinkup
 
 <details>
 <summary> TryEnableBravoTrainerBattleTower </summary>
+
+## TryEnableBravoTrainerBattleTower
 
 *(Supports axve, axpe)*
 
@@ -14167,6 +16629,8 @@ special TryEnableBravoTrainerBattleTower
 <details>
 <summary> TryEnterContestMon </summary>
 
+## TryEnterContestMon
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14177,6 +16641,8 @@ special TryEnterContestMon
 
 <details>
 <summary> TryFieldPoisonWhiteOut </summary>
+
+## TryFieldPoisonWhiteOut
 
 *(Supports bpre, bpge, bpee)*
 
@@ -14189,6 +16655,8 @@ special TryFieldPoisonWhiteOut
 <details>
 <summary> TryGetWallpaperWithWaldaPhrase </summary>
 
+## TryGetWallpaperWithWaldaPhrase
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14199,6 +16667,8 @@ special2 0x800D TryGetWallpaperWithWaldaPhrase
 
 <details>
 <summary> TryHideBattleTowerReporter </summary>
+
+## TryHideBattleTowerReporter
 
 *(Supports bpee)*
 
@@ -14211,6 +16681,8 @@ special TryHideBattleTowerReporter
 <details>
 <summary> TryInitBattleTowerAwardManObjectEvent </summary>
 
+## TryInitBattleTowerAwardManObjectEvent
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -14221,6 +16693,8 @@ special TryInitBattleTowerAwardManObjectEvent
 
 <details>
 <summary> TryJoinLinkGroup </summary>
+
+## TryJoinLinkGroup
 
 *(Supports bpre, bpge, bpee)*
 
@@ -14233,6 +16707,8 @@ special TryJoinLinkGroup
 <details>
 <summary> TryLoseFansFromPlayTime </summary>
 
+## TryLoseFansFromPlayTime
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14243,6 +16719,8 @@ special TryLoseFansFromPlayTime
 
 <details>
 <summary> TryLoseFansFromPlayTimeAfterLinkBattle </summary>
+
+## TryLoseFansFromPlayTimeAfterLinkBattle
 
 *(Supports bpee)*
 
@@ -14255,6 +16733,8 @@ special TryLoseFansFromPlayTimeAfterLinkBattle
 <details>
 <summary> TryPrepareSecondApproachingTrainer </summary>
 
+## TryPrepareSecondApproachingTrainer
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14265,6 +16745,8 @@ special TryPrepareSecondApproachingTrainer
 
 <details>
 <summary> TryPutLotteryWinnerReportOnAir </summary>
+
+## TryPutLotteryWinnerReportOnAir
 
 *(Supports bpee)*
 
@@ -14277,6 +16759,8 @@ special TryPutLotteryWinnerReportOnAir
 <details>
 <summary> TryPutNameRaterShowOnTheAir </summary>
 
+## TryPutNameRaterShowOnTheAir
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14287,6 +16771,8 @@ special2 0x800D TryPutNameRaterShowOnTheAir
 
 <details>
 <summary> TryPutTrainerFanClubOnAir </summary>
+
+## TryPutTrainerFanClubOnAir
 
 *(Supports bpee)*
 
@@ -14299,6 +16785,8 @@ special TryPutTrainerFanClubOnAir
 <details>
 <summary> TryPutTreasureInvestigatorsOnAir </summary>
 
+## TryPutTreasureInvestigatorsOnAir
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14309,6 +16797,8 @@ special TryPutTreasureInvestigatorsOnAir
 
 <details>
 <summary> TryRecordMixLinkup </summary>
+
+## TryRecordMixLinkup
 
 *(Supports bpre, bpge, bpee)*
 
@@ -14321,6 +16811,8 @@ special TryRecordMixLinkup
 <details>
 <summary> TrySetBattleTowerLinkType </summary>
 
+## TrySetBattleTowerLinkType
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14331,6 +16823,8 @@ special TrySetBattleTowerLinkType
 
 <details>
 <summary> TryStoreHeldItemsInPyramidBag </summary>
+
+## TryStoreHeldItemsInPyramidBag
 
 *(Supports bpee)*
 
@@ -14343,6 +16837,8 @@ special TryStoreHeldItemsInPyramidBag
 <details>
 <summary> TryTradeLinkup </summary>
 
+## TryTradeLinkup
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -14353,6 +16849,8 @@ special TryTradeLinkup
 
 <details>
 <summary> TryUpdateRusturfTunnelState </summary>
+
+## TryUpdateRusturfTunnelState
 
 *(Supports axve, axpe, bpee)*
 
@@ -14365,6 +16863,8 @@ special2 0x800D TryUpdateRusturfTunnelState
 <details>
 <summary> TurnOffTVScreen </summary>
 
+## TurnOffTVScreen
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -14375,6 +16875,8 @@ special TurnOffTVScreen
 
 <details>
 <summary> TurnOnTVScreen </summary>
+
+## TurnOnTVScreen
 
 *(Supports bpee)*
 
@@ -14387,6 +16889,8 @@ special TurnOnTVScreen
 <details>
 <summary> TV_CheckMonOTIDEqualsPlayerID </summary>
 
+## TV_CheckMonOTIDEqualsPlayerID
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -14397,6 +16901,8 @@ special TV_CheckMonOTIDEqualsPlayerID
 
 <details>
 <summary> TV_CopyNicknameToStringVar1AndEnsureTerminated </summary>
+
+## TV_CopyNicknameToStringVar1AndEnsureTerminated
 
 *(Supports axve, axpe)*
 
@@ -14409,6 +16915,8 @@ special TV_CopyNicknameToStringVar1AndEnsureTerminated
 <details>
 <summary> TV_IsScriptShowKindAlreadyInQueue </summary>
 
+## TV_IsScriptShowKindAlreadyInQueue
+
 *(Supports axve, axpe)*
 
 Example Usage:
@@ -14419,6 +16927,8 @@ special TV_IsScriptShowKindAlreadyInQueue
 
 <details>
 <summary> TV_PutNameRaterShowOnTheAirIfNicnkameChanged </summary>
+
+## TV_PutNameRaterShowOnTheAirIfNicnkameChanged
 
 *(Supports axve, axpe)*
 
@@ -14431,6 +16941,8 @@ special2 0x800D TV_PutNameRaterShowOnTheAirIfNicnkameChanged
 <details>
 <summary> UnionRoomSpecial </summary>
 
+## UnionRoomSpecial
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14441,6 +16953,8 @@ special UnionRoomSpecial
 
 <details>
 <summary> Unused_SetWeatherSunny </summary>
+
+## Unused_SetWeatherSunny
 
 *(Supports bpee)*
 
@@ -14453,6 +16967,8 @@ special Unused_SetWeatherSunny
 <details>
 <summary> UpdateBattlePointsWindow </summary>
 
+## UpdateBattlePointsWindow
+
 *(Supports bpee)*
 
 Example Usage:
@@ -14463,6 +16979,8 @@ special UpdateBattlePointsWindow
 
 <details>
 <summary> UpdateCyclingRoadState </summary>
+
+## UpdateCyclingRoadState
 
 *(Supports axve, axpe, bpee)*
 
@@ -14475,6 +16993,8 @@ special UpdateCyclingRoadState
 <details>
 <summary> UpdateLoreleiDollCollection </summary>
 
+## UpdateLoreleiDollCollection
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14485,6 +17005,8 @@ special UpdateLoreleiDollCollection
 
 <details>
 <summary> UpdateMovedLilycoveFanClubMembers </summary>
+
+## UpdateMovedLilycoveFanClubMembers
 
 *(Supports axve, axpe)*
 
@@ -14497,6 +17019,8 @@ special UpdateMovedLilycoveFanClubMembers
 <details>
 <summary> UpdatePickStateFromSpecialVar8005 </summary>
 
+## UpdatePickStateFromSpecialVar8005
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14507,6 +17031,8 @@ special UpdatePickStateFromSpecialVar8005
 
 <details>
 <summary> UpdateShoalTideFlag </summary>
+
+## UpdateShoalTideFlag
 
 *(Supports axve, axpe, bpee)*
 
@@ -14519,6 +17045,8 @@ special UpdateShoalTideFlag
 <details>
 <summary> UpdateTrainerCardPhotoIcons </summary>
 
+## UpdateTrainerCardPhotoIcons
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14529,6 +17057,8 @@ special UpdateTrainerCardPhotoIcons
 
 <details>
 <summary> UpdateTrainerFanClubGameClear </summary>
+
+## UpdateTrainerFanClubGameClear
 
 *(Supports axve, axpe, bpee)*
 
@@ -14541,6 +17071,8 @@ special UpdateTrainerFanClubGameClear
 <details>
 <summary> ValidateEReaderTrainer </summary>
 
+## ValidateEReaderTrainer
+
 *(Supports all games.)*
 
 Example Usage:
@@ -14551,6 +17083,8 @@ special ValidateEReaderTrainer
 
 <details>
 <summary> ValidateMixingGameLanguage </summary>
+
+## ValidateMixingGameLanguage
 
 *(Supports bpee)*
 
@@ -14563,6 +17097,8 @@ special ValidateMixingGameLanguage
 <details>
 <summary> ValidateReceivedWonderCard </summary>
 
+## ValidateReceivedWonderCard
+
 *(Supports bpre, bpge, bpee)*
 
 Example Usage:
@@ -14573,6 +17109,8 @@ special2 0x800D ValidateReceivedWonderCard
 
 <details>
 <summary> VsSeekerFreezeObjectsAfterChargeComplete </summary>
+
+## VsSeekerFreezeObjectsAfterChargeComplete
 
 *(Supports bpre, bpge)*
 
@@ -14585,6 +17123,8 @@ special VsSeekerFreezeObjectsAfterChargeComplete
 <details>
 <summary> VsSeekerResetObjectMovementAfterChargeComplete </summary>
 
+## VsSeekerResetObjectMovementAfterChargeComplete
+
 *(Supports bpre, bpge)*
 
 Example Usage:
@@ -14596,6 +17136,8 @@ special VsSeekerResetObjectMovementAfterChargeComplete
 <details>
 <summary> WaitWeather </summary>
 
+## WaitWeather
+
 *(Supports axve, axpe, bpee)*
 
 Example Usage:
@@ -14606,6 +17148,8 @@ special WaitWeather
 
 <details>
 <summary> WonSecretBaseBattle </summary>
+
+## WonSecretBaseBattle
 
 *(Supports bpee)*
 
