@@ -351,7 +351,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          foreach (var line in scriptLines) {
             if (!line.MatchesGame(gameHash)) continue;
             var command = line.LineCommand;
-            docs.Add(new("documentation.scripting.overworld.reference.commands." + command, page + "#" + command));
+            docs.Add(new("documentation.scripting.overworld.reference.commands." + command, page + "#" + command.Replace(".", string.Empty)));
          }
 
          foreach (var option in new ModelCacheScope(this).GetOptions("specials")) {
