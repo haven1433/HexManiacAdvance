@@ -230,10 +230,10 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                text.AppendLine();
             }
             if (lastCommand != line.LineCommand) {
+               text.AppendLine($"## {line.LineCommand}");
+               text.AppendLine();
                text.AppendLine("<details>");
                text.AppendLine($"<summary> {line.LineCommand}</summary>");
-               text.AppendLine();
-               text.AppendLine($"## {line.LineCommand}");
                text.AppendLine();
             }
             lastCommand = line.LineCommand;
@@ -339,10 +339,10 @@ Use `special2 variable name` when doing an action that has a result.
             if (string.IsNullOrEmpty(name)) continue;
             if (name.Length < 2) continue;
             var supportedGames = specials.Keys.Where(key => specials[key].Contents.Contains(name)).ToList();
+            text.AppendLine($"## {name}");
+            text.AppendLine();
             text.AppendLine("<details>");
             text.AppendLine($"<summary> {name} </summary>");
-            text.AppendLine();
-            text.AppendLine($"## {name}");
             text.AppendLine();
             if (supportedGames.Count == specials.Count) {
                text.AppendLine("*(Supports all games.)*");
