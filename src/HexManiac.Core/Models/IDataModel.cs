@@ -355,6 +355,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          foreach (var option in new ModelCacheScope(this).GetOptions("specials")) {
+            if (option == null || option.Length < 2) continue;
             docs.Add(new("documentation.scripting.overworld.reference.specials." + option, page + "#" + option));
          }
 
