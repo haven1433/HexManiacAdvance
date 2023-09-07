@@ -1599,7 +1599,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`decor`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
       }
 
-      public string Convert(IDataModel model, int value, int bytes) {
+      private string Convert(IDataModel model, int value, int bytes) {
          var preferHex = EnumTableName?.EndsWith("|h") ?? false;
          var preferSign = EnumTableName?.EndsWith("|z") ?? false;
          var enumName = EnumTableName?.Split('|')[0];
@@ -1616,16 +1616,21 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return table[value - EnumOffset];
       }
 
-      public int Convert(IDataModel model, string value) {
-         int result;
+      private string Convert(IDataModel model, string value, out int result) {
+         result = 0;
+         var parseType = "as a number";
          if (!string.IsNullOrEmpty(EnumTableName)) {
-            if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result + EnumOffset;
+            if (!EnumTableName.StartsWith("|")) parseType = "from " + EnumTableName;
+            if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) {
+               result += EnumOffset;
+               return null;
+            }
          }
-         if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
-         if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return result;
-         if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return result;
-         if (int.TryParse(value, out result)) return result;
-         return 0;
+         if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return null;
+         if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return null;
+         if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return null;
+         if (int.TryParse(value, out result)) return null;
+         return $"Could not parse '{value}' {parseType}.";
       }
 
       /// <summary>
@@ -1658,20 +1663,24 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// Build from text to compiled bytes.
       /// </summary>
       public string Build(IDataModel model, int address, string token, IList<byte> results, LabelLibrary labels) {
+         int value;
          if (Type == ArgType.Byte) {
-            results.Add((byte)Convert(model, token));
+            var error = Convert(model, token, out value);
+            if (error != null) return error;
+            results.Add((byte)value);
          } else if (Type == ArgType.Short) {
-            var value = Convert(model, token);
+            var error = Convert(model, token, out value);
+            if (error != null) return error;
             results.Add((byte)value);
             results.Add((byte)(value >> 8));
          } else if (Type == ArgType.Word) {
-            var value = Convert(model, token);
+            var error = Convert(model, token, out value);
+            if (error != null) return error;
             results.Add((byte)value);
             results.Add((byte)(value >> 0x8));
             results.Add((byte)(value >> 0x10));
             results.Add((byte)(value >> 0x18));
          } else if (Type == ArgType.Pointer) {
-            int value;
             if (token.StartsWith("<")) {
                if (!token.EndsWith(">")) return "Unmatched <>";
                token = token.Substring(1, token.Length - 2);
