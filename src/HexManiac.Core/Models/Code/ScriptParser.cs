@@ -286,6 +286,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       // TODO refactor to rely on CollectScripts rather than duplicate code
       // returns a list of scripts that were formatted, and their length
       public IDictionary<int, int> FormatScript<SERun>(ModelDelta token, IDataModel model, int address) where SERun : IScriptStartRun {
+         if (!address.InRange(0, model.Count)) return null;
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(SERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
          if (typeof(SERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
@@ -1597,6 +1598,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public static bool IsValidToken(string token) {
          return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`decor`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
+      }
+
+      public bool FitsInRange(IDataModel model, int address) {
+         if (string.IsNullOrEmpty(EnumTableName) || EnumTableName.StartsWith("|")) return true;
+         return model.ReadMultiByteValue(address, length) < model.GetOptions(EnumTableName).Count;
       }
 
       private string Convert(IDataModel model, int value, int bytes) {

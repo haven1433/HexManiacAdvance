@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using HavenSoft.HexManiac.Core.Models.Code;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using static HavenSoft.HexManiac.Core.Models.HardcodeTablesModel;
@@ -215,6 +216,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          ExportReadableScriptReference(editor, ScriptLines, specials, ScriptReferenceDocumetationFileName);
       }
       private void ExportReadableScriptReference(EditorViewModel editor, IReadOnlyList<IScriptLine> lines, Dictionary<string, StoredList> specials, string filename) {
+         // setup: make sure all the scripts have been fully determined
+         foreach (var tab in editor) {
+            if (tab is not IEditableViewPort evp) continue;
+            var top = Flags.GetAllTopLevelScripts(evp.Model);
+            foreach (var script in top) evp.Tools.CodeTool.ScriptParser.FormatScript<XSERun>(new(), evp.Model, script);
+         }
+
          var rnd = new Random(0x5eed);
          var text = new StringBuilder();
          var nl = Environment.NewLine;
@@ -224,6 +232,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
 ");
          text.AppendLine("# Commands");
          string lastCommand = null;
+
          foreach (var line in lines.OrderBy(line => line.LineCommand)) {
             if (lastCommand != null && lastCommand != line.LineCommand) {
                text.AppendLine("</details>");
@@ -283,31 +292,49 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
             text.AppendLine("");
             text.AppendLine("Example:");
             text.AppendLine("```");
-            text.Append(line.LineCommand);
-            if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
-            foreach (var arg in line.Args) {
-               if (arg is SilentMatchArg || arg.Name == "filler") continue;
-               if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
-                  var model = ((IViewPort)editor[0]).Model;
-                  var options = model.GetOptions(arg.EnumTableName);
-                  if (options.Count == 0 && int.TryParse(arg.EnumTableName, out var count)) options = count.Range().Select(i => i.ToString()).ToList();
-                  text.Append(" " + rnd.From(options));
-               } else if (arg.Type != ArgType.Pointer) {
-                  if (string.IsNullOrEmpty(arg.EnumTableName)) {
-                     text.Append($" {rnd.Next(5)}");
-                  } else {
-                     text.Append($" 0x{rnd.Next(16):X2}");
-                  }
-               } else if (arg.Type == ArgType.Pointer) {
-                  if (arg.PointerType == ExpectedPointerType.Script) {
-                     text.Append(" <section1>");
-                  } else if (arg.PointerType == ExpectedPointerType.Unknown) {
-                     text.AppendLine(" <F00000>");
-                  } else {
-                     text.Append(" <auto>");
+
+            bool exampleFound = false;
+            if (line is ScriptLine && line.Args.Count > 0) {
+               var examples = GetExamplesForBasicCommandReference(editor, line.LineCode);
+               if (examples != null && examples.Count > 0) {
+                  text.Append(rnd.From(examples));
+                  exampleFound = true;
+               }
+            } else if (line is MacroScriptLine macro) {
+               var examples = GetExamplesForMacroCommandReference(editor, macro);
+               if (examples != null && examples.Count > 0) {
+                  text.Append(rnd.From(examples));
+                  exampleFound = true;
+               }
+            }
+            if (!exampleFound) {
+               text.Append(line.LineCommand);
+               if (line.LineCode.Count > 1) text.Append(" " + line.LineCode[1]);
+               foreach (var arg in line.Args) {
+                  if (arg is SilentMatchArg || arg.Name == "filler") continue;
+                  if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
+                     var model = ((IViewPort)editor[0]).Model;
+                     var options = model.GetOptions(arg.EnumTableName);
+                     if (options.Count == 0 && int.TryParse(arg.EnumTableName, out var count)) options = count.Range().Select(i => i.ToString()).ToList();
+                     text.Append(" " + rnd.From(options));
+                  } else if (arg.Type != ArgType.Pointer) {
+                     if (string.IsNullOrEmpty(arg.EnumTableName)) {
+                        text.Append($" {rnd.Next(5)}");
+                     } else {
+                        text.Append($" 0x{rnd.Next(16):X2}");
+                     }
+                  } else if (arg.Type == ArgType.Pointer) {
+                     if (arg.PointerType == ExpectedPointerType.Script) {
+                        text.Append(" <section1>");
+                     } else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                        text.AppendLine(" <F00000>");
+                     } else {
+                        text.Append(" <auto>");
+                     }
                   }
                }
             }
+
             text.AppendLine();
             text.AppendLine("```");
             if (line.Documentation != null && line.Documentation.Count > 0) {
@@ -370,6 +397,82 @@ Use `special2 variable name` when doing an action that has a result.
          }
 
          File.WriteAllText(filename, text.ToString());
+      }
+
+      public static IReadOnlyList<string> GetExamplesForMacroCommandReference(EditorViewModel editor, MacroScriptLine line) {
+         var collection = new List<string>();
+         foreach (var tab in editor) {
+            if (tab is not IEditableViewPort viewPort) continue;
+            var model = viewPort.Model;
+            var hash = model.GetShortGameCode();
+            var top = Flags.GetAllTopLevelScripts(model);
+            var start = ((SilentMatchArg)line.Args[0]).ExpectedValue;
+            var spots = Flags.GetAllScriptSpots(model, viewPort.Tools.CodeTool.ScriptParser, top, start);
+            foreach (var spot in spots.Where(spot => line.Matches(hash, model, spot.Address))) {
+               // skip spots where the variables are 'weird'
+               var argStart = spot.Address + spot.Line.LineCode.Count;
+               var reasonableArgs = true;
+               foreach (var arg in spot.Line.Args) {
+                  if (arg is ScriptArg scriptArg && !scriptArg.FitsInRange(model, argStart)) {
+                     reasonableArgs = false;
+                     break;
+                  }
+                  argStart += arg.Length(model, argStart);
+               }
+               if (!reasonableArgs) continue;
+
+               var library = new DecompileLabelLibrary(model, spot.Address - 0x1000, 0x2000);
+               var streams = new List<ExpectedPointerType>();
+               var text = spot.Line.Decompile(model, spot.Address, library, streams);
+               int sectionCount = 0;
+               var labels = library.FinalizeLabels(ref sectionCount);
+               text = library.FinalizeLine(labels, text);
+               collection.Add(text);
+               if (collection.Count >= MaxExamples) return collection;
+            }
+         }
+         return collection;
+      }
+
+      public static IReadOnlyList<string> GetExamplesForBasicCommandReference(EditorViewModel editor, IReadOnlyList<byte> command) {
+         var collection = new List<string>();
+         foreach (var tab in editor) {
+            if (tab is not IEditableViewPort viewPort) continue;
+            CollectBasicCommandExamples(viewPort.Model, viewPort.Tools.CodeTool.ScriptParser, collection, command);
+         }
+         return collection;
+      }
+
+      private const int MaxExamples = 20;
+      public static void CollectBasicCommandExamples(IDataModel model, ScriptParser parser, List<string> collection, IReadOnlyList<byte> command) {
+
+         if (collection.Count >= MaxExamples) return;
+         foreach (var spot in Flags.GetAllScriptSpots(model, parser, Flags.GetAllTopLevelScripts(model), false, command[0])) {
+            if (collection.Count >= MaxExamples) break;
+
+            bool commandMatches = command.Count.Range().All(i => model[spot.Address + i] == spot.Line.LineCode[i]);
+            if (!commandMatches) continue;
+
+            // skip spots where the variables are 'weird'
+            var argStart = spot.Address + spot.Line.LineCode.Count;
+            var reasonableArgs = true;
+            foreach (var arg in spot.Line.Args) {
+               if (arg is ScriptArg scriptArg && !scriptArg.FitsInRange(model, argStart)) {
+                  reasonableArgs = false;
+                  break;
+               }
+               argStart += arg.Length(model, argStart);
+            }
+            if (!reasonableArgs) continue;
+
+            var library = new DecompileLabelLibrary(model, spot.Address - 0x1000, 0x2000);
+            var streams = new List<ExpectedPointerType>();
+            var text = spot.Line.Decompile(model, spot.Address, library, streams);
+            int sectionCount = 0;
+            var labels = library.FinalizeLabels(ref sectionCount);
+            text = library.FinalizeLine(labels, text);
+            collection.Add(text);
+         }
       }
 
       public static IReadOnlyDictionary<string, int> GetVariableForSpecialReference(EditorViewModel editor) {
