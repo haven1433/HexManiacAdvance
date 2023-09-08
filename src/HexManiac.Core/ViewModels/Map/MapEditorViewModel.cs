@@ -872,15 +872,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             if (0 <= obj.ScriptAddress && obj.ScriptAddress < model.Count) {
-               viewPort.Goto.Execute(obj.ScriptAddress);
-               RequestTabChange?.Invoke(this, new(viewPort));
+               viewPort.GotoScript(obj.ScriptAddress);
             } else {
                OnError.Raise(this, "Not a valid script address.");
             }
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ScriptEventViewModel script) {
             if (0 <= script.ScriptAddress && script.ScriptAddress < model.Count) {
-               viewPort.Goto.Execute(script.ScriptAddress);
+               viewPort.GotoScript(script.ScriptAddress);
             } else {
                OnError.Raise(this, "Not a valid script address.");
             }
@@ -892,7 +891,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             signpost.Pointer >= 0 &&
             signpost.Pointer < model.Count
          ) {
-            viewPort.Goto.Execute(signpost.Pointer);
+            viewPort.GotoScript(signpost.Pointer);
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else {
             Tutorials.Complete(Tutorial.LeftClick_SelectEvent);

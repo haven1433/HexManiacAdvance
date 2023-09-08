@@ -824,7 +824,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Duplicate
 
       public bool CanDuplicate => true;
-      public IEditableViewPort CreateDuplicate() {
+      IEditableViewPort IEditableViewPort.CreateDuplicate() => CreateDuplicate();
+      public ViewPort CreateDuplicate() {
          var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history, mapper?.Templates);
          child.selection.GotoAddress(scroll.DataIndex);
          return child;
@@ -2495,6 +2496,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          } catch (ImageEditorViewModelCreationException e) {
             RaiseError(e.Message);
+         }
+      }
+
+      private List<ViewPort> RecentDuplicates = new();
+      public void GotoScript(int address) {
+         if (RecentDuplicates.Count == 0) RecentDuplicates.Add(this);
+
+         int start;
+         foreach (var tab in RecentDuplicates) {
+            // if we're already looking at a script, open this in a new tab instead
+            start = tab.ConvertViewPointToAddress(tab.SelectionStart);
+            if (start == address) {
+               // just switch to this tab
+               var args = new TabChangeRequestedEventArgs(tab);
+               RequestTabChange?.Invoke(mapper, args);
+               if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args); // if this tab has been closed, ask the mapper to raise it
+               if (args.RequestAccepted) {
+                  tab.selection.SetJumpBackTab(mapper);
+                  FocusToolPanel.Raise(this);
+               }
+               return;
+            }
+         }
+
+         // no open tab has this script loaded
+         // check if we need to make a new tab
+         start = ConvertViewPointToAddress(SelectionStart);
+         if (tools.SelectedTool is CodeTool && Model.GetNextRun(start) is XSERun xse && xse.Start == start) {
+            var newTab = CreateDuplicate();
+            newTab.RecentDuplicates = RecentDuplicates;
+            RecentDuplicates.Add(newTab);
+            newTab.Goto.Execute(address);
+            mapper?.RaiseRequestTabChange(new(newTab));
+         } else {
+            // doesn't look like we're going to a script
+            // just do a normal goto
+            Goto.Execute(address);
          }
       }
 

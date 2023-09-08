@@ -2452,7 +2452,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// <summary>
       /// Wrapper around standard viewPort.Goto that also formats the script when you do the goto.
       /// </summary>
-      public static void GotoAddress(IViewPort viewPort, int address) {
+      public static void GotoAddress(IEditableViewPort viewPort, int address) {
          var nextRun = viewPort.Model.GetNextRun(address);
          var tool = viewPort.Tools.CodeTool;
          if (nextRun.Start > address) {
@@ -2461,7 +2461,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          } else if (nextRun.Start == address && nextRun is XSERun) {
             tool.ScriptParser.FormatScript<XSERun>(new NoDataChangeDeltaModel(), viewPort.Model, address);
          }
-         viewPort.Goto.Execute(address);
+         viewPort.GotoScript(address);
       }
 
       private void HandleBlocksChanged(object sender, byte[][] blocks) {
