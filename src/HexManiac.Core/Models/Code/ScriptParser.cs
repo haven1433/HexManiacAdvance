@@ -1044,6 +1044,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (!hasShortForm) {
             Usage = " ".Join(engineLine.Split(' ').Where(token => token.Length != 2 || !token.TryParseHex(out _)));
          }
+         var usageTokens = Usage.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+         Usage = usageTokens[0] + " " + " ".Join(usageTokens.Skip(1).Select(t => t.Split(".:|<".ToCharArray())[0]));
 
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          var args = new List<IScriptArg>();
@@ -1274,6 +1276,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          engineLine = docSplit[0].Trim();
          matchingGames = ExtractMatchingGames(ref engineLine);
          Usage = engineLine.Split(new[] { ' ' }, 2).Last();
+         var usageTokens = Usage.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+         Usage = usageTokens[0] + " " + " ".Join(usageTokens.Skip(1).Select(t => t.Split(".:|<".ToCharArray())[0]));
 
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          var lineCode = new List<byte>();
