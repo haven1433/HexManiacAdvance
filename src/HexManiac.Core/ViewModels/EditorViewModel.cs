@@ -1259,7 +1259,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
          var docs = new List<DocLabel>();
          if (SelectedTab is IEditableViewPort vp) {
-            if (Singletons.DocReference.TryGetValue(vp.Model.GetGameCode().Substring(0, 4), out var fixedDocs)) docs.AddRange(fixedDocs);
+            if (vp.Model.Count >= 0x100 && Singletons.DocReference.TryGetValue(vp.Model.GetGameCode().Substring(0, 4), out var fixedDocs)) docs.AddRange(fixedDocs);
          }
 
          GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, docs, showDevMenu) { ShowAll = !FocusOnGotoShortcuts, Text = GotoViewModel?.Text };
