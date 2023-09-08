@@ -1025,7 +1025,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null, EventTemplate eventTemplate = null) {
          Singletons = singletons ?? new Singletons();
-         this.docs = Singletons.DocReference.TryGetValue(model.GetGameCode().Substring(4), out var docs) ? docs : new List<DocLabel>();
+         this.docs = model.Count >= 0x100 && Singletons.DocReference.TryGetValue(model.GetGameCode().Substring(4), out var docs) ? docs : new List<DocLabel>();
          PythonTool = pythonTool;
          ownsHistory = changeHistory == null;
 
