@@ -71,6 +71,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          BattleScriptLines = new ScriptLine[0];
          AnimationScriptLines = new ScriptLine[0];
          BattleAIScriptLines = new ScriptLine[0];
+         DocReference = new Dictionary<string, IReadOnlyList<DocLabel>>();
          WorkDispatcher = InstantDispatch.Instance;
          CopyLimit = copyLimit;
          PythonUtility = string.Empty;

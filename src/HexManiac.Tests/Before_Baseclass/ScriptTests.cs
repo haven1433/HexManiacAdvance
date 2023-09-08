@@ -14,6 +14,7 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly ScriptParser battle;
 
       public ScriptTests() {
+         Model.LoadMetadata(BaseModel.GetDefaultMetadatas().First()); // load default script-related lists, like script_compare
          battle = ViewPort.Tools.CodeTool.BattleScriptParser;
       }
 
