@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HavenSoft.HexManiac.Core.Models.Code;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public enum ElementContentType {
@@ -291,7 +292,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (text.StartsWith("\"")) text = text.Substring(1);
          if (text.EndsWith("\"")) text = text.Substring(0, text.Length - 1);
          if (text.Length == 0) return false;
-         var partialMatches = new List<string>();
+         var partialMatches = new List<int>();
          var matches = new List<string>();
 
          // if the ~ character is used, expect that it's saying which match we want
@@ -310,11 +311,21 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
             if (option.MatchesPartial(text, onlyCheckLettersAndDigits: true)) {
-               partialMatches.Add(option);
+               partialMatches.Add(i);
                if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
             }
          }
-         if (matches.Count == 0 && partialMatches.Count >= desiredMatch) return true; // no full matches, use the partial match
+         if (matches.Count == 0 && partialMatches.Count >= desiredMatch) {
+            // no full matches, use the partial match
+            // match priority, lowest to highest: prefer partial matches with
+            //   lower IDs
+            //   lower skip count
+            //   earlier starts
+            partialMatches.Sort((a, b) => options[a].SkipCount(text) - options[b].SkipCount(text));
+            partialMatches.Sort((a, b) => options[a].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase) - options[b].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase));
+            value = partialMatches[desiredMatch.LimitToRange(0, partialMatches.Count - 1)];
+            return true;
+         }
 
          // we went through the whole array and didn't find it :(
          return false;
@@ -343,7 +354,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Returns a sorted list of options based on 'best match'
       /// </summary>
       public static IEnumerable<string> GetBestOptions(IEnumerable<string> options, string text, bool onlyCheckLettersAndDigits = false) {
-         return options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false).OrderBy(option => option.SkipCount(text));
+         var ops = options.Where(option => option?.MatchesPartial(text, onlyCheckLettersAndDigits) ?? false);
+         ops = ScriptParser.SortOptions(ops, text, op => op);
+         return ops;
       }
 
       private static readonly List<string> numericOptions = new();
@@ -604,7 +617,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public TupleSegment(string name, int width, string sourceName = null) => (Name, BitWidth, SourceName) = (name, width, sourceName);
       public int Read(IDataModel model, int start, int bitOffset) {
          var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
-         if (requiredByteLength > 4) return 0;
+         while (requiredByteLength > 4) { start += 4; bitOffset -= 32; requiredByteLength -= 4; }
          var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
          bitArray >>= bitOffset;
          bitArray &= (1 << BitWidth) - 1;
@@ -612,7 +625,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
       public bool Write(IDataModel model, ModelDelta token, int start, int bitOffset, int value) {
          var requiredByteLength = (bitOffset + BitWidth + 7) / 8;
-         if (requiredByteLength > 4) return false;
+         while (requiredByteLength > 4) { start += 4; bitOffset -= 32; requiredByteLength -= 4; }
          var bitArray = model.ReadMultiByteValue(start, requiredByteLength);
          var mask = (1 << BitWidth) - 1;
          value &= mask;

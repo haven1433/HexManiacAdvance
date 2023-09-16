@@ -99,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private void Load() {
          void Add(GotoMapButton button) {
             Visible = true;
-            MapPreviews.Add(button);
+            dispatcher.BlockOnUIWork(() => MapPreviews.Add(button));
          }
          if (tableName == HardcodeTablesModel.OverworldSprites) {
             foreach (var button in FindOverworldUses()) Add(button);

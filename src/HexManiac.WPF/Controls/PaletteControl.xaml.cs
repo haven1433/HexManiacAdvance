@@ -333,23 +333,23 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private short[] CollectColorList() => ViewModel.Elements.Select(element => element.Color).ToArray();
 
-      private (double hueDif, double satDif, double brightDif) GetColorDif(Color newColor) {
+      private (double lightDif, double aDif, double bDif) GetColorDif(Color newColor) {
          var oldColor = TileImage.Convert16BitColor(initialColors[activeSelection]);
-         var (hue, sat, bright) = Theme.ToHSB(newColor.R, newColor.G, newColor.B);
-         var (oldHue, oldSat, oldBright) = Theme.ToHSB(oldColor.R, oldColor.G, oldColor.B);
-         return (hue - oldHue, sat - oldSat, bright - oldBright);
+         var (light, a, b) = Theme.ToOklab(newColor.R, newColor.G, newColor.B);
+         var (oldLight, oldA, oldB) = Theme.ToOklab(oldColor.R, oldColor.G, oldColor.B);
+         return (light - oldLight, a - oldA, b - oldB);
       }
 
       /// <summary>
       /// Grabs the initial color at index and applies a HSB dif to it, returning the new short color
       /// </summary>
-      private short ApplyDif(int index, (double hueDif, double satDif, double brightDif) colorDif) {
+      private short ApplyDif(int index, (double lightDif, double aDif, double bDif) colorDif) {
          var originalColor = TileImage.Convert16BitColor(initialColors[index]);
-         var (hue, sat, bright) = Theme.ToHSB(originalColor.R, originalColor.G, originalColor.B);
-         hue += colorDif.hueDif;
-         sat += colorDif.satDif;
-         bright += colorDif.brightDif;
-         var (red, green, blue) = Theme.FromHSB(hue, sat, bright);
+         var (light, a, b) = Theme.ToOklab(originalColor.R, originalColor.G, originalColor.B);
+         light += colorDif.lightDif;
+         a += colorDif.aDif;
+         b += colorDif.bDif;
+         var (red, green, blue) = Theme.FromOklab(light, a, b);
          var newColor = Color.FromRgb(red, green, blue);
          return TileImage.Convert16BitColor(newColor);
       }

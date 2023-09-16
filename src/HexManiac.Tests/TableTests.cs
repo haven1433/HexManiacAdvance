@@ -447,7 +447,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var cell = (UnderEdit)ViewPort[0, 0].Format;
          var options = cell.AutocompleteOptions.Select(option => option.CompletionText.Trim()).ToArray();
-         Assert.Equal(new[] { "beforeTEXT", "TEXTafter", "TEmiddleXT" }, options);
+         Assert.Equal(new[] { "TEXTafter", "TEmiddleXT", "beforeTEXT" }, options); // sorted
       }
 
       [Fact]
@@ -1510,6 +1510,19 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Copy.Execute(FileSystem);
 
          Assert.Contains("<000100>", FileSystem.CopyText.value);
+      }
+
+      [Fact]
+      public void TableToPointers_ClearPointerFormatAndReadd_AnchorKnowsAboutAllTablePointers() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("@00 <100> <100> @00 ^table1[pointer<>]1  @04 ^table2[pointer<>]1 ");
+
+         ViewPort.Goto.Execute(0x100);
+         Model.ClearAnchor(Token, 0x100, 1);
+         ViewPort.Edit("@08 <100>");
+
+         var anchor = Model.GetNextAnchor(0x100);
+         Assert.Equal(3, anchor.PointerSources.Count);
       }
 
       private void ArrangeTrainerPokemonTeamData(byte structType, byte pokemonCount, int trainerCount) {

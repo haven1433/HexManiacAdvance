@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          editor.GotoViewModel.Text = "some.count";
 
-         Assert.Contains("some.counter", editor.GotoViewModel.PrefixSelections[0].Tokens.Select(token => token.Content));
+         Assert.Contains("some", editor.GotoViewModel.PrefixSelections[0].Tokens.Select(token => token.Content));
       }
 
       [Fact]

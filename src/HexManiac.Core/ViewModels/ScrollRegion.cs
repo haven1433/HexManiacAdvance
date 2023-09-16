@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private readonly StubCommand scroll;
 
       private readonly TryGetUsefulHeader tryGetUsefulHeader;
+      private readonly IRaiseErrorTab raiseErrorTab;
 
       private int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
 
@@ -116,7 +117,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return tableStart + tableLength;
          }
          set {
-            if (TryUpdate(ref dataLength, value)) UpdateScrollRange();
+            if (TryUpdate(ref dataLength, value)) {
+               UpdateScrollRange();
+               if (dataLength > 0x2000000) {
+                  raiseErrorTab?.RaiseError("gba games cannot be longer than 0x2000000 bytes.");
+               }
+            }
          }
       }
 
@@ -127,10 +133,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public static bool DefaultHeaderStrategy(int address, out string header) { header = null; return false; }
 
-      public ScrollRegion(TryGetUsefulHeader headerStratey = null) {
+      public ScrollRegion(TryGetUsefulHeader headerStratey = null, IRaiseErrorTab raiseErrorTab = null) {
          tryGetUsefulHeader = headerStratey ?? DefaultHeaderStrategy;
          width = 4;
          height = 4;
+         this.raiseErrorTab = raiseErrorTab;
          scroll = new StubCommand {
             CanExecute = args => dataLength > 0,
             Execute = args => ScrollExecuted((Direction)args),

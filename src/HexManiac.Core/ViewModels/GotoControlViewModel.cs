@@ -48,6 +48,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
    public class GotoControlViewModel : ViewModelCore {
       private readonly IEditableViewPort viewPort;
+      private IReadOnlyList<DocLabel> availableDocs;
       private bool withinTextChange = false, devMode = false;
 
       #region NotifyProperties
@@ -142,10 +143,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
-      public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher, bool devMode) {
+      public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher, IReadOnlyList<DocLabel> docs, bool devMode) {
+         availableDocs = docs;
          viewPort = (tabContent as IEditableViewPort);
          this.devMode = devMode;
          if (tabContent is MapEditorViewModel mevm) viewPort = mevm.ViewPort;
+
          MoveAutoCompleteSelectionUp = new StubCommand {
             CanExecute = CanAlwaysExecute,
             Execute = arg => CompletionIndex--,
@@ -186,11 +189,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          UpdatePrefixSelectionsAfterTextChange();
       }
 
+      public void UpdateDocs(IList<DocLabel> docs) {
+         availableDocs = availableDocs.Concat(docs).ToList();
+      }
+
       private void UpdatePrefixSelectionsAfterTextChange() {
          var previousSelections = GotoLabelSection.GetSectionSelections(PrefixSelections).ToArray();
          PrefixSelections.Clear();
          if (viewPort == null || viewPort.Model == null) return;
-         var section = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
+         var section = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
          PrefixSelections.Add(AddListeners(section));
          for (int i = 0; i < previousSelections.Length; i++) {
             if (PrefixSelections.Count <= i) break;
@@ -218,9 +225,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var matchedMaps = viewPort.Model.GetMatchingMaps(currentSelection);
          if (matchedMaps.Count == 1 || matchedMaps.Any(map => map.Name == currentSelection)) {
             // if we can add a new section, then don't go to a map
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, viewPort is ViewPort vp1 && vp1.HasValidMapper);
             if (newSection.Tokens.Count == 0) {
                viewPort?.Goto?.Execute(currentSelection);
+               ControlVisible = false;
+               ShowAutoCompleteOptions = false;
+               DeselectLastRow();
+               return;
+            }
+         }
+
+         var matchingDoc = availableDocs.FirstOrDefault(doc => doc.Label == currentSelection);
+         if (matchingDoc != null && viewPort is ViewPort vp) {
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, vp.HasValidMapper);
+            if (newSection.Tokens.Count == 0) {
+               OpenLink(matchingDoc.Url);
                ControlVisible = false;
                ShowAutoCompleteOptions = false;
                DeselectLastRow();
@@ -242,12 +261,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // Deselect it.
             DeselectLastRow();
          } else {
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
+            var newSection = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, viewPort is ViewPort vp2 && vp2.HasValidMapper);
             PrefixSelections.Add(AddListeners(newSection));
             foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
          }
          UpdateTooltips();
       }
+
+      private void OpenLink(string link) => NativeProcess.Start(link);
 
       private void UpdateTooltips() {
          using (ModelCacheScope.CreateScope(viewPort.Model)) {
@@ -256,7 +277,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                foreach (var token in prefix.Tokens) {
                   var fullName = token.Content;
                   if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
-                  token.UpdateHoverTip(viewPort, fullName);
+                  token.UpdateHoverTip(viewPort, availableDocs, fullName);
                }
             }
          }
@@ -339,6 +360,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (result.Name.ToLower() == lower) return new() { result };
          }
          return results;
+      }
+
+      public static IList<DocLabel> GetMatchingDocumentation(this IReadOnlyList<DocLabel> availableDocs, string text) {
+         return availableDocs.Where(doc => doc.Label.MatchesPartial(text)).ToList();
       }
    }
 
@@ -430,16 +455,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public static GotoLabelSection Build(IDataModel model, string filter, IEnumerable<GotoLabelSection> previousSections, bool includeMatchingMaps) {
+      public static GotoLabelSection Build(IDataModel model, string filter, IReadOnlyList<DocLabel> docs, IEnumerable<GotoLabelSection> previousSections, bool includeMatchingMaps) {
          using (ModelCacheScope.CreateScope(model)) {
             List<string> allOptions = model.GetExtendedAutocompleteOptions(filter)?.ToList() ?? new();
             allOptions.AddRange(model.GetMatchingMaps(filter).Select(map => map.Name));
+            allOptions.AddRange(docs.GetMatchingDocumentation(filter).Select(doc => doc.Label));
             var selections = GetSectionSelections(previousSections).ToList();
 
             var newSection = new GotoLabelSection(allOptions, selections);
             if (newSection.Tokens.Count == 1) {
                newSection.Tokens[0].IsSelected = true;
-               var child = Build(model, filter, previousSections.Concat(new[] { newSection }), includeMatchingMaps); // recursion ftw
+               var child = Build(model, filter, docs, previousSections.Concat(new[] { newSection }), includeMatchingMaps); // recursion ftw
                newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
             }
 
@@ -473,10 +499,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return collection;
       }
 
-      public void UpdateHoverTip(IEditableViewPort viewPort, string fullName) {
+      public void UpdateHoverTip(IEditableViewPort viewPort, IReadOnlyList<DocLabel> docs, string fullName) {
          var model = viewPort.Model;
          var matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
+         var matchingDoc = docs.FirstOrDefault(doc => doc.Label == fullName);
          if (address != Pointer.NULL) {
             IsGoto = true;
             var run = model.GetNextRun(address);
@@ -506,6 +533,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                HoverTip = new ObservableCollection<object> { hoverContent };
                return;
             }
+         } else if (matchingDoc != null) {
+            IsGoto = true;
+            HoverTip = new ObservableCollection<object> { "Web Link" };
          } else if (model.GetMatchedWords(fullName).Count > 0) {
             IsGoto = true;
          } else {

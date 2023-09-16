@@ -80,7 +80,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       int lastFormatRequested = int.MaxValue;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var basicFormat = CreateDataFormatCore(data, index);
-         if (!CreateForLeftEdge) return basicFormat;
+         if (!CreateForLeftEdge || data.SpartanMode) return basicFormat;
          if (lastFormatRequested < index) {
             lastFormatRequested = index;
             return basicFormat;

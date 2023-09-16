@@ -23,6 +23,8 @@ namespace HavenSoft.HexManiac.Tests {
 
       public IDataModel HardcodeTablesModel(byte[] rawData, StoredMetadata metadata = null) => new HardcodeTablesModel(singletons, rawData, metadata);
 
+      public PCSConverter PCSConverter(string gameCode) => new PCSConverter(gameCode, null);
+
       public static StoredList StoredList(string name, IReadOnlyList<string> contents, string hash = null) => new StoredList(name, contents, new Dictionary<int, string>(), hash);
 
       public static ValidationList ValidationList(string hash, IReadOnlyList<string> content) => new ValidationList(hash, content, new Dictionary<int, string>());

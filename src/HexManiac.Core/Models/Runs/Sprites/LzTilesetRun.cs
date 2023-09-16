@@ -80,6 +80,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
 
          if (!int.TryParse(format, out int bits)) return false;
+         if (!bits.IsAny(1, 2, 4, 8)) return false;
          tilesetFormat = new TilesetFormat(bits, -1, maxTiles, hint, allowLengthErrors);
          return true;
       }
@@ -122,7 +123,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       int lastFormatRequested = int.MaxValue;
       public override IDataFormat CreateDataFormat(IDataModel data, int index) {
          var basicFormat = base.CreateDataFormat(data, index);
-         if (!CreateForLeftEdge) return basicFormat;
+         if (!CreateForLeftEdge || data.SpartanMode) return basicFormat;
          if (lastFormatRequested < index) {
             lastFormatRequested = index;
             return basicFormat;

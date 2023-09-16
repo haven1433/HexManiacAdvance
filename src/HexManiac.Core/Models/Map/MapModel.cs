@@ -24,7 +24,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
             return new MapBankModel(bank, index);
          }
       }
-      public int Count => Table.Count;
+      public int Count => Table?.Count ?? 0;
 
       private IEnumerable<MapBankModel> Enumerate() {
          for (int i = 0; i < Count; i++) yield return this[i];
@@ -286,10 +286,10 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
          var regionSectionIDFormat = "data.maps.names+88";
          if (isRSE) regionSectionIDFormat = "data.maps.names";
          var field3 = !isRSE ? "kind:" : "unused:1";
-         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.10 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/{ObjectCount}";
-         WarpsFormat = $"[x:|z y:|z elevation.10 warpID. map. bank.]/{WarpCount}";
-         ScriptsFormat = $"[x:|z y:|z elevation:10 trigger: index:: script<`xse`>]/{ScriptCount}";
-         SignpostsFormat = $"[x:|z y:|z elevation.10 kind. unused:1 arg::|h]/{SignpostCount}";
+         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.11 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/{ObjectCount}";
+         WarpsFormat = $"[x:|z y:|z elevation.11 warpID. map. bank.]/{WarpCount}";
+         ScriptsFormat = $"[x:|z y:|z elevation:11 trigger: index:: script<`xse`>]/{ScriptCount}";
+         SignpostsFormat = $"[x:|z y:|z elevation.11 kind. unused:1 arg::|h]/{SignpostCount}";
          EventsFormat = $"[{ObjectCount}. {WarpCount}. {ScriptCount}. {SignpostCount}. {Objects}<{ObjectsFormat}> {Warps}<{WarpsFormat}> {Scripts}<{ScriptsFormat}> {Signposts}<{SignpostsFormat}>]1";
          ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
          HeaderFormat = $"music:songnames layoutID:data.maps.layouts+1 regionSectionID.{regionSectionIDFormat} cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";

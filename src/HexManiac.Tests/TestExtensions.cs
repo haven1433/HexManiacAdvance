@@ -64,5 +64,10 @@ namespace HavenSoft.HexManiac.Tests {
             prop.GetMethod.Invoke(viewModel, null);
          }
       }
+
+      public static string Parse(this ScriptParser self, IDataModel data, int start, int length, CodeBody updateBody = null) {
+         int count = 0;
+         return self.Parse(data, start, length, ref count, updateBody);
+      }
    }
 }

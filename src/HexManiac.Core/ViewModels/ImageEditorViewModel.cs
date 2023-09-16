@@ -39,6 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string Name => "Image Editor";
       public string FullFileName { get; }
+      public bool SpartanMode { get; set; }
       public bool IsMetadataOnlyChange => false;
       public ICommand Save { get; }
       public ICommand SaveAs => null;
@@ -772,6 +773,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void UpdateSelectionFromPaletteHover(PaletteCollection sender, PropertyChangedEventArgs e) {
+         if (SpartanMode) return;
          int paletteStart = ReadPalette().initialBlankPages * 16;
          paletteStart += PalettePage * 16;
          var matches = new List<Point>();
@@ -1110,7 +1112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   if (index < fullPalette.Count) {
                      var color = fullPalette[index];
-                     if (spriteOnlyExpects16Colors) color = fullPalette[index + parent.palettePage * 16];
+                     if (spriteOnlyExpects16Colors && (parent.palettePage * 16 + index).InRange(0, fullPalette.Count)) color = fullPalette[index + parent.palettePage * 16];
                      parent.PixelData[parent.PixelIndex(xx, yy)] = color;
                   }
                }

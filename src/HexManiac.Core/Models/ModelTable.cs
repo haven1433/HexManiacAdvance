@@ -70,7 +70,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int Start => table.Start + table.ElementLength * arrayIndex;
       public int ArrayIndex => arrayIndex;
       public int Length => table.ElementLength;
-      public string Address => (table.Start + table.ElementLength * arrayIndex).ToAddress();
+      public string Address => Start.ToAddress();
       public ITableRun Table => table;
       public IDataModel Model => model;
       public ModelDelta Token => tokenFactory();
@@ -376,7 +376,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var address = GetAddress(fieldName);
          var spriteRun = model.GetNextRun(address) as ISpriteRun;
          if (spriteRun == null) return null;
-         return ReadonlyPixelViewModel.Create(Model, spriteRun, true);
+         return ReadonlyPixelViewModel.Create(Model, spriteRun, Start, true);
       }
 
       #region DynamicObject
@@ -527,18 +527,83 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override bool TryGetMember(GetMemberBinder binder, out object? result) {
          var name = header + "." + binder.Name;
          var address = model.GetAddressFromAnchor(tokenFactory(), -1, name);
+         var run = model.GetNextRun(address);
          if (address < 0) {
             result = new AnchorGroup(model, tokenFactory, name);
-            return true;
-         }
-         var run = model.GetNextRun(address);
-         if (run is ITableRun table) {
+         } else if (run is ITableRun table) {
             result = new ModelTable(model, table, tokenFactory);
-            return true;
+         } else if (run is EggMoveRun eggMoveRun) {
+            result = new EggTable(model, tokenFactory, eggMoveRun);
+         } else {
+            // TODO not a table, but maybe something else (sprite, constant, text, etc)
+            return base.TryGetMember(binder, out result);
          }
-         // TODO not a table, but maybe something else (sprite, constant, text, etc)
 
-         return base.TryGetMember(binder, out result);
+         return true;
+      }
+   }
+
+   public class EggTable : DynamicObject, IReadOnlyList<EggElement> {
+      private readonly IDataModel model;
+      private readonly Func<ModelDelta> tokenFactory;
+      private EggMoveRun eggRun;
+
+      public int Count => eggRun.Length / 2;
+      public int __len__() => Count; // for python
+
+      public EggMoveRun Run => eggRun;
+
+      public EggElement this[int value] {
+         get => new EggElement(model, eggRun.Start + value * 2, tokenFactory, eggRun);
+      }
+
+      public EggTable(IDataModel model, Func<ModelDelta> tokenFactory, EggMoveRun eggRun) {
+         this.model = model;
+         this.tokenFactory = tokenFactory;
+         this.eggRun = eggRun;
+      }
+
+      public IEnumerator<EggElement> GetEnumerator() {
+         var count = Count;
+         for (int i = 0; i < count; i++) yield return this[i];
+      }
+
+      IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+   }
+
+   public class EggElement : DynamicObject {
+      private readonly IDataModel model;
+      private readonly int address;
+      private readonly Func<ModelDelta> tokenFactory;
+      private readonly EggMoveRun eggRun;
+
+      public bool is_pokemon => eggRun.CreateDataFormat(model, address) is EggSection;
+      public bool is_move => eggRun.CreateDataFormat(model, address) is EggItem;
+
+      public EggElement(IDataModel model, int address, Func<ModelDelta> tokenFactory, EggMoveRun eggRun) => (this.model, this.address, this.tokenFactory, this.eggRun) = (model, address, tokenFactory, eggRun);
+
+      public string name {
+         get {
+            var format = eggRun.CreateDataFormat(model, address);
+            if (format is EggSection section) return section.SectionName.Trim('[', ']');
+            if (format is EggItem item) return item.ItemName;
+            throw new NotImplementedException();
+         }
+         set {
+            bool preferPokemon = value.StartsWith("[") || value.EndsWith("]");
+            value = value.Trim('[', ']');
+            var pokeOptions = model.GetOptions(HardcodeTablesModel.PokemonNameTable);
+            var moveOptions = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
+            var pokeMatches = value.FindMatches(pokeOptions);
+            var moveMatches = value.FindMatches(moveOptions);
+            if (moveMatches.Count > 0 && !preferPokemon) {
+               model.WriteMultiByteValue(address, 2, tokenFactory(), moveMatches[0]);
+            } else if (pokeMatches.Count > 0) {
+               model.WriteMultiByteValue(address, 2, tokenFactory(), pokeMatches[0] + EggMoveRun.MagicNumber);
+            } else {
+               throw new InvalidOperationException($"Could not convert {value} to a move name or pokemon name.");
+            }
+         }
       }
    }
 }

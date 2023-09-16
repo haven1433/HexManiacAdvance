@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
-using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
@@ -22,7 +21,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void ChangeInputTextSize(object sender, MouseWheelEventArgs e) {
          if (Keyboard.Modifiers != ModifierKeys.Control) return;
-         var box = (TextBox)sender;
+         var box = (TextEditor)sender;
          e.Handled = true;
          box.FontSize = (box.FontSize + Math.Sign(e.Delta)).LimitToRange(8, 30);
       }

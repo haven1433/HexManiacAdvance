@@ -70,6 +70,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel ObjectTemplateImage { get; private set; }
 
+      public IReadOnlyList<IPixelViewModel> OverworldGraphics { get; private set; }
+
       public EventTemplate(IWorkDispatcher dispatcher, IDataModel model, ScriptParser parser, IReadOnlyList<IPixelViewModel> owGraphics) {
          (this.model, this.parser) = (model, parser);
          RefreshLists(owGraphics);
@@ -95,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void RefreshLists(IReadOnlyList<IPixelViewModel> owGraphics) {
+         OverworldGraphics = owGraphics;
          AvailableTemplateTypes.Clear();
          AvailableTemplateTypes.Add(TemplateType.None);
          AvailableTemplateTypes.Add(TemplateType.Npc);
@@ -903,7 +906,7 @@ setwildbattle 1 50 0
          } else if (model.IsEmerald()) {
             script.AppendLine(@"
    setflag 0x08C1
-   special 0x13A
+   special 0x13B
    waitstate
    clearflag 0x08C1
 ");
@@ -1028,7 +1031,7 @@ end
       public void CreateHMObject(ObjectEventViewModel objectEventViewModel, ModelDelta token) {
          var scriptStart = AllMapsModel.Create(model, default)
             .SelectMany(bank => bank)
-            .SelectMany(map => map.Events.Objects)
+            .SelectMany(map => map?.Events.Objects ?? new())
             .Where(obj => obj.Graphics == trainerGraphics)
             .Select(obj => obj.ScriptAddress)
             .ToHistogram()

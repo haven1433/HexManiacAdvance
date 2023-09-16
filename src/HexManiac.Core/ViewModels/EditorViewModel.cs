@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public MapTutorialsViewModel MapTutorials { get; } = new();
 
-      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null, false);
+      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null, null, false);
       public GotoControlViewModel GotoViewModel {
          get => gotoViewModel;
          private set {
@@ -360,6 +360,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private bool spartanMode = false;
+      public bool SpartanMode {
+         get => spartanMode;
+         set {
+            Set(ref spartanMode, value, arg => {
+               foreach (var tab in tabs) {
+                  tab.SpartanMode = spartanMode;
+                  tab.Refresh();
+               }
+            });
+         }
+      }
+
       private bool focusOnGotoShortcuts = true;
       public bool FocusOnGotoShortcuts {
          get => focusOnGotoShortcuts;
@@ -562,6 +575,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          LogAppStartupProgress = metadata.Contains("LogAppStartupProgress = True");
          UseTableEntryHeaders = !metadata.Contains("UseTableEntryHeaders = False");
          AllowSingleTableMode = !metadata.Contains("AllowSingleTableMode = False");
+         SpartanMode = metadata.Contains("SpartanMode = True");
          InsertAutoActive = !metadata.Contains("InsertAutoActive = False");
          ShowMatrix = !metadata.Contains("ShowMatrixGrid = False");
          FocusOnGotoShortcuts = !metadata.Contains("FocusOnGotoShortcuts = False");
@@ -615,6 +629,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"LastUpdateCheck = {LastUpdateCheck}",
             $"AcknowledgeTutorials = {TutorialsAcknowledged}",
             $"Base10Length = {Base10Length}",
+            $"SpartanMode = {SpartanMode}",
             MapTutorials.Serialize(),
             SerializeRecentFiles(),
             string.Empty
@@ -707,6 +722,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          paste.CanExecute = arg => SelectedTab is ViewPort;
          paste.Execute = arg => {
+            if (gotoViewModel.ControlVisible) return;
             var copyText = fileSystem.CopyText;
             // if the paste is long, add whitespace to complete any pasted elements
             if (copyText.Contains(Environment.NewLine) || copyText.Contains(BaseRun.AnchorStart)) {
@@ -813,6 +829,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void Add(ITabContent content) {
+         content.SpartanMode = spartanMode;
          tabs.Add(content);
          SelectedIndex = tabs.Count - 1;
          AddContentListeners(content);
@@ -1240,10 +1257,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, showDevMenu) { ShowAll = !FocusOnGotoShortcuts, Text = GotoViewModel?.Text };
+         var docs = new List<DocLabel>();
+         if (SelectedTab is IEditableViewPort vp) {
+            if (vp.Model.Count >= 0x100 && Singletons.DocReference.TryGetValue(vp.Model.GetGameCode().Substring(0, 4), out var fixedDocs)) docs.AddRange(fixedDocs);
+         }
+
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, docs, showDevMenu) { ShowAll = !FocusOnGotoShortcuts, Text = GotoViewModel?.Text };
          var collection = CreateGotoShortcuts(GotoViewModel);
          if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
+         if(SelectedTab is IEditableViewPort vp1 && vp1.Model is BaseModel bm) {
+            var vm = GotoViewModel;
+            vp1.InitializationWorkload.ContinueWith(task => {
+               if (vm == GotoViewModel) vm.UpdateDocs(bm.GenerateDocumentationLabels(Singletons.ScriptLines));
+            });
+         }
          NotifyPropertyChanged(nameof(Tools));
       }
 

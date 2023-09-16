@@ -107,13 +107,13 @@ namespace HavenSoft.HexManiac.Tests {
          var noChange = new NoDataChangeDeltaModel();
          var model = fixture.LoadModel(game);
 
-         foreach (var anchor in model.Anchors) {
+         Assert.All(model.Anchors, anchor => {
             var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
-            if (!(run is ITilemapRun tilemap)) continue;
+            if (!(run is ITilemapRun tilemap)) return;
             var tilesetAddress = tilemap.FindMatchingTileset(model);
             var tileset = model.GetNextRun(tilesetAddress);
-            Assert.IsAssignableFrom<ISpriteRun>(tileset);
-         }
+            Assert.True(tileset is ISpriteRun, $"Could not find tileset for {anchor}!");
+         });
       }
 
       [SkippableTheory]
@@ -123,14 +123,14 @@ namespace HavenSoft.HexManiac.Tests {
          var noChange = new NoDataChangeDeltaModel();
          var model = fixture.LoadModel(game);
 
-         foreach (var anchor in model.Anchors) {
+         Assert.All(model.Anchors, anchor => {
             var run = model.GetNextRun(model.GetAddressFromAnchor(noChange, -1, anchor));
-            if (!(run is ISpriteRun sprite)) continue;
-            if (sprite.SpriteFormat.BitsPerPixel < 4) continue;
+            if (!(run is ISpriteRun sprite)) return;
+            if (sprite.SpriteFormat.BitsPerPixel < 4) return;
             var palettes = sprite.FindRelatedPalettes(model);
-            if (palettes.Count == 0 && string.IsNullOrEmpty(sprite.SpriteFormat.PaletteHint)) continue;
-            Assert.IsAssignableFrom<IPaletteRun>(palettes[0]);
-         }
+            if (palettes.Count == 0 && string.IsNullOrEmpty(sprite.SpriteFormat.PaletteHint)) return;
+            Assert.True(palettes[0] is IPaletteRun, $"Anchor {anchor} expected a palette!");
+         });
       }
 
       public static IEnumerable<object[]> VanillaTilemapsWithPalettes {
@@ -613,7 +613,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void BattleScriptSourceIsFound(string game) {
          var model = fixture.LoadModel(game);
 
-         var pickupitems = model.GetTable("scripts.battle.thumb");
+         var pickupitems = model.GetTable("scripts.commands.events.thumb");
          Assert.IsType<ArrayRun>(pickupitems);
       }
 
@@ -771,7 +771,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [InlineData(0x169C78, "msgbox.default <18E2E5>")]
       [InlineData(0x169CAD, "msgbox.yesno <1A56A7>")]
-      [InlineData(0x1BE5C2, "give.item POTION 1")]
+      [InlineData(0x1BE5C2, "find.item POTION 1")]
       public void FireRed_Macros_Parse(int address, string content) {
          var model = fixture.LoadModel(FireRedName);
 

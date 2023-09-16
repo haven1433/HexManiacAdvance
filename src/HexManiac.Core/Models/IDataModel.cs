@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
+      bool SpartanMode { get; set; }
       bool HasChanged(int index);
       int ChangeCount { get; }
       void ResetChanges();
@@ -138,8 +139,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       protected void ClearCacheScope() => currentCacheScope = null;
       public ModelCacheScope CurrentCacheScope {
          get {
-            if (currentCacheScope == null) currentCacheScope = new ModelCacheScope(this);
-            return currentCacheScope;
+            var instance = currentCacheScope;
+            if (instance == null) {
+               instance = new ModelCacheScope(this);
+               currentCacheScope = instance;
+            }
+            return instance;
          }
       }
 
@@ -147,7 +152,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          RawData = data;
          var code = data.GetGameCode();
          if (code.Length > 4) code = code.Substring(0, 4);
-         TextConverter = new PCSConverter(code);
+         TextConverter = new PCSConverter(code, this);
          InitializationWorkload = Task.CompletedTask;
       }
 
@@ -176,6 +181,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             changes.Add(index);
          }
       }
+
+      public bool SpartanMode { get; set; }
 
       public bool HasChanged(int index) => changes.Contains(index);
       public int ChangeCount => changes.Count;
@@ -219,7 +226,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public void ExpandData(ModelDelta changeToken, int minimumIndex) {
          if (Count > minimumIndex) return;
-         if (minimumIndex > 0x2000000) throw new NotSupportedException($"Unable to expand to 0x{minimumIndex:X6} bytes.");
 
          var newData = new byte[minimumIndex + 1];
          Array.Copy(RawData, newData, RawData.Length);
@@ -334,6 +340,27 @@ namespace HavenSoft.HexManiac.Core.Models {
       public virtual void AppendTableGroup(ModelDelta token, string groupName, IReadOnlyList<string> tableNames, string hash) { }
 
       public void UpdateGotoShortcut(int index, GotoShortcutModel model) => gotoShortcuts[index] = model;
+
+      public IList<DocLabel> GenerateDocumentationLabels(IReadOnlyList<IScriptLine> scriptLines) {
+         // TODO figure out what the labels actually are
+
+         var docs = new List<DocLabel>();
+         var page = "https://github.com/haven1433/HexManiacAdvance/blob/master/src/HexManiac.Core/Models/Code/scriptReference.md";
+         var gameHash = this.GetShortGameCode();
+
+         foreach (var line in scriptLines) {
+            if (!line.MatchesGame(gameHash)) continue;
+            var command = line.LineCommand;
+            docs.Add(new("documentation.scripting.overworld.reference.commands." + command, page + "#" + command.Replace(".", string.Empty)));
+         }
+
+         foreach (var option in new ModelCacheScope(this).GetOptions("specials")) {
+            if (option == null || option.Length < 2) continue;
+            docs.Add(new("documentation.scripting.overworld.reference.specials." + option, page + "#" + option));
+         }
+
+         return docs;
+      }
    }
 
    public static class IDataModelExtensions {

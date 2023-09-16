@@ -269,7 +269,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          var run = element.Model.GetNextRun(address);
-         if (run.Start < address || (run is not XSERun && run is not NoInfoRun)) {
+         if (run.Start != address || (run is not XSERun && run is not NoInfoRun)) {
             ScriptAddressError = IsValidScriptFreespace(address) ? "Freespace found at that address." : "No script found at that address.";
             HasScriptAddressError = true;
             return;
@@ -842,6 +842,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private TextEditorViewModel martHelloEditor, martGoodbyeEditor;
       public TextEditorViewModel MartHelloEditor => CreateTextEditor(ref martHelloEditor, () => martContent.Value?.HelloPointer);
       public TextEditorViewModel MartGoodbyeEditor => CreateTextEditor(ref martGoodbyeEditor, () => martContent.Value?.GoodbyePointer);
+
+      public IReadOnlyList<AutocompleteItem> GetMartAutocomplete(string line, int lineIndex, int characterIndex) {
+         if (martContent.Value == null) return null;
+         var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
+         if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
+         return stream.GetAutoCompleteOptions(line, lineIndex, characterIndex);
+      }
 
       #endregion
 

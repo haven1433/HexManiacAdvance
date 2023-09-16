@@ -4,6 +4,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
+using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -198,6 +199,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public string Name => (primaryMap?.FullName ?? "Map") + (history.HasDataChange ? "*" : string.Empty);
       public string FullFileName => viewPort.FullFileName;
+      public bool SpartanMode { get; set; }
       public bool IsMetadataOnlyChange => false;
       public ICommand Save => viewPort.Save;
       public ICommand SaveAs => viewPort.SaveAs;
@@ -284,8 +286,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void Refresh() {
          format.Refresh();
+         primaryMap.ClearCaches(); // needs to reset first, so the width/height is correct when calculating everything else
          UpdatePrimaryMap(primaryMap);
-         foreach (var map in VisibleMaps) map.ClearCaches();
+         foreach (var map in VisibleMaps.Except(primaryMap)) map.ClearCaches();
       }
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
 
@@ -380,15 +383,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool IsValidState { get; private set; }
 
-      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, out MapEditorViewModel editor) {
+      public static bool TryCreateMapEditor(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, EventTemplate templates, out MapEditorViewModel editor) {
          editor = null;
          var maps = viewPort.Model.GetTable(HardcodeTablesModel.MapBankTable);
          if (maps == null) return false;
-         editor = new MapEditorViewModel(fileSystem, viewPort, singletons, tutorials);
+         editor = new MapEditorViewModel(fileSystem, viewPort, singletons, tutorials, templates);
          return editor.IsValidState;
       }
 
-      private MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials) {
+      private MapEditorViewModel(IFileSystem fileSystem, IEditableViewPort viewPort, Singletons singletons, MapTutorialsViewModel tutorials, EventTemplate eventTemplate) {
          (this.fileSystem, this.viewPort) = (fileSystem, viewPort);
          (this.singletons, Tutorials) = (singletons, tutorials);
          (model, history) = (viewPort.Model, viewPort.ChangeHistory);
@@ -400,9 +403,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryBlocks = PrimaryTiles;
          this.format = new Format(model);
 
-         var owSprites = BlockMapViewModel.RenderOWs(model);
-         templates = new(singletons.WorkDispatcher, model, viewPort.Tools.CodeTool.ScriptParser, owSprites);
-         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = owSprites };
+         templates = eventTemplate;
+         var map = new BlockMapViewModel(fileSystem, Tutorials, viewPort, format, templates, 3, 0) { AllOverworldSprites = eventTemplate.OverworldGraphics };
          UpdatePrimaryMap(map);
          for (int i = 0; i < 0x40; i++) CollisionOptions.Add(i.ToString("X2"));
 
@@ -437,6 +439,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             backCommand.RaiseCanExecuteChanged();
          }
          if (forwardStack.Count == 1) forwardCommand.RaiseCanExecuteChanged();
+      }
+
+      public void GotoMapNames() {
+         var table = model.GetTable(HardcodeTablesModel.MapNameTable);
+         if (table == null) return;
+         var index = PrimaryMap.SelectedNameIndex;
+         viewPort.Goto.Execute(table.Start + index * table.ElementLength);
       }
 
       private void UpdatePrimaryMap(BlockMapViewModel map) {
@@ -512,16 +521,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (!match) VisibleMaps.Add(newM);
          }
 
-         // refresh connection buttons
+         RefreshConnectionButtons();
+
+         UpdateBlockBagVisual();
+         IsValidState = true;
+      }
+
+      private void RefreshConnectionButtons() {
          var newButtons = primaryMap.GetMapSliders().ToList();
          for (int i = 0; i < MapButtons.Count && i < newButtons.Count; i++) {
             if (!MapButtons[i].TryUpdate(newButtons[i])) MapButtons[i] = newButtons[i];
          }
          for (int i = MapButtons.Count; i < newButtons.Count; i++) MapButtons.Add(newButtons[i]);
          while (MapButtons.Count > newButtons.Count) MapButtons.RemoveAt(MapButtons.Count - 1);
-
-         UpdateBlockBagVisual();
-         IsValidState = true;
       }
 
       private void UpdateMapShortcut(BlockMapViewModel map) {
@@ -529,7 +541,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapIndex = map.MapID % 1000;
          var shortcut = model.GotoShortcuts.FirstOrDefault(shortcut => shortcut.DisplayText == "Maps");
          var index = model.GotoShortcuts.IndexOf(shortcut);
-         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.{groupIndex}-{mapIndex}", "Maps");
+         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.{map.FullName}", "Maps");
          model.UpdateGotoShortcut(index, newShortcut);
          RequestRefreshGotoShortcuts.Raise(this);
       }
@@ -555,6 +567,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private IEnumerable<BlockMapViewModel> GetMapNeighbors(BlockMapViewModel map, int recursionLevel) {
          if (recursionLevel < 1) return new BlockMapViewModel[0];
+         if (SpartanMode) {
+            // return only neighbors based on the current map position
+            var centerX = (map.LeftEdge + map.RightEdge) / 2;
+            var centerY = (map.TopEdge + map.BottomEdge) / 2;
+            if (centerX > 0 && map.LeftEdge > map.TopEdge && map.LeftEdge > -map.BottomEdge) return map.GetNeighbors(MapDirection.Left);
+            if (centerX < 0 && map.RightEdge < map.BottomEdge && map.RightEdge < -map.TopEdge) return map.GetNeighbors(MapDirection.Right);
+            if (centerY > 0) return map.GetNeighbors(MapDirection.Up);
+            if (centerY < 0) return map.GetNeighbors(MapDirection.Down);
+            return Enumerable.Empty<BlockMapViewModel>();
+         }
          var directions = new List<MapDirection> {
             MapDirection.Up, MapDirection.Down, MapDirection.Left, MapDirection.Right, MapDirection.Dive, MapDirection.Emerge,
          };
@@ -574,14 +596,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          }
          return newMaps.Values.ToList();
+      }
 
-         //var newMaps = new List<BlockMapViewModel>(directions.SelectMany(map.GetNeighbors));
-         //foreach (var m in newMaps) {
-         //   yield return m;
-         //   if (recursionLevel > 1 && m.ZIndex >= 0) {
-         //      foreach (var mm in GetMapNeighbors(m, recursionLevel - 1)) yield return mm;
-         //   }
-         //}
+      private IEnumerable<BlockMapViewModel> PreferLoaded(IEnumerable<BlockMapViewModel> maps) {
+         foreach (var map in maps) {
+            var match = VisibleMaps.FirstOrDefault(m => m.MapID == map.MapID);
+            yield return match ?? map;
+         }
       }
 
       #region Map Interaction
@@ -625,7 +646,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
             map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
-               if (interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
+               if (!SpartanMode && interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
                   return ShowEventHover(map, ev);
                } else {
                   return EmptyTooltip;
@@ -672,9 +693,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryMap.BorderEditor.ShowBorderPanel = false;
          (cursorX, cursorY) = (x, y);
          (deltaX, deltaY) = (0, 0);
-
-         var map = MapUnderCursor(x, y);
-         if (map != null) UpdatePrimaryMap(map);
       }
 
       public void DragMove(double x, double y, bool isMiddleClickMap) {
@@ -689,7 +707,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (isMiddleClickMap) Hover(x, y);
       }
 
-      public void DragUp(double x, double y) { }
+      public void DragUp(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (map != null) UpdatePrimaryMap(map);
+      }
 
       #region Primary Interaction (left-click)
 
@@ -851,15 +872,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             }
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ObjectEventViewModel obj) {
             if (0 <= obj.ScriptAddress && obj.ScriptAddress < model.Count) {
-               viewPort.Goto.Execute(obj.ScriptAddress);
-               RequestTabChange?.Invoke(this, new(viewPort));
+               viewPort.GotoScript(obj.ScriptAddress);
             } else {
                OnError.Raise(this, "Not a valid script address.");
             }
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else if (click == PrimaryInteractionStart.DoubleClick && SelectedEvent is ScriptEventViewModel script) {
             if (0 <= script.ScriptAddress && script.ScriptAddress < model.Count) {
-               viewPort.Goto.Execute(script.ScriptAddress);
+               viewPort.GotoScript(script.ScriptAddress);
             } else {
                OnError.Raise(this, "Not a valid script address.");
             }
@@ -871,7 +891,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             signpost.Pointer >= 0 &&
             signpost.Pointer < model.Count
          ) {
-            viewPort.Goto.Execute(signpost.Pointer);
+            viewPort.GotoScript(signpost.Pointer);
             Tutorials.Complete(Tutorial.DoubleClickEvent_SeeScript);
          } else {
             Tutorials.Complete(Tutorial.LeftClick_SelectEvent);
@@ -892,6 +912,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void EventUp(double x, double y) {
+         var map = MapUnderCursor(x, y);
+         if (selectedEvent is ObjectEventViewModel objEvent) {
+            foreach (var neighbor in PreferLoaded(GetMapNeighbors(primaryMap, 1))) neighbor.UpdateClone(primaryMap, objEvent);
+         }
+
          history.ChangeCompleted();
          if (!withinEventCreationInteraction) return;
          withinEventCreationInteraction = false;
@@ -906,7 +931,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (eventCreationType == EventCreationType.WaveFunction) {
             eventCreationType = EventCreationType.None;
             // user wants to do a wave function collapse at this position
-            var map = MapUnderCursor(x, y);
             if (map != primaryMap) return;
             map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
          }
@@ -1323,11 +1347,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var receiveSprite = fronts[receive].Render("sprite");
             giveSprite = ReadonlyPixelViewModel.Crop(giveSprite, 0, 0, 32, 32);
             tips.Add(ReadonlyPixelViewModel.Render(receiveSprite, giveSprite, 32, 32));
-            // var transparent = new short[88 * 88]; for (int i = 0; i < transparent.Length; i++) transparent[i] = 0;
-            //var combined = new CanvasPixelViewModel(88, 88) { Transparent = 0 };
-            //combined.Draw(giveSprite, 0, 0);
-            //combined.Draw(receiveSprite, 24, 24);
-            //tips.Add(new ReadonlyPixelViewModel(88, 88, combined.PixelData, 0)); // only ReadOnlyPixelViewModel gets the 'true' transparency effect
          }
 
          foreach (var spot in scriptSpots) {
@@ -1352,7 +1371,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   textIncluded++;
                   renderedAddresses.Add(spot.Address);
                }
-            } else if (model[spot.Address] == 0x1A && model[spot.Address + 1] == 0x00 && model[spot.Address + 2] == 0x80 && itemStats != null) {
+            } else if (model[spot.Address] == 0x1A && model[spot.Address + 1] == 0x00 && model[spot.Address + 2] == 0x80 && itemStats != null && itemSprites != null) {
                // copyvarifnotzero (item), likely give.item macro
                var itemAddress = spot.Address + 3;
                var itemID = model.ReadMultiByteValue(itemAddress, 2);
@@ -1429,7 +1448,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                var pokemonID = model.ReadMultiByteValue(spot.Address + 1, 2);
                var pokemon = fronts[pokemonID].Render("sprite");
                if (pokemon != null) tips.Add(pokemon);
-            } else if (model[spot.Address] == 0x44) { // additem
+            } else if (model[spot.Address] == 0x44 && itemSprites != null) { // additem
                var itemID = model.ReadMultiByteValue(spot.Address + 1, 2);
                var item = itemSprites[itemID].Render("sprite");
                if (item != null) tips.Add(item);
@@ -1783,6 +1802,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          (deltaX, deltaY) = (0, 0);
          shiftButton = ButtonUnderCursor(x, y);
          HighlightCursorWidth = HighlightCursorHeight = 0;
+
+         var layout = primaryMap.GetLayout();
+         var run = model.GetNextRun(layout.GetAddress("blockmap")) as BlockmapRun;
+         run?.StoreContentBackupForSizeChange();
       }
 
       public void ShiftMove(double x, double y) {
@@ -1797,7 +1820,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          shiftButton.Move(intX, intY);
       }
 
-      public void ShiftUp(double x, double y) => history.ChangeCompleted();
+      public void ShiftUp(double x, double y) {
+         history.ChangeCompleted();
+      }
 
       private MapSlider ButtonUnderCursor(double x, double y) {
          int left, right, top, bottom;

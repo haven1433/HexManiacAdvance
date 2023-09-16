@@ -252,7 +252,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          var cell = (UnderEdit)ViewPort[0, 0].Format;
          var options = cell.AutocompleteOptions.Select(item => item.DisplayText).ToArray();
-         Assert.Equal(new[] { "matchX", "Xmatch", "matXch" }, options);
+         Assert.Equal(new[] { "matchX", "matXch", "Xmatch" }, options); // sorted
       }
 
       [Fact]

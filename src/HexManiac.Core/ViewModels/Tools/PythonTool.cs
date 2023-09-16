@@ -1,21 +1,26 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using Microsoft.Scripting.Hosting;
 using System;
 using System.Collections;
 using System.Diagnostics;
+using System.Dynamic;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class PythonTool : ViewModelCore {
       private Lazy<ScriptEngine> engine;
       private Lazy<ScriptScope> scope;
       private readonly EditorViewModel editor;
+      private readonly TextEditorViewModel content;
 
-      private string text, resultText;
-      public string Text { get => text; set => Set(ref text, value); }
+      private string resultText;
+      public string Text { get => content.Content; set => content.Content = value; }
       public string ResultText { get => resultText; set => Set(ref resultText, value); }
+      public TextEditorViewModel PythonEditor => content;
 
       public PythonTool(EditorViewModel editor) {
          this.editor = editor;
+         content = SetupPythonEditor();
          engine = new(() => {
             var engine = IronPython.Hosting.Python.CreateEngine();
             var paths = engine.GetSearchPaths();
@@ -50,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
 
       public void RunPython() {
-         ResultText = RunPythonScript(text).ErrorMessage ?? "null";
+         ResultText = RunPythonScript(Text).ErrorMessage ?? "null";
          editor.SelectedTab?.Refresh();
       }
 
@@ -93,14 +98,46 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          editor.FileSystem.ShowCustomMessageBox(text, false);
       }
 
+      public static TextEditorViewModel SetupPythonEditor() {
+         var editor = new TextEditorViewModel() {
+            Keywords = {
+               "for", "while", "in",
+               "if", "elif", "else",
+               "def", "return", "break", "yield",
+               "class", "lambda",
+               "import", "from",
+               "try", "except",
+               "with", "pass", "as", "is", "not",
+               "len", "print", "zip", "range", "open", "round",
+            },
+            Constants = {
+               "True",
+               "False",
+               "None",
+               "str",
+            },
+            LineCommentHeader = "#",
+            MultiLineCommentHeader = "'''",
+            MultiLineCommentFooter = "'''",
+         };
+         return editor;
+      }
+
       public void Close() => editor.ShowAutomationPanel = false;
    }
 
    public record TableGetter(EditorViewModel Editor) {
-      public ModelTable this[string name] {
+      public DynamicObject this[string name] {
          get {
             if (Editor.SelectedTab is IViewPort viewPort && viewPort.Model is IDataModel model) {
-               return new ModelTable(model, model.GetAddressFromAnchor(new(), -1, name), () => viewPort.ChangeHistory.CurrentChange);
+               var address = model.GetAddressFromAnchor(new(), -1, name);
+               var run = model.GetNextRun(address);
+               ModelDelta factory() => viewPort.ChangeHistory.CurrentChange;
+               if (run is EggMoveRun eggMoveRun) {
+                  return new EggTable(model, factory, eggMoveRun);
+               } else {
+                  return new ModelTable(model, address, factory);
+               }
             }
             return null;
          }

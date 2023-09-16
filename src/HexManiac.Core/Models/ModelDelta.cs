@@ -241,7 +241,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private IDisposable CaptureNonDataChange() {
-         var initialState = HasAnyChange;
          if (HasAnyChange) return new StubDisposable();
          return new StubDisposable { Dispose = () => {
             if (!HasAnyChange) return;

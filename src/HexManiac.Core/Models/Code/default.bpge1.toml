@@ -14,3 +14,19 @@ Format = '''[species2:data.pokemon.names]1'''
 Name = '''scripts.newgame.starters.right'''
 Address = 0x169E0C
 Format = '''[species3:data.pokemon.names]scripts.newgame.starters.middle'''
+
+[[OffsetPointer]]
+Address = 0x114E28
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x1150B8
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x12DFAC
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x0C6D84
+Offset = 0x000010

@@ -187,7 +187,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
    }
 
-   public record TextSegment(int Line, int Start, int Length) : INotifyPropertyChanged {
+   public enum SegmentType { None, Warning, Error }
+   public record TextSegment(int Line, int Start, int Length, SegmentType Type) : INotifyPropertyChanged {
       public event PropertyChangedEventHandler? PropertyChanged;
    }
 
@@ -228,7 +229,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                yield return (i, closeIndex - i + 1);
                i = closeIndex + 1;
             }
-            if (!char.IsLetter(content[i])) continue;
+            if (i < content.Length && !char.IsLetter(content[i])) continue;
             int length = 1;                                                                                               
             while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~_".ToCharArray()))) length++;
             yield return (i, length);
@@ -265,6 +266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public (int, int) IndexOfNumber(int start) {
          for (int i = start; i < content.Length; i++) {
             if (i > 0 && char.IsLetterOrDigit(content[i - 1])) continue;
+            if (i > 0 && content[i - 1] == '_') continue; // non-letter characters that are not considered token splitters
             if (!char.IsDigit(content[i]) && !content[i].IsAny(hexLetters)) continue;
             int length = 1;
             while (true) {

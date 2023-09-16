@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
@@ -185,6 +186,39 @@ namespace HavenSoft.HexManiac.Integration {
 
          champGuy.ReadAllProperties();
          Assert.True(champGuy.HasScriptAddressError);
+      }
+
+      [SkippableFact]
+      public void FireRed_MapsWithObjects_HaveValidPointers() {
+         var firered = LoadReadOnlyFireRed();
+         var maps = AllMapsModel.Create(firered.Model).SelectMany(bank => bank);
+         Assert.All(maps, map => {
+            var events = map.Events.Element;
+            if (events.GetValue("objectCount") == 0) return;
+            var objectsAddress = events.GetAddress("objects");
+            var objectTable = firered.Model.GetNextRun(objectsAddress);
+            Assert.IsType<TableStreamRun>(objectTable);
+         });
+      }
+
+      [SkippableFact]
+      public void FireRed_SelectMovementPermissionWithoutBlock_CanRectangleDraw() {
+         var firered = LoadFireRed();
+         firered.Goto.Execute(StartTown);
+         var map = firered.MapEditor;
+
+         map.CollisionIndex = 1;
+
+         map.PrimaryDown(0, 0, PrimaryInteractionStart.ControlClick);
+         map.PrimaryUp(0, 0);
+         // no crash = pass
+      }
+
+      [SkippableFact]
+      public void FireRed_DuplicateMapTab_SameTemplate() {
+         var firered = LoadFireRed();
+         var dup = firered.CreateDuplicate();
+         Assert.Same(firered.MapEditor.Templates, dup.MapEditor.Templates);
       }
    }
 }

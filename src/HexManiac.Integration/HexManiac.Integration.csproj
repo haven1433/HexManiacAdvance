@@ -47,7 +47,7 @@
       del "$(TargetDir)Models\Code\*.hma"
       copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.py"
-      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\*.hma" "$(TargetDir)resources\Scripts"
+      xcopy "$(SolutionDir)src\HexManiac.WPF\Scripts" "$(TargetDir)resources/Scripts" /i /c /k /e /r /y
     </PostBuildEvent>
   </PropertyGroup>
 

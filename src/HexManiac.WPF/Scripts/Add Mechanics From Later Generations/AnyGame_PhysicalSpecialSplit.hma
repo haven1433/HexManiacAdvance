@@ -36,10 +36,10 @@ if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
 @!game(BPEE0) @04674E
 @!game(All) ^thumb.physicalspecialsplit.accuracy
 
-@!game(AXVE0_AXVE1_AXPE0_AXPE1) @01DB8E
-@!game(BPRE0_BPGE0) @01F6C2
-@!game(BPRE1_BPGE1) @01F6D6
-@!game(BPEE0) @047F02
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @01DB66
+@!game(BPRE0_BPGE0) @01F69A
+@!game(BPRE1_BPGE1) @01F6AE
+@!game(BPEE0) @047EDA
 @!game(All) ^thumb.physicalspecialsplit.datahp1
 
 @!game(AXVE0_AXVE1_AXPE0_AXPE1) @01DDD4
@@ -99,7 +99,7 @@ if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
     ldrb  r0, [r0, #10]
 .end
 @thumb.physicalspecialsplit.accuracy+182 .thumb
-    cmp   r1, #0					@ if (gBattleMons[gBattlerAttacker].ability == ABILITY_HUSTLE && IS_MOVE_PHYSICAL(move))
+    cmp   r1, #0                    @ if (gBattleMons[gBattlerAttacker].ability == ABILITY_HUSTLE && IS_MOVE_PHYSICAL(move))
     bne   <thumb.physicalspecialsplit.accuracy+196>
 .end
 
@@ -109,14 +109,17 @@ if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
 #	Changes the way how physical and special damage are recorded for use with Counter/Mirror Coat
 
 @thumb.physicalspecialsplit.datahp1 .thumb
+    b     <thumb.physicalspecialsplit.datahp1+1A>	@ Without this, Hidden Power and other type-changing damaging moves will still refer to the actual type
+.end
+@thumb.physicalspecialsplit.datahp1+28 .thumb
     ldrb  r6, [r0, #10]
 .end
 @thumb.physicalspecialsplit.datahp2 .thumb
-    cmp   r6, #0					@ if (IS_MOVE_PHYSICAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
+    cmp   r6, #0                    @ if (IS_MOVE_PHYSICAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
     bne   <thumb.physicalspecialsplit.datahp2+84>
 .end
 @thumb.physicalspecialsplit.datahp2+84 .thumb
-    cmp   r6, #1					@ else if (IS_MOVE_SPECIAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
+    cmp   r6, #1                    @ else if (IS_MOVE_SPECIAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
     bne   <thumb.physicalspecialsplit.datahp2+F2>
 .end
 
@@ -125,8 +128,8 @@ if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
 #	in "Cmd_moveend"
 #	Changes the check for thawing/defrosting to check for any Fire damage and not just special
 
-@thumb.moveend.defrostcheck .thumb
-    add   r0, r0, #4    			@ if (gSpecialStatuses[gBattlerTarget].dmg)
+@thumb.physicalspecialsplit.defrost .thumb
+    add   r0, r0, #4                @ if (gSpecialStatuses[gBattlerTarget].dmg)
 .end
 
 
@@ -187,7 +190,7 @@ GetMoveCategory:
     lsl   r0, r0, #2
     add   r0, r0, r1
     ldrb  r2, [r0, #10]
-    mov   r11, r2					@ Puts split byte for the move used in r11 to be checked later
+    mov   r11, r2                    @ Puts split byte for the move used in r11 to be checked later
     cmp   r6, #0
     bne   <thumb.CalculateBaseDamage+78>
 .end
@@ -244,7 +247,7 @@ GetMoveCategory:
     lsl   r0, r0, #2
     add   r0, r0, r1
     ldrb  r2, [r0, #10]
-    mov   r11, r2					@ Puts split byte for the move used in r11 to be checked later
+    mov   r11, r2                    @ Puts split byte for the move used in r11 to be checked later
     cmp   r7, #0
     bne   <thumb.CalculateBaseDamage+78>
 .end
@@ -303,7 +306,7 @@ GetMoveCategory:
     lsl   r0, r0, #2
     add   r0, r0, r1
     ldrb  r2, [r0, #10]
-    mov   r11, r2					@ Puts split byte for the move used in r11 to be checked later
+    mov   r11, r2                    @ Puts split byte for the move used in r11 to be checked later
     cmp   r7, #0
     bne   <0695F8>
 .end
@@ -312,14 +315,14 @@ GetMoveCategory:
 @!game(AXVE0_AXVE1_AXPE0_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
 @thumb.physicalspecialsplit.typeboostitems .thumb
     mov   r1, r11
-    cmp   r1, #0					@ if (IS_MOVE_PHYSICAL(move)) attack = (attack * (attackerHoldEffectParam + 100)) / 100;
+    cmp   r1, #0                    @ if (IS_MOVE_PHYSICAL(move)) attack = (attack * (attackerHoldEffectParam + 100)) / 100;
     bne   <thumb.physicalspecialsplit.typeboostitems+8>
 .end
 @!game(BPEE0)
 @thumb.physicalspecialsplit.typeboostitems .thumb
     mov   r1, r11
-    cmp   r1, #0					@ if (IS_MOVE_PHYSICAL(move)) attack = (attack * (attackerHoldEffectParam + 100)) / 100;
-    beq   <06966C>					@ specific to Emerald, so it's ok to leave it like this
+    cmp   r1, #0                    @ if (IS_MOVE_PHYSICAL(move)) attack = (attack * (attackerHoldEffectParam + 100)) / 100;
+    beq   <06966C>                  @ specific to Emerald, so it's ok to leave it like this
 .end
 
 
@@ -327,12 +330,12 @@ GetMoveCategory:
 #	Change Thick Fat to affect physical moves as well
 @!game(AXVE0_AXVE1_AXPE0_AXPE1)
 @thumb.physicalspecialsplit.thickfat .thumb
-    cmp   r0, #47					@ Abilty ID of Thick Fat
+    cmp   r0, #47                   @ Abilty ID of Thick Fat
     bne   HustleCheck
     mov   r2, r9
-    cmp   r2, #10					@ Fire Type
+    cmp   r2, #10                   @ Fire Type
     beq   ThickFat
-    cmp   r2, #15					@ Ice Type
+    cmp   r2, #15                   @ Ice Type
     bne   HustleCheck
 ThickFat:
     mov   r3, r8
@@ -346,19 +349,19 @@ ThickFat:
 HustleCheck:
     ldr   r0, [sp, #36]
     ldrb  r4, [r0, #0]
-    cmp   r4, #55					@ Abilty ID of Hustle
+    cmp   r4, #55                   @ Abilty ID of Hustle
     bne   <thumb.physicalspecialsplit.thickfat+2A>
     lsr   r0, r6, #1
     add   r6, r0, r6
 .end
 @!game(BPRE0_BPRE1_BPGE0_BPGE1)
 @thumb.physicalspecialsplit.thickfat .thumb
-    cmp   r0, #47					@ Abilty ID of Thick Fat
+    cmp   r0, #47                   @ Abilty ID of Thick Fat
     bne   HustleCheck
     mov   r2, r9
-    cmp   r2, #10					@ Fire Type
+    cmp   r2, #10                   @ Fire Type
     beq   ThickFat
-    cmp   r2, #15					@ Ice Type
+    cmp   r2, #15                   @ Ice Type
     bne   HustleCheck
 ThickFat:
     mov   r3, r8
@@ -372,19 +375,19 @@ ThickFat:
 HustleCheck:
     ldr   r0, [sp, #36]
     ldrb  r4, [r0, #0]
-    cmp   r4, #55					@ Abilty ID of Hustle
+    cmp   r4, #55                   @ Abilty ID of Hustle
     bne   <thumb.physicalspecialsplit.thickfat+2A>
     lsr   r0, r7, #1
     add   r7, r0, r7
 .end
 @!game(BPEE0)
 @thumb.physicalspecialsplit.thickfat .thumb
-    cmp   r0, #47					@ Abilty ID of Thick Fat
+    cmp   r0, #47                   @ Abilty ID of Thick Fat
     bne   HustleCheck
     mov   r2, r10
-    cmp   r2, #10					@ Fire Type
+    cmp   r2, #10                   @ Fire Type
     beq   ThickFat
-    cmp   r2, #15					@ Ice Type
+    cmp   r2, #15                   @ Ice Type
     bne   HustleCheck
 ThickFat:
     mov   r3, r8
@@ -398,7 +401,7 @@ ThickFat:
 HustleCheck:
     ldr   r0, [sp, #40]
     ldrb  r4, [r0, #0]
-    cmp   r4, #55					@ Abilty ID of Hustle
+    cmp   r4, #55                   @ Abilty ID of Hustle
     bne   <thumb.physicalspecialsplit.thickfat+2A>
     lsr   r0, r7, #1
     add   r7, r0, r7
@@ -410,7 +413,7 @@ HustleCheck:
 #	Change a check for physical-based calculations to use the new byte
 @thumb.physicalspecialsplit.physicalcheck .thumb
     mov   r1, r11
-    cmp   r1, #0					@ if (IS_MOVE_PHYSICAL(move))
+    cmp   r1, #0                    @ if (IS_MOVE_PHYSICAL(move))
     beq   <thumb.physicalspecialsplit.physicalcheck+8>
 .end
 
@@ -419,24 +422,24 @@ HustleCheck:
 @!game(AXVE0_AXVE1_AXPE0_AXPE1)
 @thumb.physicalspecialsplit.specialstatuscheck .thumb
     mov   r6, r11
-    cmp   r6, #3					@ if (IS_MOVE_STATUS(move))
+    cmp   r6, #3                    @ if (IS_MOVE_STATUS(move))
     bne   SpecialCategoryCheck
     mov   r5, #0
 SpecialCategoryCheck:
     mov   r0, r11
-    cmp   r0, #1					@ if (IS_MOVE_SPECIAL(move))
+    cmp   r0, #1                    @ if (IS_MOVE_SPECIAL(move))
     beq   <thumb.physicalspecialsplit.specialstatuscheck+10>
     b     <thumb.physicalspecialsplit.weather>
 .end
 @!game(BPRE0_BPRE1_BPGE0_BPGE1_BPEE0)
 @thumb.physicalspecialsplit.specialstatuscheck .thumb
     mov   r7, r11
-    cmp   r7, #3					@ if (IS_MOVE_STATUS(move))
+    cmp   r7, #3                    @ if (IS_MOVE_STATUS(move))
     bne   SpecialCategoryCheck
     mov   r5, #0
 SpecialCategoryCheck:
     mov   r0, r11
-    cmp   r0, #1					@ if (IS_MOVE_SPECIAL(move))
+    cmp   r0, #1                    @ if (IS_MOVE_SPECIAL(move))
     beq   <thumb.physicalspecialsplit.specialstatuscheck+10>
     b     <thumb.physicalspecialsplit.weather>
 .end
@@ -450,13 +453,13 @@ SpecialCategoryCheck:
     cmp   r4, #0
     beq   <thumb.physicalspecialsplit.weather+B0>
     mov   r6, r10
-    mov   r0, #96					@ B_WEATHER_SUN
+    mov   r0, #96                   @ B_WEATHER_SUN
     and   r0, r4
     cmp   r0, #0
     beq   SandstormCheck
-    cmp   r6, #10					@ Fire Type
+    cmp   r6, #10                   @ Fire Type
     beq   WeatherHalfBoost
-    cmp   r6, #11					@ Water Type
+    cmp   r6, #11                   @ Water Type
     beq   WeatherHalfDamage
     b     <thumb.physicalspecialsplit.weather+B0>
 BattleTypeFlags:
@@ -464,14 +467,14 @@ BattleTypeFlags:
 MoveBattleStats:
     .word <data.pokemon.moves.stats.battle>
 BattleWeather:
-    .word 0x020243CC				@ gBattleWeather
+    .word 0x020243CC                @ gBattleWeather
 SandstormCheck:
-    mov   r0, #24					@ B_WEATHER_SANDSTORM
+    mov   r0, #24                   @ B_WEATHER_SANDSTORM
     and   r0, r4
     cmp   r0, #0
     beq   MiscWeatherCheck
     mov   r0, r11
-    cmp   r0, #1					@ Special Move
+    cmp   r0, #1                    @ Special Move
     bne   MiscWeatherCheck
     ldr   r2, BattleMonsType1
     ldr   r0, BattlerTarget
@@ -480,10 +483,10 @@ SandstormCheck:
     mul   r0, r1
     add   r3, r0, r2
     ldrb  r0, [r3, #0]
-    cmp   r0, #5					@ Rock type (Primary)
+    cmp   r0, #5                    @ Rock type (Primary)
     beq   SandstormBoostSpDef
     ldrb  r0, [r3, #1]
-    cmp   r0, #5					@ Rock type (Secondary)
+    cmp   r0, #5                    @ Rock type (Secondary)
     bne   MiscWeatherCheck
 SandstormBoostSpDef:
     mov   r0, #10
@@ -494,32 +497,32 @@ SandstormBoostSpDef:
 MiscWeatherCheck:
     ldr   r0, CurrentMove
     ldrh  r0, [r0, #0]
-    cmp   r0, #76					@ Solar Beam recieves half. The sun check skips this if there is sun up.
+    cmp   r0, #76                   @ Solar Beam recieves half. The sun check skips this if there is sun up.
     beq   WeatherHalfDamage
-    cmp   r4, #7					@ B_WEATHER_RAIN
+    cmp   r4, #7                    @ B_WEATHER_RAIN
     bhi   <thumb.physicalspecialsplit.weather+B0>
-    cmp   r6, #10					@ Fire Type
+    cmp   r6, #10                   @ Fire Type
     beq   WeatherHalfDamage
-    cmp   r6, #11					@ Water Type
+    cmp   r6, #11                   @ Water Type
     beq   WeatherHalfBoost
     b     <thumb.physicalspecialsplit.weather+B0>
 BattleMonsType1:
-    .word 0x020240A5				@ gBattleMons+21		gBattleMons[].type1
+    .word 0x020240A5                @ gBattleMons+21        gBattleMons[].type1
 BattlerTarget:
-    .word 0x0202420C				@ gBattlerTarget
+    .word 0x0202420C                @ gBattlerTarget
 CurrentMove:
-    .word 0x020241EA				@ gCurrentMove
+    .word 0x020241EA                @ gCurrentMove
 WeatherHalfBoost:
-    lsr   r0, r5, #1				@ damage = (15 * damage) / 10;
+    lsr   r0, r5, #1                @ damage = (15 * damage) / 10;
     add   r5, r5, r0
     b     <thumb.physicalspecialsplit.weather+B0>
 WeatherHalfDamage:
-    lsr   r5, r5, #1				@ damage /= 2;
+    lsr   r5, r5, #1                @ damage /= 2;
 .end
 #	Registers used and RAM addresses are different in other games
 @!game(AXVE0_AXVE1_AXPE0_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
 @thumb.physicalspecialsplit.weather+34 .thumb
-    mov   r6, r9					@ r9 is used in every other version
+    mov   r6, r9                    @ r9 is used in every other version
 .end
 @!game(AXVE0_AXVE1_AXPE0_AXPE1)
 @thumb.physicalspecialsplit.weather+48
@@ -557,7 +560,7 @@ A1 4A 02 02 08 4C 02 02 E6 4B 02 02
     bx    r1
 .end
 
-#	Adds in the category icons for FRLG and Emerald
+#    Adds in the category icons for FRLG and Emerald
 
 @!game(BPRE0) @13A124
 @!game(BPRE1) @13A19C
@@ -900,7 +903,7 @@ CategoryIcons:
 .python
 tab = editor.SelectedTab
 categoryList = ['Physical', 'Special', 'Status']
-tab.Model.SetList(tab.CurrentChange, "movecategory", categoryList, None)
+tab.Model.SetList(tab.CurrentChange, "movecategory", categoryList, None, None)
 .end
 
 

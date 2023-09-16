@@ -150,7 +150,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels
             }
         }
         public PropertyImplementation<int> Width = new PropertyImplementation<int>();
-        
+
+        public bool SpartanMode { get; set; }
+
         int IViewPort.Width
         {
             get

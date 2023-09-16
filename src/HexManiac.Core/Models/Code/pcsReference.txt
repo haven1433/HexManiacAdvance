@@ -89,7 +89,6 @@ CC_10 = 2 # play sound effects
 [shift_right]  FC 0D  # a nop in Ruby/Sapphire
 [shift_down]   FC 0E
 [fill_window]  FC 0F  # clear window text lines in Ruby/Sapphire
-[clear]        FC 11
 [skip]         FC 12
 [japanese]     FC 15
 [latin]        FC 16

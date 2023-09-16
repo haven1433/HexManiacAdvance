@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    /// <summary>
@@ -37,6 +38,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       public override void UpdateNewRunFromPointerFormat(IDataModel model, ModelDelta token, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments, int parentIndex, ref IFormattedRun run) {
          var runAttempt = new TrainerPokemonTeamRun(model, run.Start, showFullIVByteRange, run.PointerSources);
          if (runAttempt.Length < 1) return;
+
+         // trainer teams should never be able to contain their own pointer sources
+         if (runAttempt.PointerSources.Any(source => source.InRange(runAttempt.Start, runAttempt.Start + runAttempt.Length))) return;
+
          model.ClearFormat(token, run.Start, runAttempt.Length);
          run = runAttempt;
       }

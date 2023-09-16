@@ -1,0 +1,38 @@
+﻿
+[AXVE_AXPE_BPRE_BPGE_BPEE]
+
+documentation.basic.01_EditingPokemon                    https://github.com/haven1433/HexManiacAdvance/wiki/Basic-Tutorial-01:-Pokemon-Editing
+documentation.basic.02_PokedexEditing                    https://github.com/haven1433/HexManiacAdvance/wiki/Basic-Tutorial-02:-Pokedex-Editing
+documentation.basic.03_EditingMoves                      https://www.youtube.com/watch?v=G0zG_N9WSBI&ab_channel=StarstruckShiny
+documentation.basic.04_EditingShinyOdds                  https://github.com/haven1433/HexManiacAdvance/wiki/Basic-Tutorial-04:-Editing-Shiny-Odds
+documentation.basic.05_EditingItems                      https://youtu.be/r_ESkfgR1iY
+documentation.basic.06_EditingTrainers                   https://www.youtube.com/watch?v=NZoIevjHBsc&ab_channel=StarstruckShiny
+# documentation.basic.07_MakingACustomOverworldCharacter 
+documentation.basic.08_CreatingUsingPatches              https://www.youtube.com/watch?v=oSP-RmC6gp8
+documentation.basic.09_UsingHMAScripts                   https://youtu.be/UBcwRh-uADo
+documentation.basic.10_EditingStarterPokemon             https://github.com/haven1433/HexManiacAdvance/wiki/Basic-Tutorial-10:-Starter-Pokemon-Editing
+documentation.basic.11_EditingTutorsAndTMs               https://www.youtube.com/watch?v=ZtBMpvMy4wg&ab_channel=StarstruckShiny
+documentation.basic.12_IntroductionToMapEditing          https://www.youtube.com/watch?v=JUclpPtEyA4&ab_channel=haven1433
+documentation.basic.13_AllAboutHMAsSettings              https://www.youtube.com/watch?v=iSxnohrCzP8
+
+# documentation.advanced.00_
+documentation.advanced.01_WorkingWithTables.p1           https://www.youtube.com/watch?v=xCV2qgd4BFM
+documentation.advanced.01_WorkingWithTables.p2           https://www.youtube.com/watch?v=O3iyp8Lt_DQB
+documentation.advanced.02_EditingTextData                https://www.youtube.com/watch?v=8WQuf43lsBo&ab_channel=StarstruckShiny
+documentation.advanced.03_ImageEditing                   https://www.youtube.com/watch?v=EfS3gH2F5Vc
+# documentation.advanced.04_UsingPythonToAutomateTasks
+documentation.advanced.05_FontEditing                    https://youtu.be/I-tL6j5SSaY
+documentation.advanced.06_GettingStartedForDevelopers    https://youtu.be/kB6VSnNkaMo
+
+documentation.scripting.overworld.tutorials.01_GettingStarted         https://github.com/haven1433/HexManiacAdvance/wiki/Overworld-Scripting-%E2%80%90-Getting-Started
+documentation.scripting.overworld.tutorials.02_UsingTemplates         https://github.com/haven1433/HexManiacAdvance/wiki/Overworld-Scripting-%E2%80%90-Using-Templates
+documentation.scripting.overworld.tutorials.03_ScriptingBasics        https://github.com/haven1433/HexManiacAdvance/wiki/Overworld-Scripting-%E2%80%90-Scripting-Basics
+documentation.scripting.overworld.tutorials.04_Flags                  https://github.com/haven1433/HexManiacAdvance/wiki/Overworld-Scripting-%E2%80%90-Flags
+documentation.scripting.overworld.tutorials.05_Variables              https://github.com/haven1433/HexManiacAdvance/wiki/Overworld-Scripting-%E2%80%90-Variables
+documentation.scripting.overworld.tutorials.06_Specials               https://github.com/haven1433/HexManiacAdvance/wiki/Everything-You-Need-for-Event-Scripting-in-HexManiacAdvance
+# documentation.scripting.overworld.tutorials.07_ScriptEvents
+# documentation.scripting.overworld.tutorials.08_MapHeaderScripts
+# documentation.scripting.overworld.tutorials.09_CompleteExample
+
+# documentation.scripting.overworld.reference.commands -> added by code with a list of all available commands, links to reference document
+# documentation.scripting.overworld.reference.specials -> added by code with a list of all available specials, links to referenc document

@@ -29,6 +29,31 @@ Name = '''graphics.text.font.japan5.width'''
 Address = 0x66C6E4
 Format = '''[width.]512'''
 
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.flags'''
+Address = 0x045DC4
+Format = '''[word::|h]4'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.0badges'''
+Address = 0x045D4A
+Format = '''[level.]1'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.2badges'''
+Address = 0x045D58
+Format = '''[level.]scripts.battle.badge.obey.0badges'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.4badges'''
+Address = 0x045D66
+Format = '''[level.]scripts.battle.badge.obey.0badges'''
+
+[[NamedAnchors]]
+Name = '''scripts.battle.badge.obey.6badges'''
+Address = 0x045D74
+Format = '''[level.]scripts.battle.badge.obey.0badges'''
+
 [[OffsetPointer]]
 Address = 0x038850
 Offset = 0x000004
@@ -48,6 +73,30 @@ Offset = 0x000004
 [[OffsetPointer]]
 Address = 0x06B82C
 Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x06E624
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x06F0D0
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x14F21C
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x14F504
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x196A98
+Offset = 0x000004
+
+[[OffsetPointer]]
+Address = 0x13094C
+Offset = 0x000010
 
 [[List]]
 Name = '''pokenavTowns'''
@@ -240,7 +289,7 @@ Name = '''specials'''
 0x9f = '''ChooseStarter'''
 0xa0 = '''StartWallyTutorialBattle'''
 0xa1 = '''ChangePokemonNickname'''
-0xa2 = '''ChoosePartyMon'''                     # Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for last pokemon, 0x8004=7 for cancel. Requires `waitforstate` after.
+0xa2 = '''ChoosePartyMon'''                     # Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for last pokemon, 0x8004=7 for cancel. Requires `waitstate` after.
 0xa3 = '''GetFirstFreePokeblockSlot'''
 0xa4 = '''DoBerryBlending'''
 0xa5 = '''PlayRoulette'''
@@ -407,7 +456,7 @@ Name = '''specials'''
 0x146 = '''SetRoute119Weather'''
 0x147 = '''SetRoute123Weather'''
 0x148 = '''GetContestMultiplayerId'''
-0x149 = '''GetPartyMonSpecies'''        # Read party index from 0x8004, return species (recomend returning to 0x800D).
+0x149 = '''GetPartyMonSpecies'''        # Read party index from 0x8004, return species.
 0x14a = '''IsSelectedMonEgg'''
 0x14b = '''TryInitBattleTowerAwardManObjectEvent'''
 0x14c = '''MoveOutOfSecretBaseFromOutside'''

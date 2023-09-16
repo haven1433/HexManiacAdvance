@@ -85,6 +85,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string Name { get; }
       public string FullFileName { get; }
       public string FileName => string.Empty;
+      public bool SpartanMode { get; set; }
       public bool IsMetadataOnlyChange => false;
       public byte[] FindBytes { get; set; }
       public ICommand Save { get; } = new StubCommand();

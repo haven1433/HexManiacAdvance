@@ -478,7 +478,7 @@ namespace HavenSoft.HexManiac.Tests {
          ViewPort.Tools.SpriteTool.Colors.CreateGradient.Execute();
 
          var color = (UncompressedPaletteColor)ViewPort[2, 0].Format;
-         Assert.Equal("15:15:15", color.ToString());
+         Assert.Equal("12:12:12", color.ToString());
       }
 
       [Fact]
@@ -892,6 +892,19 @@ namespace HavenSoft.HexManiac.Tests {
       public void ImageFormatWithZeroDimensionErrors(string format) {
          WriteCompressedData(0, 0x20);
          ViewPort.Edit($"^image{format} ");
+         Assert.Single(Errors);
+      }
+
+      [Theory]
+      [InlineData("`lzs9x1x1`")]
+      [InlineData("`ucs9x1x1`")]
+      [InlineData("`lzm9x1x1`")]
+      [InlineData("`lzt9`")]
+      [InlineData("`uct9x1`")]
+      [InlineData("`lzp9`")]
+      [InlineData("`ucp9`")]
+      public void InvalidFormat_WithinPointerInTable_FailToWrite(string format) {
+         ViewPort.Edit($"^table[pointer<{format}>]1 ");
          Assert.Single(Errors);
       }
 

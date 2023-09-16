@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
@@ -151,12 +152,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       // stores start, length, and contents
       private readonly Dictionary<int, ScriptInfo> cachedScripts = new();
 
-      public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart) {
-         if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo)) return scriptInfo;
+      public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart, CodeBody updateBody, ref int existingSectionCount) {
+         if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo)) {
+            existingSectionCount = scriptInfo.SectionCount;
+            return scriptInfo;
+         }
          var destinations = ScriptDestinations(scriptStart);
          var scriptLength = parser.FindLength(model, scriptStart, destinations);
-         var content = parser.Parse(model, scriptStart, scriptLength);
-         scriptInfo = new ScriptInfo(scriptStart, scriptLength, content);
+         var content = parser.Parse(model, scriptStart, scriptLength, ref existingSectionCount, updateBody);
+         scriptInfo = new ScriptInfo(scriptStart, scriptLength, content, existingSectionCount);
          destinations[scriptStart] = scriptLength;
          cachedScripts[scriptStart] = scriptInfo;
          return scriptInfo;
@@ -243,5 +247,5 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void GotoMap() => JumpAction(new(Group, Map));
    }
 
-   public record ScriptInfo(int Start, int Length, string Content) : ISearchTreePayload;
+   public record ScriptInfo(int Start, int Length, string Content, int SectionCount) : ISearchTreePayload;
 }

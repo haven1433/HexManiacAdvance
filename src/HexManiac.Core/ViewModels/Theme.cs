@@ -193,6 +193,55 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          return (hue, sat, bright);
       }
+
+      public static (byte red, byte green, byte blue) FromOklab(double lightness, double a, double b) {
+         // From the creator of the color space
+         // https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
+         double lPrime = lightness + 0.3963377774 * a + 0.2158037573 * b;
+         double mPrime = lightness - 0.1055613458 * a - 0.0638541728 * b;
+         double sPrime = lightness - 0.0894841775 * a - 1.2914855480 * b;
+
+         double l = lPrime * lPrime * lPrime;
+         double m = mPrime * mPrime * mPrime;
+         double s = sPrime * sPrime * sPrime;
+
+         double rLinear = 4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+         double gLinear = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+         double bLinear = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+         // Assume the output is sRGB, meaning gamma = 2.4
+         // Real original-model GBA screens have higher gamma, but most people making and playing romhacks aren't going to be playing with a GBA-like screen
+         var toSRGB = (double c) => (c <= 0.0031308 ? 12.92 * c : (1.055 * Math.Pow(c, 1.0 / 2.4) - 0.055)).LimitToRange(0.0, 1.0);
+
+         byte red = (byte)Math.Round(toSRGB(rLinear) * 255.0);
+         byte green = (byte)Math.Round(toSRGB(gLinear) * 255.0);
+         byte blue = (byte)Math.Round(toSRGB(bLinear) * 255.0);
+         return (red, green, blue);
+      }
+
+      public static (double lightness, double a, double b) ToOklab(byte red, byte green, byte blue) {
+         double r_ = red / 255.0;
+         double g_ = green / 255.0;
+         double b_ = blue / 255.0;
+
+         // Assume the input is sRGB, meaning gamma = 2.4
+         // Real original-model GBA screens have higher gamma, but most people making and playing romhacks aren't going to be playing with a GBA-like screen
+         var toLinear = (double c) => c <= 0.04045 ? c / 12.92 : Math.Pow((c + 0.055) / 1.055, 2.4);
+         double rLinear = toLinear(r_);
+         double gLinear = toLinear(g_);
+         double bLinear = toLinear(b_);
+
+         // From the creator of the color space
+         // https://bottosson.github.io/posts/oklab/#converting-from-linear-srgb-to-oklab
+         double lPrime = Math.Cbrt(0.4122214708 * rLinear + 0.5363325363 * gLinear + 0.0514459929 * bLinear);
+         double mPrime = Math.Cbrt(0.2119034982 * rLinear + 0.6806995451 * gLinear + 0.1073969566 * bLinear);
+         double sPrime = Math.Cbrt(0.0883024619 * rLinear + 0.2817188376 * gLinear + 0.6299787005 * bLinear);
+
+         double lightness = 0.2104542553 * lPrime + 0.7936177850 * mPrime - 0.0040720468 * sPrime;
+         double a = 1.9779984951 * lPrime - 2.4285922050 * mPrime + 0.4505937099 * sPrime;
+         double b = 0.0259040371 * lPrime + 0.7827717662 * mPrime - 0.8086757660 * sPrime;
+         return (lightness, a, b);
+      }
    }
 
    // failed experiment: trying to get themes to be closer aligned to Solarized Dark/Light as a baseline.
@@ -486,7 +535,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return $"#{red:X2}{green:X2}{blue:X2}";
       }
 
-      public static bool TryParseHex(this string hex, out int result) => int.TryParse(hex, System.Globalization.NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result);
+      public static bool TryParseHex(this string hex, out int result) {
+         hex = hex.Trim();
+         if (hex.StartsWith("0x")) hex = hex.Substring(2);
+         return int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out result);
+      }
 
       public static (byte, byte, byte) ToRgb(this (double hue, double sat, double bright) hsb) => Theme.FromHSB(hsb.hue, hsb.sat, hsb.bright);
 

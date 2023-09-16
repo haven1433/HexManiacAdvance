@@ -68,16 +68,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          currentChange = token;
          currentChange.OnNewChange += OnCurrentTokenDataChanged;
          ClearRedoStack();
-         if (notifyIsSavedChanged) NotifyPropertyChanged(nameof(IsSaved));
       }
 
-      public bool IsSaved => undoStackSizeAtSaveTag == undoStack.Count && currentChange == null;
+      public bool IsSaved {
+         get {
+            return undoStackSizeAtSaveTag == undoStack.Count && (currentChange == null || !currentChange.HasAnyChange);
+         }
+      }
 
       public bool HasDataChange {
          get {
             if (IsSaved) return false;
             var addedElements = undoStack.Count - undoStackSizeAtSaveTag;
-            var undoItems = undoStack.ToArray();
+            var undoItems = undoStack.Reverse().ToArray();
             var redoItems = redoStack.ToArray();
             if (undoStackSizeAtSaveTag == -1) return true;
             for (int i = 0; i < addedElements; i++) {
@@ -136,6 +139,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void TagAsSaved() {
          ChangeCompleted();
+         hasDataChangeCache = false;
          if (TryUpdate(ref undoStackSizeAtSaveTag, undoStack.Count, nameof(IsSaved))) {
             NotifyPropertyChanged(nameof(HasDataChange));
          }
@@ -149,9 +153,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return new StubDisposable { Dispose = () => continueCurrentTransaction = previousValue };
       }
 
+      private bool hasDataChangeCache;
       private void OnCurrentTokenDataChanged(object sender, EventArgs e) {
          if (undoStack.Count == 0) undo.RaiseCanExecuteChanged();
-         NotifyPropertyChanged(nameof(HasDataChange));
+         var hasDataChange = HasDataChange;
+         if (hasDataChange != hasDataChangeCache) {
+            hasDataChangeCache = hasDataChange;
+            NotifyPropertiesChanged(nameof(HasDataChange), nameof(IsSaved));
+         } else if (!hasDataChange && currentChange.HasAnyChange) {
+            NotifyPropertyChanged(nameof(IsSaved));
+         }
       }
 
       private void UndoExecuted() {
@@ -169,7 +180,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
-         if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
+         hasDataChangeCache = HasDataChange;
+         if (previouslyHadDataChanged != hasDataChangeCache) NotifyPropertyChanged(nameof(HasDataChange));
          Debug.Assert(redoStack.Count > 0, "Redo should always be available directly after an Undo!");
       }
 
@@ -188,10 +200,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (previouslyWasSaved != IsSaved) NotifyPropertyChanged(nameof(IsSaved));
-         if (previouslyHadDataChanged != HasDataChange) NotifyPropertyChanged(nameof(HasDataChange));
+         hasDataChangeCache = HasDataChange;
+         if (previouslyHadDataChanged != hasDataChangeCache) NotifyPropertyChanged(nameof(HasDataChange));
       }
 
-      private void VerifyRevertNotInProgress([CallerMemberName]string caller = null) {
+      private void VerifyRevertNotInProgress([CallerMemberName] string caller = null) {
          if (!revertInProgress) return;
          throw new InvalidOperationException($"Cannot execute member {caller} while a revert is in progress.");
       }

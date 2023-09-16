@@ -471,10 +471,11 @@ pokemart <auto>
 
          var run = Model.GetNextRun(6);
          Assert.IsAssignableFrom<ITableRun>(run);
-         Assert.Equal(1, Model.ReadMultiByteValue(6, 2));
-         Assert.Equal(2, Model.ReadMultiByteValue(8, 2));
-         Assert.Equal(3, Model.ReadMultiByteValue(10, 2));
-         Assert.Equal(0, Model.ReadMultiByteValue(12, 2));
+         Assert.Equal(0, Model.ReadMultiByteValue(6, 2)); // alignment
+         Assert.Equal(1, Model.ReadMultiByteValue(8, 2));
+         Assert.Equal(2, Model.ReadMultiByteValue(10, 2));
+         Assert.Equal(3, Model.ReadMultiByteValue(12, 2));
+         Assert.Equal(0, Model.ReadMultiByteValue(14, 2));
       }
 
       [Fact]
@@ -847,6 +848,22 @@ label2:;goto <000050>;end";
          Assert.Equal(expected, actual);
       }
 
-      // TODO test that we get an error (not an exception) if we do auto on an unformatted pointer
+      [Fact]
+      public void InvalidCommand_Compile_HasError() {
+         EventScript = "not_a_command";
+
+         Assert.True(Tool.Contents[0].HasError);
+      }
+
+      [Fact]
+      public void FireRed_ShowMoney_Reserve4Bytes() {
+         SetGameCode("BPRE0");
+         Tool.ScriptParser.RefreshGameHash(Model);
+
+         var script = "if1 0 <section2>;showmoney 5 6 7;section2:;end".Replace(";", Environment.NewLine);
+         var bytes = Tool.ScriptParser.Compile(Token, Model, 0, ref script, out var _);
+
+         Assert.Equal(10, bytes[2]);
+      }
    }
 }

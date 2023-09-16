@@ -77,19 +77,34 @@ namespace HavenSoft.HexManiac.Tests {
 
          // every anchor in the fresh metadata should be represented in the upgrade case
          var upgradeAnchorNames = upgradedMetadata.NamedAnchors.Select(na => na.Name).ToList();
-         foreach (var namedAnchor in freshMetadata.NamedAnchors) {
+         Assert.All(freshMetadata.NamedAnchors, namedAnchor => {
             if (tomlName == "_0.4.4.7.toml") {
                if (namedAnchor.Name.IsAny(
-                  "graphics.text.font.short.width" // legitimate name change
+                  // legitimate name changes
+                  "graphics.text.font.short.width",
+                  "graphics.townmap.map.tileset",
+                  "graphics.text.font.japan.japan2.characters",
+                  "graphics.misc.questionnaire.button.sprite",
+                  "graphics.misc.questionnaire.tileset"
                )) {
-                  continue;
+                  return;
                }
             }
             Assert.Contains(namedAnchor.Name, upgradeAnchorNames);
-         }
+         });
          // every anchor in the upgraded metadata should have the right address and format to match the fresh versions
-         foreach (var namedAnchor in upgradedMetadata.NamedAnchors) {
+         Assert.All(upgradedMetadata.NamedAnchors, namedAnchor => {
             bool exemptAddress = false, exemptFormat = false;
+            exemptFormat |= new[] {
+               // renamed
+               "scripts.commands.events.specials",
+            }.Contains(namedAnchor.Name);
+            if (namedAnchor.Name.IsAny(
+               "graphics.text.font.japan2.characters",
+               "graphics.townmap.tileset",
+               "graphics.questionnaire.button.sprite",
+               "graphics.questionnaire.tileset"
+            )) return;
             if (tomlName == "_0.4.0.toml") {
                exemptAddress |= new[] { // legitimate moves: same name, new location
                   "graphics.gamecorner.game.palette",
@@ -121,7 +136,7 @@ namespace HavenSoft.HexManiac.Tests {
             var newNamedAnchor = freshMetadata.NamedAnchors.Single(anchor => anchor.Name == namedAnchor.Name);
             if (!exemptAddress) Assert.True(newNamedAnchor.Address == namedAnchor.Address, $"Did {namedAnchor.Name} move?");
             if (!exemptFormat) Assert.True(newNamedAnchor.Format == namedAnchor.Format, $"Did {namedAnchor.Name} get a new format? {newNamedAnchor.Format} (new) != {namedAnchor.Format} (old)");
-         }
+         });
 
          foreach (var offsetPointer in upgradedMetadata.OffsetPointers) {
             var newOffsetPointer = freshMetadata.OffsetPointers.Single(pointer => pointer.Address == offsetPointer.Address);

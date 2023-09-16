@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using System;
 using System.ComponentModel;
-using System.Threading.Tasks;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
@@ -42,6 +41,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       event EventHandler<CanPatchEventArgs> RequestCreatePatch;
       event EventHandler RequestRefreshGotoShortcuts;
 
+      bool SpartanMode { get; set; }
       bool CanIpsPatchRight { get; }
       bool CanUpsPatchRight { get; }
       void IpsPatchRight();
