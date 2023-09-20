@@ -1281,8 +1281,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (item > 0 && item < options.Count) {
                   tips.Add(options[item]);
                   var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
-                  var render = itemSprites[item].Render("sprite");
-                  if (render != null) tips.Add(render);
+                  if (itemSprites != null) {
+                     var render = itemSprites[item]?.Render("sprite");
+                     if (render != null) tips.Add(render);
+                  }
                }
             }
          }
