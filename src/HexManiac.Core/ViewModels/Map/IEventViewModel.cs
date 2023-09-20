@@ -1183,7 +1183,7 @@ show:
          if (field != null) return field;
          var text = GetText(source());
          if (text == null) return null;
-         var newEditor = new TextEditorViewModel { Content = text };
+         var newEditor = new TextEditorViewModel(false) { Content = text };
          newEditor.Bind(nameof(TextEditorViewModel.Content), (editor, e) => {
             SetText(source(), editor.Content, "Text", propertyName);
             UpdateTextErrorContent(editor);

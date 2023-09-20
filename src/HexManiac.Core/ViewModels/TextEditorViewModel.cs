@@ -20,6 +20,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public string MultiLineCommentHeader { get => multiLineCommentStart; set => Set(ref multiLineCommentStart, value); }
       public string MultiLineCommentFooter { get => multiLineCommentEnd; set => Set(ref multiLineCommentEnd, value); }
 
+      public bool SyntaxHighlighting { get; }
+
       public ITextPreProcessor PreFormatter { get; set; }
 
       public event EventHandler RequestCaretMove;
@@ -28,6 +30,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public TextEditorViewModel() {
          Keywords.CollectionChanged += (sender, e) => UpdateLayers();
          Constants.CollectionChanged += (sender, e) => UpdateLayers();
+      }
+
+      public TextEditorViewModel(bool syntaxHighlighting) {
+         Keywords.CollectionChanged += (sender, e) => UpdateLayers();
+         Constants.CollectionChanged += (sender, e) => UpdateLayers();
+         SyntaxHighlighting = syntaxHighlighting;
       }
 
       private string content = string.Empty;
@@ -160,7 +168,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // numeric
-         {
+         if (SyntaxHighlighting) {
             int start = 0;
             while (true) {
                var (index, length) = basic.IndexOfNumber(start);
