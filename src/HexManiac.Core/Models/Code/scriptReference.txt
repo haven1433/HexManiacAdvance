@@ -155,8 +155,8 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 29 setflag flag:|h                           # flag = 1
 2A clearflag flag:|h                         # flag = 0
 2B checkflag flag:|h                         # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
-[BPRE_BPGE] 2C nop2C                             # does nothing
-[AXPE_AXVE_BPEE] 2C initclock hour:|h minute:|h  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
+[BPRE_BPGE] 2C nop2C                         # does nothing
+[AXPE_AXVE_BPEE] 2C initclock hour: minute:  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
 2D checkdailyflags                           # nop in FRLG. Updates flags, variables, and other data in RSE based on real-time-clock
 2E gettime                                   # sets variables 0x8000, 0x8001, and 0x8002 to the current time in hours, minutes, and seconds (or all zeroes in FRLG)
 2E resetvars                                 # Alternate, old name for gettime
