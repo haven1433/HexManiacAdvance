@@ -1174,6 +1174,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public string ErrorCheck(string scriptLine, out string[] tokens) {
          tokens = ScriptLine.Tokenize(scriptLine);
+         for (int i = 1; i < scriptLine.Length - 1; i++) {
+            if (scriptLine[i] != '"') continue;
+            if (scriptLine[i - 1] != ' ' && scriptLine[i + 1] != ' ') return "Cannot have \"quotes\" in the middle of a name.";
+         }
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var args = tokens.Skip(1).ToArray();
          var shortArgs = args;
