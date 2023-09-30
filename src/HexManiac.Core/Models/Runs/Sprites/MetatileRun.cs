@@ -36,7 +36,7 @@ public class MetatileRun : BaseRun {
       SpriteFormat = new SpriteFormat(8, width * 2, height * 2, null);
    }
 
-   public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+   public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
       // TODO support copy
    }
 

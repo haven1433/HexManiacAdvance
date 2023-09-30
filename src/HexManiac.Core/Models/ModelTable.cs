@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
             using (ModelCacheScope.CreateScope(model)) {
-               return enumSeg.ToText(model, valueAddress, false).Trim('"');
+               return enumSeg.ToText(model, valueAddress, 0).Trim('"');
             }
          } else {
             throw new NotImplementedException();

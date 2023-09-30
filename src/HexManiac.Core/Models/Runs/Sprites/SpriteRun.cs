@@ -220,7 +220,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return LzTilesetRun.SetPixels(this, model, token, tiles, (start, sources) => new SpriteRun(model, start, SpriteFormat, sources));
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          while (length > 0) {
             if (start == this.Start + this.Length - 1) {
                builder.Append(model[start].ToHexString());

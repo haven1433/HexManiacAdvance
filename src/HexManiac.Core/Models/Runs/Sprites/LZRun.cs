@@ -368,7 +368,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          while (length > 0) {
             if (start >= Start + Length) break;
             var format = CreateDataFormat(model, start);

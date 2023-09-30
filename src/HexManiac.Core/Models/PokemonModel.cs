@@ -2137,7 +2137,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                      if (offsetPointerRun.Offset > 0) offset = "+" + offsetPointerRun.Offset.ToString("X6");
                      if (offsetPointerRun.Offset < 0) offset = "-" + (-offsetPointerRun.Offset).ToString("X6");
                   }
-                  text.Append($"<{anchorName}{offset}> ");
+                  if (deep && GetNextRun(destination) is IAppendToBuilderRun child) {
+                     text.Append("@{ ");
+                     child.AppendTo(this, text, destination, child.Length, deep ? 10 : 0);
+                     text.Append("@} ");
+                  } else {
+                     text.Append($"<{anchorName}{offset}> ");
+                  }
                   start += 4;
                   length -= 4;
                } else if (run is NoInfoRun || run is IScriptStartRun) {
@@ -2145,7 +2151,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start += 1;
                   length -= 1;
                } else if (run is IAppendToBuilderRun atbRun) {
-                  atbRun.AppendTo(this, text, start, length, deep);
+                  atbRun.AppendTo(this, text, start, length, deep ? 10 : 0);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;

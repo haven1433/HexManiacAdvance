@@ -37,7 +37,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new MapAnimationTilesRun(model, start, pointerSources);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public ITableRun Append(ModelDelta token, int length) {
          var parent = PointerSources[0];

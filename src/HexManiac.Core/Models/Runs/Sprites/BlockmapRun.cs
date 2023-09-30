@@ -316,7 +316,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return TryChangeSize(() => token, 0, 0, dx, dy, borderWidth, borderHeight);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          for (int i = 0; i < length; i += 2) {
             var pair = model.ReadMultiByteValue(start + i, 2);
             builder.Append(pair.ToString("X4"));
