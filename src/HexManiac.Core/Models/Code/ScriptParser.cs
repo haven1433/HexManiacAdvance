@@ -749,6 +749,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string GetContentHelp(IDataModel model, CodeBody body, HelpContext context) {
+         if (context == null || body == null || body.StreamTypes == null) return null;
          if (!context.ContentBoundaryIndex.InRange(0, body.StreamTypes.Count)) return null;
          var expectedType = body.StreamTypes[context.ContentBoundaryIndex];
          if (expectedType == ExpectedPointerType.Mart) {
