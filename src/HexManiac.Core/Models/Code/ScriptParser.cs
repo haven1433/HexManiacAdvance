@@ -731,7 +731,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return options;
       }
 
-      private List<string> ReadOptions(IDataModel model, string tableName, string token) {
+      public List<string> ReadOptions(IDataModel model, string tableName, string token) {
          if (!string.IsNullOrEmpty(tableName)) {
             var isList = model.TryGetList(tableName, out var list);
             var allOptions = model.GetOptions(tableName);
@@ -777,6 +777,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public string GetHelp(IDataModel model, CodeBody body, HelpContext context) {
          var currentLine = context.Line;
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
+         if (context.Index == currentLine.Length && !currentLine.EndsWith(" ")) return null;
          if (context.ContentBoundaryCount > 0 && body != null) return GetContentHelp(model, body, context);
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();

@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly IDataModel model;
       private readonly ScriptParser parser;
       private readonly IDataInvestigator investigator;
+      private readonly int gameHash;
 
       public event EventHandler<ExtendedPropertyChangedEventArgs<string>> ContentChanged;
 
@@ -369,6 +370,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return new(lines[i], value, contentBoundaryCount, contentBoundaryIndex - 1);
       }
 
+      private HelpContext SplitLine(int lineIndex, int characterIndex) {
+         var lines = Content.Split('\n').ToList();
+         if (!lineIndex.InRange(0, lines.Count)) return null;
+         var contentBoundaryCount = 0;
+         var contentBoundaryIndex = 0;
+         for (int i = 0; i < lineIndex; i++) {
+            if (lines[i].Trim() == "{") { contentBoundaryCount += 1; contentBoundaryIndex += 1; }
+            if (lines[i].Trim() == "}") contentBoundaryCount -= 1;
+         }
+         var cleanLine = lines[lineIndex].Split('\r', StringSplitOptions.RemoveEmptyEntries);
+         if (cleanLine.Length == 0) return null;
+         return new(cleanLine[0], characterIndex, contentBoundaryCount, contentBoundaryIndex - 1);
+      }
+
       public TextEditorViewModel Editor { get; } = new() { PreFormatter = new CodeTextFormatter() };
 
       public IReadOnlyList<ExpectedPointerType> StreamTypes { get; set; }
@@ -397,6 +412,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.model = model;
          this.parser = parser;
          this.investigator = investigator;
+         this.gameHash = model.GetShortGameCode();
          Editor.Bind(nameof(Editor.Content), (sender, e) => {
             if (ignoreEditorContentUpdates) return;
             NotifyPropertyChanged(nameof(Content));
@@ -452,6 +468,78 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             queue.Clear();
             foreach (var arg in command.Args) {
                if (arg.Type == ArgType.Pointer && !arg.PointerType.IsAny(ExpectedPointerType.Script, ExpectedPointerType.Unknown)) queue.Enqueue(arg.PointerType);
+            }
+         }
+         return results;
+      }
+
+      public IReadOnlyList<AutocompleteItem> GetTokenComplete(string line, int lineIndex, int characterIndex) {
+         if (characterIndex < line.Length && line[characterIndex] != ' ') return null;
+         var results = new List<AutocompleteItem>();
+         var context = SplitLine(lineIndex, characterIndex);
+         if (context == null) return null;
+         var before = line.Substring(0, characterIndex);
+         var after = line.Substring(characterIndex);
+         var tokens = ScriptLine.Tokenize(before.Trim());
+
+         if (tokens.Length == 0) return null;
+
+         // if they're 'working on' a new token, add a blank token to the end
+         if (before.EndsWith(" ")) tokens = tokens.Concat(new[] { string.Empty }).ToArray();
+
+         if (context.ContentBoundaryCount > 0) {
+            // stream content
+            if (!context.ContentBoundaryIndex.InRange(0, StreamTypes.Count)) return null;
+            var expectedType = StreamTypes[context.ContentBoundaryIndex];
+            if (expectedType == ExpectedPointerType.Mart) {
+               var options = parser.ReadOptions(model, HardcodeTablesModel.ItemsTableName, context.Line);
+               results.AddRange(options.Select(op => new AutocompleteItem(op, op)));
+            } else if (expectedType == ExpectedPointerType.Movement) {
+               var options = parser.ReadOptions(model, "movementtypes", context.Line);
+               results.AddRange(options.Select(op => new AutocompleteItem(op, op)));
+            } else {
+               return null;
+            }
+         } else if (tokens.Length == 1) {
+            // script command
+            var candidates = parser.PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
+            candidates = candidates.Where(line => line.LineCommand.MatchesPartial(tokens[0])).ToList();
+            if (!context.IsSelection) {
+               foreach (var line1 in candidates) {
+                  if (line1.LineCommand == tokens[0] && line1.CountShowArgs() == 0) return null; // perfect match with no args
+               }
+            }
+            candidates = ScriptParser.SortOptions(candidates, tokens[0], c => c.LineCommand).ToList();
+            before = before.Substring(0, before.Length - tokens[0].Length);
+            results.AddRange(candidates.Select(op => {
+               var afterText = after;
+               if (string.IsNullOrEmpty(afterText) && op.Args.Count + op.LineCode.Count > 1) afterText = " "; // insert whitespace after
+               return new AutocompleteItem(op.Usage, before + op.LineCommand + afterText);
+            }));
+         } else {
+            // script args
+            var candidates = parser.PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
+            candidates = candidates.Where(line => line.LineCommand.Equals(tokens[0], StringComparison.CurrentCultureIgnoreCase)).ToList();
+            var checkToken = 1;
+            while (candidates.Count > 1 && checkToken < tokens.Length) {
+               if (!tokens[checkToken].TryParseHex(out var codeValue)) break;
+               candidates = candidates.Where(line => line.LineCode.Count <= checkToken || line.LineCode[checkToken] == codeValue).ToList();
+               checkToken++;
+            }
+            if (candidates.FirstOrDefault() is IScriptLine syntax) {
+               var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
+               var skipCount = syntax.LineCode.Count;
+               if (skipCount == 0) skipCount = 1; // macros
+               if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {
+                  var arg = args[tokens.Length - 1 - skipCount];
+                  var token = tokens[tokens.Length - 1];
+                  var options = parser.ReadOptions(model, arg.EnumTableName, token);
+                  if (options == null) return null;
+                  if (args.Count == tokens.Length - skipCount && options.Any(option => option == token)) return null; // perfect match on last token
+                  before = before.Substring(0, before.Length - token.Length);
+                  if (string.IsNullOrEmpty(after) && tokens.Length - skipCount < args.Count) after = " "; // insert whitespace after
+                  results.AddRange(options.Select(op => new AutocompleteItem(op, before + op.Split('#').First().Trim() + after)));
+               }
             }
          }
          return results;

@@ -1114,6 +1114,7 @@
                                              </Path>
                                           </Grid>
                                        </Button>
+                                       <hsg3hv:AutocompleteOverlay x:Name="CodeBodyAutoComplete" Target="{Binding ElementName=TextEditor}" />
                                     </Grid>
                                     <TextBlock Foreground="{DynamicResource Error}" DockPanel.Dock="Bottom" TextWrapping="Wrap"
                                        Text="{Binding ErrorText}"  Visibility="{Binding HasError, Converter={StaticResource BoolToVisibility}}" />
