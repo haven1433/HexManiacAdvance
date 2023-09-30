@@ -1340,15 +1340,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var itemStats = model.GetTableModel(HardcodeTablesModel.ItemsTableName);
 
          var tradeContent = EventTemplate.GetTradeContent(model, parser, address);
-         if (tradeContent != null) {
+         if (tradeContent != null && fronts != null && icons != null) {
             var tradeIndex = model.ReadMultiByteValue(tradeContent.TradeAddress, 2);
             var tradeTable = model.GetTableModel(HardcodeTablesModel.TradeTable);
-            var give = tradeTable[tradeIndex].GetValue("give");
-            var receive = tradeTable[tradeIndex].GetValue("receive");
-            var giveSprite = icons[give].Render("icon");
-            var receiveSprite = fronts[receive].Render("sprite");
-            giveSprite = ReadonlyPixelViewModel.Crop(giveSprite, 0, 0, 32, 32);
-            tips.Add(ReadonlyPixelViewModel.Render(receiveSprite, giveSprite, 32, 32));
+            if (tradeTable != null) {
+               var give = tradeTable[tradeIndex].GetValue("give");
+               var receive = tradeTable[tradeIndex].GetValue("receive");
+               var giveSprite = icons[give].Render("icon");
+               var receiveSprite = fronts[receive].Render("sprite");
+               giveSprite = ReadonlyPixelViewModel.Crop(giveSprite, 0, 0, 32, 32);
+               tips.Add(ReadonlyPixelViewModel.Render(receiveSprite, giveSprite, 32, 32));
+            }
          }
 
          foreach (var spot in scriptSpots) {
@@ -1448,8 +1450,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
             } else if (model[spot.Address] == 0xB6 || model[spot.Address] == 0x79) { // setwildbattle, givepokemon
                var pokemonID = model.ReadMultiByteValue(spot.Address + 1, 2);
-               var pokemon = fronts[pokemonID].Render("sprite");
-               if (pokemon != null) tips.Add(pokemon);
+               if (fronts != null && fronts.Count > pokemonID) {
+                  var pokemon = fronts[pokemonID].Render("sprite");
+                  if (pokemon != null) tips.Add(pokemon);
+               }
             } else if (model[spot.Address] == 0x44 && itemSprites != null) { // additem
                var itemID = model.ReadMultiByteValue(spot.Address + 1, 2);
                var item = itemSprites[itemID].Render("sprite");
