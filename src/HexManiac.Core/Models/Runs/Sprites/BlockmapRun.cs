@@ -198,6 +198,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
                backupContent[x, y] = model.ReadMultiByteValue(Start + (y * BlockWidth + x) * 2, 2);
             }
          }
+         backupX = backupY = 0;
       }
 
       public BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, MapDirection direction, int amount, int borderWidth, int borderHeight) {
