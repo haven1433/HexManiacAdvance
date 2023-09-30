@@ -1008,20 +1008,21 @@
                                                    </Setter.Value>
                                                 </Setter>
                                                 <Style.Triggers>
+                                                   <DataTrigger Binding="{Binding Tag.CanGotoAddress, ElementName=TextEditor}" Value="True">
+                                                      <Setter Property="ContextMenuOverride">
+                                                         <Setter.Value>
+                                                            <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
+                                                               <MenuItem Header="Goto Address" Command="{Binding GotoAddressCommand}" />
+                                                            </ContextMenu>
+                                                         </Setter.Value>
+                                                      </Setter>
+                                                   </DataTrigger>
+                                                   <!-- GotoSource must override GotoAddress in order for Goto trainerstats/ED to work right for Emerald -->
                                                    <DataTrigger Binding="{Binding Tag.CanGotoSource, ElementName=TextEditor}" Value="True">
                                                       <Setter Property="ContextMenuOverride">
                                                          <Setter.Value>
                                                             <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
                                                                <MenuItem Header="Goto Source" Command="{Binding GotoSourceCommand}" />
-                                                            </ContextMenu>
-                                                         </Setter.Value>
-                                                      </Setter>
-                                                   </DataTrigger>
-                                                   <DataTrigger Binding="{Binding Tag.CanGotoAddress, ElementName=TextEditor}" Value="True">
-                                                      <Setter Property="ContextMenuOverride">
-                                                         <Setter.Value>
-                                                            <ContextMenu DataContext="{Binding PlacementTarget.Tag, RelativeSource={RelativeSource Self}}">
-                                                               <MenuItem Header="Goto Source" Command="{Binding GotoAddressCommand}" />
                                                             </ContextMenu>
                                                          </Setter.Value>
                                                       </Setter>
