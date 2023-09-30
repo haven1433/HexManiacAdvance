@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -500,6 +501,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          script = new string(text.ToArray());
          return caretMove;
+      }
+
+      public byte[] CompileWithoutErrors(ModelDelta token, IDataModel model, int scriptStart, ref string script) {
+         var errors = new List<ScriptErrorInfo>();
+         void Handler(object sender, ScriptErrorInfo info) => errors.Add(info);
+         CompileError += Handler;
+         var content = Compile(token, model, scriptStart, ref script, out var _, out var _);
+         CompileError -= Handler;
+         Debug.Assert(errors.IsNullOrEmpty(), "Expected compilation to have no errors! " + Environment.NewLine + Environment.NewLine.Join(errors.Select(error => error.Message)));
+         return content;
       }
 
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {

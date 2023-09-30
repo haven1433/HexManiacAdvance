@@ -628,7 +628,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    callstd 5
    {(fr?"normalmsg":string.Empty)}
    copyvar 0x8012 0x8013
-   campare 0x800D 0
+   compare 0x800D 0
    if1 = <failed>
    loadpointer 0 <{whichStart:X6}>
    callstd 4
@@ -658,7 +658,7 @@ failed:
          // maybe just expect a `callstd 5` after it, since it's the only one after infoStart that has that in both FR and Em
 
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 109);
-         var content = parser.Compile(token, model, scriptStart, ref script, out var _, out var _);
+         var content = parser.CompileWithoutErrors(token, model, scriptStart, ref script);
          token.ChangeData(model, scriptStart, content);
 
          objectEventViewModel.Graphics = trainerGraphics;
@@ -803,7 +803,7 @@ wrongspecies:
 ";
 
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 160);
-         var content = parser.Compile(token, model, scriptStart, ref script, out var _, out var _);
+         var content = parser.CompileWithoutErrors(token, model, scriptStart, ref script);
          token.ChangeData(model, scriptStart, content);
 
          objectEventViewModel.Graphics = trainerGraphics;
@@ -942,7 +942,7 @@ end
 
          var scriptStart = model.FindFreeSpace(model.FreeSpaceStart, 160);
          var scriptText = script.ToString();
-         var content = parser.Compile(token, model, scriptStart, ref scriptText, out var _, out var _);
+         var content = parser.CompileWithoutErrors(token, model, scriptStart, ref scriptText);
          token.ChangeData(model, scriptStart, content);
 
          objectEventModel.Graphics = trainerGraphics;
