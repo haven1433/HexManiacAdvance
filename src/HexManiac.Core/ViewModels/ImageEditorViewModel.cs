@@ -1121,7 +1121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void FlipVertical() {
             var cache = CachePixels();
-            var paletteRun = parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) as IPaletteRun;
+            var paletteRun = ReadPalette();
             var pageOffset = (paletteRun?.PaletteFormat.InitialBlankPages) ?? 0;
             int inputPage = 0, outputPage = 0;
 
@@ -1142,7 +1142,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          public void FlipHorizontal() {
             var cache = CachePixels();
-            var paletteRun = parent.model.GetNextRun(parent.model.ReadPointer(parent.PalettePointer)) as IPaletteRun;
+            var paletteRun = ReadPalette();
             var pageOffset = (paletteRun?.PaletteFormat.InitialBlankPages) ?? 0;
             int inputPage = 0, outputPage = 0;
 
@@ -1159,6 +1159,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   parent.pixels[selectionStart.X + x, selectionStart.Y + y] = parent.ColorIndex(index, outputPage);
                }
             }
+         }
+
+         private IPaletteRun ReadPalette() {
+            if (parent.PalettePointer == Pointer.NULL) return null;
+            var destination = parent.model.ReadPointer(parent.PalettePointer);
+            return parent.model.GetNextRun(destination) as IPaletteRun;
          }
 
          public void SetUnderPixels(int[,] values) {
