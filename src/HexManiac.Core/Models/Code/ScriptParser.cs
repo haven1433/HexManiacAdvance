@@ -1633,11 +1633,11 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
          if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
             if (preferHex || value == int.MinValue || Math.Abs(value) >= 0x4000) {
-               return "0x" + ((uint)value).ToString($"X{length * 2}");
+               return "0x" + ((uint)(value - EnumOffset)).ToString($"X{length * 2}");
             } else {
                if (bytes == 1 && preferSign) value = (sbyte)value;
                if (bytes == 2 && preferSign) value = (short)value;
-               return value.ToString();
+               return (value - EnumOffset).ToString();
             }
          }
          return table[value - EnumOffset];
@@ -1653,10 +1653,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                return null;
             }
          }
-         if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return null;
-         if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return null;
-         if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return null;
-         if (int.TryParse(value, out result)) return null;
+         if (
+            value.StartsWith("0x") && value.Substring(2).TryParseHex(out result) ||
+            value.StartsWith("0X") && value.Substring(2).TryParseHex(out result) ||
+            value.StartsWith("$") && value.Substring(1).TryParseHex(out result) ||
+            int.TryParse(value, out result)
+         ) {
+            result += EnumOffset;
+            return null;
+         }
          return $"Could not parse '{value}' {parseType}.";
       }
 
