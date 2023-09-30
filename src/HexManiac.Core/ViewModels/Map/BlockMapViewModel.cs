@@ -517,7 +517,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          mapScriptCollection = new(viewPort);
          mapScriptCollection.NewMapScriptsCreated += (sender, e) => GetMapModel().SetAddress("mapscripts", e.Address);
 
-         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => Header.Refresh());
+         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => {
+            Header.Refresh();
+            layoutUseCache = null; // invalidate the cache during a refresh
+            NotifyPropertiesChanged(nameof(BlockMapShareCount), nameof(BlockMapUses), nameof(BlockMapIsShared));
+         });
          mapRepointer.ChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
          mapRepointer.DataMoved += (sender, e) => {
             ClearCaches();
