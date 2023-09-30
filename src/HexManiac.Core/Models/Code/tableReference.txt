@@ -96,6 +96,9 @@ data.maps.fly.connections,             0FC764, 0FC764, 0FC784, 0FC784,       ,  
 data.maps.fly.connections,                   ,       ,       ,       , 0C52A8, 0C527C, 0C52BC, 0C5290,       , [bank. map. flight.]data.maps.names-0-1
 data.maps.fly.connections,                   ,       ,       ,       ,       ,       ,       ,       , 124ED8, [bank. map. flight.]data.maps.names-0-163
 
+data.maps.puzzle.fortree,    , , , , , , , , 0FB8F0, [x: y: turnstile. initialRotation. padding:]8
+data.maps.puzzle.trickhouse, , , , , , , , , 0FB91C, [x: y: turnstile. initialRotation. padding:]8
+
 //                                          +28 pokemon are for egg and unown sprites (B-Z, !, ?), 
 graphics.pokemon.sprites.front,             00D324, 00D324, 00D324, 00D324, 000128, 000128, 000128, 000128, 000128, ^[sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
 graphics.pokemon.sprites.back,              00D3D8, 00D3D8, 00D3D8, 00D3D8, 00012C, 00012C, 00012C, 00012C, 00012C, [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
