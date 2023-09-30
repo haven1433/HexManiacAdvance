@@ -1481,7 +1481,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (i % 2 == 0 && quoteCut[i].Length == 0) continue;
 
             if (i % 2 == 1) result.Add($"\"{quoteCut[i]}\"");
-            else result.AddRange(quoteCut[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+            else result.AddRange(quoteCut[i].Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries));
          }
 
          return result.ToArray();
