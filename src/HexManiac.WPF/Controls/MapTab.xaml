@@ -505,6 +505,8 @@
                            <Grid>
                               <local:AngleButton HorizontalAlignment="Left" Width="100" Margin="0,4" Direction="Right"
                                                  Content="Edit Rematches" Command="{res:MethodCommand GotoRematches}" />
+                              <local:AngleButton HorizontalAlignment="Right" Width="150" Margin="0,4" Direction="Right"
+                                                 Content="Convert to Basic Trainer" Command="{res:MethodCommand ReplaceRematchScript}" />
                            </Grid>
                            <TabControl ItemsSource="{Binding TrainerTeams}">
                               <TabControl.ItemTemplate>

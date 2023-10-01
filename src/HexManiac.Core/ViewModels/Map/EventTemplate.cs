@@ -257,7 +257,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var trainer = trainers[trainerFlag];
             // structType. class. introMusicAndGender. sprite. name""12 item1: item2: item3: item4: doubleBattle:: ai:: pokemonCount:: pokemon<>
             trainer.SetValue("structType", 0);
-            trainer.SetStringValue("name", "Francis");
+            trainer.SetStringValue("name", "NAME ME");
             trainer.SetValue("item1", 0);
             trainer.SetValue("item2", 0);
             trainer.SetValue("item3", 0);
@@ -371,11 +371,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public static RematchTrainerEventContent GetRematchTrainerContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventModel) {
          if (eventModel.ScriptAddress < 0) return null;
-         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventModel.ScriptAddress }, 0x5C);
-         var rematchCount = spots.Count(spot => ((int)model[spot.Address + 1]).IsAny(5, 7));
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventModel.ScriptAddress }, 0x5C).ToList();
+         var rematches = spots.Where(spot => ((int)model[spot.Address + 1]).IsAny(5, 7)).ToList();
          var trainers = spots.Select(spot => model.ReadMultiByteValue(spot.Address + 2, 2)).Distinct().ToList();
-         if (rematchCount != 1 || trainers.Count != 1) return null;
-         return new(trainers[0]);
+         if (rematches.Count != 1 || trainers.Count != 1) return null;
+         var beforeTextStart = model.ReadPointer(rematches[0].Address + 6);
+         var winTextStart = model.ReadPointer(rematches[0].Address + 10);
+
+         var textSpot = Flags.GetAllScriptSpots(model, parser, new[] { eventModel.ScriptAddress }, 0x0F).FirstOrDefault();
+         var afterTextStart = textSpot != null ? model.ReadPointer(textSpot.Address + 2) : Pointer.NULL;
+
+         return new(trainers[0], beforeTextStart, winTextStart, afterTextStart);
       }
 
       #endregion
@@ -1098,7 +1104,7 @@ end
 
    public record TrainerEventContent(int BeforeTextPointer, int WinTextPointer, int AfterTextPointer, int TrainerClassAddress, int TrainerIndex, int TrainerIndexAddress, int TrainerNameAddress, int TeamPointer);
 
-   public record RematchTrainerEventContent(int TrainerID); // needed for 'simplify' button: before text, win text, after text
+   public record RematchTrainerEventContent(int TrainerID, int BeforeTextPointer, int WinTextPointer, int AfterTextPointer);
 
    public record MartEventContent(int HelloPointer, int MartPointer, int GoodbyePointer);
 

@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -13,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -861,6 +863,34 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void ReplaceRematchScript() {
          // TODO replace script with simple trainer script (keep before/during/after battle text if we can)
+         var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
+         string before = "<auto>", win = "<auto", after = "<auto>";
+         if (content.BeforeTextPointer != Pointer.NULL) before = $"<{content.BeforeTextPointer:X6}>";
+         if (content.WinTextPointer != Pointer.NULL) win = $"<{content.WinTextPointer:X6}>";
+         if (content.AfterTextPointer != Pointer.NULL) after = $"<{content.AfterTextPointer:X6}>";
+
+         /*
+            trainerbattle 00 [trainerID] 0 <before> <during>
+            loadpointer 0 <after>
+            callstd 6
+            end
+         */
+         var nl = Environment.NewLine;
+         var script = new StringBuilder();
+         script.AppendLine($"trainerbattle 0 {content.TrainerID} 0 {before} {win}");
+         if (before == "<auto>") script.AppendLine($"{{{nl}Let's fight!{nl}}}");
+         if (win == "<auto>") script.AppendLine($"{{{nl}You win!{nl}}}");
+         script.AppendLine($"loadpointer 0 {after}");
+         if (after == "<auto>") script.AppendLine($"{{{nl}Later!{nl}}}");
+         script.AppendLine("callstd 6");
+         script.AppendLine("end");
+         var scriptText = script.ToString();
+         var compiled = parser.CompileWithoutErrors(Token, element.Model, ScriptAddress, ref scriptText);
+         Token.ChangeData(element.Model, ScriptAddress, compiled);
+         parser.FormatScript<XSERun>(Token, element.Model, ScriptAddress);
+
+         NotifyPropertiesChanged(nameof(ShowRematchTrainerContent),
+            nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam));
       }
 
       #endregion
