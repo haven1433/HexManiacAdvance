@@ -668,7 +668,7 @@ namespace HavenSoft.HexManiac.Tests {
 
          Assert.Equal(12, segment.CalculatedValue(0));
          Assert.Equal(12, table.ReadValue(Model, 0, "c"));
-         Assert.Equal(12, viewmodel.CalculatedValue);
+         Assert.Equal("12", viewmodel.CalculatedValue);
       }
 
       [Fact]

@@ -130,6 +130,7 @@ namespace HavenSoft.HexManiac.Tests {
                   "scripts.specials.thumb",                     // length was wrong
                   "graphics.townmap.catchmap.conversion.kanto", // added +88 offset for elements from data.maps.names (FireRed)
                   "graphics.text.font.japan2.characters",       // format changed by Shiny
+                  "data.pokemon.trades",                        // added calculated nature
                }.Contains(namedAnchor.Name);
             }
 
