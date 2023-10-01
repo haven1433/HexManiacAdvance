@@ -204,7 +204,7 @@ end
 
       [Fact]
       public void LoadPointerCommand_StartsWithWhitespace_StillGetHelp() {
-         Assert.NotEmpty(ViewPort.Tools.CodeTool.ScriptParser.GetHelp(Model, new("  loadpointer", 13)));
+         Assert.NotEmpty(ViewPort.Tools.CodeTool.ScriptParser.GetHelp(Model, new("  loadpointer ", 14)));
       }
 
       [Fact]

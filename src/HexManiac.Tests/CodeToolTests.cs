@@ -595,7 +595,7 @@ You said no!
          ViewPort.Edit("19 00 00 00 ");
          Tool.Mode = CodeMode.AnimationScript;
          ViewPort.Goto.Execute(0);
-         var help = Tool.AnimationScriptParser.GetHelp(ViewPort.Model, new HelpContext("playsewithpan mus_dummy 0", 25));
+         var help = Tool.AnimationScriptParser.GetHelp(ViewPort.Model, new HelpContext("playsewithpan mus_dummy ", 24));
 
          Assert.NotNull(help);
       }
