@@ -486,7 +486,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.CompiledLength = code.Length;
                model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             }
-            var formatted = parser.FormatScript<SERun>(history.CurrentChange, model, start);
+            var formatted = parser.FormatScript<SERun>(history.CurrentChange, model, start, code.Length);
             if (sources != null) {
                foreach (var source in sources) {
                   // skip the source if it's within one of the added scripts: it may have moved, and we've already added it.

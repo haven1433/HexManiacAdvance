@@ -286,6 +286,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
       // returns a list of scripts that were formatted, and their length
+      public IDictionary<int, int> FormatScript<SERun>(ModelDelta token, IDataModel model, int address, int minLength = 0) where SERun : IScriptStartRun {
          if (!address.InRange(0, model.Count)) return null;
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(SERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
@@ -306,6 +307,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             if (processed.ContainsKey(address)) continue;
             int length = 0;
+            int desiredLength = minLength;
+            minLength = 0;
             while (true) {
                var line = engine.GetMatchingLine(gameHash, model, address + length);
                if (line == null) break;
@@ -355,6 +358,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   }
                   length += arg.Length(model, address + length);
                }
+               if (line.IsEndingCommand && length >= desiredLength) break;
             }
             processed.Add(address, length);
          }

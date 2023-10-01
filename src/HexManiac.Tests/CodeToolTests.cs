@@ -865,5 +865,13 @@ label2:;goto <000050>;end";
 
          Assert.Equal(10, bytes[2]);
       }
+
+      [Fact]
+      public void ScriptStartsWithEnd_ScriptContainsPointer_PointerFormatted() {
+         EventScript = "end;if.yes.goto <section1>;end;section1:;end";
+         var run = Model.GetNextRun(1);
+         Assert.Equal(8, run.Start);
+         Assert.IsType<PointerRun>(run);
+      }
    }
 }
