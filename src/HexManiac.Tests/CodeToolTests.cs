@@ -873,5 +873,15 @@ label2:;goto <000050>;end";
          Assert.Equal(8, run.Start);
          Assert.IsType<PointerRun>(run);
       }
+
+      [Fact]
+      public void ScriptGotoBeforeScriptStarts_Reload_IncludesSubScript() {
+         EventScript = "end";
+         ViewPort.Goto.Execute(0x10);
+
+         EventScript = "if.yes.goto <section1>;end;section1:;if.yes.goto <000000>;end";
+
+         Assert.Equal(2, Tool.Contents.Count);
+      }
    }
 }

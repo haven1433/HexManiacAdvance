@@ -879,7 +879,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   // (1) the run has no name
                   // (2) the run has only one source (the script)
                   if (run is NoInfoRun || run.PointerSources == null) return -1;
-                  if (run is IScriptStartRun) return -1; // this script has a length, but don't track it (prevent recursion loop)
+                  if (run is IScriptStartRun) return 1; // this script has a length, but don't calculate it (prevent recursion loop)
                   if (run.PointerSources.Count == 1 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, destination))) {
                      return run.Length;
                   }
