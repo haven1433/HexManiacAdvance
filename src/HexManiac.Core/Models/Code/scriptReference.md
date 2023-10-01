@@ -15,12 +15,13 @@ adddecoration `decoration`
 
 Example:
 ```
-adddecoration "COLORFUL PLANT"
+adddecoration "TORCHIC DOLL"
 ```
 Notes:
 ```
-  # adds a decoration to the player's PC; in FR/LG, this is a NOP
-  # decoration can be either a literal or a variable
+  # In RSE only, this command tries to add a decoration to the player's PC. If the operation succeeds, 800D is set to 1, otherwise 0.
+  # In FRLG, this command does nothing and does not affect 800D.
+  # 'decoration' can be a variable.
 ```
 </details>
 
@@ -66,12 +67,18 @@ additem `item` `quantity`
 
 Example:
 ```
-additem ????????~6 0
+additem TM35 1
 ```
 Notes:
 ```
-  # item/quantity can both be either a literal or a variable.
-  # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
+  # Tries to put 'quantity' more of 'item' in the player's inventory.
+  # 'item' and 'quantity' can be variables.
+  # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1. If the operation fails, it is set to 0.
+  # In FRLG only, the TM case or berry pouch is also given to the player if they would need them to view the item, including setting the flag that enables the berry pouch.
+  # In FRLG only, receiving certain key items, or receiving the town map in the rival's house, will attempt to add an event to the Quest Log.
+  # In RSE only, this may result in having multiple stacks of the same item.
+  # In Emerald only, if the appropriate flag is set or the map uses the appropriate layout, the item will be added to the Battle Pyramid inventory instead.
+  # In Emerald only, this command may rarely result in the player losing all of their items or other bugs due to memory allocation failure.
 ```
 </details>
 
@@ -89,11 +96,11 @@ addpcitem `item` `quantity`
 
 Example:
 ```
-addpcitem TM40 2
+addpcitem "SHOAL SALT" 4
 ```
 Notes:
 ```
-  # adds 'quantity' of 'item' into the PC
+  # same as additem, except the item is put into the player's PC
 ```
 </details>
 
@@ -111,7 +118,7 @@ addvar `variable` `value`
 
 Example:
 ```
-addvar 1 2
+addvar 0x8000 1
 ```
 Notes:
 ```
@@ -133,13 +140,24 @@ applymovement `npc` `data`
 
 Example:
 ```
-applymovement 3 <auto>
+applymovement 255 <14C00E>
+{
+delay_16
+delay_16
+delay_16
+delay_16
+delay_16
+delay_16
+delay_16
+walk_in_place_fastest_down
+}
 ```
 Notes:
 ```
-  # has character 'npc' move according to movement data 'data'
+  # has character 'npc' in the current map move according to movement data 'data'
   # npc can be a character number or a variable.
   # FF is the player, 7F is the camera.
+  # Does nothing if the NPC doesn't exist or is disabled (from a flag/hidesprite) or is too far off-screen.
 ```
 </details>
 
@@ -161,11 +179,15 @@ applymovement2 `npc` `data` `bank` `map`
 
 Example:
 ```
-applymovement2 1 <auto> 0 4
+applymovement2 2 <2725A4> 0 0
+{
+walk_in_place_fastest_left
+}
 ```
 Notes:
 ```
-  # like applymovement, but could be used if an NPC will move to another map.
+  # like applymovement, but does not assume the map that the NPC is from is the current map.
+  # probably useful for using FRLG clone NPCs in cutscenes?
 ```
 </details>
 
@@ -181,8 +203,7 @@ braille `text`
 
 Example:
 ```
-braille <F00000>
-
+braille <1C5381>
 ```
 Notes:
 ```
@@ -204,8 +225,7 @@ braillelength `pointer`
 
 Example:
 ```
-braillelength <F00000>
-
+braillelength <1A9321>
 ```
 Notes:
 ```
@@ -228,7 +248,7 @@ bufferattack `buffer` `move`
 
 Example:
 ```
-bufferattack buffer2 "KARATE CHOP"
+bufferattack buffer2 "ROCK SMASH"
 ```
 Notes:
 ```
@@ -252,7 +272,7 @@ bufferboxname `buffer` `box`
 
 Example:
 ```
-bufferboxname buffer2 2
+bufferboxname buffer3 0x800D
 ```
 Notes:
 ```
@@ -276,7 +296,7 @@ buffercontesttype `buffer` `contest`
 
 Example:
 ```
-buffercontesttype buffer3 3
+buffercontesttype buffer2 0x8008
 ```
 Notes:
 ```
@@ -298,7 +318,7 @@ bufferdecoration `buffer` `decoration`
 
 Example:
 ```
-bufferdecoration buffer3 4
+bufferdecoration buffer1 88
 ```
 </details>
 
@@ -314,7 +334,7 @@ bufferfirstPokemon `buffer`
 
 Example:
 ```
-bufferfirstPokemon buffer2
+bufferfirstPokemon buffer1
 ```
 Notes:
 ```
@@ -336,7 +356,7 @@ bufferitem `buffer` `item`
 
 Example:
 ```
-bufferitem buffer2 DEEPSEASCALE
+bufferitem buffer1 "HEAL POWDER"
 ```
 Notes:
 ```
@@ -362,7 +382,7 @@ bufferitems2 `buffer` `item` `quantity`
 
 Example:
 ```
-bufferitems2 buffer1 3 3
+turnrotatingtileobjects
 ```
 Notes:
 ```
@@ -381,7 +401,7 @@ bufferitems2 `buffer` `item` `quantity`
 
 Example:
 ```
-bufferitems2 buffer1 CHARCOAL 2
+bufferitems2 buffer3 "SOOT SACK" 4
 ```
 Notes:
 ```
@@ -403,7 +423,7 @@ buffernumber `buffer` `number`
 
 Example:
 ```
-buffernumber buffer1 1
+buffernumber buffer1 0x800D
 ```
 Notes:
 ```
@@ -425,7 +445,7 @@ bufferpartyPokemon `buffer` `party`
 
 Example:
 ```
-bufferpartyPokemon buffer1 4
+bufferpartyPokemon buffer1 0x800D
 ```
 Notes:
 ```
@@ -447,7 +467,7 @@ bufferPokemon `buffer` `species`
 
 Example:
 ```
-bufferPokemon buffer3 SLOWKING
+bufferPokemon buffer1 KABUTO
 ```
 Notes:
 ```
@@ -469,7 +489,7 @@ bufferstd `buffer` `index`
 
 Example:
 ```
-bufferstd buffer3 0
+bufferstd buffer1 0x800B
 ```
 Notes:
 ```
@@ -491,7 +511,10 @@ bufferstring `buffer` `pointer`
 
 Example:
 ```
-bufferstring buffer1 <auto>
+bufferstring buffer2 <2745DE>
+{
+cutely
+}
 ```
 Notes:
 ```
@@ -515,7 +538,7 @@ buffertrainerclass `buffer` `class`
 
 Example:
 ```
-buffertrainerclass buffer1 CHANNELER
+buffertrainerclass buffer3 INTERVIEWER
 ```
 Notes:
 ```
@@ -539,7 +562,7 @@ buffertrainername `buffer` `trainer`
 
 Example:
 ```
-buffertrainername buffer1 LAO
+buffertrainername buffer2 ELLIOT~4
 ```
 Notes:
 ```
@@ -559,7 +582,7 @@ call `pointer`
 
 Example:
 ```
-call <section1>
+call <1A02EF>
 ```
 Notes:
 ```
@@ -581,6 +604,10 @@ Example:
 ```
 callasm <F00000>
 
+```
+Notes:
+```
+  # run the given ASM code, then continue the script
 ```
 </details>
 
@@ -618,7 +645,7 @@ callstdif `condition` `function`
 
 Example:
 ```
-callstdif < 0
+callstdif < 4
 ```
 Notes:
 ```
@@ -638,7 +665,7 @@ changewalktile `method`
 
 Example:
 ```
-changewalktile 1
+changewalktile 3
 ```
 Notes:
 ```
@@ -658,7 +685,7 @@ checkanimation `animation`
 
 Example:
 ```
-checkanimation 0
+checkanimation 25
 ```
 Notes:
 ```
@@ -678,7 +705,7 @@ checkattack `move`
 
 Example:
 ```
-checkattack "MIRROR COAT"
+checkattack STRENGTH
 ```
 Notes:
 ```
@@ -700,7 +727,7 @@ checkcoins `output`
 
 Example:
 ```
-checkcoins 0
+checkcoins 0x4002
 ```
 Notes:
 ```
@@ -722,7 +749,7 @@ checkdailyflags
 ```
 Notes:
 ```
-  # nop in firered. Does some flag checking in R/S/E based on real-time-clock
+  # nop in FRLG. Updates flags, variables, and other data in RSE based on real-time-clock
 ```
 </details>
 
@@ -738,11 +765,12 @@ checkdecoration `decoration`
 
 Example:
 ```
-checkdecoration "GREEN POSTER"
+checkdecoration SLIDE
 ```
 Notes:
 ```
-  # 800D is set to 1 if the PC has at least 1 of that decoration (not in FR/LG)
+  # In RSE only, this command sets 800D to 1 if the PC has at least one of that decoration, otherwise 0.
+  # In FRLG, this command does nothing and does not affect 800D.
 ```
 </details>
 
@@ -758,11 +786,11 @@ checkflag `flag`
 
 Example:
 ```
-checkflag 0x04
+checkflag 0x0060
 ```
 Notes:
 ```
-  # compares the flag to the value of 1. Used with !=(5) or =(1) compare values
+  # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
 ```
 </details>
 
@@ -798,11 +826,12 @@ checkitem `item` `quantity`
 
 Example:
 ```
-checkitem "BERRY POUCH" 2
+checkitem "CONTEST PASS" 1
 ```
 Notes:
 ```
-  # 800D is set to 1 if removeitem would succeed
+  # 800D is set to 1 if removeitem would succeed, otherwise 0.
+  # 'item' and 'quantity' can be variables.
 ```
 </details>
 
@@ -820,11 +849,12 @@ checkitemroom `item` `quantity`
 
 Example:
 ```
-checkitemroom "X ATTACK" 1
+checkitemroom TM32 1
 ```
 Notes:
 ```
-  # 800D is set to 1 if additem would succeed
+  # 800D is set to 1 if additem would succeed, otherwise 0.
+  # 'item' and 'quantity' can be variables.
 ```
 </details>
 
@@ -840,11 +870,12 @@ checkitemtype `item`
 
 Example:
 ```
-checkitemtype ELIXIR
+checkitemtype "SUN STONE"
 ```
 Notes:
 ```
-  # 800D is set to the bag pocket number of the item
+  # 800D is set to the bag pocket number of the item.
+  # 'item' can be a variable.
 ```
 </details>
 
@@ -885,7 +916,7 @@ checkmoney `money` `check`
 
 Example:
 ```
-checkmoney 0 1
+checkmoney 10000 0
 ```
 Notes:
 ```
@@ -907,11 +938,11 @@ checkpcitem `item` `quantity`
 
 Example:
 ```
-checkpcitem LEMONADE 1
+checkpcitem "ENIGMA BERRY" 1
 ```
 Notes:
 ```
-  # 800D is set to 1 if the PC has at least 'quantity' of 'item'
+  # same as checkitem, except it looks for the item in the player's PC
 ```
 </details>
 
@@ -927,7 +958,7 @@ checktrainerflag `trainer`
 
 Example:
 ```
-checktrainerflag "ELI & ANNE~2"
+checktrainerflag TESSA
 ```
 Notes:
 ```
@@ -971,7 +1002,7 @@ clearbox `x` `y` `width` `height`
 
 Example:
 ```
-clearbox 0 1 0 0
+clearbox 0 3 0 2
 ```
 Notes:
 ```
@@ -991,7 +1022,7 @@ clearflag `flag`
 
 Example:
 ```
-clearflag 0x01
+clearflag 0x0329
 ```
 Notes:
 ```
@@ -1031,7 +1062,11 @@ compare `variable` `value`
 
 Example:
 ```
-compare 3 2
+compare 0x4001 2
+```
+Notes:
+```
+  # sets the condition variable based on the value in the given variable, as compared to the given value
 ```
 </details>
 
@@ -1049,11 +1084,11 @@ comparebanks `bankA` `bankB`
 
 Example:
 ```
-comparebanks 2 1
+comparebanks 1 0
 ```
 Notes:
 ```
-  # sets the condition variable based on the values in the two banks
+  # sets the condition variable based on the value in memory bank A as compared to the value in memory bank B
 ```
 </details>
 
@@ -1071,11 +1106,11 @@ comparebanktobyte `bank` `value`
 
 Example:
 ```
-comparebanktobyte 1 2
+comparebanktobyte 1 0
 ```
 Notes:
 ```
-  # sets the condition variable
+  # sets the condition variable based on the value in the specified memory bank as compared to the given value
 ```
 </details>
 
@@ -1093,11 +1128,11 @@ compareBankTofarbyte `bank` `pointer`
 
 Example:
 ```
-compareBankTofarbyte 3 0x0B
+compareBankTofarbyte 0 0x01
 ```
 Notes:
 ```
-  # compares the bank value to the value stored in the RAM address
+  # sets the condition variable based on the memory bank value as compared to the value stored in the RAM address
 ```
 </details>
 
@@ -1115,11 +1150,11 @@ compareFarBytes `a` `b`
 
 Example:
 ```
-compareFarBytes 0x03 0x01
+compareFarBytes 0x05 0x01
 ```
 Notes:
 ```
-  # compares the two values at the two RAM addresses
+  # sets the condition variable based on the value at the RAM address A as compared to the value at RAM address B
 ```
 </details>
 
@@ -1137,11 +1172,11 @@ compareFarByteToBank `pointer` `bank`
 
 Example:
 ```
-compareFarByteToBank 0x07 3
+compareFarByteToBank 0x04 2
 ```
 Notes:
 ```
-  # opposite of 1D
+  # sets the condition variable based on the value stored in the RAM address as compared to the memory bank value
 ```
 </details>
 
@@ -1159,11 +1194,11 @@ compareFarByteToByte `pointer` `value`
 
 Example:
 ```
-compareFarByteToByte 0x09 3
+compareFarByteToByte 0x01 1
 ```
 Notes:
 ```
-  # compares the value at the RAM address to the value
+  # sets the condition variable based on the value at the RAM address as compared to the given value
 ```
 </details>
 
@@ -1183,7 +1218,7 @@ comparehiddenvar `a` `value`
 
 Example:
 ```
-comparehiddenvar 2 1
+comparehiddenvar 0 0
 ```
 Notes:
 ```
@@ -1205,7 +1240,11 @@ comparevars `var1` `var2`
 
 Example:
 ```
-comparevars 4 0
+comparevars 0x8000 0x8001
+```
+Notes:
+```
+  # sets the condition variable based on the value in var1 as compared to the value in var2
 ```
 </details>
 
@@ -1241,7 +1280,7 @@ copybyte `destination` `source`
 
 Example:
 ```
-copybyte 0x04 0x09
+copybyte 0x0C 0x08
 ```
 Notes:
 ```
@@ -1267,7 +1306,7 @@ copyscriptbanks 2 1
 ```
 Notes:
 ```
-  # copies the value in source to destination
+  # copies the value in the source memory bank to destination memory bank
 ```
 </details>
 
@@ -1285,7 +1324,7 @@ copyvar `variable` `source`
 
 Example:
 ```
-copyvar 1 3
+copyvar 0x8009 0x8006
 ```
 Notes:
 ```
@@ -1307,12 +1346,11 @@ copyvarifnotzero `variable` `source`
 
 Example:
 ```
-copyvarifnotzero 0 4
+setorcopyvar 0x8001 1
 ```
 Notes:
 ```
-  # destination = source (or) destination = *source
-  # (if source isn't a valid variable, it's read as a value)
+  # Alternate, old name for 'setorcopyvar'.
 ```
 </details>
 
@@ -1330,7 +1368,7 @@ countPokemon
 ```
 Notes:
 ```
-  # stores number of pokemon in your party into LASTRESULT (800D)
+  # stores number of pokemon in your party, including non-usable eggs and bad eggs, into LASTRESULT (variable 800D)
 ```
 </details>
 
@@ -1356,7 +1394,7 @@ createsprite `sprite` `virtualNPC` `x` `y` `behavior` `facing`
 
 Example:
 ```
-createsprite 0 2 2 0 4 4
+createsprite 24 12 12 7 3 3
 ```
 Notes:
 ```
@@ -1378,7 +1416,7 @@ cry `species` `effect`
 
 Example:
 ```
-cry JIRACHI 0
+cry ZIGZAGOON 0
 ```
 Notes:
 ```
@@ -1418,7 +1456,12 @@ decorationmart `products`
 
 Example:
 ```
-decorationmart <auto>
+decorationmart <14BE0C>
+{
+"AZURILL DOLL"
+"MARILL DOLL"
+"SKITTY DOLL"
+}
 ```
 Notes:
 ```
@@ -1438,7 +1481,15 @@ decorationmart2 `products`
 
 Example:
 ```
-decorationmart2 <auto>
+decorationmart2 <15BE94>
+{
+"RED PLANT"
+"TROPICAL PLANT"
+"PRETTY FLOWERS"
+"COLORFUL PLANT"
+"BIG PLANT"
+"GORGEOUS PLANT"
+}
 ```
 Notes:
 ```
@@ -1458,7 +1509,7 @@ defeatedtrainer `trainer`
 
 Example:
 ```
-defeatedtrainer CRISSY
+defeatedtrainer MARY
 ```
 Notes:
 ```
@@ -1478,7 +1529,7 @@ doanimation `animation`
 
 Example:
 ```
-doanimation 2
+doanimation 25
 ```
 Notes:
 ```
@@ -1522,7 +1573,21 @@ double.battle `trainer` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-double.battle LISA <auto> <auto> <auto>
+double.battle "KATE & JOY" <1BFC36> <1BFC7A> <1BFD08>
+{
+KATE: Together, we're fearless!
+We'll demonstrate how tough we are!
+}
+{
+KATE: I blew it in front of my junior
+student partner...
+}
+{
+KATE: If you've only got one POKéMON,
+we can't battle with you.
+
+That would be bullying.
+}
 ```
 Notes:
 ```
@@ -1550,7 +1615,22 @@ double.battle.continue.music `trainer` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-double.battle.continue.music GILLIAN <auto> <auto> <auto> <section1>
+double.battle.continue.music "GABBY & TY~5" <1ABF50> <1AC6F8> <1AC5CA> <section0>
+{
+GABBY: Oh! You're [player]! Hi!
+Do you remember us from last time?
+
+Can you show us how much stronger
+you've become? Okay, cue interview!
+}
+{
+GABBY: That was an intense battle!
+Did you get all that on camera?
+}
+{
+GABBY: Is there a strong TRAINER
+anywhere with a lot of POKéMON?
+}
 ```
 Notes:
 ```
@@ -1578,7 +1658,47 @@ double.battle.continue.silent `trainer` `start` `playerwin` `needmorepokemonText
 
 Example:
 ```
-double.battle.continue.silent DALTON <auto> <auto> <auto> <section1>
+double.battle.continue.silent TATE&LIZA <18CF02> <18D077> <18D324> <section0>
+{
+TATE: Hehehe... Were you surprised?
+
+LIZA: Fufufu... Were you surprised?
+
+TATE: That there are two GYM LEADERS?
+LIZA: That there are two GYM LEADERS?
+
+TATE: We're twins!
+LIZA: We're twins!
+
+TATE: We don't need to talk because...
+LIZA: We can each determine what...
+
+TATE: The other is thinking...
+LIZA: All in our minds!
+
+TATE: This combination of ours...
+LIZA: Can you beat it?
+}
+{
+TATE: What?! Our combination...
+LIZA: Was shattered!
+
+TATE: It can't be helped. You've won...
+LIZA: So, in recognition, take this.
+}
+{
+TATE: Hehehe... Were you surprised?
+
+LIZA: That there are two GYM LEADERS?
+
+TATE: Oops, you have only one...
+LIZA: POKéMON that can battle.
+
+TATE: We can't battle that way!
+
+LIZA: If you want to challenge us,
+bring some more POKéMON.
+}
 ```
 Notes:
 ```
@@ -1604,7 +1724,22 @@ double.battle.rematch `trainer` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-double.battle.rematch GRUNT~13 <auto> <auto> <auto>
+double.battle.rematch "LEA & JED" <1C2A53> <1870CC> <187120>
+{
+LEA: Sometimes, the intensity of
+our love scares me.
+}
+{
+LEA: Ohh! But JED looks cool
+even in a loss!
+}
+{
+LEA: Oh, you don't have two
+POKéMON with you?
+
+Doesn't it feel lonely for you or
+your POKéMON?
+}
 ```
 Notes:
 ```
@@ -1680,7 +1815,7 @@ endram
 ```
 Notes:
 ```
-  # ends a RAM script
+  # end the current script and delete the Wonder Card script
 ```
 </details>
 
@@ -1772,7 +1907,8 @@ fadedefault
 ```
 Notes:
 ```
-  # fades the music back to the default song
+  # fades the current music out and fades the default map music in, if they are different songs.
+  # Does nothing in FRLG if the Quest Log is active.
 ```
 </details>
 
@@ -1788,11 +1924,13 @@ fadein `speed`
 
 Example:
 ```
-fadein 2
+fadein 0
 ```
 Notes:
 ```
-  # fades in the current song from silent
+  # blocks script execution until the current song fades back in from silence.
+  # The fade in will complete after max(16*speed, 16) frames.
+  # Does nothing in FRLG if the Quest Log is active.
 ```
 </details>
 
@@ -1812,7 +1950,9 @@ fadeout 0
 ```
 Notes:
 ```
-  # fades out the current song to silent
+  # blocks script execution until the current song fades out to silence.
+  # The fadeout will complete after max(16*speed, 16) frames.
+  # Does nothing in FRLG if the Quest Log is active.
 ```
 </details>
 
@@ -1828,7 +1968,7 @@ fadescreen `effect`
 
 Example:
 ```
-fadescreen ToWhite
+fadescreen ToBlack
 ```
 </details>
 
@@ -1846,7 +1986,7 @@ fadescreen3 `mode`
 
 Example:
 ```
-fadescreen3 ToWhite
+fadescreen3 ToBlack
 ```
 Notes:
 ```
@@ -1868,7 +2008,7 @@ fadescreendelay `effect` `delay`
 
 Example:
 ```
-fadescreendelay FromBlack 3
+fadescreendelay ToBlack 4
 ```
 </details>
 
@@ -1884,11 +2024,12 @@ fadesong `song`
 
 Example:
 ```
-fadesong se_m_rain_dance
+fadesong mus_surf
 ```
 Notes:
 ```
-  # fades the music into the given song
+  # fades the current music out and fades the given song in, if they are different songs.
+  # Does nothing in FRLG if the Quest Log is active.
 ```
 </details>
 
@@ -1904,11 +2045,34 @@ fanfare `song`
 
 Example:
 ```
-fanfare mus_victory_road
+fanfare mus_obtain_item
 ```
 Notes:
 ```
-  # plays a song from the song list as a fanfare
+  # plays a song in the fanfare song list as a fanfare, defaulting to the level-up jingle.
+  # In FRLG, this command does nothing when the Quest Log is active, except change the number of frames to wait to 255 (it doesn't actually wait that many frames).
+```
+</details>
+
+## find.item
+
+<details>
+<summary> find.item</summary>
+
+
+find.item `item` `count`
+
+*  `item` from data.items.stats
+
+*  `count` is a number.
+
+Example:
+```
+find.item ETHER 1
+```
+Notes:
+```
+  # copyvarifnotzero (item and count), callstd 1
 ```
 </details>
 
@@ -1942,7 +2106,7 @@ getplayerpos `varX` `varY`
 
 Example:
 ```
-getplayerpos 1 0
+getplayerpos 0x8004 0x8005
 ```
 Notes:
 ```
@@ -1964,7 +2128,7 @@ getpokenewsactive `newsKind`
 
 Example:
 ```
-getpokenewsactive 1
+getpricereduction "GREAT BALL"
 ```
 </details>
 
@@ -1982,7 +2146,7 @@ getpricereduction `index`
 
 Example:
 ```
-getpricereduction TM48
+getpokenewsactive 2
 ```
 </details>
 
@@ -2000,29 +2164,7 @@ gettime
 ```
 Notes:
 ```
-  # sets 0x8000, 0x8001, and 0x8002 to the current hour, minute, and second, respectively
-```
-</details>
-
-## give.item
-
-<details>
-<summary> give.item</summary>
-
-
-give.item `item` `count`
-
-*  `item` from data.items.stats
-
-*  `count` is a number.
-
-Example:
-```
-give.item "DRAGON SCALE" 1
-```
-Notes:
-```
-  # copyvarifnotzero (item and count), callstd 1
+  # sets variables 0x8000, 0x8001, and 0x8002 to the current time in hours, minutes, and seconds (or all zeroes in FRLG)
 ```
 </details>
 
@@ -2038,7 +2180,7 @@ givecoins `count`
 
 Example:
 ```
-givecoins 2
+givecoins 20
 ```
 </details>
 
@@ -2054,7 +2196,7 @@ giveEgg `species`
 
 Example:
 ```
-giveEgg PRIMEAPE
+giveEgg WYNAUT
 ```
 Notes:
 ```
@@ -2076,7 +2218,7 @@ givemoney `money` `check`
 
 Example:
 ```
-givemoney 4 1
+givemoney 4 4
 ```
 Notes:
 ```
@@ -2100,7 +2242,7 @@ givePokemon `species` `level` `item`
 
 Example:
 ```
-givePokemon PHANPY 2 "CHERI BERRY"
+givePokemon CASTFORM 25 "MYSTIC WATER"   
 ```
 Notes:
 ```
@@ -2124,7 +2266,7 @@ goto `pointer`
 
 Example:
 ```
-goto <section1>
+goto <section0>
 ```
 Notes:
 ```
@@ -2144,7 +2286,7 @@ gotostd `function`
 
 Example:
 ```
-gotostd 0
+gotostd 1
 ```
 Notes:
 ```
@@ -2166,7 +2308,7 @@ gotostdif `condition` `function`
 
 Example:
 ```
-gotostdif < 0
+gotostdif < 2
 ```
 Notes:
 ```
@@ -2214,7 +2356,7 @@ hidebox `x` `y` `width` `height`
 
 Example:
 ```
-hidebox 2 4 2 2
+hidebox 0 0 15 10
 ```
 Notes:
 ```
@@ -2256,7 +2398,7 @@ hidecoins `x` `y`
 
 Example:
 ```
-hidecoins 1 4
+hidecoins 0 5
 ```
 Notes:
 ```
@@ -2278,7 +2420,7 @@ hidemoney `x` `y`
 
 Example:
 ```
-hidemoney 3 1
+hidemoney 0 0
 ```
 </details>
 
@@ -2326,17 +2468,17 @@ Notes:
 <summary> hidesprite2</summary>
 
 
-hidesprite2 `npc` `bank` `map`
+hidesprite2 `npc` `mapbank` `map`
 
 *  `npc` is a number.
 
-*  `bank` is a number.
+*  `mapbank` is a number.
 
 *  `map` is a number.
 
 Example:
 ```
-hidesprite2 0 1 0
+hidesprite2 2 0 4
 ```
 Notes:
 ```
@@ -2362,7 +2504,7 @@ if.compare.call `variable` `value` `condition` `pointer`
 
 Example:
 ```
-if.compare.call 1 4 != <section1>
+if.compare.call 0x4001 = 4 <section0>
 ```
 Notes:
 ```
@@ -2389,7 +2531,7 @@ if.compare.goto `variable` `value` `condition` `pointer`
 
 Example:
 ```
-if.compare.goto 0 3 >= <section1>
+if.compare.goto 0x8000 = 2 <section0>
 ```
 Notes:
 ```
@@ -2426,7 +2568,7 @@ if.female.goto `ptr`
 
 Example:
 ```
-if.female.goto <section1>
+if.female.goto <section0>
 ```
 </details>
 
@@ -2444,7 +2586,7 @@ if.flag.clear.call `flag` `pointer`
 
 Example:
 ```
-if.flag.clear.call 0x03 <section1>
+if.flag.clear.call 0x00CB <section0>
 ```
 Notes:
 ```
@@ -2467,7 +2609,7 @@ if.flag.clear.goto `flag` `pointer`
 
 Example:
 ```
-if.flag.clear.goto 0x00 <section1>
+if.flag.clear.goto 0x0818 <section0>
 ```
 Notes:
 ```
@@ -2490,7 +2632,7 @@ if.flag.set.call `flag` `pointer`
 
 Example:
 ```
-if.flag.set.call 0x0A <section1>
+if.flag.set.call 0x012C <section0>
 ```
 Notes:
 ```
@@ -2513,7 +2655,7 @@ if.flag.set.goto `flag` `pointer`
 
 Example:
 ```
-if.flag.set.goto 0x00 <section1>
+if.flag.set.goto 0x0062 <section0>
 ```
 Notes:
 ```
@@ -2536,7 +2678,7 @@ if.gender.call `male` `female`
 
 Example:
 ```
-if.gender.call <section1> <section1>
+if.gender.call <section0> <section1>
 ```
 </details>
 
@@ -2554,7 +2696,7 @@ if.gender.goto `male` `female`
 
 Example:
 ```
-if.gender.goto <section1> <section1>
+if.gender.goto <section0> <section1>
 ```
 </details>
 
@@ -2570,7 +2712,7 @@ if.male.call `ptr`
 
 Example:
 ```
-if.male.call <section1>
+if.gender.call <section0> <section1>
 ```
 </details>
 
@@ -2586,7 +2728,7 @@ if.male.goto `ptr`
 
 Example:
 ```
-if.male.goto <section1>
+if.gender.goto <section0> <section1>
 ```
 </details>
 
@@ -2602,7 +2744,7 @@ if.no.call `ptr`
 
 Example:
 ```
-if.no.call <section1>
+if.no.call <section0>
 ```
 </details>
 
@@ -2618,7 +2760,7 @@ if.no.goto `ptr`
 
 Example:
 ```
-if.no.goto <section1>
+if.no.goto <1A029B>
 ```
 </details>
 
@@ -2636,7 +2778,7 @@ if.trainer.defeated.call `trainer` `pointer`
 
 Example:
 ```
-if.trainer.defeated.call RODNEY <section1>
+if.trainer.defeated.call GEORGE <section0>
 ```
 Notes:
 ```
@@ -2658,7 +2800,7 @@ if.trainer.defeated.goto `trainer` `pointer`
 
 Example:
 ```
-if.trainer.defeated.goto GRUNT~50 <section1>
+if.trainer.defeated.goto AXLE <section0>
 ```
 Notes:
 ```
@@ -2680,7 +2822,7 @@ if.trainer.ready.call `trainer` `pointer`
 
 Example:
 ```
-if.trainer.ready.call MARLON~3 <section1>
+if.trainer.ready.call GRUNT~12 <section0>
 ```
 Notes:
 ```
@@ -2702,7 +2844,7 @@ if.trainer.ready.goto `trainer` `pointer`
 
 Example:
 ```
-if.trainer.ready.goto ~17 <section1>
+if.trainer.ready.goto LAURA <section0>
 ```
 Notes:
 ```
@@ -2722,7 +2864,7 @@ if.yes.call `ptr`
 
 Example:
 ```
-if.yes.call <section1>
+if.yes.call <section0>
 ```
 </details>
 
@@ -2738,7 +2880,7 @@ if.yes.goto `ptr`
 
 Example:
 ```
-if.yes.goto <section1>
+if.yes.goto <section0>
 ```
 </details>
 
@@ -2756,11 +2898,11 @@ if1 `condition` `pointer`
 
 Example:
 ```
-if1 <= <section1>
+if1 = <section0>
 ```
 Notes:
 ```
-  # if the last comparison returned a certain value, "goto" to another script
+  # if the condition variable fits with 'condition', then "goto" another script
 ```
 </details>
 
@@ -2778,11 +2920,11 @@ if2 `condition` `pointer`
 
 Example:
 ```
-if2 != <section1>
+if2 = <section0>
 ```
 Notes:
 ```
-  # if the last comparison returned a certain value, "call" to another script
+  # if the condition variable fits with 'condition', then "call" another script
 ```
 </details>
 
@@ -2798,7 +2940,7 @@ incrementhiddenvalue `a`
 
 Example:
 ```
-incrementhiddenvalue 0
+incrementhiddenvalue 6
 ```
 Notes:
 ```
@@ -2822,7 +2964,11 @@ initclock `hour` `minute`
 
 Example:
 ```
-initclock 4 0
+initclock 4 2
+```
+Notes:
+```
+  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
 ```
 </details>
 
@@ -2840,7 +2986,7 @@ initrotatingtilepuzzle `isTrickHouse`
 
 Example:
 ```
-initrotatingtilepuzzle 1
+initrotatingtilepuzzle 0
 ```
 </details>
 
@@ -2858,7 +3004,7 @@ jumpram
 ```
 Notes:
 ```
-  # executes a script from the default RAM location (???)
+  # alternate, old name for returnram
 ```
 </details>
 
@@ -2876,7 +3022,7 @@ killscript
 ```
 Notes:
 ```
-  # kill the script, reset script RAM
+  # alternate, old name for endram
 ```
 </details>
 
@@ -2892,7 +3038,7 @@ lighten `flashSize`
 
 Example:
 ```
-lighten 0
+lighten 2
 ```
 Notes:
 ```
@@ -2914,11 +3060,11 @@ loadbytefrompointer `bank` `pointer`
 
 Example:
 ```
-loadbytefrompointer 3 0x03
+loadbytefrompointer 3 0x0C
 ```
 Notes:
 ```
-  # load a byte value from a RAM address into the specified memory bank
+  # load a byte value from a RAM address into the specified memory bank, for other commands to use
 ```
 </details>
 
@@ -2936,11 +3082,11 @@ loadpointer `bank` `pointer`
 
 Example:
 ```
-loadpointer 0 <auto>
+loadpointer 1 <auto>
 ```
 Notes:
 ```
-  # loads a pointer into script RAM so other commands can use it
+  # loads a pointer into the specified memory bank, for other commands to use
 ```
 </details>
 
@@ -3012,7 +3158,18 @@ move.camera `data`
 
 Example:
 ```
-move.camera <auto>
+move.camera <1E5BA4>
+{
+walk_slow_diag_northeast
+walk_slow_diag_northeast
+walk_up
+walk_up
+walk_up
+walk_up
+walk_up
+walk_up
+walk_up
+}
 ```
 Notes:
 ```
@@ -3035,7 +3192,10 @@ move.npc `npc` `data`
 
 Example:
 ```
-move.npc 1 <auto>
+move.npc 10 <1A0843>
+{
+walk_in_place_fastest_right
+}
 ```
 Notes:
 ```
@@ -3056,7 +3216,10 @@ move.player `data`
 
 Example:
 ```
-move.player <auto>
+move.player <1A083F>
+{
+walk_in_place_fastest_left
+}
 ```
 Notes:
 ```
@@ -3099,7 +3262,7 @@ moverotatingtileobjects `puzzleNumber`
 
 Example:
 ```
-moverotatingtileobjects 2
+braillelength <1A9321>
 ```
 </details>
 
@@ -3119,7 +3282,7 @@ movesprite `npc` `x` `y`
 
 Example:
 ```
-movesprite 2 1 4
+movesprite 2 11 8
 ```
 </details>
 
@@ -3139,7 +3302,7 @@ movesprite2 `npc` `x` `y`
 
 Example:
 ```
-movesprite2 0 2 0
+movesprite2 29 34 55
 ```
 Notes:
 ```
@@ -3159,7 +3322,11 @@ msgbox.autoclose `ptr`
 
 Example:
 ```
-msgbox.autoclose <auto>
+msgbox.autoclose <1B7D11>
+{
+To keep winning my way up, I see that
+I have to catch more POKéMON.
+}
 ```
 Notes:
 ```
@@ -3179,7 +3346,14 @@ msgbox.default `ptr`
 
 Example:
 ```
-msgbox.default <auto>
+msgbox.default <1652A0>
+{
+That lady interviewer is so cool and
+pretty.
+
+When I grow up, I'm going to be an
+international journalist!
+}
 ```
 Notes:
 ```
@@ -3201,7 +3375,10 @@ msgbox.fanfare `song` `ptr`
 
 Example:
 ```
-msgbox.fanfare se_thunderstorm_stop <auto>
+msgbox.fanfare mus_obtain_key_item <18F0E8>
+{
+[player]'s POKéDEX was upgraded!
+}
 ```
 Notes:
 ```
@@ -3293,7 +3470,11 @@ msgbox.item `msg` `item` `count` `song`
 
 Example:
 ```
-msgbox.item <auto> "BLUE ORB" 0 se_m_double_slap
+msgbox.item <177E92> HM03 1 mus_level_up
+{
+[player] received HM03
+from the attendant!
+}
 ```
 Notes:
 ```
@@ -3315,7 +3496,14 @@ msgbox.npc `ptr`
 
 Example:
 ```
-msgbox.npc <auto>
+msgbox.npc <16453F>
+{
+Let's say you have six POKéMON.
+If you catch another one...
+
+It is automatically sent to a STORAGE
+BOX over a PC connection.
+}
 ```
 Notes:
 ```
@@ -3339,7 +3527,13 @@ msgbox.sign `ptr`
 
 Example:
 ```
-msgbox.sign <auto>
+msgbox.sign <1874F5>
+{
+I see...
+
+I'm honored that you would visit
+us in spite of that.
+}
 ```
 Notes:
 ```
@@ -3359,7 +3553,11 @@ msgbox.yesno `ptr`
 
 Example:
 ```
-msgbox.yesno <auto>
+msgbox.yesno <1650F1>
+{
+Do you know about the machine
+BERRY BLENDER?
+}
 ```
 Notes:
 ```
@@ -3385,7 +3583,7 @@ multichoice `x` `y` `list` `allowCancel`
 
 Example:
 ```
-multichoice 2 4 3 ForbidCancel
+multichoice 17 6 17 AllowCancel
 ```
 Notes:
 ```
@@ -3413,7 +3611,7 @@ multichoice2 `x` `y` `list` `default` `canCancel`
 
 Example:
 ```
-multichoice2 4 2 2 2 ForbidCancel
+multichoice2 0 0 31 3 AllowCancel
 ```
 Notes:
 ```
@@ -3441,7 +3639,7 @@ multichoice3 `x` `y` `list` `per_row` `canCancel`
 
 Example:
 ```
-multichoice3 2 1 1 4 AllowCancel
+multichoicegrid 8 1 13 3 AllowCancel
 ```
 Notes:
 ```
@@ -3469,7 +3667,7 @@ multichoicegrid `x` `y` `list` `per_row` `canCancel`
 
 Example:
 ```
-multichoicegrid 0 0 4 0 ForbidCancel
+multichoicegrid 8 1 13 3 AllowCancel
 ```
 Notes:
 ```
@@ -3529,7 +3727,7 @@ nop2C
 ```
 Notes:
 ```
-  # Only returns a false value.
+  # does nothing
 ```
 </details>
 
@@ -3765,7 +3963,7 @@ npc.item `item` `count`
 
 Example:
 ```
-npc.item "BLUE SCARF" 3
+npc.item "WHITE HERB" 1
 ```
 Notes:
 ```
@@ -3785,11 +3983,11 @@ pause `time`
 
 Example:
 ```
-pause 4
+pause 20
 ```
 Notes:
 ```
-  # blocks the script for 'time' ticks
+  # blocks script execution for 'time' frames
 ```
 </details>
 
@@ -3807,7 +4005,7 @@ paymoney `money` `check`
 
 Example:
 ```
-paymoney 3 0
+paymoney 300 0
 ```
 Notes:
 ```
@@ -3829,11 +4027,12 @@ playsong `song` `mode`
 
 Example:
 ```
-playsong mus_level_up loop
+playsong mus_encounter_elite_four playOnce
 ```
 Notes:
 ```
-  # plays a song once or loop (loop saves the background music)
+  # plays a song as background music, optionally marking it to become the "saved" background music.
+  # Does nothing in FRLG if the Quest Log is active.
 ```
 </details>
 
@@ -3849,7 +4048,7 @@ pokecasino `index`
 
 Example:
 ```
-pokecasino 3
+pokecasino 0x800D
 ```
 </details>
 
@@ -3865,7 +4064,21 @@ pokemart `products`
 
 Example:
 ```
-pokemart <auto>
+pokemart <153980>
+{
+"GREAT BALL"
+"SUPER POTION"
+ANTIDOTE
+"PARLYZ HEAL"
+"ESCAPE ROPE"
+"SUPER REPEL"
+"X SPECIAL"
+"X SPEED"
+"X ATTACK"
+"X DEFEND"
+"DIRE HIT"
+"GUARD SPEC."
+}
 ```
 Notes:
 ```
@@ -3887,7 +4100,29 @@ pokenavcall `text`
 
 Example:
 ```
-pokenavcall <auto>
+pokenavcall <1EE336>
+{
+\. \. \. \. \. \.
+\. \. \. \. \. Beep!
+
+DAD: Oh, [player]?
+
+\. \. \. \. \. \.
+Where are you now?
+It sounds windy wherever you are.
+
+I just heard from DEVON's MR. STONE
+about your POKéNAV, so I decided
+to give you a call.
+
+It sounds like you're doing fine,
+so that's fine with me.
+
+You take care now.
+
+\. \. \. \. \. \.
+\. \. \. \. \. Click!
+}
 ```
 Notes:
 ```
@@ -3907,7 +4142,14 @@ preparemsg `text`
 
 Example:
 ```
-preparemsg <auto>
+preparemsg <1A181A>
+{
+[player] put away the [buffer1] BERRIES
+in the BAG's BERRIES POCKET.
+
+The soil returned to its soft and
+loamy state.
+}
 ```
 Notes:
 ```
@@ -3928,7 +4170,10 @@ preparemsg2 `pointer`
 
 Example:
 ```
-preparemsg2 <auto>
+preparemsg2 <1A4A22>
+{
+Please enter.
+}
 ```
 Notes:
 ```
@@ -3950,7 +4195,10 @@ preparemsg3 `pointer`
 
 Example:
 ```
-preparemsg3 <auto>
+preparemsg3 <27BEEC>
+{
+Transmitting\.
+}
 ```
 Notes:
 ```
@@ -3976,7 +4224,13 @@ pyramid.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-pyramid.battle MICHELLE~2 <auto> <auto>
+pyramid.battle PHILLIP <252C8D> <252C8D>
+{
+This is a sample message.
+}
+{
+This is a sample message.
+}
 ```
 Notes:
 ```
@@ -3996,7 +4250,7 @@ random `high`
 
 Example:
 ```
-random 0
+random 3
 ```
 Notes:
 ```
@@ -4016,7 +4270,7 @@ readytrainer `trainer`
 
 Example:
 ```
-readytrainer MISSY
+readytrainer TERRY~26
 ```
 Notes:
 ```
@@ -4038,7 +4292,7 @@ register.matchcall `trainer` `trainer`
 
 Example:
 ```
-register.matchcall TIMMY~2 GERALD
+register.matchcall CALVIN~4 JACKI~3
 ```
 Notes:
 ```
@@ -4094,7 +4348,7 @@ removecoins `count`
 
 Example:
 ```
-removecoins 2
+removecoins 4000
 ```
 </details>
 
@@ -4110,11 +4364,13 @@ removedecoration `decoration`
 
 Example:
 ```
-removedecoration "FIRE BLAST MAT"
+removedecoration "HEAVY DESK"
 ```
 Notes:
 ```
-  # removes a decoration to the player's PC; in FR/LG, this is a NOP
+  # In RSE only, this command tries to remove a decoration from the player's PC. If the operation succeeds, 800D is set to 1, otherwise 0.
+  # In FRLG, this command does nothing and does not affect 800D.
+  # 'decoration' can be a variable.
 ```
 </details>
 
@@ -4132,11 +4388,15 @@ removeitem `item` `quantity`
 
 Example:
 ```
-removeitem TM09 4
+removeitem "SHOAL SALT" 4
 ```
 Notes:
 ```
-  # opposite of additem. 800D is set to 0 if the removal cannot happen
+  # Tries to remove 'quantity' of 'item' from the player's inventory.
+  # 'item' and 'quantity' can be variables.
+  # if the operation was successful, LASTRESULT (variable 800D) is set to 1. If the operation fails, it is set to 0.
+  # In Emerald only, if the appropriate flag is set or the map uses the appropriate layout, the item will be removed from the Battle Pyramid inventory instead.
+  # In Emerald only, this command may rarely result in the player losing all of their items or other bugs due to memory allocation failure.
 ```
 </details>
 
@@ -4156,6 +4416,24 @@ Notes:
 ```
   # starts a trainer battle with information stored in the RAM.
   # in most cases, it does the last trainer battle again.
+```
+</details>
+
+## resetvars
+
+<details>
+<summary> resetvars</summary>
+
+
+resetvars
+
+Example:
+```
+resetvars
+```
+Notes:
+```
+  # Alternate, old name for gettime
 ```
 </details>
 
@@ -4193,7 +4471,7 @@ restorespritelevel `npc` `bank` `map`
 
 Example:
 ```
-restorespritelevel 2 1 0
+restorespritelevel 255 0 11
 ```
 Notes:
 ```
@@ -4233,7 +4511,7 @@ returnram
 ```
 Notes:
 ```
-  # pops back to the last calling command used in a RAM script.
+  # return from a Wonder Card script back to the original script
 ```
 </details>
 
@@ -4249,11 +4527,13 @@ savesong `song`
 
 Example:
 ```
-savesong se_ball_tray_enter
+savesong mus_dummy
 ```
 Notes:
 ```
-  # saves the specified background music to be played via special Overworld_PlaySpecialMapMusic
+  # sets the saved background music to 'song', without actually playing it.
+  # It can then be played via special Overworld_PlaySpecialMapMusic.
+  # Saved background music will be remembered if you save the game and then load it again.
 ```
 </details>
 
@@ -4291,7 +4571,7 @@ setanimation `animation` `slot`
 
 Example:
 ```
-setanimation 3 3
+setanimation 2 0x8006
 ```
 Notes:
 ```
@@ -4317,7 +4597,7 @@ setberrytree `plantID` `berryID` `growth`
 
 Example:
 ```
-setberrytree 3 BLUK 1
+setberrytree 0 RAZZ 2
 ```
 Notes:
 ```
@@ -4337,11 +4617,11 @@ setbyte `byte`
 
 Example:
 ```
-setbyte 0
+setbyte 4
 ```
 Notes:
 ```
-  # sets a predefined address to the specified byte value
+  # alternate, old name for setmysteryeventstatus
 ```
 </details>
 
@@ -4359,11 +4639,11 @@ setbyte2 `bank` `value`
 
 Example:
 ```
-setbyte2 1 4
+setbyte2 2 4
 ```
 Notes:
 ```
-  # sets a memory bank to the specified byte value.
+  # loads a byte into the specified memory bank, for other commands to use
 ```
 </details>
 
@@ -4383,7 +4663,7 @@ setcatchlocation `slot` `location`
 
 Example:
 ```
-setcatchlocation 4 "DIGLETT'S CAVE"
+setcatchlocation 4 "ROUTE 128"
 ```
 Notes:
 ```
@@ -4408,7 +4688,7 @@ setcode <F00000>
 ```
 Notes:
 ```
-  # puts a pointer to some assembly code at a specific place in RAM
+  # block script execution and instead run the given ASM code every frame until it returns 1
 ```
 </details>
 
@@ -4426,7 +4706,7 @@ setdoorclosed `x` `y`
 
 Example:
 ```
-setdoorclosed 1 0
+setdoorclosed 11 1
 ```
 Notes:
 ```
@@ -4448,7 +4728,7 @@ setdoorclosed2 `x` `y`
 
 Example:
 ```
-setdoorclosed2 0 1
+setdoorclosed2 2 3
 ```
 Notes:
 ```
@@ -4470,7 +4750,7 @@ setdooropened `x` `y`
 
 Example:
 ```
-setdooropened 3 2
+setdooropened 11 1
 ```
 Notes:
 ```
@@ -4492,7 +4772,7 @@ setdooropened2 `x` `y`
 
 Example:
 ```
-setdooropened2 0 2
+setdooropened2 1 1
 ```
 Notes:
 ```
@@ -4514,11 +4794,11 @@ setfarbyte `bank` `pointer`
 
 Example:
 ```
-setfarbyte 0 0x04
+setfarbyte 3 0x01
 ```
 Notes:
 ```
-  # stores the least-significant byte in the bank to a RAM address
+  # stores the byte in the specified memory bank to a RAM address
 ```
 </details>
 
@@ -4534,7 +4814,7 @@ setflag `flag`
 
 Example:
 ```
-setflag 0x0C
+setflag 0x0062
 ```
 Notes:
 ```
@@ -4554,7 +4834,7 @@ sethealingplace `flightspot`
 
 Example:
 ```
-sethealingplace 2
+sethealingplace 8
 ```
 Notes:
 ```
@@ -4574,7 +4854,7 @@ setmapfooter `footer`
 
 Example:
 ```
-setmapfooter 2
+setmapfooter 319
 ```
 Notes:
 ```
@@ -4600,7 +4880,7 @@ setmaptile `x` `y` `tile` `isWall`
 
 Example:
 ```
-setmaptile 0 4 4 4
+setmaptile 13 15 663 0
 ```
 Notes:
 ```
@@ -4623,7 +4903,7 @@ setmodernfatefulencounter `slot`
 
 Example:
 ```
-setmodernfatefulencounter 1
+setmodernfatefulencounter 2
 ```
 Notes:
 ```
@@ -4647,7 +4927,7 @@ setmonmove `pokemonSlot` `attackSlot` `newMove`
 
 Example:
 ```
-setmonmove 1 0 PROTECT
+setmonmove 3 3 "BLAZE KICK"
 ```
 Notes:
 ```
@@ -4668,11 +4948,11 @@ setmysteryeventstatus `value`
 
 Example:
 ```
-setmysteryeventstatus 2
+setmysteryeventstatus 3
 ```
 Notes:
 ```
-  # sets the mystery event script status
+  # sets a state variable used for Mystery Event scripts
 ```
 </details>
 
@@ -4690,12 +4970,15 @@ setorcopyvar `variable` `source`
 
 Example:
 ```
-setorcopyvar 4 1
+setorcopyvar 0x8000 34
 ```
 Notes:
 ```
   # Works like the copyvar command if the source field is a variable number;
   # works like the setvar command if the source field is not a variable number.
+  # In other words:
+  # destination = source (or) destination = *source
+  # (if source isn't a valid variable, it's read as a value)
 ```
 </details>
 
@@ -4717,7 +5000,7 @@ setup.battle.A `trainer` `start` `playerwin`
 
 Example:
 ```
-setup.battle.A ~2 <auto> <auto>
+setup.battle.A EDWIN~2 <auto> <auto>
 ```
 Notes:
 ```
@@ -4743,7 +5026,7 @@ setup.battle.B `trainer` `start` `playerwin`
 
 Example:
 ```
-setup.battle.B ~3 <auto> <auto>
+setup.battle.B "MIU & YUKI" <auto> <auto>
 ```
 Notes:
 ```
@@ -4765,7 +5048,7 @@ setvar `variable` `value`
 
 Example:
 ```
-setvar 1 1
+setvar 0x4096 0
 ```
 Notes:
 ```
@@ -4785,7 +5068,7 @@ setvirtualaddress `pointer`
 
 Example:
 ```
-setvirtualaddress 0x0D
+setvirtualaddress 0x0F
 ```
 Notes:
 ```
@@ -4814,7 +5097,7 @@ setwarpplace `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-setwarpplace 2 1 4 4 3
+setwarpplace 13 18 256 2 1
 ```
 Notes:
 ```
@@ -4834,7 +5117,7 @@ setweather `type`
 
 Example:
 ```
-setweather 2
+setweather 7
 ```
 Notes:
 ```
@@ -4858,7 +5141,7 @@ setwildbattle `species` `level` `item`
 
 Example:
 ```
-setwildbattle GLIGAR 0 "YELLOW FLUTE"
+setwildbattle VOLTORB 25 ????????
 ```
 </details>
 
@@ -4876,7 +5159,7 @@ setworldmapflag `flag`
 
 Example:
 ```
-setworldmapflag 4
+setworldmapflag 2217
 ```
 Notes:
 ```
@@ -4902,7 +5185,7 @@ showbox `x` `y` `width` `height`
 
 Example:
 ```
-showbox 1 4 4 0
+showbox 2 2 3 4
 ```
 Notes:
 ```
@@ -4924,7 +5207,7 @@ showcoins `x` `y`
 
 Example:
 ```
-showcoins 4 2
+showcoins 0 0
 ```
 </details>
 
@@ -4958,7 +5241,7 @@ showcontestwinner `contest`
 
 Example:
 ```
-showcontestwinner 0
+showcontestwinner 12
 ```
 Notes:
 ```
@@ -5002,7 +5285,7 @@ showmoney `x` `y`
 
 Example:
 ```
-showmoney 1 2
+showmoney 0 0
 ```
 Notes:
 ```
@@ -5021,7 +5304,7 @@ showmoney `x` `y` `check`
 
 Example:
 ```
-showmoney 2 1 1
+showmoney 0 0
 ```
 Notes:
 ```
@@ -5045,7 +5328,7 @@ showpokepic `species` `x` `y`
 
 Example:
 ```
-showpokepic NINETALES 2 4
+showpokepic FLAREON 10 3
 ```
 Notes:
 ```
@@ -5065,7 +5348,7 @@ showsprite `npc`
 
 Example:
 ```
-showsprite 4
+showsprite 1
 ```
 Notes:
 ```
@@ -5089,7 +5372,7 @@ showsprite2 `npc` `bank` `map`
 
 Example:
 ```
-showsprite2 3 1 4
+showsprite2 3 1 1
 ```
 Notes:
 ```
@@ -5133,7 +5416,15 @@ single.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-single.battle PRESTON <auto> <auto>
+single.battle ALLEN <1B7B68> <1B7B9D>
+{
+Did you just become a TRAINER?
+We're both beginners!
+}
+{
+I called you because I thought I
+could beat you...
+}
 ```
 Notes:
 ```
@@ -5159,7 +5450,7 @@ single.battle.canlose `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-single.battle.canlose FLINT <auto> <auto>
+single.battle.canlose DILLON <auto> <auto>
 ```
 Notes:
 ```
@@ -5185,7 +5476,14 @@ single.battle.continue.music `trainer` `start` `playerwin` `winscript`
 
 Example:
 ```
-single.battle.continue.music CAMRON <auto> <auto> <section1>
+single.battle.continue.music SIMON <19B988> <19B9C7> <section0>
+{
+I'm going to show you how great my
+POKéMON are, but don't cry!
+}
+{
+...I lost, but I won't cry...
+}
 ```
 Notes:
 ```
@@ -5211,7 +5509,54 @@ single.battle.continue.silent `trainer` `start` `playerwin` `winscript`
 
 Example:
 ```
-single.battle.continue.silent GOON~3 <auto> <auto> <section1>
+single.battle.continue.silent JUAN <225268> <225432> <section0>
+{
+Let me ask you.
+Did you know?
+Ah, I should not be so coy.
+
+It was I who taught WALLACE everything
+there is to know about POKéMON.
+
+Once, I had given up my position as
+the GYM LEADER.
+
+In my place, I had entrusted WALLACE
+with the GYM.
+
+However, a compelling reason arose for
+me to make a comeback.
+
+Ah, but enough chatter.
+Let us begin our match, shall we?
+
+Please, you shall bear witness to
+our artistry.
+
+A grand illusion of water sculpted
+by POKéMON and myself!
+}
+{
+Ahahaha, excellent!
+Very well, you are the winner.
+
+From you, I sense the brilliant shine
+of skill that will overcome all.
+
+However, compared with me or even
+WALLACE, you are lacking in elegance.
+
+Perhaps I should make you a loan
+of my outfit?
+
+\. \. \. \. \. \.
+\. \. \. \. \. \.
+
+Hahaha, I merely jest!
+
+Rather than my clothes, I shall reward
+you with this, the RAIN BADGE!
+}
 ```
 Notes:
 ```
@@ -5233,7 +5578,11 @@ single.battle.nointro `trainer` `playerwin`
 
 Example:
 ```
-single.battle.nointro "PROF. OAK" <auto>
+single.battle.nointro MAY~7 <16D65B>
+{
+Wow! That's great!
+[player]\\05, you're pretty good!
+}
 ```
 Notes:
 ```
@@ -5257,7 +5606,15 @@ single.battle.rematch `trainer` `start` `playerwin`
 
 Example:
 ```
-single.battle.rematch TASHA <auto> <auto>
+single.battle.rematch CINDY <1B8AA7> <1B8AD9>
+{
+Hello, we meet again.
+May I ask you for a battle?
+}
+{
+Oh, my...
+I did the best that I could...
+}
 ```
 Notes:
 ```
@@ -5277,11 +5634,12 @@ sound `number`
 
 Example:
 ```
-sound se_super_effective
+sound se_pin
 ```
 Notes:
 ```
-  # 0000 mutes the music
+  # play a song as a sound effect.
+  # In FRLG, does nothing during certain parts of the credits where scripts run, or in the Quest Log.
 ```
 </details>
 
@@ -5297,12 +5655,13 @@ special `function`
 
 Example:
 ```
-special DoSeagallopFerryScene
+special GetPlayerBigGuyGirlString
 ```
 Notes:
 ```
   # Calls a piece of ASM code from a table.
   # Check your TOML for a list of specials available in your game.
+  # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 ```
 </details>
 
@@ -5320,12 +5679,13 @@ special2 `variable` `function`
 
 Example:
 ```
-special2 2 SetPostgameFlags
+special2 0x800D ShouldTryRematchBattle
 ```
 Notes:
 ```
   # Calls a special and puts the ASM's return value in the variable you listed.
   # Check your TOML for a list of specials available in your game.
+  # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 ```
 </details>
 
@@ -5343,7 +5703,7 @@ spritebehave `npc` `behavior`
 
 Example:
 ```
-spritebehave 3 1
+spritebehave 29 10
 ```
 Notes:
 ```
@@ -5365,7 +5725,7 @@ spriteface `npc` `direction`
 
 Example:
 ```
-spriteface 4 Southwest
+spriteface 255 Down
 ```
 </details>
 
@@ -5383,7 +5743,7 @@ spriteface2 `virtualNPC` `facing`
 
 Example:
 ```
-spriteface2 2 0
+spriteface2 2 1
 ```
 </details>
 
@@ -5403,7 +5763,7 @@ spriteinvisible `npc` `bank` `map`
 
 Example:
 ```
-spriteinvisible 0 2 1
+spriteinvisible 255 0 0
 ```
 Notes:
 ```
@@ -5429,7 +5789,7 @@ spritelevelup `npc` `bank` `map` `subpriority`
 
 Example:
 ```
-spritelevelup 4 3 4 3
+spritelevelup 255 0 11 1
 ```
 Notes:
 ```
@@ -5453,7 +5813,7 @@ spritevisible `npc` `bank` `map`
 
 Example:
 ```
-spritevisible 3 4 2
+spritevisible 1 29 0
 ```
 Notes:
 ```
@@ -5485,19 +5845,20 @@ Notes:
 <summary> subvar</summary>
 
 
-subvar `variable` `value`
+subvar `variable` `source`
 
 *  `variable` is a number.
 
-*  `value` is a number.
+*  `source` is a number.
 
 Example:
 ```
-subvar 1 0
+subvar 0x800D 1
 ```
 Notes:
 ```
-  # variable -= value
+  # variable -= source (or) variable -= *source
+  # (if 'source' isn't a valid variable, it's read as a value)
 ```
 </details>
 
@@ -5513,11 +5874,12 @@ testdecoration `decoration`
 
 Example:
 ```
-testdecoration "GOLD SHIELD"
+testdecoration "TREECKO DOLL"
 ```
 Notes:
 ```
-  # 800D is set to 1 if the PC could store at least 1 more of that decoration (not in FR/LG)
+  # In RSE only, this command sets 800D to 1 if the PC could store at least one more of that decoration, otherwise 0.
+  # In FRLG, this command does nothing and does not affect 800D.
 ```
 </details>
 
@@ -5535,7 +5897,7 @@ textcolor `color`
 
 Example:
 ```
-textcolor 0
+textcolor 3
 ```
 Notes:
 ```
@@ -5561,7 +5923,16 @@ trainerbattle 0 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 0 GRUNT~50 3 <auto> <auto>
+trainerbattle 03 MAY~11 0 <167BD5>
+{
+... ... ... ... ... ... ... ...
+
+I remember the battle I had with you,
+[player]\\05, on ROUTE 103.
+
+That battle helped you become this
+strong, [player]\\05, didn't it?
+}
 ```
 
 trainerbattle 1 `trainer` `arg` `start` `playerwin` `winscript`
@@ -5578,7 +5949,10 @@ trainerbattle 1 `trainer` `arg` `start` `playerwin` `winscript`
 
 Example:
 ```
-trainerbattle 1 DIANA 1 <auto> <auto> <section1>
+trainerbattle 03 BRENDAN 0 <16D836>
+{
+Huh, [player], you're not too shabby.
+}
 ```
 Notes:
 ```
@@ -5599,7 +5973,19 @@ trainerbattle 2 `trainer` `arg` `start` `playerwin` `winscript`
 
 Example:
 ```
-trainerbattle 2 GRUNT~45 1 <auto> <auto> <section1>
+trainerbattle 04 "AMY & LIV" 0 <1B7EFB> <1B7F20> <1B7F8E>
+{
+LIV: We battle together as one
+team.
+}
+{
+LIV: Oh, we lost, big sister...
+}
+{
+LIV: If you want to battle us, you
+have to have two POKéMON!
+It's not fair if you don't!
+}
 ```
 Notes:
 ```
@@ -5616,7 +6002,10 @@ trainerbattle 3 `trainer` `arg` `playerwin`
 
 Example:
 ```
-trainerbattle 3 CHESTER~2 0 <auto>
+trainerbattle 03 BRENDAN~7 0 <16D836>
+{
+Huh, [player], you're not too shabby.
+}
 ```
 Notes:
 ```
@@ -5637,7 +6026,16 @@ trainerbattle 4 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-trainerbattle 4 DUSTY 2 <auto> <auto> <auto>
+trainerbattle 00 CALVIN 0 <1B79C3> <1B7A2C>
+{
+If you have POKéMON with you, then
+you're an official POKéMON TRAINER!
+You can't say no to my challenge!
+}
+{
+Arrgh, I lost...
+I should have trained mine more...
+}
 ```
 Notes:
 ```
@@ -5656,7 +6054,14 @@ trainerbattle 5 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 5 ALICIA~4 3 <auto> <auto>
+trainerbattle 03 BRENDAN~10 0 <1680E4>
+{
+Humph...
+You've done a lot of raising.
+
+That stings a bit - I had a head start
+on you as a TRAINER...
+}
 ```
 Notes:
 ```
@@ -5679,7 +6084,16 @@ trainerbattle 6 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `conti
 
 Example:
 ```
-trainerbattle 6 GRUNT~41 2 <auto> <auto> <auto> <section1>
+trainerbattle 03 MAY~11 0 <167BD5>
+{
+... ... ... ... ... ... ... ...
+
+I remember the battle I had with you,
+[player]\\05, on ROUTE 103.
+
+That battle helped you become this
+strong, [player]\\05, didn't it?
+}
 ```
 Notes:
 ```
@@ -5700,7 +6114,16 @@ trainerbattle 7 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-trainerbattle 7 DARRIN~2 0 <auto> <auto> <auto>
+trainerbattle 00 TIANA 0 <1B7C97> <1B7CEC>
+{
+I'm going to keep winning and aim
+to be the best TRAINER.
+
+Help me further my career!
+}
+{
+I ended up furthering your career...
+}
 ```
 Notes:
 ```
@@ -5723,7 +6146,16 @@ trainerbattle 8 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `conti
 
 Example:
 ```
-trainerbattle 8 GRUNT~22 3 <auto> <auto> <auto> <section1>
+trainerbattle 00 TIANA 0 <1B7C97> <1B7CEC>
+{
+I'm going to keep winning and aim
+to be the best TRAINER.
+
+Help me further my career!
+}
+{
+I ended up furthering your career...
+}
 ```
 Notes:
 ```
@@ -5742,7 +6174,10 @@ trainerbattle 9 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 9 TERRY~21 2 <auto> <auto>
+trainerbattle 03 BRENDAN 0 <16D836>
+{
+Huh, [player], you're not too shabby.
+}
 ```
 Notes:
 ```
@@ -5763,7 +6198,14 @@ trainerbattle `other` `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-trainerbattle 3 ~85 2 <auto> <auto>
+trainerbattle 03 BRENDAN~12 0 <1680E4>
+{
+Humph...
+You've done a lot of raising.
+
+That stings a bit - I had a head start
+on you as a TRAINER...
+}
 ```
 Notes:
 ```
@@ -5795,7 +6237,7 @@ trainerhill.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-trainerhill.battle RAUL <auto> <auto>
+trainerhill.battle ARCHIE <auto> <auto>
 ```
 Notes:
 ```
@@ -5857,7 +6299,7 @@ tutorial.battle `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-tutorial.battle DILLON <auto> <auto>
+tutorial.battle GRUNT <auto> <auto>
 ```
 Notes:
 ```
@@ -5883,7 +6325,16 @@ tutorial.battle.canlose `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-tutorial.battle.canlose GRUNT~13 <auto> <auto>
+tutorial.battle.canlose TERRY~2 <18DDEA> <18DE1A>
+{
+WHAT?
+Unbelievable!
+I picked the wrong POKéMON!
+}
+{
+[rival]: Yeah!
+Am I great or what?
+}
 ```
 Notes:
 ```
@@ -5925,7 +6376,7 @@ updatecoins `x` `y`
 
 Example:
 ```
-updatecoins 4 3
+updatecoins 0 0
 ```
 Notes:
 ```
@@ -5949,7 +6400,7 @@ updatemoney `x` `y`
 
 Example:
 ```
-updatemoney 4 1
+updatemoney 0 0 0
 ```
 Notes:
 ```
@@ -5968,7 +6419,7 @@ updatemoney `x` `y` `check`
 
 Example:
 ```
-updatemoney 2 4 2
+updatemoney 0 0 0
 ```
 Notes:
 ```
@@ -5990,7 +6441,7 @@ virtualbuffer `buffer` `text`
 
 Example:
 ```
-virtualbuffer buffer2 <F00000>
+virtualbuffer buffer1 <F00000>
 
 ```
 Notes:
@@ -6029,7 +6480,7 @@ virtualcallif `condition` `destination`
 
 Example:
 ```
-virtualcallif 0 <F00000>
+virtualcallif 4 <F00000>
 
 ```
 </details>
@@ -6141,7 +6592,7 @@ waitfanfare
 ```
 Notes:
 ```
-  # blocks script execution until any playing fanfare finishes
+  # blocks script execution until any playing fanfare should have finished, according to its length in the fanfare table
 ```
 </details>
 
@@ -6179,7 +6630,8 @@ waitmovement 0
 ```
 Notes:
 ```
-  # block further script execution until the npc movement is completed
+  # block further script execution until the npc movement is completed.
+  # 'npc' can be a variable, or 0 to signify the last NPC with a movement applied.
 ```
 </details>
 
@@ -6199,11 +6651,12 @@ waitmovement2 `npc` `bank` `map`
 
 Example:
 ```
-waitmovement2 2 4 1
+waitmovement2 2 0 0
 ```
 Notes:
 ```
-  # like waitmovement, but has extra parameters for a specifiable map.
+  # like waitmovement, but does not assume the map that the NPC is from is the current map.
+  # probably useful for using FRLG clone NPCs in cutscenes?
 ```
 </details>
 
@@ -6239,7 +6692,7 @@ waitsound
 ```
 Notes:
 ```
-  # blocks script execution until any playing sounds finish
+  # blocks script execution until any playing sound effects finish (excluding special looping ones used in battle)
 ```
 </details>
 
@@ -6257,7 +6710,7 @@ waitstate
 ```
 Notes:
 ```
-  # blocks the script until it gets unblocked by a command or some ASM code.
+  # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
 ```
 </details>
 
@@ -6281,12 +6734,85 @@ warp `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp 0 0 1 3 0
+warp 25 24 256 6 8
 ```
 Notes:
 ```
-  # sends player to mapbank/map at tile 'warp'. If warp is FF, uses x/y instead
-  # does it terminate script execution?
+  # sends player to mapbank/map at tile 'warp'. If warp is negative or out of range, uses x/y instead, or the middle of the map if those are negative as well
+  # x and y can be variables
+  # blocks script execution and, after a few frames, resets the script runner state, ending the current script
+```
+</details>
+
+## warp.center
+
+<details>
+<summary> warp.center</summary>
+
+
+warp.center `mapbank` `map`
+
+*  `mapbank` is a number.
+
+*  `map` is a number.
+
+Example:
+```
+warp.center 0 0
+```
+Notes:
+```
+  # Sends player to the middle of another map.
+```
+</details>
+
+## warp.towarp
+
+<details>
+<summary> warp.towarp</summary>
+
+
+warp.towarp `mapbank` `map` `warp`
+
+*  `mapbank` is a number.
+
+*  `map` is a number.
+
+*  `warp` is a number.
+
+Example:
+```
+warp.towarp 4 1 4
+```
+Notes:
+```
+  # Sends player to warp on another map.
+```
+</details>
+
+## warp.xy
+
+<details>
+<summary> warp.xy</summary>
+
+
+warp.xy `mapbank` `map` `x` `y`
+
+*  `mapbank` is a number.
+
+*  `map` is a number.
+
+*  `x` is a number.
+
+*  `y` is a number.
+
+Example:
+```
+warp.xy 25 28 7 5
+```
+Notes:
+```
+  # Sends player to an x/y position on another map.
 ```
 </details>
 
@@ -6310,11 +6836,12 @@ warp3 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp3 0 1 0 3 3
+warp3 25 38 256 7 5
 ```
 Notes:
 ```
   # Sets the map & coordinates for the player to go to in conjunction with specific "special" commands.
+  # x and y can be variables, as with other warp commands.
 ```
 </details>
 
@@ -6338,7 +6865,7 @@ warp4 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp4 4 2 2 4 1
+warp4 24 26 256 6 5
 ```
 Notes:
 ```
@@ -6366,7 +6893,7 @@ warp5 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp5 2 1 4 0 1
+warp5 24 15 256 0 0
 ```
 Notes:
 ```
@@ -6394,7 +6921,7 @@ warp6 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp6 1 1 1 0 0
+warp6 0 27 255 28 28
 ```
 Notes:
 ```
@@ -6424,7 +6951,7 @@ warp7 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warp7 4 1 0 2 4
+warp7 14 0 255 7 30
 ```
 Notes:
 ```
@@ -6454,7 +6981,7 @@ warp8 `bank` `map` `exit` `x` `y`
 
 Example:
 ```
-warp8 0 4 3 1 1
+warp8 0 7 255 43 32
 ```
 Notes:
 ```
@@ -6476,11 +7003,12 @@ warphole `mapbank` `map`
 
 Example:
 ```
-warphole 3 0
+warphole 1 112
 ```
 Notes:
 ```
-  # hole effect. Sends the player to same X/Y as on the map they started on.
+  # similar to warp, but with a falling-down-a-hole effect. Sends the player to same X/Y as on the map they started on.
+  # If 'mapbank' and 'map' are 127 127, goes to the map selected by warp5, or to the warp used to enter the current room if warp5 was not used.
 ```
 </details>
 
@@ -6504,11 +7032,11 @@ warpmuted `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warpmuted 3 1 0 0 3
+warpmuted 26 15 256 10 3
 ```
 Notes:
 ```
-  # same as warp, but doesn't play sappy song 0009
+  # same as warp, but doesn't play sappy song 0009 (the same as when warping via Dive)
 ```
 </details>
 
@@ -6532,11 +7060,11 @@ warpteleport `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warpteleport 4 1 1 4 1
+warpteleport 14 0 256 14 29
 ```
 Notes:
 ```
-  # teleport effect on a warp. Warping to a door/cave opening causes the player to land on the exact same block as it.
+  # same as warp, but with an effect of stepping onto a warp pad. Warping to a door/cave opening causes the player to land on the exact same block as it.
 ```
 </details>
 
@@ -6562,7 +7090,7 @@ warpteleport2 `bank` `map` `exit` `x` `y`
 
 Example:
 ```
-warpteleport2 3 0 2 3 1
+warpteleport2 0 4 255 7 11
 ```
 Notes:
 ```
@@ -6590,11 +7118,11 @@ warpwalk `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-warpwalk 2 3 4 4 3
+warpwalk 8 1 256 0x8008 0x8009
 ```
 Notes:
 ```
-  # same as warp, but with a walking to an opening door effect
+  # same as warp, but with a walking and door-opening effect
 ```
 </details>
 
@@ -6614,7 +7142,7 @@ wild.battle `species` `level` `item`
 
 Example:
 ```
-wild.battle MACHOKE 2 ????????~3
+wild.battle HYPNO 30 ????????
 ```
 Notes:
 ```
@@ -6636,7 +7164,7 @@ writebytetooffset `value` `offset`
 
 Example:
 ```
-writebytetooffset 4 0x05
+writebytetooffset 4 0x0B
 ```
 Notes:
 ```
@@ -6658,7 +7186,7 @@ yesnobox `x` `y`
 
 Example:
 ```
-yesnobox 3 3
+yesnobox 20 8
 ```
 Notes:
 ```
@@ -7178,7 +7706,7 @@ special BufferMoveDeleterNicknameAndMove
 
 Example Usage:
 ```
-special BufferQuizAuthorNameAndCheckIfLady
+special2 0x800D BufferQuizAuthorNameAndCheckIfLady
 ```
 </details>
 
@@ -7633,7 +8161,7 @@ special CheckAddCoins
 
 Example Usage:
 ```
-special CheckDaycareMonReceivedMail
+special2 0x800D CheckDaycareMonReceivedMail
 ```
 </details>
 
@@ -7672,7 +8200,7 @@ special CheckForPlayersHouseNews
 
 Example Usage:
 ```
-special CheckFreePokemonStorageSpace
+special2 0x800D CheckFreePokemonStorageSpace
 ```
 </details>
 
@@ -7776,7 +8304,7 @@ special CheckInteractedWithFriendsSandOrnament
 
 Example Usage:
 ```
-special CheckLeadMonBeauty
+special2 0x800D CheckLeadMonBeauty
 ```
 </details>
 
@@ -7789,7 +8317,7 @@ special CheckLeadMonBeauty
 
 Example Usage:
 ```
-special CheckLeadMonCool
+special2 0x800D CheckLeadMonCool
 ```
 </details>
 
@@ -7802,7 +8330,7 @@ special CheckLeadMonCool
 
 Example Usage:
 ```
-special CheckLeadMonCute
+special2 0x800D CheckLeadMonCute
 ```
 </details>
 
@@ -7815,7 +8343,7 @@ special CheckLeadMonCute
 
 Example Usage:
 ```
-special CheckLeadMonSmart
+special2 0x800D CheckLeadMonSmart
 ```
 </details>
 
@@ -7828,7 +8356,7 @@ special CheckLeadMonSmart
 
 Example Usage:
 ```
-special CheckLeadMonTough
+special2 0x800D CheckLeadMonTough
 ```
 </details>
 
@@ -7867,7 +8395,7 @@ special CheckPlayerHasSecretBase
 
 Example Usage:
 ```
-special CheckRelicanthWailord
+special2 0x800D CheckRelicanthWailord
 ```
 </details>
 
@@ -8285,7 +8813,7 @@ special CompareShroomishSize
 
 Example Usage:
 ```
-special CompletedHoennPokedex
+special2 0x800D CompletedHoennPokedex
 ```
 </details>
 
@@ -8324,7 +8852,7 @@ special CopyEReaderTrainerGreeting
 
 Example Usage:
 ```
-special CountAlivePartyMonsExceptSelectedOne
+special2 0x800D CountAlivePartyMonsExceptSelectedOne
 ```
 </details>
 
@@ -8337,7 +8865,7 @@ special CountAlivePartyMonsExceptSelectedOne
 
 Example Usage:
 ```
-special CountPartyAliveNonEggMons
+special2 0x800D CountPartyAliveNonEggMons
 ```
 </details>
 
@@ -8376,7 +8904,7 @@ special2 0x800D CountPartyNonEggMons
 
 Example Usage:
 ```
-special CountPlayerMuseumPaintings
+special2 0x8004 CountPlayerMuseumPaintings
 ```
 </details>
 
@@ -8389,7 +8917,7 @@ special CountPlayerMuseumPaintings
 
 Example Usage:
 ```
-special CountPlayerTrainerStars
+special2 0x800D CountPlayerTrainerStars
 ```
 </details>
 
@@ -8467,7 +8995,7 @@ special DaisyMassageServices
 
 Example Usage:
 ```
-special DaycareMonReceivedMail
+special2 0x800D DaycareMonReceivedMail
 ```
 </details>
 
@@ -8532,7 +9060,7 @@ special DetermineBattleTowerPrize
 
 Example Usage:
 ```
-special DidFavorLadyLikeItem
+special2 0x800D DidFavorLadyLikeItem
 ```
 </details>
 
@@ -9301,7 +9829,7 @@ special FadeOutOrbEffect
 
 Example Usage:
 ```
-special FavorLadyGetPrize
+special2 0x8004 FavorLadyGetPrize
 ```
 </details>
 
@@ -9379,7 +9907,7 @@ special ForcePlayerToStartSurfing
 
 Example Usage:
 ```
-special FoundAbandonedShipRoom1Key
+special2 0x800D FoundAbandonedShipRoom1Key
 ```
 </details>
 
@@ -9392,7 +9920,7 @@ special FoundAbandonedShipRoom1Key
 
 Example Usage:
 ```
-special FoundAbandonedShipRoom2Key
+special2 0x800D FoundAbandonedShipRoom2Key
 ```
 </details>
 
@@ -9405,7 +9933,7 @@ special FoundAbandonedShipRoom2Key
 
 Example Usage:
 ```
-special FoundAbandonedShipRoom4Key
+special2 0x800D FoundAbandonedShipRoom4Key
 ```
 </details>
 
@@ -9418,7 +9946,7 @@ special FoundAbandonedShipRoom4Key
 
 Example Usage:
 ```
-special FoundAbandonedShipRoom6Key
+special2 0x800D FoundAbandonedShipRoom6Key
 ```
 </details>
 
@@ -9431,7 +9959,7 @@ special FoundAbandonedShipRoom6Key
 
 Example Usage:
 ```
-special FoundBlackGlasses
+special2 0x800D FoundBlackGlasses
 ```
 </details>
 
@@ -9470,7 +9998,7 @@ special GabbyAndTyBeforeInterview
 
 Example Usage:
 ```
-special GabbyAndTyGetBattleNum
+special2 0x800D GabbyAndTyGetBattleNum
 ```
 </details>
 
@@ -9483,7 +10011,7 @@ special GabbyAndTyGetBattleNum
 
 Example Usage:
 ```
-special GabbyAndTyGetLastBattleTrivia
+special2 0x800D GabbyAndTyGetLastBattleTrivia
 ```
 </details>
 
@@ -9496,7 +10024,7 @@ special GabbyAndTyGetLastBattleTrivia
 
 Example Usage:
 ```
-special GabbyAndTyGetLastQuote
+special2 0x800D GabbyAndTyGetLastQuote
 ```
 </details>
 
@@ -9548,7 +10076,7 @@ special GenerateContestRand
 
 Example Usage:
 ```
-special GetAbnormalWeatherMapNameAndType
+special2 0x800D GetAbnormalWeatherMapNameAndType
 ```
 </details>
 
@@ -9613,7 +10141,7 @@ special GetBattlePyramidHint
 
 Example Usage:
 ```
-special GetBestBattleTowerStreak
+special2 0x800D GetBestBattleTowerStreak
 ```
 </details>
 
@@ -9639,7 +10167,7 @@ special GetContestantNamesAtRank
 
 Example Usage:
 ```
-special GetContestLadyCategory
+special2 0x800D GetContestLadyCategory
 ```
 </details>
 
@@ -9808,7 +10336,7 @@ special2 0x800D GetDaycareState
 
 Example Usage:
 ```
-special GetDaysUntilPacifidlogTMAvailable
+special2 0x800D GetDaysUntilPacifidlogTMAvailable
 ```
 </details>
 
@@ -9821,7 +10349,7 @@ special GetDaysUntilPacifidlogTMAvailable
 
 Example Usage:
 ```
-special GetDeptStoreDefaultFloorChoice
+special2 0x800D GetDeptStoreDefaultFloorChoice
 ```
 </details>
 
@@ -9860,7 +10388,7 @@ special GetElevatorFloor
 
 Example Usage:
 ```
-special GetFavorLadyState
+special2 0x800D GetFavorLadyState
 ```
 </details>
 
@@ -9873,7 +10401,7 @@ special GetFavorLadyState
 
 Example Usage:
 ```
-special GetFirstFreePokeblockSlot
+special2 0x800D GetFirstFreePokeblockSlot
 ```
 </details>
 
@@ -9886,7 +10414,7 @@ special GetFirstFreePokeblockSlot
 
 Example Usage:
 ```
-special GetFrontierBattlePoints
+special2 0x4001 GetFrontierBattlePoints
 ```
 </details>
 
@@ -9951,7 +10479,7 @@ special2 0x800D GetLeadMonFriendship
 
 Example Usage:
 ```
-special GetLeadMonFriendshipScore
+special2 0x800D GetLeadMonFriendshipScore
 ```
 </details>
 
@@ -9977,7 +10505,7 @@ special GetLilycoveSSTidalSelection
 
 Example Usage:
 ```
-special GetLinkPartnerNames
+special2 0x800D GetLinkPartnerNames
 ```
 </details>
 
@@ -10081,7 +10609,7 @@ special GetMysteryEventCardVal
 
 Example Usage:
 ```
-special GetNameOfEnigmaBerryInPlayerParty
+special2 0x800D GetNameOfEnigmaBerryInPlayerParty
 ```
 </details>
 
@@ -10133,7 +10661,7 @@ special GetNpcContestantLocalId
 
 Example Usage:
 ```
-special GetNumFansOfPlayerInTrainerFanClub
+special2 0x800D GetNumFansOfPlayerInTrainerFanClub
 ```
 </details>
 
@@ -10172,7 +10700,7 @@ special2 0x800D GetNumLevelsGainedFromDaycare
 
 Example Usage:
 ```
-special GetNumMovedLilycoveFanClubMembers
+special2 0x800D GetNumMovedLilycoveFanClubMembers
 ```
 </details>
 
@@ -10198,7 +10726,7 @@ special GetNumMovesSelectedMonHas
 
 Example Usage:
 ```
-special GetNumValidDaycarePartyMons
+special2 0x800D GetNumValidDaycarePartyMons
 ```
 </details>
 
@@ -10252,7 +10780,7 @@ special2 0x800D GetPCBoxToSendMon
 
 Example Usage:
 ```
-special GetPlayerAvatarBike
+special2 0x800D GetPlayerAvatarBike
 ```
 </details>
 
@@ -10291,7 +10819,7 @@ special2 0x800D GetPlayerFacingDirection
 
 Example Usage:
 ```
-special GetPlayerTrainerIdOnesDigit
+special2 0x800D GetPlayerTrainerIdOnesDigit
 ```
 </details>
 
@@ -10330,7 +10858,7 @@ special GetPokeblockFeederInFront
 
 Example Usage:
 ```
-special GetPokeblockNameByMonNature
+special2 0x800D GetPokeblockNameByMonNature
 ```
 </details>
 
@@ -10382,7 +10910,7 @@ special GetQuestLogState
 
 Example Usage:
 ```
-special GetQuizAuthor
+special2 0x800D GetQuizAuthor
 ```
 </details>
 
@@ -10395,7 +10923,7 @@ special GetQuizAuthor
 
 Example Usage:
 ```
-special GetQuizLadyState
+special2 0x800D GetQuizLadyState
 ```
 </details>
 
@@ -10434,7 +10962,7 @@ special2 0x800D GetRandomSlotMachineId
 
 Example Usage:
 ```
-special GetRecordedCyclingRoadResults
+special2 0x800D GetRecordedCyclingRoadResults
 ```
 </details>
 
@@ -10525,7 +11053,7 @@ special GetSeedotSizeRecordInfo
 
 Example Usage:
 ```
-special GetSelectedDaycareMonNickname
+special2 0x8005 GetSelectedDaycareMonNickname
 ```
 </details>
 
@@ -10603,7 +11131,7 @@ special GetShroomishSizeRecordInfo
 
 Example Usage:
 ```
-special GetSlotMachineId
+special2 0x800D GetSlotMachineId
 ```
 </details>
 
@@ -10681,7 +11209,7 @@ special GetTVShowType
 
 Example Usage:
 ```
-special GetWeekCount
+special2 0x800D GetWeekCount
 ```
 </details>
 
@@ -10759,7 +11287,7 @@ special GiveLeadMonEffortRibbon
 
 Example Usage:
 ```
-special GiveMonArtistRibbon
+special2 0x800D GiveMonArtistRibbon
 ```
 </details>
 
@@ -10811,7 +11339,7 @@ special HallOfFamePCBeginFade
 
 Example Usage:
 ```
-special HasAllHoennMons
+special2 0x800D HasAllHoennMons
 ```
 </details>
 
@@ -10850,7 +11378,7 @@ special2 0x800D HasAllMons
 
 Example Usage:
 ```
-special HasAnotherPlayerGivenFavorLadyItem
+special2 0x800D HasAnotherPlayerGivenFavorLadyItem
 ```
 </details>
 
@@ -10876,7 +11404,7 @@ special HasAtLeastOneBerry
 
 Example Usage:
 ```
-special HasEnoughBerryPowder
+special2 0x800D HasEnoughBerryPowder
 ```
 </details>
 
@@ -10889,7 +11417,7 @@ special HasEnoughBerryPowder
 
 Example Usage:
 ```
-special HasEnoughMoneyFor
+special2 0x800D HasEnoughMoneyFor
 ```
 </details>
 
@@ -10941,7 +11469,7 @@ special2 0x800D HasLearnedAllMovesFromCapeBrinkTutor
 
 Example Usage:
 ```
-special HasMonWonThisContestBefore
+special2 0x800D HasMonWonThisContestBefore
 ```
 </details>
 
@@ -10954,7 +11482,7 @@ special HasMonWonThisContestBefore
 
 Example Usage:
 ```
-special HasPlayerGivenContestLadyPokeblock
+special2 0x800D HasPlayerGivenContestLadyPokeblock
 ```
 </details>
 
@@ -11175,7 +11703,7 @@ special2 0x800D IsBadEggInParty
 
 Example Usage:
 ```
-special IsContestDebugActive
+special2 0x800D IsContestDebugActive
 ```
 </details>
 
@@ -11188,7 +11716,7 @@ special IsContestDebugActive
 
 Example Usage:
 ```
-special IsContestWithRSPlayer
+special2 0x800D IsContestWithRSPlayer
 ```
 </details>
 
@@ -11227,7 +11755,7 @@ special IsDodrioInParty
 
 Example Usage:
 ```
-special IsEnigmaBerryValid
+special2 0x800D IsEnigmaBerryValid
 ```
 </details>
 
@@ -11253,7 +11781,7 @@ special2 0x800D IsEnoughForCostInVar0x8005
 
 Example Usage:
 ```
-special IsFanClubMemberFanOfPlayer
+special2 0x800D IsFanClubMemberFanOfPlayer
 ```
 </details>
 
@@ -11266,7 +11794,7 @@ special IsFanClubMemberFanOfPlayer
 
 Example Usage:
 ```
-special IsFavorLadyThresholdMet
+special2 0x800D IsFavorLadyThresholdMet
 ```
 </details>
 
@@ -11318,7 +11846,7 @@ special IsLastMonThatKnowsSurf
 
 Example Usage:
 ```
-special IsLeadMonNicknamedOrNotEnglish
+special2 0x800D IsLeadMonNicknamedOrNotEnglish
 ```
 </details>
 
@@ -11331,7 +11859,7 @@ special IsLeadMonNicknamedOrNotEnglish
 
 Example Usage:
 ```
-special IsMirageIslandPresent
+special2 0x800D IsMirageIslandPresent
 ```
 </details>
 
@@ -11422,7 +11950,7 @@ special IsPokemonJumpSpeciesInParty
 
 Example Usage:
 ```
-special IsPokerusInParty
+special2 0x800D IsPokerusInParty
 ```
 </details>
 
@@ -11435,7 +11963,7 @@ special IsPokerusInParty
 
 Example Usage:
 ```
-special IsQuizAnswerCorrect
+special2 0x800D IsQuizAnswerCorrect
 ```
 </details>
 
@@ -11448,7 +11976,7 @@ special IsQuizAnswerCorrect
 
 Example Usage:
 ```
-special IsQuizLadyWaitingForChallenger
+special2 0x800D IsQuizLadyWaitingForChallenger
 ```
 </details>
 
@@ -11487,7 +12015,7 @@ special IsStarterFirstStageInParty
 
 Example Usage:
 ```
-special IsStarterInParty
+special2 0x800D IsStarterInParty
 ```
 </details>
 
@@ -11526,7 +12054,7 @@ special2 0x800D IsThereRoomInAnyBoxForMorePokemon
 
 Example Usage:
 ```
-special IsTrainerReadyForRematch
+special2 0x800D IsTrainerReadyForRematch
 ```
 </details>
 
@@ -11539,7 +12067,7 @@ special IsTrainerReadyForRematch
 
 Example Usage:
 ```
-special IsTrainerRegistered
+special2 0x800D IsTrainerRegistered
 ```
 </details>
 
@@ -11604,7 +12132,7 @@ special2 0x800D IsWirelessAdapterConnected
 
 Example Usage:
 ```
-special IsWirelessContest
+special2 0x800D IsWirelessContest
 ```
 </details>
 
@@ -11617,7 +12145,7 @@ special IsWirelessContest
 
 Example Usage:
 ```
-special LeadMonHasEffortRibbon
+special2 0x800D LeadMonHasEffortRibbon
 ```
 </details>
 
@@ -11630,7 +12158,7 @@ special LeadMonHasEffortRibbon
 
 Example Usage:
 ```
-special LeadMonNicknamed
+special2 0x800D LeadMonNicknamed
 ```
 </details>
 
@@ -11877,7 +12405,7 @@ special MauvilleGymSpecial3
 
 Example Usage:
 ```
-special MonOTNameMatchesPlayer
+special2 0x800D MonOTNameMatchesPlayer
 ```
 </details>
 
@@ -11890,7 +12418,7 @@ special MonOTNameMatchesPlayer
 
 Example Usage:
 ```
-special MonOTNameNotPlayer
+special2 0x800D MonOTNameNotPlayer
 ```
 </details>
 
@@ -12280,7 +12808,7 @@ special PlayerFaceTrainerAfterBattle
 
 Example Usage:
 ```
-special PlayerHasBerries
+special2 0x800D PlayerHasBerries
 ```
 </details>
 
@@ -12306,7 +12834,7 @@ special PlayerHasGrassPokemonInParty
 
 Example Usage:
 ```
-special PlayerNotAtTrainerHillEntrance
+special2 0x800D PlayerNotAtTrainerHillEntrance
 ```
 </details>
 
@@ -13047,7 +13575,7 @@ special Script_ClearHeldMovement
 
 Example Usage:
 ```
-special Script_DoesFavorLadyLikeItem
+special2 0x800D Script_DoesFavorLadyLikeItem
 ```
 </details>
 
@@ -13307,7 +13835,7 @@ special Script_UpdateTrainerFanClubGameClear
 
 Example Usage:
 ```
-special ScriptCheckFreePokemonStorageSpace
+special2 0x800D ScriptCheckFreePokemonStorageSpace
 ```
 </details>
 
@@ -13333,7 +13861,7 @@ special ScriptGetMultiplayerId
 
 Example Usage:
 ```
-special ScriptGetPokedexInfo
+special2 0x800D ScriptGetPokedexInfo
 ```
 </details>
 
@@ -13463,7 +13991,7 @@ special ScrollRankingHallRecordsWindow
 
 Example Usage:
 ```
-special ScrSpecial_AreLeadMonEVsMaxedOut
+special2 0x800D ScrSpecial_AreLeadMonEVsMaxedOut
 ```
 </details>
 
@@ -13489,7 +14017,7 @@ special ScrSpecial_BeginCyclingRoadChallenge
 
 Example Usage:
 ```
-special ScrSpecial_CanMonParticipateInSelectedLinkContest
+special2 0x800D ScrSpecial_CanMonParticipateInSelectedLinkContest
 ```
 </details>
 
@@ -13749,7 +14277,7 @@ special ScrSpecial_HasBardSongBeenChanged
 
 Example Usage:
 ```
-special ScrSpecial_HasStorytellerAlreadyRecorded
+special2 0x800D ScrSpecial_HasStorytellerAlreadyRecorded
 ```
 </details>
 
@@ -13983,7 +14511,7 @@ special ScrSpecial_StorytellerDisplayStory
 
 Example Usage:
 ```
-special ScrSpecial_StorytellerGetFreeStorySlot
+special2 0x800D ScrSpecial_StorytellerGetFreeStorySlot
 ```
 </details>
 
@@ -13996,7 +14524,7 @@ special ScrSpecial_StorytellerGetFreeStorySlot
 
 Example Usage:
 ```
-special ScrSpecial_StorytellerInitializeRandomStat
+special2 0x800D ScrSpecial_StorytellerInitializeRandomStat
 ```
 </details>
 
@@ -14022,7 +14550,7 @@ special ScrSpecial_StorytellerStoryListMenu
 
 Example Usage:
 ```
-special ScrSpecial_StorytellerUpdateStat
+special2 0x800D ScrSpecial_StorytellerUpdateStat
 ```
 </details>
 
@@ -14828,7 +15356,7 @@ special ShakeScreenInElevator
 
 Example Usage:
 ```
-special ShouldContestLadyShowGoOnAir
+special2 0x800D ShouldContestLadyShowGoOnAir
 ```
 </details>
 
@@ -14841,7 +15369,7 @@ special ShouldContestLadyShowGoOnAir
 
 Example Usage:
 ```
-special ShouldDistributeEonTicket
+special2 0x800D ShouldDistributeEonTicket
 ```
 </details>
 
@@ -14880,7 +15408,7 @@ special ShouldDoBrailleRegirockEffectOld
 
 Example Usage:
 ```
-special ShouldHideFanClubInterviewer
+special2 0x800D ShouldHideFanClubInterviewer
 ```
 </details>
 
@@ -14893,7 +15421,7 @@ special ShouldHideFanClubInterviewer
 
 Example Usage:
 ```
-special ShouldMoveLilycoveFanClubMember
+special2 0x800D ShouldMoveLilycoveFanClubMember
 ```
 </details>
 
@@ -15530,7 +16058,7 @@ special special_0x44
 
 Example Usage:
 ```
-special Special_AreLeadMonEVsMaxedOut
+special2 0x800D Special_AreLeadMonEVsMaxedOut
 ```
 </details>
 
@@ -16245,7 +16773,7 @@ special sub_80BCE90
 
 Example Usage:
 ```
-special sub_80C5044
+special2 0x800D sub_80C5044
 ```
 </details>
 
@@ -16570,7 +17098,7 @@ special TryBerryBlenderLinkup
 
 Example Usage:
 ```
-special TryBufferWaldaPhrase
+special2 0x800D TryBufferWaldaPhrase
 ```
 </details>
 
@@ -16661,7 +17189,7 @@ special TryFieldPoisonWhiteOut
 
 Example Usage:
 ```
-special TryGetWallpaperWithWaldaPhrase
+special2 0x800D TryGetWallpaperWithWaldaPhrase
 ```
 </details>
 
@@ -16765,7 +17293,7 @@ special TryPutLotteryWinnerReportOnAir
 
 Example Usage:
 ```
-special TryPutNameRaterShowOnTheAir
+special2 0x800D TryPutNameRaterShowOnTheAir
 ```
 </details>
 
@@ -16856,7 +17384,7 @@ special TryTradeLinkup
 
 Example Usage:
 ```
-special TryUpdateRusturfTunnelState
+special2 0x800D TryUpdateRusturfTunnelState
 ```
 </details>
 
@@ -16934,7 +17462,7 @@ special TV_IsScriptShowKindAlreadyInQueue
 
 Example Usage:
 ```
-special TV_PutNameRaterShowOnTheAirIfNicnkameChanged
+special2 0x800D TV_PutNameRaterShowOnTheAirIfNicnkameChanged
 ```
 </details>
 
