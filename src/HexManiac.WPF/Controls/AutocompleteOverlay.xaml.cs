@@ -85,7 +85,15 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          } else if (DataContext is StreamElementViewModel streamViewModel) {
             getAutocomplete = streamViewModel.GetAutoCompleteOptions;
          } else if (DataContext is ObjectEventViewModel mapObjectViewModel) {
-            getAutocomplete = mapObjectViewModel.GetMartAutocomplete;
+            if (mapObjectViewModel.ShowMartContents) {
+               getAutocomplete = mapObjectViewModel.GetMartAutocomplete;
+            } else if (mapObjectViewModel.ShowTrainerContent) {
+               getAutocomplete = mapObjectViewModel.GetTrainerAutocomplete;
+            } else {
+               throw new NotImplementedException();
+            }
+         } else if (DataContext is TrainerTeamViewModel team) {
+            getAutocomplete = team.GetTrainerAutocomplete;
          } else if (DataContext is CodeBody body) {
             getAutocomplete = body.GetTokenComplete;
          } else {

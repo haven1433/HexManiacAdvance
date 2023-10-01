@@ -367,6 +367,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
+      #region Rematch Trainer
+
+      public static RematchTrainerEventContent GetRematchTrainerContent(IDataModel model, ScriptParser parser, ObjectEventViewModel eventModel) {
+         if (eventModel.ScriptAddress < 0) return null;
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { eventModel.ScriptAddress }, 0x5C);
+         var rematchCount = spots.Count(spot => ((int)model[spot.Address + 1]).IsAny(5, 7));
+         var trainers = spots.Select(spot => model.ReadMultiByteValue(spot.Address + 2, 2)).Distinct().ToList();
+         if (rematchCount != 1 || trainers.Count != 1) return null;
+         return new(trainers[0]);
+      }
+
+      #endregion
+
       #region NPC
 
       public void CreateNPC(ObjectEventViewModel eventModel, ModelDelta token) {
@@ -1084,6 +1097,8 @@ end
    }
 
    public record TrainerEventContent(int BeforeTextPointer, int WinTextPointer, int AfterTextPointer, int TrainerClassAddress, int TrainerIndex, int TrainerIndexAddress, int TrainerNameAddress, int TeamPointer);
+
+   public record RematchTrainerEventContent(int TrainerID); // needed for 'simplify' button: before text, win text, after text
 
    public record MartEventContent(int HelloPointer, int MartPointer, int GoodbyePointer);
 
