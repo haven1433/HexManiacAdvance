@@ -260,6 +260,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          RequestShowSearchResult.Raise(this, new HashSet<(int, int)> { (destination, destination) });
       }
 
+      // TODO 'FindUses' for Enum values? Just duplicate the 'Show Uses' logic from the table tool?
+
       private StubCommand findUsesCommand, gotoSourceCommand, gotoAddressCommand;
       public ICommand FindUsesCommand => StubCommand(ref findUsesCommand, FindUses, () => CanFindUses);
       public ICommand GotoSourceCommand => StubCommand(ref gotoSourceCommand, GotoSource, () => CanGotoSource);
