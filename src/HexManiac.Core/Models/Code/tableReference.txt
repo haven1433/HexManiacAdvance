@@ -233,6 +233,8 @@ data.pokemon.trades,                         ,       ,       ,       ,       ,  
 data.pokemon.moves.details.mimic.metronome.forbidden,  0276D4, 0276D4, 0276D4, 0276D4, 029570, 029570, 029584, 029584, 0522F8, [move:data.pokemon.moves.names]!FFFF
 data.pokemon.moves.details.protect.successrate,        025210, 025210, 025210, 025210, 027048, 027048, 02705C, 02705C, 04FE6C, [rate:]4
 data.pokemon.frontier.banned,                ,       ,       ,       ,       ,       ,       ,       , 1A3FCC, [species:data.pokemon.names]!FFFF
+data.pokemon.friendship.changes,             ,       ,       ,       , 04388C, 04388C, 0438A0, 0438A0,       , [lowFriendshipChange.|z mediumFriendshipChange.|z highFriendshipChange.|z]friendshipevents
+
 data.abilities.pickup.items,           02AFB8, 02AFB8, 02AFB8, 02AFB8,       ,       ,       ,       ,       , [item:data.items.stats chance:]10
 data.abilities.pickup.items,                 ,       ,       ,       , 02CEE4, 02CEE4, 02CEF8, 02CEF8,       , [item:data.items.stats chance:]data.abilities.pickup.length
 data.abilities.pickup.items,                 ,       ,       ,       ,       ,       ,       ,       , 055DF4, [item:data.items.stats]18
