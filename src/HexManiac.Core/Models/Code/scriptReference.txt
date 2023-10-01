@@ -78,8 +78,9 @@ move.camera 4F 7F 00 data<`move`> 51 00 00      # Moves the camera (NPC object #
 move.npc    4F npc: data<`move`> 51 00 00       # Moves an overworld NPC with ID 'npc' according to the specified movement commands in the 'data' pointer.
                                                 # This macro assumes using "waitmovement 0" instead of "waitmovement npc".
 
-warp.xy     39 mapbank. map. FF x: y:             # Warps to an x/y position on another map.
-warp.towarp 39 mapbank. map. warp.-1 00 00 00 00  # Warps to a warp on another map.
+warp.center 39 mapbank. map. FF FF FF FF FF       # Sends player to the middle of another map.
+warp.xy     39 mapbank. map. FF x: y:             # Sends player to an x/y position on another map.
+warp.towarp 39 mapbank. map. warp.-1 00 00 00 00  # Sends player to warp on another map.
 
 # Trainer battle macros (assume a localID (arg) parameter of 0)
 single.battle                       5C 00 trainer:data.trainers.stats 00 00 start<""> playerwin<"">                    # trainerbattle 00: Default trainer battle command.
