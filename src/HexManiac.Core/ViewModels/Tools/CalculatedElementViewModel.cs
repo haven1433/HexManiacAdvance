@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models.Runs;
+﻿using HavenSoft.HexManiac.Core.Models;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.ObjectModel;
@@ -6,17 +7,25 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CalculatedElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private IDataModel model;
       private ArrayRunCalculatedSegment segment;
       private int dataStart;
 
       public string Name => segment.Name;
-      public double CalculatedValue {
+      public string CalculatedValue {
          get {
             var table = segment.Model.GetNextRun(dataStart) as ITableRun;
-            if (table == null) return 0;
+            if (table == null) return string.Empty;
             var offset = table.ConvertByteOffsetToArrayOffset(dataStart);
             var value = segment.CalculatedValue(table.Start + table.ElementLength * offset.ElementIndex);
-            return value;
+
+            var text = value.ToString();
+            if (value == (int)value && segment.Enum != null) {
+               var options = model.GetOptions(segment.Enum);
+               if (value.InRange(0, options.Count)) text = options[(int)value];
+            }
+
+            return text;
          }
       }
       public ObservableCollection<CalculatedElementViewModelOperand> Operands { get; private set; }
@@ -25,6 +34,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public CalculatedElementViewModel(IViewPort viewPort, ArrayRunCalculatedSegment segment, int start) {
          (this.segment, dataStart) = (segment, start);
+         this.model = viewPort.Model;
          Operands = new ObservableCollection<CalculatedElementViewModelOperand>();
          foreach (var operand in segment.Operands) Operands.Add(new CalculatedElementViewModelOperand(operand, viewPort, start));
       }
@@ -43,6 +53,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool TryCopy(IArrayElementViewModel other) {
          if (!(other is CalculatedElementViewModel that)) return false;
          (segment, dataStart) = (that.segment, that.dataStart);
+         this.model = that.model;
          Operands.Clear();
          foreach (var operand in that.Operands) Operands.Add(operand);
          NotifyPropertiesChanged(nameof(Name), nameof(CalculatedValue), nameof(Operator), nameof(HasOperator));

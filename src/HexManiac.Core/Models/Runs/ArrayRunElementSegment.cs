@@ -777,11 +777,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<string> Operands { get; }
       public string Operator { get; }
       public bool HasOperator => !string.IsNullOrEmpty(Operator);
+      public string Enum { get; }
 
-      public override string SerializeFormat => Name + "|=" + Operator.Join(Operands);
+      public override string SerializeFormat => Name + "|=" + Operator.Join(Operands) + EnumPostfix;
+      private string EnumPostfix => Enum != null ? "|" + Enum : string.Empty;
 
       public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
          Model = model;
+         if (contract.Contains("|")) {
+            var parts = contract.Split("|");
+            (contract, Enum) = (parts[0], parts[1]);
+         }
+
          if (contract.Contains("*")) {
             var parts = contract.Split('*');
             Operands = parts;
@@ -794,6 +801,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var parts = contract.Split('÷');
             Operands = parts;
             Operator = "÷";
+         } else if (contract.Contains("%")) {
+            var parts = contract.Split('%');
+            Operands = parts;
+            Operator = "%";
          } else {
             Operands = new[] { contract };
             Operator = string.Empty;
@@ -810,6 +821,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
             case "÷": return values.Aggregate((a, b) => b == 0 ? 0 : a / b);
+            case "%": return ((int)values[0]) % ((int)values[1]);
             default:  return values.First();
          }
       }
