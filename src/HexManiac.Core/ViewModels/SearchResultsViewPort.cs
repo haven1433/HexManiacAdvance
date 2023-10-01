@@ -273,8 +273,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // compensate by scrolling slightly
             if (parent.Height == Height) parent.ScrollValue += 3;
          } else {
-            var dataOffset = Math.Max(0, child.DataOffset - (y - line) * child.Width);
+            var dataOffset = Math.Max(0, child.DataOffset);
             parent.Goto.Execute(dataOffset.ToString("X6"));
+            parent.ScrollValue += line - y;
          }
 
          if (parent is ViewPort viewPort) {

@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -6,7 +7,6 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
-using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
@@ -14,6 +14,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -513,7 +514,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          get => element.GetValue("trainerType");
          set {
             element.SetValue("trainerType", value);
-            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(ShowTrainerContent));
+            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(ShowTrainerContent), nameof(ShowRematchTrainerContent), nameof(ShowNoContent));
             NotifyPropertyChanged();
          }
       }
@@ -550,6 +551,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                nameof(ShowItemContents), nameof(ItemContents),
                nameof(ShowNpcText), nameof(NpcTextEditor),
                nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
+               nameof(ShowRematchTrainerContent),
                nameof(ShowMartContents), nameof(MartHelloEditor), nameof(MartContent), nameof(MartGoodbyeEditor),
                nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
                nameof(ShowTradeContent), nameof(TradeFailedEditor), nameof(TradeIndex), nameof(TradeInitialEditor), nameof(TradeSuccessEditor), nameof(TradeThanksEditor), nameof(TradeWrongSpeciesEditor),
@@ -601,6 +603,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                nameof(ShowItemContents), nameof(ItemContents),
                nameof(ShowNpcText), nameof(NpcTextEditor),
                nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
+               nameof(ShowRematchTrainerContent),
                nameof(ShowMartContents), nameof(MartHelloEditor), nameof(MartContent), nameof(MartGoodbyeEditor),
                nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
                nameof(ShowTradeContent), nameof(TradeFailedEditor), nameof(TradeIndex), nameof(TradeInitialEditor), nameof(TradeSuccessEditor), nameof(TradeThanksEditor), nameof(TradeWrongSpeciesEditor),
@@ -808,6 +811,87 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static ComboOption CreateOption(IReadOnlyList<string> classOptions, int index, int trainerClass, string name) => new($"{index} - {classOptions[trainerClass.LimitToRange(0, classOptions.Count - 1)]} {name}", index);
 
       private ComboOption CreateOption(int index, int trainerClass, string name) => CreateOption(ClassOptions, index, trainerClass, name);
+
+      public IReadOnlyList<AutocompleteItem> GetTrainerAutocomplete(string line, int lineIndex, int characterIndex) {
+         var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
+         if (trainerContent == null) return null;
+         var address = element.Model.ReadPointer(trainerContent.TeamPointer);
+         if (address < 0 || address >= element.Model.Count) return null;
+         if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return null;
+         if (run.Start != address) return null;
+         return run.GetAutoCompleteOptions(line, lineIndex, characterIndex);
+      }
+
+      #endregion
+
+      #region Rematch Trainer Content
+
+      public bool ShowRematchTrainerContent {
+         get {
+            if (TrainerType == 0) return false;
+            if (element.Model.GetTableModel(HardcodeTablesModel.TrainerTableName) is not ModelTable trainers) return false;
+            var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
+            if (content == null) return false;
+            var table = element.Model.GetTableModel(HardcodeTablesModel.RematchTable) ?? element.Model.GetTableModel(HardcodeTablesModel.RematchTableRSE);
+            if (table == null) return false;
+            var rematchIndex = table.Count.Range().FirstOrDefault(i => table[i].GetValue(0) == content.TrainerID, -1);
+            if (rematchIndex == -1) return false;
+            TrainerTeams.Clear();
+            for (int i = 0; i < table[rematchIndex].Table.ElementContent.Count; i++) {
+               if (table[rematchIndex].Table.ElementContent[i] is not ArrayRunEnumSegment seg) continue;
+               if (seg.EnumName != HardcodeTablesModel.TrainerTableName) continue;
+               var trainerID = table[rematchIndex].GetValue(i);
+               if (!trainerID.InRange(1, trainers.Count)) continue;
+               TrainerTeams.Add(new(element.Model, trainerID, () => element.Token));
+            }
+            return true;
+         }
+      }
+
+      public ObservableCollection<TrainerTeamViewModel> TrainerTeams { get; } = new();
+
+      public void GotoRematches() {
+         if (element.Model.GetTableModel(HardcodeTablesModel.TrainerTableName) is not ModelTable trainers) return;
+         var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
+         if (content == null) return;
+         var table = element.Model.GetTableModel(HardcodeTablesModel.RematchTable) ?? element.Model.GetTableModel(HardcodeTablesModel.RematchTableRSE);
+         if (table == null) return;
+         var rematchIndex = table.Count.Range().FirstOrDefault(i => table[i].GetValue(0) == content.TrainerID, -1);
+         if (rematchIndex == -1) return;
+         gotoAddress(table[rematchIndex].Start);
+      }
+
+      public void ReplaceRematchScript() {
+         // TODO replace script with simple trainer script (keep before/during/after battle text if we can)
+         var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
+         string before = "<auto>", win = "<auto", after = "<auto>";
+         if (content.BeforeTextPointer != Pointer.NULL) before = $"<{content.BeforeTextPointer:X6}>";
+         if (content.WinTextPointer != Pointer.NULL) win = $"<{content.WinTextPointer:X6}>";
+         if (content.AfterTextPointer != Pointer.NULL) after = $"<{content.AfterTextPointer:X6}>";
+
+         /*
+            trainerbattle 00 [trainerID] 0 <before> <during>
+            loadpointer 0 <after>
+            callstd 6
+            end
+         */
+         var nl = Environment.NewLine;
+         var script = new StringBuilder();
+         script.AppendLine($"trainerbattle 0 {content.TrainerID} 0 {before} {win}");
+         if (before == "<auto>") script.AppendLine($"{{{nl}Let's fight!{nl}}}");
+         if (win == "<auto>") script.AppendLine($"{{{nl}You win!{nl}}}");
+         script.AppendLine($"loadpointer 0 {after}");
+         if (after == "<auto>") script.AppendLine($"{{{nl}Later!{nl}}}");
+         script.AppendLine("callstd 6");
+         script.AppendLine("end");
+         var scriptText = script.ToString();
+         var compiled = parser.CompileWithoutErrors(Token, element.Model, ScriptAddress, ref scriptText);
+         Token.ChangeData(element.Model, ScriptAddress, compiled);
+         parser.FormatScript<XSERun>(Token, element.Model, ScriptAddress);
+
+         NotifyPropertiesChanged(nameof(ShowRematchTrainerContent),
+            nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam));
+      }
 
       #endregion
 
@@ -1043,6 +1127,22 @@ show:
 
       #endregion
 
+      #region NoContent
+
+      public bool ShowNoContent => ScriptAddress > 0 && !(
+         ShowItemContents ||
+         ShowNpcText ||
+         ShowTrainerContent ||
+         ShowRematchTrainerContent ||
+         ShowMartContents ||
+         ShowTutorContent ||
+         ShowTradeContent ||
+         ShowLegendaryContent ||
+         ShowBerryContent
+      );
+
+      #endregion
+
       private string GetText(ref string cache, int? pointer) {
          if (cache != null) return cache;
          if (pointer == null) return null;
@@ -1183,7 +1283,7 @@ show:
          if (field != null) return field;
          var text = GetText(source());
          if (text == null) return null;
-         var newEditor = new TextEditorViewModel { Content = text };
+         var newEditor = new TextEditorViewModel(false) { Content = text };
          newEditor.Bind(nameof(TextEditorViewModel.Content), (editor, e) => {
             SetText(source(), editor.Content, "Text", propertyName);
             UpdateTextErrorContent(editor);
@@ -1560,6 +1660,79 @@ show:
             var newAddress = SetText(EventTemplate.GetSignpostTextPointer(element.Model, this), value);
             if (newAddress >= 0) DataMoved.Raise(this, new("Text", newAddress));
          }
+      }
+   }
+
+   public class TrainerTeamViewModel : ViewModelCore {
+      private readonly IDataModel model;
+      private readonly int trainerID;
+      private readonly Func<ModelDelta> tokenGenerator;
+
+      public event EventHandler<DataMovedEventArgs> DataMoved;
+
+      public TrainerTeamViewModel(IDataModel model, int trainerID, Func<ModelDelta> tokenGenerator) {
+         (this.model, this.trainerID) = (model, trainerID);
+         this.tokenGenerator = tokenGenerator;
+      }
+
+      public string TrainerIDText {
+         get {
+            var name = model.GetOptions(HardcodeTablesModel.TrainerTableName)[trainerID];
+            var splitter = name.IndexOf("~");
+            if (splitter != -1) name = name.Substring(splitter);
+            return name;
+         }
+      }
+
+      private string teamText;
+      public string TrainerTeam {
+         get {
+            if (teamText != null) return teamText;
+            var table = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+            if (table == null || !trainerID.InRange(0, table.Count)) return string.Empty;
+            var teamAddress = table[trainerID].GetAddress("pokemon");
+            if (model.GetNextRun(teamAddress) is not TrainerPokemonTeamRun team) return string.Empty;
+
+            if (TeamVisualizations.Count == 0) UpdateTeamVisualizations(team);
+            return teamText = team.SerializeRun();
+         }
+
+         set {
+            teamText = value;
+            var table = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+            if (table == null || !trainerID.InRange(0, table.Count)) return;
+            var teamAddress = table[trainerID].GetAddress("pokemon");
+            if (model.GetNextRun(teamAddress) is not TrainerPokemonTeamRun team) return;
+
+            var newRun = team.DeserializeRun(value, tokenGenerator(), false, false, out _);
+            model.ObserveRunWritten(tokenGenerator(), newRun);
+            if (newRun.Start != team.Start) DataMoved.Raise(this, new("Trainer Team", newRun.Start));
+            UpdateTeamVisualizations(newRun);
+            NotifyPropertyChanged();
+         }
+      }
+
+      public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
+
+      private void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
+         TeamVisualizations.Clear();
+         foreach (var vis in team.Visualizations) {
+            TeamVisualizations.Add(vis);
+         }
+      }
+
+      public IReadOnlyList<AutocompleteItem> GetTrainerAutocomplete(string line, int lineIndex, int characterIndex) {
+         var table = model.GetTableModel(HardcodeTablesModel.TrainerTableName);
+         if (table == null || !trainerID.InRange(0, table.Count)) return null;
+         var teamAddress = table[trainerID].GetAddress("pokemon");
+         if (model.GetNextRun(teamAddress) is not TrainerPokemonTeamRun team) return null;
+         return team.GetAutoCompleteOptions(line, lineIndex, characterIndex);
+      }
+
+      public void Refresh() {
+         teamText = null;
+         TeamVisualizations.Clear();
+         NotifyPropertyChanged(nameof(TrainerTeam));
       }
    }
 }

@@ -165,7 +165,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) => throw new NotImplementedException();
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);

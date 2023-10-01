@@ -210,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          if (seg is ArrayRunEnumSegment enumSeg) {
             using (ModelCacheScope.CreateScope(model)) {
-               return enumSeg.ToText(model, valueAddress, false).Trim('"');
+               return enumSeg.ToText(model, valueAddress, 0).Trim('"');
             }
          } else {
             throw new NotImplementedException();
@@ -441,9 +441,20 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public object this[string fieldName] {
-         get => GetValue(fieldName);
+         get {
+            var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+            var tup = tuple.Elements.First(seg => seg.Name == matchName);
+            var value = GetValue(tup);
+            if (!string.IsNullOrEmpty(tup.SourceName)) return GetEnumValue(tup, value);
+            return value;
+         }
          set {
             if (value is bool b) value = Convert.ToInt32(b);
+            if (value is string s) {
+               var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+               var tup = tuple.Elements.First(seg => seg.Name == matchName);
+               if (TryConvertEnumTextToValue(tup, s, out var result)) value = result;
+            }
             SetValue(fieldName, (int)value);
          }
       }
@@ -453,10 +464,27 @@ namespace HavenSoft.HexManiac.Core.Models {
       public int GetValue(string fieldName) {
          var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
          var tup = tuple.Elements.First(seg => seg.Name == matchName);
+         return GetValue(tup);
+      }
+
+      private int GetValue(TupleSegment tup) {
          var start = table.Start + table.ElementLength * arrayIndex;
          start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
          return tup.Read(model, start, bitOffset);
+      }
+
+      public string GetEnumValue(string fieldName) {
+         var matchName = ArrayRunEnumSegment.GetBestOptions(tuple.Elements.Select(element => element.Name), fieldName).First();
+         var tup = tuple.Elements.First(seg => seg.Name == matchName);
+         var value = GetValue(tup);
+         return GetEnumValue(tup, value);
+      }
+
+      private string GetEnumValue(TupleSegment tup, int value) {
+         var options = ArrayRunEnumSegment.GetOptions(model, tup.SourceName);
+         if (options != null && value.InRange(0, options.Count)) return options[value];
+         return null;
       }
 
       public void SetValue(string fieldName, int value) {
@@ -465,6 +493,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          var start = table.Start + table.ElementLength * arrayIndex + segmentOffset;
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
          tup.Write(model, tokenFactory(), start, bitOffset, value);
+      }
+
+      private bool TryConvertEnumTextToValue(TupleSegment tup, string text, out int result) {
+         result = 0;
+         if (!string.IsNullOrEmpty(tup.SourceName)) {
+            var options = ArrayRunEnumSegment.GetOptions(model, tup.SourceName);
+            var option = ArrayRunEnumSegment.GetBestOptions(options, text).FirstOrDefault();
+            if (option != null) { result = options.IndexOf(option); return true; }
+         }
+         return false;
       }
 
       #region DynamicObject

@@ -239,7 +239,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return pokenames.Concat(movenames);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder text, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder text, int start, int length, int depth) {
          var cache = ModelCacheScope.GetCache(model);
          var cachedPokenames = cache.GetOptions(PokemonNameTable);
          var cachedMovenames = cache.GetOptions(MoveNamesTable);

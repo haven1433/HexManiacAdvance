@@ -480,6 +480,7 @@
                               <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}"
                                        HorizontalAlignment="Right" AcceptsReturn="True" FontFamily="Consolas"
                                        Name="TrainerTeamBox" Background="Transparent" Width="230" CaretBrush="{DynamicResource Secondary}" />
+                              <local:AutocompleteOverlay Target="{Binding ElementName=TrainerTeamBox}" />
                            </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
                               <TextBlock Text="Edit More:" Margin="4,0"/>
@@ -487,6 +488,56 @@
                            <local:AngleButton Direction="Right" HorizontalAlignment="Right" Command="{Binding OpenTrainerData}">
                               <local:PixelImage TransparentBrush="{DynamicResource Backlight}" DataContext="{Binding TrainerSprite}" />
                            </local:AngleButton>
+                        </StackPanel>
+
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowRematchTrainerContent, Converter={StaticResource BoolToVisibility}}">
+                           <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Margin="20,10" >
+                              <StackPanel>
+                                 <TextBlock Margin="10,10" TextWrapping="Wrap" Text="(Rematch script logic and text must be edited with the script editor.)" FontStyle="Italic" Foreground="{DynamicResource Secondary}" />
+                                 <Decorator Margin="0,-20,2,2">
+                                    <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" HorizontalAlignment="Right"
+                                       Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                       <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                                    </local:AngleButton>
+                                 </Decorator>
+                              </StackPanel>
+                           </Border>
+                           <Grid>
+                              <local:AngleButton HorizontalAlignment="Left" Width="100" Margin="0,4" Direction="Right"
+                                                 Content="Edit Rematches" Command="{res:MethodCommand GotoRematches}" />
+                              <local:AngleButton HorizontalAlignment="Right" Width="150" Margin="0,4" Direction="Right"
+                                                 Content="Convert to Basic Trainer" Command="{res:MethodCommand ReplaceRematchScript}" />
+                           </Grid>
+                           <TabControl ItemsSource="{Binding TrainerTeams}">
+                              <TabControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <TextBlock Text="{Binding TrainerIDText}" />
+                                 </DataTemplate>
+                              </TabControl.ItemTemplate>
+                              <TabControl.ContentTemplate>
+                                 <DataTemplate>
+                                    <Grid Background="{DynamicResource Backlight}">
+                                       <Viewbox HorizontalAlignment="Right" Height="{Binding ActualHeight, ElementName=TrainerTeamBox}" Stretch="Uniform" IsHitTestVisible="False" Opacity=".5">
+                                          <ItemsControl ItemsSource="{Binding TeamVisualizations}">
+                                             <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                   <local:PixelImage TransparentBrush="{DynamicResource Backlight}"/>
+                                                </DataTemplate>
+                                             </ItemsControl.ItemTemplate>
+                                          </ItemsControl>
+                                       </Viewbox>
+                                       <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}"
+                                          HorizontalAlignment="Stretch" AcceptsReturn="True" FontFamily="Consolas"
+                                          Name="TrainerTeamBox" Background="Transparent" CaretBrush="{DynamicResource Secondary}" />
+                                       <Button Command="{res:MethodCommand Refresh}" ToolTip="Refresh" BorderBrush="{DynamicResource Secondary}"
+                                               HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20">
+                                          <Path Data="{res:Icon RotationArrow}" Fill="{DynamicResource Primary}" Stretch="Uniform" />
+                                       </Button>
+                                       <local:AutocompleteOverlay Target="{Binding ElementName=TrainerTeamBox}" />
+                                    </Grid>
+                                 </DataTemplate>
+                              </TabControl.ContentTemplate>
+                           </TabControl>
                         </StackPanel>
 
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowItemContents, Converter={StaticResource BoolToVisibility}}">
@@ -651,6 +702,20 @@
                                  More Info
                               </Hyperlink>
                            </TextBlock>
+                        </StackPanel>
+
+                        <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowNoContent, Converter={StaticResource BoolToVisibility}}">
+                           <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Margin="20,10" >
+                              <StackPanel>
+                                 <TextBlock Margin="30,20,30,0" TextWrapping="Wrap" Text="(Elaborate scripts must be edited with the script editor.)" FontStyle="Italic" Foreground="{DynamicResource Secondary}" />
+                                 <Decorator Margin="0,0,2,2">
+                                    <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" HorizontalAlignment="Right"
+                                       Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                       <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                                    </local:AngleButton>
+                                 </Decorator>
+                              </StackPanel>
+                           </Border>
                         </StackPanel>
                      </Grid>
                   </DataTemplate>

@@ -2052,7 +2052,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // the only run that is allowed to exist with nothing pointing to it and no name is a pointer run.
          // if it's any other kind of run with no name and no pointers to it, remove it.
-         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun)) {
+         if (newAnchorRun.PointerSources.Count == 0 && !anchorForAddress.ContainsKey(newAnchorRun.Start) && !(newAnchorRun is PointerRun) && changeToken is not TransientModelDelta) {
             if (anchorRun.Start <= start && anchorRun.Start + anchorRun.Length > start) {
                // calling ClearFormat would try to clear the element we're already removing
                // no need to do that: This element should get removed higher up the callstack.
@@ -2137,7 +2137,13 @@ namespace HavenSoft.HexManiac.Core.Models {
                      if (offsetPointerRun.Offset > 0) offset = "+" + offsetPointerRun.Offset.ToString("X6");
                      if (offsetPointerRun.Offset < 0) offset = "-" + (-offsetPointerRun.Offset).ToString("X6");
                   }
-                  text.Append($"<{anchorName}{offset}> ");
+                  if (deep && GetNextRun(destination) is IAppendToBuilderRun child) {
+                     text.Append("@{ ");
+                     child.AppendTo(this, text, destination, child.Length, deep ? 10 : 0);
+                     text.Append("@} ");
+                  } else {
+                     text.Append($"<{anchorName}{offset}> ");
+                  }
                   start += 4;
                   length -= 4;
                } else if (run is NoInfoRun || run is IScriptStartRun) {
@@ -2145,7 +2151,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start += 1;
                   length -= 1;
                } else if (run is IAppendToBuilderRun atbRun) {
-                  atbRun.AppendTo(this, text, start, length, deep);
+                  atbRun.AppendTo(this, text, start, length, deep ? 10 : 0);
                   text.Append(" ");
                   length -= run.Start + run.Length - start;
                   start = run.Start + run.Length;

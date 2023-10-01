@@ -64,7 +64,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return LzTilemapRun.TryParseGeneralTilemapFormat(format, out tilemapFormat);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          while (length > 0) {
             builder.Append(model[start].ToString("X2"));
             length -= 1;

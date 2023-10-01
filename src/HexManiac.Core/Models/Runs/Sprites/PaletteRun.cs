@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return (short)((b << 10) | (g << 5) | (r << 0));
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          if (start < Start) {
             length -= Start - start;
             start = Start;

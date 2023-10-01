@@ -464,7 +464,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
       public bool DependsOn(string anchorName) => false;
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          for (int i = 0; i < length; i++) {
             var index = i + start;
             if (index < Start) continue;

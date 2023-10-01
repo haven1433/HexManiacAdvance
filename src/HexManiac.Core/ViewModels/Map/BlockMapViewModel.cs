@@ -517,7 +517,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          mapScriptCollection = new(viewPort);
          mapScriptCollection.NewMapScriptsCreated += (sender, e) => GetMapModel().SetAddress("mapscripts", e.Address);
 
-         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => Header.Refresh());
+         mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => {
+            Header.Refresh();
+            layoutUseCache = null; // invalidate the cache during a refresh
+            NotifyPropertiesChanged(nameof(BlockMapShareCount), nameof(BlockMapUses), nameof(BlockMapIsShared));
+         });
          mapRepointer.ChangeMap += (sender, e) => RequestChangeMap.Raise(this, e);
          mapRepointer.DataMoved += (sender, e) => {
             ClearCaches();
@@ -1710,7 +1714,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var token = tokenFactory();
          var map = GetMapModel();
          var connections = GetConnections(map, group, this.map);
+         var border = GetBorderThickness();
          for (int i = 0; i < toRemove.Count; i++) {
+            var connectedMap = GetNeighbor(connections[toRemove[i] - i], border);
+            connectedMap.RemoveMatchedConnection(token, this.group, this.map, connections[toRemove[i] - i].Direction.Reverse());
+
             for (int j = toRemove[i] - i + 1; j < connections.Count - i; j++) {
                connections[j - 1].Direction = connections[j].Direction;
                connections[j - 1].Offset = connections[j].Offset;
@@ -1731,6 +1739,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          RefreshMapSize();
          NeighborsChanged.Raise(this);
          viewPort.ChangeHistory.ChangeCompleted();
+      }
+
+      /// <summary>
+      /// Remove only this specific connection, because it's pair is being removed.
+      /// </summary>
+      private void RemoveMatchedConnection(ModelDelta token, int mapGroup, int mapNum, MapDirection direction) {
+         // don't remove self-referential connections
+         if (mapGroup == group && mapNum == this.map) return;
+
+         var map = GetMapModel();
+         var connections = GetConnections(map, group, this.map);
+         for (int i = 0; i < connections.Count; i++) {
+            if (connections[i].Direction != direction || connections[i].MapGroup != mapGroup || connections[i].MapNum != mapNum) continue;
+
+            for (int j = i + 1; j < connections.Count; j++) {
+               connections[j - 1].Direction = connections[j].Direction;
+               connections[j - 1].Offset = connections[j].Offset;
+               connections[j - 1].MapGroup = connections[j].MapGroup;
+               connections[j - 1].MapNum = connections[j].MapNum;
+            }
+
+            // doesn't depend on i, but only do these if a match was found
+            var connectionsTable = connections[0].Table;
+            if (connectionsTable.ElementCount == 1) {
+               Erase(connectionsTable, token);
+            } else {
+               var shorterTable = connectionsTable.Append(token, -1);
+               model.ObserveRunWritten(token, shorterTable);
+            }
+            var connectionsAndCount = map.GetSubTable("connections")[0];
+            connectionsAndCount.SetValue("count", connections.Count - 1);
+            RefreshMapSize();
+            NeighborsChanged.Raise(this);
+            break;
+         }
       }
 
       private ConnectionModel AddConnection(ConnectionInfo info) {

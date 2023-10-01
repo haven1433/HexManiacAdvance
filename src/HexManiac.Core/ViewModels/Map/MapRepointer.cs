@@ -152,6 +152,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          repointBlockMap.RaiseCanExecuteChanged();
          repointPrimaryBlockset.RaiseCanExecuteChanged();
          repointSecondaryBlockset.RaiseCanExecuteChanged();
+         refreshHeader();
          // TODO we just made a new layout, we need to add it to the layout table
       }
 
@@ -267,6 +268,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.UpdateArrayPointer(history.CurrentChange, null, null, -1, table.Start + table.Length - 4, newMap.Element.Start);
          ChangeMap.Raise(this, new(option, table.ElementCount - 1));
          repointLayout.RaiseCanExecuteChanged();
+         refreshHeader();
       }
 
       private int CountLayoutMemberSources(string member) {

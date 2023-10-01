@@ -253,7 +253,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Array.Copy(model.RawData, dexInfo.Start, oldDexInfo, 0, dexInfo.Length);
 
          // clear dexInfo format
-         if (isNational) model.ClearFormat(token, dexInfo.Start, dexInfo.Length);
+         if (isNational) model.ClearFormat(new TransientModelDelta(), dexInfo.Start, dexInfo.Length);
 
          // move each dex info / dex order
          for (int i = 1; i < dexInfo.ElementCount; i++) {
@@ -280,7 +280,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          // restore dexInfo format
-         if (isNational) model.ObserveAnchorWritten(token, HardcodeTablesModel.DexInfoTableName, dexInfo);
+         if (isNational) model.ObserveAnchorWritten(new TransientModelDelta(), HardcodeTablesModel.DexInfoTableName, dexInfo);
 
          UpdateDexConversionTable.Run(model, token);
       }

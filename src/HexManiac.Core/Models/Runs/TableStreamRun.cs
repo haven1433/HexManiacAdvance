@@ -178,7 +178,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public string SerializeRun() {
          if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return SerializeSingleElementStream();
          var builder = new StringBuilder();
-         AppendTo(model, builder, Start, ElementLength * ElementCount, false);
+         AppendTo(model, builder, Start, ElementLength * ElementCount, 0);
          var lines = builder.ToString().Split(Environment.NewLine);
 
          // AppendTo is used in copy/paste scenarios, and includes the required '+' to work in that case.
@@ -514,8 +514,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return endStream.Append(this, token, length);
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
-         ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
+         ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
          if (start + length >= Start + Length && endStream is EndCodeStreamStrategy) builder.Append(Environment.NewLine + "[]");
       }
 

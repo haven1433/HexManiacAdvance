@@ -685,7 +685,7 @@
                      </DataTemplate>
                   </TabControl.ContentTemplate>
                </TabControl>
-               <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4"/>
+               <GridSplitter Name="PythonToolSplitter" Grid.Column="1" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4"/>
                <DockPanel Grid.Column="2">
                   <hsg3hv:PythonPanel x:Name="PythonTool" DataContext="{Binding PythonTool}"/>
                </DockPanel>

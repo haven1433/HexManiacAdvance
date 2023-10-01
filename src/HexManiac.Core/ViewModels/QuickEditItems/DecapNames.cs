@@ -191,7 +191,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       private bool IsSpecial(IDataModel model, PCS pcs) {
          var address = pcs.Source + pcs.Position;
-         if (model[address] == 0x2C) return true; // é
+         if (model[address] == 0x1B) return true; // é
          if (model[address] == 0xB4) return true; // '
          return false;
       }
