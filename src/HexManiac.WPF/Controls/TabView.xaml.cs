@@ -646,7 +646,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             e.Handled = true;
             body.InsertFlagOrVar();
          } else if (e.Key == Key.Escape) {
-            e.Handled = true;
             CodeContentsPopup.IsOpen = false;
          }
       }
