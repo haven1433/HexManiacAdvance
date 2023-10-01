@@ -341,7 +341,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                               model.ClearFormat(token, address + length, 4);
                               model.ObserveRunWritten(token, new PointerRun(address + length));
                            }
-                           if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
+                           if (arg.PointerType == ExpectedPointerType.Script) {
+                              toProcess.Add(destination);
+                              if (destination.InRange(address, address + desiredLength)) desiredLength = destination - address;
+                           }
                            if (arg.PointerType == ExpectedPointerType.Text) {
                               WriteTextStream(model, token, destination, address + length);
                            } else if (arg.PointerType == ExpectedPointerType.Movement) {
@@ -872,14 +875,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var destination = model.ReadPointer(start);
             if (destination >= 0 && destination < model.Count) {
                var run = model.GetNextRun(destination);
-               if (run is IScriptStartRun scriptStart && scriptStart.Start == destination && scriptStart.Start > start) {
+               var scriptStart = run as IScriptStartRun;
+               if (run is IScriptStartRun && scriptStart.Start == destination && scriptStart.Start > start) {
                   return model.GetScriptLength(scriptStart, destinationLengths);
                } else if (run.Start == destination) {
                   // we only want to add this run's length as part of the script if:
                   // (1) the run has no name
                   // (2) the run has only one source (the script)
                   if (run is NoInfoRun || run.PointerSources == null) return -1;
-                  if (run is IScriptStartRun) return 1; // this script has a length, but don't calculate it (prevent recursion loop)
+                  if (run is IScriptStartRun && scriptStart.Start < start) return 1; // this script has a length, but don't calculate it (prevent recursion loop)
+                  if (run is IScriptStartRun) return -1; // this script has a length, but don't track it (prevent recursion loop)
                   if (run.PointerSources.Count == 1 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, destination))) {
                      return run.Length;
                   }
