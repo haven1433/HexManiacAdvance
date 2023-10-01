@@ -1043,6 +1043,21 @@ show:
 
       #endregion
 
+      #region NoContent
+
+      public bool ShowNoContent => ScriptAddress > 0 && !(
+         ShowItemContents ||
+         ShowNpcText ||
+         ShowTrainerContent ||
+         ShowMartContents ||
+         ShowTutorContent ||
+         ShowTradeContent ||
+         ShowLegendaryContent ||
+         ShowBerryContent
+      );
+
+      #endregion
+
       private string GetText(ref string cache, int? pointer) {
          if (cache != null) return cache;
          if (pointer == null) return null;
