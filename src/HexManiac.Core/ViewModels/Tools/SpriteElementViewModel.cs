@@ -134,19 +134,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var offset = run.ConvertByteOffsetToArrayOffset(Start);
          for (int i = 0; i < run.ElementCount; i++) {
             var start = run.Start + run.ElementLength * i + run.ElementContent.Take(offset.SegmentIndex).Sum(seg => seg.Length);
+            var shortname = (run.ElementNames.Count > i ? run.ElementNames[i] : $"Sprite {i}") ?? $"Sprite {i}";
             if (GetRun(start) is ISpriteRun sRun) {
-               var palettes = sRun.FindRelatedPalettes(Model, start, format.PaletteHint).ToList();
+               var palettes = sRun.FindRelatedPalettes(Model, start, sRun.SpriteFormat.PaletteHint ?? format.PaletteHint).ToList();
                var palette = palettes.FirstOrDefault();
                if (palettes.Count > 1 && palettes.Count > CurrentPalette) palette = palettes[CurrentPalette];
-               var name = run.ElementNames.Count > i ? run.ElementNames[i] : string.Empty;
-               foreach (var c in Path.GetInvalidFileNameChars()) name = name.Replace(c, '_');
-               name = $"{folder}/{tableName}_{i}_{name}.png";
+               foreach (var c in Path.GetInvalidFileNameChars()) shortname = shortname.Replace(c, '_');
+               var name = $"{folder}/{tableName}_{i}_{shortname}.png";
                if (!fs.Exists(name)) {
                   if (sRun is ITilemapRun tmRun) tmRun.FindMatchingTileset(Model);
                   var imagePixels = sRun.GetPixels(Model, sRun.Pages > CurrentPage ? CurrentPage : 0, -1);
                   var colors = palette?.AllColors(Model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sRun.SpriteFormat.BitsPerPixel));
                   if (imagePixels == null || imagePixels.Length == 0) {
-                     ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}The sprite couldn't be recognized.");
+                     ViewPort.RaiseError($"Could not export image {i} ({shortname}).{Environment.NewLine}The sprite couldn't be recognized.");
                   } else if (colors.Count > 256) {
                      var pixels = SpriteTool.Render(imagePixels, colors, palette?.PaletteFormat.InitialBlankPages ?? 0, 0);
                      fs.SaveImage(pixels, imagePixels.GetLength(0), name);
@@ -162,7 +162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      fs.SaveImage(imagePixels, colors, name);
                   }
                } else {
-                  ViewPort.RaiseError($"Could not export image {i} ({run.ElementNames[i] ?? string.Empty}).{Environment.NewLine}Another image with that named exists.");
+                  ViewPort.RaiseError($"Could not export image {i} ({shortname}).{Environment.NewLine}Another image with that named exists.");
                }
             }
          }
