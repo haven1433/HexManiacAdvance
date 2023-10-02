@@ -103,6 +103,20 @@ namespace HavenSoft.HexManiac.Core.Models {
       (short[] image, int width) LoadImage(string fileName = null);
 
       /// <summary>
+      /// Tries to load an indexed image.
+      /// If the image isn't indexed or the file doesn't exist, returns false.
+      /// </summary>
+      /// <param name="fileName">
+      /// If null, show the user a dialog so they can select an image.
+      /// In that case, the chosen filename will be stored in this parameter even if the load fails.
+      /// If the user cancels, the function will return false and the fileName will still be null.
+      /// </param>
+      /// <param name="image">Resulting indexes into the palette.</param>
+      /// <param name="palette">Resulting 16bit palette, in 5r5g5b. </param>
+      /// <returns></returns>
+      bool TryLoadIndexedImage(ref string fileName, out int[,] image, out IReadOnlyList<short> palette);
+
+      /// <summary>
       /// Show the user a dialog so they can create a file.
       /// Save this 16bit (5r5g5b) array into that file.
       /// </summary>
