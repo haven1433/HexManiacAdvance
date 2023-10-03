@@ -1519,21 +1519,6 @@ Name = '''bs_stats'''
 ]
 
 [[List]]
-Name = '''friendshipevents'''
-0 = [
-   '''GrowLevel''',
-   '''Vitamin''',
-   '''BattleItem''',
-   '''LeagueBattle''',
-   '''LearnTMHM''',
-   '''Walking''',
-   '''Massage''',
-   '''FaintInBattle''',
-   '''FaintOutsideBattle''',
-   '''FaintInBattleBigLevelGap''',
-]
-
-[[List]]
 Name = '''stat_stages'''
 0 = [
    '''negative_6''',

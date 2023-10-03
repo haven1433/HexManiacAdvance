@@ -163,6 +163,20 @@ Name = '''effectanimations'''
 ]
 
 [[List]]
+Name = '''friendshipevents'''
+0 = [
+   '''GrowLevel''',
+   '''Vitamin''',
+   '''BattleItem''',
+   '''LeagueBattle''',
+   '''LearnTMHM''',
+   '''Walking''',
+   '''FaintInBattle''',
+   '''FaintOutsideBattle''',
+   '''FaintInBattleBigLevelGap''',
+]
+
+[[List]]
 Name = '''MapAttributeBehaviors'''
 0 = [
     '''Normal''',

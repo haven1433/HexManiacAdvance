@@ -111,6 +111,21 @@ Name = '''movementtypes'''
 ]
 
 [[List]]
+Name = '''friendshipevents'''
+0 = [
+   '''GrowLevel''',
+   '''Vitamin''',
+   '''BattleItem''',
+   '''LeagueBattle''',
+   '''LearnTMHM''',
+   '''Walking''',
+   '''Massage''',
+   '''FaintInBattle''',
+   '''FaintOutsideBattle''',
+   '''FaintInBattleBigLevelGap''',
+]
+
+[[List]]
 Name = '''specials'''
 0x00 = '''HealPlayerParty'''
 0x01 = '''SetCableClubWarp'''
