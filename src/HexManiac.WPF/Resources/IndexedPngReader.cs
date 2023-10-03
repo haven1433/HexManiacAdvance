@@ -77,7 +77,7 @@ namespace HexManiac.WPF.Resources {
 
       private void ReadPngSignature() {
          if (!Enumerable.SequenceEqual(ReadBytes(Png.Signature.Length), Png.Signature)) {
-            throw new ArgumentException("Not a PNG file.");
+            throw new PngArgumentException("Not a PNG file.");
          }
       }
 
@@ -92,7 +92,7 @@ namespace HexManiac.WPF.Resources {
          var computed = Force.Crc32.Crc32Algorithm.Compute(bytesRead.ToArray());
          var crc32Checksum = ReadInt();
          if (computed != crc32Checksum) {
-            throw new ArgumentException(String.Format($"{chunkType} chunk is corrupted (CRC check failed)."));
+            throw new PngArgumentException(String.Format($"{chunkType} chunk is corrupted (CRC check failed)."));
          }
       }
 
@@ -101,14 +101,14 @@ namespace HexManiac.WPF.Resources {
          switch (chunkType){
             case "IHDR":
                if (chunkSize != 13) {
-                  throw new ArgumentException("IHDR chunk has invalid size.");
+                  throw new PngArgumentException("IHDR chunk has invalid size.");
                }
                ReadIhdr();
                ReadCrc(chunkType);
                break;
             case "PLTE":
                if (chunkSize % 3 != 0) {
-                  throw new ArgumentException("PLTE chunk size not divisible by 3.");
+                  throw new PngArgumentException("PLTE chunk size not divisible by 3.");
                }
                ReadPlte(chunkSize);
                ReadCrc(chunkType);
@@ -119,7 +119,7 @@ namespace HexManiac.WPF.Resources {
                break;
             case "IEND":
                if (chunkSize != 0) {
-                  throw new ArgumentException("IEND chunk has invalid size.");
+                  throw new PngArgumentException("IEND chunk has invalid size.");
                }
                ReadIend();
                ReadCrc(chunkType);
@@ -134,7 +134,7 @@ namespace HexManiac.WPF.Resources {
 
       private void ReadIhdr() {
          if (this.width != 0) {
-            throw new ArgumentException("Multiple IHDR chunks present.");
+            throw new PngArgumentException("Multiple IHDR chunks present.");
          }
          var width = ReadInt();
          var height = ReadInt();
@@ -144,25 +144,25 @@ namespace HexManiac.WPF.Resources {
          var filterMethod = ReadByte();
          var interlaceMethod = ReadByte();
          if (width == 0) {
-            throw new ArgumentException("Image has width of 0.");
+            throw new PngArgumentException("Image has width of 0.");
          }
          if (height == 0) {
-            throw new ArgumentException("Image has height of 0.");
+            throw new PngArgumentException("Image has height of 0.");
          }
          if (colourType != 3) {
-            throw new ArgumentException("Image is not palette indexed.");
+            throw new PngArgumentException("Image is not palette indexed.");
          }
          if (bitDepth != 1 && bitDepth != 2 && bitDepth != 4 && bitDepth != 8) {
-            throw new ArgumentException($"Bit depth ({bitDepth}) is invalid for a palette indexed image.");
+            throw new PngArgumentException($"Bit depth ({bitDepth}) is invalid for a palette indexed image.");
          }
          if (compressionMethod != 0) {
-            throw new ArgumentException($"Compression method ({compressionMethod}) is invalid.");
+            throw new PngArgumentException($"Compression method ({compressionMethod}) is invalid.");
          }
          if (filterMethod != 0) {
-            throw new NotImplementedException();
+            throw new PngArgumentException($"Image has a non-zero filter method ({filterMethod})");
          }
          if (interlaceMethod != 0) {
-            throw new NotImplementedException();
+            throw new PngArgumentException($"Image has a non-zero interlace method ({interlaceMethod})");
          }
 
          this.width = width;
@@ -172,7 +172,7 @@ namespace HexManiac.WPF.Resources {
 
       private void ReadPlte(int chunkSize) {
          if (palette != null) {
-            throw new ArgumentException("Multiple PLTE chunks present.");
+            throw new PngArgumentException("Multiple PLTE chunks present.");
          }
          palette = IndexedPng.ConvertToPalette(ReadBytes(chunkSize));
       }
