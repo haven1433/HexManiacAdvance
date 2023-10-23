@@ -887,3 +887,7 @@ scripts.text.destinations, ,,,, 09D824, 09D7F8, 09D838, 09D80C, , [text<"">]
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
 data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8, 01E578, 01E578, 01E58C, 01E58C, 046D68, [rate:]!0000
+
+// From Yogia
+graphics.trainers.elite4.mugshot.palettes,         ,       ,       ,       , 0D2958, 0D292C, 0D296C, 0D2940,        , [palette<`ucp4`>]5
+graphics.trainers.players.mugshot.palettes,        ,       ,       ,       , 0D295C, 0D2930, 0D2970, 0D2944,        , [palette<`ucp4`>]2 
