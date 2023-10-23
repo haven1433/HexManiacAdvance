@@ -133,7 +133,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public MapTutorialsViewModel MapTutorials { get; } = new();
 
-      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null, false);
+      private GotoControlViewModel gotoViewModel = new GotoControlViewModel(null, null, null, false);
       public GotoControlViewModel GotoViewModel {
          get => gotoViewModel;
          private set {
@@ -1257,10 +1257,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private void UpdateGotoViewModel() {
          GotoViewModel.PropertyChanged -= GotoPropertyChanged;
-         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, showDevMenu) { ShowAll = !FocusOnGotoShortcuts, Text = GotoViewModel?.Text };
+         var docs = new List<DocLabel>();
+         if (SelectedTab is IEditableViewPort vp) {
+            if (vp.Model.Count >= 0x100 && Singletons.DocReference.TryGetValue(vp.Model.GetGameCode().Substring(0, 4), out var fixedDocs)) docs.AddRange(fixedDocs);
+         }
+
+         GotoViewModel = new GotoControlViewModel(SelectedTab, workDispatcher, docs, showDevMenu) { ShowAll = !FocusOnGotoShortcuts, Text = GotoViewModel?.Text };
          var collection = CreateGotoShortcuts(GotoViewModel);
          if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
+         if(SelectedTab is IEditableViewPort vp1 && vp1.Model is BaseModel bm) {
+            var vm = GotoViewModel;
+            vp1.InitializationWorkload.ContinueWith(task => {
+               if (vm == GotoViewModel) vm.UpdateDocs(bm.GenerateDocumentationLabels(Singletons.ScriptLines));
+            });
+         }
          NotifyPropertyChanged(nameof(Tools));
       }
 

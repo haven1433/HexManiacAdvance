@@ -451,6 +451,29 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          }
       }
 
+      public bool TryLoadIndexedImage(ref string filename, out int[,] image, out IReadOnlyList<short> palette) {
+         (image, palette) = (null, null);
+
+         if (filename == null) {
+            var dialog = new OpenFileDialog { Filter = CreateFilterFromOptions("Image Files", "png") };
+            var result = dialog.ShowDialog();
+            if (result != true) return false;
+            filename = dialog.FileName;
+         }
+
+         try {
+            (image, palette) = IndexedPng.Load(filename);
+         } catch (UnauthorizedAccessException) {
+            return false;
+         } catch (IOException io) {
+            return false;
+         } catch (PngArgumentException e) {
+            return false;
+         }
+
+         return true;
+      }
+
       private static (short[] image, int width) DecodeImage(BitmapSource frame) {
          var format = frame.Format;
          short[] data = new short[frame.PixelWidth * frame.PixelHeight];

@@ -220,7 +220,16 @@ namespace HavenSoft.HexManiac.Core.Models
                 return default(System.Nullable<bool>);
             }
         }
-        
+
+      public delegate bool TryLoadIndexedImageDelegate(ref string fileName, out int[,] image, out IReadOnlyList<short> palette);
+      public TryLoadIndexedImageDelegate TryLoadIndexImage;
+
+      bool IFileSystem.TryLoadIndexedImage(ref string fileName, out int[,] image, out IReadOnlyList<short> palette) {
+         (image, palette) = (default, default);
+         if (TryLoadIndexImage == null) return default;
+         return TryLoadIndexImage(ref fileName, out image, out palette);
+      }
+
         public PropertyImplementation<string> CopyText = new PropertyImplementation<string>();
         
         string IFileSystem.CopyText

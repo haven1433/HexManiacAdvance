@@ -34,7 +34,7 @@ msgbox.default   0F 00 ptr<""> 09 04  # loadpointer, callstd 4
 msgbox.yesno     0F 00 ptr<""> 09 05  # loadpointer, callstd 5
 msgbox.autoclose 0F 00 ptr<""> 09 06  # loadpointer, callstd 6
 wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7  # setwildbattle, dowildbattle
-give.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01           # copyvarifnotzero (item and count), callstd 1
+find.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01           # copyvarifnotzero (item and count), callstd 1
 npc.item         1A 00 80 item:data.items.stats 1A 01 80 count: 09 00           # copyvarifnotzero (item and count), callstd 0
 msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
                                                                                                               # followed by a standard 'put away' message.
@@ -78,6 +78,10 @@ move.camera 4F 7F 00 data<`move`> 51 00 00      # Moves the camera (NPC object #
 move.npc    4F npc: data<`move`> 51 00 00       # Moves an overworld NPC with ID 'npc' according to the specified movement commands in the 'data' pointer.
                                                 # This macro assumes using "waitmovement 0" instead of "waitmovement npc".
 
+warp.center 39 mapbank. map. FF FF FF FF FF       # Sends player to the middle of another map.
+warp.xy     39 mapbank. map. FF x: y:             # Sends player to an x/y position on another map.
+warp.towarp 39 mapbank. map. warp.-1 00 00 00 00  # Sends player to warp on another map.
+
 # Trainer battle macros (assume a localID (arg) parameter of 0)
 single.battle                       5C 00 trainer:data.trainers.stats 00 00 start<""> playerwin<"">                    # trainerbattle 00: Default trainer battle command.
 single.battle.continue.silent       5C 01 trainer:data.trainers.stats 00 00 start<""> playerwin<""> winscript<`xse`>   # trainerbattle 01: No intro music. Continues the script after winning.
@@ -103,101 +107,142 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 03 return                                       # pops back to the last calling command used.
 04 call pointer<`xse`>                          # Continues script execution from another point. Can be returned to.
 05 goto pointer<`xse`>                          # Continues script execution from another point. Cannot return.
-06 if1 condition.script_compare pointer<`xse`>  # if the last comparison returned a certain value, "goto" to another script
-07 if2 condition.script_compare pointer<`xse`>  # if the last comparison returned a certain value, "call" to another script
+06 if1 condition.script_compare pointer<`xse`>  # if the condition variable fits with 'condition', then "goto" another script
+07 if2 condition.script_compare pointer<`xse`>  # if the condition variable fits with 'condition', then "call" another script
 08 gotostd function.                            # goto a built-in function
 09 callstd function.                            # call a built-in function
 0A gotostdif condition.script_compare function. # goto a built in function if the condition is met
 0B callstdif condition.script_compare function. # call a built in function if the condition is met
-0C returnram                                    # pops back to the last calling command used in a RAM script.
-0C jumpram                                      # executes a script from the default RAM location (???)
-0D endram                                       # ends a RAM script
-0D killscript                                   # kill the script, reset script RAM
-0E setmysteryeventstatus value.                 # sets the mystery event script status
-0E setbyte byte.                                # sets a predefined address to the specified byte value
-0F loadpointer bank.4 pointer<"">               # loads a pointer into script RAM so other commands can use it
-10 setbyte2 bank.4 value.                       # sets a memory bank to the specified byte value.
+0C returnram                                    # return from a Wonder Card script back to the original script
+0C jumpram                                      # alternate, old name for returnram
+0D endram                                       # end the current script and delete the Wonder Card script
+0D killscript                                   # alternate, old name for endram
+0E setmysteryeventstatus value.                 # sets a state variable used for Mystery Event scripts
+0E setbyte byte.                                # alternate, old name for setmysteryeventstatus
+0F loadpointer bank.4 pointer<"">               # loads a pointer into the specified memory bank, for other commands to use
+10 setbyte2 bank.4 value.                       # loads a byte into the specified memory bank, for other commands to use
 11 writebytetooffset value. offset::|h          # store the byte 'value' at the RAM address 'offset'
-12 loadbytefrompointer bank.4 pointer::|h       # load a byte value from a RAM address into the specified memory bank
-13 setfarbyte bank.4 pointer::|h                # stores the least-significant byte in the bank to a RAM address
-14 copyscriptbanks destination.4 source.4       # copies the value in source to destination
+12 loadbytefrompointer bank.4 pointer::|h       # load a byte value from a RAM address into the specified memory bank, for other commands to use
+13 setfarbyte bank.4 pointer::|h                # stores the byte in the specified memory bank to a RAM address
+14 copyscriptbanks destination.4 source.4       # copies the value in the source memory bank to destination memory bank
 15 copybyte destination::|h source::|h          # copies the value from the source RAM address to the destination RAM address
 16 setvar variable: value:                      # sets the given variable to the given value
 17 addvar variable: value:                      # variable += value
-18 subvar variable: value:                      # variable -= value
+18 subvar variable: source:                     # variable -= source (or) variable -= *source
+                                                # (if 'source' isn't a valid variable, it's read as a value)
 19 copyvar variable: source:                    # variable = source
 1A setorcopyvar variable: source:               # Works like the copyvar command if the source field is a variable number;
                                                 # works like the setvar command if the source field is not a variable number.
-1A copyvarifnotzero variable: source:           # destination = source (or) destination = *source
+                                                # In other words:
+                                                # destination = source (or) destination = *source
                                                 # (if source isn't a valid variable, it's read as a value)
-1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the values in the two banks
-1C comparebanktobyte bank.4 value.              # sets the condition variable
-1D compareBankTofarbyte bank.4 pointer::|h      # compares the bank value to the value stored in the RAM address
-1E compareFarByteToBank pointer::|h bank.4      # opposite of 1D
-1F compareFarByteToByte pointer::|h value.      # compares the value at the RAM address to the value
-20 compareFarBytes a::|h b::|h                  # compares the two values at the two RAM addresses
-21 compare variable: value:
-22 comparevars var1: var2:
-23 callasm code<>
-24 setcode pointer<>                                    # puts a pointer to some assembly code at a specific place in RAM
+1A copyvarifnotzero variable: source:           # Alternate, old name for 'setorcopyvar'.
+1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the value in memory bank A as compared to the value in memory bank B
+1C comparebanktobyte bank.4 value.              # sets the condition variable based on the value in the specified memory bank as compared to the given value
+1D compareBankTofarbyte bank.4 pointer::|h      # sets the condition variable based on the memory bank value as compared to the value stored in the RAM address
+1E compareFarByteToBank pointer::|h bank.4      # sets the condition variable based on the value stored in the RAM address as compared to the memory bank value
+1F compareFarByteToByte pointer::|h value.      # sets the condition variable based on the value at the RAM address as compared to the given value
+20 compareFarBytes a::|h b::|h                  # sets the condition variable based on the value at the RAM address A as compared to the value at RAM address B
+21 compare variable: value:                     # sets the condition variable based on the value in the given variable, as compared to the given value
+22 comparevars var1: var2:                      # sets the condition variable based on the value in var1 as compared to the value in var2
+23 callasm code<>                                       # run the given ASM code, then continue the script
+24 setcode pointer<>                                    # block script execution and instead run the given ASM code every frame until it returns 1
 
 25 special function:specials                            # Calls a piece of ASM code from a table.
                                                         # Check your TOML for a list of specials available in your game.
+                                                        # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 26 special2 variable: function:specials                 # Calls a special and puts the ASM's return value in the variable you listed.
                                                         # Check your TOML for a list of specials available in your game.
-
-27 waitstate                                 # blocks the script until it gets unblocked by a command or some ASM code.
-28 pause time:                               # blocks the script for 'time' ticks
+                                                        # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
+27 waitstate                                 # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
+28 pause time:                               # blocks script execution for 'time' frames
 29 setflag flag:|h                           # flag = 1
 2A clearflag flag:|h                         # flag = 0
-2B checkflag flag:|h                         # compares the flag to the value of 1. Used with !=(5) or =(1) compare values
-[BPRE_BPGE] 2C nop2C                         # Only returns a false value.
-[AXPE_AXVE_BPEE] 2C initclock hour: minute:
-2D checkdailyflags                           # nop in firered. Does some flag checking in R/S/E based on real-time-clock
-2E gettime                                   # sets 0x8000, 0x8001, and 0x8002 to the current hour, minute, and second, respectively
-2F sound number:songnames                    # 0000 mutes the music
-30 waitsound                                 # blocks script execution until any playing sounds finish
-31 fanfare song:songnames                    # plays a song from the song list as a fanfare
-32 waitfanfare                               # blocks script execution until any playing fanfare finishes
-33 playsong song:songnames mode.songloopoptions       # plays a song once or loop (loop saves the background music)
-34 savesong song:songnames                            # saves the specified background music to be played via special Overworld_PlaySpecialMapMusic
-35 fadedefault                               # fades the music back to the default song
-36 fadesong song:songnames                   # fades the music into the given song
-37 fadeout speed.                            # fades out the current song to silent
-38 fadein speed.                             # fades in the current song from silent
-39 warp mapbank. map. warp. x: y:            # sends player to mapbank/map at tile 'warp'. If warp is FF, uses x/y instead
-                                             # does it terminate script execution?
-3A warpmuted mapbank. map. warp. x: y:       # same as warp, but doesn't play sappy song 0009
-3B warpwalk  mapbank. map. warp. x: y:       # same as warp, but with a walking to an opening door effect
-3C warphole  mapbank. map.                   # hole effect. Sends the player to same X/Y as on the map they started on.
-3D warpteleport mapbank. map. warp. x: y:    # teleport effect on a warp. Warping to a door/cave opening causes the player to land on the exact same block as it.
-3E warp3 mapbank. map. warp. x: y:           # Sets the map & coordinates for the player to go to in conjunction with specific "special" commands.
-3F setwarpplace mapbank. map. warp. x: y:    # sets a variable position (dynamic warp). Go to it with warp 7F 7F 7F 0000 0000
-40 warp4 mapbank. map. warp. x: y:           # Sets the map & coordinates that the player would go to after using Dive.
-41 warp5 mapbank. map. warp. x: y:           # Sets the map & coordinates that the player would go to if they fell in a hole.
-42 getplayerpos varX: varY:                  # stores the current player position into varX and varY
-43 countPokemon                              # stores number of pokemon in your party into LASTRESULT (800D)
-44 additem item:data.items.stats quantity:       # item/quantity can both be either a literal or a variable.
-                                                 # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1.
-45 removeitem item:data.items.stats quantity:    # opposite of additem. 800D is set to 0 if the removal cannot happen
-46 checkitemroom item:data.items.stats quantity: # 800D is set to 1 if additem would succeed
-47 checkitem item:data.items.stats quantity:     # 800D is set to 1 if removeitem would succeed
-48 checkitemtype item:data.items.stats           # 800D is set to the bag pocket number of the item
-49 addpcitem item:data.items.stats quantity:     # adds 'quantity' of 'item' into the PC
-4A checkpcitem item:data.items.stats quantity:   # 800D is set to 1 if the PC has at least 'quantity' of 'item'
-4B adddecoration decoration:data.decorations.stats                 # adds a decoration to the player's PC; in FR/LG, this is a NOP
-                                                                   # decoration can be either a literal or a variable
-4C removedecoration decoration:data.decorations.stats              # removes a decoration to the player's PC; in FR/LG, this is a NOP
-4D checkdecoration decoration:data.decorations.stats               # 800D is set to 1 if the PC has at least 1 of that decoration (not in FR/LG)
-4E testdecoration decoration:data.decorations.stats                # 800D is set to 1 if the PC could store at least 1 more of that decoration (not in FR/LG)
-4F applymovement npc: data<`move`>           # has character 'npc' move according to movement data 'data'
+2B checkflag flag:|h                         # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
+[BPRE_BPGE] 2C nop2C                         # does nothing
+[AXPE_AXVE_BPEE] 2C initclock hour: minute:  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
+2D checkdailyflags                           # nop in FRLG. Updates flags, variables, and other data in RSE based on real-time-clock
+2E gettime                                   # sets variables 0x8000, 0x8001, and 0x8002 to the current time in hours, minutes, and seconds (or all zeroes in FRLG)
+2E resetvars                                 # Alternate, old name for gettime
+2F sound number:songnames                    # play a song as a sound effect.
+                                             # In FRLG, does nothing during certain parts of the credits where scripts run, or in the Quest Log.
+30 waitsound                                 # blocks script execution until any playing sound effects finish (excluding special looping ones used in battle)
+31 fanfare song:songnames                    # plays a song in the fanfare song list as a fanfare, defaulting to the level-up jingle.
+                                             # In FRLG, this command does nothing when the Quest Log is active, except change the number of frames to wait to 255 (it doesn't actually wait that many frames).
+32 waitfanfare                               # blocks script execution until any playing fanfare should have finished, according to its length in the fanfare table
+33 playsong song:songnames mode.songloopoptions       # plays a song as background music, optionally marking it to become the "saved" background music.
+                                                      # Does nothing in FRLG if the Quest Log is active.
+34 savesong song:songnames                            # sets the saved background music to 'song', without actually playing it.
+                                                      # It can then be played via special Overworld_PlaySpecialMapMusic.
+                                                      # Saved background music will be remembered if you save the game and then load it again.
+35 fadedefault                               # fades the current music out and fades the default map music in, if they are different songs.
+                                             # Does nothing in FRLG if the Quest Log is active.
+36 fadesong song:songnames                   # fades the current music out and fades the given song in, if they are different songs.
+                                             # Does nothing in FRLG if the Quest Log is active.
+37 fadeout speed.                            # blocks script execution until the current song fades out to silence.
+                                             # The fadeout will complete after max(16*speed, 16) frames.
+                                             # Does nothing in FRLG if the Quest Log is active.
+38 fadein speed.                             # blocks script execution until the current song fades back in from silence.
+                                             # The fade in will complete after max(16*speed, 16) frames.
+                                             # Does nothing in FRLG if the Quest Log is active.
+39 warp mapbank. map. warp.-1 x: y:              # sends player to mapbank/map at tile 'warp'. If warp is negative or out of range, uses x/y instead, or the middle of the map if those are negative as well
+                                                 # x and y can be variables
+                                                 # blocks script execution and, after a few frames, resets the script runner state, ending the current script
+3A warpmuted mapbank. map. warp.-1 x: y:         # same as warp, but doesn't play sappy song 0009 (the same as when warping via Dive)
+3B warpwalk  mapbank. map. warp.-1 x: y:         # same as warp, but with a walking and door-opening effect
+3C warphole  mapbank. map.                       # similar to warp, but with a falling-down-a-hole effect. Sends the player to same X/Y as on the map they started on.
+                                                 # If 'mapbank' and 'map' are 127 127, goes to the map selected by warp5, or to the warp used to enter the current room if warp5 was not used.
+3D warpteleport mapbank. map. warp.-1 x: y:      # same as warp, but with an effect of stepping onto a warp pad. Warping to a door/cave opening causes the player to land on the exact same block as it.
+3E warp3 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates for the player to go to in conjunction with specific "special" commands.
+                                                 # x and y can be variables, as with other warp commands.
+3F setwarpplace mapbank. map. warp.-1 x: y:      # sets a variable position (dynamic warp). Go to it with warp 7F 7F 7F 0000 0000
+40 warp4 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates that the player would go to after using Dive.
+41 warp5 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates that the player would go to if they fell in a hole.
+42 getplayerpos varX: varY:                      # stores the current player position into varX and varY
+43 countPokemon                                  # stores number of pokemon in your party, including non-usable eggs and bad eggs, into LASTRESULT (variable 800D)
+44 additem item:data.items.stats quantity:       # Tries to put 'quantity' more of 'item' in the player's inventory.
+                                                 # 'item' and 'quantity' can be variables.
+                                                 # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1. If the operation fails, it is set to 0.
+                                                 # In FRLG only, the TM case or berry pouch is also given to the player if they would need them to view the item, including setting the flag that enables the berry pouch.
+                                                 # In FRLG only, receiving certain key items, or receiving the town map in the rival's house, will attempt to add an event to the Quest Log.
+                                                 # In RSE only, this may result in having multiple stacks of the same item.
+                                                 # In Emerald only, if the appropriate flag is set or the map uses the appropriate layout, the item will be added to the Battle Pyramid inventory instead.
+                                                 # In Emerald only, this command may rarely result in the player losing all of their items or other bugs due to memory allocation failure.
+45 removeitem item:data.items.stats quantity:    # Tries to remove 'quantity' of 'item' from the player's inventory.
+                                                 # 'item' and 'quantity' can be variables.
+                                                 # if the operation was successful, LASTRESULT (variable 800D) is set to 1. If the operation fails, it is set to 0.
+                                                 # In Emerald only, if the appropriate flag is set or the map uses the appropriate layout, the item will be removed from the Battle Pyramid inventory instead.
+                                                 # In Emerald only, this command may rarely result in the player losing all of their items or other bugs due to memory allocation failure.
+46 checkitemroom item:data.items.stats quantity: # 800D is set to 1 if additem would succeed, otherwise 0.
+                                                 # 'item' and 'quantity' can be variables.
+47 checkitem item:data.items.stats quantity:     # 800D is set to 1 if removeitem would succeed, otherwise 0.
+                                                 # 'item' and 'quantity' can be variables.
+48 checkitemtype item:data.items.stats           # 800D is set to the bag pocket number of the item.
+                                                 # 'item' can be a variable.
+49 addpcitem item:data.items.stats quantity:     # same as additem, except the item is put into the player's PC
+4A checkpcitem item:data.items.stats quantity:   # same as checkitem, except it looks for the item in the player's PC
+4B adddecoration decoration:data.decorations.stats                 # In RSE only, this command tries to add a decoration to the player's PC. If the operation succeeds, 800D is set to 1, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect 800D.
+                                                                   # 'decoration' can be a variable.
+4C removedecoration decoration:data.decorations.stats              # In RSE only, this command tries to remove a decoration from the player's PC. If the operation succeeds, 800D is set to 1, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect 800D.
+                                                                   # 'decoration' can be a variable.
+4D checkdecoration decoration:data.decorations.stats               # In RSE only, this command sets 800D to 1 if the PC has at least one of that decoration, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect 800D.
+4E testdecoration decoration:data.decorations.stats                # In RSE only, this command sets 800D to 1 if the PC could store at least one more of that decoration, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect 800D.
+4F applymovement npc: data<`move`>           # has character 'npc' in the current map move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
-50 applymovement2 npc: data<`move`> bank. map.                     # like applymovement, but could be used if an NPC will move to another map.
-51 waitmovement npc:                         # block further script execution until the npc movement is completed
-52 waitmovement2 npc: bank. map.             # like waitmovement, but has extra parameters for a specifiable map.
+                                             # Does nothing if the NPC doesn't exist or is disabled (from a flag/hidesprite) or is too far off-screen.
+50 applymovement2 npc: data<`move`> bank. map.                     # like applymovement, but does not assume the map that the NPC is from is the current map.
+                                                                   # probably useful for using FRLG clone NPCs in cutscenes?
+51 waitmovement npc:                         # block further script execution until the npc movement is completed.
+                                             # 'npc' can be a variable, or 0 to signify the last NPC with a movement applied.
+52 waitmovement2 npc: bank. map.             # like waitmovement, but does not assume the map that the NPC is from is the current map.
+                                             # probably useful for using FRLG clone NPCs in cutscenes?
 53 hidesprite npc:                           # hides an NPC, but only if they have an associated flag. Doesn't work on the player.
-54 hidesprite2 npc: bank. map.               # like hidesprite, but has extra parameters for a specifiable map.
+54 hidesprite2 npc: mapbank. map.                  # like hidesprite, but has extra parameters for a specifiable map.
 55 showsprite npc:                           # opposite of hidesprite
 56 showsprite2 npc: bank. map.               # shows a previously hidden sprite; it also has extra parameters for a specifiable map.
 57 movesprite npc: x: y:

@@ -164,7 +164,7 @@ DefaultHash = '''0BEEDA92'''
          Model[0] = 2;
          var segment = new ArrayRunBitArraySegment("name", 1, "list");
 
-         var text = segment.ToText(Model, 0, false);
+         var text = segment.ToText(Model, 0, 0);
 
          Assert.Equal("- \"with spaces\" /", text);
       }

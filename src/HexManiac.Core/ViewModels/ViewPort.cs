@@ -268,6 +268,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      }
                      return;
                   }
+
+                  // documentation check
+                  var matches = docs.Where(doc => doc.Label.Equals(str, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                  var prefixes = new[] { "scripting.overworld.reference.commands", "scripting.overworld.reference.specials" };
+                  foreach (var prefix in prefixes) {
+                     if (matches.Count != 1) matches = docs.Where(doc => doc.Label.Equals($"documentation.{prefix}.{str}", StringComparison.InvariantCultureIgnoreCase)).ToList();
+                  }
+                  if (matches.Count == 1) {
+                     OpenLink(matches[0].Url);
+                     return;
+                  }
                }
 
                selection.Goto.Execute(arg);
@@ -813,7 +824,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       #region Duplicate
 
       public bool CanDuplicate => true;
-      public IEditableViewPort CreateDuplicate() {
+      IEditableViewPort IEditableViewPort.CreateDuplicate() => CreateDuplicate();
+      public ViewPort CreateDuplicate() {
          var child = new ViewPort(FileName, Model, dispatcher, Singletons, mapper?.Tutorials, mapper?.FileSystem, PythonTool, history, mapper?.Templates);
          child.selection.GotoAddress(scroll.DataIndex);
          return child;
@@ -875,6 +887,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SelectionEnd = ConvertAddressToViewPoint(start + size - 1);
       }
 
+      private IReadOnlyList<DocLabel> docs;
       private readonly ToolTray tools;
       public bool HasTools => tools != null;
       public IToolTrayViewModel Tools => tools;
@@ -1013,8 +1026,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null, EventTemplate eventTemplate = null) {
          Singletons = singletons ?? new Singletons();
+         this.docs = new List<DocLabel>();
+         if (model.Count >= 0x100 && Singletons.DocReference.TryGetValue(model.GetGameCode().Substring(4), out var docs)) {
+            this.docs = docs;
+         }
          PythonTool = pythonTool;
          ownsHistory = changeHistory == null;
+
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
          this.dispatcher = dispatcher ?? InstantDispatch.Instance;
@@ -1074,6 +1092,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                } else {
                   mapper = null;
                }
+            }
+            if (model is BaseModel bm) {
+               this.docs = this.docs.Concat(bm.GenerateDocumentationLabels(Singletons.ScriptLines)).ToList();
             }
          }, TaskContinuationOptions.ExecuteSynchronously);
       }
@@ -2478,6 +2499,43 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
+      private List<ViewPort> RecentDuplicates = new();
+      public void GotoScript(int address) {
+         if (RecentDuplicates.Count == 0) RecentDuplicates.Add(this);
+
+         int start;
+         foreach (var tab in RecentDuplicates) {
+            // if we're already looking at a script, open this in a new tab instead
+            start = tab.ConvertViewPointToAddress(tab.SelectionStart);
+            if (start == address) {
+               // just switch to this tab
+               var args = new TabChangeRequestedEventArgs(tab);
+               RequestTabChange?.Invoke(mapper, args);
+               if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args); // if this tab has been closed, ask the mapper to raise it
+               if (args.RequestAccepted) {
+                  tab.selection.SetJumpBackTab(mapper);
+                  FocusToolPanel.Raise(this);
+               }
+               return;
+            }
+         }
+
+         // no open tab has this script loaded
+         // check if we need to make a new tab
+         start = ConvertViewPointToAddress(SelectionStart);
+         if (tools.SelectedTool is CodeTool && Model.GetNextRun(start) is XSERun xse && xse.Start == start) {
+            var newTab = CreateDuplicate();
+            newTab.RecentDuplicates = RecentDuplicates;
+            RecentDuplicates.Add(newTab);
+            newTab.Goto.Execute(address);
+            mapper?.RaiseRequestTabChange(new(newTab));
+         } else {
+            // doesn't look like we're going to a script
+            // just do a normal goto
+            Goto.Execute(address);
+         }
+      }
+
       private void ValidateMatchedWords() {
          // TODO if this is too slow, add a method to the model to get the set of only MatchedWordRuns.
          for (var run = Model.GetNextRun(0); run != NoInfoRun.NullRun; run = Model.GetNextRun(run.Start + Math.Max(1, run.Length))) {
@@ -3321,6 +3379,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          }
       }
+
+      private void OpenLink(string link) => NativeProcess.Start(link);
 
       private void NotifyCollectionChanged(NotifyCollectionChangedEventArgs args) => CollectionChanged?.Invoke(this, args);
    }

@@ -86,5 +86,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       void ClearProgress();
       IEditableViewPort CreateDuplicate();
       void OpenImageEditorTab(int address, int spritePage, int palettePage, int preferredTileWidth = -1);
+      void GotoScript(int address);
    }
 }

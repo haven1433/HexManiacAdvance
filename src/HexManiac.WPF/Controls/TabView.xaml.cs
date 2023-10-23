@@ -432,6 +432,10 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var transform = new TranslateTransform(formattedText.Width + 16, lineHeight * linesBeforeSelection);
             if (MainWindow.GetChild(element, "FloatingInsertVarButton", codebody) is Button insertVar) insertVar.RenderTransform = transform;
             if (MainWindow.GetChild(element, "FloatingInsertFlagButton", codebody) is Button insertFlag) insertFlag.RenderTransform = transform;
+            if (MainWindow.GetChild(element, "CodeBodyAutoComplete", codebody) is AutocompleteOverlay overlay && overlay.Visibility == Visibility.Visible) {
+               CodeContentsPopup.IsOpen = false;
+               earlyExit = true;
+            }
          }
 
          if (earlyExit) return;
@@ -458,8 +462,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          }
 
          CodeContentsPopup.IsOpen = true;
-         // var selectedLine = textbox.Text.Split(Environment.NewLine)[linesBeforeSelection];
-         // Annotate(textbox, textbox.SelectionStart, selectedLine.Split(' ')[0], Brush(nameof(Theme.Accent)));
       }
 
       // attempt to write text _over_ existing text, to change its color
@@ -644,7 +646,6 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             e.Handled = true;
             body.InsertFlagOrVar();
          } else if (e.Key == Key.Escape) {
-            e.Handled = true;
             CodeContentsPopup.IsOpen = false;
          }
       }

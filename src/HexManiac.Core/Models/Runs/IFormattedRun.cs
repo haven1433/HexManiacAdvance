@@ -28,13 +28,13 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public interface IAppendToBuilderRun : IFormattedRun {
-      void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep);
+      void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth);
       void Clear(IDataModel model, ModelDelta changeToken, int start, int length);
    }
 
    public class AutocompleteItem {
-      public string Text { get; }
-      public string LineText { get; }
+      public string Text { get; } // text to show in completion tip
+      public string LineText { get; } // text to use to replace entire line
       public AutocompleteItem(string text, string lineText) => (Text, LineText) = (text, lineText);
    }
 

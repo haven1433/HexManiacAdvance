@@ -404,6 +404,17 @@ BPGE0.scripts.moves.flash.maxlevel-1 3C671C
 BPRE1.scripts.moves.flash.maxlevel-1 3C6950
 BPGE1.scripts.moves.flash.maxlevel-1 3C678C
 
+# number of balls in the safari zone
+AXVE0.scripts.games.safari.balls.count 0C81CA
+AXPE0.scripts.games.safari.balls.count 0C81CA
+AXVE1.scripts.games.safari.balls.count 0C81EA
+AXPE1.scripts.games.safari.balls.count 0C81EA
+BPRE0.scripts.games.safari.balls.count 0A0ED2
+BPGE0.scripts.games.safari.balls.count 0A0EA6
+BPRE1.scripts.games.safari.balls.count 0A0EE6
+BPGE1.scripts.games.safari.balls.count 0A0EBA
+BPEE0.scripts.games.safari.balls.count 0FC0E6
+
 # overworld table limiters (credit to phoenixbound)
 BPRE0.graphics.overworld.tablelength-1 05F2E0
 BPRE1.graphics.overworld.tablelength-1 05F2F4

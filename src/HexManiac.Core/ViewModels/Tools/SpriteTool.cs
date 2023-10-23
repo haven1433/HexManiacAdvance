@@ -11,7 +11,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -757,9 +756,39 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return false;
       }
 
+      public static (short[] image, int width) Unindex(int[,] pixels, IReadOnlyList<short> palette) {
+         var width = pixels.GetLength(0);
+         var height = pixels.GetLength(1);
+         var image = new short[width * height];
+         for (int y = 0; y < height; y++) for (int x = 0; x < width; x++) image[y * width + x] = palette[pixels[x, y]];
+         return (image, width);
+      }
+
       public void ImportSpriteAndPalette(IFileSystem fileSystem) {
-         (short[] image, int width) = fileSystem.LoadImage();
+         string filename = null;
+         if (fileSystem.TryLoadIndexedImage(ref filename, out var pixels, out var palette)) {
+            ImportSpriteAndPalette(fileSystem, pixels, palette);
+            return;
+         }
+         if (filename == null) return; // they didn't choose a file... they hit cancel. Don't continue trying to import.
+
+         (short[] image, int width) = fileSystem.LoadImage(filename);
          ImportSpriteAndPalette(fileSystem, image, width);
+      }
+
+      private void ImportSpriteAndPalette(IFileSystem fileSystem, int[,] pixels, IReadOnlyList<short> palette, ImportType importType = ImportType.Unknown) {
+         if (pixels == null) return;
+         if (!TryValidate(pixels, palette, out var spriteRun, out var paletteRun)) return;
+         var relatedSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
+         var relatedPalettes = spriteRun.FindRelatedPalettes(model);
+         int relatedImageCount = relatedSprites.Count * relatedPalettes.Count;
+         if (pixels.GetLength(0) == PixelWidth && pixels.GetLength(1) == PixelHeight) {
+            ImportSinglePageSpriteAndPalette(fileSystem, pixels, palette, spriteRun, paletteRun, importType);
+            viewPort.Refresh(); // need to refresh in case the model resized during the import
+         } else {
+            var (image, width) = Unindex(pixels, palette);
+            ImportSpriteAndPalette(fileSystem, image, width, importType);
+         }
       }
 
       private void ImportSpriteAndPalette(IFileSystem fileSystem, short[] image, int width, ImportType importType = ImportType.Unknown){
@@ -878,6 +907,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          usablePalettePages = palDetails.Count.Range().Where(i => palDetails[i].IsSet).ToList();
          return (ImportType)chosenOption;
+      }
+
+      private Point ImportSinglePageSpriteAndPalette(IFileSystem fileSystem, int[,] pixels, IReadOnlyList<short> palette, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType, bool allowSpriteEdits = true) {
+         var result = new Point(spriteRun.SpriteFormat.TileWidth * 8, spriteRun.SpriteFormat.TileHeight * 8);
+
+         var dependentSprites = paletteRun?.FindDependentSprites(model) ?? new List<ISpriteRun>();
+         if (dependentSprites.Count == 0 || // no sprites are associated with this palette. So just use the currently loaded sprite.
+            (dependentSprites.Count == 1 && dependentSprites[0].Start == spriteRun.Start && (spriteRun.Pages == 1 || spriteRun.Pages == paletteRun.Pages)) || // 'I am the only sprite' case
+            (dependentSprites.Count == 1 && dependentSprites[0] is ITilesetRun && spriteRun is ITilemapRun) // 'My tileset is the only sprite' case
+            ) {
+            // easy case: a single sprite. Sprite uses the palette.
+            // there may be other palettes, but we can leave them be.
+            WriteSpriteAndPalette(spriteRun, paletteRun, pixels, palette, paletteRun?.Pages.Range().ToList());
+            LoadSprite();
+            LoadPalette();
+            return result;
+         }
+
+         // there are multiple sprites
+         var dependentPageCount = dependentSprites.Sum(s => s.Pages);
+         if (paletteRun.Pages > 1) dependentPageCount = dependentSprites.Count; // for multi-page palettes, only count each sprite once.
+         string imageType = "images";
+         if (dependentSprites.Any(ds => ds is ITilesetRun)) imageType = "tilesets";
+         var choice = GetImportType(fileSystem, dependentPageCount, dependentSprites, imageType, paletteRun, importType, out var usablePalPages);
+
+         if (choice != ImportType.Greedy) {
+            var (image, width) = Unindex(pixels, palette);
+            ImportSinglePageSpriteAndPalette(fileSystem, image, spriteRun, paletteRun, choice, allowSpriteEdits);
+         } else {
+            result = WriteSpriteAndPalette(spriteRun, paletteRun, pixels, palette, usablePalPages, !allowSpriteEdits);
+            LoadSprite();
+            LoadPalette();
+         }
+
+         return result;
       }
 
       private Point ImportSinglePageSpriteAndPalette(IFileSystem fileSystem, short[] image, ISpriteRun spriteRun, IPaletteRun paletteRun, ImportType importType, bool allowSpriteEdits = true) {
@@ -1000,7 +1064,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          LoadPalette();
       }
 
+      private bool TryValidate(int[,] pixels, IReadOnlyList<short> palette, out ISpriteRun spriteRun, out IPaletteRun paletteRun) {
+         if (!TryValidate(out spriteRun, out paletteRun)) return false;
+         return pixels != null && palette != null;
+      }
+
       private bool TryValidate(short[] image, out ISpriteRun spriteRun, out IPaletteRun paletteRun) {
+         if (!TryValidate(out spriteRun, out paletteRun)) return false;
+         return image != null;
+      }
+
+      private bool TryValidate(out ISpriteRun spriteRun, out IPaletteRun paletteRun) {
          spriteRun = model.GetNextRun(spriteAddress) as ISpriteRun;
          paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
          if (spriteRun.SpriteFormat.BitsPerPixel < 4) paletteRun = null;
@@ -1021,9 +1095,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             viewPort.RaiseError("This format does not support importing.");
             return false;
          }
-
-         // check 2: image was actually loaded
-         if (image == null) return false;
 
          return true;
       }
@@ -1208,6 +1279,29 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
 
          ExplainMoves(spriteRun, newSprite, paletteRun, paletteRun);
+      }
+
+      private Point WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, int[,] pixels, IReadOnlyList<short> palette, IReadOnlyList<int> usablePalPages, bool noSpriteEdits = false) {
+         if (noSpriteEdits || spriteRun is ITilemapRun || paletteRun == null || paletteRun.Pages != 1) {
+            var (image, width) = Unindex(pixels, palette);
+            return WriteSpriteAndPalette(spriteRun, paletteRun, image, usablePalPages, noSpriteEdits);
+         }
+
+         var newSprite = spriteRun.SetPixels(model, viewPort.CurrentChange, spritePage, pixels);
+         var newPalette = paletteRun.SetPalette(model, viewPort.CurrentChange, 0, palette);
+
+         ExplainMoves(spriteRun, newSprite, paletteRun, newPalette);
+
+         if (spriteRun.Start != newSprite.Start) {
+            spriteAddress = newSprite.Start;
+            NotifyPropertyChanged(nameof(SpriteAddress));
+         }
+         if (newPalette != null && paletteRun.Start != newPalette.Start) {
+            paletteAddress = newPalette.Start;
+            NotifyPropertyChanged(nameof(PaletteAddress));
+         }
+
+         return new Point(PixelWidth, PixelHeight);
       }
 
       private Point WriteSpriteAndPalette(ISpriteRun spriteRun, IPaletteRun paletteRun, short[] image, IReadOnlyList<int> usablePalPages, bool noSpriteEdits = false) {

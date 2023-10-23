@@ -771,7 +771,7 @@ namespace HavenSoft.HexManiac.Tests {
       [SkippableTheory]
       [InlineData(0x169C78, "msgbox.default <18E2E5>")]
       [InlineData(0x169CAD, "msgbox.yesno <1A56A7>")]
-      [InlineData(0x1BE5C2, "give.item POTION 1")]
+      [InlineData(0x1BE5C2, "find.item POTION 1")]
       public void FireRed_Macros_Parse(int address, string content) {
          var model = fixture.LoadModel(FireRedName);
 

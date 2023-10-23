@@ -62,7 +62,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (currentSegment is ArrayRunRecordSegment recordSegment) currentSegment = recordSegment.CreateConcrete(data, self, index);
          if (currentSegment.Type == ElementContentType.Integer) {
             if (currentSegment is ArrayRunEnumSegment enumSegment) {
-               var value = enumSegment.ToText(data, offsets.SegmentStart, false);
+               var value = enumSegment.ToText(data, offsets.SegmentStart, 0);
                return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
             } else if (currentSegment is ArrayRunTupleSegment tupleSegment) {
                return new ViewModels.DataFormats.Tuple(data, tupleSegment, offsets.SegmentStart, position);
@@ -124,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return hasError;
       }
 
-      public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length, bool deep) {
+      public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length, int depth) {
          var names = self.ElementNames;
          var offsets = self.ConvertByteOffsetToArrayOffset(start);
          length += offsets.SegmentOffset;
@@ -153,9 +153,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
                if (segment.Length > 0) {
                   if (segment is ArrayRunRecordSegment rSeg) {
-                     text.Append(rSeg.ToText(data, self, offset, deep)?.Trim() ?? string.Empty);
+                     text.Append(rSeg.ToText(data, self, offset, depth)?.Trim() ?? string.Empty);
                   } else {
-                     text.Append(segment.ToText(data, offset, deep)?.Trim() ?? string.Empty);
+                     text.Append(segment.ToText(data, offset, depth)?.Trim() ?? string.Empty);
                   }
                   if (j + 1 < self.ElementContent.Count) text.Append(", ");
                   offset += segment.Length;
@@ -1052,7 +1052,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => ITableRunExtensions.AppendTo(this, model, builder, start, length, deep);
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          ITableRunExtensions.Clear(this, model, changeToken, start, length);

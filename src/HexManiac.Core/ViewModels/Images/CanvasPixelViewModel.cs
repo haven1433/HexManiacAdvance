@@ -33,6 +33,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
 
       public void Draw(IPixelViewModel foreground, int x, int y) {
          if (foreground == null) return;
+         if (x >= PixelWidth || y >= PixelHeight) return;
          for (int yy = 0; yy < foreground.PixelHeight; yy++) {
             if (y + yy < 0 || y + yy >= PixelHeight) continue;
             if (foreground.Transparent == -1) {

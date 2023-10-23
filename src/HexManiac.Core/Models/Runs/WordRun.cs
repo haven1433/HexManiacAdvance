@@ -39,7 +39,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new WordRun(Start, SourceArrayName, Length, ValueOffset, MultOffset, Note, newPointerSources);
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          if (IsMatchedWord(model)) {
             builder.Append(FormatString + SourceArrayName);
          } else if (Length == 4 || Length == 2 || Length == 1) {

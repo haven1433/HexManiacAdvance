@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -37,9 +38,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(gameHash, model, address, new Dictionary<int, int>());
 
-      public string Parse(IDataModel data, int start, int length, CodeBody updateBody = null) {
+      public string Parse(IDataModel data, int start, int length, ref int existingSectionCount, CodeBody updateBody = null) {
          var builder = new StringBuilder();
-         foreach (var line in Decompile(data, start, length, updateBody)) builder.AppendLine(line);
+         foreach (var line in Decompile(data, start, length, updateBody, ref existingSectionCount)) builder.AppendLine(line);
          return builder.ToString();
       }
 
@@ -285,7 +286,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       // TODO refactor to rely on CollectScripts rather than duplicate code
       // returns a list of scripts that were formatted, and their length
-      public IDictionary<int, int> FormatScript<SERun>(ModelDelta token, IDataModel model, int address) where SERun : IScriptStartRun {
+      public IDictionary<int, int> FormatScript<SERun>(ModelDelta token, IDataModel model, int address, int minLength = 0) where SERun : IScriptStartRun {
+         if (!address.InRange(0, model.Count)) return null;
          Func<int, SortedSpan<int>, IScriptStartRun> constructor = (a, s) => new XSERun(a, s);
          if (typeof(SERun) == typeof(BSERun)) constructor = (a, s) => new BSERun(a, s);
          if (typeof(SERun) == typeof(ASERun)) constructor = (a, s) => new ASERun(a, s);
@@ -305,6 +307,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             if (processed.ContainsKey(address)) continue;
             int length = 0;
+            int desiredLength = minLength;
+            minLength = 0;
             while (true) {
                var line = engine.GetMatchingLine(gameHash, model, address + length);
                if (line == null) break;
@@ -337,7 +341,10 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                               model.ClearFormat(token, address + length, 4);
                               model.ObserveRunWritten(token, new PointerRun(address + length));
                            }
-                           if (arg.PointerType == ExpectedPointerType.Script) toProcess.Add(destination);
+                           if (arg.PointerType == ExpectedPointerType.Script) {
+                              toProcess.Add(destination);
+                              if (destination.InRange(address, address + desiredLength)) desiredLength = destination - address;
+                           }
                            if (arg.PointerType == ExpectedPointerType.Text) {
                               WriteTextStream(model, token, destination, address + length);
                            } else if (arg.PointerType == ExpectedPointerType.Movement) {
@@ -354,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   }
                   length += arg.Length(model, address + length);
                }
-               if (line.IsEndingCommand) break;
+               if (line.IsEndingCommand && length >= desiredLength) break;
             }
             processed.Add(address, length);
          }
@@ -499,6 +506,16 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          script = new string(text.ToArray());
          return caretMove;
+      }
+
+      public byte[] CompileWithoutErrors(ModelDelta token, IDataModel model, int scriptStart, ref string script) {
+         var errors = new List<ScriptErrorInfo>();
+         void Handler(object sender, ScriptErrorInfo info) => errors.Add(info);
+         CompileError += Handler;
+         var content = Compile(token, model, scriptStart, ref script, out var _, out var _);
+         CompileError -= Handler;
+         Debug.Assert(errors.IsNullOrEmpty(), "Expected compilation to have no errors! " + Environment.NewLine + Environment.NewLine.Join(errors.Select(error => error.Message)));
+         return content;
       }
 
       public byte[] Compile(ModelDelta token, IDataModel model, int start, ref string script, out IReadOnlyList<(int originalLocation, int newLocation)> movedData, out int ignoreCharacterCount) {
@@ -719,7 +736,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return options;
       }
 
-      private List<string> ReadOptions(IDataModel model, string tableName, string token) {
+      public List<string> ReadOptions(IDataModel model, string tableName, string token) {
          if (!string.IsNullOrEmpty(tableName)) {
             var isList = model.TryGetList(tableName, out var list);
             var allOptions = model.GetOptions(tableName);
@@ -748,6 +765,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       }
 
       public string GetContentHelp(IDataModel model, CodeBody body, HelpContext context) {
+         if (context == null || body == null || body.StreamTypes == null) return null;
          if (!context.ContentBoundaryIndex.InRange(0, body.StreamTypes.Count)) return null;
          var expectedType = body.StreamTypes[context.ContentBoundaryIndex];
          if (expectedType == ExpectedPointerType.Mart) {
@@ -764,6 +782,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public string GetHelp(IDataModel model, CodeBody body, HelpContext context) {
          var currentLine = context.Line;
          if (string.IsNullOrWhiteSpace(currentLine)) return null;
+         if (context.Index == currentLine.Length && !currentLine.EndsWith(" ")) return null;
          if (context.ContentBoundaryCount > 0 && body != null) return GetContentHelp(model, body, context);
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
@@ -856,13 +875,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var destination = model.ReadPointer(start);
             if (destination >= 0 && destination < model.Count) {
                var run = model.GetNextRun(destination);
-               if (run is IScriptStartRun scriptStart && scriptStart.Start == destination && scriptStart.Start > start) {
+               var scriptStart = run as IScriptStartRun;
+               if (run is IScriptStartRun && scriptStart.Start == destination && scriptStart.Start > start) {
                   return model.GetScriptLength(scriptStart, destinationLengths);
                } else if (run.Start == destination) {
                   // we only want to add this run's length as part of the script if:
                   // (1) the run has no name
                   // (2) the run has only one source (the script)
                   if (run is NoInfoRun || run.PointerSources == null) return -1;
+                  if (run is IScriptStartRun && scriptStart.Start < start) return 1; // this script has a length, but don't calculate it (prevent recursion loop)
                   if (run is IScriptStartRun) return -1; // this script has a length, but don't track it (prevent recursion loop)
                   if (run.PointerSources.Count == 1 && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, destination))) {
                      return run.Length;
@@ -877,7 +898,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return -1;
       }
 
-      private string[] Decompile(IDataModel data, int index, int length, CodeBody updateBody) {
+      private string[] Decompile(IDataModel data, int index, int length, CodeBody updateBody, ref int existingSectionCount) {
          var results = new List<string>();
          var nextAnchor = data.GetNextAnchor(index);
          var destinations = new Dictionary<int, int>();
@@ -947,275 +968,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          // post processing: change the section labels to be in address order
-         var sections = labels.FinalizeLabels();
+         var sections = labels.FinalizeLabels(ref existingSectionCount);
          foreach (int i in linesWithLabelsToUpdate) {
             results[i] = labels.FinalizeLine(sections, results[i]);
          }
 
          if (updateBody != null) updateBody.StreamTypes = streamTypes;
          return results.ToArray();
-      }
-   }
-
-   public interface IScriptLine {
-      IReadOnlyList<IScriptArg> Args { get; }
-      IReadOnlyList<byte> LineCode { get; }
-      string LineCommand { get; }
-      IReadOnlyList<string> Documentation { get; }
-      string Usage { get; }
-
-      bool IsEndingCommand { get; }
-
-      bool MatchesGame(int gameCodeHash);
-      int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths); // compile from the bytes in the model, at that start location
-      int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
-      bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index);
-      string Decompile(IDataModel data, int start, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes);
-
-      /// <summary>
-      /// Returns true if the command looks correct, even if the arguments are incomplete.
-      /// </summary>
-      bool CanCompile(string line);
-
-      /// <summary>
-      /// Returns an error if the line cannot be compiled, or a set of tokens if it can be compiled.
-      /// </summary>
-      string ErrorCheck(string scriptLine, out string[] tokens);
-
-      string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result);
-
-      void AddDocumentation(string content);
-
-      public int CountShowArgs() {
-         return Args.Sum(arg => {
-            if (arg is ScriptArg) return 1;
-            return 0;
-            // something with array args?
-         });
-      }
-   }
-
-   public class MacroScriptLine : IScriptLine {
-      private static readonly IReadOnlyList<byte> emptyByteList = new byte[0];
-      private readonly List<string> documentation = new List<string>();
-
-      private bool hasShortForm;
-      private readonly Dictionary<int, int> shortIndexFromLongIndex = new();
-      private readonly IReadOnlyList<int> matchingGames;
-
-      public IReadOnlyList<IScriptArg> Args { get; }
-      public IReadOnlyList<IScriptArg> ShortFormArgs {
-         get {
-            if (shortIndexFromLongIndex.Count == 0) {
-               return Args.Where(arg => arg is not SilentMatchArg).ToList();
-            }
-            var args = new IScriptArg[shortIndexFromLongIndex.Count()];
-            foreach (var pair in shortIndexFromLongIndex) {
-               args[pair.Value] = Args[pair.Key];
-            }
-            return args;
-         }
-      }
-      public IReadOnlyList<byte> LineCode => emptyByteList;
-      public IReadOnlyList<string> Documentation => documentation;
-      public string LineCommand { get; }
-      public bool IsEndingCommand => false;
-      public bool IsValid { get; } = true;
-      public string Usage { get; private set; }
-
-      public static bool IsMacroLine(string engineLine) {
-         engineLine = engineLine.Trim();
-         var tokens = engineLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-         if (tokens.Length == 0) return false;
-         var token = tokens[0];
-         if (token.StartsWith("[") && tokens.Length > 1) token = tokens[1];
-         if (token.StartsWith("#")) return false;
-         if (token.Length == 2 && token.TryParseHex(out _)) return false;
-         return true;
-      }
-
-      public MacroScriptLine(string engineLine) {
-         var docSplit = engineLine.Split(new[] { '#' }, 2);
-         if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
-         engineLine = docSplit[0].Trim();
-         matchingGames = ScriptLine.ExtractMatchingGames(ref engineLine);
-         ExtractShortformInfo(ref engineLine);
-         if (!hasShortForm) {
-            Usage = " ".Join(engineLine.Split(' ').Where(token => token.Length != 2 || !token.TryParseHex(out _)));
-         }
-
-         var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-         var args = new List<IScriptArg>();
-         LineCommand = tokens[0];
-
-         for (int i = 1; i < tokens.Length; i++) {
-            var token = tokens[i];
-            if (token.Length == 2 && token.TryParseHex(out int number)) {
-               args.Add(new SilentMatchArg((byte)number));
-            } else if (ScriptArg.IsValidToken(token)) {
-               args.Add(new ScriptArg(token));
-            } else {
-               IsValid = false;
-            }
-         }
-
-         Args = args;
-      }
-
-      private void ExtractShortformInfo(ref string engineLine) {
-         if (!engineLine.Contains("->")) return;
-         var parts = engineLine.Split("->");
-         if (parts.Length != 2) return;
-         engineLine = parts[1];
-         var shortTokens = parts[0].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-         var longTokens = parts[1].Split(' ', StringSplitOptions.RemoveEmptyEntries);
-         if (shortTokens[0] != longTokens[0]) return;
-         shortTokens = shortTokens.Skip(1).ToArray();
-         longTokens = longTokens.Skip(1).ToArray();
-
-         // for each entry in long, it shows up somewhere in short
-         // entries in long can appear multiple times
-         for (int i = 0; i < longTokens.Length; i++) {
-            var index = shortTokens.IndexOf(longTokens[i]);
-            if (index == -1) continue;
-            shortIndexFromLongIndex.Add(i, index);
-         }
-
-         hasShortForm = true;
-         Usage = parts[0];
-      }
-
-      public bool MatchesGame(int game) => matchingGames?.Contains(game) ?? true;
-
-      public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
-         var length = LineCode.Count;
-         foreach (var arg in Args) {
-            if (destinationLengths != null) {
-               var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-               if (argLength > 0) destinationLengths[model.ReadPointer(start + length)] = argLength;
-            }
-            length += arg.Length(default, -1);
-         }
-         return length;
-      }
-
-      public int CompiledByteLength(IDataModel model, string line) {
-         if (!CanCompile(line)) return 0;
-         var length = LineCode.Count;
-         foreach (var arg in Args) {
-            length += arg.Length(default, -1);
-         }
-         return length;
-      }
-
-      public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
-         if (Args.Count == 0) return false;
-         if (!MatchesGame(gameCodeHash)) return false;
-         for (int i = 0; i < Args.Count; i++) {
-            var arg = Args[i];
-            if (arg is SilentMatchArg smarg) {
-               if (data[index] != smarg.ExpectedValue) return false;
-            } else if (arg is ScriptArg sarg) {
-               // don't validate, this part is variable
-            } else {
-               throw new NotImplementedException();
-            }
-            index += arg.Length(default, -1);
-         }
-         return true;
-      }
-
-      public string Decompile(IDataModel data, int start, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
-         var builder = new StringBuilder(LineCommand);
-         var streamContent = new List<string>();
-         var args = new List<string>();
-         foreach (var arg in Args) {
-            if (arg is ScriptArg sarg) {
-               var tempBuilder = new StringBuilder();
-               sarg.Build(false, data, start, tempBuilder, streamContent, labels, streamTypes);
-               args.Add(tempBuilder.ToString());
-            }
-            start += arg.Length(data, start);
-         }
-         if (args.Count > 0) {
-            builder.Append(" ");
-            builder.Append(" ".Join(ConvertLongFormToShortForm(args.ToArray())));
-         }
-         foreach (var content in streamContent) {
-            builder.AppendLine();
-            builder.AppendLine("{");
-            builder.AppendLine(content);
-            builder.Append("}");
-         }
-         return builder.ToString();
-      }
-
-      public bool CanCompile(string line) {
-         var tokens = ScriptLine.Tokenize(line);
-         if (tokens.Length == 0) return false;
-         if (tokens[0] != LineCommand) return false;
-         return true;
-      }
-
-      public string ErrorCheck(string scriptLine, out string[] tokens) {
-         tokens = ScriptLine.Tokenize(scriptLine);
-         if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
-         var args = tokens.Skip(1).ToArray();
-         var shortArgs = args;
-         args = ConvertShortFormToLongForm(args);
-         var commandText = LineCommand;
-         var specifiedArgs = Args.Where(arg => arg is ScriptArg).Count();
-         if (specifiedArgs != args.Length) {
-            return $"Command {commandText} expects {specifiedArgs} arguments, but received {shortArgs.Length} instead.";
-         }
-         return null;
-      }
-
-      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
-         result = null;
-         var error = ErrorCheck(scriptLine, out var tokens);
-         if (error != null) return error;
-         var args = tokens.Skip(1).ToArray();
-         args = ConvertShortFormToLongForm(args);
-         var results = new List<byte>();
-         var specifiedArgIndex = 0;
-         for (int i = 0; i < Args.Count; i++) {
-            if (Args[i] is ScriptArg scriptArg) {
-               var token = args[specifiedArgIndex];
-               var message = scriptArg.Build(model, start + results.Count, token, results, labels);
-               if (message != null) return message;
-               specifiedArgIndex += 1;
-            } else if (Args[i] is SilentMatchArg silentArg) {
-               results.Add(silentArg.ExpectedValue);
-            }
-         }
-         result = results.ToArray();
-         return null;
-      }
-
-      public void AddDocumentation(string doc) => documentation.Add(doc);
-
-      private string[] ConvertShortFormToLongForm(string[] args) {
-         if (!hasShortForm) return args;
-         // build long-form args from this short form
-         var longForm = new List<string>();
-         for (int i = 0; i < Args.Count; i++) {
-            if (Args[i] is SilentMatchArg) continue;
-            var shortIndex = shortIndexFromLongIndex[i];
-            if (shortIndex < args.Length) longForm.Add(args[shortIndex]);
-         }
-         return longForm.ToArray();
-      }
-
-      private string[] ConvertLongFormToShortForm(string[] args) {
-         if (!hasShortForm) return args;
-         var shortForm = new Dictionary<int, string>();
-         for (int i = 0; i < Args.Count; i++) {
-            if (Args[i] is SilentMatchArg) continue;
-            var shortIndex = shortIndexFromLongIndex[i];
-            shortForm[shortIndex] = args[shortForm.Count];
-         }
-         return shortForm.Count.Range(i => shortForm[i]).ToArray();
       }
    }
 
@@ -1227,560 +986,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       Mart,
       Decor,
       SpriteTemplate,
-   }
-
-   public abstract class ScriptLine : IScriptLine {
-      private readonly List<string> documentation = new List<string>();
-      private readonly IReadOnlyList<int> matchingGames;
-
-      public const string Hex = "0123456789ABCDEF";
-      public IReadOnlyList<IScriptArg> Args { get; }
-      public IReadOnlyList<byte> LineCode { get; }
-      public string LineCommand { get; }
-      public IReadOnlyList<string> Documentation => documentation;
-      public string Usage { get; }
-
-      public virtual bool IsEndingCommand { get; }
-
-      /// <param name="destinationLengths">If this line contains pointers, calculate the pointer data's lengths and include here.</param>
-      public int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths) {
-         var length = LineCode.Count;
-         foreach (var arg in Args) {
-            if (arg.Type == ArgType.Pointer) {
-               var destination = model.ReadPointer(start + length);
-               if (destinationLengths != null && !destinationLengths.ContainsKey(destination)) {
-                  var argLength = ScriptParser.GetArgLength(model, arg, start + length, destinationLengths);
-                  if (argLength > 0) destinationLengths[destination] = argLength;
-               }
-            }
-            length += arg.Length(model, start + length);
-         }
-         return length;
-      }
-      public int CompiledByteLength(IDataModel model, string line) {
-         var length = LineCode.Count;
-         var tokens = line.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-         for (var i = 0; i < Args.Count; i++) {
-            if (Args[i] is ScriptArg sarg) length += sarg.Length(default, -1);
-            if (Args[i] is ArrayArg aarg) length += aarg.ConvertMany(model, tokens.Skip(i)).Count() * aarg.TokenLength + 1;
-         }
-         return length;
-      }
-
-      public ScriptLine(string engineLine) {
-         var docSplit = engineLine.Split(new[] { '#' }, 2);
-         if (docSplit.Length > 1) documentation.Add('#' + docSplit[1]);
-         engineLine = docSplit[0].Trim();
-         matchingGames = ExtractMatchingGames(ref engineLine);
-         Usage = engineLine.Split(new[] { ' ' }, 2).Last();
-
-         var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-         var lineCode = new List<byte>();
-         var args = new List<IScriptArg>();
-
-         foreach (var token in tokens) {
-            if (token.Length == 2 && token.All(ViewPort.AllHexCharacters.Contains)) {
-               lineCode.Add(byte.Parse(token, NumberStyles.HexNumber));
-            } else if (token.StartsWith("[") && token.EndsWith("]")) {
-               var content = token.Substring(1, token.Length - 2);
-               args.Add(new ArrayArg(content));
-            } else if (ScriptArg.IsValidToken(token)) {
-               args.Add(new ScriptArg(token));
-            } else {
-               LineCommand = token;
-            }
-         }
-
-         LineCode = lineCode;
-         Args = args;
-      }
-
-      public static IReadOnlyList<int> ExtractMatchingGames(ref string line) {
-         if (!line.StartsWith("[")) return null;
-         var gamesEnd = line.IndexOf("]");
-         if (gamesEnd == -1) return null;
-         var games = line.Substring(1, gamesEnd - 1);
-         line = line.Substring(gamesEnd + 1).TrimStart();
-         return games.Split("_").Select(ConvertAscii).ToList();
-      }
-
-      public static IReadOnlyList<string> GetMatchingGames(IScriptLine line) {
-         var names = new[] { "AXVE", "AXPE", "BPRE", "BPGE", "BPEE" };
-         return names.Where(name => line.MatchesGame(ConvertAscii(name))).ToList();
-      }
-
-      public static int ConvertAscii(string letters) {
-         return letters.Reverse().Aggregate(0, (current, letter) => (current << 8) | (byte)letter);
-      }
-
-      public bool MatchesGame(int game) => matchingGames?.Contains(game) ?? true;
-
-      public void AddDocumentation(string doc) => documentation.Add(doc);
-
-      public bool PartialMatchLine(string line) => LineCommand.MatchesPartial(line.Split(' ')[0]);
-
-      public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
-         if (index + LineCode.Count >= data.Count) return false;
-         if (MatchesGame(gameCodeHash)) {
-            var result = true;
-            for (int i = 0; result && i < LineCode.Count; i++) result = data[index + i] == LineCode[i]; // avoid making lambda for performance
-            return result;
-         }
-         return false;
-      }
-
-      public bool CanCompile(string line) {
-         if (!(line + " ").StartsWith(LineCommand + " ", StringComparison.CurrentCultureIgnoreCase)) return false;
-         if (LineCode.Count == 1) return true;
-         var tokens = Tokenize(line).ToList();
-         if (tokens.Count < LineCode.Count) return false;
-         tokens.RemoveAt(0);
-         for (int i = 1; i < LineCode.Count; i++) {
-            if (!byte.TryParse(tokens[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out var value)) return false;
-            if (value != LineCode[i]) return false;
-            tokens.RemoveAt(0);
-         }
-         return true;
-      }
-
-      public string ErrorCheck(string scriptLine, out string[] tokens) {
-         tokens = Tokenize(scriptLine);
-         if (!tokens[0].Equals(LineCommand, StringComparison.CurrentCultureIgnoreCase)) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
-         var commandText = LineCommand;
-         for (int i = 1; i < LineCode.Count; i++) commandText += " " + LineCode[i].ToString("X2");
-         var fillerCount = Args.Count(arg => arg.Name == "filler");
-         for (int i = 0; i < fillerCount; i++) {
-            if (tokens.Length < Args.Count + LineCode.Count) tokens = tokens.Append("0").ToArray();
-         }
-         if (Args.Count > 0 && Args.Last() is ArrayArg) {
-            if (Args.Count > tokens.Length) {
-               return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
-            }
-         } else if (Args.Count != tokens.Length - LineCode.Count) {
-            return $"Command {commandText} expects {Args.Count} arguments, but received {tokens.Length - LineCode.Count} instead.";
-         }
-         return null;
-      }
-
-      public string Compile(IDataModel model, int start, string scriptLine, LabelLibrary labels, out byte[] result) {
-         result = null;
-         var error = ErrorCheck(scriptLine, out var tokens);
-         if (error != null) return error;
-         var results = new List<byte>(LineCode);
-         start += LineCode.Count;
-         for (int i = 0; i < Args.Count; i++) {
-            if (Args[i] is ScriptArg scriptArg) {
-               var token = tokens[i + LineCode.Count];
-               var message = scriptArg.Build(model, start, token, results, labels);
-               if (message != null) return message;
-               start += scriptArg.Length(model, start);
-            } else if (Args[i] is ArrayArg arrayArg) {
-               var values = arrayArg.ConvertMany(model, tokens.Skip(i + 1)).ToList();
-               results.Add((byte)values.Count);
-               start += 1;
-               foreach (var value in values) {
-                  if (Args[i].Type == ArgType.Byte) {
-                     results.Add((byte)value);
-                     start += 1;
-                  } else if (Args[i].Type == ArgType.Short) {
-                     results.Add((byte)value);
-                     results.Add((byte)(value >> 8));
-                     start += 2;
-                  } else if (Args[i].Type == ArgType.Word) {
-                     results.Add((byte)value);
-                     results.Add((byte)(value >> 0x8));
-                     results.Add((byte)(value >> 0x10));
-                     results.Add((byte)(value >> 0x18));
-                     start += 4;
-                  } else {
-                     throw new NotImplementedException();
-                  }
-               }
-            }
-         }
-         result = results.ToArray();
-         return null;
-      }
-
-      public string Decompile(IDataModel data, int start, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
-         for (int i = 0; i < LineCode.Count; i++) {
-            if (LineCode[i] != data[start + i]) throw new ArgumentException($"Data at {start:X6} does not match the {LineCommand} command.");
-         }
-         var allFillerIsZero = IsAllFillerZero(data, start);
-         start += LineCode.Count;
-         var builder = new StringBuilder(LineCommand);
-         for (int i = 1; i < LineCode.Count; i++) {
-            builder.Append(" " + LineCode[i].ToHexString());
-         }
-
-         var streamContent = new List<string>();
-         foreach (var arg in Args) {
-            builder.Append(" ");
-            if (arg is ScriptArg scriptArg) {
-               if (scriptArg.Build(allFillerIsZero, data, start, builder, streamContent, labels, streamTypes)) continue;
-            } else if (arg is ArrayArg arrayArg) {
-               builder.Append(arrayArg.ConvertMany(data, start));
-            } else {
-               throw new NotImplementedException();
-            }
-            start += arg.Length(data, start);
-         }
-         foreach (var content in streamContent) {
-            builder.AppendLine();
-            builder.AppendLine("{");
-            builder.AppendLine(content);
-            builder.Append("}");
-         }
-         return builder.ToString();
-      }
-
-      private bool IsAllFillerZero(IDataModel data, int start) {
-         start += LineCode.Count;
-         foreach (var arg in Args) {
-            if (arg.Name == "filler") {
-               var value = data.ReadMultiByteValue(start, arg.Length(data, start));
-               if (value != 0) return false;
-            }
-            start += arg.Length(data, start);
-         }
-         return true;
-      }
-
-      public static string ReadString(IDataModel data, int start) {
-         var length = PCSString.ReadString(data, start, true);
-         return data.TextConverter.Convert(data, start, length);
-      }
-
-      public static string[] Tokenize(string scriptLine) {
-         var result = new List<string>();
-         var quoteCut = scriptLine.Split('"');
-
-         for (int i = 0; i < quoteCut.Length; i++) {
-            if (i % 2 == 0 && quoteCut[i].Length == 0) continue;
-
-            if (i % 2 == 1) result.Add($"\"{quoteCut[i]}\"");
-            else result.AddRange(quoteCut[i].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
-         }
-
-         return result.ToArray();
-      }
-
-      public override string ToString() {
-         return string.Join(" ", LineCode.Select(code => code.ToHexString()).Concat(Args.Select(arg => arg.Name)).ToArray());
-      }
-   }
-
-   public class XSEScriptLine : ScriptLine {
-      public XSEScriptLine(string engineLine) : base(engineLine) { }
-
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x02, 0x03, 0x05, 0x08, 0x0A, 0x0C, 0x0D);
-   }
-
-   public class BSEScriptLine : ScriptLine {
-      public BSEScriptLine(string engineLine) : base(engineLine) { }
-
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
-   }
-
-   public class ASEScriptLine : ScriptLine {
-      public ASEScriptLine(string engineLine) : base(engineLine) { }
-
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x08, 0x0F, 0x11, 0x13);
-   }
-
-   public class TSEScriptLine : ScriptLine {
-      public TSEScriptLine(string engineLine) : base(engineLine) { }
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x45, 0x47, 0x59, 0x5A);
-   }
-
-   public interface IScriptArg {
-      ArgType Type { get; }
-      ExpectedPointerType PointerType { get; }
-      string Name { get; }
-      string EnumTableName { get; }
-
-      int Length(IDataModel model, int start);
-   }
-
-   public class ScriptArg : IScriptArg {
-      private int length;
-
-      public ArgType Type { get; }
-      public ExpectedPointerType PointerType { get; }
-      public string Name { get; }
-      public string EnumTableName { get; }
-      public int EnumOffset { get; }
-
-      public int Length(IDataModel model, int start) => length;
-
-      public ScriptArg(string token) {
-         (Type, PointerType, Name, EnumTableName, length) = Construct(token);
-         if (EnumTableName == null) return;
-         if (EnumTableName.Contains("+")) {
-            var parts = EnumTableName.Split(new[] { '+' }, 2);
-            EnumTableName = parts[0];
-            if (parts[1].TryParseInt(out var result)) EnumOffset = result;
-         } else if (EnumTableName.Contains("-")) {
-            var parts = EnumTableName.Split(new[] { '-' }, 2);
-            EnumTableName = parts[0];
-            if (parts[1].TryParseInt(out var result)) EnumOffset = -result;
-         }
-      }
-
-      public static (ArgType type, ExpectedPointerType pointerType, string name, string enumTableName, int length) Construct(string token) {
-         if (token.Contains("<>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Unknown, name, default, length);
-         } else if (token.Contains("<\"\">")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<\"\">" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Text, name, default, length);
-         } else if (token.Contains("<`mart`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`mart`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Mart, name, default, length);
-         } else if (token.Contains("<`decor`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`decor`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Decor, name, default, length);
-         } else if (token.Contains("<`move`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`move`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Movement, name, default, length);
-         } else if (token.Contains("<`oam`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`oam`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.SpriteTemplate, name, default, length);
-
-         } else if (token.Contains("<`xse`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`xse`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Script, name, default, length);
-         } else if (token.Contains("<`bse`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`bse`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Script, name, default, length);
-         } else if (token.Contains("<`ase`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`ase`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Script, name, default, length);
-         } else if (token.Contains("<`tse`>")) {
-            var (type, length) = (ArgType.Pointer, 4);
-            var name = token.Split(new[] { "<`tse`>" }, StringSplitOptions.None).First();
-            return (type, ExpectedPointerType.Script, name, default, length);
-
-         } else if (token.Contains("::")) {
-            var (type, length) = (ArgType.Word, 4);
-            var name = token.Split(new[] { "::" }, StringSplitOptions.None).First();
-            var enumTableName = token.Split("::").Last();
-            return (type, default, name, enumTableName, length);
-         } else if (token.Contains(':')) {
-            var (type, length) = (ArgType.Short, 2);
-            var name = token.Split(':').First();
-            var enumTableName = token.Split(':').Last();
-            return (type, default, name, enumTableName, length);
-         } else if (token.Contains('.')) {
-            var (type, length) = (ArgType.Byte, 1);
-            var parts = token.Split(new[] { '.' }, 2);
-            var name = parts[0];
-            var enumTableName = parts[1];
-            return (type, default, name, enumTableName, length);
-         } else {
-            // didn't find a token :(
-            // I guess it's a byte?
-            var (type, length) = (ArgType.Byte, 1);
-            var name = token;
-            return (type, default, name, default, length);
-         }
-      }
-
-      public static bool IsValidToken(string token) {
-         return "<> <`xse`> <`bse`> <`ase`> <`tse`> <\"\"> <`mart`> <`decor`> <`move`> <`oam`> : .".Split(' ').Any(token.Contains);
-      }
-
-      public string Convert(IDataModel model, int value, int bytes) {
-         var preferHex = EnumTableName?.EndsWith("|h") ?? false;
-         var preferSign = EnumTableName?.EndsWith("|z") ?? false;
-         var enumName = EnumTableName?.Split('|')[0];
-         var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
-         if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
-            if (preferHex || value == int.MinValue || Math.Abs(value) >= 0x4000) {
-               return "0x" + ((uint)value).ToString($"X{length * 2}");
-            } else {
-               if (bytes == 1 && preferSign) value = (sbyte)value;
-               if (bytes == 2 && preferSign) value = (short)value;
-               return value.ToString();
-            }
-         }
-         return table[value - EnumOffset];
-      }
-
-      public int Convert(IDataModel model, string value) {
-         int result;
-         if (!string.IsNullOrEmpty(EnumTableName)) {
-            if (ArrayRunEnumSegment.TryParse(EnumTableName, model, value, out result)) return result + EnumOffset;
-         }
-         if (value.StartsWith("0x") && value.Substring(2).TryParseHex(out result)) return result;
-         if (value.StartsWith("0X") && value.Substring(2).TryParseHex(out result)) return result;
-         if (value.StartsWith("$") && value.Substring(1).TryParseHex(out result)) return result;
-         if (int.TryParse(value, out result)) return result;
-         return 0;
-      }
-
-      /// <summary>
-      /// Build from compiled bytes to text.
-      /// </summary>
-      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
-         if (allFillerIsZero && Name == "filler") return true;
-         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start], 1));
-         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2), 2));
-         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4), 4));
-         if (Type == ArgType.Pointer) {
-            var address = data.ReadMultiByteValue(start, 4);
-            if (address < 0x8000000) {
-               builder.Append(labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script));
-            } else {
-               address -= 0x8000000;
-               builder.Append($"<{labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script)}>");
-               if (PointerType != ExpectedPointerType.Unknown) {
-                  if (data.GetNextRun(address) is IStreamRun stream && stream.Start == address) {
-                     streamContent.Add(stream.SerializeRun());
-                     streamTypes.Add(PointerType);
-                  }
-               }
-            }
-         }
-         return false;
-      }
-
-      /// <summary>
-      /// Build from text to compiled bytes.
-      /// </summary>
-      public string Build(IDataModel model, int address, string token, IList<byte> results, LabelLibrary labels) {
-         if (Type == ArgType.Byte) {
-            results.Add((byte)Convert(model, token));
-         } else if (Type == ArgType.Short) {
-            var value = Convert(model, token);
-            results.Add((byte)value);
-            results.Add((byte)(value >> 8));
-         } else if (Type == ArgType.Word) {
-            var value = Convert(model, token);
-            results.Add((byte)value);
-            results.Add((byte)(value >> 0x8));
-            results.Add((byte)(value >> 0x10));
-            results.Add((byte)(value >> 0x18));
-         } else if (Type == ArgType.Pointer) {
-            int value;
-            if (token.StartsWith("<")) {
-               if (!token.EndsWith(">")) return "Unmatched <>";
-               token = token.Substring(1, token.Length - 2);
-            }
-            if (token.StartsWith("0x")) {
-               token = token.Substring(2);
-            }
-            if (token == "auto") {
-               if (PointerType == ExpectedPointerType.Script || PointerType == ExpectedPointerType.Unknown) {
-                  return "<auto> only supported for text/data.";
-               }
-               value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
-            } else if (labels.TryResolveLabel(token, out value)) {
-               // resolved to an address
-            } else if (token.TryParseHex(out value)) {
-               // pointer *is* an address: nothing else to do
-               if (value > -Pointer.NULL) value += Pointer.NULL;
-               //       public bool RequireCompleteAddresses { get; set; } = true;
-               if (labels.RequireCompleteAddresses && (token.Length < 6 || token.Length > 7)) {
-                  return "Script addresses must be 6 or 7 characters long.";
-               }
-            } else if (PointerType != ExpectedPointerType.Script) {
-               return $"'{token}' is not a valid pointer.";
-            } else {
-               labels.AddUnresolvedLabel(token, address);
-               value = Pointer.NULL;
-            }
-            value -= Pointer.NULL;
-            results.Add((byte)value);
-            results.Add((byte)(value >> 0x8));
-            results.Add((byte)(value >> 0x10));
-            results.Add((byte)(value >> 0x18));
-         } else {
-            throw new NotImplementedException();
-         }
-         return null;
-      }
-   }
-
-   public class SilentMatchArg : IScriptArg {
-      public ArgType Type => ArgType.Byte;
-      public ExpectedPointerType PointerType => ExpectedPointerType.Unknown;
-      public string Name => null;
-      public string EnumTableName => null;
-      public int EnumOffset => 0;
-
-      public int Length(IDataModel model, int start) => 1;
-
-      public byte ExpectedValue { get; }
-      public SilentMatchArg(byte value) => ExpectedValue = value;
-   }
-
-   public class ArrayArg : IScriptArg {
-      public ArgType Type { get; }
-      public string Name { get; }
-      public string EnumTableName { get; }
-      public int TokenLength { get; }
-      public ExpectedPointerType PointerType => ExpectedPointerType.Unknown;
-
-      public int Length(IDataModel model, int start) {
-         return model[start] * TokenLength + 1;
-      }
-
-      public ArrayArg(string token) {
-         (Type, _, Name, EnumTableName, TokenLength) = ScriptArg.Construct(token);
-      }
-
-      public string ConvertMany(IDataModel model, int start) {
-         var result = new StringBuilder();
-         var count = model[start];
-         start++;
-         for (int i = 0; i < count; i++) {
-            var value = model.ReadMultiByteValue(start, TokenLength);
-            start += TokenLength;
-            var tokenText = "0x" + value.ToString($"X{TokenLength * 2}");
-            if (!string.IsNullOrEmpty(EnumTableName)) {
-               var table = model.GetOptions(EnumTableName);
-               if ((table?.Count ?? 0) > value) {
-                  tokenText = table[value];
-               }
-            }
-            result.Append(tokenText);
-            if (i < count - 1) result.Append(' ');
-         }
-         return result.ToString();
-      }
-
-      public IEnumerable<int> ConvertMany(IDataModel model, IEnumerable<string> info) {
-         foreach (var token in info) {
-            if (string.IsNullOrEmpty(EnumTableName)) {
-               if (token.StartsWith("0x") && token.Substring(2).TryParseHex(out var result)) yield return result;
-               else if (token.StartsWith("0X") && token.Substring(2).TryParseHex(out result)) yield return result;
-               else if (token.StartsWith("$") && token.Substring(1).TryParseHex(out result)) yield return result;
-               else if (int.TryParse(token, out result)) yield return result;
-               else yield return 0;
-            } else if (ArrayRunEnumSegment.TryParse(EnumTableName, model, token, out var enumValue)) {
-               yield return enumValue;
-            } else {
-               yield return 0;
-            }
-         }
-      }
-   }
-
-   public enum ArgType {
-      Byte,
-      Short,
-      Word,
-      Pointer,
    }
 
    public static class ScriptExtensions {

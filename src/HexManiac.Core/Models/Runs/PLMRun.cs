@@ -141,7 +141,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public void AppendTo(IDataModel model, StringBuilder text, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder text, int start, int length, int depth) {
          var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
          for (int i = 0; i < length && i < Length; i += 2) {
             if (i > 0) text.Append(" ");

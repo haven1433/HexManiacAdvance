@@ -56,7 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public IReadOnlyList<IPixelViewModel> Visualizations => null;
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) {
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          for (int i = 0; i < length - 1; i++) {
             if (model[start] != 0xFF && Encoding.TryGetValue(model[start + i], out var c)) builder.Append(c);
          }
@@ -112,7 +112,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public string SerializeRun() {
          var builder = new StringBuilder();
-         AppendTo(model, builder, Start, Length - 1, false);
+         AppendTo(model, builder, Start, Length - 1, 0);
          return builder.ToString();
       }
 

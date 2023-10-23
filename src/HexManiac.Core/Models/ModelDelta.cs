@@ -255,6 +255,12 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
    }
 
+   /// <summary>
+   /// Represents a non-data change that should not remove zero-pointer runs.
+   /// This change is transient, so we expect those runs to have new pointers added before the end of the operation.
+   /// </summary>
+   public class TransientModelDelta : NoDataChangeDeltaModel { }
+
    public class NoTrackChange : ModelDelta {
       public override bool ChangeData(IDataModel model, int index, byte data) {
          if (model.Count > index && model[index] == data) return false;

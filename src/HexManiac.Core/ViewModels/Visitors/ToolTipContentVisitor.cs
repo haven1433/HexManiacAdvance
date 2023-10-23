@@ -69,7 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             return EllipsedLines(lines);
          } else if (destinationRun is ArrayRun arrayRun) {
             var stream = new StringBuilder();
-            arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), false);
+            arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), 0);
             return EllipsedLines(stream.ToString().SplitLines());
          } else if (destinationRun is BlockmapRun blockmapRun) {
             var canvas = model.CurrentCacheScope.GetImage(blockmapRun);

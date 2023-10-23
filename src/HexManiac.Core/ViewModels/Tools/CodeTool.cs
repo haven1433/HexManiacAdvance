@@ -229,9 +229,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var scripts = parser?.CollectScripts(model, start) ?? new List<int>();
          int skippedScripts = 0;
+         int existingSectionCount = 0;
          for (int i = 0; i < scripts.Count; i++) {
             var scriptStart = scripts[i];
-            if (scriptStart == currentScriptStart && Contents.Count > i && Contents[i].Address == scriptStart) continue;
+            if (scriptStart == currentScriptStart && Contents.Count > i && Contents[i].Address == scriptStart) {
+               model.CurrentCacheScope.GetScriptInfo(parser, scriptStart, null, ref existingSectionCount); // mostly to update existingSectionCount
+               continue;
+            }
             if (currentScriptStart < scriptStart && scriptStart < currentScriptStart + currentScriptLength) {
                // this script is included inside the current under-edit script
                // it doesn't need its own content
@@ -243,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var body = Contents.Count > i ? Contents[i] :
                new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label };
 
-            var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart, body);
+            var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart, body, ref existingSectionCount);
             bool needsAnimation = false;
 
             if (Contents.Count > i) {
@@ -482,7 +486,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.CompiledLength = code.Length;
                model.ClearFormatAndData(history.CurrentChange, start + code.Length, length - code.Length);
             }
-            var formatted = parser.FormatScript<SERun>(history.CurrentChange, model, start);
+            var formatted = parser.FormatScript<SERun>(history.CurrentChange, model, start, code.Length);
             if (sources != null) {
                foreach (var source in sources) {
                   // skip the source if it's within one of the added scripts: it may have moved, and we've already added it.

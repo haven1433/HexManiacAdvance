@@ -14,11 +14,13 @@ namespace HavenSoft.HexManiac.Tests {
       private readonly ScriptParser battle;
 
       public ScriptTests() {
+         Model.LoadMetadata(BaseModel.GetDefaultMetadatas().First()); // load default script-related lists, like script_compare
          battle = ViewPort.Tools.CodeTool.BattleScriptParser;
       }
 
       [Fact]
       public void DecompiledScriptsContainLabels() {
+         Model.ClearFormat(new(), 0, Model.Count);
          var script = Script("jumpiftype 0 0 <0007>", "end");
          var code = battle.Compile(ViewPort.CurrentChange, Model, 0, ref script, out var _);
          Array.Copy(code, Model.RawData, code.Length);
@@ -27,7 +29,7 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = battle.Parse(Model, 0, code.Length).SplitLines();
 
          Assert.Equal<string>(new string[] {
-            "  jumpiftype 0 0 <section0>",
+            "  jumpiftype target 0 <section0>",
             "",
             "section0: # 000007",
             "  end",
@@ -202,7 +204,7 @@ end
 
       [Fact]
       public void LoadPointerCommand_StartsWithWhitespace_StillGetHelp() {
-         Assert.NotEmpty(ViewPort.Tools.CodeTool.ScriptParser.GetHelp(Model, new("  loadpointer", 13)));
+         Assert.NotEmpty(ViewPort.Tools.CodeTool.ScriptParser.GetHelp(Model, new("  loadpointer ", 14)));
       }
 
       [Fact]
@@ -575,6 +577,7 @@ Script:
 
       [Fact]
       public void TablePointsToScript_EditThenUndo_NoNewAnchors() {
+         Model.ClearFormat(new(), 0, Model.Count);
          ViewPort.Edit("<020> @00 ^table[pointer<`xse`>]1 ");
 
          ViewPort.Edit("<030> ");

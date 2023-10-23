@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ArrayRunElementSegment(string name, ElementContentType type, int length, ITextConverter converter = null) => (Name, Type, Length, TextConverter) = (name, type, length, converter);
 
       private bool recursionStopper;
-      public virtual string ToText(IDataModel rawData, int offset, bool deep = false) {
+      public virtual string ToText(IDataModel rawData, int offset, int depth = 0) {
          switch (Type) {
             case ElementContentType.PCS:
                return rawData.TextConverter.Convert(rawData, offset, Length);
@@ -57,15 +57,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var anchor = rawData.GetAnchorFromAddress(-1, address);
                if (string.IsNullOrEmpty(anchor)) anchor = address.ToString("X6");
                var run = rawData.GetNextRun(address) as IAppendToBuilderRun;
-               if (!deep || recursionStopper || run == null) return $"{PointerRun.PointerStart}{anchor}{PointerRun.PointerEnd}";
+               if (depth < 1 || recursionStopper || run == null) return $"{PointerRun.PointerStart}{anchor}{PointerRun.PointerEnd}";
 
                var builder = new StringBuilder("@{ ");
                recursionStopper = true;
                if (run is ArrayRun arrayRun && arrayRun.SupportsInnerPointers && arrayRun.ElementContent.Count == 1 && arrayRun.ElementContent[0].Type == ElementContentType.PCS) {
                   // special case: if the pointer in this array is to a specific element of a text array, only copy that one element rather than the whole array.
-                  run.AppendTo(rawData, builder, address, arrayRun.ElementLength, deep: false);
+                  run.AppendTo(rawData, builder, address, arrayRun.ElementLength, depth: 0);
                } else {
-                  run.AppendTo(rawData, builder, run.Start, run.Length, deep);
+                  run.AppendTo(rawData, builder, run.Start, run.Length, depth - 1);
                }
                recursionStopper = false;
                if (run is TableStreamRun tsr && tsr.AllowsZeroElements) {
@@ -167,7 +167,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ArrayRunSignedSegment : ArrayRunElementSegment {
       public override string SerializeFormat => base.SerializeFormat + ArrayRun.SignedFormatString;
       public ArrayRunSignedSegment(string name, int length) : base(name, ElementContentType.Integer, length) { }
-      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+      public override string ToText(IDataModel rawData, int offset, int depth = 0) {
          return ReadValue(rawData, offset).ToString();
       }
 
@@ -202,10 +202,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public override string ToText(IDataModel model, int address, bool deep) {
+      public override string ToText(IDataModel model, int address, int depth) {
          using (ModelCacheScope.CreateScope(model)) {
             var options = GetOptions(model).ToList();
-            if (options == null) return base.ToText(model, address, deep);
+            if (options == null) return base.ToText(model, address, depth);
 
             var resultAsInteger = ToInteger(model, address, Length) - ValueOffset;
             if (resultAsInteger >= options.Count || resultAsInteger < 0) return resultAsInteger.ToString();
@@ -431,12 +431,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRunEnumSegment(Name, Length, enumName);
       }
 
-      public string ToText(IDataModel model, ITableRun table, int offset, bool deep = false) {
-         return CreateConcrete(model, table, offset).ToText(model, offset, deep);
+      public string ToText(IDataModel model, ITableRun table, int offset, int depth = 0) {
+         return CreateConcrete(model, table, offset).ToText(model, offset, depth);
       }
 
-      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
-         return CreateConcrete(rawData, offset).ToText(rawData, offset, deep);
+      public override string ToText(IDataModel rawData, int offset, int depth = 0) {
+         return CreateConcrete(rawData, offset).ToText(rawData, offset, depth);
       }
 
       public bool DependsOn(string anchorName) => EnumForValue.Values.Contains(anchorName);
@@ -448,7 +448,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public ArrayRunHexSegment(string name, int length) : base(name, ElementContentType.Integer, length) {
       }
 
-      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+      public override string ToText(IDataModel rawData, int offset, int depth = 0) {
          var hexLength = "X" + (Length * 2);
          var hex = rawData.ReadMultiByteValue(offset, Length).ToString(hexLength);
          return hex;
@@ -495,7 +495,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          if (content.Sum(seg => seg.BitWidth) > length * 8) throw new ArrayRunParseException($"{name}: tuple too long to fit in field!");
       }
 
-      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+      public override string ToText(IDataModel rawData, int offset, int depth = 0) {
          var result = "(";
          var bitOffset = 0;
          foreach (var segment in Elements) {
@@ -640,7 +640,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ArrayRunColorSegment(string name) : base(name, ElementContentType.Integer, 2) { }
 
-      public override string ToText(IDataModel rawData, int offset, bool deep = false) {
+      public override string ToText(IDataModel rawData, int offset, int depth = 0) {
          var color = (short)rawData.ReadMultiByteValue(offset, Length);
          var colorText = UncompressedPaletteColor.Convert(color);
          return colorText;
@@ -656,7 +656,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          SourceArrayName = bitSourceName;
       }
 
-      public override string ToText(IDataModel rawData, int offset, bool deep) {
+      public override string ToText(IDataModel rawData, int offset, int depth) {
          var result = new StringBuilder("-");
          var options = rawData.GetBitOptions(SourceArrayName);
 
@@ -777,11 +777,18 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public IReadOnlyList<string> Operands { get; }
       public string Operator { get; }
       public bool HasOperator => !string.IsNullOrEmpty(Operator);
+      public string Enum { get; }
 
-      public override string SerializeFormat => Name + "|=" + Operator.Join(Operands);
+      public override string SerializeFormat => Name + "|=" + Operator.Join(Operands) + EnumPostfix;
+      private string EnumPostfix => Enum != null ? "|" + Enum : string.Empty;
 
       public ArrayRunCalculatedSegment(IDataModel model, string name, string contract) : base(name, ElementContentType.Integer, 0) {
          Model = model;
+         if (contract.Contains("|")) {
+            var parts = contract.Split("|");
+            (contract, Enum) = (parts[0], parts[1]);
+         }
+
          if (contract.Contains("*")) {
             var parts = contract.Split('*');
             Operands = parts;
@@ -794,6 +801,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var parts = contract.Split('÷');
             Operands = parts;
             Operator = "÷";
+         } else if (contract.Contains("%")) {
+            var parts = contract.Split('%');
+            Operands = parts;
+            Operator = "%";
          } else {
             Operands = new[] { contract };
             Operator = string.Empty;
@@ -810,6 +821,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             case "+": return values.Aggregate((a, b) => a + b);
             case "*": return values.Aggregate((a, b) => a * b);
             case "÷": return values.Aggregate((a, b) => b == 0 ? 0 : a / b);
+            case "%": return ((int)values[0]) % ((int)values[1]);
             default:  return values.First();
          }
       }

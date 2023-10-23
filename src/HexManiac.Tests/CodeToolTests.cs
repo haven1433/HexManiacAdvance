@@ -595,7 +595,7 @@ You said no!
          ViewPort.Edit("19 00 00 00 ");
          Tool.Mode = CodeMode.AnimationScript;
          ViewPort.Goto.Execute(0);
-         var help = Tool.AnimationScriptParser.GetHelp(ViewPort.Model, new HelpContext("playsewithpan mus_dummy 0", 25));
+         var help = Tool.AnimationScriptParser.GetHelp(ViewPort.Model, new HelpContext("playsewithpan mus_dummy ", 24));
 
          Assert.NotNull(help);
       }
@@ -864,6 +864,24 @@ label2:;goto <000050>;end";
          var bytes = Tool.ScriptParser.Compile(Token, Model, 0, ref script, out var _);
 
          Assert.Equal(10, bytes[2]);
+      }
+
+      [Fact]
+      public void ScriptStartsWithEnd_ScriptContainsPointer_PointerFormatted() {
+         EventScript = "end;if.yes.goto <section1>;end;section1:;end";
+         var run = Model.GetNextRun(1);
+         Assert.Equal(8, run.Start);
+         Assert.IsType<PointerRun>(run);
+      }
+
+      [Fact]
+      public void ScriptGotoBeforeScriptStarts_Reload_IncludesSubScript() {
+         EventScript = "end";
+         ViewPort.Goto.Execute(0x10);
+
+         EventScript = "if.yes.goto <section1>;end;section1:;if.yes.goto <000000>;end";
+
+         Assert.Equal(2, Tool.Contents.Count);
       }
    }
 }

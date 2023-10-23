@@ -83,7 +83,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PCSRun(model, Start, Length, newPointerSources);
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, bool deep) => builder.Append(model.TextConverter.Convert(model, Start, Length));
+      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => builder.Append(model.TextConverter.Convert(model, Start, Length));
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) {
