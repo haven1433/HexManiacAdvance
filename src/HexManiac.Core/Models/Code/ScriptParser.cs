@@ -817,6 +817,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var syntax = candidates.FirstOrDefault();
             if (syntax != null) {
                var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
+               if (syntax is MacroScriptLine macro) args = macro.ShortFormArgs.ToList();
                var skipCount = syntax.LineCode.Count;
                if (skipCount == 0) skipCount = 1; // macros
                if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {
@@ -845,6 +846,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var skipCount = candidates[0].LineCode.Count;
             if (skipCount == 0) skipCount = 1;
             var args = candidates[0].Args.Where(arg => arg is ScriptArg).ToList();
+            if (candidates[0] is MacroScriptLine macro) args = macro.ShortFormArgs.ToList();
             if ((tokens.Length - skipCount).InRange(0, args.Count)) {
                var arg = args[tokens.Length - skipCount];
                var options = ReadOptions(model, arg.EnumTableName, string.Empty);
