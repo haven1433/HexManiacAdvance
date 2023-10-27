@@ -23,6 +23,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (value == (int)value && segment.Enum != null) {
                var options = model.GetOptions(segment.Enum);
                if (value.InRange(0, options.Count)) text = options[(int)value];
+            } else if (value != (int)value) {
+               // rounding
+               text = value.ToString("F2");
             }
 
             return text;
