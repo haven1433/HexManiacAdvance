@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Tests;
@@ -27,6 +28,12 @@ namespace HavenSoft.HexManiac.Integration {
             for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) data[y * width + x] = palette[pixels[x, y]];
          };
          FileSystem.LoadImage = text => (data, width);
+         FileSystem.TryLoadIndexImage = (ref string filename, out int[,] imageData, out IReadOnlyList<short> paletteData) => {
+            filename = "chosefile.png";
+            imageData = null;
+            paletteData = null;
+            return false;
+         };
       }
 
       #endregion

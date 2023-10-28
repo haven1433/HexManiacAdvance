@@ -101,6 +101,11 @@ namespace HavenSoft.HexManiac.Tests {
                var width = pixelData.GetLength(0);
                return (pixelData.Length.Range(i => palette[pixelData[i % width, i / width]]).ToArray(), width);
             },
+            TryLoadIndexImage = (ref string filename, out int[,] imageData, out IReadOnlyList<short> paletteData) => {
+               imageData = pixelData;
+               paletteData = palette;
+               return true;
+            },
          };
 
          ViewPort.SelectionStart = new Point(4, 0);
