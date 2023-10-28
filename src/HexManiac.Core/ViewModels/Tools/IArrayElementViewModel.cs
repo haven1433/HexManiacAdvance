@@ -56,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public int ZIndex => 0;
 
+      bool protectContentChange;
       string content;
       public string Content {
          get => content;
@@ -69,7 +70,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      var info = table.NotifyChildren(Model, ViewPort.CurrentChange, offsets.ElementIndex, offsets.SegmentIndex);
                      ViewPort.HandleErrorInfo(info);
                   }
-                  dataChanged?.Invoke(this, EventArgs.Empty);
+                  // prevent blapping over 'content' if raising dataChanged causes a TryCopy
+                  using (Scope(ref protectContentChange, true, old => protectContentChange = old))
+                     dataChanged?.Invoke(this, EventArgs.Empty);
                }
             }
          }
@@ -90,7 +93,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Start = field.Start;
          Length = field.Length;
          Visible = other.Visible;
-         TryUpdate(ref content, field.Content, nameof(Content));
+         if (!protectContentChange) TryUpdate(ref content, field.Content, nameof(Content));
          ErrorText = field.ErrorText;
          dataChanged = field.dataChanged;
          dataSelected = field.dataSelected;
