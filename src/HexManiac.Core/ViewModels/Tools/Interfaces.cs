@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (child is FieldArrayElementViewModel faevm) childVisible = filterMatchesGroup || faevm.Name.MatchesPartial(filter);
             if (child is ComboBoxArrayElementViewModel cbaevm) childVisible = filterMatchesGroup || cbaevm.Name.MatchesPartial(filter);
             if (child is CalculatedElementViewModel cevm) childVisible = filterMatchesGroup || cevm.Name.MatchesPartial(filter);
-            if (child is IStreamArrayElementViewModel saevm) childVisible = lastFieldVisible;
+            if (child is IStreamArrayElementViewModel saevm) childVisible = lastFieldVisible || (saevm is TextStreamElementViewModel tStream && tStream.Content.MatchesPartial(filter));
             if (child is BitListArrayElementViewModel blaevm) {
                var filterMatchesBitList = blaevm.Name.MatchesPartial(filter);
                if (!filterMatchesGroup && !filterMatchesBitList) {
