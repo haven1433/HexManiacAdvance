@@ -367,7 +367,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          for (int i = 0; i < spritePages; i++) {
             var (xPageOffset, yPageOffset) = choice == ImageExportMode.Horizontal ? (i * PixelWidth, 0) : (0, i * PixelHeight);
             var pagePixels = spriteRun.GetPixels(model, i, -1);
-            int palOffset = i * 16;
+            int palOffset = (i % paletteRun.Pages) * 16;
             for (int x = 0; x < PixelWidth; x++) {
                for (int y = 0; y < PixelHeight; y++) {
                   var pixel = pagePixels[x, y] + palOffset;
