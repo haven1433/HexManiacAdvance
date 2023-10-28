@@ -118,6 +118,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          if (options != null && options.Count > 0) {
             AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0).ToList();
             ShowAutocompleteOptions();
+         } else if (options != null) {
+            ClearAutocompleteOptions();
          }
          var screenVertical = TargetTextBox.TranslatePoint(new Point(0, verticalStart), Application.Current.MainWindow).Y;
          ScrollBorder.UpdateLayout();
