@@ -296,7 +296,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 72 showbox x. y. width. height.                 # nop in Emerald
 73 hidebox x. y. width. height.                 # ruby/sapphire only
 74 clearbox x. y. width. height.                # clear only a part of a custom box (nop in Emerald)
-75 showpokepic species:data.pokemon.names x. y. # show the pokemon in a box. Can be a literal or a variable.
+75 showpokepic species:data.pokemon.names x.|z y.|z # show the pokemon in a box. Can be a literal or a variable.
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
