@@ -422,7 +422,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (runs[i] is ITilemapRun tilemap) {
                   var format = tilemap.Format;
                   if (format.MatchingTileset != anchor) continue;
-                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember));
+                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember, format.AllowLengthErrors));
                   runs[i] = tilemap;
                }
 

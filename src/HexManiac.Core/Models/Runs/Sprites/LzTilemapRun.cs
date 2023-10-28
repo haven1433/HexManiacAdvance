@@ -63,10 +63,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tilemapFormat = default;
          if (!(format.StartsWith("`lzm") && format.EndsWith("`"))) return false;
          format = format.Substring(4, format.Length - 5);
-         return TryParseGeneralTilemapFormat(format, out tilemapFormat);
+         bool allowLengthErrors = false;
+         if (format.EndsWith("!")) {
+            format = format.Substring(0, format.Length - 1);
+            allowLengthErrors = true;
+         }
+         return TryParseGeneralTilemapFormat(format, allowLengthErrors, out tilemapFormat);
       }
 
-      public static bool TryParseGeneralTilemapFormat(string format, out TilemapFormat tilemapFormat) {
+      public static bool TryParseGeneralTilemapFormat(string format, bool allowLengthErrors, out TilemapFormat tilemapFormat) {
          tilemapFormat = default;
 
          // parse the tilesetHint
@@ -91,11 +96,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          if (width < 0 || height < 0) return false;
          if (width > 100 || height > 100) return false;
 
-         tilemapFormat = new TilemapFormat(bits, width, height, hint, tableMember);
+         tilemapFormat = new TilemapFormat(bits, width, height, hint, tableMember, allowLengthErrors);
          return true;
       }
 
-      public byte[] GetTilemapData() => Decompress(Model, Start);
+      public byte[] GetTilemapData() => Decompress(Model, Start, AllowLengthErrors);
 
       public byte[] GetData() {
          var tilesetAddress = Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
@@ -110,7 +115,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       }
 
       public int[,] GetPixels(IDataModel model, int page, int tableIndex) {
-         var mapData = Decompress(model, Start);
+         var mapData = Decompress(model, Start, AllowLengthErrors);
          if (mapData == null) return null;
          var tilesetAddress = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, Format.MatchingTileset);
          var tileset = model.GetNextRun(tilesetAddress) as ISpriteRun;
