@@ -380,8 +380,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (renderPalette.Count > 256) {
             var rendered = Render(manyPixels, renderPalette, 0, 0);
             fs.SaveImage(rendered, manyPixels.GetLength(0));
-         }
-         else {
+         } else {
             fs.SaveImage(manyPixels, renderPalette);
          }
       }
