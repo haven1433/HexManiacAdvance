@@ -2660,21 +2660,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void IsTextExecuted(object notUsed) {
-         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
-         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
-         var left = Math.Min(selectionStart, selectionEnd);
-         var length = Math.Abs(selectionEnd - selectionStart) + 1;
-         var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
+         dispatcher.BlockOnUIWork(() => {
+            var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+            var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+            var left = Math.Min(selectionStart, selectionEnd);
+            var length = Math.Abs(selectionEnd - selectionStart) + 1;
+            var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
-         // do the actual search now that we know places to start
-         var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
-         if (foundCount == 0) {
-            OnError?.Invoke(this, "Failed to automatically find text at that location.");
-         } else {
-            RefreshBackingData();
-         }
+            // do the actual search now that we know places to start
+            var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
+            if (foundCount == 0) {
+               OnError?.Invoke(this, "Failed to automatically find text at that location.");
+            } else {
+               RefreshBackingData();
+            }
 
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         });
       }
 
       private bool ShouldAcceptInput(Point point, HexElement element, char input) {
