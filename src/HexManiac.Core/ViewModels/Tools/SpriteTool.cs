@@ -765,7 +765,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void ImportSpriteAndPalette(IFileSystem fileSystem) {
          string filename = null;
-         if (fileSystem.TryLoadIndexedImage(ref filename, out var pixels, out var palette)) {
+         var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (paletteRun != null && fileSystem.TryLoadIndexedImage(ref filename, out var pixels, out var palette) && palette.Count <= paletteRun.Pages * 16) {
             ImportSpriteAndPalette(fileSystem, pixels, palette);
             return;
          }
