@@ -1051,7 +1051,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         SelectedIndex = left;
          leftViewPort.MaxDiffSegmentCount = maxDiffSegCount;
          leftViewPort.HideDiffPointerChanges = HideDiffPointerChanges;
          leftViewPort.Diff.Execute(rightViewPort);

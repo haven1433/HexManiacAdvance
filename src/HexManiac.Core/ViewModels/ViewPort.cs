@@ -777,7 +777,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (changeCount >= maxSegments) changeCountText += "+";
             RaiseMessage($"{changeCountText} changes found.");
             if (changeCount > 0) {
-               RequestTabChange?.Invoke(this, new(diffTab));
+               var args = new TabChangeRequestedEventArgs(diffTab);
+               RequestTabChange?.Invoke(this, args);
+               if (!args.RequestAccepted && otherTab != null) otherTab.RaiseRequestTabChange(args);
             }
          } else {
             throw new NotImplementedException();
@@ -1472,6 +1474,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RaiseMessage() => OnMessage?.Invoke(this, deferredMessage);
 
       public void RaiseRequestTabChange(ITabContent tab) => RequestTabChange?.Invoke(this, new(tab));
+      public void RaiseRequestTabChange(TabChangeRequestedEventArgs args) => RequestTabChange?.Invoke(this, args);
 
       public void ClearAnchor() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
