@@ -26,7 +26,6 @@ using static HavenSoft.HexManiac.Core.ICommandExtensions;
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class EditorViewModel : ViewModelCore, IEnumerable<ITabContent>, INotifyCollectionChanged {
       public const string ApplicationName = "HexManiacAdvance";
-      private const int MaxReasonableResults = 400; // limit for performance reasons
 
       private readonly IFileSystem fileSystem;
       private readonly IWorkDispatcher workDispatcher;
@@ -423,6 +422,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public int MaximumDiffSegments { get => maxDiffSegCount; set => Set(ref maxDiffSegCount, value.LimitToRange(1, 10000)); }
       public bool HideDiffPointerChanges { get; set; }
 
+      private int maxSearchResults = 400;
+      public int MaximumSearchResults { get => maxSearchResults; set => Set(ref maxSearchResults, value.LimitToRange(1, 10000)); }
+
       public IToolTrayViewModel Tools => (SelectedTab as IViewPort)?.Tools;
 
       public IReadOnlyList<IQuickEditItem> QuickEditsPokedex { get; }
@@ -592,6 +594,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (zoomLine != null && int.TryParse(zoomLine.Split('=').Last().Trim(), out var zoomLevel)) ZoomLevel = zoomLevel;
          var maxDiffLine = metadata.FirstOrDefault(line => line.StartsWith("MaximumDiffSegments = "));
          if (maxDiffLine != null && int.TryParse(maxDiffLine.Split('=').Last().Trim(), out var maxDiffs)) MaximumDiffSegments = maxDiffs;
+         var maxSearchResultsLine = metadata.FirstOrDefault(line => line.StartsWith("MaximumSearchResults = "));
+         if (maxDiffLine != null && int.TryParse(maxDiffLine.Split('=').Last().Trim(), out var maxSearchResults)) MaximumSearchResults = maxSearchResults;
 
          var recentFilesLine = metadata.FirstOrDefault(line => line.StartsWith("RecentFiles = ["));
          if (recentFilesLine != null) {
@@ -620,6 +624,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             $"FocusOnGotoShortcuts = {FocusOnGotoShortcuts}",
             $"ZoomLevel = {ZoomLevel}",
             $"MaximumDiffSegments = {MaximumDiffSegments}",
+            $"MaximumSearchResults = {MaximumSearchResults}",
             $"CopyLimit = {Singletons.CopyLimit}",
             $"AnimateScroll = {AnimateScroll}",
             $"AutoAdjustDataWidth = {AutoAdjustDataWidth}",
@@ -1161,7 +1166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             return;
          }
 
-         if (results.Count > MaxReasonableResults) {
+         if (results.Count > MaximumSearchResults) {
             ErrorMessage = $"Found {results.Count} results: please refine your search.";
             return;
          }
