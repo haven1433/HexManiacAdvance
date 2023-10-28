@@ -1478,7 +1478,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          };
       }
 
-      private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => saveAll.CanExecuteChanged.Invoke(this, e);
+      private void RaiseSaveAllCanExecuteChanged(object sender, EventArgs e) => workDispatcher.BlockOnUIWork(() => saveAll.CanExecuteChanged.Invoke(this, e));
 
       private void ExecuteCopyAlignedAddress(IFileSystem fileSystem) {
          if (!(SelectedTab is ViewPort currentTab)) {
