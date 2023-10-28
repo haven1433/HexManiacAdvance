@@ -1698,8 +1698,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         info = options[choice];
-         if (info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) info = info with { Offset = 0 };
+         info = options[choice] with { Offset = -info.Offset };
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
          newConnection.MapGroup = MapID / 1000;
