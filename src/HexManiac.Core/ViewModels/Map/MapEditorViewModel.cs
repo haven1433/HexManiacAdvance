@@ -1786,6 +1786,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel BlockBag { get; private set; }
       private void UpdateBlockBagVisual() {
+         // remove blocks from blockbag if the current map doesn't contain the block
+         var toRemove = blockBag.Where(block => block >= PrimaryMap.BlockRenders.Count).ToList();
+         toRemove.ForEach(block => blockBag.Remove(block));
+
          var canvas = new CanvasPixelViewModel(16 * blockBag.Count, 16);
          var offset = 0;
          foreach (var block in blockBag) {
