@@ -1681,7 +1681,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (FreeSpaceStart != 0) start = FreeSpaceStart;
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
          minimumLength += 0x40; // make sure there's plenty of room after, so that we're not in the middle of some other data set
-         var alignment = 0x40;
+         var alignment = Math.Max(4, FreeSpaceBuffer);
+         while (alignment % 4 != 0) alignment++;
          lock (threadlock) {
             while (start < RawData.Length - minimumLength) {
                // catch the currentRun up to where we are
