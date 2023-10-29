@@ -871,6 +871,9 @@
                         <local:AngleButton Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GenerateNewHiddenItemID}"
                            Visibility="{Binding CanGenerateNewHiddenItemID, Converter={StaticResource BoolToVisibility}}"
                            Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <local:AngleButton.ToolTip>
+                              Automatically choose an unused hidden item ID
+                           </local:AngleButton.ToolTip>
                            <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
                         <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right"
