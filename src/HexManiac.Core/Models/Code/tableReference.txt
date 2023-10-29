@@ -544,6 +544,8 @@ graphics.titlescreen.background.animation.sprite,  ,,,, 3BFB9C, 3BF9D8, 3BFC0C, 
 graphics.titlescreen.background.animation.palette, ,,,, 3BFBBC, 3BF9F8, 3BFC2C, 3BFA68, , `ucp4`
 graphics.titlescreen.logo.sprite,                  07C270, 07C274, 07C290, 07C294, ,,,, , `lzs8x32x8|graphics.titlescreen.logo.palette`
 graphics.titlescreen.logo.palette,                 07C27C, 07C280, 07C29C, 07C2A0, ,,,, , `ucp4:0123456789ABCD`
+graphics.titlescreen.clouds.tilemap,       ,       ,       ,       ,       ,       ,       ,       , 0AA974, `lzm4x32x32|graphics.titlescreen.clouds.tileset`
+graphics.titlescreen.clouds.tileset,       ,       ,       ,       ,       ,       ,       ,       , 0AA96C, `lzt4|graphics.titlescreen.logo.palette`
 graphics.titlescreen.version.sprite,               393EFC, 393D44, 393F14, 393D5C, ,,,, , `lzs8x8x8|graphics.titlescreen.logo.palette`
 graphics.titlescreen.publisher.palette,            393F9C, 393DE4, 393FB4, 393DFC, ,,,, , `ucp4`
 graphics.titlescreen.publisher.tileset,            393F8C, 393DD4, 393FA4, 393DEC, ,,,, , `lzt4|graphics.titlescreen.publisher.palette`
