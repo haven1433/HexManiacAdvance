@@ -1997,7 +1997,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         // case 3: unnamed anchor and we want to keep the pointers
+         // case 3: unnamed anchor is a constant and we've been asked not to touch constants
+         if (run is WordRun && changeToken.DoNotClearConstants) return;
+
+         // case 4: unnamed anchor and we want to keep the pointers
          // delete the content, but leave the anchor and pointers to it: we don't want to lose track of the pointers that point here.
          runIndex = BinarySearch(run.Start);
          changeToken.RemoveRun(run);

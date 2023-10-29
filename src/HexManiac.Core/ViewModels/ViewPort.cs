@@ -1220,7 +1220,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Find scripts called by those scripts, and add runs for those too.
       /// </summary>
       private void CascadeScripts() {
-         var noChange = new NoDataChangeDeltaModel();
+         var noChange = new NoDataChangeDeltaModel { DoNotClearConstants = true };
          using (ModelCacheScope.CreateScope(Model)) {
             foreach (var run in Runs(Model).OfType<IScriptStartRun>().ToList()) {
                if (run is XSERun) {
