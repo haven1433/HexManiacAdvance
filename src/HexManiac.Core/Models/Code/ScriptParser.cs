@@ -1122,9 +1122,36 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             data.Add(0xFE);
             content = data.ToArray();
+         } else if (type == ExpectedPointerType.SpriteTemplate) {
+            var format = "tileTag: paletteTag: oam<> anims<> images<> affineAnims<> callback<>".Split(' ');
+            var data = new byte[24];
+            foreach (var line in text.SplitLines()) {
+               var parts = line.Split(':');
+               if (parts.Length == 1) continue;
+               var index = format.FindIndex(parts[0].StartsWith);
+               if (index == -1) continue;
+               int offset = index switch {
+                  0 => 0,
+                  1 => 2,
+                  int i => (i - 1) * 4,
+               };
+               var (value, length) = ReadSpriteTemplateField(format[index], parts[1]);
+
+               for (int i = 0; i < length; i++) {
+                  data[offset + i] = (byte)value;
+                  value >>= 8;
+               }
+            }
          } else {
             throw new NotImplementedException();
          }
+      }
+
+      private (int, int) ReadSpriteTemplateField(string format,string content) {
+         content = content.Trim();
+         if (format.EndsWith(":") && content.TryParseInt(out var result)) return (result, 2);
+         if (format.EndsWith("<>") && content.Trim('<', '>').TryParseHex(out result)) return (result, 4);
+         return (0, 0);
       }
 
       public void WriteData(IDataModel model, ModelDelta token, int scriptStart, int contentOffset) {
