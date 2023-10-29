@@ -408,6 +408,7 @@ Use `special2 variable name` when doing an action that has a result.
             var hash = model.GetShortGameCode();
             var top = Flags.GetAllTopLevelScripts(model);
             var start = ((SilentMatchArg)line.Args[0]).ExpectedValue;
+            var header = "# From " + model.GetGameCode() + ", ";
             var spots = Flags.GetAllScriptSpots(model, viewPort.Tools.CodeTool.ScriptParser, top, start);
             foreach (var spot in spots.Where(spot => line.Matches(hash, model, spot.Address))) {
                // skip spots where the variables are 'weird'
@@ -428,7 +429,7 @@ Use `special2 variable name` when doing an action that has a result.
                int sectionCount = 0;
                var labels = library.FinalizeLabels(ref sectionCount);
                text = library.FinalizeLine(labels, text);
-               collection.Add(text);
+               collection.Add(header + spot.Address.ToAddress() + Environment.NewLine + text);
                if (collection.Count >= MaxExamples) return collection;
             }
          }
@@ -439,7 +440,7 @@ Use `special2 variable name` when doing an action that has a result.
          var collection = new List<string>();
          foreach (var tab in editor) {
             if (tab is not IEditableViewPort viewPort) continue;
-            CollectBasicCommandExamples(viewPort.Model, viewPort.Tools.CodeTool.ScriptParser, collection, command, "From " + viewPort.Model.GetGameCode() + ", ");
+            CollectBasicCommandExamples(viewPort.Model, viewPort.Tools.CodeTool.ScriptParser, collection, command, "# From " + viewPort.Model.GetGameCode() + ", ");
          }
          return collection;
       }
