@@ -159,6 +159,62 @@ Name = '''egggroups'''
 ]
 
 [[List]]
+Name = '''scriptvariablealiases'''
+0x4000 = [
+   '''temp0''',
+   '''temp1''',
+   '''temp2''',
+   '''temp3''',
+   '''temp4''',
+   '''temp5''',
+   '''temp6''',
+   '''temp7''',
+   '''temp8''',
+   '''temp9''',
+   '''tempA''',
+   '''tempB''',
+   '''tempC''',
+   '''tempD''',
+   '''tempE''',
+   '''tempF''',
+   '''gfx0''',
+   '''gfx1''',
+   '''gfx2''',
+   '''gfx3''',
+   '''gfx4''',
+   '''gfx5''',
+   '''gfx6''',
+   '''gfx7''',
+   '''gfx8''',
+   '''gfx9''',
+   '''gfxA''',
+   '''gfxB''',
+   '''gfxC''',
+   '''gfxD''',
+   '''gfxE''',
+   '''gfxF''',
+]
+
+0x8000 = [
+   '''var0''',
+   '''var1''',
+   '''var2''',
+   '''var3''',
+   '''var4''',
+   '''var5''',
+   '''var6''',
+   '''var7''',
+   '''var8''',
+   '''var9''',
+   '''varA''',
+   '''varB''',
+   '''varFacing''',
+   '''varResult''',
+   '''varItemID''',
+   '''varLastTalked''',
+]
+
+[[List]]
 Name = '''FacingOptions'''
 0 = [
    '''NoMovement''',

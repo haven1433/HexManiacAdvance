@@ -742,6 +742,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var allOptions = model.GetOptions(tableName);
             var options = new List<string>();
             for (int i = 0; i < allOptions.Count; i++) {
+               if (allOptions[i] == null || allOptions[i].Length == 0) continue;
                if (token.Length == 0 || allOptions[i].MatchesPartial(token)) {
                   if (!isList || list.Comments == null || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
                   else comment = " # " + comment;
