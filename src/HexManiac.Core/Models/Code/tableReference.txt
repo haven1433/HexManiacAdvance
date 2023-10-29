@@ -889,7 +889,7 @@ data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E
 data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8, 01E578, 01E578, 01E58C, 01E58C, 046D68, [rate:]!0000
 
 // From VersekrDark
-graphics.berrycheck.palette,  1463B8, 1463B8, 1463D8, 1463D8,       ,       ,       ,       ,       , `lzp4`
+graphics.berrycheck.palette,  1463B8, 1463B8, 1463D8, 1463D8,       ,       ,       ,       ,       , `lzp4:012345`
 graphics.berrycheck.tileset,  146308, 146308, 146328, 146328,       ,       ,       ,       ,       , `lzt4|graphics.berrycheck.palette`
 graphics.berrycheck.tilemap1, 14631C, 14631C, 14633C, 14633C,       ,       ,       ,       ,       , `lzm4x32x20|graphics.berrycheck.tileset`
 graphics.berrycheck.tilemap2, 146338, 146338, 146358, 146358,       ,       ,       ,       ,       , `lzm4x32x20|graphics.berrycheck.tileset`
