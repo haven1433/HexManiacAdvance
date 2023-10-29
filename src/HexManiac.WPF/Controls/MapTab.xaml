@@ -868,6 +868,11 @@
                         <!-- Hidden Item ID -->
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Right" Margin="2,2,0,2" Content="Hidden Item ID:"
                            Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />
+                        <local:AngleButton Grid.Row="4" Grid.Column="0" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GenerateNewHiddenItemID}"
+                           Visibility="{Binding CanGenerateNewHiddenItemID, Converter={StaticResource BoolToVisibility}}"
+                           Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
                         <local:AngleTextBox Grid.Row="4" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right"
                            TextBinding="{Binding HiddenItemID, UpdateSourceTrigger=PropertyChanged}"
                            Visibility="{Binding ShowHiddenItemProperties, Converter={StaticResource BoolToVisibility}}" />

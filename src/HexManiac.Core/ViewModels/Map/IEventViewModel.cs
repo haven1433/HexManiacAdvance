@@ -1522,7 +1522,9 @@ show:
             element.SetValue("arg", 0);
             argText = null;
             pointerText = null;
-            NotifyPropertiesChanged(nameof(ArgText), nameof(PointerText), nameof(ShowSignpostText), nameof(ItemID), nameof(HiddenItemID), nameof(Quantity), nameof(CanGotoScript));
+            NotifyPropertiesChanged(
+               nameof(ArgText), nameof(PointerText), nameof(ShowSignpostText), nameof(ItemID),
+               nameof(HiddenItemID), nameof(Quantity), nameof(CanGotoScript), nameof(CanGenerateNewHiddenItemID));
          }
       }
 
@@ -1615,7 +1617,10 @@ show:
 
       public byte HiddenItemID {
          get => element.Model[element.Start + 10];
-         set => element.Token.ChangeData(element.Model, element.Start + 10, value);
+         set {
+            element.Token.ChangeData(element.Model, element.Start + 10, value);
+            NotifyPropertyChanged(nameof(CanGenerateNewHiddenItemID));
+         }
       }
 
       public byte Quantity {
@@ -1638,6 +1643,27 @@ show:
             Token.ChangeData(element.Model, element.Start + 11, newValue);
             NotifyPropertyChanged(nameof(IsUnderFoot));
          }
+      }
+
+      public bool CanGenerateNewHiddenItemID => ShowHiddenItemProperties && HiddenItemID == 0;
+
+      public void GenerateNewHiddenItemID() {
+         var usedIDs = new HashSet<byte>(
+            AllMapsModel.Create(element.Model)
+            .SelectMany(bank => bank)
+            .SelectMany(map => map.Events.Signposts)
+            .Where(signpost => signpost.IsHiddenItem)
+            .Select(signpost => element.Model[signpost.Element.Start + 10]));
+
+         byte match = 0;
+         for (int i = 1; i < 256; i++) {
+            if (usedIDs.Contains((byte)i)) continue;
+            match = (byte)i;
+            break;
+         }
+
+         HiddenItemID = match;
+         NotifyPropertyChanged(nameof(HiddenItemID));
       }
 
       #endregion
