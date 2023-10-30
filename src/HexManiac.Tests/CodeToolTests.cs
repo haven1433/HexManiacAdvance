@@ -281,10 +281,10 @@ namespace HavenSoft.HexManiac.Tests {
             0x00, 0b11110_000, 0x01, 0b11111_000, // bl round4(pc+4+2*1)
             0x00, 0xBD,            // pop {pc}
             // the magic part
-            0b11, 0xB4,            // push {r0-r1}
-            0x01, 0b01001_001,     // ldr r1, pc+4+4* 1
-            0x01, 0b10010_001,     // str r1, sp+4*   1
-            0b10, 0xBD,            // pop {pc, r1}
+            0b11, 0xB4,            // push {r0, r1}
+            0x01, 0b01001_000,     // ldr r0, pc+4+4* 1
+            0x01, 0b10010_000,     // str r0, sp+4*   1
+            0b01, 0xBD,            // pop {r0, pc}
             0x01, 0x00, 0xC0, 0x08 // .word 0xC00000
          };
 
