@@ -1230,7 +1230,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             data[data.Count - offset + 3] = (byte)(instruction1 >> 8);
          }
 
-         foreach (var b in "03 B4 01 49 01 91 02 BD".ToByteArray()) data.Add(b);
+         foreach (var b in "03 B4 01 48 01 90 01 BD".ToByteArray()) data.Add(b);
          data.Add((byte)(BranchTarget + 1));
          data.Add((byte)(BranchTarget >> 8));
          data.Add((byte)(BranchTarget >> 16));

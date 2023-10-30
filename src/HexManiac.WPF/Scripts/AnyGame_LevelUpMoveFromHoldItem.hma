@@ -55,7 +55,7 @@
    mov   r0, r8
    mov   r1, #12
    mov   r2, #0
-   bl    thumb.GetMonData.long  @ item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL)
+   bl    <thumb.GetMonData>  @ item = GetMonData(mon, MON_DATA_HELD_ITEM, NULL)
    ldr   r1, =<data.items.levelupmoves>
    lsl   r0, #2
    ldr   r1, [r1, r0]
@@ -67,7 +67,7 @@
    beq   clear
    strh  r1, [r0]
    mov   r0, r8
-   bl    thumb.GiveMoveToMon.long @ GiveMoveToMon(mon, data.items.levelupmoves[item])
+   bl    <thumb.GiveMoveToMon> @ GiveMoveToMon(mon, data.items.levelupmoves[item])
    b     return
 clear:
    mov   r1, #0
@@ -82,12 +82,6 @@ return:
    ldr   r1, =<thumb.MonTryLearningNewMove>+245
    bx    r1
 gMoveToLearn: .word 0x02024022   @ FR/LG
-thumb.GetMonData.long:
-   ldr   r3, =<thumb.GetMonData+1>
-   bx    r3
-thumb.GiveMoveToMon.long:
-   ldr   r3, =<thumb.GiveMoveToMon+1>
-   bx    r3
 .end
 
 @thumb.levelup.MonTryLearningItemMove+48
