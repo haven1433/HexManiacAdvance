@@ -73,6 +73,7 @@
       xcopy "$(TargetDir)Scripts" "$(TargetDir)resources/Scripts" /i /c /k /e /r /y
       copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
       copy "$(SolutionDir)src\HexManiac.WPF\Resources\Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+      copy "$(SolutionDir)src\HexManiac.Core\ViewModels\QuickEditItems\hubol_dpe_cfru.ups" "$(TargetDir)resources"
       del /f /s /q "$(TargetDir)Scripts" 1&gt;nul
       rmdir /s /q "$(TargetDir)Scripts"
       rmdir "$(TargetDir)Models\Code"
