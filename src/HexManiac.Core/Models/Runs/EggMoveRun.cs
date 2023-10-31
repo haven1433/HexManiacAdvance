@@ -267,10 +267,16 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public bool UpdateLimiter(ModelDelta token) {
-         if (PointerSources?.Count != 2) return false;
+         int expectedPointerCount = 2;
+         int expectedLimitValue = Length / 2 - 2;
+         if (HardcodeTablesModel.GetIsCFRU(model)) {
+            expectedPointerCount = 3;
+            expectedLimitValue = Length / 2 - 1;
+         }
+
+         if (PointerSources?.Count != expectedPointerCount) return false;
          var address = PointerSources.Last() - 4;
-         var limiter = Length / 2 - 2;
-         model.WriteMultiByteValue(address, 4, token, limiter);
+         model.WriteMultiByteValue(address, 4, token, expectedLimitValue);
          return true;
       }
    }

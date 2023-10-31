@@ -55,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          var regional = get(HardcodeTablesModel.RegionalDexTableName);
          var national = get(HardcodeTablesModel.NationalDexTableName);
          var convert = get(HardcodeTablesModel.ConversionDexTableName);
+         if (convert == null) return;
 
          for (int i = 0; i < regional.ElementCount; i++) {
             var regionalIndex = model.ReadMultiByteValue(regional.Start + i * 2, 2);

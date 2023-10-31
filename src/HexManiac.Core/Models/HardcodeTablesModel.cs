@@ -55,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          TrainerSpritesName = "graphics.trainers.sprites.front",
          ItemImagesTableName = "graphics.items.sprites",
          LevelMovesTableName = "data.pokemon.moves.levelup",
+         ItemEffectsTableName = "data.items.effects",
          RegionalDexTableName = "data.pokedex.regional",
          NationalDexTableName = "data.pokedex.national",
          DecorationsTableName = "data.decorations.stats",
@@ -123,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   metadata = DecodeConstantsFromReference(this, singletons.MetadataInfo, metadata, referenceConstants);
                }
                Initialize(metadata);
-               isCFRU = GetIsCFRU();
+               isCFRU = GetIsCFRU(this);
 
                // in vanilla emerald, this pointer isn't four-byte aligned
                // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
@@ -166,9 +167,59 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeTablesFromReference(GameReferenceTables tables) {
+         if (isCFRU && TryGetList(EvolutionMethodListName, out var evolutionmethods)) {
+            // add evolution types
+            //'''Rain Or Fog''',
+            //'''Move Type''',     # type          17
+            //'''Type in Party''', # type          18
+            //'''Map''',
+            //'''Male''',
+            //'''Female''',
+            //'''Level Night''',
+            //'''Level Day''',
+            //'''Hold Item Night''', # hold item   24
+            //'''Hold Item Day''',   # hold item   25
+            //'''Move Name''',       # move name   26
+            //'''Mon in Party''',    # species     27
+            //'''Level Time Range''',
+            //'''Flag Set''',
+            //'''3 Critical Hits In One Battle''',
+            //'''Nature High''',
+            //'''Nature Low''',
+            //'''Damage Location''',
+            //'''Item Location''',
+            var newList = new List<string>(evolutionmethods);
+            newList.Add("Rain Or Fog");
+            newList.Add("Move Type");
+            newList.Add("Type in Party");
+            newList.Add("Map");
+            newList.Add("Male");
+            newList.Add("Female");
+            newList.Add("Level Night");
+            newList.Add("Level Day");
+            newList.Add("Hold Item Night");
+            newList.Add("Hold Item Day");
+            newList.Add("Move Name");
+            newList.Add("Mon in Party");
+            newList.Add("Level Time Range");
+            newList.Add("Flag Set");
+            newList.Add("3 Critical Hits In One Battle");
+            newList.Add("Nature High");
+            newList.Add("Nature Low");
+            newList.Add("Damage Location");
+            newList.Add("Item Location");
+            while (newList.Count <= 252) newList.Add(null); // skip to gigantamax = 253 mega = 254
+            newList.Add("Gigantamax");
+            newList.Add("Mega");
+            SetList(new NoDataChangeDeltaModel(), EvolutionMethodListName, newList, null, StoredList.GenerateHash(newList));
+         }
+
          foreach (var table in tables) {
+            // some tables have been removed from CFRU
             if (isCFRU && table.Name == "graphics.pokemon.sprites.coordinates.front") continue;
-            if (isCFRU && table.Name == EggMovesTableName) continue;
+            if (isCFRU && table.Name == "data.pokedex.hoennToNational") continue; // causes problems with pokename count
+            if (isCFRU && table.Name == "graphics.pokemon.sprites.anchor") continue; // causes problems with pokname count
+
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
                AddTable(table.Address, table.Offset, table.Name, format);
@@ -264,28 +315,55 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private bool isCFRU;
       private const int CFRU_Check_Address = 0x00051A, CFRU_Check_Value = 0x46C0, CFRU_ValueRepeateCount = 5;
-      private bool GetIsCFRU() {
+      public static bool GetIsCFRU(IDataModel model) {
+         var gameCode = model.GetGameCode();
          if (gameCode != FireRed) return false;
-         if (RawData.Length < CFRU_Check_Address + 3) return false;
+         if (model.RawData.Length < CFRU_Check_Address + 3) return false;
          for (int i = 0; i < CFRU_ValueRepeateCount; i++) {
-            if (this.ReadMultiByteValue(CFRU_Check_Address + i * 2, 2) != CFRU_Check_Value) return false;
+            if (model.ReadMultiByteValue(CFRU_Check_Address + i * 2, 2) != CFRU_Check_Value) return false;
          }
          return true;
       }
+
       private string AdjustFormatForCFRU(string name, string format) {
          if (!isCFRU) return format;
 
+         // type names
+         if (name == TypesTableName) format = format.Split("]")[0] + "]24";
+
          // remove the extra +28 from pokemon-related tables
-         if (format.EndsWith(PokemonNameTable + "+28")) return format.Substring(0, format.Length - 3);
+         if (format.EndsWith(PokemonNameTable + "+28")) format = format.Substring(0, format.Length - 3);
 
          // remove the extra +1 from pokemon-related tables
-         if (format.EndsWith(PokemonNameTable + "+1")) return format.Substring(0, format.Length - 2);
+         if (format.EndsWith(PokemonNameTable + "+1")) format = format.Substring(0, format.Length - 2);
 
-         // ability names are 17 characters, not 13
-         if (name == AbilityNamesTable) return format.Replace("\"\"13", "\"\"17");
+         // hidden abilities stored in pokemon stats
+         if (name == PokemonStatsTable) format = format.Replace("padding:", $"hiddenAbility.{AbilityNamesTable} padding.");
 
          // level-up moves uses Jambo format
          if (name == LevelMovesTableName) return $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
+
+         // overworld sprites
+         if (name == OverworldSprites) format = format.Replace("graphics.overworld.tablelength", "240");
+
+         // 16 evolutions per pokemon
+         if (name == EvolutionTableName) {
+            var vars = "|".Join(new[] {
+               "6=" + ItemsTableName,
+               "7=" + ItemsTableName,
+               "17=" + TypesTableName,
+               "18=" + TypesTableName,
+               "24=" + ItemsTableName,
+               "25=" + ItemsTableName,
+               "26=" + MoveNamesTable,
+               "27=" + PokemonNameTable,
+               "254=" + ItemsTableName,
+            });
+            var methods = " ".Join("0123456789ABCDEF".Select(i => $"method{i}:evolutionmethods arg{i}:|s=method{i}({vars}) species{i}:{PokemonNameTable} value{i}:"));
+            return $"[{methods}]{PokemonNameTable}";
+         }
+
+         if (name == ItemEffectsTableName) format = format.Replace("-199", string.Empty); // item effects are as long as the items
 
          return format;
       }
