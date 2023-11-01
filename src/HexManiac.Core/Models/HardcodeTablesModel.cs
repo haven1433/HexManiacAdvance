@@ -225,6 +225,33 @@ namespace HavenSoft.HexManiac.Core.Models {
                AddTable(table.Address, table.Offset, table.Name, format);
             }
          }
+
+         if (isCFRU) SetupCFRUSpecificTablesAndConstants();
+      }
+
+      public void SetupCFRUSpecificTablesAndConstants() {
+         ShowRawIVByteForTrainer = true;
+
+         // class-based pokeballs
+         var balls = new List<string> {
+            "Master Ball", "Ultra Ball", "Great Ball", "Poke Ball",
+            "Safari Ball", "Net Ball", "Dive Ball", "Nest Ball",
+            "Repeat Ball", "Timer Ball", "Luxury Ball", "Premier Ball",
+            "Dusk Ball", "Heal Ball", "Quick Ball", "Cherish Ball",
+            "Park Ball", "Fast Ball", "Level Ball", "Lure Ball",
+            "Heavy Ball", "Love Ball", "Friend Ball", "Moon Ball",
+            "Sport Ball", "Beast Ball", "Dream Ball",
+         };
+         while (balls.Count < 0xFE) balls.Add(null);
+         balls.Add("Class Based");
+         balls.Add("Random");
+         SetList(new NoDataChangeDeltaModel(), "trainerballs", balls, null, StoredList.GenerateHash(balls));
+         AddTable(0x1456790, 0, "data.trainers.classes.balls", "[ball.trainerballs]data.trainers.classes.names");
+
+         // trainers-with-EVs table
+         var trainerabilities = new List<string> { "Hidden", "Abiilty1", "Ability2", "RandomNormal", "RandomAny" };
+         SetList(new NoDataChangeDeltaModel(), "trainerabilities", trainerabilities, null, StoredList.GenerateHash(trainerabilities));
+         AddTable(0x1456798, 0, "data.trainers.evs", "[nature.data.pokemon.natures.names ivs. hpEv. atkEv. defEv. spdEv. spAtkEv. spDefEv. ball.data.trainers.classes.names ability.trainerabilities]121");
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {

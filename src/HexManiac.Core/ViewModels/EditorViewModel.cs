@@ -523,6 +523,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          QuickEditsMisc = new List<IQuickEditItem> {
             new RomOverview(),
             new DecapNames(),
+            new ApplyCFRUPatch { Editor = this },
          };
 
          tabs = new List<ITabContent>();

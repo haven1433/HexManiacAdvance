@@ -110,7 +110,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly ThreadSafeDictionary<string, ValidationList> lists = new ThreadSafeDictionary<string, ValidationList>();
 
       private readonly Singletons singletons;
-      private readonly bool showRawIVByteForTrainer, devMode;
+      private readonly bool devMode;
+
+      public bool ShowRawIVByteForTrainer { get; protected set; }
 
       #region Pointer destination-to-source caching, for faster pointer search during initial load
 
@@ -175,8 +177,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null, bool devMode = false) : base(data) {
          this.singletons = singletons;
          this.devMode = devMode;
-         showRawIVByteForTrainer = metadata?.ShowRawIVByteForTrainer ?? false;
-         this.FormatRunFactory = new FormatRunFactory(showRawIVByteForTrainer);
+         ShowRawIVByteForTrainer = metadata?.ShowRawIVByteForTrainer ?? false;
+         this.FormatRunFactory = new FormatRunFactory(ShowRawIVByteForTrainer);
          BuildDestinationToSourceCache(data);
 
          // if we have a subclass, expect the subclass to do this when it's ready.
@@ -2395,7 +2397,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                FreeSpaceSearch = FreeSpaceStart,
                FreeSpaceBuffer = FreeSpaceBuffer,
                NextExportID = NextExportID,
-               ShowRawIVByteForTrainer = showRawIVByteForTrainer,
+               ShowRawIVByteForTrainer = ShowRawIVByteForTrainer,
             });
       }
 
