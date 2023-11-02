@@ -216,9 +216,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var table in tables) {
             // some tables have been removed from CFRU
-            if (isCFRU && table.Name == "graphics.pokemon.sprites.coordinates.front") continue;
-            if (isCFRU && table.Name == "data.pokedex.hoennToNational") continue; // causes problems with pokename count
-            if (isCFRU && table.Name == "graphics.pokemon.sprites.anchor") continue; // causes problems with pokname count
+            if (isCFRU && table.Name.IsAny(
+               "graphics.pokemon.sprites.coordinates.front",
+               "data.pokedex.hoennToNational",        // causes problems with pokename count
+               "graphics.pokemon.sprites.anchor"      // causes problems with pokename count
+            )) continue;
 
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
@@ -252,6 +254,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          var trainerabilities = new List<string> { "Hidden", "Abiilty1", "Ability2", "RandomNormal", "RandomAny" };
          SetList(new NoDataChangeDeltaModel(), "trainerabilities", trainerabilities, null, StoredList.GenerateHash(trainerabilities));
          AddTable(0x1456798, 0, "data.trainers.evs", "[nature.data.pokemon.natures.names ivs. hpEv. atkEv. defEv. spdEv. spAtkEv. spDefEv. ball.data.trainers.classes.names ability.trainerabilities]121");
+
+         // trainer class-based encounter music
+         AddTable(0x144C110, 0, "data.trainers.classes.music", "[song:songnames]data.trainers.classes.names");
+
+         // trainer sprite-based mugshots
+         AddTable(0x144FC94, 0, "data.trainers.sprites.mugshots", "[sprite<`lzs4x8x8|data.trainers.sprites.mugshots`> pal<`lzp4`> size: x:|z y:|z unused:]graphics.trainers.sprites.front-0-1");
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
@@ -283,7 +291,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
          var noChangeDelta = new NoDataChangeDeltaModel();
-         format = AdjustFormatForCFRU(name, format);
+         format = AdjustFormatForCFRU(name, format, ref source);
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source) - offset;
          if (destination < 0 || destination > RawData.Length) return;
@@ -352,7 +360,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return true;
       }
 
-      private string AdjustFormatForCFRU(string name, string format) {
+      private string AdjustFormatForCFRU(string name, string format, ref int source) {
          if (!isCFRU) return format;
 
          // type names
@@ -369,6 +377,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // level-up moves uses Jambo format
          if (name == LevelMovesTableName) return $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
+
+         // tms / tutors
+         if (name == MoveTutors) format = format.Replace("]15", "]128");
+         if (name == TmMoves) format = format.Replace("]58", "]128");
 
          // overworld sprites
          if (name == OverworldSprites) format = format.Replace("graphics.overworld.tablelength", "240");
@@ -389,6 +401,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             var methods = " ".Join("0123456789ABCDEF".Select(i => $"method{i}:evolutionmethods arg{i}:|s=method{i}({vars}) species{i}:{PokemonNameTable} value{i}:"));
             return $"[{methods}]{PokemonNameTable}";
          }
+
+         // roaming locations
+         if (name == "data.maps.roaming.sets") source = 0x14889B0;
 
          if (name == ItemEffectsTableName) format = format.Replace("-199", string.Empty); // item effects are as long as the items
 

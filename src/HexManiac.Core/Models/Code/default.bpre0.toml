@@ -15,6 +15,16 @@ Name = '''scripts.newgame.starters.right'''
 Address = 0x169DB8
 Format = '''[species3:data.pokemon.names]scripts.newgame.starters.middle'''
 
+[[List]]
+Name = '''onland'''
+0 = '''NotLand'''
+1 = '''OnLand'''
+
+[[List]]
+Name = '''onwater'''
+0 = '''NotWater'''
+1 = '''OnWater'''
+
 [[OffsetPointer]]
 Address = 0x114DD8
 Offset = 0x000004

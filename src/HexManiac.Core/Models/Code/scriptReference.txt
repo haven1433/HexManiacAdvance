@@ -100,6 +100,10 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPEE] setup.battle.B               5C 0B trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0B: Sets up the 2nd trainer for a multi battle.
 [BPEE] trainerhill.battle           5C 0C trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0C: Only works when called by Trainer Hill ASM.
 
+# CFRU specific macros
+[BPRE] cfru.init.roamer             16 00 80 species:data.pokemon.names 16 01 80 level: 16 02 80 onland:onland 16 03 80 onwater:onwater 25 29 01 # Creates a custom roaming pokemon if CFRU is enabled.
+                                                                                                                                                 # result is 0 if that species is already roaming, or
+                                                                                                                                                 # if you already have 10 roaming pokemon.
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
@@ -260,7 +264,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 5C trainerbattle 06 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # double battles, continues the script
 5C trainerbattle 07 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">                       # clone of 4, but with rematch potential
 5C trainerbattle 08 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # clone of 6, does not play encounter music
-5C trainerbattle 09 trainer:data.trainers.stats arg: start<""> playerwin<""> # tutorial battle (can't lose) (set arg=3 for oak's naration) (Pyramid type for Emerald)
+5C trainerbattle 09 trainer:data.trainers.stats arg: playerwin<""> playerlose<""> # tutorial battle (can't lose) (set arg=3 for oak's naration) (Pyramid type for Emerald)
 5C trainerbattle other. trainer:data.trainers.stats arg: start<""> playerwin<""> # same as 0
                                              # trainer battle takes different parameters depending on the
                                              # 'type', or the first parameter.
