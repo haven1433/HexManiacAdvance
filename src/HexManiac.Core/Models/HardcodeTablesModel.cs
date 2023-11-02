@@ -167,40 +167,21 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeTablesFromReference(GameReferenceTables tables) {
+         // add evolution types
          if (isCFRU && TryGetList(EvolutionMethodListName, out var evolutionmethods)) {
-            // add evolution types
-            //'''Rain Or Fog''',
-            //'''Move Type''',     # type          17
-            //'''Type in Party''', # type          18
-            //'''Map''',
-            //'''Male''',
-            //'''Female''',
-            //'''Level Night''',
-            //'''Level Day''',
-            //'''Hold Item Night''', # hold item   24
-            //'''Hold Item Day''',   # hold item   25
-            //'''Move Name''',       # move name   26
-            //'''Mon in Party''',    # species     27
-            //'''Level Time Range''',
-            //'''Flag Set''',
-            //'''3 Critical Hits In One Battle''',
-            //'''Nature High''',
-            //'''Nature Low''',
-            //'''Damage Location''',
-            //'''Item Location''',
             var newList = new List<string>(evolutionmethods);
             newList.Add("Rain Or Fog");
-            newList.Add("Move Type");
-            newList.Add("Type in Party");
+            newList.Add("Move Type");      // 17 type
+            newList.Add("Type in Party");  // 18 type
             newList.Add("Map");
             newList.Add("Male");
             newList.Add("Female");
             newList.Add("Level Night");
             newList.Add("Level Day");
-            newList.Add("Hold Item Night");
-            newList.Add("Hold Item Day");
-            newList.Add("Move Name");
-            newList.Add("Mon in Party");
+            newList.Add("Hold Item Night"); // 24 hold item
+            newList.Add("Hold Item Day");   // 25 hold item
+            newList.Add("Move Name");       // 26 move name
+            newList.Add("Mon in Party");    // 27 species
             newList.Add("Level Time Range");
             newList.Add("Flag Set");
             newList.Add("3 Critical Hits In One Battle");
@@ -212,6 +193,32 @@ namespace HavenSoft.HexManiac.Core.Models {
             newList.Add("Gigantamax");
             newList.Add("Mega");
             SetList(new NoDataChangeDeltaModel(), EvolutionMethodListName, newList, null, StoredList.GenerateHash(newList));
+         }
+
+         // add move effects
+         if (isCFRU && TryGetList(MoveEffectListName, out var moveeffectsoptions)) {
+            var newList = new List<string>(moveeffectsoptions);
+            newList.Add("Me First");
+            newList.Add("Eat Berry");
+            newList.Add("Natural Gift");
+            newList.Add("Smack Down");
+            newList.Add("Remove Target Stat Changes");
+            newList.Add("Relic Song");
+            newList.Add("Set Terrain");
+            newList.Add("Pledge");
+            newList.Add("Field Effects");
+            newList.Add("Fling");
+            newList.Add("Attack Blockers");
+            newList.Add("Type Changes");
+            newList.Add("Heal Target");
+            newList.Add("Topsy Turvy Electrify");
+            newList.Add("Fairy Lock Happy Hour");
+            newList.Add("Instruct After You Quash");
+            newList.Add("Sucker Punch");
+            newList.Add("Team Effects");
+            newList.Add("Camouflage");
+            newList.Add("Synchronoise");
+            SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
          foreach (var table in tables) {
@@ -250,6 +257,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          SetList(new NoDataChangeDeltaModel(), "trainerballs", balls, null, StoredList.GenerateHash(balls));
          AddTable(0x1456790, 0, "data.trainers.classes.balls", "[ball.trainerballs]data.trainers.classes.names");
 
+         // physical/special/split list
+         var pss = new[] { "Physical", "Special", "Status" };
+         SetList(new NoDataChangeDeltaModel(), "movecategory", pss, null, StoredList.GenerateHash(pss));
+
          // trainers-with-EVs table
          var trainerabilities = new List<string> { "Hidden", "Abiilty1", "Ability2", "RandomNormal", "RandomAny" };
          SetList(new NoDataChangeDeltaModel(), "trainerabilities", trainerabilities, null, StoredList.GenerateHash(trainerabilities));
@@ -260,6 +271,39 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // trainer sprite-based mugshots
          AddTable(0x144FC94, 0, "data.trainers.sprites.mugshots", "[sprite<`lzs4x8x8|data.trainers.sprites.mugshots`> pal<`lzp4`> size: x:|z y:|z unused:]graphics.trainers.sprites.front-0-1");
+
+         // z-effects
+         var newList = new List<string>();
+         newList.Add("None");
+         newList.Add("Reset Stats");
+         newList.Add("All Stats Up 1");
+         newList.Add("Boost Crits");
+         newList.Add("Follow Me");
+         newList.Add("Curse");
+         newList.Add("Recover Hp");
+         newList.Add("Restore Replacement Hp");
+         newList.Add("Atk Up 1");
+         newList.Add("Def Up 1");
+         newList.Add("Spd Up 1");
+         newList.Add("Spatk Up 1");
+         newList.Add("Spdef Up 1");
+         newList.Add("Acc Up 1");
+         newList.Add("Evsn Up 1");
+         newList.Add("Atk Up 2");
+         newList.Add("Def Up 2");
+         newList.Add("Spd Up 2");
+         newList.Add("Spatk Up 2");
+         newList.Add("Spdef Up 2");
+         newList.Add("Acc Up 2");
+         newList.Add("Evsn Up 2");
+         newList.Add("Atk Up 3");
+         newList.Add("Def Up 3");
+         newList.Add("Spd Up 3");
+         newList.Add("Spatk Up 3");
+         newList.Add("Spdef Up 3");
+         newList.Add("Acc Up 3");
+         newList.Add("Evsn Up 3");
+         SetList(new NoDataChangeDeltaModel(), "zeffects", newList, null, StoredList.GenerateHash(newList));
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
@@ -374,6 +418,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // hidden abilities stored in pokemon stats
          if (name == PokemonStatsTable) format = format.Replace("padding:", $"hiddenAbility.{AbilityNamesTable} padding.");
+
+         // moves
+         if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
 
          // level-up moves uses Jambo format
          if (name == LevelMovesTableName) return $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
