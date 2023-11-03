@@ -257,6 +257,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          SetList(new NoDataChangeDeltaModel(), "trainerballs", balls, null, StoredList.GenerateHash(balls));
          AddTable(0x1456790, 0, "data.trainers.classes.balls", "[ball.trainerballs]data.trainers.classes.names");
 
+         // randomizer restrictions
+         AddTable(0x1453828, 0, "data.randomizer.species.banlist", $"[species:{PokemonNameTable}]!FEFE");
+         AddTable(0x1454730, 0, "data.randomizer.ability.banlist", $"[ability.{AbilityNamesTable}]!FF");
+
          // physical/special/split list
          var pss = new[] { "Physical", "Special", "Status" };
          SetList(new NoDataChangeDeltaModel(), "movecategory", pss, null, StoredList.GenerateHash(pss));

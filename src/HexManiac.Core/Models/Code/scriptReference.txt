@@ -104,6 +104,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPRE] cfru.init.roamer             16 00 80 species:data.pokemon.names 16 01 80 level: 16 02 80 onland:onland 16 03 80 onwater:onwater 25 29 01 # Creates a custom roaming pokemon if CFRU is enabled.
                                                                                                                                                  # result is 0 if that species is already roaming, or
                                                                                                                                                  # if you already have 10 roaming pokemon.
+[BPRE] cfru.set.wild.moves          29 0B 09 16 00 80 move0:data.pokemon.moves.names 16 01 80 move1:data.pokemon.moves.names 16 02 80 move2:data.pokemon.moves.names 16 30 80 move3:data.pokemon.moves.names
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
