@@ -170,7 +170,43 @@ BPEE0.scripts.ev.cap.stat       06DC48,06DC4E
 - Money cap: The maximum amount of money the player can carry at once. -----------------------------------
 BPEE0::scripts.money.cap        0E5188
 
-
+# Coins
+BPEE0:scripts.coins.cap         12AFF8,12BC1C,12E22C,141C9C,141DC0,145CA8,145CC8
+BPEE0:scripts.coins.cap-1       12ABF4,12BC14,1419CC,145C98
+BPEE0:scripts.coins.cap-49      20FC39
+BPEE0:scripts.coins.cap-499     20FC7B
+BPRE0:scripts.coins.cap         0D05E0
+BPRE0:scripts.coins.cap-1       0D05BC
+BPRE0:scripts.coins.cap-9       16C809
+BPRE0:scripts.coins.cap-19      16C8C0,16C920
+BPRE0:scripts.coins.cap-49      16C73A
+BPRE0:scripts.coins.cap-499     16C70C
+BPRE1:scripts.coins.cap         0D05F4
+BPRE1:scripts.coins.cap-1       0D05D0
+BPRE1:scripts.coins.cap-9       16C881
+BPRE1:scripts.coins.cap-19      16C938,16C998
+BPRE1:scripts.coins.cap-49      16C7B2
+BPRE1:scripts.coins.cap-499     16C784
+BPGE0:scripts.coins.cap         0D05B4
+BPGE0:scripts.coins.cap-1       0D0590
+BPGE0:scripts.coins.cap-9       16C7E5
+BPGE0:scripts.coins.cap-19      16C89C,16C8FC
+BPGE0:scripts.coins.cap-49      16C716
+BPGE0:scripts.coins.cap-499     16C6E8
+BPGE1:scripts.coins.cap         0D05C8
+BPGE1:scripts.coins.cap-1       0D05A4
+BPGE1:scripts.coins.cap-9       16C85D
+BPGE1:scripts.coins.cap-19      16C914,16C974
+BPGE1:scripts.coins.cap-49      16C78E
+BPGE1:scripts.coins.cap-499     16C760
+AXVE0:scripts.coins.cap         11A87C,11A894
+AXVE0:scripts.coins.cap-1       11A85A
+AXPE0:scripts.coins.cap         11A87C,11A894
+AXPE0:scripts.coins.cap-1       11A85A
+AXVE1:scripts.coins.cap         11A89C,11A8B4
+AXVE1:scripts.coins.cap-1       11A87A
+AXPE1:scripts.coins.cap         11A89C,11A8B4
+AXPE1:scripts.coins.cap-1       11A87A
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
