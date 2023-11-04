@@ -1339,6 +1339,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
             if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException($"expected name, but none was found: {segments}");
             if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException($"Cannot have 0-length text: {name}");
+            if (format == ElementContentType.PCS && segmentLength > 1000) throw new ArrayRunParseException($"Cannot have text longer than 1k bytes in a table: {name}");
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {

@@ -769,6 +769,14 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Errors);
       }
 
+      [Fact]
+      public void TextTable_LongText_Error() {
+         var vm = new BaseViewModelTestClass(0x4000);
+         vm.SetFullModel(0xFF);
+         vm.ViewPort.Edit("^table[text\"\"2000]1 ");
+         Assert.NotEmpty(vm.Errors);
+      }
+
       private void HackTextConverter(string game) {
          var converter = New.PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
