@@ -987,7 +987,7 @@ end
             2A clearflag flag:
             7D bufferPokemon buffer.3 species:data.pokemon.names
          */
-         var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, 0x67, 0xA1, 0xB6, 0x29, 0x2A, 0x7D);
+         var spots = Flags.GetAllScriptSpots(model, parser, new[] { ev.ScriptAddress }, false, 0x67, 0xA1, 0xB6, 0x29, 0x2A, 0x7D);
          var flagsSet = new Dictionary<int, int>(); // address of flag -> flag value
          var flagsCleared = new Dictionary<int, int>(); // address of flag -> flag value
          var bufferSpots = new Dictionary<int, int>(); // address of buffer -> pokemon to buffer
