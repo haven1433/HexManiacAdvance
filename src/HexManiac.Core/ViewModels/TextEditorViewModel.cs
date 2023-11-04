@@ -239,7 +239,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
             if (i < content.Length && !char.IsLetter(content[i])) continue;
             int length = 1;                                                                                               
-            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~_".ToCharArray()))) length++;
+            while (i + length < content.Length && (char.IsLetterOrDigit(content[i + length]) || content[i + length].IsAny(".'-~_\\".ToCharArray()))) length++;
             yield return (i, length);
             i += length;
          }

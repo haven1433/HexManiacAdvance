@@ -367,7 +367,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          for (int i = 0; i < spritePages; i++) {
             var (xPageOffset, yPageOffset) = choice == ImageExportMode.Horizontal ? (i * PixelWidth, 0) : (0, i * PixelHeight);
             var pagePixels = spriteRun.GetPixels(model, i, -1);
-            int palOffset = i * 16;
+            int palOffset = (i % paletteRun.Pages) * 16;
             for (int x = 0; x < PixelWidth; x++) {
                for (int y = 0; y < PixelHeight; y++) {
                   var pixel = pagePixels[x, y] + palOffset;
@@ -380,8 +380,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (renderPalette.Count > 256) {
             var rendered = Render(manyPixels, renderPalette, 0, 0);
             fs.SaveImage(rendered, manyPixels.GetLength(0));
-         }
-         else {
+         } else {
             fs.SaveImage(manyPixels, renderPalette);
          }
       }
@@ -766,7 +765,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public void ImportSpriteAndPalette(IFileSystem fileSystem) {
          string filename = null;
-         if (fileSystem.TryLoadIndexedImage(ref filename, out var pixels, out var palette)) {
+         var paletteRun = model.GetNextRun(paletteAddress) as IPaletteRun;
+         if (paletteRun != null && fileSystem.TryLoadIndexedImage(ref filename, out var pixels, out var palette) && palette.Count <= paletteRun.Pages * 16) {
             ImportSpriteAndPalette(fileSystem, pixels, palette);
             return;
          }

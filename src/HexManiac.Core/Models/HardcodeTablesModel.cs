@@ -55,6 +55,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          TrainerSpritesName = "graphics.trainers.sprites.front",
          ItemImagesTableName = "graphics.items.sprites",
          LevelMovesTableName = "data.pokemon.moves.levelup",
+         ItemEffectsTableName = "data.items.effects",
          RegionalDexTableName = "data.pokedex.regional",
          NationalDexTableName = "data.pokedex.national",
          DecorationsTableName = "data.decorations.stats",
@@ -123,7 +124,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   metadata = DecodeConstantsFromReference(this, singletons.MetadataInfo, metadata, referenceConstants);
                }
                Initialize(metadata);
-               isCFRU = GetIsCFRU();
+               isCFRU = GetIsCFRU(this);
 
                // in vanilla emerald, this pointer isn't four-byte aligned
                // it's at the very front of the ROM, so if there's no metadata we can be pretty sure that the pointer is still there
@@ -166,14 +167,143 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void DecodeTablesFromReference(GameReferenceTables tables) {
+         // add evolution types
+         if (isCFRU && TryGetList(EvolutionMethodListName, out var evolutionmethods)) {
+            var newList = new List<string>(evolutionmethods);
+            newList.Add("Rain Or Fog");
+            newList.Add("Move Type");      // 17 type
+            newList.Add("Type in Party");  // 18 type
+            newList.Add("Map");
+            newList.Add("Male");
+            newList.Add("Female");
+            newList.Add("Level Night");
+            newList.Add("Level Day");
+            newList.Add("Hold Item Night"); // 24 hold item
+            newList.Add("Hold Item Day");   // 25 hold item
+            newList.Add("Move Name");       // 26 move name
+            newList.Add("Mon in Party");    // 27 species
+            newList.Add("Level Time Range");
+            newList.Add("Flag Set");
+            newList.Add("3 Critical Hits In One Battle");
+            newList.Add("Nature High");
+            newList.Add("Nature Low");
+            newList.Add("Damage Location");
+            newList.Add("Item Location");
+            while (newList.Count <= 252) newList.Add(null); // skip to gigantamax = 253 mega = 254
+            newList.Add("Gigantamax");
+            newList.Add("Mega");
+            SetList(new NoDataChangeDeltaModel(), EvolutionMethodListName, newList, null, StoredList.GenerateHash(newList));
+         }
+
+         // add move effects
+         if (isCFRU && TryGetList(MoveEffectListName, out var moveeffectsoptions)) {
+            var newList = new List<string>(moveeffectsoptions);
+            newList.Add("Me First");
+            newList.Add("Eat Berry");
+            newList.Add("Natural Gift");
+            newList.Add("Smack Down");
+            newList.Add("Remove Target Stat Changes");
+            newList.Add("Relic Song");
+            newList.Add("Set Terrain");
+            newList.Add("Pledge");
+            newList.Add("Field Effects");
+            newList.Add("Fling");
+            newList.Add("Attack Blockers");
+            newList.Add("Type Changes");
+            newList.Add("Heal Target");
+            newList.Add("Topsy Turvy Electrify");
+            newList.Add("Fairy Lock Happy Hour");
+            newList.Add("Instruct After You Quash");
+            newList.Add("Sucker Punch");
+            newList.Add("Team Effects");
+            newList.Add("Camouflage");
+            newList.Add("Synchronoise");
+            SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
+         }
+
          foreach (var table in tables) {
-            if (isCFRU && table.Name == "graphics.pokemon.sprites.coordinates.front") continue;
-            if (isCFRU && table.Name == EggMovesTableName) continue;
+            // some tables have been removed from CFRU
+            if (isCFRU && table.Name.IsAny(
+               "graphics.pokemon.sprites.coordinates.front",
+               "data.pokedex.hoennToNational",        // causes problems with pokename count
+               "graphics.pokemon.sprites.anchor"      // causes problems with pokename count
+            )) continue;
+
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
                AddTable(table.Address, table.Offset, table.Name, format);
             }
          }
+
+         if (isCFRU) SetupCFRUSpecificTablesAndConstants();
+      }
+
+      public void SetupCFRUSpecificTablesAndConstants() {
+         ShowRawIVByteForTrainer = true;
+
+         // class-based pokeballs
+         var balls = new List<string> {
+            "Master Ball", "Ultra Ball", "Great Ball", "Poke Ball",
+            "Safari Ball", "Net Ball", "Dive Ball", "Nest Ball",
+            "Repeat Ball", "Timer Ball", "Luxury Ball", "Premier Ball",
+            "Dusk Ball", "Heal Ball", "Quick Ball", "Cherish Ball",
+            "Park Ball", "Fast Ball", "Level Ball", "Lure Ball",
+            "Heavy Ball", "Love Ball", "Friend Ball", "Moon Ball",
+            "Sport Ball", "Beast Ball", "Dream Ball",
+         };
+         while (balls.Count < 0xFE) balls.Add(null);
+         balls.Add("Class Based");
+         balls.Add("Random");
+         SetList(new NoDataChangeDeltaModel(), "trainerballs", balls, null, StoredList.GenerateHash(balls));
+         AddTable(0x1456790, 0, "data.trainers.classes.balls", "[ball.trainerballs]data.trainers.classes.names");
+
+         // physical/special/split list
+         var pss = new[] { "Physical", "Special", "Status" };
+         SetList(new NoDataChangeDeltaModel(), "movecategory", pss, null, StoredList.GenerateHash(pss));
+
+         // trainers-with-EVs table
+         var trainerabilities = new List<string> { "Hidden", "Abiilty1", "Ability2", "RandomNormal", "RandomAny" };
+         SetList(new NoDataChangeDeltaModel(), "trainerabilities", trainerabilities, null, StoredList.GenerateHash(trainerabilities));
+         AddTable(0x1456798, 0, "data.trainers.evs", "[nature.data.pokemon.natures.names ivs. hpEv. atkEv. defEv. spdEv. spAtkEv. spDefEv. ball.data.trainers.classes.names ability.trainerabilities]121");
+
+         // trainer class-based encounter music
+         AddTable(0x144C110, 0, "data.trainers.classes.music", "[song:songnames]data.trainers.classes.names");
+
+         // trainer sprite-based mugshots
+         AddTable(0x144FC94, 0, "data.trainers.sprites.mugshots", "[sprite<`lzs4x8x8|data.trainers.sprites.mugshots`> pal<`lzp4`> size: x:|z y:|z unused:]graphics.trainers.sprites.front-0-1");
+
+         // z-effects
+         var newList = new List<string>();
+         newList.Add("None");
+         newList.Add("Reset Stats");
+         newList.Add("All Stats Up 1");
+         newList.Add("Boost Crits");
+         newList.Add("Follow Me");
+         newList.Add("Curse");
+         newList.Add("Recover Hp");
+         newList.Add("Restore Replacement Hp");
+         newList.Add("Atk Up 1");
+         newList.Add("Def Up 1");
+         newList.Add("Spd Up 1");
+         newList.Add("Spatk Up 1");
+         newList.Add("Spdef Up 1");
+         newList.Add("Acc Up 1");
+         newList.Add("Evsn Up 1");
+         newList.Add("Atk Up 2");
+         newList.Add("Def Up 2");
+         newList.Add("Spd Up 2");
+         newList.Add("Spatk Up 2");
+         newList.Add("Spdef Up 2");
+         newList.Add("Acc Up 2");
+         newList.Add("Evsn Up 2");
+         newList.Add("Atk Up 3");
+         newList.Add("Def Up 3");
+         newList.Add("Spd Up 3");
+         newList.Add("Spatk Up 3");
+         newList.Add("Spdef Up 3");
+         newList.Add("Acc Up 3");
+         newList.Add("Evsn Up 3");
+         SetList(new NoDataChangeDeltaModel(), "zeffects", newList, null, StoredList.GenerateHash(newList));
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
@@ -205,7 +335,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void AddTable(int source, int offset, string name, string format) {
          var noChangeDelta = new NoDataChangeDeltaModel();
-         format = AdjustFormatForCFRU(name, format);
+         format = AdjustFormatForCFRU(name, format, ref source);
          if (source < 0 || source > RawData.Length) return;
          var destination = ReadPointer(source) - offset;
          if (destination < 0 || destination > RawData.Length) return;
@@ -264,28 +394,65 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private bool isCFRU;
       private const int CFRU_Check_Address = 0x00051A, CFRU_Check_Value = 0x46C0, CFRU_ValueRepeateCount = 5;
-      private bool GetIsCFRU() {
+      public static bool GetIsCFRU(IDataModel model) {
+         var gameCode = model.GetGameCode();
          if (gameCode != FireRed) return false;
-         if (RawData.Length < CFRU_Check_Address + 3) return false;
+         if (model.RawData.Length < CFRU_Check_Address + 3) return false;
          for (int i = 0; i < CFRU_ValueRepeateCount; i++) {
-            if (this.ReadMultiByteValue(CFRU_Check_Address + i * 2, 2) != CFRU_Check_Value) return false;
+            if (model.ReadMultiByteValue(CFRU_Check_Address + i * 2, 2) != CFRU_Check_Value) return false;
          }
          return true;
       }
-      private string AdjustFormatForCFRU(string name, string format) {
+
+      private string AdjustFormatForCFRU(string name, string format, ref int source) {
          if (!isCFRU) return format;
 
+         // type names
+         if (name == TypesTableName) format = format.Split("]")[0] + "]24";
+
          // remove the extra +28 from pokemon-related tables
-         if (format.EndsWith(PokemonNameTable + "+28")) return format.Substring(0, format.Length - 3);
+         if (format.EndsWith(PokemonNameTable + "+28")) format = format.Substring(0, format.Length - 3);
 
          // remove the extra +1 from pokemon-related tables
-         if (format.EndsWith(PokemonNameTable + "+1")) return format.Substring(0, format.Length - 2);
+         if (format.EndsWith(PokemonNameTable + "+1")) format = format.Substring(0, format.Length - 2);
 
-         // ability names are 17 characters, not 13
-         if (name == AbilityNamesTable) return format.Replace("\"\"13", "\"\"17");
+         // hidden abilities stored in pokemon stats
+         if (name == PokemonStatsTable) format = format.Replace("padding:", $"hiddenAbility.{AbilityNamesTable} padding.");
+
+         // moves
+         if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
 
          // level-up moves uses Jambo format
          if (name == LevelMovesTableName) return $"[movesFromLevel<[move:{MoveNamesTable} level.]!0000FF>]{PokemonNameTable}";
+
+         // tms / tutors
+         if (name == MoveTutors) format = format.Replace("]15", "]128");
+         if (name == TmMoves) format = format.Replace("]58", "]128");
+
+         // overworld sprites
+         if (name == OverworldSprites) format = format.Replace("graphics.overworld.tablelength", "240");
+
+         // 16 evolutions per pokemon
+         if (name == EvolutionTableName) {
+            var vars = "|".Join(new[] {
+               "6=" + ItemsTableName,
+               "7=" + ItemsTableName,
+               "17=" + TypesTableName,
+               "18=" + TypesTableName,
+               "24=" + ItemsTableName,
+               "25=" + ItemsTableName,
+               "26=" + MoveNamesTable,
+               "27=" + PokemonNameTable,
+               "254=" + ItemsTableName,
+            });
+            var methods = " ".Join("0123456789ABCDEF".Select(i => $"method{i}:evolutionmethods arg{i}:|s=method{i}({vars}) species{i}:{PokemonNameTable} value{i}:"));
+            return $"[{methods}]{PokemonNameTable}";
+         }
+
+         // roaming locations
+         if (name == "data.maps.roaming.sets") source = 0x14889B0;
+
+         if (name == ItemEffectsTableName) format = format.Replace("-199", string.Empty); // item effects are as long as the items
 
          return format;
       }

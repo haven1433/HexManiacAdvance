@@ -1555,7 +1555,16 @@ namespace HavenSoft.HexManiac.Tests {
          var imageToImport = new short[16 * 16];
          for (int i = 0; i < 32; i++) imageToImport[i / 8 * 16 + i % 8] = UncompressedPaletteColor.Pack(i, i, i);
 
-         tool.ImportPair.Execute(new StubFileSystem { LoadImage = arg => (imageToImport, 16) });
+         var filesystem = new StubFileSystem {
+            TryLoadIndexImage = (ref string filename, out int[,] imageData, out IReadOnlyList<short> paletteData) => {
+               filename = "chosefile.png";
+               imageData = null;
+               paletteData = null;
+               return false;
+            },
+            LoadImage = filename => (imageToImport, 16),
+         };
+         tool.ImportPair.Execute(filesystem);
 
          var tilesetData = ((ITilesetRun)Model.GetNextRun(TilesetStart)).GetPixels(Model, 0);
          var palette = (IPaletteRun)Model.GetNextRun(PaletteStart);

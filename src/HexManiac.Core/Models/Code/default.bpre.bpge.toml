@@ -1133,3 +1133,20 @@ Name = '''encountersongs'''
    '''boy0C''',
    '''boy0D''',
 ]
+
+[[List]]
+Name = '''trainerMugshots'''
+0 = [
+   '''Lorelei''',
+   '''Bruno''',
+   '''Agatha''',
+   '''Lance''',
+   '''Blue''',
+]
+
+[[List]]
+Name = '''playerMugshots'''
+0 = [
+   '''Red''',
+   '''Leaf''',
+]

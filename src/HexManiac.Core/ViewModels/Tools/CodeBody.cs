@@ -529,7 +529,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                checkToken++;
             }
             if (candidates.FirstOrDefault() is IScriptLine syntax) {
-               var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
+               IReadOnlyList<IScriptArg> args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
+               if (syntax is MacroScriptLine macro) args = macro.ShortFormArgs;
                var skipCount = syntax.LineCode.Count;
                if (skipCount == 0) skipCount = 1; // macros
                if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {

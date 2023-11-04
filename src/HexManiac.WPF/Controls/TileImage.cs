@@ -236,7 +236,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       #endregion
 
+      private static readonly List<WriteableBitmap> wbCache = new();
+      private static readonly List<IPixelViewModel> pvmCache = new();
+
       public static WriteableBitmap WriteOnce(IPixelViewModel viewModel) {
+         var cacheIndex = pvmCache.IndexOf(viewModel);
+         if (cacheIndex >= 0) return wbCache[cacheIndex];
+
          var pixels = viewModel.PixelData;
          if (pixels == null) return null;
          var expectedLength = viewModel.PixelWidth * viewModel.PixelHeight;
@@ -247,6 +253,11 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var source = new WriteableBitmap(viewModel.PixelWidth, viewModel.PixelHeight, 96, 96, format, null);
          var rect = new Int32Rect(0, 0, viewModel.PixelWidth, viewModel.PixelHeight);
          source.WritePixels(rect, pixels, stride, 0);
+
+         if (wbCache.Count == 20) { wbCache.RemoveAt(0); pvmCache.RemoveAt(0); }
+         wbCache.Add(source);
+         pvmCache.Add(viewModel);
+
          return source;
       }
 

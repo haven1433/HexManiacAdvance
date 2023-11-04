@@ -54,9 +54,9 @@ if.male.goto       A0 21 0D 80 00 00 06 01 ptr<`xse`>
 if.female.goto     A0 21 0D 80 01 00 06 01 ptr<`xse`>
 if.male.call       A0 21 0D 80 00 00 07 01 ptr<`xse`>
 if.female.call     A0 21 0D 80 01 00 07 01 ptr<`xse`>
-if.compare.goto variable: condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable: value: 06 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
+if.compare.goto variable:scriptvariablealiases condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable:scriptvariablealiases value: 06 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
                                                                                                                                                                # If the comparison is true, goto another address or section.
-if.compare.call variable: condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable: value: 07 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
+if.compare.call variable:scriptvariablealiases condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable:scriptvariablealiases value: 07 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
                                                                                                                                                                # If the comparison is true, call another address or section.
 if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # If the flag is set, goto another address or section.
                                                                                                                                                                # (Flags begin as clear.)
@@ -100,6 +100,10 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPEE] setup.battle.B               5C 0B trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0B: Sets up the 2nd trainer for a multi battle.
 [BPEE] trainerhill.battle           5C 0C trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0C: Only works when called by Trainer Hill ASM.
 
+# CFRU specific macros
+[BPRE] cfru.init.roamer             16 00 80 species:data.pokemon.names 16 01 80 level: 16 02 80 onland:onland 16 03 80 onwater:onwater 25 29 01 # Creates a custom roaming pokemon if CFRU is enabled.
+                                                                                                                                                 # result is 0 if that species is already roaming, or
+                                                                                                                                                 # if you already have 10 roaming pokemon.
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
@@ -126,24 +130,24 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 13 setfarbyte bank.4 pointer::|h                # stores the byte in the specified memory bank to a RAM address
 14 copyscriptbanks destination.4 source.4       # copies the value in the source memory bank to destination memory bank
 15 copybyte destination::|h source::|h          # copies the value from the source RAM address to the destination RAM address
-16 setvar variable: value:                      # sets the given variable to the given value
-17 addvar variable: value:                      # variable += value
-18 subvar variable: source:                     # variable -= source (or) variable -= *source
-                                                # (if 'source' isn't a valid variable, it's read as a value)
-19 copyvar variable: source:                    # variable = source
-1A setorcopyvar variable: source:               # Works like the copyvar command if the source field is a variable number;
+16 setvar variable:scriptvariablealiases value:  # sets the given variable to the given value
+17 addvar variable:scriptvariablealiases value:  # variable += value
+18 subvar variable:scriptvariablealiases source: # variable -= source (or) variable -= *source
+                                                 # (if 'source' isn't a valid variable, it's read as a value)
+19 copyvar variable:scriptvariablealiases source:scriptvariablealiases # variable = source
+1A setorcopyvar variable:scriptvariablealiases source:                 # Works like the copyvar command if the source field is a variable number;
                                                 # works like the setvar command if the source field is not a variable number.
                                                 # In other words:
                                                 # destination = source (or) destination = *source
                                                 # (if source isn't a valid variable, it's read as a value)
-1A copyvarifnotzero variable: source:           # Alternate, old name for 'setorcopyvar'.
+1A copyvarifnotzero variable:scriptvariablealiases source:scriptvariablealiases # Alternate, old name for 'setorcopyvar'.
 1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the value in memory bank A as compared to the value in memory bank B
 1C comparebanktobyte bank.4 value.              # sets the condition variable based on the value in the specified memory bank as compared to the given value
 1D compareBankTofarbyte bank.4 pointer::|h      # sets the condition variable based on the memory bank value as compared to the value stored in the RAM address
 1E compareFarByteToBank pointer::|h bank.4      # sets the condition variable based on the value stored in the RAM address as compared to the memory bank value
 1F compareFarByteToByte pointer::|h value.      # sets the condition variable based on the value at the RAM address as compared to the given value
 20 compareFarBytes a::|h b::|h                  # sets the condition variable based on the value at the RAM address A as compared to the value at RAM address B
-21 compare variable: value:                     # sets the condition variable based on the value in the given variable, as compared to the given value
+21 compare variable:scriptvariablealiases value: # sets the condition variable based on the value in the given variable, as compared to the given value
 22 comparevars var1: var2:                      # sets the condition variable based on the value in var1 as compared to the value in var2
 23 callasm code<>                                       # run the given ASM code, then continue the script
 24 setcode pointer<>                                    # block script execution and instead run the given ASM code every frame until it returns 1
@@ -151,7 +155,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 25 special function:specials                            # Calls a piece of ASM code from a table.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
-26 special2 variable: function:specials                 # Calls a special and puts the ASM's return value in the variable you listed.
+26 special2 variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 27 waitstate                                 # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
@@ -260,7 +264,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 5C trainerbattle 06 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # double battles, continues the script
 5C trainerbattle 07 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<"">                       # clone of 4, but with rematch potential
 5C trainerbattle 08 trainer:data.trainers.stats arg: start<""> playerwin<""> needmorepokemonText<""> continuescript<`xse`> # clone of 6, does not play encounter music
-5C trainerbattle 09 trainer:data.trainers.stats arg: start<""> playerwin<""> # tutorial battle (can't lose) (set arg=3 for oak's naration) (Pyramid type for Emerald)
+5C trainerbattle 09 trainer:data.trainers.stats arg: playerwin<""> playerlose<""> # tutorial battle (can't lose) (set arg=3 for oak's naration) (Pyramid type for Emerald)
 5C trainerbattle other. trainer:data.trainers.stats arg: start<""> playerwin<""> # same as 0
                                              # trainer battle takes different parameters depending on the
                                              # 'type', or the first parameter.
@@ -296,7 +300,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 72 showbox x. y. width. height.                 # nop in Emerald
 73 hidebox x. y. width. height.                 # ruby/sapphire only
 74 clearbox x. y. width. height.                # clear only a part of a custom box (nop in Emerald)
-75 showpokepic species:data.pokemon.names x. y. # show the pokemon in a box. Can be a literal or a variable.
+75 showpokepic species:data.pokemon.names x.|z y.|z # show the pokemon in a box. Can be a literal or a variable.
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.

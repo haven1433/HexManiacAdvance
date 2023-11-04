@@ -110,7 +110,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly ThreadSafeDictionary<string, ValidationList> lists = new ThreadSafeDictionary<string, ValidationList>();
 
       private readonly Singletons singletons;
-      private readonly bool showRawIVByteForTrainer, devMode;
+      private readonly bool devMode;
+
+      public bool ShowRawIVByteForTrainer { get; protected set; }
 
       #region Pointer destination-to-source caching, for faster pointer search during initial load
 
@@ -175,8 +177,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       public PokemonModel(byte[] data, StoredMetadata metadata = null, Singletons singletons = null, bool devMode = false) : base(data) {
          this.singletons = singletons;
          this.devMode = devMode;
-         showRawIVByteForTrainer = metadata?.ShowRawIVByteForTrainer ?? false;
-         this.FormatRunFactory = new FormatRunFactory(showRawIVByteForTrainer);
+         ShowRawIVByteForTrainer = metadata?.ShowRawIVByteForTrainer ?? false;
+         this.FormatRunFactory = new FormatRunFactory(ShowRawIVByteForTrainer);
          BuildDestinationToSourceCache(data);
 
          // if we have a subclass, expect the subclass to do this when it's ready.
@@ -422,7 +424,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                if (runs[i] is ITilemapRun tilemap) {
                   var format = tilemap.Format;
                   if (format.MatchingTileset != anchor) continue;
-                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember));
+                  tilemap = tilemap.Duplicate(new TilemapFormat(format.BitsPerPixel, format.TileWidth, format.TileHeight, reference.Name, format.TilesetTableMember, format.AllowLengthErrors));
                   runs[i] = tilemap;
                }
 
@@ -1681,7 +1683,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (FreeSpaceStart != 0) start = FreeSpaceStart;
          if (start < EarliestAllowedAnchor) start = EarliestAllowedAnchor;
          minimumLength += 0x40; // make sure there's plenty of room after, so that we're not in the middle of some other data set
-         var alignment = 0x40;
+         var alignment = Math.Max(4, FreeSpaceBuffer);
+         while (alignment % 4 != 0) alignment++;
          lock (threadlock) {
             while (start < RawData.Length - minimumLength) {
                // catch the currentRun up to where we are
@@ -1996,7 +1999,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             return;
          }
 
-         // case 3: unnamed anchor and we want to keep the pointers
+         // case 3: unnamed anchor is a constant and we've been asked not to touch constants
+         if (run is WordRun && changeToken.DoNotClearConstants) return;
+
+         // case 4: unnamed anchor and we want to keep the pointers
          // delete the content, but leave the anchor and pointers to it: we don't want to lose track of the pointers that point here.
          runIndex = BinarySearch(run.Start);
          changeToken.RemoveRun(run);
@@ -2391,7 +2397,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                FreeSpaceSearch = FreeSpaceStart,
                FreeSpaceBuffer = FreeSpaceBuffer,
                NextExportID = NextExportID,
-               ShowRawIVByteForTrainer = showRawIVByteForTrainer,
+               ShowRawIVByteForTrainer = ShowRawIVByteForTrainer,
             });
       }
 

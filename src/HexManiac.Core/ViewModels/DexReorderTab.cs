@@ -26,6 +26,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public bool SpartanMode { get; set; }
 
+      public IDataModel Model => model;
+
       private string filter = string.Empty;
       public string Filter {
          get => filter;

@@ -56,12 +56,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
       public int ExpectedUncompressedLength => TileWidth * TileHeight * 2; // TODO handle BitsPerPixel
       public string MatchingTileset { get; }
       public string TilesetTableMember { get; }
-      public TilemapFormat(int bits, int width, int height, string tileset, string tilesetTableMember = null) {
+      public bool AllowLengthErrors { get; }
+      public TilemapFormat(int bits, int width, int height, string tileset, string tilesetTableMember = null, bool allowLengthErrors = false) {
          BitsPerPixel = bits;
          TileWidth = width;
          TileHeight = height;
          MatchingTileset = tileset ?? string.Empty;
          TilesetTableMember = tilesetTableMember;
+         AllowLengthErrors = allowLengthErrors;
       }
    }
 

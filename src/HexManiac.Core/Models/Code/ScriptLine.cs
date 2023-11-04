@@ -308,7 +308,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var tokens = line.Trim().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          for (var i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg sarg) length += sarg.Length(default, -1);
-            if (Args[i] is ArrayArg aarg) length += aarg.ConvertMany(model, tokens.Skip(i)).Count() * aarg.TokenLength + 1;
+            if (Args[i] is ArrayArg aarg) length += aarg.ConvertMany(model, tokens.Skip(i + 1)).Count() * aarg.TokenLength + 1;
          }
          return length;
       }

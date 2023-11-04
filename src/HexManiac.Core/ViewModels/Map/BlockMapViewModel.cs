@@ -802,7 +802,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void UpdateClone(BlockMapViewModel neighbor, ObjectEventViewModel parentEvent) {
          if (!model.IsFRLG() || neighbor == null || parentEvent == null) return;
-         var obj = EventGroup.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.ObjectID && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
+         var obj = EventGroup.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.Element.ArrayIndex + 1 && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
          var (thisX, thisY) = ConvertCoordinates(0, 0);
          var (thatX, thatY) = neighbor.ConvertCoordinates(0, 0);
          var (xDif, yDif) = (thisX - thatX, thisY - thatY);
@@ -814,7 +814,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (obj == null && needClone) {
             obj = CreateObjectEvent(parentEvent.Graphics, Pointer.NULL);
             obj.Kind = true;
-            obj.Elevation = parentEvent.ObjectID;
+            obj.Elevation = parentEvent.Element.ArrayIndex + 1;
             obj.TrainerType = neighbor.map;
             obj.TrainerRangeOrBerryID = neighbor.group;
          } else if (!needClone) {
@@ -1698,8 +1698,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          newConnection.MapGroup = choice / 1000;
          newConnection.MapNum = choice % 1000;
 
-         info = options[choice];
-         if (info.Direction.IsAny(MapDirection.Dive, MapDirection.Emerge)) info = info with { Offset = 0 };
+         info = options[choice] with { Offset = -info.Offset };
          newConnection = otherMap.AddConnection(info);
          newConnection.Offset = info.Offset;
          newConnection.MapGroup = MapID / 1000;

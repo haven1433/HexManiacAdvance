@@ -61,7 +61,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          tilemapFormat = default;
          if (!(format.StartsWith("`ucm") && format.EndsWith("`"))) return false;
          format = format.Substring(4, format.Length - 5);
-         return LzTilemapRun.TryParseGeneralTilemapFormat(format, out tilemapFormat);
+         return LzTilemapRun.TryParseGeneralTilemapFormat(format, false, out tilemapFormat);
       }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {

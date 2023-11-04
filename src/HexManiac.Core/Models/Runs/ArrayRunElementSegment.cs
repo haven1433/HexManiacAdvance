@@ -868,7 +868,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static double ParseValue(IDataModel model, ITableRun table, int elementIndex, string content) {
          if (string.IsNullOrEmpty(content)) return 0;
-         if (double.TryParse(content, out var simpleValue)) return simpleValue;
+         if (double.TryParse(content, NumberStyles.Any, CultureInfo.InvariantCulture, out var simpleValue)) return simpleValue;
          if (content == "last") return table.ElementCount - 1;
 
          if (table != null && table.ElementContent.Any(seg => seg.Name == content)) {

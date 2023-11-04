@@ -38,6 +38,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private int oldDataLength = -1, newDataLength = -1;
 
+      public bool DoNotClearConstants { get; init; }
+
       public event EventHandler OnNewChange;
       protected void NotifyOnNewChange() => OnNewChange?.Invoke(this, EventArgs.Empty);
       public bool HasDataChange { get; protected set; }

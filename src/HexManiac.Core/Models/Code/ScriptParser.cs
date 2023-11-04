@@ -742,6 +742,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var allOptions = model.GetOptions(tableName);
             var options = new List<string>();
             for (int i = 0; i < allOptions.Count; i++) {
+               if (allOptions[i] == null || allOptions[i].Length == 0) continue;
                if (token.Length == 0 || allOptions[i].MatchesPartial(token)) {
                   if (!isList || list.Comments == null || !list.Comments.TryGetValue(i, out var comment)) comment = string.Empty;
                   else comment = " # " + comment;
@@ -817,6 +818,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var syntax = candidates.FirstOrDefault();
             if (syntax != null) {
                var args = syntax.Args.Where(arg => arg is ScriptArg).ToList();
+               if (syntax is MacroScriptLine macro) args = macro.ShortFormArgs.ToList();
                var skipCount = syntax.LineCode.Count;
                if (skipCount == 0) skipCount = 1; // macros
                if (args.Count + skipCount >= tokens.Length && tokens.Length >= skipCount + 1) {
@@ -845,6 +847,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             var skipCount = candidates[0].LineCode.Count;
             if (skipCount == 0) skipCount = 1;
             var args = candidates[0].Args.Where(arg => arg is ScriptArg).ToList();
+            if (candidates[0] is MacroScriptLine macro) args = macro.ShortFormArgs.ToList();
             if ((tokens.Length - skipCount).InRange(0, args.Count)) {
                var arg = args[tokens.Length - skipCount];
                var options = ReadOptions(model, arg.EnumTableName, string.Empty);
@@ -1119,9 +1122,36 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
             data.Add(0xFE);
             content = data.ToArray();
+         } else if (type == ExpectedPointerType.SpriteTemplate) {
+            var format = "tileTag: paletteTag: oam<> anims<> images<> affineAnims<> callback<>".Split(' ');
+            var data = new byte[24];
+            foreach (var line in text.SplitLines()) {
+               var parts = line.Split(':');
+               if (parts.Length == 1) continue;
+               var index = format.FindIndex(parts[0].StartsWith);
+               if (index == -1) continue;
+               int offset = index switch {
+                  0 => 0,
+                  1 => 2,
+                  int i => (i - 1) * 4,
+               };
+               var (value, length) = ReadSpriteTemplateField(format[index], parts[1]);
+
+               for (int i = 0; i < length; i++) {
+                  data[offset + i] = (byte)value;
+                  value >>= 8;
+               }
+            }
          } else {
             throw new NotImplementedException();
          }
+      }
+
+      private (int, int) ReadSpriteTemplateField(string format,string content) {
+         content = content.Trim();
+         if (format.EndsWith(":") && content.TryParseInt(out var result)) return (result, 2);
+         if (format.EndsWith("<>") && content.Trim('<', '>').TryParseHex(out result)) return (result, 4);
+         return (0, 0);
       }
 
       public void WriteData(IDataModel model, ModelDelta token, int scriptStart, int contentOffset) {

@@ -777,7 +777,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (changeCount >= maxSegments) changeCountText += "+";
             RaiseMessage($"{changeCountText} changes found.");
             if (changeCount > 0) {
-               RequestTabChange?.Invoke(this, new(diffTab));
+               var args = new TabChangeRequestedEventArgs(diffTab);
+               RequestTabChange?.Invoke(this, args);
+               if (!args.RequestAccepted && otherTab != null) otherTab.RaiseRequestTabChange(args);
             }
          } else {
             throw new NotImplementedException();
@@ -1218,7 +1220,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// Find scripts called by those scripts, and add runs for those too.
       /// </summary>
       private void CascadeScripts() {
-         var noChange = new NoDataChangeDeltaModel();
+         var noChange = new NoDataChangeDeltaModel { DoNotClearConstants = true };
          using (ModelCacheScope.CreateScope(Model)) {
             foreach (var run in Runs(Model).OfType<IScriptStartRun>().ToList()) {
                if (run is XSERun) {
@@ -1472,6 +1474,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private void RaiseMessage() => OnMessage?.Invoke(this, deferredMessage);
 
       public void RaiseRequestTabChange(ITabContent tab) => RequestTabChange?.Invoke(this, new(tab));
+      public void RaiseRequestTabChange(TabChangeRequestedEventArgs args) => RequestTabChange?.Invoke(this, args);
 
       public void ClearAnchor() {
          var startDataIndex = scroll.ViewPointToDataIndex(SelectionStart);
@@ -2660,21 +2663,23 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void IsTextExecuted(object notUsed) {
-         var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
-         var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
-         var left = Math.Min(selectionStart, selectionEnd);
-         var length = Math.Abs(selectionEnd - selectionStart) + 1;
-         var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
+         dispatcher.BlockOnUIWork(() => {
+            var selectionStart = scroll.ViewPointToDataIndex(selection.SelectionStart);
+            var selectionEnd = scroll.ViewPointToDataIndex(selection.SelectionEnd);
+            var left = Math.Min(selectionStart, selectionEnd);
+            var length = Math.Abs(selectionEnd - selectionStart) + 1;
+            var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
-         // do the actual search now that we know places to start
-         var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
-         if (foundCount == 0) {
-            OnError?.Invoke(this, "Failed to automatically find text at that location.");
-         } else {
-            RefreshBackingData();
-         }
+            // do the actual search now that we know places to start
+            var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
+            if (foundCount == 0) {
+               OnError?.Invoke(this, "Failed to automatically find text at that location.");
+            } else {
+               RefreshBackingData();
+            }
 
-         RequestMenuClose?.Invoke(this, EventArgs.Empty);
+            RequestMenuClose?.Invoke(this, EventArgs.Empty);
+         });
       }
 
       private bool ShouldAcceptInput(Point point, HexElement element, char input) {

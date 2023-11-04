@@ -606,7 +606,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (thisRun != null && thisRun.Start == Start) maxLength = ElementLength * thisRun.ElementCount;
             var byteLength = 0;
             var elementCount = 0;
-            while (Start + byteLength + ElementLength <= nextRun.Start && elementCount < 1000 && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, elementCount, flags, nextRun)) {
+            while (Start + byteLength + ElementLength <= nextRun.Start && elementCount < 1500 && DataMatchesElementFormat(owner, Start + byteLength, ElementContent, elementCount, flags, nextRun)) {
                byteLength += ElementLength;
                elementCount++;
                if (elementCount == JunkLimit) flags |= FormatMatchFlags.AllowJunkAfterText;
