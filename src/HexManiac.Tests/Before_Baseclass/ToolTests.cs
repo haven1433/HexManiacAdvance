@@ -586,6 +586,21 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
       }
 
+      [Theory]
+      [InlineData("r0 = 3 + 4", "mov r0, #3; add r0, #4")] // addition
+      [InlineData("r0 = 7 - 3", "mov r0, #7; sub r0, #3")] // subtraction
+      [InlineData("r0=12+2", "mov r0, #12; add r0, #2")]   // less whitespace
+      [InlineData("r0=12-2+3", "mov r0, #12; sub r0, #2; add r0, #3")]   // multiple additions
+      [InlineData("r0 += 5", "add r0, #5")] // +=
+      [InlineData("r0-=5", "sub r0, #5")] // -=
+      public void ThumbCode_Math_Compiles(string math, string code) {
+         var model = new PokemonModel(new byte[0x200]);
+         var result = parser.Compile(model, 0x100, math);
+
+         var expected = parser.Compile(model, 0x100, code.Split(';'));
+         Assert.Equal(expected, result);
+      }
+
       [Fact]
       public void ThumbCode_InlineLoadLastSection_Compiles() {
          var model = new PokemonModel(new byte[0x200]);

@@ -364,10 +364,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             } else if (line.StartsWith("r") && line.Contains("=")) {
                // expect rX = something
                var tokens = line.Split('=', 2);
+               var firstInstruction = "mov";
                if (tokens.Length == 1) {
                   results.Add(lines[i]);
                } else {
-                  var valueText = tokens[1].Trim();
+                  var valueText = tokens[1];
+                  if (tokens[0].EndsWith("+")) { tokens[0] = tokens[0][..^1]; firstInstruction = "add"; }
+                  if (tokens[0].EndsWith("-")) { tokens[0] = tokens[0][..^1]; firstInstruction = "sub"; }
+                  var extraInstructions = ReadMath(tokens[0], ref valueText);
+                  valueText = valueText.Trim();
                   int value;
                   if (valueText.StartsWith('<') && valueText.EndsWith('>')) {
                      valueText = valueText.Substring(1, valueText.Length - 2);
@@ -384,7 +389,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   } else if (value >= 0x100 || value < 0) {
                      results.Add($"ldr {tokens[0]}, ={value}");
                   } else {
-                     results.Add($"mov {tokens[0]}, {tokens[1]}");
+                     results.Add($"{firstInstruction} {tokens[0]}, {valueText}");
+                     while (extraInstructions.TryPop(out var instruction)) results.Add(instruction);
                   }
                }
             } else {
@@ -392,6 +398,25 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
          return results.ToArray();
+      }
+
+      public static Stack<string> ReadMath(string register, ref string expression) {
+         var result = new Stack<string>();
+         while (true) {
+            var addIndex = expression.LastIndexOf("+");
+            var subIndex = expression.LastIndexOf("-");
+            if (addIndex == -1 && subIndex == -1) break;
+            var last = Math.Max(subIndex, addIndex);
+            var op = expression[last];
+            var arg = expression.Substring(last + 1);
+            expression = expression[0..last];
+            if (op == '-') {
+               result.Push($"sub {register}, {arg}");
+            } else {
+               result.Push($"add {register}, {arg}");
+            }
+         }
+         return result;
       }
 
       public static string InstructionForComparator(string comparator) => comparator switch {
