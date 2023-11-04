@@ -2116,11 +2116,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          lock (blockRenders) {
             if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
+            if (blockAttributes == null) RefreshBlockAttributeCache(layout, blockModel1, blockModel2);
             if (tiles == null) RefreshTileCache(layout, blockModel1, blockModel2);
             if (palettes == null) RefreshPaletteCache(layout, blockModel1, blockModel2);
             blockRenders.Clear();
             if (blocks != null && tiles != null && palettes != null) {
-               blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, tiles, palettes));
+               blockRenders.AddRange(BlockmapRun.CalculateBlockRenders(blocks, blockAttributes, tiles, palettes));
             }
          }
       }
@@ -2531,6 +2532,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void HandleBlockAttributesChanged(object sender, byte[][] attributes) {
          var layout = GetLayout();
          var layoutModel = new LayoutModel(layout);
+
          if (model.GetNextRun(layoutModel.BlockMap.Start) is BlockmapRun blockmapRun) {
             var blockModel1 = layoutModel.PrimaryBlockset.FullBlocksetModel;
             var blockModel2 = layoutModel.SecondaryBlockset.FullBlocksetModel;
@@ -2540,6 +2542,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             secondaryMax = Math.Max(secondaryMax, mapRepointer.EstimateBlockCount(layout, false).currentCount);
             BlockmapRun.WriteBlockAttributes(tokenFactory, primaryMax, secondaryMax, blockModel1, blockModel2, attributes);
          }
+
+         viewPort.ChangeHistory.ChangeCompleted();
+         RequestClearMapCaches.Raise(this);
       }
 
       private void HandleAutoscrollTiles(object sender, EventArgs e) => AutoscrollTiles.Raise(this);

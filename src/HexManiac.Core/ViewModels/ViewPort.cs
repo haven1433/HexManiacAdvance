@@ -3001,6 +3001,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// 00(32)   -> Write 32 bytes of zero. Error if we're not in freespace (FF).
       ///             * Does not error if clearing a subset (or entire) table, so long as the clear matches a multiple of a row length. Still clears that data though.
       ///             * Does not error if clearing exactly the length of a non-table run. Don't clear the data either: all 0's may not be valid (such as with strings)
+      /// FF(0x20) -> Write 0x20 bytes of FF. Errors if there's any metadata. Used for deleting unused bytes.
       /// put(1234)-> put the bytes 12, then 34, at the current location, but don't change the current selection.
       ///             works no matter what the current data is.
       /// importimage(path, greedy) -> imports over the current sprite (or pointer to sprite) using cautious, greedy, or smart.
@@ -3045,6 +3046,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
                exitEditEarly = true;
+            }
+         } else if (command.StartsWith("ff(")&&paramsEnd>3&&command.Substring(3,paramsEnd-3).TryParseInt(out length)) {
+            var currentRun = Model.GetNextRun(index);
+            if (currentRun.Start < index || (currentRun.Start == index && currentRun is not NoInfoRun) || (currentRun.Start > index && currentRun.Start < index + length)) {
+               RaiseError($"Writing {length} FF bytes would overwrite formatted data.");
+               exitEditEarly = true;
+            } else {
+               for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0xFF);
             }
          } else if (command.StartsWith("game(") && paramsEnd > 5) {
             var content = command.Substring(5, paramsEnd - 5).ToLower();
