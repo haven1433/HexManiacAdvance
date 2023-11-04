@@ -189,6 +189,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // remove excess whitespace/comments and splitting labels from code
          RemoveMultilineComments(lines);
          HandleEquDirectives(lines);
+         lines = MacroPass(new LabelLibrary(model, null), lines);     // replace if statements
          lines = lines.SelectMany(line => {
             line = line.ToLower().Split('@')[0].Trim();
             if (line == string.Empty) return Enumerable.Empty<string>();
@@ -312,6 +313,96 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          newRuns = addedRuns;
          return result;
       }
+
+      public static string[] MacroPass(LabelLibrary labels, params string[] lines) {
+         var ifStack = new Stack<List<int>>();
+         var results = new List<string>();
+         for (var i = 0; i < lines.Length; i++) {
+            var line = lines[i].Split('@')[0].Trim().Replace("(", "").Replace(")", "").ToLower();
+            if (line.StartsWith("if ") && line.EndsWith("{")) {
+               var tokens = line.Substring(3, line.Length - 4).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+               if (tokens.Length == 3 && InstructionForComparator(tokens[1]) is string branch) {
+                  ifStack.Push(new() { i + 1 });
+                  results.Add($"cmp {tokens[0]} {tokens[2]}");
+                  results.Add($"{branch} else{i + 1}");
+               } else {
+                  results.Add(lines[i]);
+               }
+            } else if (line == "} else {" && ifStack.Count > 0 && ifStack.Peek().Any(scope => scope > 0)) {
+               var match = ifStack.Pop();
+               var scope = match.First(p => p > 0);
+               results.Add($"b close{scope}");
+               results.Add($"else{scope}:");
+               match.Remove(scope);
+               match.Add(-scope);
+               ifStack.Push(match);
+            } else if (line.StartsWith("} else if ") && line.EndsWith("{") && ifStack.Peek().Any(scope => scope > 0)) {
+               var tokens = line.Substring(10, line.Length - 11).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+               if (tokens.Length == 3 && InstructionForComparator(tokens[1]) is string branch) {
+                  var match = ifStack.Pop();
+                  var scope = match.First(p => p > 0);
+                  results.Add($"b close{scope}");
+                  results.Add($"else{scope}:");
+                  match.Remove(scope);
+                  match.Add(-scope);
+                  match.Add(i + 1);
+                  ifStack.Push(match);
+                  results.Add($"cmp {tokens[0]}, {tokens[2]}");
+                  results.Add($"{branch} else{i + 1}");
+               } else {
+                  results.Add(lines[i]);
+               }
+            } else if (line == "}" && ifStack.Count > 0) {
+               var match = ifStack.Pop();
+               var scope = match.FirstOrDefault(p => p > 0);
+               if (scope > 0) {
+                  results.Add($"else{scope}:");
+                  match.Remove(scope);
+               }
+               foreach (var m in match) results.Add($"close{-m}:");
+            // } else if (line.StartsWith("r") && line.Contains("=")) {
+            } else if (line.StartsWith("r") && line.Contains("=")) {
+               // expect rX = something
+               var tokens = line.Split('=', 2);
+               if (tokens.Length == 1) {
+                  results.Add(lines[i]);
+               } else {
+                  var valueText = tokens[1].Trim();
+                  int value;
+                  if (valueText.StartsWith('<') && valueText.EndsWith('>')) {
+                     valueText = valueText.Substring(1, valueText.Length - 2);
+                     // might be an address
+                     if (valueText.TryParseHex(out value)) {
+                        value -= Pointer.NULL;
+                        valueText = "0x" + value.ToAddress();
+                     } else if (labels.TryResolveLabel(valueText, out value)) {
+                        valueText = "0x" + value.ToAddress();
+                     }
+                  }
+                  if (!valueText.TryParseInt(out value)) {
+                     results.Add(lines[i]);
+                  } else if (value >= 0x100 || value < 0) {
+                     results.Add($"ldr {tokens[0]}, ={value}");
+                  } else {
+                     results.Add($"mov {tokens[0]}, {tokens[1]}");
+                  }
+               }
+            } else {
+               results.Add(lines[i]);
+            }
+         }
+         return results.ToArray();
+      }
+
+      public static string InstructionForComparator(string comparator) => comparator switch {
+         "<" => "bge",
+         "<=" => "bgt",
+         ">" => "ble",
+         ">=" => "blt",
+         "==" => "bne",
+         "!=" => "beq",
+         _ => null,
+      };
 
       public static void RemoveMultilineComments(string[] lines) {
          int i = 0, characterIndex = 0;
@@ -775,7 +866,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                result |= (ushort)(numeric & mask);
                numeric >>= part.Length;
             } else if (part.Type == InstructionArgType.Register) {
-               result |= (ushort)(registerListForRegisters[0].Value & 7);
+               result |= (ushort)((registerListForRegisters.Count > 0 ? registerListForRegisters[0].Value : 0) & 7);
                registerListForRegisters.RemoveAt(0);
             } else if (part.Type == InstructionArgType.List) {
                result |= list;
@@ -796,20 +887,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          list = 0;
          while (line.Length > 0 && template.Length > 0) {
             // make sure that the basic format matches where it should
-            if (template[0] == ' ') {
-               template = template.Substring(1);
-               continue;
-            }
-            if (line[0] == ' ' || line[0] == '!') {
-               line = line.Substring(1);
-               continue;
-            }
-            if (template[0] == ',') {
-               if (line[0] != ',') return false;
-               template = template.Substring(1);
-               line = line.Substring(1);
-               continue;
-            }
+            while (template[0] == ' ' || template[0] == ',') template = template.Substring(1);
+            while (line[0] == ' ' || line[0] == '!' || line[0] == ',') line = line.Substring(1);
             if (template[0] == '[') {
                if (line[0] != '[') {
                   if (template.StartsWith("[pc, ") && template.EndsWith("]") && labels.ResolveLabel(line) != Pointer.NULL) {
@@ -838,7 +917,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                if (line.StartsWith("pc")) line = "r15" + line.Substring(2);
                if (line[0] != 'r') return false;
                var name = "r" + template[1];
-               if (int.TryParse(line.Split(',', ']', '!')[0].Substring(1), out int value)) {
+               if (int.TryParse(line.Split(',', ']', '!', ' ')[0].Substring(1), out int value)) {
                   if (value > 7 && !instructionParts.Any(part => part.Type == InstructionArgType.HighRegister)) return false;
                   for (int index = 0; index < instructionParts.Count; index++) {
                      var instruction = instructionParts[index];
@@ -1193,7 +1272,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          line = line.Substring(4);
          var parts = line.Split("=");
          if (parts.Length != 2) return false;
-         var registerText = parts[0].Trim().Split(',')[0];
+         var registerText = parts[0].Trim(' ', ',');
          if (registerText.Length != 2) return false;
          if (registerText[0] != 'r') return false;
          int register = registerText[1] - '0';
