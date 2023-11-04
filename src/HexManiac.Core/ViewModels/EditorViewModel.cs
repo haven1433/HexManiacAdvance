@@ -726,9 +726,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             }
          };
 
-         paste.CanExecute = arg => SelectedTab is ViewPort;
+         paste.CanExecute = arg => SelectedTab is ViewPort || (SelectedTab is ImageEditorViewModel image && image.Paste.CanExecute(FileSystem));
          paste.Execute = arg => {
             if (gotoViewModel.ControlVisible) return;
+            if (SelectedTab is ImageEditorViewModel image) {
+               image.Paste.Execute(FileSystem);
+               return;
+            }
+
             var copyText = fileSystem.CopyText;
             // if the paste is long, add whitespace to complete any pasted elements
             if (copyText.Contains(Environment.NewLine) || copyText.Contains(BaseRun.AnchorStart)) {
