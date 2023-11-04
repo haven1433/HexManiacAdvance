@@ -208,8 +208,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void Goto() {
          owner.ShowPreviews = false;
          mapEditor.ViewPort.Tools.TableTool.UsageOptionsOpen = false;
-         mapEditor.NavigateTo(bank, map, eventModel.X, eventModel.Y);
-         mapEditor.SelectedEvent = mapEditor.PrimaryMap.EventGroup.All.FirstOrDefault(ev => ev.Element.Start == eventModel.Element.Start);
+         var blockmap = new BlockMapViewModel(mapEditor.FileSystem, mapEditor.Tutorials, mapEditor.ViewPort, mapEditor.Format, mapEditor.Templates, bank, map) { AllOverworldSprites = mapEditor.PrimaryMap.AllOverworldSprites, IncludeBorders = false };
+         var (x, y) = eventModel != null ? (eventModel.X, eventModel.Y) : (blockmap.PixelWidth / 32, blockmap.PixelHeight / 32);
+         mapEditor.NavigateTo(bank, map, x, y);
+         if (eventModel != null) mapEditor.SelectedEvent = mapEditor.PrimaryMap.EventGroup.All.FirstOrDefault(ev => ev.Element.Start == eventModel.Element.Start);
          mapEditor.ViewPort.RaiseRequestTabChange(mapEditor);
       }
    }
