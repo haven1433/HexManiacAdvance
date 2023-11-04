@@ -88,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var args = (line is MacroScriptLine macro) ? macro.ShortFormArgs : line.Args;
             if (args.Count < tokens.Length) return false;
             var currentArg = args[tokens.Length - 1];
-            return currentArg.Name == "variable" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == string.Empty;
+            return currentArg.Name == "variable" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == "scriptvariablealiases";
          }
       }
 
