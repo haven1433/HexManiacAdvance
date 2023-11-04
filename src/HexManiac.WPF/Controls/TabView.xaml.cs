@@ -418,9 +418,14 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var verticalStart = lineHeight * (linesBeforeSelection + 1) + 2;
 
          CodeContentsPopup.Placement = PlacementMode.Absolute;
-         var corner = textbox.PointToScreen(new System.Windows.Point(40, verticalStart));
-         CodeContentsPopup.HorizontalOffset = corner.X;
-         CodeContentsPopup.VerticalOffset = corner.Y;
+         try {
+            var corner = textbox.PointToScreen(new System.Windows.Point(40, verticalStart));
+            CodeContentsPopup.HorizontalOffset = corner.X;
+            CodeContentsPopup.VerticalOffset = corner.Y;
+         } catch (InvalidOperationException) {
+            // visual is hidden, cannot call textbox.PointToScreen
+            CodeContentsPopup.IsOpen = false;
+         }
 
          var visual = CodeToolMultiTextBoxItems.ItemContainerGenerator.ContainerFromItem(codebody);
          if (visual is FrameworkElement element) {
