@@ -104,7 +104,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             Keywords = {
                "for", "while", "in",
                "if", "elif", "else",
-               "def", "return", "break", "yield",
+               "def", "return", "continue", "break", "yield",
                "class", "lambda",
                "import", "from",
                "try", "except",
@@ -120,11 +120,28 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             LineCommentHeader = "#",
             MultiLineCommentHeader = "'''",
             MultiLineCommentFooter = "'''",
+            PreFormatter = new PythonTextFormatter(),
          };
          return editor;
       }
 
       public void Close() => editor.ShowAutomationPanel = false;
+   }
+
+   public class PythonTextFormatter : ITextPreProcessor {
+      public TextFormatting[] Format(string content) {
+         var result = new TextFormatting[content.Length];
+         bool inSingleQuoteText = false;
+         bool inDoubleQuoteText = false;
+         var escaped = false;
+         for (int i = 0; i < content.Length; i++) {
+            if (!escaped && content[i] == '\'' && !inDoubleQuoteText) inSingleQuoteText = !inSingleQuoteText;
+            if (!escaped && content[i] == '"' && !inSingleQuoteText) inDoubleQuoteText = !inDoubleQuoteText;
+            if (inSingleQuoteText || inDoubleQuoteText) result[i] = TextFormatting.Text;
+            escaped = content[i] == '\\' && !escaped;
+         }
+         return result;
+      }
    }
 
    public record TableGetter(EditorViewModel Editor) {
