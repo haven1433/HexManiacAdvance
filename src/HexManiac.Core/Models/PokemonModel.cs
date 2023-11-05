@@ -1467,7 +1467,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
             tableStrategy.UpdateNewRunFromPointerFormat(this, token, segment, segments, parentIndex, ref run);
-         } else if(strategy != null) {
+         } else if (strategy != null) {
             strategy.UpdateNewRunFromPointerFormat(this, token, segment.Name, segments, parentIndex, ref run);
          }
       }
