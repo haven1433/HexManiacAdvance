@@ -1889,6 +1889,7 @@
             </Border>
             <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}"
                     MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}"
+                    ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Signpost (or hidden item)">
                <TextBlock Text="Sp" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
             </Border>
          </StackPanel>
