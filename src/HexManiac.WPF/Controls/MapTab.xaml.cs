@@ -424,6 +424,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void EventTemplateDown(object sender, MouseEventArgs e) {
          var target = (EventCreationType)((FrameworkElement)sender).Tag;
+         if (target == EventCreationType.Fly && !ViewModel.PrimaryMap.CanCreateFlyEvent) return;
          withinMapInteraction = MouseButton.Left;
          MapView.CaptureMouse();
          ViewModel.StartEventCreationInteraction(target);

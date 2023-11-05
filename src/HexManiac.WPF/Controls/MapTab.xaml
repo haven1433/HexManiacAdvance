@@ -1889,15 +1889,24 @@
             </Border>
             <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Error}"
                     MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Signpost}"
-                    ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Signpost">
                <TextBlock Text="Sp" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
             </Border>
          </StackPanel>
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Text1}"
-                 Visibility="{Binding PrimaryMap.CanCreateFlyEvent, Converter={StaticResource BoolToVisibility}}"
-                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Fly}"
-                 ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Fly Spot">
+                  MouseLeftButtonDown="EventTemplateDown" Margin="5,0" Tag="{x:Static map:EventCreationType.Fly}"
+                  ToolTipService.InitialShowDelay="0">
             <TextBlock Text="F" HorizontalAlignment="Center" VerticalAlignment="Center" FontStyle="Italic" />
+            <Border.Style>
+               <Style TargetType="Border">
+                  <Setter Property="ToolTip" Value="Drag to Create New Fly Spot" />
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding PrimaryMap.CanCreateFlyEvent}" Value="False">
+                        <Setter Property="ToolTip" Value="Fly Events are limited to 1 per map name." />
+                        <Setter Property="Opacity" Value=".4" />
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </Border.Style>
          </Border>
          <local:AngleBorder Direction="Left" VerticalAlignment="Stretch" Content="Map ID:" />
          <local:AngleBorder Direction="Out" VerticalAlignment="Stretch" Margin="0,0,5,0">
