@@ -2450,7 +2450,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private SortedSpan<int> SearchForPointersInTables(ModelDelta changeToken, int address){
-         if (sourcesForDestinations != null) return SortedSpan<int>.None;
+         if (sourcesForDestinations != null || changeToken is TransientModelDelta) return SortedSpan<int>.None; // no need to search through tables if we're in a transient or doing initial load
          var results = new List<int>();
          lock (threadlock) {
             foreach (var run in All<ITableRun>()) {
