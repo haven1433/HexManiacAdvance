@@ -44,7 +44,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool CanAppend => true;
 
-      public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, string paletteHint, int runIndex, int start, SortedSpan<int> sources = null) : base(start, sources) {
+      public OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, string paletteHint, int runIndex, int start, SortedSpan<int> sources = null) : this(model, parent, paletteHint, runIndex, start, -1, sources) { }
+
+      private OverworldSpriteListRun(IDataModel model, IReadOnlyList<ArrayRunElementSegment> parent, string paletteHint, int runIndex, int start, int elementCount = -1, SortedSpan<int> sources = null) : base(start, sources) {
          this.model = model;
          this.parent = parent;
          PaletteHint = paletteHint;
@@ -124,15 +126,20 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var nextAnchorStart = model.GetNextAnchor(Start + 1).Start;
          ElementCount = 0;
          Length = 0;
-         while (Start + Length < nextAnchorStart) {
-            var destination = model.ReadPointer(start + Length);
-            if (destination < 0 || destination >= model.Count) break;
-            if (model.ReadMultiByteValue(start + Length + 4, 2) != byteLength) break;
-            var nextRun = model.GetNextRun(start + Length);
-            if (Length > 0 && (start + Length).IsAny(nextStart)) break; // metric: if there's a pointer in the parent table that points here, then it's the next list, not this list.
-            ElementCount += 1;
-            Length += ElementLength;
-            if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
+         if (elementCount == -1) {
+            while (Start + Length < nextAnchorStart) {
+               var destination = model.ReadPointer(start + Length);
+               if (destination < 0 || destination >= model.Count) break;
+               if (model.ReadMultiByteValue(start + Length + 4, 2) != byteLength) break;
+               var nextRun = model.GetNextRun(start + Length);
+               if (Length > 0 && (start + Length).IsAny(nextStart)) break; // metric: if there's a pointer in the parent table that points here, then it's the next list, not this list.
+               ElementCount += 1;
+               Length += ElementLength;
+               if (ElementCount == MaxOverworldSprites) break; // overworld sprite lists can only have so many elements
+            }
+         } else {
+            ElementCount = elementCount;
+            Length = ElementCount * ElementLength;
          }
 
          ElementCount = Math.Max(ElementCount, 1);
@@ -143,7 +150,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override IDataFormat CreateDataFormat(IDataModel data, int index) => ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
 
-      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, newPointerSources);
+      protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, ElementCount, newPointerSources);
 
       public ITableRun Append(ModelDelta token, int length) {
          var naturalLength = Length;
