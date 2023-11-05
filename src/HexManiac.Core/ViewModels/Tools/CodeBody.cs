@@ -512,12 +512,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
             candidates = ScriptParser.SortOptions(candidates, tokens[0], c => c.LineCommand).ToList();
-            before = before.Substring(0, before.Length - tokens[0].Length);
-            results.AddRange(candidates.Select(op => {
-               var afterText = after;
-               if (string.IsNullOrEmpty(afterText) && op.Args.Count + op.LineCode.Count > 1) afterText = " "; // insert whitespace after
-               return new AutocompleteItem(op.Usage, before + op.LineCommand + afterText);
-            }));
+            var length = before.Length - tokens[0].Length;
+            if (length > 0) {
+               before = before.Substring(0, before.Length - tokens[0].Length);
+               results.AddRange(candidates.Select(op => {
+                  var afterText = after;
+                  if (string.IsNullOrEmpty(afterText) && op.Args.Count + op.LineCode.Count > 1) afterText = " "; // insert whitespace after
+                  return new AutocompleteItem(op.Usage, before + op.LineCommand + afterText);
+               }));
+            }
          } else {
             // script args
             var candidates = parser.PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
