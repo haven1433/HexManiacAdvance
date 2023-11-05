@@ -330,6 +330,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             return availableNames;
          }
       }
+      private ObservableCollection<string> sortedAvailableNames;
+      public ObservableCollection<string> SortedAvailableNames {
+         get {
+            if (sortedAvailableNames != null) return sortedAvailableNames;
+            sortedAvailableNames = new(AvailableNames.OrderBy(name => name));
+            return sortedAvailableNames;
+         }
+      }
 
       public int SelectedNameIndex {
          get {
@@ -360,12 +368,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public int GotoNameIndex {
-         get => SelectedNameIndex;
+         get => SortedAvailableNames.IndexOf(AvailableNames[SelectedNameIndex]);
          set {
-            if (!value.InRange(0, availableNames.Count)) return;
-            var name = availableNames[value];
+            if (!value.InRange(0, SortedAvailableNames.Count)) return;
+            var name = sortedAvailableNames[value];
             // find the first map with that name
-            var mapWithName = AllMapsModel.Create(model).SelectMany(bank => bank).FirstOrDefault(map => map.NameIndex == value);
+            var tableIndex = availableNames.IndexOf(name);
+            var mapWithName = AllMapsModel.Create(model).SelectMany(bank => bank).FirstOrDefault(map => map.NameIndex == tableIndex);
             if (mapWithName == null) {
                viewPort.RaiseError($"Could not find a map named {name}");
             } else {
