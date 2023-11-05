@@ -528,7 +528,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          Dispatcher.BeginInvoke(DispatchAnimation, DispatcherPriority.ApplicationIdle, element);
       }
 
-      private static readonly Duration fastTime = TimeSpan.FromSeconds(.5);
+      private static readonly Duration fastTime = TimeSpan.FromSeconds(.75);
       private void DispatchAnimation(FrameworkElement element) {
          if (element == GotoBox && !ViewModel.GotoViewModel.ShowAll) return;
          var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);

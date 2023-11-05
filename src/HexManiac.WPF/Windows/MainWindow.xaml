@@ -465,6 +465,7 @@
                <Button Command="{Binding ClearError}" Width="15" Grid.Column="1">
                   <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
                </Button>
+               <Border BorderThickness="1" IsHitTestVisible="False" Grid.ColumnSpan="2" BorderBrush="{DynamicResource Error}" />
             </Grid>
          </DockPanel>
          <StackPanel DockPanel.Dock="Top" Background="{DynamicResource Background}" HorizontalAlignment="Stretch" Orientation="Horizontal">
@@ -901,6 +902,6 @@
          <TextBox IsReadOnly="True" FontSize="20" TextBlock.LineHeight="25"
             Background="{DynamicResource Background}" BorderBrush="{DynamicResource Accent}" Text="{Binding OverlayText}" />
       </Border>
-      <Rectangle Name="FocusAnimationElement" StrokeThickness="2" Stroke="{DynamicResource Accent}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
+      <Rectangle Name="FocusAnimationElement" StrokeThickness="3" Stroke="{DynamicResource Accent}" Visibility="Visible" HorizontalAlignment="Right" VerticalAlignment="Top"/>
    </Grid>
 </Window>
