@@ -318,7 +318,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var ifStack = new Stack<List<int>>();
          var results = new List<string>();
          for (var i = 0; i < lines.Length; i++) {
-            var line = lines[i].Split('@')[0].Trim().Replace("(", "").Replace(")", "").ToLower();
+            var line = lines[i].Split('@')[0].Trim().Replace(";", "").ToLower();
             if (line.StartsWith("if ") && line.EndsWith("{")) {
                var tokens = line.Substring(3, line.Length - 4).Split(' ', StringSplitOptions.RemoveEmptyEntries);
                if (tokens.Length == 3 && InstructionForComparator(tokens[1]) is string branch) {
@@ -360,7 +360,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   match.Remove(scope);
                }
                foreach (var m in match) results.Add($"close{-m}:");
-            // } else if (line.StartsWith("r") && line.Contains("=")) {
+               // } else if (line.StartsWith("r") && line.Contains("=")) {
+            } else if (line.Contains("(") && line.Contains(")") && line.IndexOf("(")<line.IndexOf(")")) {
+               var parts = line.Split("(");
+               var funcName = parts[0];
+               parts = parts[1].Split(")");
+               var args = parts[0];
+               var math = parts[1];
+               parts = funcName.Split("=");
+               string target = "r0";
+               if (parts.Length > 1) (target, funcName) = (parts[0].Trim(), parts[1]);
+               int j = 0;
+               foreach (var arg in args.Split(",")) {
+                  if (string.IsNullOrEmpty(arg)) continue;
+                  if (arg.Trim() != $"r{j}") {
+                     results.AddRange(MacroPass(labels, $"r{j}={arg}"));
+                  }
+                  j++;
+               }
+               results.Add($"bl <{funcName}>");
+               if (!string.IsNullOrWhiteSpace(math) || target != "r0") results.AddRange(MacroPass(labels, $"{target} = r0 {math}"));
             } else if (line.StartsWith("r") && line.Contains("=")) {
                // expect rX = something
                var tokens = line.Split('=', 2);
@@ -385,13 +404,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                      }
                   }
                   if (!valueText.TryParseInt(out value)) {
-                     results.Add(lines[i]);
+                     // might be a register
+                     results.Add($"{firstInstruction} {tokens[0]}, {valueText}");
                   } else if (value >= 0x100 || value < 0) {
                      results.Add($"ldr {tokens[0]}, ={value}");
                   } else {
                      results.Add($"{firstInstruction} {tokens[0]}, {valueText}");
-                     while (extraInstructions.TryPop(out var instruction)) results.Add(instruction);
                   }
+                  while (extraInstructions.TryPop(out var instruction)) results.Add(instruction);
                }
             } else {
                results.Add(lines[i]);

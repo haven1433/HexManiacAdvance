@@ -593,6 +593,8 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("r0=12-2+3", "mov r0, #12; sub r0, #2; add r0, #3")]   // multiple additions
       [InlineData("r0 += 5", "add r0, #5")] // +=
       [InlineData("r0-=5", "sub r0, #5")] // -=
+      [InlineData("100(r0, 3)", "r1=3;bl <100>")]
+      [InlineData("r1 = 100() + 3", "bl <100>; mov r1, r0; add r1, #3")]
       public void ThumbCode_Math_Compiles(string math, string code) {
          var model = new PokemonModel(new byte[0x200]);
          var result = parser.Compile(model, 0x100, math);
