@@ -838,6 +838,7 @@
                                                             <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
                                                          </DataTrigger>
                                                          <DataTrigger Binding="{Binding IsSelectable}" Value="False">
+                                                            <Setter Property="ToolTipService.InitialShowDelay" Value="0" />
                                                             <Setter Property="ToolTip" Value="Too many options. Use the textbox above to filter results."/>
                                                          </DataTrigger>
                                                       </Style.Triggers>
