@@ -613,6 +613,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      #region Flag
+
       public int Flag {
          get => element.GetValue("flag");
          set {
@@ -636,6 +638,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged(nameof(Flag), nameof(SampleLegendClearScript));
          }
       }
+
+      public bool CanGenerateNewFlag => Flag == 0;
+
+      public void GenerateNewFlag() => Flag = eventTemplate.FindNextUnusedFlag();
+
+      #endregion
 
       public int Padding {
          get => element.TryGetValue("padding", out var value) ? value : 0;

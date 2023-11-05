@@ -414,6 +414,20 @@
                         <local:AngleBorder Grid.Row="9" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Flag:"/>
                         </local:AngleBorder>
+                        <local:AngleButton Grid.Row="9" Grid.Column="0" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GenerateNewFlag}"
+                           Visibility="{Binding CanGenerateNewFlag, Converter={StaticResource BoolToVisibility}}"
+                           Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <local:AngleButton.ToolTip>
+                              <TextBlock>
+                                 Automatically choose an unused flag.
+                                 <LineBreak />
+                                 Flags are used for hiding/showing OWs.
+                                 <LineBreak />
+                                 If you never need to hide this OW, it doesn't need a flag.
+                              </TextBlock>
+                           </local:AngleButton.ToolTip>
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
                         <local:AngleTextBox Grid.Row="9" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="10" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
