@@ -387,7 +387,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   checkInput = checkInput.ToUpper();
                }
                if (checkInput != checkCharacter) continue;
-               result.Add((byte)i);
+               if (i != 0xFF || index == input.Length - 1) result.Add((byte)i); // don't allow adding " to the middle
                index += PCS[i].Length - 1;
                if ((i == Escape || i == DynamicEscape || i == ButtonEscape || i == SpecialCharacterEscape) && input.Length > index + 2) {
                   if (byte.TryParse(input.Substring(index + 1, 2), NumberStyles.HexNumber, CultureInfo.CurrentCulture, out byte parsed)) {
