@@ -826,6 +826,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             obj.Elevation = parentEvent.Element.ArrayIndex + 1;
             obj.TrainerType = neighbor.map;
             obj.TrainerRangeOrBerryID = neighbor.group;
+            obj.Flag = parentEvent.Flag;
          } else if (!needClone) {
             if (obj != null) {
                obj.Delete();
