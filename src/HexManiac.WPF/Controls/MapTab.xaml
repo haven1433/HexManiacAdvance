@@ -563,7 +563,6 @@
                               <local:AngleBorder Direction="Left">
                                  <TextBlock Text="Item:" Margin="4,0"/>
                               </local:AngleBorder>
-                              <local:AngleComboBox Grid.Column="1" Direction="Out" ItemsSource="{Binding ItemOptions}" SelectedIndex="{Binding ItemContents}" />
                            </Grid>
                         </StackPanel>
 
@@ -1686,7 +1685,14 @@
             <Path Data="{res:Icon Dice}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
          </Grid>
          <Border Width="24" Height="24" BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Background="{DynamicResource Secondary}" Name="ObjectEventTemplate"
-                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0" ToolTip="Drag to Create New Object">
+                 MouseLeftButtonDown="EventTemplateDown" Margin="5,0,0,0" Tag="{x:Static map:EventCreationType.Object}" ToolTipService.InitialShowDelay="0">
+            <Border.ToolTip>
+               <TextBlock>
+                  Drag to Create New Object
+                  <LineBreak />
+                  Click to choose a template
+               </TextBlock>
+            </Border.ToolTip>
             <local:PixelImage DataContext="{Binding Templates.ObjectTemplateImage}" VerticalAlignment="Center" HorizontalAlignment="Center" TransparentBrush="{DynamicResource Secondary}"/>
          </Border>
          <ToggleButton Padding="0" Width="12" Height="12" VerticalAlignment="Top" Name="ShowTemplateSettingsButton" IsChecked="{Binding ShowTemplateSettings}">
