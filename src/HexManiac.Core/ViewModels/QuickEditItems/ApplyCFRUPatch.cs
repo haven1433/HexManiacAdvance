@@ -15,7 +15,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public string Description => @"Haven's Unofficial Build Of Leon's DPE/CFRU Rombase.
 
-Running this will apply Leon's base, Dynamic Pokemon Expansion, and the Complete FireRed Upgrade to the current file, and save.
+Running this will apply Leon's base, Dynamic Pokemon Expansion, and the Complete FireRed Upgrade to the current file.
+
+WARNING! This will save your file and make this ROM no longer vanilla!
 
 Credits to Leon for putting together the rombase with additional recommended features over the DPE/CFRU.
 
