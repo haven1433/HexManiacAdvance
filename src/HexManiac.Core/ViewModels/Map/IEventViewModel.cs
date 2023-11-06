@@ -657,7 +657,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObservableCollection<VisualComboOption> Options { get; } = new();
       public FilteringComboOptions FacingOptions { get; } = new();
       public ObservableCollection<string> ClassOptions { get; } = new();
-      public ObservableCollection<string> ItemOptions { get; } = new();
+      public FilteringComboOptions ItemOptions { get; } = new();
 
       #region Extended Properties
 
@@ -677,6 +677,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
             if (itemAddress == Pointer.NULL) return;
             element.Model.WriteMultiByteValue(itemAddress, 2, element.Token, value);
+            ItemOptions.Update(ItemOptions.AllOptions, value);
             NotifyPropertyChanged();
          }
       }
@@ -1186,9 +1187,10 @@ show:
          DefaultOW = defaultSprite;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          FacingOptions.Update(ComboOption.Convert(list), MoveType);
-         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.SelectedIndex);
+         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.ModelValue);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
-         foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
+         ItemOptions.Update(ComboOption.Convert(objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)), ItemContents);
+         ItemOptions.Bind(nameof(ItemOptions.SelectedIndex), (sender, e) => ItemContents = ItemOptions.ModelValue);
 
          RefreshTrainerOptions();
          TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {

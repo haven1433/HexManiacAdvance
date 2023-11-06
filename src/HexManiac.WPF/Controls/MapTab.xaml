@@ -563,6 +563,7 @@
                               <local:AngleBorder Direction="Left">
                                  <TextBlock Text="Item:" Margin="4,0"/>
                               </local:AngleBorder>
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" DataContext="{Binding ItemOptions}" />
                            </Grid>
                         </StackPanel>
 
