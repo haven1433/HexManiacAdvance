@@ -49,6 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          isText = new StubCommand();
 
       private readonly object threadlock = new();
+      private readonly IFileSystem fs;
 
       private MapEditorViewModel mapper;
       public bool HasValidMapper => mapper?.IsValidState ?? false;
@@ -1028,6 +1029,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null, EventTemplate eventTemplate = null) {
          Singletons = singletons ?? new Singletons();
+         this.fs = fs;
          this.docs = new List<DocLabel>();
          if (model.Count >= 0x100 && Singletons.DocReference.TryGetValue(model.GetGameCode().Substring(4), out var docs)) {
             this.docs = docs;
@@ -2478,7 +2480,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenDexReorderTab(string dexTableName) {
-         var newTab = new DexReorderTab(this, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
+         var newTab = new DexReorderTab(fs, this, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
          RequestTabChange(this, new(newTab));
       }
 

@@ -12,6 +12,7 @@ using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class DexReorderTab : ViewModelCore, ITabContent {
+      private readonly IFileSystem fs;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IDataModel model;
       private readonly string dexOrder, dexInfo;
@@ -105,8 +106,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public DexReorderTab(ViewPort viewPort, string dexOrder, string dexInfo, bool isNational) {
+      public DexReorderTab(IFileSystem fileSystem, ViewPort viewPort, string dexOrder, string dexInfo, bool isNational) {
          FullFileName = viewPort.Name;
+         this.fs = fileSystem;
          this.history = viewPort.ChangeHistory;
          this.model = viewPort.Model;
          this.dexOrder = dexOrder;
@@ -150,11 +152,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          var elements = new SortablePokemon[dexInfo.ElementCount - 1];
          var usedIndices = new Dictionary<int, int>();
+         var warnings = new List<string>();
          for (int i = 0; i < elementCount; i++) {
             var dexIndex = dexOrderTable[i].GetValue(indexName);
             if (dexIndex >= dexInfo.ElementCount) {
                if (dexIndex > elementCount) {
-                  Debug.Fail($"Dex Reorder Warning: pokemon {i} is set to pokedex slot {dexIndex - 1} which is more than the number of pokemon!");
+                  warnings.Add($"Dex Reorder Warning: pokemon {i} is set to pokedex slot {dexIndex - 1} which is more than the number of pokemon!");
                }
                if (!usedIndices.ContainsKey(dexIndex)) {
                   usedIndices[dexIndex] = 0;
@@ -176,13 +179,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // It might cause problems for the hacker, but not for the program.
                // Debug.Fail($"Dex Reorder Warning: pokedex slot {i} is not used!");
             } else if (usedIndices[i] > 1) {
-               Debug.Fail($"Dex Reorder Warning: pokedex slot {i} is used more than once!");
+               warnings.Add($"Dex Reorder Warning: pokedex slot {i} is used more than once!");
             }
          }
          for (int i = 0; i < elements.Length; i++) {
             if (elements[i] == null) elements[i] = new SortablePokemon(model, 0) { SpriteScale = SpriteScale }; // unused pokedex slot
             Elements.Add(elements[i]);
             elements[i].MatchToFilter(filter);
+         }
+         if (warnings.Count > 0) {
+            var header = "Warning: Pokedex data in unexpected form!" + Environment.NewLine + Environment.NewLine;
+            fs.ShowCustomMessageBox(header + Environment.NewLine.Join(warnings), showYesNoCancel: false);
          }
       }
 
