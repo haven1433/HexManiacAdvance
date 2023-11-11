@@ -152,8 +152,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var quoteCount = lines[lineIndex].Substring(0, caretIndex).Count(c => c == '"');
 
             if (e.Key == Key.Space && quoteCount % 2 == 0) {
-               AutocompleteOptionChosen(items[index]);
-               e.Handled = true;
+               e.Handled = AutocompleteOptionChosen(items[index]);
             } else if (e.Key == Key.OemQuotes && quoteCount % 2 == 1) {
                AutocompleteOptionChosen(items[index]);
                e.Handled = true;
@@ -191,7 +190,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          AutocompleteOptionChosen(item);
       }
 
-      private void AutocompleteOptionChosen(AutoCompleteSelectionItem item) {
+      private bool AutocompleteOptionChosen(AutoCompleteSelectionItem item) {
          var oldCaretIndex = TargetTextBox.CaretIndex;
 
          var index = TargetTextBox.CaretIndex;
@@ -202,13 +201,18 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             lineIndex += 1;
          }
 
-         var oldLineLength = lines[lineIndex].Length;
-         lines[lineIndex] = item.CompletionText;
-         var newLineLength = lines[lineIndex].Length;
+         var needChanges = lines[lineIndex] != item.CompletionText.TrimEnd();
+         if (needChanges) {
+            var oldLineLength = lines[lineIndex].Length;
+            lines[lineIndex] = item.CompletionText;
+            var newLineLength = lines[lineIndex].Length;
 
-         TargetTextBox.Text = Environment.NewLine.Join(lines);
-         TargetTextBox.CaretIndex = oldCaretIndex + newLineLength - oldLineLength;
+            TargetTextBox.Text = Environment.NewLine.Join(lines);
+            TargetTextBox.CaretIndex = oldCaretIndex + newLineLength - oldLineLength;
+         }
+
          ClearAutocompleteOptions();
+         return needChanges;
       }
    }
 }
