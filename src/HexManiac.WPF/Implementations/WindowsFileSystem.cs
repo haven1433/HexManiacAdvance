@@ -63,11 +63,17 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
       public (short[] image, int width) CopyImage {
          get {
             if (Clipboard.ContainsImage()) {
-               var bitmapSource = Clipboard.GetImage();
-               return DecodeImage(bitmapSource);
-            } else {
-               return (default, default);
+               try {
+                  var bitmapSource = Clipboard.GetImage();
+                  return DecodeImage(bitmapSource);
+               } catch (COMException) {
+                  // something else was using the clipboard... couldn't copy
+                  var window = (MainWindow)Application.Current.MainWindow;
+                  window.ViewModel.ErrorMessage = "Could not copy";
+               }
             }
+
+            return (default, default);
          }
          set {
             var frame = EncodeImage(value.image, value.width);
