@@ -1309,7 +1309,9 @@ show:
    }
 
    public class WarpEventViewModel : BaseEventViewModel {
-      public WarpEventViewModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
+      private readonly Action<int, int> gotoMap;
+
+      public WarpEventViewModel(ModelArrayElement warpEvent, Action<int, int> gotoMap) : base(warpEvent, "warpCount") => this.gotoMap = gotoMap;
 
       public int WarpID {
          get => element.GetValue("warpID") + 1;
@@ -1324,8 +1326,7 @@ show:
             element.SetValue("bank", value);
             NotifyPropertyChanged();
             if (!ignoreUpdateBankMap) bankMap = null;
-            NotifyPropertyChanged(nameof(BankMap));
-            NotifyPropertyChanged(nameof(TargetMapName));
+            NotifyPropertiesChanged(nameof(BankMap), nameof(TargetMapName), nameof(CanGotoBankMap));
          }
       }
 
@@ -1335,8 +1336,7 @@ show:
             element.SetValue("map", value);
             NotifyPropertyChanged();
             if (!ignoreUpdateBankMap) bankMap = null;
-            NotifyPropertyChanged(nameof(BankMap));
-            NotifyPropertyChanged(nameof(TargetMapName));
+            NotifyPropertiesChanged(nameof(BankMap), nameof(TargetMapName), nameof(CanGotoBankMap));
          }
       }
 
@@ -1355,12 +1355,16 @@ show:
             if (parts[0].TryParseInt(out int bank)) Bank = bank;
             if (parts[1].TryParseInt(out int map)) Map = map;
             ignoreUpdateBankMap = false;
+            NotifyPropertyChanged(nameof(CanGotoBankMap));
          }
       }
 
       public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank, Map);
 
       public WarpEventModel WarpModel => new WarpEventModel(element);
+
+      public bool CanGotoBankMap => AllMapsModel.Create(element.Model) is AllMapsModel maps && maps.Count > Bank && maps[Bank].Count > Map;
+      public void GotoBankMap() => gotoMap(Bank, Map);
 
       #endregion
 

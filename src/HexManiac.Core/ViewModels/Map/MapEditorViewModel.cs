@@ -370,6 +370,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          };
          var (width, height) = (newMap.PixelWidth / newMap.SpriteScale / 16, newMap.PixelHeight / newMap.SpriteScale / 16);
          var (centerX, centerY) = (width / 2, height / 2);
+         if (x == int.MinValue && y == int.MinValue) (x, y) = ((int)centerX, (int)centerY);
          newMap.LeftEdge += (int)((centerX - x) * 16 * newMap.SpriteScale);
          newMap.TopEdge += (int)((centerY - y) * 16 * newMap.SpriteScale);
          UpdatePrimaryMap(newMap);

@@ -1386,7 +1386,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var map = GetMapModel();
          if (map == null) return null;
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, GotoBankMap, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
          if (events.Warps.Count <= warpID) return null;
          var warp = events.Warps[warpID];
          return AutoCrop(warp.X, warp.Y);
@@ -1894,7 +1894,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (mapModel == null) return null;
          var events = mapModel.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "warpCount", "warps");
-         var newEvent = new WarpEventViewModel(element) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = element.ArrayIndex + 1 };
+         var newEvent = new WarpEventViewModel(element, GotoBankMap) { X = 0, Y = 0, Elevation = 0, Bank = bank, Map = map, WarpID = element.ArrayIndex + 1 };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -2378,7 +2378,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (eventsTable == null) return null;
             var eventElements = eventsTable[0];
             if (eventElements == null) return null;
-            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, GotoBankMap, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
             events.DataMoved += HandleEventDataMoved;
             return events;
          }
@@ -2501,6 +2501,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void GotoAddress(int address) => GotoAddress(viewPort, address);
+      private void GotoBankMap(int bank, int map) => viewPort.MapEditor.NavigateTo(bank, map, int.MinValue, int.MinValue);
 
       /// <summary>
       /// Wrapper around standard viewPort.Goto that also formats the script when you do the goto.
@@ -2700,7 +2701,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement events, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> ows, IPixelViewModel defaultOW, BerryInfo berries, int bank, int map) {
+      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, Action<int, int> gotoBankMap, ModelArrayElement events, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> ows, IPixelViewModel defaultOW, BerryInfo berries, int bank, int map) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -2719,7 +2720,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var warps = events.GetSubTable("warps");
          var warpList = new List<WarpEventViewModel>();
          if (warps != null) {
-            for (int i = 0; i < warpCount; i++) warpList.Add(new WarpEventViewModel(warps[i]));
+            for (int i = 0; i < warpCount; i++) warpList.Add(new WarpEventViewModel(warps[i], gotoBankMap));
          }
          Warps = warpList;
 

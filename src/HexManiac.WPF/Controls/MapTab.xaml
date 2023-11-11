@@ -760,10 +760,17 @@
                         <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Target (bank, map):"/>
                         </local:AngleBorder>
-                        <StackPanel Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2">
-                           <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap, UpdateSourceTrigger=PropertyChanged}" />
+                        <StackPanel Grid.Row="3" Grid.Column="1">
+                           <Grid>
+                              <local:AngleTextBox Direction="Out" TextBinding="{Binding BankMap, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,24,2" />
+                              <local:AngleButton Command="{res:MethodCommand GotoBankMap}" Direction="Right" HorizontalAlignment="Right"
+                                                 Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                                 <Path Data="{res:Icon RightAngleArrow}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                              </local:AngleButton>
+                           </Grid>
                            <TextBlock Text="{Binding TargetMapName}" TextWrapping="Wrap"/>
                         </StackPanel>
+
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Target Warp:"/>
