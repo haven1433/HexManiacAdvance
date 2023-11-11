@@ -1014,6 +1014,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
             if (objectEvent == null) return;
+            if (templates.SelectedTemplate == TemplateType.Trainer) {
+               var dexName = HardcodeTablesModel.RegionalDexTableName;
+               if (templates.UseNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
+               if (model.GetTable(dexName) == null) {
+                  ViewPort.RaiseError($"Cannot create trainer without pokedex table {dexName}.");
+                  return;
+               }
+            }
             templates.ApplyTemplate(objectEvent, history.CurrentChange);
             SelectedEvent = objectEvent;
             if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
