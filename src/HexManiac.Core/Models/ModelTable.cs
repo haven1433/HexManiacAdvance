@@ -469,7 +469,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private int GetValue(TupleSegment tup) {
          var start = table.Start + table.ElementLength * arrayIndex;
-         start += table.ElementContent.Until(seg => seg == tuple).Sum(seg => seg.Length);
+         start += table.ElementContent.Until(seg => seg.Name == tuple.Name).Sum(seg => seg.Length);
          var bitOffset = tuple.Elements.Until(seg => seg == tup).Sum(seg => seg.BitWidth);
          return tup.Read(model, start, bitOffset);
       }
