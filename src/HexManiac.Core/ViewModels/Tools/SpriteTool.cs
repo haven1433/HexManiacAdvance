@@ -896,7 +896,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             },
             new VisualOption {
                Option = "Greedy", Index = (int)ImportType.Greedy,
-               ShortDescription = "Ignore other sprites",
+               ShortDescription = $"Break {dependentPageCount - 1} other sprite" + (dependentPageCount > 2 ? "s" : string.Empty),
                Description = "Ignore other images that use this palette. They'll probably look broken and that's ok.",
             },
             new VisualOption {
