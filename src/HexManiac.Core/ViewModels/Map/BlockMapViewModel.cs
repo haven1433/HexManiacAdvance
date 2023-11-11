@@ -1363,21 +1363,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          ClearPixelCache();
       }
 
-      public IEventViewModel EventUnderCursor(double x, double y, bool autoSelect = true) {
+      public IReadOnlyList<IEventViewModel> EventsUnderCursor(double x, double y, bool autoSelect = true) {
          if (showEvents == MapDisplayOptions.NoEvents) return null;
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
-         IEventViewModel last = null;
+         var matches = new List<IEventViewModel>();
          foreach (var e in GetEvents()) {
-            if (e.X == tileX && e.Y == tileY) last = e;
+            if (e.X == tileX && e.Y == tileY) matches.Add(e);
          }
-         if (autoSelect && SelectedEvent != last) {
-            SelectedEvent = last;
+         if (autoSelect && SelectedEvent != matches.LastOrDefault()) {
+            SelectedEvent = matches.LastOrDefault();
             ClearPixelCache();
          }
-         return last;
+         return matches;
       }
 
       const int SizeX = 7, SizeY = 7;

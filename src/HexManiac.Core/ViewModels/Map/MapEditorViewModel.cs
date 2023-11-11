@@ -647,8 +647,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
             map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
-               if (!SpartanMode && interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
-                  return ShowEventHover(map, ev);
+               if (!SpartanMode && interactionType == PrimaryInteractionType.None) {
+                  var matches = map.EventsUnderCursor(x, y, false).OfType<BaseEventViewModel>().ToList();
+                  if (matches.Count > 0) {
+                     return ShowEventHover(map, matches);
+                  } else {
+                     return EmptyTooltip;
+                  }
                } else {
                   return EmptyTooltip;
                }
@@ -727,9 +732,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryMap = map;
 
          var prevEvent = SelectedEvent;
-         var ev = map.EventUnderCursor(x, y);
-         if (ev != null) {
-            EventDown(ev, click);
+         var ev = map.EventsUnderCursor(x, y);
+         if (ev != null && ev.Count > 0) {
+            EventDown(ev.Last(), click);
             return;
          } else {
             if (prevEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
@@ -1092,9 +1097,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          SelectedEvent = null;
          selectDownPosition = ToBoundedMapTilePosition(map, x, y, 1, 1);
          UpdateHover(PrimaryMap, selectDownPosition.X, selectDownPosition.Y, 1, 1);
-         var ev = map.EventUnderCursor(x, y);
-         if (ev != null) {
-            ShowEventContextMenu(ev);
+         var ev = map.EventsUnderCursor(x, y);
+         if (ev != null && ev.Count > 0) {
+            ShowEventContextMenu(ev.Last());
             return SelectionInteractionResult.ShowMenu;
          }
          if (blockIndex >= 0) {
@@ -1260,44 +1265,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private object[] ShowEventHover(BlockMapViewModel map, BaseEventViewModel ev) {
+      private object[] ShowEventHover(BlockMapViewModel map, IReadOnlyList<BaseEventViewModel> matches) {
+         if (matches == null || matches.Count == 0) return null;
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
-         if (ev is WarpEventViewModel warp) {
-            if (!warp.WarpIsOnWarpableBlock(model, new LayoutModel(map.GetLayout()))) {
-               tips.Add($"(This block's Behavior doesn't allow warping.)");
-            }
-            tips.Add(warp.TargetMapName);
-            var banks = AllMapsModel.Create(warp.Element.Model, default);
-            if (banks[warp.Bank] == null) return tips.ToArray();
-            if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
-               var targetWarp = warp.WarpModel.TargetWarp;
-               if (targetWarp != null) {
-                  var image = GetMapPreview(warp.Bank, warp.Map, targetWarp.X, targetWarp.Y);
-                  if (image != null) {
-                     tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+         if (matches.Count > 1) {
+            tips.Add($"{matches.Count} events in this cell:");
+         }
+         foreach (var ev in matches) {
+            if (tips.Count > 0) tips.Add("---------------");
+            if (ev is WarpEventViewModel warp) {
+               if (!warp.WarpIsOnWarpableBlock(model, new LayoutModel(map.GetLayout()))) {
+                  tips.Add($"(This block's Behavior doesn't allow warping.)");
+               }
+               tips.Add(warp.TargetMapName);
+               var banks = AllMapsModel.Create(warp.Element.Model, default);
+               if (banks[warp.Bank] == null) return tips.ToArray();
+               if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
+                  var targetWarp = warp.WarpModel.TargetWarp;
+                  if (targetWarp != null) {
+                     var image = GetMapPreview(warp.Bank, warp.Map, targetWarp.X, targetWarp.Y);
+                     if (image != null) {
+                        tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+                     }
                   }
                }
-            }
-         } else if (ev is ObjectEventViewModel obj) {
-            tips.AddRange(SummarizeScript(obj.ScriptAddress));
-         } else if (ev is ScriptEventViewModel script) {
-            tips.AddRange(SummarizeScript(script.ScriptAddress));
-         } else if (ev is SignpostEventViewModel signpost) {
-            if (signpost.CanGotoScript) tips.AddRange(SummarizeScript(signpost.Pointer));
-            if (signpost.ShowHiddenItemProperties) {
-               var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
-               var item = signpost.ItemID;
-               if (item > 0 && item < options.Count) {
-                  tips.Add(options[item]);
-                  var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
-                  if (itemSprites != null) {
-                     var render = itemSprites[item]?.Render("sprite");
-                     if (render != null) tips.Add(render);
+            } else if (ev is ObjectEventViewModel obj) {
+               tips.AddRange(SummarizeScript(obj.ScriptAddress));
+            } else if (ev is ScriptEventViewModel script) {
+               tips.AddRange(SummarizeScript(script.ScriptAddress));
+            } else if (ev is SignpostEventViewModel signpost) {
+               if (signpost.CanGotoScript) tips.AddRange(SummarizeScript(signpost.Pointer));
+               if (signpost.ShowHiddenItemProperties) {
+                  var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
+                  var item = signpost.ItemID;
+                  if (item > 0 && item < options.Count) {
+                     tips.Add(options[item]);
+                     var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+                     if (itemSprites != null) {
+                        var render = itemSprites[item]?.Render("sprite");
+                        if (render != null) tips.Add(render);
+                     }
                   }
                }
             }
          }
-
          return tips.ToArray();
       }
 
