@@ -395,6 +395,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             movementPermissions.Add($"{start + 2:X2} - Elevation {i} Unused");
             movementPermissions.Add($"{start + 3:X2} - Elevation {i} Unused");
          }
+         movementPermissions.Add("38 - No Use");
+         movementPermissions.Add("39 - No Use");
+         movementPermissions.Add("3A - No Use");
+         movementPermissions.Add("3B - No Use");
          movementPermissions.Add("3C - Above/Below");
          movementPermissions.Add("3D - No Use");
          movementPermissions.Add("3E - No Use");
