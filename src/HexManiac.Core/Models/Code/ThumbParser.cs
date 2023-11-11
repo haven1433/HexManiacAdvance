@@ -390,6 +390,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                   var valueText = tokens[1];
                   if (tokens[0].EndsWith("+")) { tokens[0] = tokens[0][..^1]; firstInstruction = "add"; }
                   if (tokens[0].EndsWith("-")) { tokens[0] = tokens[0][..^1]; firstInstruction = "sub"; }
+                  if (tokens[0].EndsWith("*")) { tokens[0] = tokens[0][..^1]; firstInstruction = "mul"; }
+                  if (tokens[0].EndsWith("&")) { tokens[0] = tokens[0][..^1]; firstInstruction = "and"; }
+                  if (tokens[0].EndsWith("^")) { tokens[0] = tokens[0][..^1]; firstInstruction = "xor"; }
+                  if (tokens[0].EndsWith("|")) { tokens[0] = tokens[0][..^1]; firstInstruction = "orr"; }
+                  if (tokens[0].EndsWith("<<")) { tokens[0] = tokens[0][..^2]; firstInstruction = "lsl"; }
+                  if (tokens[0].EndsWith(">>")) { tokens[0] = tokens[0][..^2]; firstInstruction = "lsr"; }
                   var extraInstructions = ReadMath(tokens[0], ref valueText);
                   valueText = valueText.Trim();
                   int value;
