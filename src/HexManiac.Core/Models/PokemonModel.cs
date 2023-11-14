@@ -1216,7 +1216,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   // special case: use the override methods to handle inner-pointers
                   destinationTable = destinationTable.RemoveInnerSource(originalStart);
                   destinationRun = destinationTable.AddSourcePointingWithinRun(movedStart);
-               } else if (destinationRun.PointerSources.Contains(originalStart)) { // only add it if it previously pointed to the start of the run
+               } else if (destinationRun.PointerSources != null && destinationRun.PointerSources.Contains(originalStart)) { // only add it if it previously pointed to the start of the run
                   destinationRun = destinationRun.RemoveSource(originalStart);
                   destinationRun = destinationRun.MergeAnchor(new SortedSpan<int>(movedStart));
                }
