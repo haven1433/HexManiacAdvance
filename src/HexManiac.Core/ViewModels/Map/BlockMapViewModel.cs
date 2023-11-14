@@ -1364,12 +1364,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public IReadOnlyList<IEventViewModel> EventsUnderCursor(double x, double y, bool autoSelect = true) {
-         if (showEvents == MapDisplayOptions.NoEvents) return null;
+         var matches = new List<IEventViewModel>();
+         if (showEvents == MapDisplayOptions.NoEvents) return matches;
          var layout = GetLayout();
          var border = GetBorderThickness(layout);
          var tileX = (int)((x - LeftEdge) / SpriteScale / 16) - border.West;
          var tileY = (int)((y - TopEdge) / SpriteScale / 16) - border.North;
-         var matches = new List<IEventViewModel>();
          foreach (var e in GetEvents()) {
             if (e.X == tileX && e.Y == tileY) matches.Add(e);
          }
