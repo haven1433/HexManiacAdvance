@@ -226,7 +226,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (isCFRU && table.Name.IsAny(
                "graphics.pokemon.sprites.coordinates.front",
                "data.pokedex.hoennToNational",        // causes problems with pokename count
-               "graphics.pokemon.sprites.anchor"      // causes problems with pokename count
+               "graphics.pokemon.sprites.anchor",     // causes problems with pokename count
+               "data.pokedex.search.alpha"            // causes problems with shiny palettes
             )) continue;
 
             using (ModelCacheScope.CreateScope(this)) {
@@ -424,6 +425,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (name == PokemonStatsTable) format = format.Replace("padding:", $"hiddenAbility.{AbilityNamesTable} padding.");
 
          // moves
+         if (name == MoveNamesTable) format += "894";
          if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
 
          // level-up moves uses Jambo format
