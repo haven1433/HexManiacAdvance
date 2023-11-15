@@ -1,11 +1,14 @@
 ﻿using HavenSoft.HexManiac.Core;
+using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.Tests;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 
@@ -219,6 +222,26 @@ namespace HavenSoft.HexManiac.Integration {
          var firered = LoadFireRed();
          var dup = firered.CreateDuplicate();
          Assert.Same(firered.MapEditor.Templates, dup.MapEditor.Templates);
+      }
+
+      [SkippableFact]
+      public void FireRed_DefaultGotoShortcut_Visible() {
+         var firered = LoadReadOnlyFireRed();
+
+         var editor = new EditorViewModel(FileSystem, InstantDispatch.Instance);
+         editor.Add(firered);
+
+         Assert.Equal(5, editor.GotoViewModel.Shortcuts.Count);
+      }
+
+      [SkippableFact]
+      public void Emerald_DefaultGotoShortcut_Visible() {
+         var emerald = LoadReadOnlyEmerald();
+
+         var editor = new EditorViewModel(FileSystem, InstantDispatch.Instance);
+         editor.Add(emerald);
+
+         Assert.Equal(5, editor.GotoViewModel.Shortcuts.Count);
       }
    }
 }
