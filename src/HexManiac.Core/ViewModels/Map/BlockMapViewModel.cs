@@ -1823,6 +1823,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return map.GetSubTable("events");
       }
 
+      public event EventHandler CanEditTilesetChanged;
+      public bool CanEditTileset(string type) {
+         var model = new MapModel(GetMapModel(), group, map);
+         var spriteAddress = model.Layout.PrimaryBlockset.TilesetAddress;
+         var paletteAddress = model.Layout.PrimaryBlockset.PaletteAddress;
+         if (type == "Secondary") {
+            spriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
+            paletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
+         }
+         return this.model.GetNextRun(spriteAddress) is ISpriteRun sRun && sRun.Start == spriteAddress &&
+            this.model.GetNextRun(paletteAddress) is IPaletteRun pRun && pRun.Start == paletteAddress;
+      }
       public void EditTileset(string type) {
          var model = new MapModel(GetMapModel(), group, map);
          if (type == "Primary") {
