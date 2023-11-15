@@ -616,23 +616,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          berryInfo = null;
          WildPokemon.ClearCache();
          RefreshMapSize(false);
-         if (blockEditor != null) {
-            RefreshBlockAttributeCache();
-            blockEditor.BlocksChanged -= HandleBlocksChanged;
-            blockEditor.BlockAttributesChanged -= HandleBlockAttributesChanged;
-            BlockEditor.AutoscrollTiles -= HandleAutoscrollTiles;
-            var oldBlockEditor = blockEditor;
-            blockEditor = null;
-            if (BlockEditor != null && oldBlockEditor != null) {
-               BlockEditor.BlockIndex = oldBlockEditor.BlockIndex;
-               (BlockEditor.TileSelectionX, BlockEditor.TileSelectionY) = (oldBlockEditor.TileSelectionX, oldBlockEditor.TileSelectionY);
-               BlockEditor.PaletteSelection = oldBlockEditor.PaletteSelection;
-               BlockEditor.ShowTiles = oldBlockEditor.ShowTiles;
-               BlockEditor.LoadClipboard(oldBlockEditor);
-            }
-            if (oldBlockEditor != null) oldBlockEditor.ShowTiles = false;
-            NotifyPropertyChanged(nameof(BlockEditor));
-         }
+         RefreshBlockAttributeCache();
          if (borderEditor != null) {
             var oldShowBorder = borderEditor.ShowBorderPanel;
             borderEditor.BorderChanged -= HandleBorderChanged;
@@ -2075,6 +2059,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          palettes = BlockmapRun.ReadPalettes(blockModel1, blockModel2, PrimaryPalettes);
+         blockEditor?.RefreshPaletteCache(palettes);
       }
 
       private void RefreshTileCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
@@ -2085,6 +2070,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          tiles = BlockmapRun.ReadTiles(blockModel1, blockModel2, PrimaryTiles);
+         blockEditor?.RefreshTileCache(tiles);
       }
 
       private void RefreshBlockCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
@@ -2099,6 +2085,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var maxUsedSecondary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, 1024) - PrimaryBlocks;
 
          blocks = BlockmapRun.ReadBlocks(maxUsedPrimary, maxUsedSecondary, blockModel1, blockModel2);
+         blockEditor?.RefreshBlockCache(blocks);
       }
 
       private void RefreshBlockAttributeCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
@@ -2114,6 +2101,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var maxUsedSecondary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, 1024) - PrimaryBlocks;
 
          blockAttributes = BlockmapRun.ReadBlockAttributes(maxUsedPrimary, maxUsedSecondary, blockModel1, blockModel2);
+         blockEditor?.RefreshBlockAttributeCache(blockAttributes);
       }
 
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {

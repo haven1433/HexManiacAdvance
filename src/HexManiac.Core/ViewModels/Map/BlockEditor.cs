@@ -327,10 +327,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class BlockEditor : ViewModelCore {
       private readonly ChangeHistory<ModelDelta> history;
       private readonly MapTutorialsViewModel tutorials;
-      private readonly short[][] palettes;
-      private readonly int[][,] tiles;
-      private readonly byte[][] blocks;
-      private readonly byte[][] blockAttributes;
+      private readonly IDataModel model;
+      private short[][] palettes;
+      private int[][,] tiles;
+      private byte[][] blocks;
+      private byte[][] blockAttributes;
       private readonly IDictionary<IPixelViewModel, int> indexForTileImage;
       private readonly CanvasPixelViewModel[] images;
 
@@ -421,6 +422,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public BlockEditor(ChangeHistory<ModelDelta> history, IDataModel listSource, MapTutorialsViewModel tutorials, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
          this.history = history;
          this.tutorials = tutorials;
+         this.model = listSource;
          this.palettes = palettes;
          this.tiles = tiles;
          this.blocks = blocks;
@@ -738,6 +740,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          drawTileRender = new CanvasPixelViewModel(8, 8, SpriteTool.Render(tiles[drawTile], palette, 0, 0)) { Transparent = palette[0], SpriteScale = 4 };
          NotifyPropertiesChanged(nameof(DrawTileRender));
       }
+
+      #endregion
+
+      #region Cache
+
+      public void RefreshPaletteCache(short[][] palette) => this.palettes = palette;
+      public void RefreshTileCache(int[][,] tiles) => this.tiles = tiles;
+      public void RefreshBlockCache(byte[][] blocks) {
+         this.blocks = blocks;
+         BlockIndex = blockIndex;
+      }
+      public void RefreshBlockAttributeCache(byte[][] blockAttributes) => this.blockAttributes = blockAttributes;
 
       #endregion
    }
