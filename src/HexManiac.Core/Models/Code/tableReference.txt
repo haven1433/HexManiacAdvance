@@ -88,10 +88,10 @@ data.maps.layouts,                           ,       ,       ,       , 055194, 0
 data.maps.layouts,                           ,       ,       ,       ,       ,       ,       ,       , 0849CC, [layout<[width:: height:: borderblock<[border:|h]4> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> attributes<> animation<>]1>]1>]441
 data.maps.dungeons.stats,                    ,       ,       ,       , 0C1904, 0C18D8, 0C18EC, 0C18EC,       , [id:: name<""> description<"">]19
 
-data.maps.heal.map,                          ,       ,       ,       , 0BFD80, 0BFD54, 0BFD94, 0BFD68,       , [bank: map:]20
+data.maps.heal.map,                          ,       ,       ,       , 0BFD80, 0BFD54, 0BFD94, 0BFD68,       , [bank: map:]data.maps.heal.length
 data.maps.heal.healerNPC,                    ,       ,       ,       , 0BFE14, 0BFDE8, 0BFE28, 0BFDFC,       , [ID.]data.maps.heal.map
-data.maps.fly.spawn,                         ,       ,       ,       , 0BFC74, 0BFC48, 0BFC88, 0BFC5C,       , [bank. map. x: y: unused:]data.maps.heal.map
-data.maps.fly.spawn,                   0FA890, 0FA890, 0FA8B0, 0FA8B0,       ,       ,       ,       , 122C80, [bank. map. x: y: unused:]22
+data.maps.fly.spawn,                         ,       ,       ,       , 0BFC74, 0BFC48, 0BFC88, 0BFC5C,       , [bank. map. x: y: unused:]data.maps.heal.length
+data.maps.fly.spawn,                   0FA890, 0FA890, 0FA8B0, 0FA8B0,       ,       ,       ,       , 122C80, [bank. map. x: y: unused:]data.maps.heal.length
 data.maps.fly.connections,             0FC764, 0FC764, 0FC784, 0FC784,       ,       ,       ,       ,       , [bank. map. flight.]data.maps.names-0-38
 data.maps.fly.connections,                   ,       ,       ,       , 0C52A8, 0C527C, 0C52BC, 0C5290,       , [bank. map. flight.]data.maps.names-0-1
 data.maps.fly.connections,                   ,       ,       ,       ,       ,       ,       ,       , 124ED8, [bank. map. flight.]data.maps.names-0-163

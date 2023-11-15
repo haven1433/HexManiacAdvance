@@ -429,6 +429,26 @@ BPGE0.data.abilities.pickup.length-2 02CEEC
 BPRE1.data.abilities.pickup.length-2 02CF00
 BPGE1.data.abilities.pickup.length-2 02CF00
 
+# data.maps.heal.map limiter
+AXVE0.data.maps.heal.length-1        0FA898
+AXVE0.data.maps.heal.length          0FA8D2
+AXPE0.data.maps.heal.length-1        0FA898
+AXPE0.data.maps.heal.length          0FA8D2
+AXVE1.data.maps.heal.length-1        0FA8B8
+AXVE1.data.maps.heal.length          0FA8F2
+AXPE1.data.maps.heal.length-1        0FA8B8
+AXPE1.data.maps.heal.length          0FA8F2
+BPRE0.data.maps.heal.length-1        0BFC7C
+BPRE0.data.maps.heal.length          0BFCB6
+BPGE0.data.maps.heal.length-1        0BFC50
+BPGE0.data.maps.heal.length          0BFC8A
+BPRE1.data.maps.heal.length-1        0BFC90
+BPRE1.data.maps.heal.length          0BFCCA
+BPGE1.data.maps.heal.length-1        0BFC64
+BPGE1.data.maps.heal.length          0BFC9E
+BPEE0.data.maps.heal.length-1        122C88
+BPEE0.data.maps.heal.length          122CC2
+
 # maximum flash level
 BPEE0.scripts.moves.flash.maxlevel-1 54FE78
 AXVE0.scripts.moves.flash.maxlevel-1 39ACE8
