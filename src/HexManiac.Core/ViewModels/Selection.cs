@@ -183,7 +183,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   address = addParts[0];
                   int.TryParse(addParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
                } else if (address.Split("-") is string[] subtractParts && subtractParts.Length == 2) {
-                  if (int.TryParse(subtractParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
+                  if (address.StartsWith("maps.bank")) {
+                     // map names end with {bank}-{map}. In this case, don't parse the value after the `-` as an offset.
+                  } else if (int.TryParse(subtractParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
                      address = subtractParts[0];
                      offset = -offset;
                   }

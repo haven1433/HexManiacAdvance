@@ -414,6 +414,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (firstPart.Count('(') > firstPart.Count(')')) {
                // () pairs should not be split
                firstPart += "." + parts[i];
+            } else if (firstPart.Length == 1) {
+               // signle letters should not be split
+               firstPart += "." + parts[i];
             } else {
                break;
             }
@@ -501,7 +504,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void UpdateHoverTip(IEditableViewPort viewPort, IReadOnlyList<DocLabel> docs, string fullName) {
          var model = viewPort.Model;
-         var matchingMaps = model.GetMatchingMaps(fullName);
+         var matchingMaps = new List<MapInfo>();
+         if (fullName.StartsWith("maps.bank") && fullName.Contains("-")) matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
          var matchingDoc = docs.FirstOrDefault(doc => doc.Label == fullName);
          if (address != Pointer.NULL) {

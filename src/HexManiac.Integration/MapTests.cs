@@ -11,12 +11,12 @@ using Xunit;
 
 namespace HavenSoft.HexManiac.Integration {
    public class MapTests : IntegrationTests {
-      private const string StartTown = "maps.3-0 Pallet Town";
+      private const string StartTown = "maps.bank3.Pallet Town.3-0";
 
       [SkippableFact]
       public void NoConnections_CreateNewMap_AddsConnectionTable() {
          var firered = LoadFireRed();
-         firered.Goto.Execute("maps.1-0 Viridian Forest");
+         firered.Goto.Execute("maps.bank1.Viridian Forest.1-0");
          var leftEdgeButton = firered.MapEditor.MapButtons.Single(button => button.Icon == MapSliderIcons.ExtendLeft);
 
          var newMapButton = leftEdgeButton.ContextItems.Single(item => item.Text == "Create New Map");

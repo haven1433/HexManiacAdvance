@@ -378,8 +378,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (mapWithName == null) {
                viewPort.RaiseError($"Could not find a map named {name}");
             } else {
-               name = name.Split("~")[0];
-               viewPort.Goto.Execute($"maps.{mapWithName.Group}-{mapWithName.Map} ({name})");
+               name = MapIDToText(model, mapWithName.Group, mapWithName.Map);
+               viewPort.Goto.Execute($"maps.bank{mapWithName.Group}.{name}");
             }
          }
       }
@@ -2583,8 +2583,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var names = model.GetTableModel(HardcodeTablesModel.MapNameTable);
          var name = names == null ? string.Empty : names[key].GetStringValue("name");
          name = SanitizeName(name);
+         if (name.Length == 0) name = "(unnamed)";
 
-         return $"{group}-{map} ({name})";
+         return $"{name}.{group}-{map}";
       }
 
       #endregion

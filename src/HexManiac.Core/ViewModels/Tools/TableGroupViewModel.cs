@@ -159,7 +159,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var bankOffset = topTable.ConvertByteOffsetToArrayOffset(bankTable.PointerSources[0]);
          var mapOffset = bankTable.ConvertByteOffsetToArrayOffset(addressInBankTable);
          var (bank, map) = (bankOffset.ElementIndex, mapOffset.ElementIndex);
-         var name = "maps." + BlockMapViewModel.MapIDToText(model, bank, map);
+         var name = "maps.bank" + bank + BlockMapViewModel.MapIDToText(model, bank, map);
          var matches = model.GetMatchingMaps(name);
          if (matches.Count != 1) return;
          var mapModel = new MapModel(new ModelArrayElement(model, table.Start, 0, () => viewPort.ChangeHistory.CurrentChange, table));
