@@ -371,15 +371,20 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                string target = "r0";
                if (parts.Length > 1) (target, funcName) = (parts[0].Trim(), parts[1]);
                int j = 0;
-               foreach (var arg in args.Split(",")) {
-                  if (string.IsNullOrEmpty(arg)) continue;
-                  if (arg.Trim() != $"r{j}") {
-                     results.AddRange(MacroPass(labels, $"r{j}={arg}"));
+               if (funcName.Length > 0) {
+                  foreach (var arg in args.Split(",")) {
+                     if (string.IsNullOrEmpty(arg)) continue;
+                     if (arg.Trim() != $"r{j}") {
+                        results.AddRange(MacroPass(labels, $"r{j}={arg}"));
+                     }
+                     j++;
                   }
-                  j++;
+                  results.Add($"bl <{funcName}>");
+                  if (!string.IsNullOrWhiteSpace(math) || target != "r0") results.AddRange(MacroPass(labels, $"{target} = r0 {math}"));
+               } else {
+                  // no function name, not a macro. Probably a ldr rX, =(a+b) type instruction
+                  results.Add(line);
                }
-               results.Add($"bl <{funcName}>");
-               if (!string.IsNullOrWhiteSpace(math) || target != "r0") results.AddRange(MacroPass(labels, $"{target} = r0 {math}"));
             } else if (line.StartsWith("r") && line.Contains("=")) {
                // expect rX = something
                var tokens = line.Split('=', 2);

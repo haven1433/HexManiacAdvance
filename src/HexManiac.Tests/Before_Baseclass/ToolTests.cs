@@ -722,7 +722,7 @@ namespace HavenSoft.HexManiac.Tests {
             0x00, 0b1011110_1,
          };
 
-         for (int i = 0; i < expected.Length; i++) Assert.Equal(expected[i], result[i]);
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], result[i]));
       }
 
       [Fact]
