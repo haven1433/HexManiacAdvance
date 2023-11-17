@@ -361,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                foreach (var m in match) results.Add($"close{-m}:");
                // } else if (line.StartsWith("r") && line.Contains("=")) {
-            } else if (line.Contains("(") && line.Contains(")") && line.IndexOf("(")<line.IndexOf(")")) {
+            } else if (line.Contains("(") && line.Contains(")") && line.IndexOf("(") < line.IndexOf(")")) { // check for function call
                var parts = line.Split("(");
                var funcName = parts[0];
                parts = parts[1].Split(")");
@@ -384,6 +384,33 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                } else {
                   // no function name, not a macro. Probably a ldr rX, =(a+b) type instruction
                   results.Add(line);
+               }
+            } else if (line.StartsWith("r")&&"=[].".All(line.Contains)) { // expect rA = table[rB].field
+               var tokens = line.Split('=', 2);
+               var rA = tokens[0];
+               if (tokens.Length == 2) {
+                  tokens = tokens[1].Split('[', 2);
+                  var table = tokens[0].Trim();
+                  if (tokens.Length == 2) {
+                     tokens = tokens[1].Split("].", 2);
+                     var rB = tokens[0];
+                     if (tokens.Length == 2) {
+                        var field = tokens[1];
+                        var tableRun = labels.Table(table);
+                        var segmentLength = tableRun.ElementContent.FirstOrDefault(seg => seg.Name == field)?.Length ?? 4;
+                        var loadCommand = "ldr";
+                        if (segmentLength == 2) loadCommand = "ldrh";
+                        if (segmentLength == 1) loadCommand = "ldrb";
+                        results.Add($"push {{{rB}}}");
+                        results.Add($"mov {rA}, {tableRun.ElementLength}");
+                        results.Add($"mul {rA}, {rB}");
+                        results.Add($"ldr {rB}, =0x{tableRun.Start+0x08000000:X8}");
+                        results.Add($"add {rA}, {rB}");
+                        results.Add($"mov {rB}, #{tableRun.ElementContent.Until(seg => seg.Name == field).Sum(seg => seg.Length)}");
+                        results.Add($"{loadCommand} {rA}, [{rA}, {rB}]");
+                        results.Add($"pop {{{rB}}}");
+                     }
+                  }
                }
             } else if (line.StartsWith("r") && line.Contains("=")) {
                // expect rX = something

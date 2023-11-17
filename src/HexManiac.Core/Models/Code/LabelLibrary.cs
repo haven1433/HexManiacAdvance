@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.Models.Runs;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,6 +10,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly IDictionary<string, int> labels;
       private readonly IDictionary<string, List<int>> unresolvedLabels;
       public bool RequireCompleteAddresses { get; init; } = true;
+      public ITableRun Table(string table) => model.GetTable(table);
       public LabelLibrary(IDataModel data, IDictionary<string, int> additionalLabels) {
          (model, labels) = (data, additionalLabels);
          unresolvedLabels = new Dictionary<string, List<int>>();

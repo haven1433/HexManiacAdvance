@@ -1022,5 +1022,24 @@ namespace HavenSoft.HexManiac.Tests {
          var name = Model.GetAnchorFromAddress(-1, 0x10);
          Assert.Equal("scripts.text.FAKE0000010", name);
       }
+
+      [Fact]
+      public void Thumb_GetValueFromTable_Compiles() {
+         ViewPort.Edit("^some.table[a: b: c::]3 ");
+
+         var actual = ViewPort.Tools.CodeTool.Parser.Compile(Model, 0x100, "r0 = some.table[r1].b");
+         var expected = ViewPort.Tools.CodeTool.Parser.Compile(Model, 0x100,
+            "push {r1}",
+            "r0 = 8",          // width of element
+            "r0 *= r1",
+            "r1 = 0x08000000", // table start
+            "r0 += r1",
+            "r1 = 2",          // index of requested field
+            "ldrh r0, [r0, r1]",
+            "pop {r1}"
+         );
+
+         Assert.Equal(expected, actual);
+      }
    }
 }
