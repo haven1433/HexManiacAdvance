@@ -1900,7 +1900,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (map == null) return null;
          var events = map.GetSubTable("events")[0];
          var element = AddEvent(events, tokenFactory, "scriptCount", "scripts");
-         var newEvent = new ScriptEventViewModel(GotoAddress, element) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
+         var newEvent = new ScriptEventViewModel(GotoAddress, element, eventTemplate) { X = 0, Y = 0, Elevation = 0, Index = 0, Trigger = 0, ScriptAddress = Pointer.NULL };
          SelectedEvent = newEvent;
          return newEvent;
       }
@@ -2729,7 +2729,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var scripts = events.GetSubTable("scripts");
          var scriptList = new List<ScriptEventViewModel>();
          if (scripts != null) {
-            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventViewModel(gotoAddress, scripts[i]));
+            for (int i = 0; i < scriptCount; i++) scriptList.Add(new ScriptEventViewModel(gotoAddress, scripts[i], eventTemplate));
          }
          Scripts = scriptList;
 

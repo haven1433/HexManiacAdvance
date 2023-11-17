@@ -802,10 +802,15 @@
                         </local:AngleBorder>
                         <local:AngleTextBox Grid.Row="2" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding Elevation, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
+                        <local:AngleBorder Grid.Row="3" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2">
                            <TextBlock Text="Trigger:"/>
                         </local:AngleBorder>
-                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding TriggerHex, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleButton Command="{res:MethodCommand GenerateNewTrigger}" Direction="Right" Grid.Row="3" Grid.Column="0" HorizontalAlignment="Right"
+                              Visibility="{Binding CanGenerateNewTrigger, Converter={StaticResource BoolToVisibility}}"
+                              Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
+                           <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
+                        </local:AngleButton>
+                        <local:AngleTextBox Grid.Row="3" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right" TextBinding="{Binding TriggerHex, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="4" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Index:"/>

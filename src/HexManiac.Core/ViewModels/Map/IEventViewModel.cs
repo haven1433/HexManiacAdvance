@@ -635,13 +635,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             flagText = value;
             element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(Flag), nameof(SampleLegendClearScript));
+            NotifyPropertiesChanged(nameof(Flag), nameof(SampleLegendClearScript), nameof(CanGenerateNewFlag));
          }
       }
 
       public bool CanGenerateNewFlag => Flag == 0;
 
-      public void GenerateNewFlag() => Flag = eventTemplate.FindNextUnusedFlag();
+      public void GenerateNewFlag() {
+         Flag = eventTemplate.FindNextUnusedFlag();
+         NotifyPropertiesChanged(nameof(FlagText), nameof(CanGenerateNewFlag));
+      }
 
       #endregion
 
@@ -1397,9 +1400,11 @@ show:
 
    public class ScriptEventViewModel : BaseEventViewModel {
       private readonly Action<int> gotoAddress;
+      private readonly EventTemplate eventTemplate;
 
-      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") {
+      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent, EventTemplate eventTemplate) : base(scriptEvent, "scriptCount") {
          this.gotoAddress = gotoAddress;
+         this.eventTemplate = eventTemplate;
          UpdateScriptError(ScriptAddress);
       }
 
@@ -1418,7 +1423,15 @@ show:
             triggerHex = value;
             if (!value.TryParseHex(out int result)) return;
             Trigger = result;
+            NotifyPropertyChanged(nameof(CanGenerateNewTrigger));
          }
+      }
+
+      public bool CanGenerateNewTrigger => Trigger == 0;
+      public void GenerateNewTrigger() {
+         Trigger = eventTemplate.FindNextUnusedVariable();
+         triggerHex = null;
+         NotifyPropertiesChanged(nameof(TriggerHex), nameof(CanGenerateNewTrigger));
       }
 
       public int Index {
