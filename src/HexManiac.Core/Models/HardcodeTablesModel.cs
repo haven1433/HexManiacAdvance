@@ -278,9 +278,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          AddTable(0x144FC94, 0, "data.trainers.sprites.mugshots", "[sprite<`lzs4x8x8|data.trainers.sprites.mugshots`> pal<`lzp4`> size: x:|z y:|z unused:]graphics.trainers.sprites.front-0-1");
 
          // PSS icons/palette
-         var spriteStart = ReadPointer(0x143B0EC);
-         AddTableDirect(spriteStart, "graphics.pokemon.moves.category.icons", "`ucs4x3x18|graphics.pokemon.moves.category.palette`");
-         AddTableDirect(spriteStart + 0x6C0, "graphics.pokemon.moves.category.palette", "`ucp4`");
+         if (0x143B0EC < Count - 4) {
+            var spriteStart = ReadPointer(0x143B0EC);
+            AddTableDirect(spriteStart, "graphics.pokemon.moves.category.icons", "`ucs4x3x18|graphics.pokemon.moves.category.palette`");
+            AddTableDirect(spriteStart + 0x6C0, "graphics.pokemon.moves.category.palette", "`ucp4`");
+         }
 
          // z-effects
          var newList = new List<string>();
