@@ -59,7 +59,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (shortIndexFromLongIndex.Count == 0) {
                return Args.Where(arg => arg is not SilentMatchArg).ToList();
             }
-            var args = new IScriptArg[shortIndexFromLongIndex.Count()];
+            var args = new IScriptArg[shortIndexFromLongIndex.Values.Distinct().Count()];
             foreach (var pair in shortIndexFromLongIndex) {
                args[pair.Value] = Args[pair.Key];
             }
@@ -266,10 +266,12 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private string[] ConvertLongFormToShortForm(string[] args) {
          if (!hasShortForm) return args;
          var shortForm = new Dictionary<int, string>();
+         int j = 0;
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is SilentMatchArg) continue;
             var shortIndex = shortIndexFromLongIndex[i];
-            shortForm[shortIndex] = args[shortForm.Count];
+            shortForm[shortIndex] = args[j];
+            j += 1;
          }
          return shortForm.Count.Range(i => shortForm[i]).ToArray();
       }
