@@ -361,7 +361,7 @@ Use `special2 variable name` when doing an action that has a result.
 ");
 
          var variableForSpecial = GetVariableForSpecialReference(editor);
-
+         ((IViewPort)editor[0]).Model.TryGetList("scriptvariablealiases", out var varNames);
          var names = specials.Values.SelectMany(list => list.Contents).Distinct().OrderBy(name => name).ToList();
          foreach (var name in names) {
             if (string.IsNullOrEmpty(name)) continue;
@@ -380,7 +380,8 @@ Use `special2 variable name` when doing an action that has a result.
             text.AppendLine();
             var usage = "special " + name;
             if (variableForSpecial.TryGetValue(name, out int variableID)) {
-               usage = $"special2 0x{variableID:X4} {name}";
+               var resultVar = varNames[variableID] ?? $"0x{variableID:X4}";
+               usage = $"special2 {resultVar} {name}";
             }
             text.AppendLine("Example Usage:");
             text.AppendLine("```");
