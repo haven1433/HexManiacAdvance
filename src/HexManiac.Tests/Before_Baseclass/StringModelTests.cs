@@ -777,6 +777,15 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.NotEmpty(vm.Errors);
       }
 
+      [Fact]
+      public void ListWithNoMatches_LookForBestPartialMatch_PreferTextStartsTheSame() {
+         var list = new List<string> { "abc", "cde", "xyz" };
+         var foundMatch = ArrayRunEnumSegment.TryMatch("c", list, out var value);
+
+         Assert.True(foundMatch);
+         Assert.Equal(1, value); // matches "cde" over "abc" because it starts with "c"
+      }
+
       private void HackTextConverter(string game) {
          var converter = New.PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));
