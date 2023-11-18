@@ -411,7 +411,7 @@
                            <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
 
-                        <local:AngleBorder Grid.Row="9" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
+                        <local:AngleBorder Grid.Row="9" VerticalAlignment="Top" Direction="Out" Margin="2,2,0,2">
                            <TextBlock Text="Flag:"/>
                         </local:AngleBorder>
                         <local:AngleButton Grid.Row="9" Grid.Column="0" HorizontalAlignment="Right" Direction="Right" Command="{res:MethodCommand GenerateNewFlag}"
@@ -428,7 +428,7 @@
                            </local:AngleButton.ToolTip>
                            <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Fill" />
                         </local:AngleButton>
-                        <local:AngleTextBox Grid.Row="9" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Out" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
+                        <local:AngleTextBox Grid.Row="9" Grid.Column="1" VerticalAlignment="Top" Margin="0,2,2,2" Direction="Right" TextBinding="{Binding FlagText, UpdateSourceTrigger=PropertyChanged}" />
 
                         <local:AngleBorder Grid.Row="10" VerticalAlignment="Top" Direction="Left" Margin="2,2,0,2">
                            <TextBlock Text="Padding:"/>
