@@ -159,6 +159,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 26 special2 variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
+26 specialvar variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
+                                                        # Check your TOML for a list of specials available in your game.
+                                                        # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 27 waitstate                                 # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
 28 pause time:                               # blocks script execution for 'time' frames
 29 setflag flag:|h                           # flag = 1
