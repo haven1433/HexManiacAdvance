@@ -469,7 +469,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (newSection.Tokens.Count == 1) {
                newSection.Tokens[0].IsSelected = true;
                var child = Build(model, filter, docs, previousSections.Concat(new[] { newSection }), includeMatchingMaps); // recursion ftw
-               newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
+               // only do the concatenation if the children are not unreadable long
+               if (child.Tokens.All(token => token.Content.Length < 20)) {
+                  newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
+               } else {
+                  newSection.Tokens[0].IsSelected = false;
+               }
             }
 
             return newSection;
