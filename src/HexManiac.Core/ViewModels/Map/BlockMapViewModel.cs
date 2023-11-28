@@ -724,8 +724,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                initialBlockmaps.Add(blockmap);
                warpIsBottomSquareForIndex.Add(isBottomSquare);
                var targetMapName = MapIDToText(model, targets[0].Bank, targets[0].Map);
-               var targetLocation = targetMapName.Split('(')[0];
-               var targetName = '(' + targetMapName.Split('(')[1];
+               var nameParts = targetMapName.SplitLast('.');
+               var targetLocation = nameParts[0];
+               var targetName = nameParts[1];
                var visOption = new VisualOption { Index = orderedPrototypes.IndexOf(prototype), Option = $"Like {targetLocation}", ShortDescription = targetName, Visual = render };
                images.Add(visOption);
             }
@@ -803,7 +804,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var desiredY = parentEvent.Y + yDif;
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
-         var needClone = desiredX >= -8 && desiredY >= -8 && desiredX <= width + 8 && desiredY <= height + 8;
+         var needClone = desiredX >= -8 && desiredY >= -8 && desiredX < width + 8 && desiredY < height + 8;
          if (obj == null && needClone) {
             obj = CreateObjectEvent(parentEvent.Graphics, Pointer.NULL);
             obj.Kind = true;
@@ -811,10 +812,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             obj.TrainerType = neighbor.map;
             obj.TrainerRangeOrBerryID = neighbor.group;
             obj.Flag = parentEvent.Flag;
+            ViewPort.RaiseMessage($"Clone added to map ({this.group}-{this.map}) for object {parentEvent.Element.ArrayIndex + 1}.");
          } else if (!needClone) {
             if (obj != null) {
                obj.Delete();
                ClearCaches();
+               ViewPort.RaiseMessage($"Clone removed from map ({this.group}-{this.map}) for object {parentEvent.Element.ArrayIndex + 1}.");
             }
             return;
          }

@@ -618,7 +618,7 @@
                               </local:AngleButton>
                            </Grid>
 
-                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Sucess:" />
+                           <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Success:" />
                            <local:TextEditor DataContext="{Binding TutorSucessText}" />
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0" Content="Fail:" />
                            <local:TextEditor DataContext="{Binding TutorFailedText}" />

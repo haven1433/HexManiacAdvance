@@ -169,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
-               builder.Append(labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script));
+               builder.Append($"<{labels.AddressToLabel(address + Pointer.NULL, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script)}>");
             } else {
                address -= 0x8000000;
                builder.Append($"<{labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script)}>");
@@ -220,6 +220,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
             } else if (labels.TryResolveLabel(token, out value)) {
                // resolved to an address
+            } else if (token == "null") {
+               value = Pointer.NULL;
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
                if (value > -Pointer.NULL) value += Pointer.NULL;

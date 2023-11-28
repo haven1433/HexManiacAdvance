@@ -2482,8 +2482,14 @@ namespace HavenSoft.HexManiac.Core.Models {
                i -= 1;
             } else if (newRun != null) {
                // NOTE don't ObserveRunWritten here! That will automatically add not only the Pointer, but also an anchor. Example: Unbound-bt-d1.3.1, it causes a conflict where an anchor is added into the type names _while_ we're adding the table that contains that inner anchor.
-               var index = ~BinarySearch(newRun.Start);
-               InsertIndex(index, newRun);
+               var index = BinarySearch(newRun.Start);
+               if (index >= 0) {
+                  token.RemoveRun(runs[index]);
+                  runs[index] = newRun;
+               } else {
+                  index = ~index;
+                  InsertIndex(index, newRun);
+               }
                token.AddRun(newRun);
             }
          }
@@ -2498,7 +2504,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// This method can be called from a parellel context, so it doesn't make any changes to the runs collection.
       /// Instead, it returns a new pointer run if one needs to be added.
       ///
-      /// The read-only nature of the method means taht it shouln't lock and can be called in parallel,
+      /// The read-only nature of the method means that it shouln't lock and can be called in parallel,
       /// but the caller is in charge of making sure the run collection doesn't change while this is working.
       /// </summary>
       private bool TryMakePointerAtAddress(ModelDelta changeToken, int address, bool ignoreNoInfoPointers, out PointerRun runToAdd) {
@@ -2510,10 +2516,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (runs[index] is PointerRun) return true;
             if (runs[index] is ArrayRun arrayRun && arrayRun.ElementContent[0].Type == ElementContentType.Pointer) return true;
             if (runs[index] is NoInfoRun) {
-               var pointerRun = new PointerRun(address, runs[index].PointerSources);
-               changeToken.RemoveRun(runs[index]);
-               changeToken.AddRun(pointerRun);
-               runs[index] = pointerRun;
+               runToAdd = new PointerRun(address, runs[index].PointerSources);
                return true;
             }
             return false;

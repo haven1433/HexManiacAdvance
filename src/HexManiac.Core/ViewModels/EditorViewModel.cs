@@ -1197,7 +1197,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                tabs.Remove(tab);
                RemoveContentListeners(tab);
                if (selectedIndex == tabs.Count) SelectedIndex = tabs.Count - 1;
-               CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+               try {
+                  CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, tab, index));
+               } catch (ArgumentOutOfRangeException) {
+                  // in some cases, the collection may have already noticed the change due to UI updates.
+                  // in this situation, the index may be out of range, and we may catch an exception.
+                  // If that happens, just do a hard reset on the collection as a backup.
+                  CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+               }
             }
             UpdateGotoViewModel();
             return;

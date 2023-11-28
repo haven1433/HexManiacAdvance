@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public int ResolveLabel(string label) {
          var offset = 0;
+         if (label == "null") return Pointer.NULL;
          if (label.Split("+") is string[] parts && parts.Length == 2) {
             label = parts[0];
             int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
@@ -72,6 +73,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// Only turn script addresses into section headers.
       /// </param>
       public string AddressToLabel(int address, bool isScriptAddress) {
+         if (address == Pointer.NULL) return "null";
+         if (address < 0) address -= Pointer.NULL;
          if (labels.TryGetValue(address, out var label)) return label;
          if (isScriptAddress && Model.GetAnchorFromAddress(-1, address) is string anchor && anchor.Length > 4) {
             labels[address] = anchor;

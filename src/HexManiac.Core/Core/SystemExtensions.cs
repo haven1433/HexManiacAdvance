@@ -201,6 +201,17 @@ namespace HavenSoft.HexManiac.Core {
 
       public static string[] SplitLines(this string self) => self.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None);
 
+      public static string[] SplitLast(this string self, char c) {
+         var result = new[] { self, string.Empty };
+         for (int i = self.Length - 1; i >= 0; i--) {
+            if (self[i] != c) continue;
+            result[0] = self.Substring(0, i);
+            result[1] = self.Substring(i + 1);
+            break;
+         }
+         return result;
+      }
+
       public static string CombineLines(this IReadOnlyList<string> lines) => lines.Aggregate((a, b) => a + Environment.NewLine + b);
 
       public static string ReplaceOne(this string input, string search, string replacement) {

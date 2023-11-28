@@ -2678,7 +2678,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
             // do the actual search now that we know places to start
-            var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
+            var foundCount = Model.ConsiderResultsAsTextRuns( () => history.InsertCustomChange(new NoDataChangeDeltaModel()), startPlaces);
             if (foundCount == 0) {
                OnError?.Invoke(this, "Failed to automatically find text at that location.");
             } else {
@@ -3346,7 +3346,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int i = 0; i < fullLength; i++) {
                   bool possibleMatch = FindBytes.Length > 0;
                   for (int j = 0; j < FindBytes.Length; j++) {
-                     if (DataOffset + i + j >= Model.Count || Model[DataOffset + i + j] != FindBytes[j]) {
+                     if (!(DataOffset + i + j).InRange(0, Model.Count) || Model[DataOffset + i + j] != FindBytes[j]) {
                         possibleMatch = false;
                         break;
                      }
@@ -3354,11 +3354,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (!possibleMatch) continue;
                   for (int j = 0; j < FindBytes.Length; j++) {
                      var (x, y) = ((i + j) % Width, (i + j) / Width);
-                     if (currentView[x, y].Format is None) {
-                        currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
-                     } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
-                        var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
-                        currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                     if (y < Height) {
+                        if (currentView[x, y].Format is None) {
+                           currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                        } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
+                           var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
+                           currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                        }
                      }
                   }
                   i += FindBytes.Length - 1;

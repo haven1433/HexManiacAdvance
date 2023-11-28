@@ -2128,7 +2128,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
                var size = layout.GetValue("width") * layout.GetValue("height");
                var start = layout.GetAddress("blockmap");
-               if (start == Pointer.NULL) continue;
+               if (start < 0 || start > model.Count - size * 2) continue;
                for (int i = 0; i < size; i++) {
                   var pair = model.ReadMultiByteValue(start + i * 2, 2);
                   var collision = pair >> 10;

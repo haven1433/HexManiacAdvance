@@ -617,6 +617,17 @@ Script:
          Assert.Equal("86 00 00 00 08 02".ToByteArray(), Model.Skip(0x10).Take(6).ToArray());
       }
 
+      [Fact]
+      public void NullPointer_Decompile_Null() {
+         ViewPort.Edit("67 00 00 00 00 66 6D 03 ");
+
+         ViewPort.Tools.CodeTool.Mode = CodeMode.Script;
+         ViewPort.Goto.Execute(0);
+         var content = ViewPort.Tools.CodeTool.Contents[0].Content.SplitLines();
+
+         Assert.Equal("preparemsg <null>", content[0].Trim());
+      }
+
       private string Script(params string[] lines) => lines.CombineLines();
    }
 }
