@@ -38,6 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          SyntaxHighlighting = syntaxHighlighting;
       }
 
+      private bool contentChanging;
       private string content = string.Empty;
       public string Content {
          get => content;
@@ -46,14 +47,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var oldContent = content;
             content = value;
             UpdateLayers();
-            NotifyPropertyChanged(oldContent, nameof(Content));
+            using (Scope(ref contentChanging, true, back => contentChanging = back)) {
+               NotifyPropertyChanged(oldContent, nameof(Content));
+            }
          }
       }
 
-      private int caretIndex, savedCaret = int.MinValue;
+      private int caretIndex;
       public int CaretIndex {
          get => caretIndex;
          set {
+            if (contentChanging) return;
             Set(ref caretIndex, value, old => RequestCaretMove.Raise(this));
          }
       }
