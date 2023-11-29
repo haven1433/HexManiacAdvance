@@ -50,22 +50,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      public void SaveCaret(int lengthDelta) {
-         if (savedCaret == int.MinValue) savedCaret = caretIndex;
-         savedCaret += lengthDelta;
-      }
-
       private int caretIndex, savedCaret = int.MinValue;
       public int CaretIndex {
          get => caretIndex;
          set {
-            if (savedCaret != int.MinValue) {
-               value = savedCaret;
-               savedCaret = int.MinValue;
-               PushCaretUpdate(value);
-               return;
-            }
-            Set(ref caretIndex, value);
+            Set(ref caretIndex, value, old => RequestCaretMove.Raise(this));
          }
       }
 

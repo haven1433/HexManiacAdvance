@@ -294,7 +294,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var after = Content.Substring(CaretPosition + 1);
             using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
                Editor.Content = before + "<auto>" + after;
-               Editor.SaveCaret(7);
                return true;
             }
          }
@@ -324,7 +323,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var after = Content[(CaretPosition)..];
          using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
             Editor.Content = before + candidates[0].LineCommand + after;
-            Editor.SaveCaret(candidates[0].LineCommand.Length - tokens[0].Length + 1);
+            Editor.CaretIndex += candidates[0].LineCommand.Length - tokens[0].Length + 1;
             return true;
          }
       }
@@ -426,7 +425,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          });
       }
 
-      public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
+      public void SaveCaret(int lengthDelta) => Editor.CaretIndex += lengthDelta;
 
       public void ClearErrors() {
          HasError = false;

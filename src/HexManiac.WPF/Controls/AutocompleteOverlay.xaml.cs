@@ -152,7 +152,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             var quoteCount = lines[lineIndex].Substring(0, caretIndex).Count(c => c == '"');
 
             if (e.Key == Key.Space && quoteCount % 2 == 0) {
-               e.Handled = AutocompleteOptionChosen(items[index]);
+               e.Handled = AutocompleteOptionChosen(items[index]) && DataContext is not CodeBody;
             } else if (e.Key == Key.OemQuotes && quoteCount % 2 == 1) {
                AutocompleteOptionChosen(items[index]);
                e.Handled = true;
