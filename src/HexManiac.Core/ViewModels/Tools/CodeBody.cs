@@ -106,8 +106,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             content.Append(newContent);
 
             content.Append(afterContent);
-            SaveCaret(newContent.Length);
+            var caret = Editor.CaretIndex;
             Content = content.ToString();
+            Editor.CaretIndex = caret + newContent.Length;
+            NotifyPropertyChanged(nameof(CanInsertFlag));
          }
          Editor.FocusKeyboard();
       }
@@ -126,8 +128,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             content.Append(newContent);
 
             content.Append(afterContent);
-            SaveCaret(newContent.Length);
+            var caret = Editor.CaretIndex;
             Content = content.ToString();
+            Editor.CaretIndex = caret + newContent.Length;
+            NotifyPropertyChanged(nameof(CanInsertVar));
          }
          Editor.FocusKeyboard();
       }
