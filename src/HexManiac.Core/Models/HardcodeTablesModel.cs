@@ -221,6 +221,32 @@ namespace HavenSoft.HexManiac.Core.Models {
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
+         // add item hold effects
+         if (isCFRU && TryGetList("holdeffects", out var holdeffects)) {
+            var newList = new List<string>(holdeffects);
+            newList.AddRange(new[] {
+               "UnusedA", "RockyHelmet", "UnusedB", "AssaultVest",
+               "Eviolite", "Plate", "MegaStone", "LifeOrb",
+               "ToxicOrb", "FlameOrb", "BlackSludge", "SmoothRock",
+               "DampRock", "HeatRock", "IcyRock", "LightClay",
+               "WideLens", "SafetyGoggles", "WeaknessPolicy", "Drive",
+               "Memory", "AdamantOrb", "LustrousOrb", "GriseousOrb",
+               "DestinyKnot", "ExpertBelt", "PrimalOrb", "Gem",
+               "WeaknessBerry", "CustapBerry", "LaggingTail", "IronBall",
+               "BindingBand", "UnusedC", "ProtectivePads", "AbsorbBulb",
+               "AirBalloon", "Bigroot", "CellBattery", "EjectButton",
+               "FloatStone", "GripClaw", "LuminousMoss", "UnusedD",
+               "Metronome", "MuscleBand", "RedCard", "RingTarget",
+               "ShedShell", "Snowball", "StickyBarb", "TerrainExtender",
+               "WiseGlasses", "Seeds", "JabocaRowapBerry", "KeeBerry",
+               "MarangaBerry", "ZoomLens", "AdrenalineOrb", "PowerHerb",
+               "MicleBerry", "EnigmaBerry", "TypeBoosters", "ZCrystal",
+               "AbilityCapsule", "EjectPack", "RoomService", "BlunderPolicy",
+               "HeavyDutyBoots", "UtilityUmbrella", "ThroatSpray",
+            });
+            SetList(new NoDataChangeDeltaModel(), "holdeffects", newList, null, StoredList.GenerateHash(newList));
+         }
+
          foreach (var table in tables) {
             // some tables have been removed from CFRU
             if (isCFRU && table.Name.IsAny(
@@ -421,6 +447,9 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // type names
          if (name == TypesTableName) format = format.Split("]")[0] + "]24";
+
+         // type icons
+         if (name == "graphics.pokemon.type.icons") format = format.Replace("ucs4x16x16", "ucs4x16x18");
 
          // remove the extra +28 from pokemon-related tables
          if (format.EndsWith(PokemonNameTable + "+28")) format = format.Substring(0, format.Length - 3);
