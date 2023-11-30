@@ -36,7 +36,7 @@ msgbox.autoclose 0F 00 ptr<""> 09 06  # loadpointer, callstd 6
 wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7  # setwildbattle, dowildbattle
 find.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01           # copyvarifnotzero (item and count), callstd 1
 npc.item         1A 00 80 item:data.items.stats 1A 01 80 count: 09 00           # copyvarifnotzero (item and count), callstd 0
-msgbox.item      msg<""> item:data.items.stats count: song:songnames -> msgbox.item 44 item:data.items.stats count: 0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
+[BPRE_BPGE] msgbox.item      msg<""> item:data.items.stats count: song:songnames -> msgbox.item 44 item:data.items.stats count: 0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
                                                                                                               # followed by a standard 'put away' message.
                                                                                                               # loadpointer, copyvarifnotzero (item, count, song), callstd 9
 [BPEE] msgbox.instant.autoclose          6A DB ptr<""> 66 6D 68 6C     #Skips the typewriter effect
