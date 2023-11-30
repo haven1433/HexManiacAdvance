@@ -770,7 +770,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             ImportSpriteAndPalette(fileSystem, pixels, palette);
             return;
          }
-         if (filename == null) return; // they didn't choose a file... they hit cancel. Don't continue trying to import.
+         if (filename == null && paletteRun != null) return; // they didn't choose a file... they hit cancel. Don't continue trying to import.
 
          (short[] image, int width) = fileSystem.LoadImage(filename);
          ImportSpriteAndPalette(fileSystem, image, width);
