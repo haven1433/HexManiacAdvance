@@ -22,6 +22,7 @@ using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
@@ -81,6 +82,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void HandleException(object sender, DispatcherUnhandledExceptionEventArgs e) {
+         if (e.Exception.StackTrace.Contains("SyncFlush")) {
+            HandleRenderFailure(e.Exception);
+            e.Handled = true;
+            return;
+         }
          var text = new StringBuilder();
          text.AppendLine("Version Number: " + ViewModel.Singletons.MetadataInfo.VersionNumber);
 #if DEBUG
@@ -130,6 +136,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             new ProcessModel("Copy a crash message to the clipboard", shortError)
          );
          e.Handled = true;
+      }
+
+      private void HandleRenderFailure(Exception ex) {
+         var result = FileSystem.ShowCustomMessageBox("HexManiacAdvance encountered a rendering error." + Environment.NewLine +
+            "The most common render thread failures are associated with video hardware or driver problems." + Environment.NewLine +
+            "Do you want to disable hardware acceleration?");
+         if (result == true) {
+            var hwndSource = (HwndSource)PresentationSource.FromVisual(this);
+            var hwndTarget = hwndSource.CompositionTarget;
+            hwndTarget.RenderMode = RenderMode.SoftwareOnly;
+         }
       }
 
       private static string ExtractExceptionInfo(Exception ex) {
