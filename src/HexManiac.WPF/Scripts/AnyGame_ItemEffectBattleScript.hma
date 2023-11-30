@@ -1,0 +1,28 @@
+# Add item effect for running battle scirpts.
+# After running this script:
+#   Write your script in data.items.battlescripts
+#   Set item battleusage to 2
+#   Set item battleextra to the index from data.items.battlescripts that you want.
+
+@data.items.battlescripts(20) @!00(16) ^data.items.battlescripts[pointer<`bse`>]4
+
+@thumb.battle_main.item.battlescripts(60) .thumb
+   r0 = 0x02023D74 @ gBattlescriptCurrInstr
+   r1 = 0x081D99E4 @ gBattlescriptsForUsingItem
+   ldr   r1, [r1, #0]
+   str   r1, [r0, #0]
+   @ check the gLastUsedItem's battleExtra
+   r1 = 0x02023D68 @ gLastUsedItem
+   ldrh r1, [r1]
+   r0 = data.items.stats[r1].battleextra
+   if r0 != 0 {
+      r1 = data.items.battlescripts[r0].pointer
+      r0 = 0x02023D74
+      str  r1, [r0, #0]
+   }
+   r0 = 0x0164F4+8
+   bx r0
+.end
+
+@0164F4 00 48 00 47 <thumb.battle_main.item.battlescripts+1>
+
