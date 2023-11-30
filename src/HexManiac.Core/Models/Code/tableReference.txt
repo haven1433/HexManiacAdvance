@@ -52,6 +52,8 @@ data.pokemon.moves.descriptions,       0A0494, 0A0494, 0A04B4, 0A04B4, 0E5440, 0
 scripts.text.multichoice,              0B50A0, 0B50A0, 0B50C0, 0B50C0, 09CB58, 09CB2C, 09CB6C, 09CB40, 0E1FB8, [options<[text<""> unused::]/count> count::]
 scripts.text.scrolling.multichoice,          ,       ,       ,       ,       ,       ,       ,       , 13A41C, [text0<""> text1<""> text2<""> text3<""> text4<""> text5<""> text6<""> text7<""> text8<""> text9<""> textA<""> textB<""> textC<""> textD<""> textE<""> textF<"">]13 // see https://www.pokecommunity.com/showpost.php?p=9171350&postcount=886
 scripts.text.scrolling.settings,             ,       ,       ,       ,       ,       ,       ,       , 13A164, [thumb<>]scripts.text.scrolling.multichoice
+scripts.text.listmenu,                       ,       ,       ,       , 0CBA68, 0CBA3C, 0CBA7C, 0CBA50,       , [option1<""> option2<""> option3<""> option4<""> option5<""> option6<""> option7<""> option8<""> option9<""> optionA<""> optionB<""> optionC<"">]7
+
 data.pokemon.natures.names,            0443D8, 0443D8, 0443F8, 0443F8, 0488B8, 0488B8, 0488CC, 0488CC, 073188, [name<"">]25
 data.menus.text.options,                     ,       ,       ,       , 088DDC, 088DB0, 088DF0, 088DC4,       , [text<"">]7
 data.menus.text.pc,                          ,       ,       ,       , 08FBC8, 08FB9C, 08FBDC, 08FBB0, 0CAC7C, [text<""> msgvar::messagevars]31
@@ -204,6 +206,7 @@ data.items.effects,                          ,       ,       ,       , 03A2B0, 0
 data.items.effects,                          ,       ,       ,       ,       ,       ,       ,       , 063FDC, [data<`pie`>]data.items.stats-13-201
 data.items.berry.stats,                0525D0, 0525D0, 0525F0, 0525F0, 09C77C, 09C750, 09C790, 09C764, 021CA4, [name""7 firmness. size: maxYield. minYield. description1<""> description2<""> stageDuration. spicy. dry. sweet. bitter. sour. smoothness:]43
 data.items.berry.master.berries,             ,       ,       ,       ,       ,       ,       ,       , 080748, [berryID.data.items.berry.stats]5         // Referenced only in a Berry Blender function.
+data.items.teachy.tv,                        ,       ,       ,       , 479368, 478C44, 4793C8, 478CB4,       , [label<""> id::]data.items.teachy.count
 data.pokemon.moves.stats.battle,       00CA54, 00CA54, 00CA54, 00CA54, 0001CC, 0001CC, 0001CC, 0001CC, 0001CC, [effect.moveeffectoptions power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority.|z info|b[]moveinfo unused. unused:]data.pokemon.moves.names
 data.pokemon.moves.stats.contest,      0A0290, 13389C, 1338BC, 1338BC,       ,       ,       ,       , 0D85F0, [effect.data.pokemon.contest.effects type.data.pokemon.type.contest.names combo_key.contestcombostarter combo_a.contestcombostarter combo_b.contestcombostarter combo_c.contestcombostarter padding:]data.pokemon.moves.names
 data.pokemon.moves.levelup,            03B7BC, 03B7BC, 03B7BC, 03B7BC, 03EA7C, 03EA7C, 03EA90, 03EA90, 06930C, [movesFromLevel<[pair:|t|move::::.data.pokemon.moves.names|level:::.]!FFFF>]data.pokemon.names
@@ -660,6 +663,7 @@ graphics.newgame.menu.naming.tileset,    , , , , 09F8AC, 09F880, 09F8C0, 09F894,
 graphics.newgame.menu.naming.tilemap.m2, , , , , 09DF18, 09DEEC, 09DF2C, 09DF00, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m3, , , , , 09DF14, 09DEE8, 09DF28, 09DEFC, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
 graphics.newgame.menu.naming.tilemap.m4, , , , , 3E2454, 3E2290, 3E24C4, 3E2300, , `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.choosesave.palette,, , , , 00C4BC, 00C4BC, 00C4D0, 00C4D0, , `ucp4`
 
 // Introductory Speeches
 scripts.newgame.professor.speeches.intro.welcome,          00A3C0, 00A3C0, 00A3C0, 00A3C0, 12F8F0, 12F8C8, 12F968, 12F940, 0309C4, ""

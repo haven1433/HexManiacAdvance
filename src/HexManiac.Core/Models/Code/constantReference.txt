@@ -487,6 +487,11 @@ BPGE0.graphics.firstpersonview.count   0F80E0,0F80FE,0F8184,0F852A,0F8552
 BPRE1.graphics.firstpersonview.count   0F8180,0F819E,0F8224,0F85CA,0F85F2
 BPGE1.graphics.firstpersonview.count   0F8158,0F8176,0F81FC,0F85A2,0F85CA
 
+BPRE0.data.items.teachy.count          479374
+BPGE0.data.items.teachy.count          478C50
+BPRE1.data.items.teachy.count          4793D4
+BPGE1.data.items.teachy.count          478CC0
+
 # not really sure about this...
 BPRE0.scripts.seagallop.count-1 147148
 BPGE0.scripts.seagallop.count-1 147124
