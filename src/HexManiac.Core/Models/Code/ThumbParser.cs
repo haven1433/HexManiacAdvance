@@ -438,7 +438,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                         value -= Pointer.NULL;
                         valueText = "0x" + value.ToAddress();
                      } else if (labels.TryResolveLabel(valueText, out value)) {
-                        valueText = "0x" + value.ToAddress();
+                        valueText = "0x" + (value - Pointer.NULL).ToAddress();
                      }
                   }
                   if (!valueText.TryParseInt(out value)) {

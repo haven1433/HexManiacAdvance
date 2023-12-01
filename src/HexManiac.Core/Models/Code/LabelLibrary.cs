@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             label = parts[0];
             int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
          }
-         if (labels.TryGetValue(label, out int result)) return result + offset;
+         if (labels != null && labels.TryGetValue(label, out int result)) return result + offset;
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, label);
          if (address == Pointer.NULL) return address;
          return address + offset;

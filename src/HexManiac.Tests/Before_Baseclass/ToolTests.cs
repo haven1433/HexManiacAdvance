@@ -604,8 +604,10 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("r1 >>= r2", "lsr r1, r2")]
       [InlineData("r1 >>= 2", "lsr r1, #2")]
       [InlineData("lsr r1, #2", "lsr r1, r1, #2")]
+      [InlineData("r0 = <table>", "ldr r0, =<table>")]
       public void ThumbCode_Math_Compiles(string math, string code) {
          var model = new PokemonModel(new byte[0x200]);
+         model.ObserveAnchorWritten(new(), "table", new NoInfoRun(0x80));
          var result = parser.Compile(model, 0x100, math);
 
          var expected = parser.Compile(model, 0x100, code.Split(';'));
