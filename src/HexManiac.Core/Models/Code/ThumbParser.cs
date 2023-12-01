@@ -970,8 +970,9 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          list = 0;
          while (line.Length > 0 && template.Length > 0) {
             // make sure that the basic format matches where it should
-            while (template[0] == ' ' || template[0] == ',') template = template.Substring(1);
-            while (line[0] == ' ' || line[0] == '!' || line[0] == ',') line = line.Substring(1);
+            while (template.Length > 0 && (template[0] == ' ' || template[0] == ',')) template = template.Substring(1);
+            while (line.Length > 0 && (line[0] == ' ' || line[0] == '!' || line[0] == ',')) line = line.Substring(1);
+            if (template.Length == 0 || line.Length == 0) continue;
             if (template[0] == '[') {
                if (line[0] != '[') {
                   if (template.StartsWith("[pc, ") && template.EndsWith("]") && labels.ResolveLabel(line) != Pointer.NULL) {

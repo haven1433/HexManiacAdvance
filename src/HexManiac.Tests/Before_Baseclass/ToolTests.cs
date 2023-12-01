@@ -597,10 +597,13 @@ namespace HavenSoft.HexManiac.Tests {
       [InlineData("r1 = 100() + 3", "bl <100>; mov r1, r0; add r1, #3")]
       [InlineData("r1 |= r2", "orr r1, r2")]
       [InlineData("r1 ^= r2", "xor r1, r2")]
+      [InlineData("r1 ^= r2", "eor r1, r2")]
       [InlineData("r1 &= r2", "and r1, r2")]
       [InlineData("r1 *= r2", "mul r1, r2")]
       [InlineData("r1 <<= r2", "lsl r1, r2")]
       [InlineData("r1 >>= r2", "lsr r1, r2")]
+      [InlineData("r1 >>= 2", "lsr r1, #2")]
+      [InlineData("lsr r1, #2", "lsr r1, r1, #2")]
       public void ThumbCode_Math_Compiles(string math, string code) {
          var model = new PokemonModel(new byte[0x200]);
          var result = parser.Compile(model, 0x100, math);
