@@ -222,6 +222,13 @@ BPRE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will
 BPGE0.scripts.daycare.exp.multiplier 0462E8,0463D4 # Picking an even number will prevent new eggs from being created.
 BPGE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will prevent new eggs from being created.
 
+# data.battle.text length
+BPRE0:data.battle.textlength+11 0D77C8
+BPGE0:data.battle.textlength+11 0D779C
+BPRE1:data.battle.textlength+11 0D77DC
+BPGE1:data.battle.textlength+11 0D77B0
+
+
 # Intro
 AXVE0:scripts.newgame.money 052F4C
 AXVE1:scripts.newgame.money 052F6C
