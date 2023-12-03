@@ -2494,7 +2494,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void OpenDexReorderTab(string dexTableName) {
          var newTab = new DexReorderTab(fs, this, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
-         RequestTabChange(this, new(newTab));
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
       }
 
       public void OpenImageEditorTab(int address, int spritePage, int palettePage, int preferredTileWidth = -1) {

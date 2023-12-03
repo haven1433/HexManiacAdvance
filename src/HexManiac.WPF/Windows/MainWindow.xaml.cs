@@ -234,7 +234,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private ICommand CreateQuickEditCommand(IQuickEditItem edit) {
          var command = new StubCommand {
-            CanExecute = arg => ViewModel.SelectedIndex >= 0 && edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
+            CanExecute = arg => {
+               if (ViewModel.SelectedIndex < 0) return false;
+               var tab = ViewModel[ViewModel.SelectedIndex];
+               if (tab is MapEditorViewModel map) tab = map.ViewPort;
+               return tab is IViewPort;
+            },
             Execute = arg => {
                Window window = default;
                window = new Window {
@@ -601,8 +606,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperRunGarbageCollection(object sender, RoutedEventArgs e) => GC.Collect();
 
       private void DeveloperRenderRomOverview() {
-         var tab = (ViewPort)ViewModel.SelectedTab;
-         var model = tab.Model;
+         var tab = ViewModel.SelectedTab;
+         if (tab is MapEditorViewModel map) tab = map.ViewPort;
+         var model = ((IViewPort)tab).Model;
          int BlockSize = 64, BlockWidth = 16, BlockHeight = 16, BytesPerPixel = 16;
          if (model.Count == 0x2000000) {
             BlockWidth = 32;
