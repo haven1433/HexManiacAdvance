@@ -1705,7 +1705,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }); }
       public bool IsValid25GridSelection {
          get {
-            if (tilesToDraw == null || tilesToDraw.GetLength(0) != 5 && tilesToDraw.GetLength(1) != 5) return false;
+            if (tilesToDraw == null || tilesToDraw.GetLength(0) != 5 || tilesToDraw.GetLength(1) != 5) return false;
 
             // require like-blocks
             // 25 blocks - 4 corners - 1 center - 4 partial centers - 4 corners - 4 edges = 8 duplicate blocks
