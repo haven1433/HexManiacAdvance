@@ -1113,11 +1113,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool ignoreFurtherCommands = false;
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
-         undoWrapper.Execute = arg => { history.Undo.Execute(arg); tools.RefreshContent(); };
+         undoWrapper.Execute = arg => {
+            history.Undo.Execute(arg);
+            if (!ownsHistory) RefreshBackingData();
+            tools.RefreshContent();
+         };
          history.Undo.CanExecuteChanged += (sender, e) => undoWrapper.CanExecuteChanged.Invoke(undoWrapper, e);
 
          redoWrapper.CanExecute = history.Redo.CanExecute;
-         redoWrapper.Execute = arg => { history.Redo.Execute(arg); tools.RefreshContent(); };
+         redoWrapper.Execute = arg => {
+            history.Redo.Execute(arg);
+            if (!ownsHistory) RefreshBackingData();
+            tools.RefreshContent();
+         };
          history.Redo.CanExecuteChanged += (sender, e) => redoWrapper.CanExecuteChanged.Invoke(redoWrapper, e);
 
          clear.CanExecute = CanAlwaysExecute;
