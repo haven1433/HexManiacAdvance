@@ -531,24 +531,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          ImplementCommands();
 
-         copy = CreateWrapperForSelected(tab => tab.Copy);
-         deepCopy = CreateWrapperForSelected(tab => tab.DeepCopy);
+         copy = CreateWrapperForSelected(tab => tab.Copy, true);
+         deepCopy = CreateWrapperForSelected(tab => tab.DeepCopy, true);
          diffSinceLastSave = CreateWrapperForSelected(tab => tab.Diff);
-         delete = CreateWrapperForSelected(tab => tab.Clear);
-         selectAll = CreateWrapperForSelected(tab => tab.SelectAll);
+         delete = CreateWrapperForSelected(tab => tab.Clear, true);
+         selectAll = CreateWrapperForSelected(tab => tab.SelectAll, true);
          save = CreateWrapperForSelected(tab => tab.Save);
          saveAs = CreateWrapperForSelected(tab => tab.SaveAs);
          exportBackup = CreateWrapperForSelected(tab => tab.ExportBackup);
          close = CreateWrapperForSelected(tab => tab.Close);
-         undo = CreateWrapperForSelected(tab => tab.Undo);
-         redo = CreateWrapperForSelected(tab => tab.Redo);
-         back = CreateWrapperForSelected(tab => tab.Back);
-         forward = CreateWrapperForSelected(tab => tab.Forward);
-         resetAlignment = CreateWrapperForSelected(tab => tab.ResetAlignment);
-         displayAsText = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsText);
-         displayAsEventScript = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsEventScript);
-         displayAsSprite = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsSprite);
-         displayAsColorPalette = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsColorPalette);
+         undo = CreateWrapperForSelected(tab => tab.Undo, true);
+         redo = CreateWrapperForSelected(tab => tab.Redo, true);
+         back = CreateWrapperForSelected(tab => tab.Back, true);
+         forward = CreateWrapperForSelected(tab => tab.Forward, true);
+         resetAlignment = CreateWrapperForSelected(tab => tab.ResetAlignment, true);
+         displayAsText = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsText, true);
+         displayAsEventScript = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsEventScript, true);
+         displayAsSprite = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsSprite, true);
+         displayAsColorPalette = CreateWrapperForSelected(tab => (tab as ViewPort)?.Shortcuts.DisplayAsColorPalette, true);
 
          saveAll = CreateWrapperForAll(tab => tab.Save);
          closeAll = CreateWrapperForAll(tab => tab.Close);
@@ -1081,7 +1081,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return true;
       }
 
-      private StubCommand CreateWrapperForSelected(Func<ITabContent, ICommand> commandGetter) {
+      private StubCommand CreateWrapperForSelected(Func<ITabContent, ICommand> commandGetter, bool preventIfScreenBlocked = false) {
          var command = new StubCommand {
             CanExecute = arg => {
                if (SelectedIndex < 0) return false;
@@ -1090,6 +1090,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return innerCommand.CanExecute(fileSystem);
             },
             Execute = arg => {
+               if (preventIfScreenBlocked && gotoViewModel.ControlVisible) return; // don't execute this command while the screen is blocked by the goto panel
                var tab = tabs[SelectedIndex];
                var innerCommand = commandGetter(tab);
                if (innerCommand == null) return;
