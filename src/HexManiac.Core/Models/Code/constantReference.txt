@@ -479,6 +479,10 @@ BPGE1.scripts.games.safari.balls.count 0A0EBA
 BPEE0.scripts.games.safari.balls.count 0FC0E6
 
 # overworld table limiters (credit to phoenixbound)
+AXVE0.graphics.overworld.tablelength-1 05BC28
+AXPE0.graphics.overworld.tablelength-1 05BC2C
+AXVE1.graphics.overworld.tablelength-1 05BC48
+AXPE1.graphics.overworld.tablelength-1 05BC4C
 BPRE0.graphics.overworld.tablelength-1 05F2E0
 BPRE1.graphics.overworld.tablelength-1 05F2F4
 BPGE0.graphics.overworld.tablelength-1 05F2E0
