@@ -35,6 +35,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             scope.SetVariable("table", new TableGetter(editor));
             scope.SetVariable("print", (Action<string>)Printer);
             try {
+               engine.Value.Execute(@"
+import clr
+clr.AddReference('HexManiac.Core')
+import HavenSoft.HexManiac.Core
+clr.ImportExtensions(HavenSoft.HexManiac.Core.Models)
+",
+                  scope);
                engine.Value.Execute(editor.Singletons.PythonUtility, scope);
             } catch (Exception ex) {
                Debug.Fail(ex.Message);
