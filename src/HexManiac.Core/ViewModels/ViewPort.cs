@@ -1503,15 +1503,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Refresh();
       }
 
+      bool inPythonScript = false;
       /// <summary>
       /// The primary Edit method.
       /// If the edit is large, this will create a loading bar that runs from 0 to 100%,
       /// with parts of the edit split off to happen over time.
       /// </summary>
       public void Edit(string input) {
-         if (UpdateInProgress) return;
+         if (UpdateInProgress && !inPythonScript) return;
          lock (threadlock) {
             UpdateInProgress = true;
+            if (inPythonScript) {
+               // no chunking / history changes: just do it all here
+               EditHelper(input, input.Length);
+               return;
+            }
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
             initialWorkLoad = input.Length;
             postEditWork = 0;
@@ -1613,10 +1619,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   i += pythonLength - 1;
                   // note that we're ignoring any non-error result here
                   var pythonContent = Environment.NewLine.Join(lines.Skip(1).Take(lines.Length - 2));
-                  var result = PythonTool.RunPythonScript(pythonContent);
-                  if (result.HasError && !result.IsWarning) {
-                     RaiseError(result.ErrorMessage);
-                     exitEditEarly = true;
+                  using (Scope(ref inPythonScript, true, val => inPythonScript = val)) {
+                     var result = PythonTool.RunPythonScript(pythonContent);
+                     if (result.HasError && !result.IsWarning) {
+                        RaiseError(result.ErrorMessage);
+                        exitEditEarly = true;
+                     }
                   }
                } else {
                   Edit(input[i]);
