@@ -205,7 +205,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                }
                var spriteLengthStart = Start + ElementLength * i + 4;
                model.WriteMultiByteValue(spriteLengthStart, 4, token, newTileWidth * newTileHeight * TileSize);
-               spritesMoved |= spriteStart != sprite.Start;
+               if (sprite != null) spritesMoved |= spriteStart != sprite.Start;
             }
          }
 
