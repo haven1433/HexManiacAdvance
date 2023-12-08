@@ -676,7 +676,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void CloseExecuted(IFileSystem fileSystem) {
-         if (!history.IsSaved && ownsHistory) {
+         if (!history.IsSaved && Model.ReferenceCount == 1) {
             var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
             var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
@@ -685,6 +685,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                history.TagAsSaved();
             }
          }
+         Model.ReferenceCount -= 1;
+
          Closed.Raise(this);
       }
 
@@ -1041,6 +1043,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
          PythonTool = pythonTool;
          ownsHistory = changeHistory == null;
+         model.ReferenceCount += 1;
 
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;

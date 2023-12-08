@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          ScrollRegion.DeferHeader();
          Parent = viewPort;
          Width = Parent.Width;
+         viewPort.Model.ReferenceCount -= 1; // don't reference count child viewports
       }
 
       public void RefreshHeaders() => ScrollRegion.UpdateDeferedHeader();

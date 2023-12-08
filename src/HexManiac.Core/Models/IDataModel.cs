@@ -20,6 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
+      int ReferenceCount { get; set; }
       bool SpartanMode { get; set; }
       bool HasChanged(int index);
       int ChangeCount { get; }
@@ -147,6 +148,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             return instance;
          }
       }
+
+      public int ReferenceCount { get; set; } = 0; // used for tracking how many ViewModels currently use this Model
 
       public BaseModel(byte[] data) {
          RawData = data;
