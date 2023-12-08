@@ -103,6 +103,7 @@ namespace HavenSoft.HexManiac.Tests {
                "graphics.text.font.japan2.characters",
                "graphics.townmap.tileset",
                "graphics.questionnaire.button.sprite",
+               "graphics.overworld.sprites",
                "graphics.questionnaire.tileset"
             )) return;
             if (tomlName == "_0.4.0.toml") {
