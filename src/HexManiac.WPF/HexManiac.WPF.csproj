@@ -37,6 +37,7 @@
     <None Include="Scripts\Update Existing Mechanics\AnyGame_callasmBattleScriptCommand.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeBattleOdds.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeNatureStats.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_ExpandedOWs.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\AnyGame_TripleLayerMapBlocks.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\Emerald_ExpandStarters.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
     <None Include="Scripts\Update Existing Mechanics\RS_AddProfessorPokemonConstants.hma"><CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory></None>
