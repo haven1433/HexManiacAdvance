@@ -311,7 +311,7 @@ namespace HavenSoft.HexManiac.Tests {
          var lines = parser.Parse(model, 0, bytes.Length).Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
          Assert.Equal(7, lines.Length);
          Assert.Equal("000000:", lines[0]);
-         Assert.Equal("    ldr   r0, [pc, <000004>]", lines[1]);
+         Assert.Equal("    ldr   r0, [pc, <000004>]  @ = 0x56781234", lines[1]);
          Assert.Equal("    b     <00000C>", lines[2]);
          Assert.Equal("000004:", lines[3]);
          Assert.Equal("    .word 0x56781234", lines[4]);
@@ -338,7 +338,7 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(6, lines.Length);
          Assert.Equal("000000:", lines[0]);
          Assert.Equal("    nop", lines[1]);
-         Assert.Equal("    ldr   r0, [pc, <000008>]", lines[2]);
+         Assert.Equal("    ldr   r0, [pc, <000008>]  @ = 0xDEADBEEF", lines[2]);
          Assert.Equal("    pop   {pc}", lines[3]);
          Assert.Equal("000008:", lines[4]);
          Assert.Equal("    .word 0xDEADBEEF", lines[5]);

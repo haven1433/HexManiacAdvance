@@ -44,8 +44,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                start += 2;
             } else {
                var line = template.Disassemble(data, start, conditionalCodes);
-               parsedLines.AddRange(line.Split(Environment.NewLine));
                var tokens = line.ToLower().Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+               if (line.Contains("<") && line.Contains(">")) {
+                  var content = line.Split('<')[1].Split('>')[0];
+                  var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
+                  if (address != Pointer.NULL || content.TryParseHex(out address)) {
+                     interestingAddresses.Add(address);
+                     if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
+                        wordLocations.Add(address);
+                        var value = data.ReadValue(address);
+                        var valueText = value.ToString();
+                        var anchor = data.GetAnchorFromAddress(-1, value - BaseModel.PointerOffset);
+                        if (!string.IsNullOrEmpty(anchor)) {
+                           valueText = $"<{anchor}>";
+                        } else if (value > 20100 || value.InRange(0x4000, 20000)) {
+                           valueText = $"0x{value:X8}";
+                        } else if (value < -10000) {
+                           valueText = $"0x{(uint)value:X8}";
+                        }
+                        var gap = new string(' ', (30 - line.Length).LimitToRange(0, 30));
+                        line += gap + $"@ = {valueText}";
+                     }
+                  }
+               }
+               parsedLines.AddRange(line.Split(Environment.NewLine));
                if (tokens.Length > 0 && (tokens[0] == "b" || tokens[0] == "bx")) {
                   sectionEndLocations.Add(start);
                }
@@ -54,16 +76,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
                if (tokens.Length > 1 && tokens[0] == "push" && tokens.Last().EndsWith("lr}")) {
                   interestingAddresses.Add(start); // push lr always signifies the start of a function. That makes it worth noting.
-               }
-               if (line.Contains("<") && line.Contains(">")) {
-                  var content = line.Split('<')[1].Split('>')[0];
-                  var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, content);
-                  if (address != Pointer.NULL || content.TryParseHex(out address)) {
-                     interestingAddresses.Add(address);
-                     if (tokens.Length > 1 && tokens[0] == "ldr" && tokens[1].StartsWith("r")) {
-                        wordLocations.Add(address);
-                     }
-                  }
                }
                length -= template.ByteLength;
                start += template.ByteLength;
