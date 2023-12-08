@@ -487,6 +487,7 @@ BPRE0.graphics.overworld.tablelength-1 05F2E0
 BPRE1.graphics.overworld.tablelength-1 05F2F4
 BPGE0.graphics.overworld.tablelength-1 05F2E0
 BPGE1.graphics.overworld.tablelength-1 05F2F4
+BPEE0.graphics.overworld.tablelength-1 08E6C4
 
 # firstpersonview table length
 BPRE0.graphics.firstpersonview.count-1 0F8104
