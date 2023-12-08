@@ -64,6 +64,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ISpriteRun GetRun(int start = int.MinValue) {
          if (start == int.MinValue) start = Start;
          var destination = ViewPort.Model.ReadPointer(start);
+         if (destination < 0 || destination >= ViewPort.Model.Count) return null;
          var run = ViewPort.Model.GetNextRun(destination) as ISpriteRun;
          if (run == null) {
             IFormattedRun tempRun = new NoInfoRun(destination, new SortedSpan<int>(Start));
