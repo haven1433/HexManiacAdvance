@@ -276,12 +276,12 @@ namespace HavenSoft.HexManiac.Tests {
          if (game.Contains("Altair")) Assert.Equal(377, run.ElementCount);
          else if (game.Contains("Emerald")) Assert.Equal(377, run.ElementCount);
          else if (game.Contains("FireRed")) Assert.Equal(375, run.ElementCount);
-         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(369, run.ElementCount); // truncated by "Jewel of Life" (name too long)
+         else if (game.Contains("DarkRisingKAIZO")) Assert.Equal(375, run.ElementCount);
          else if (game.Contains("LeafGreen")) Assert.Equal(375, run.ElementCount);
          else if (game.Contains("Ruby")) Assert.Equal(349, run.ElementCount);
          else if (game.Contains("Sapphire")) Assert.Equal(349, run.ElementCount);
          else if (game.Contains("Vega")) Assert.Equal(375, run.ElementCount);
-         else if (game.Contains("Clover")) Assert.Equal(371, run.ElementCount); // truncated by "Aurora Ticket" (name too long)
+         else if (game.Contains("Clover")) Assert.Equal(375, run.ElementCount);
          else if (game.Contains("Gaia")) Assert.Equal(375, run.ElementCount);
          else throw new NotImplementedException();
       }

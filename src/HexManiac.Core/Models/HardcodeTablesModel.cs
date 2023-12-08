@@ -467,6 +467,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // hidden abilities stored in pokemon stats
          if (name == PokemonStatsTable) format = format.Replace("padding:", $"hiddenAbility.{AbilityNamesTable} padding.");
 
+         // items: no constant
+         if (name == ItemsTableName) format = format.Replace("data.items.count", string.Empty);
+
          // moves
          if (name == MoveNamesTable) format += "894";
          if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
