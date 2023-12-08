@@ -249,12 +249,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          foreach (var table in tables) {
             // some tables have been removed from CFRU
-            if (isCFRU && table.Name.IsAny(
-               "graphics.pokemon.sprites.coordinates.front",
-               "data.pokedex.hoennToNational",        // causes problems with pokename count
-               "graphics.pokemon.sprites.anchor",     // causes problems with pokename count
-               "data.pokedex.search.alpha"            // causes problems with shiny palettes
-            )) continue;
+            if (isCFRU && CfruIgnoreTables.Contains(table.Name)) continue;
 
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
@@ -264,6 +259,13 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          if (isCFRU) SetupCFRUSpecificTablesAndConstants();
       }
+
+      public static readonly IReadOnlyList<string> CfruIgnoreTables = new List<string>() {
+         "graphics.pokemon.sprites.coordinates.front",
+         "data.pokedex.hoennToNational",        // causes problems with pokename count
+         "graphics.pokemon.sprites.anchor",     // causes problems with pokename count
+         "data.pokedex.search.alpha"            // causes problems with shiny palettes
+      };
 
       public void SetupCFRUSpecificTablesAndConstants() {
          ShowRawIVByteForTrainer = true;

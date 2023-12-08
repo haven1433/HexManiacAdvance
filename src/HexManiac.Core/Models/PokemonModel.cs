@@ -334,8 +334,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          var changedLocations = new HashSet<int>();
 
+         var isCFRU = HardcodeTablesModel.GetIsCFRU(this);
          foreach (var reference in referenceTables) {
             if (reference.Address + 4 > Count) continue;
+            if (isCFRU && HardcodeTablesModel.CfruIgnoreTables.Contains(reference.Name)) continue;
             var destination = base.ReadPointer(reference.Address) - reference.Offset;
             if (!anchorForAddress.ContainsKey(destination) && !addressForAnchor.ContainsKey(reference.Name)) {
                ApplyAnchor(this, noChange, destination, "^" + reference.Name + reference.Format, allowAnchorOverwrite: true);
