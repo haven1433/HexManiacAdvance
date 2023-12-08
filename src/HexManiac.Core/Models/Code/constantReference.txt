@@ -263,6 +263,23 @@ BPGE1.scripts.newgame.start.map  054A1A
 BPGE1.scripts.newgame.start.x    054A1C
 BPGE1.scripts.newgame.start.y    054A14
 
+BPRE0.scripts.newgame.heal.bank  0BFD6C
+BPRE0.scripts.newgame.heal.map   0BFD70
+BPRE0.scripts.newgame.heal.x     0BFD74
+BPRE0.scripts.newgame.heal.y     0BFD78
+BPGE0.scripts.newgame.heal.bank  0BFD40
+BPGE0.scripts.newgame.heal.map   0BFD44
+BPGE0.scripts.newgame.heal.x     0BFD48
+BPGE0.scripts.newgame.heal.y     0BFD4C
+BPRE1.scripts.newgame.heal.bank  0BFD80
+BPRE1.scripts.newgame.heal.map   0BFD84
+BPRE1.scripts.newgame.heal.x     0BFD88
+BPRE1.scripts.newgame.heal.y     0BFD8C
+BPGE1.scripts.newgame.heal.bank  0BFD54
+BPGE1.scripts.newgame.heal.map   0BFD58
+BPGE1.scripts.newgame.heal.x     0BFD5C
+BPGE1.scripts.newgame.heal.y     0BFD60
+
 # Ruby, Sapphire, and Emerald spawn the player in the middle of the truck instead of predefined coordinates.
 AXVE0.scripts.newgame.start.bank 052E0E
 AXVE0.scripts.newgame.start.map  052E10
