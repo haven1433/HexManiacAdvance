@@ -303,6 +303,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          // trainer sprite-based mugshots
          AddTable(0x144FC94, 0, "data.trainers.sprites.mugshots", "[sprite<`lzs4x8x8|data.trainers.sprites.mugshots`> pal<`lzp4`> size: x:|z y:|z unused:]graphics.trainers.sprites.front-0-1");
 
+         // kanto dex
+         // first hword is actually the length of the table - 1
+         // every hword after that is what pokemon appears in that slot of the dex (slot 1, slot 2, etc)
+         AddTable(0x160A52C, 0, "data.pokedex.kanto", "[mon:data.pokemon.names]152");
+
          // PSS icons/palette
          if (0x143B0EC < Count - 4) {
             var spriteStart = ReadPointer(0x143B0EC);
