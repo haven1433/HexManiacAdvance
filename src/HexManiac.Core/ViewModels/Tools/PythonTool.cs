@@ -142,9 +142,10 @@ clr.ImportExtensions(HavenSoft.HexManiac.Core.Models)
          bool inDoubleQuoteText = false;
          var escaped = false;
          for (int i = 0; i < content.Length; i++) {
+            var wasInQutoes = inSingleQuoteText || inDoubleQuoteText;
             if (!escaped && content[i] == '\'' && !inDoubleQuoteText) inSingleQuoteText = !inSingleQuoteText;
             if (!escaped && content[i] == '"' && !inSingleQuoteText) inDoubleQuoteText = !inDoubleQuoteText;
-            if (inSingleQuoteText || inDoubleQuoteText) result[i] = TextFormatting.Text;
+            if (wasInQutoes || inSingleQuoteText || inDoubleQuoteText) result[i] = TextFormatting.Text;
             escaped = content[i] == '\\' && !escaped;
          }
          return result;
