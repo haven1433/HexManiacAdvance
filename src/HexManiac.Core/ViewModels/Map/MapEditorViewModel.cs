@@ -1615,6 +1615,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedEvent == null) return;
          var success = selectedEvent.Delete();
          if (success) {
+            if (selectedEvent is ObjectEventViewModel objEvent) {
+               foreach (var neighbor in PreferLoaded(GetMapNeighbors(primaryMap, 1))) neighbor.UpdateClone(primaryMap, objEvent, true);
+            }
             SelectedEvent = null;
             primaryMap.RedrawEvents();
          } else {

@@ -794,7 +794,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return newMap;
       }
 
-      public void UpdateClone(BlockMapViewModel neighbor, ObjectEventViewModel parentEvent) {
+      public void UpdateClone(BlockMapViewModel neighbor, ObjectEventViewModel parentEvent, bool deleted = false) {
          if (!model.IsFRLG() || neighbor == null || parentEvent == null) return;
          var obj = EventGroup.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.Element.ArrayIndex + 1 && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
          var (thisX, thisY) = ConvertCoordinates(0, 0);
@@ -805,6 +805,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var needClone = desiredX >= -8 && desiredY >= -8 && desiredX < width + 8 && desiredY < height + 8;
+         if (deleted) needClone = false;
          if (obj == null && needClone) {
             obj = CreateObjectEvent(parentEvent.Graphics, Pointer.NULL);
             obj.Kind = true;
