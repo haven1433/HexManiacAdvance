@@ -447,6 +447,13 @@ BPRE1.scripts.evolution.count-1  042FBE
 BPGE1.scripts.evolution.count-1  042FBE
 BPEE0.scripts.evolution.count-1  06D180
 
+# item count limiter
+BPRE0:data.items.count 098998,09B3D0,10864C,10DA14,13D428
+BPGE0:data.items.count 09896C,09B3A4,108624,10D9EC,13D400
+BPRE1:data.items.count 0989AC,09B3E4,1086C4,10DA8C,13D4A0
+BPGE1:data.items.count 098980,09B3B8,10869C,10DA64,13D478
+BPEE0:data.items.count 1B0014
+
 # data.abilities.pickup.items limiter
 BPRE0.data.abilities.pickup.length-2 02CEEC
 BPGE0.data.abilities.pickup.length-2 02CEEC
