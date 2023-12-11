@@ -238,7 +238,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                if (ViewModel.SelectedIndex < 0) return false;
                var tab = ViewModel[ViewModel.SelectedIndex];
                if (tab is MapEditorViewModel map) tab = map.ViewPort;
-               return tab is IViewPort;
+               return tab is IViewPort && edit.CanRun((IViewPort)tab);
             },
             Execute = arg => {
                Window window = default;
