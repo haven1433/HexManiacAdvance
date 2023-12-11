@@ -44,6 +44,7 @@ namespace HavenSoft.HexManiac.Tests {
       public CodeToolTests() {
          Model.LoadMetadata(BaseModel.GetDefaultMetadatas().First()); // load default script-related lists, like script_compare
          SetFullModel(0xFF);
+         Tool.IsSelected = true;
       }
 
       [Fact]

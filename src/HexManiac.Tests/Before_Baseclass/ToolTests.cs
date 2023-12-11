@@ -21,7 +21,10 @@ namespace HavenSoft.HexManiac.Tests {
 
    public class ToolTests : BaseViewModelTestClass {
       private readonly ThumbParser parser;
-      public ToolTests() => parser = new ThumbParser(Singletons);
+      public ToolTests() {
+         parser = new ThumbParser(Singletons);
+         ViewPort.Tools.CodeTool.IsSelected = true;
+      }
 
       [Fact]
       public void ViewPortHasTools() {
@@ -732,7 +735,7 @@ namespace HavenSoft.HexManiac.Tests {
 
       [Fact]
       public void RawCodeToolWorks() {
-         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100]));
+         var viewPort = new ViewPort(new LoadedFile("file.txt", new byte[100])) { Tools = { CodeTool = { IsSelected = true } } };
          viewPort.Tools.CodeTool.Mode = CodeMode.Raw;
          viewPort.SelectionEnd = new Point(3, 0);
          Assert.Equal("00 00 00 00", viewPort.Tools.CodeTool.Content.Trim());

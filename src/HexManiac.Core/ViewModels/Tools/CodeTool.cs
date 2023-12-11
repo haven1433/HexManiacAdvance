@@ -34,6 +34,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public IDataInvestigator Investigator { get; set; }
 
+      private bool isSelected;
+      public bool IsSelected { get => isSelected; set => Set(ref isSelected, value, old => UpdateContent()); }
+
       private bool insertAutoActive = true;
       public bool InsertAutoActive { get => insertAutoActive; set => Set(ref insertAutoActive, value); }
 
@@ -144,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void DataForCurrentRunChanged() => UpdateContent();
 
       public void UpdateContent() {
-         if (ignoreContentUpdates) return;
+         if (ignoreContentUpdates || !isSelected) return;
          var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
 
