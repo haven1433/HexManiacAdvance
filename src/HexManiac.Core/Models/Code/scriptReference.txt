@@ -286,7 +286,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 62 readytrainer     trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
 64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
-65 spritebehave npc: behavior.               # temporarily changes the movement type of a selected NPC.
+65 spritebehave npc: behavior.FacingOptions  # temporarily changes the movement type of a selected NPC.
 66 waitmsg                                   # block script execution until box/text is fully drawn
 67 preparemsg text<"">                       # text can be a pointer to a text pointer, or just a pointer to text
                                              # starts displaying text in a textbox. Does not block. Call waitmsg to block.
