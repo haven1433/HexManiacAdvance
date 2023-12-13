@@ -174,7 +174,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             foreach (var map in VisibleMaps) {
                map.CollisionHighlight = value;
             }
-            DrawMultipleTiles = false;
+            if (tilesToDraw != null) {
+               for (int x = 0; x < tilesToDraw.GetLength(0); x++) {
+                  for (int y = 0; y < tilesToDraw.GetLength(1); y++) {
+                     tilesToDraw[x, y] &= 0x3FF;
+                     tilesToDraw[x, y] |= collisionIndex << 10;
+                  }
+               }
+            }
          }
       }
 
