@@ -444,6 +444,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string graphicsText;
+      public string GraphicsText {
+         get {
+            if (graphicsText != null) return graphicsText;
+            graphicsText = Graphics.ToString();
+            return graphicsText;
+         }
+         set {
+            graphicsText = value;
+            if (!graphicsText.TryParseInt(out var result)) return;
+            Graphics = result;
+         }
+      }
+
+      private bool showGraphicsAsText;
+      public bool ShowGraphicsAsText {
+         get => showGraphicsAsText;
+         set {
+            Set(ref showGraphicsAsText, value, old => {
+               graphicsText = null;
+               NotifyPropertyChanged(nameof(GraphicsText));
+            });
+         }
+      }
+
       /// <summary>
       /// FireRed Only.
       /// Kind is either 0 or 255.
@@ -1188,6 +1213,7 @@ show:
          this.berries = berries;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
          DefaultOW = defaultSprite;
+         ShowGraphicsAsText = Graphics >= Options.Count;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          FacingOptions.Update(ComboOption.Convert(list), MoveType);
          FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.ModelValue);
