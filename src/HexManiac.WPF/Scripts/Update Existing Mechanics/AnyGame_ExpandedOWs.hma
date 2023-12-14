@@ -70,8 +70,8 @@ sizedraw     = f"<{sizedraws[game]:X6}>"
 animation    = f"<{animations[game]:X6}>"
 ramstore     = f"<{ramstores[game]:X6}>"
 
-palStart = 0x111B
-palCount = 27
+palStart = 0x111B   # HMA will insert 3 new palettes for the pokemon starting at this palette ID
+palCount = 27       # HMA will insert 3 new palettes for the pokemon starting at this palette index
 if vm.Model.IsFRLG():
   palStart = 0x110D
   palCount = 18
