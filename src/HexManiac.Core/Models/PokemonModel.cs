@@ -364,7 +364,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             addressForAnchor[reference.Name] = destination;
 
             // update the run, if the new one can drop-in replace the old one. Used for updating field names or general format
-            if (existingRun.Start == replacementRun.Start && existingRun.Length <= replacementRun.Length && existingRun.FormatString != replacementRun.FormatString) {
+            var newLengthReasonable = existingRun.Length <= replacementRun.Length || AllowShorterLength(reference.Name);
+            var sameStartAddress = existingRun.Start == replacementRun.Start;
+            if (sameStartAddress && newLengthReasonable && existingRun.FormatString != replacementRun.FormatString) {
                ObserveAnchorWritten(noChange, reference.Name, replacementRun);
                changedLocations.Add(destination);
             }
@@ -710,6 +712,13 @@ namespace HavenSoft.HexManiac.Core.Models {
          // move utility changes the format of moves.levelup: pointer is now to a series of 4-byte tokens
          if (format.Contains(" level:]!FFFFFFFF>]")) return true;
 
+         return false;
+      }
+
+      private bool AllowShorterLength(string name) {
+         if (this.IsEmerald()) {
+            return name == HardcodeTablesModel.OverworldSprites;
+         }
          return false;
       }
 
