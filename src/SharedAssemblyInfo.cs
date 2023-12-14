@@ -8,8 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
-[assembly: AssemblyVersion("0.5.5")]
-[assembly: AssemblyFileVersion("0.5.5")]
+[assembly: AssemblyVersion("0.5.6")]
+[assembly: AssemblyFileVersion("0.5.6")]
 
 
 // AutoImplement style issues are expected, since it's compatible with earlier versions of C#.
