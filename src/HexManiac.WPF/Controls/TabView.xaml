@@ -680,8 +680,8 @@
                                                    <DataTemplate DataType="{x:Type hsg3hvmtr:EnumTupleElementViewModel}">
                                                       <Grid HorizontalAlignment="Stretch" Margin="2" Width="112" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
                                                          <Grid.ColumnDefinitions>
-                                                            <ColumnDefinition/>
-                                                            <ColumnDefinition Width="2*"/>
+                                                            <ColumnDefinition Width="3*"/>
+                                                            <ColumnDefinition Width="5*"/>
                                                          </Grid.ColumnDefinitions>
                                                          <hsg3hv:AngleBorder Grid.Column="0" Direction="Left">
                                                             <TextBlock Text="{Binding Name}" />

@@ -30,3 +30,11 @@ Offset = 0x000004
 [[OffsetPointer]]
 Address = 0x0C6D84
 Offset = 0x000010
+
+[[OffsetPointer]]
+Address = 0x0BFC8C
+Offset = -8
+
+[[OffsetPointer]]
+Address = 0x0BFCAC
+Offset = -8

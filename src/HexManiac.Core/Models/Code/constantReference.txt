@@ -170,7 +170,43 @@ BPEE0.scripts.ev.cap.stat       06DC48,06DC4E
 - Money cap: The maximum amount of money the player can carry at once. -----------------------------------
 BPEE0::scripts.money.cap        0E5188
 
-
+# Coins
+BPEE0:scripts.coins.cap         12AFF8,12BC1C,12E22C,141C9C,141DC0,145CA8,145CC8
+BPEE0:scripts.coins.cap-1       12ABF4,12BC14,1419CC,145C98
+BPEE0:scripts.coins.cap-49      20FC39
+BPEE0:scripts.coins.cap-499     20FC7B
+BPRE0:scripts.coins.cap         0D05E0
+BPRE0:scripts.coins.cap-1       0D05BC
+BPRE0:scripts.coins.cap-9       16C809
+BPRE0:scripts.coins.cap-19      16C8C0,16C920
+BPRE0:scripts.coins.cap-49      16C73A
+BPRE0:scripts.coins.cap-499     16C70C
+BPRE1:scripts.coins.cap         0D05F4
+BPRE1:scripts.coins.cap-1       0D05D0
+BPRE1:scripts.coins.cap-9       16C881
+BPRE1:scripts.coins.cap-19      16C938,16C998
+BPRE1:scripts.coins.cap-49      16C7B2
+BPRE1:scripts.coins.cap-499     16C784
+BPGE0:scripts.coins.cap         0D05B4
+BPGE0:scripts.coins.cap-1       0D0590
+BPGE0:scripts.coins.cap-9       16C7E5
+BPGE0:scripts.coins.cap-19      16C89C,16C8FC
+BPGE0:scripts.coins.cap-49      16C716
+BPGE0:scripts.coins.cap-499     16C6E8
+BPGE1:scripts.coins.cap         0D05C8
+BPGE1:scripts.coins.cap-1       0D05A4
+BPGE1:scripts.coins.cap-9       16C85D
+BPGE1:scripts.coins.cap-19      16C914,16C974
+BPGE1:scripts.coins.cap-49      16C78E
+BPGE1:scripts.coins.cap-499     16C760
+AXVE0:scripts.coins.cap         11A87C,11A894
+AXVE0:scripts.coins.cap-1       11A85A
+AXPE0:scripts.coins.cap         11A87C,11A894
+AXPE0:scripts.coins.cap-1       11A85A
+AXVE1:scripts.coins.cap         11A89C,11A8B4
+AXVE1:scripts.coins.cap-1       11A87A
+AXPE1:scripts.coins.cap         11A89C,11A8B4
+AXPE1:scripts.coins.cap-1       11A87A
 
 - Other -------------------------------------------------------------------------------------------------------------------------
 # TryProduceOrHatchEgg
@@ -185,6 +221,13 @@ BPRE0.scripts.daycare.exp.multiplier 0462E8,0463D4 # Picking an even number will
 BPRE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will prevent new eggs from being created.
 BPGE0.scripts.daycare.exp.multiplier 0462E8,0463D4 # Picking an even number will prevent new eggs from being created.
 BPGE1.scripts.daycare.exp.multiplier 0462FC,0463E8 # Picking an even number will prevent new eggs from being created.
+
+# data.battle.text length
+BPRE0:data.battle.textlength+11 0D77C8
+BPGE0:data.battle.textlength+11 0D779C
+BPRE1:data.battle.textlength+11 0D77DC
+BPGE1:data.battle.textlength+11 0D77B0
+
 
 # Intro
 AXVE0:scripts.newgame.money 052F4C
@@ -219,6 +262,23 @@ BPGE1.scripts.newgame.start.bank 054A18
 BPGE1.scripts.newgame.start.map  054A1A
 BPGE1.scripts.newgame.start.x    054A1C
 BPGE1.scripts.newgame.start.y    054A14
+
+BPRE0.scripts.newgame.heal.bank  0BFD6C
+BPRE0.scripts.newgame.heal.map   0BFD70
+BPRE0.scripts.newgame.heal.x     0BFD74
+BPRE0.scripts.newgame.heal.y     0BFD78
+BPGE0.scripts.newgame.heal.bank  0BFD40
+BPGE0.scripts.newgame.heal.map   0BFD44
+BPGE0.scripts.newgame.heal.x     0BFD48
+BPGE0.scripts.newgame.heal.y     0BFD4C
+BPRE1.scripts.newgame.heal.bank  0BFD80
+BPRE1.scripts.newgame.heal.map   0BFD84
+BPRE1.scripts.newgame.heal.x     0BFD88
+BPRE1.scripts.newgame.heal.y     0BFD8C
+BPGE1.scripts.newgame.heal.bank  0BFD54
+BPGE1.scripts.newgame.heal.map   0BFD58
+BPGE1.scripts.newgame.heal.x     0BFD5C
+BPGE1.scripts.newgame.heal.y     0BFD60
 
 # Ruby, Sapphire, and Emerald spawn the player in the middle of the truck instead of predefined coordinates.
 AXVE0.scripts.newgame.start.bank 052E0E
@@ -387,11 +447,38 @@ BPRE1.scripts.evolution.count-1  042FBE
 BPGE1.scripts.evolution.count-1  042FBE
 BPEE0.scripts.evolution.count-1  06D180
 
+# item count limiter
+BPRE0:data.items.count 098998,09B3D0,10864C,10DA14,13D428
+BPGE0:data.items.count 09896C,09B3A4,108624,10D9EC,13D400
+BPRE1:data.items.count 0989AC,09B3E4,1086C4,10DA8C,13D4A0
+BPGE1:data.items.count 098980,09B3B8,10869C,10DA64,13D478
+BPEE0:data.items.count 1B0014
+
 # data.abilities.pickup.items limiter
 BPRE0.data.abilities.pickup.length-2 02CEEC
 BPGE0.data.abilities.pickup.length-2 02CEEC
 BPRE1.data.abilities.pickup.length-2 02CF00
 BPGE1.data.abilities.pickup.length-2 02CF00
+
+# data.maps.heal.map limiter
+AXVE0.data.maps.heal.length-1        0FA898
+AXVE0.data.maps.heal.length          0FA8D2
+AXPE0.data.maps.heal.length-1        0FA898
+AXPE0.data.maps.heal.length          0FA8D2
+AXVE1.data.maps.heal.length-1        0FA8B8
+AXVE1.data.maps.heal.length          0FA8F2
+AXPE1.data.maps.heal.length-1        0FA8B8
+AXPE1.data.maps.heal.length          0FA8F2
+BPRE0.data.maps.heal.length-1        0BFC7C
+BPRE0.data.maps.heal.length          0BFCB6
+BPGE0.data.maps.heal.length-1        0BFC50
+BPGE0.data.maps.heal.length          0BFC8A
+BPRE1.data.maps.heal.length-1        0BFC90
+BPRE1.data.maps.heal.length          0BFCCA
+BPGE1.data.maps.heal.length-1        0BFC64
+BPGE1.data.maps.heal.length          0BFC9E
+BPEE0.data.maps.heal.length-1        122C88
+BPEE0.data.maps.heal.length          122CC2
 
 # maximum flash level
 BPEE0.scripts.moves.flash.maxlevel-1 54FE78
@@ -416,10 +503,15 @@ BPGE1.scripts.games.safari.balls.count 0A0EBA
 BPEE0.scripts.games.safari.balls.count 0FC0E6
 
 # overworld table limiters (credit to phoenixbound)
+AXVE0.graphics.overworld.tablelength-1 05BC28
+AXPE0.graphics.overworld.tablelength-1 05BC2C
+AXVE1.graphics.overworld.tablelength-1 05BC48
+AXPE1.graphics.overworld.tablelength-1 05BC4C
 BPRE0.graphics.overworld.tablelength-1 05F2E0
 BPRE1.graphics.overworld.tablelength-1 05F2F4
 BPGE0.graphics.overworld.tablelength-1 05F2E0
 BPGE1.graphics.overworld.tablelength-1 05F2F4
+BPEE0.graphics.overworld.tablelength-1 08E6C4
 
 # firstpersonview table length
 BPRE0.graphics.firstpersonview.count-1 0F8104
@@ -430,6 +522,11 @@ BPRE0.graphics.firstpersonview.count   0F8108,0F8126,0F81AC,0F8552,0F857A
 BPGE0.graphics.firstpersonview.count   0F80E0,0F80FE,0F8184,0F852A,0F8552
 BPRE1.graphics.firstpersonview.count   0F8180,0F819E,0F8224,0F85CA,0F85F2
 BPGE1.graphics.firstpersonview.count   0F8158,0F8176,0F81FC,0F85A2,0F85CA
+
+BPRE0.data.items.teachy.count          479374
+BPGE0.data.items.teachy.count          478C50
+BPRE1.data.items.teachy.count          4793D4
+BPGE1.data.items.teachy.count          478CC0
 
 # not really sure about this...
 BPRE0.scripts.seagallop.count-1 147148

@@ -1,0 +1,202 @@
+﻿﻿# Add support for extended overworld sprites
+# Needs modifications if you've expanded your overworld palette table.
+# First, set an OW's graphics to 240 or higher
+# (for loading graphics info from graphics vars gfx0 through gfxF)
+# --- --- --- --- --- ---
+# Leave the gfx var as 0 and you'll load from the original table.
+# This means that you can extend the original table up to 255.
+# --- --- --- --- --- ---
+# Set the gfx var to the pokemon ID you want, +10000.
+# For example, Ratatta would be 10019.
+# Your pokemon icon will appear as the sprite for that OW.
+# --- --- --- --- --- ---
+# Set the gfx var to the index from graphics.overworld.sprites20k, +20000
+# For example, slot 13 in the table would be 20013.
+# Your sprites from the 20k table will appear for that OW.
+
+# For more info, see: https://github.com/haven1433/HexManiacAdvance/wiki/Scripts---Expand-Overworld-Sprites
+
+.python
+
+vm = editor.SelectedTab
+distributions = {
+  "AXVE0": 0x3711F4,
+  "AXPE0": 0x371184,
+  "AXVE1": 0x37120C,
+  "AXPE1": 0x37119C,
+  "BPRE0": 0x3A3718,
+  "BPGE0": 0x3A36F8,
+  "BPRE1": 0x3A3788,
+  "BPGE1": 0x3A3768,
+  "BPEE0": 0x50951C,
+}
+sizedraws = {
+  "AXVE0": 0x371334,
+  "AXPE0": 0x3712C4,
+  "AXVE1": 0x37134C,
+  "AXPE1": 0x3712DC,
+  "BPRE0": 0x3A37F0,
+  "BPGE0": 0x3A37D0,
+  "BPRE1": 0x3A3860,
+  "BPGE1": 0x3A3840,
+  "BPEE0": 0x5095F4,
+}
+animations = {
+  "AXVE0": 0x371010,
+  "AXPE0": 0x370FA0,
+  "AXVE1": 0x371028,
+  "AXPE1": 0x371FB8,
+  "BPRE0": 0x3A3368,
+  "BPGE0": 0x3A3348,
+  "BPRE1": 0x3A33D8,
+  "BPGE1": 0x3A33B8,
+  "BPEE0": 0x5092E8,
+}
+ramstores = {
+  "AXVE0": 0x1E2910,
+  "AXPE0": 0x1E28A0,
+  "AXVE1": 0x1E2928,
+  "AXPE1": 0x1E28B8,
+  "BPRE0": 0x231CFC,
+  "BPGE0": 0x231CD8,
+  "BPRE1": 0x231D6C,
+  "BPGE1": 0x231D48,
+  "BPEE0": 0x2EC6A8,
+}
+
+game = vm.Model.GetGameCode()
+distribution = f"<{distributions[game]:X6}>"
+sizedraw     = f"<{sizedraws[game]:X6}>"
+animation    = f"<{animations[game]:X6}>"
+ramstore     = f"<{ramstores[game]:X6}>"
+
+palStart = 0x111B   # HMA will insert 3 new palettes for the pokemon starting at this palette ID
+palCount = 27       # HMA will insert 3 new palettes for the pokemon starting at this palette index
+if vm.Model.IsFRLG():
+  palStart = 0x110D
+  palCount = 18
+elif vm.Model.IsEmerald():
+  palStart = 0x1124
+  palCount = 35
+
+# Add new palettes
+vm.Edit(f'''
+@graphics.overworld.palettes/{palCount}
++ <graphics.pokemon.icons.palettes/0/palette/> {palStart+0:X4} 0
++ <graphics.pokemon.icons.palettes/1/palette/> {palStart+1:X4} 0
++ <graphics.pokemon.icons.palettes/2/palette/> {palStart+2:X4} 0
+''')
+
+# Add new overworld-sprites table for pokemon icons
+icons = graphics.pokemon.icons.sprites
+name = "graphics.overworld.pokemon"
+anchor = f"^{name}[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<> ramstore<> sprite<`ucs4x4x8|graphics.pokemon.icons.index`> spriteLength: unused:]data.pokemon.names"
+vm.Edit(f"@{name}({44*len(data.pokemon.names):X4}) @!00({44*len(data.pokemon.names)}) {anchor} ")
+for i in range(len(data.pokemon.names)):
+  pal = int(graphics.pokemon.icons.index[i].index)
+  vm.Edit(f"FFFF {palStart+pal:X4} 11FF 512 32 32 (10 0 true false) Feet 0 {distribution} {sizedraw} {animation} <graphics.overworld.pokemon/{i}/sprite> {ramstore} <graphics.pokemon.icons.sprites/{i}/icon/> 512 0 ")
+
+# Add new expandable overworld-sprites table
+name = "graphics.overworld.sprites20k"
+anchor = f"^{name}[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]10"
+vm.Edit(f"@{name}({360:X4}) @!00(360) {anchor} ")
+for i in range(10):
+  vm.Edit(f"FFFF 1100 11FF 0 0 0 (10 0 false false) Feet 0 {distribution} {sizedraw} {animation} <null> {ramstore} ")
+
+.end
+
+# ClearTempFieldEventData -> also clear gfx vars
+@!game(AXVE0)       @06906C
+@!game(AXPE0)       @069070
+@!game(AXVE1)       @06908C
+@!game(AXPE1)       @069090
+@!game(BPRE0_BPGE0) @06E110
+@!game(BPRE1_BPGE1) @06E124
+@!game(BPEE0)       @09D344
+@!game(All)         ^thumb.event_data.ClearTempFieldEventData
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @thumb.event_data.ClearTempFieldEventData+10 40
+@!game(BPRE0_BPGE0_BPRE1_BPGE1) @thumb.event_data.ClearTempFieldEventData+18 40
+@!game(BPEE0)                   @thumb.event_data.ClearTempFieldEventData+14 40
+
+# Update code to load new table
+@!game(AXVE0)       @05BC10
+@!game(AXPE0)       @05BC14
+@!game(AXVE1)       @05BC30
+@!game(AXPE1)       @05BC34
+@!game(BPRE0_BPGE0) @05F2C8
+@!game(BPRE1_BPGE1) @05F2DC
+@!game(BPEE0)       @08E694
+@!game(All)         ^thumb.event_object_movement.GetObjectEventGraphicsInfo
+
+@!game(AXVE0)       @05BC40
+@!game(AXPE0)       @05BC44
+@!game(AXVE1)       @05BC60
+@!game(AXPE1)       @05BC64
+@!game(BPRE0_BPGE0) @05F2F8
+@!game(BPRE1_BPGE1) @05F30C
+@!game(BPEE0)       @08E6DC
+@!game(All)         ^thumb.event_object_movement.SetObjectEventDynamicGraphicsId
+
+@!game(AXVE0)       @069254
+@!game(AXPE0)       @069258
+@!game(AXVE1)       @069274
+@!game(AXPE1)       @069278
+@!game(BPRE0_BPGE0) @06E568
+@!game(BPRE1_BPGE1) @06E57C
+@!game(BPEE0)       @09D694
+@!game(All)         ^thumb.event_data.VarGet
+
+
+@thumb.event_object_movement.TryGetPokemonOverworld(70) .thumb
+    mov   r0, r1       @ r1 is the OW id (0-255)
+    add   r0, r0, #16
+    lsl   r0, r0, #24
+    lsr   r0, r0, #24  @ r0 is the graphics id (0x0-0xF)
+    push {r4}
+    r4 = r0            @ r4 = graphics id (0x0-0xF)
+    r1 = 0x4010
+    r0 += r1
+    thumb.event_data.VarGet()
+    if r0 == 0 {
+      @ no variable set
+      @ just return from r4
+      r1 = <graphics.overworld.sprites>
+      r4 += 240
+      r4 <<= 2
+      ldr r0, [r1, r4] @ r0 = address of overworld sprite entry
+      pop {r4}
+      pop {pc}  @ return graphics.overworld.sprites[index]
+    }
+    r1 = 10000
+    r0 -= r1
+    if r0 >= 0 {
+      pop {r4}
+      if r0 >= r1 {
+        @ use secondary overworld sprites table
+        r0 -= r1
+        r1 = <graphics.overworld.sprites20k>
+        r2 = 36
+      } else {
+        @ use pokemon overworld sprites table
+        r1 = <graphics.overworld.pokemon>
+        r2 = 44
+      }
+      r0 *= r2
+      r0 += r1  @ r0 = address of overworld sprite entry
+      pop {pc} @ return graphics.overworld.sprites20k[gfx-20000] or graphics.overworld.pokemon[gfx-10000]
+    }
+    r0 = r4  @ graphics id
+    pop  {r4}
+    ldr   r2 =<thumb.event_object_movement.GetObjectEventGraphicsInfo>
+    r2 += 19
+    bx r2
+.end
+
+@thumb.event_object_movement.GetObjectEventGraphicsInfo+02 01 1C EF 29 07 D9 00 48 00 47 <thumb.event_object_movement.TryGetPokemonOverworld+1> 00 00
+
+@thumb.event_object_movement.SetObjectEventDynamicGraphicsId .thumb
+  push {lr}
+  pop  {pc}
+.end
+
+@graphics.overworld.sprites20k

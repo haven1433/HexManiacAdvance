@@ -49,6 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          isText = new StubCommand();
 
       private readonly object threadlock = new();
+      private readonly IFileSystem fs;
 
       private MapEditorViewModel mapper;
       public bool HasValidMapper => mapper?.IsValidState ?? false;
@@ -244,7 +245,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      var bestMaps = maps.Where(info => info.Name.Contains(str)).ToList();
                      if (bestMaps.Count == 1) gotoMap = bestMaps[0];
                   }
-                  if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(m.Name.Split('(', ')')[1])) && mapper != null && !str.TryParseHex(out _)) {
+                  string ExtractShortName(MapInfo map) {
+                     var parts = map.Name.Split(".").ToList();
+                     parts.RemoveAt(parts.Count - 1);
+                     return ".".Join(parts.Skip(2));
+                  }
+                  if (maps.Count >= 1 && maps.All(m => maps[0].Name.Contains(ExtractShortName(m))) && mapper != null && !str.TryParseHex(out _)) {
                      gotoMap = maps[0];
                   } else if (str.Contains("(") && str.Contains(")")) {
                      foreach (var map in maps) {
@@ -670,7 +676,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       private void CloseExecuted(IFileSystem fileSystem) {
-         if (!history.IsSaved && ownsHistory) {
+         if (!history.IsSaved && Model.ReferenceCount == 1) {
             var metadata = Model.ExportMetadata(RefTable, Singletons.MetadataInfo);
             var result = fileSystem.TrySavePrompt(new LoadedFile(FileName, Model.RawData));
             if (result == null) return;
@@ -679,6 +685,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                history.TagAsSaved();
             }
          }
+         Model.ReferenceCount -= 1;
+
          Closed.Raise(this);
       }
 
@@ -1028,12 +1036,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ViewPort(string fileName, IDataModel model, IWorkDispatcher dispatcher, Singletons singletons = null, MapTutorialsViewModel tutorials = null, IFileSystem fs = null, PythonTool pythonTool = null, ChangeHistory<ModelDelta> changeHistory = null, EventTemplate eventTemplate = null) {
          Singletons = singletons ?? new Singletons();
+         this.fs = fs;
          this.docs = new List<DocLabel>();
          if (model.Count >= 0x100 && Singletons.DocReference.TryGetValue(model.GetGameCode().Substring(4), out var docs)) {
             this.docs = docs;
          }
          PythonTool = pythonTool;
          ownsHistory = changeHistory == null;
+         model.ReferenceCount += 1;
 
          history = changeHistory ?? new ChangeHistory<ModelDelta>(RevertChanges);
          history.PropertyChanged += HistoryPropertyChanged;
@@ -1106,11 +1116,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       private bool ignoreFurtherCommands = false;
       private void ImplementCommands() {
          undoWrapper.CanExecute = history.Undo.CanExecute;
-         undoWrapper.Execute = arg => { history.Undo.Execute(arg); tools.RefreshContent(); };
+         undoWrapper.Execute = arg => {
+            history.Undo.Execute(arg);
+            if (!ownsHistory) RefreshBackingData();
+            tools.RefreshContent();
+         };
          history.Undo.CanExecuteChanged += (sender, e) => undoWrapper.CanExecuteChanged.Invoke(undoWrapper, e);
 
          redoWrapper.CanExecute = history.Redo.CanExecute;
-         redoWrapper.Execute = arg => { history.Redo.Execute(arg); tools.RefreshContent(); };
+         redoWrapper.Execute = arg => {
+            history.Redo.Execute(arg);
+            if (!ownsHistory) RefreshBackingData();
+            tools.RefreshContent();
+         };
          history.Redo.CanExecuteChanged += (sender, e) => redoWrapper.CanExecuteChanged.Invoke(redoWrapper, e);
 
          clear.CanExecute = CanAlwaysExecute;
@@ -1488,15 +1506,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Refresh();
       }
 
+      bool inPythonScript = false;
       /// <summary>
       /// The primary Edit method.
       /// If the edit is large, this will create a loading bar that runs from 0 to 100%,
       /// with parts of the edit split off to happen over time.
       /// </summary>
       public void Edit(string input) {
-         if (UpdateInProgress) return;
+         if (UpdateInProgress && !inPythonScript) return;
          lock (threadlock) {
             UpdateInProgress = true;
+            if (inPythonScript) {
+               // no chunking / history changes: just do it all here
+               EditHelper(input, input.Length);
+               return;
+            }
             CurrentProgressScopes.Insert(0, tools.DeferUpdates);
             initialWorkLoad = input.Length;
             postEditWork = 0;
@@ -1598,10 +1622,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   i += pythonLength - 1;
                   // note that we're ignoring any non-error result here
                   var pythonContent = Environment.NewLine.Join(lines.Skip(1).Take(lines.Length - 2));
-                  var result = PythonTool.RunPythonScript(pythonContent);
-                  if (result.HasError && !result.IsWarning) {
-                     RaiseError(result.ErrorMessage);
-                     exitEditEarly = true;
+                  using (Scope(ref inPythonScript, true, val => inPythonScript = val)) {
+                     var result = PythonTool.RunPythonScript(pythonContent);
+                     if (result.HasError && !result.IsWarning) {
+                        RaiseError(result.ErrorMessage);
+                        exitEditEarly = true;
+                     }
                   }
                } else {
                   Edit(input[i]);
@@ -2478,8 +2504,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       }
 
       public void OpenDexReorderTab(string dexTableName) {
-         var newTab = new DexReorderTab(this, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
-         RequestTabChange(this, new(newTab));
+         var newTab = new DexReorderTab(fs, this, dexTableName, HardcodeTablesModel.DexInfoTableName, dexTableName == HardcodeTablesModel.NationalDexTableName);
+         var args = new TabChangeRequestedEventArgs(newTab);
+         RequestTabChange(this, args);
+         if (!args.RequestAccepted) mapper?.RaiseRequestTabChange(args);
       }
 
       public void OpenImageEditorTab(int address, int spritePage, int palettePage, int preferredTileWidth = -1) {
@@ -2671,7 +2699,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
             // do the actual search now that we know places to start
-            var foundCount = Model.ConsiderResultsAsTextRuns(() => history.CurrentChange, startPlaces);
+            var foundCount = Model.ConsiderResultsAsTextRuns( () => history.InsertCustomChange(new NoDataChangeDeltaModel()), startPlaces);
             if (foundCount == 0) {
                OnError?.Invoke(this, "Failed to automatically find text at that location.");
             } else {
@@ -3001,6 +3029,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// 00(32)   -> Write 32 bytes of zero. Error if we're not in freespace (FF).
       ///             * Does not error if clearing a subset (or entire) table, so long as the clear matches a multiple of a row length. Still clears that data though.
       ///             * Does not error if clearing exactly the length of a non-table run. Don't clear the data either: all 0's may not be valid (such as with strings)
+      /// FF(0x20) -> Write 0x20 bytes of FF. Errors if there's any metadata. Used for deleting unused bytes.
       /// put(1234)-> put the bytes 12, then 34, at the current location, but don't change the current selection.
       ///             works no matter what the current data is.
       /// importimage(path, greedy) -> imports over the current sprite (or pointer to sprite) using cautious, greedy, or smart.
@@ -3045,6 +3074,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
                exitEditEarly = true;
+            }
+         } else if (command.StartsWith("ff(")&&paramsEnd>3&&command.Substring(3,paramsEnd-3).TryParseInt(out length)) {
+            var currentRun = Model.GetNextRun(index);
+            if (currentRun.Start < index || (currentRun.Start == index && currentRun is not NoInfoRun) || (currentRun.Start > index && currentRun.Start < index + length)) {
+               RaiseError($"Writing {length} FF bytes would overwrite formatted data.");
+               exitEditEarly = true;
+            } else {
+               for (int i = 0; i < length; i++) CurrentChange.ChangeData(Model, index + i, 0xFF);
             }
          } else if (command.StartsWith("game(") && paramsEnd > 5) {
             var content = command.Substring(5, paramsEnd - 5).ToLower();
@@ -3330,7 +3367,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                for (int i = 0; i < fullLength; i++) {
                   bool possibleMatch = FindBytes.Length > 0;
                   for (int j = 0; j < FindBytes.Length; j++) {
-                     if (DataOffset + i + j >= Model.Count || Model[DataOffset + i + j] != FindBytes[j]) {
+                     if (!(DataOffset + i + j).InRange(0, Model.Count) || Model[DataOffset + i + j] != FindBytes[j]) {
                         possibleMatch = false;
                         break;
                      }
@@ -3338,11 +3375,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (!possibleMatch) continue;
                   for (int j = 0; j < FindBytes.Length; j++) {
                      var (x, y) = ((i + j) % Width, (i + j) / Width);
-                     if (currentView[x, y].Format is None) {
-                        currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
-                     } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
-                        var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
-                        currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                     if (y < Height) {
+                        if (currentView[x, y].Format is None) {
+                           currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, None.ResultInstance);
+                        } else if (currentView[x, y].Format is Anchor anchor && anchor.OriginalFormat is None) {
+                           var newWrapper = new Anchor(None.ResultInstance, anchor.Name, anchor.Format, anchor.Sources);
+                           currentView[x, y] = new HexElement(currentView[x, y].Value, currentView[x, y].Edited, newWrapper);
+                        }
                      }
                   }
                   i += FindBytes.Length - 1;

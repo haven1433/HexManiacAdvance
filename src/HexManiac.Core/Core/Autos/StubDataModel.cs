@@ -32,6 +32,8 @@ namespace HavenSoft.HexManiac.Core.Models
             }
         }
 
+        public int ReferenceCount { get; set; }
+
         public bool SpartanMode { get; set; }
 
         public delegate System.Collections.Generic.IEnumerable<T> AllDelegate_<T>() where T : Runs.IFormattedRun;

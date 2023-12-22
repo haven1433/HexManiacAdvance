@@ -389,7 +389,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                   if (toParse == "leveluphealth") editScope.Result.Arg = HealthRestore_FromLevelUp;
                   else if (toParse == "half") editScope.Result.Arg = HealthRestore_Half;
                   else if (toParse == "max") editScope.Result.Arg = HealthRestore_Max;
-                  else if (sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.Arg = parseInt;
+                  else if (short.TryParse(pair.Value, out var parseShort)) editScope.Result.Arg = parseShort;
                }
 
                if (pair.Key == "lowhappinesschange" && editScope.Result.HasLowHappinessByte && sbyte.TryParse(pair.Value, out parseInt)) editScope.Result.LowHappinessChange = parseInt;

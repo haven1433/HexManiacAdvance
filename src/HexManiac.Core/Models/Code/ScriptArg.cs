@@ -125,7 +125,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
          if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
-            if (preferHex || value == int.MinValue || Math.Abs(value) >= 0x4000) {
+            preferHex |= Math.Abs(value).InRange(0x4000, 20000) || Math.Abs(value) > 20100;
+            if (preferHex || value == int.MinValue) {
                return "0x" + ((uint)(value - EnumOffset)).ToString($"X{length * 2}");
             } else {
                if (bytes == 1 && preferSign) value = (sbyte)value;
@@ -169,7 +170,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
-               builder.Append(labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script));
+               builder.Append($"<{labels.AddressToLabel(address + Pointer.NULL, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script)}>");
             } else {
                address -= 0x8000000;
                builder.Append($"<{labels.AddressToLabel(address, Type == ArgType.Pointer && PointerType == ExpectedPointerType.Script)}>");
@@ -220,6 +221,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                value = Pointer.NULL + DeferredStreamToken.AutoSentinel;
             } else if (labels.TryResolveLabel(token, out value)) {
                // resolved to an address
+            } else if (token == "null") {
+               value = Pointer.NULL;
             } else if (token.TryParseHex(out value)) {
                // pointer *is* an address: nothing else to do
                if (value > -Pointer.NULL) value += Pointer.NULL;

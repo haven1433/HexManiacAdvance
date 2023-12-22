@@ -787,6 +787,8 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (context.ContentBoundaryCount > 0 && body != null) return GetContentHelp(model, body, context);
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
+         // match linecode (if there is one)
+         if (tokens.Length > 1 && candidates.Any(candidate => candidate.LineCode.Count > 1) && tokens[1].TryParseInt(out var num)) candidates = candidates.Where(line => line.LineCode.Count == 1 || line.LineCode[1] == num).ToList();
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
@@ -833,7 +835,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
 
-         if (candidates.Count > 10) return null;
+         if (candidates.Count > 15) return null;
          if (candidates.Count == 0) return null;
 
          string partialDocumentation = string.Empty;
@@ -867,7 +869,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          var bestMatch = candidates.FirstOrDefault(candidate => tokens[0].Contains(candidate.LineCommand));
          if (bestMatch != null) {
-            if (bestMatch.CountShowArgs() == tokens.Length - 1) return null;
+            if (bestMatch.CountShowArgs() + bestMatch.LineCode.Count == tokens.Length) return null;
             return bestMatch.Usage + Environment.NewLine + Environment.NewLine.Join(bestMatch.Documentation);
          }
          return string.Join(Environment.NewLine, candidates.Select(line => line.Usage));

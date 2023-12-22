@@ -770,7 +770,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             ImportSpriteAndPalette(fileSystem, pixels, palette);
             return;
          }
-         if (filename == null) return; // they didn't choose a file... they hit cancel. Don't continue trying to import.
+         if (filename == null && paletteRun != null) return; // they didn't choose a file... they hit cancel. Don't continue trying to import.
 
          (short[] image, int width) = fileSystem.LoadImage(filename);
          ImportSpriteAndPalette(fileSystem, image, width);
@@ -834,7 +834,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var displayWidth = PixelWidth;
             var displayHeight = PixelHeight;
             if (Math.Abs(displayWidth * spritePages - width) < Math.Abs(displayWidth - width)) displayWidth *= spritePages;
-            if (Math.Abs(displayHeight * spritePages - height) < Math.Abs(displayHeight - height)) displayHeight *= spritePages;
+            else if (Math.Abs(displayHeight * spritePages - height) < Math.Abs(displayHeight - height)) displayHeight *= spritePages;
             viewPort.RaiseError($"The imported width/height ({width}/{height}) doesn't match the image ({displayWidth}/{displayHeight})!");
          }
          viewPort.Refresh(); // need to refresh in case the model resized during the import
@@ -896,7 +896,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             },
             new VisualOption {
                Option = "Greedy", Index = (int)ImportType.Greedy,
-               ShortDescription = "Ignore other sprites",
+               ShortDescription = $"Break {dependentPageCount - 1} other sprite" + (dependentPageCount > 2 ? "s" : string.Empty),
                Description = "Ignore other images that use this palette. They'll probably look broken and that's ok.",
             },
             new VisualOption {

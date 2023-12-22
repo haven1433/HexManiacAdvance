@@ -385,8 +385,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          var lineStart = line.Substring(0, caretCharacterIndex);
          var lineEnd = line.Substring(caretCharacterIndex);
          var tokens = Tokenize(lineStart);
-         if (ElementContent.Count < tokens.Count) return results;
-         var targetSegment = ElementContent[Math.Max(0, tokens.Count - 1)];
+         var content = ElementContent.Where(seg => seg is not ArrayRunCommentSegment).ToList();
+         if (content.Count < tokens.Count) return results;
+         var targetSegment = content[Math.Max(0, tokens.Count - 1)];
          var currentToken = tokens.Count == 0 ? string.Empty : tokens[tokens.Count - 1];
          if (targetSegment is ArrayRunEnumSegment enumSegment) {
             if (currentToken.StartsWith("\"")) currentToken = currentToken.Substring(1);
@@ -458,7 +459,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (newLine.Length > 0) newLine += ", ";
             newLine += option;
             newLine += lineEnd;
-            if (Tokenize(newLine).Count < ElementContent.Count) newLine += ", ";
+            if (Tokenize(newLine).Count < ElementContent.Where(seg => seg is not ArrayRunCommentSegment).Count()) newLine += ", ";
             yield return new AutocompleteItem(option, newLine);
          }
       }

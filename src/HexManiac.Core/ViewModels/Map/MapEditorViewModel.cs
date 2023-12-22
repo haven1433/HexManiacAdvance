@@ -174,7 +174,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             foreach (var map in VisibleMaps) {
                map.CollisionHighlight = value;
             }
-            DrawMultipleTiles = false;
+            if (tilesToDraw != null) {
+               for (int x = 0; x < tilesToDraw.GetLength(0); x++) {
+                  for (int y = 0; y < tilesToDraw.GetLength(1); y++) {
+                     tilesToDraw[x, y] &= 0x3FF;
+                     tilesToDraw[x, y] |= collisionIndex << 10;
+                  }
+               }
+            }
          }
       }
 
@@ -370,6 +377,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          };
          var (width, height) = (newMap.PixelWidth / newMap.SpriteScale / 16, newMap.PixelHeight / newMap.SpriteScale / 16);
          var (centerX, centerY) = (width / 2, height / 2);
+         if (x == int.MinValue && y == int.MinValue) (x, y) = ((int)centerX, (int)centerY);
          newMap.LeftEdge += (int)((centerX - x) * 16 * newMap.SpriteScale);
          newMap.TopEdge += (int)((centerY - y) * 16 * newMap.SpriteScale);
          UpdatePrimaryMap(newMap);
@@ -541,7 +549,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var mapIndex = map.MapID % 1000;
          var shortcut = model.GotoShortcuts.FirstOrDefault(shortcut => shortcut.DisplayText == "Maps");
          var index = model.GotoShortcuts.IndexOf(shortcut);
-         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.{map.FullName}", "Maps");
+         var newShortcut = new GotoShortcutModel($"data.maps.banks/{groupIndex}/maps/{mapIndex}/map/0/layout/0/blockmap/", $"maps.bank{groupIndex}.{map.FullName}", "Maps");
          model.UpdateGotoShortcut(index, newShortcut);
          RequestRefreshGotoShortcuts.Raise(this);
       }
@@ -646,8 +654,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var p = ToBoundedMapTilePosition(map, x, y, 1, 1);
             map.HoverPoint = ToPixelPosition(map, x, y);
             if (UpdateHover(map, p.X, p.Y, 1, 1)) {
-               if (!SpartanMode && interactionType == PrimaryInteractionType.None && map.EventUnderCursor(x, y, false) is BaseEventViewModel ev) {
-                  return ShowEventHover(map, ev);
+               if (!SpartanMode && interactionType == PrimaryInteractionType.None) {
+                  var matches = map.EventsUnderCursor(x, y, false).OfType<BaseEventViewModel>().ToList();
+                  if (matches.Count > 0) {
+                     return ShowEventHover(map, matches);
+                  } else {
+                     return EmptyTooltip;
+                  }
                } else {
                   return EmptyTooltip;
                }
@@ -726,9 +739,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          PrimaryMap = map;
 
          var prevEvent = SelectedEvent;
-         var ev = map.EventUnderCursor(x, y);
-         if (ev != null) {
-            EventDown(ev, click);
+         var ev = map.EventsUnderCursor(x, y);
+         if (ev != null && ev.Count > 0) {
+            EventDown(ev.Last(), click);
             return;
          } else {
             if (prevEvent != null) Tutorials.Complete(Tutorial.ClickMap_UnselectEvent);
@@ -1014,6 +1027,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (type == EventCreationType.Object) {
             var objectEvent = primaryMap.CreateObjectEvent(0, Pointer.NULL);
             if (objectEvent == null) return;
+            if (templates.SelectedTemplate == TemplateType.Trainer) {
+               var dexName = HardcodeTablesModel.RegionalDexTableName;
+               if (templates.UseNationalDex) dexName = HardcodeTablesModel.NationalDexTableName;
+               if (model.GetTable(dexName) == null) {
+                  ViewPort.RaiseError($"Cannot create trainer without pokedex table {dexName}.");
+                  return;
+               }
+            }
             templates.ApplyTemplate(objectEvent, history.CurrentChange);
             SelectedEvent = objectEvent;
             if (objectEvent.ScriptAddress != Pointer.NULL) primaryMap.InformCreate(new("Object-Event", objectEvent.ScriptAddress));
@@ -1083,9 +1104,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          SelectedEvent = null;
          selectDownPosition = ToBoundedMapTilePosition(map, x, y, 1, 1);
          UpdateHover(PrimaryMap, selectDownPosition.X, selectDownPosition.Y, 1, 1);
-         var ev = map.EventUnderCursor(x, y);
-         if (ev != null) {
-            ShowEventContextMenu(ev);
+         var ev = map.EventsUnderCursor(x, y);
+         if (ev != null && ev.Count > 0) {
+            ShowEventContextMenu(ev.Last());
             return SelectionInteractionResult.ShowMenu;
          }
          if (blockIndex >= 0) {
@@ -1251,44 +1272,50 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private object[] ShowEventHover(BlockMapViewModel map, BaseEventViewModel ev) {
+      private object[] ShowEventHover(BlockMapViewModel map, IReadOnlyList<BaseEventViewModel> matches) {
+         if (matches == null || matches.Count == 0) return null;
          var tips = new List<object>(); // ReadOnlyPixelViewModel and string
-         if (ev is WarpEventViewModel warp) {
-            if (!warp.WarpIsOnWarpableBlock(model, new LayoutModel(map.GetLayout()))) {
-               tips.Add($"(This block's Behavior doesn't allow warping.)");
-            }
-            tips.Add(warp.TargetMapName);
-            var banks = AllMapsModel.Create(warp.Element.Model, default);
-            if (banks[warp.Bank] == null) return tips.ToArray();
-            if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
-               var targetWarp = warp.WarpModel.TargetWarp;
-               if (targetWarp != null) {
-                  var image = GetMapPreview(warp.Bank, warp.Map, targetWarp.X, targetWarp.Y);
-                  if (image != null) {
-                     tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+         if (matches.Count > 1) {
+            tips.Add($"{matches.Count} events in this cell:");
+         }
+         foreach (var ev in matches) {
+            if (tips.Count > 0) tips.Add("---------------");
+            if (ev is WarpEventViewModel warp) {
+               if (!warp.WarpIsOnWarpableBlock(model, new LayoutModel(map.GetLayout()))) {
+                  tips.Add($"(This block's Behavior doesn't allow warping.)");
+               }
+               tips.Add(warp.TargetMapName);
+               var banks = AllMapsModel.Create(warp.Element.Model, default);
+               if (banks[warp.Bank] == null) return tips.ToArray();
+               if (warp.Bank < banks.Count && warp.Map < banks[warp.Bank].Count) {
+                  var targetWarp = warp.WarpModel.TargetWarp;
+                  if (targetWarp != null) {
+                     var image = GetMapPreview(warp.Bank, warp.Map, targetWarp.X, targetWarp.Y);
+                     if (image != null) {
+                        tips.Add(new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData));
+                     }
                   }
                }
-            }
-         } else if (ev is ObjectEventViewModel obj) {
-            tips.AddRange(SummarizeScript(obj.ScriptAddress));
-         } else if (ev is ScriptEventViewModel script) {
-            tips.AddRange(SummarizeScript(script.ScriptAddress));
-         } else if (ev is SignpostEventViewModel signpost) {
-            if (signpost.CanGotoScript) tips.AddRange(SummarizeScript(signpost.Pointer));
-            if (signpost.ShowHiddenItemProperties) {
-               var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
-               var item = signpost.ItemID;
-               if (item > 0 && item < options.Count) {
-                  tips.Add(options[item]);
-                  var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
-                  if (itemSprites != null) {
-                     var render = itemSprites[item]?.Render("sprite");
-                     if (render != null) tips.Add(render);
+            } else if (ev is ObjectEventViewModel obj) {
+               tips.AddRange(SummarizeScript(obj.ScriptAddress));
+            } else if (ev is ScriptEventViewModel script) {
+               tips.AddRange(SummarizeScript(script.ScriptAddress));
+            } else if (ev is SignpostEventViewModel signpost) {
+               if (signpost.CanGotoScript) tips.AddRange(SummarizeScript(signpost.Pointer));
+               if (signpost.ShowHiddenItemProperties) {
+                  var options = model.GetOptions(HardcodeTablesModel.ItemsTableName);
+                  var item = signpost.ItemID;
+                  if (item > 0 && item < options.Count) {
+                     tips.Add(options[item]);
+                     var itemSprites = model.GetTableModel(HardcodeTablesModel.ItemImagesTableName);
+                     if (itemSprites != null) {
+                        var render = itemSprites[item]?.Render("sprite");
+                        if (render != null) tips.Add(render);
+                     }
                   }
                }
             }
          }
-
          return tips.ToArray();
       }
 
@@ -1595,6 +1622,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (selectedEvent == null) return;
          var success = selectedEvent.Delete();
          if (success) {
+            if (selectedEvent is ObjectEventViewModel objEvent) {
+               foreach (var neighbor in PreferLoaded(GetMapNeighbors(primaryMap, 1))) neighbor.UpdateClone(primaryMap, objEvent, true);
+            }
             SelectedEvent = null;
             primaryMap.RedrawEvents();
          } else {
@@ -1685,7 +1715,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }); }
       public bool IsValid25GridSelection {
          get {
-            if (tilesToDraw == null || tilesToDraw.GetLength(0) != 5 && tilesToDraw.GetLength(1) != 5) return false;
+            if (tilesToDraw == null || tilesToDraw.GetLength(0) != 5 || tilesToDraw.GetLength(1) != 5) return false;
 
             // require like-blocks
             // 25 blocks - 4 corners - 1 center - 4 partial centers - 4 corners - 4 edges = 8 duplicate blocks
@@ -2108,7 +2138,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                }
                var size = layout.GetValue("width") * layout.GetValue("height");
                var start = layout.GetAddress("blockmap");
-               if (start == Pointer.NULL) continue;
+               if (start < 0 || start > model.Count - size * 2) continue;
                for (int i = 0; i < size; i++) {
                   var pair = model.ReadMultiByteValue(start + i * 2, 2);
                   var collision = pair >> 10;

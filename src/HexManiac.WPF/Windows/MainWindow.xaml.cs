@@ -22,6 +22,7 @@ using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
@@ -81,6 +82,11 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       }
 
       private void HandleException(object sender, DispatcherUnhandledExceptionEventArgs e) {
+         if (e.Exception.StackTrace.Contains("SyncFlush")) {
+            HandleRenderFailure(e.Exception);
+            e.Handled = true;
+            return;
+         }
          var text = new StringBuilder();
          text.AppendLine("Version Number: " + ViewModel.Singletons.MetadataInfo.VersionNumber);
 #if DEBUG
@@ -130,6 +136,17 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             new ProcessModel("Copy a crash message to the clipboard", shortError)
          );
          e.Handled = true;
+      }
+
+      private void HandleRenderFailure(Exception ex) {
+         var result = FileSystem.ShowCustomMessageBox("HexManiacAdvance encountered a rendering error." + Environment.NewLine +
+            "The most common render thread failures are associated with video hardware or driver problems." + Environment.NewLine +
+            "Do you want to disable hardware acceleration?");
+         if (result == true) {
+            var hwndSource = (HwndSource)PresentationSource.FromVisual(this);
+            var hwndTarget = hwndSource.CompositionTarget;
+            hwndTarget.RenderMode = RenderMode.SoftwareOnly;
+         }
       }
 
       private static string ExtractExceptionInfo(Exception ex) {
@@ -217,7 +234,12 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private ICommand CreateQuickEditCommand(IQuickEditItem edit) {
          var command = new StubCommand {
-            CanExecute = arg => ViewModel.SelectedIndex >= 0 && edit.CanRun(ViewModel[ViewModel.SelectedIndex] as IViewPort),
+            CanExecute = arg => {
+               if (ViewModel.SelectedIndex < 0) return false;
+               var tab = ViewModel[ViewModel.SelectedIndex];
+               if (tab is MapEditorViewModel map) tab = map.ViewPort;
+               return tab is IViewPort && edit.CanRun((IViewPort)tab);
+            },
             Execute = arg => {
                Window window = default;
                window = new Window {
@@ -528,7 +550,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          Dispatcher.BeginInvoke(DispatchAnimation, DispatcherPriority.ApplicationIdle, element);
       }
 
-      private static readonly Duration fastTime = TimeSpan.FromSeconds(.5);
+      private static readonly Duration fastTime = TimeSpan.FromSeconds(.75);
       private void DispatchAnimation(FrameworkElement element) {
          if (element == GotoBox && !ViewModel.GotoViewModel.ShowAll) return;
          var point = element.TranslatePoint(new System.Windows.Point(), ContentPanel);
@@ -584,8 +606,9 @@ namespace HavenSoft.HexManiac.WPF.Windows {
       private void DeveloperRunGarbageCollection(object sender, RoutedEventArgs e) => GC.Collect();
 
       private void DeveloperRenderRomOverview() {
-         var tab = (ViewPort)ViewModel.SelectedTab;
-         var model = tab.Model;
+         var tab = ViewModel.SelectedTab;
+         if (tab is MapEditorViewModel map) tab = map.ViewPort;
+         var model = ((IViewPort)tab).Model;
          int BlockSize = 64, BlockWidth = 16, BlockHeight = 16, BytesPerPixel = 16;
          if (model.Count == 0x2000000) {
             BlockWidth = 32;

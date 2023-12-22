@@ -130,7 +130,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var maps = banks[i].GetSubTable("maps");
             if (maps == null) continue;
             for (int j = 0; j < maps.Count; j++) {
-               var mapText = "maps." + BlockMapViewModel.MapIDToText(model, i, j);
+               var name = BlockMapViewModel.MapIDToText(model, i, j);
+               var mapText = $"maps.bank{i}.{name}";
                results.Add(new(i, j, mapText));
             }
          }

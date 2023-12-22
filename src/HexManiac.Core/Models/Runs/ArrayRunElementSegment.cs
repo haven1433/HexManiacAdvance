@@ -310,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (option.EndsWith("\"")) option = option.Substring(0, option.Length - 1);
             if (option == text) matches.Add(option);
             if (matches.Count == desiredMatch) { value = i; return true; }
-            if (option.MatchesPartial(text, onlyCheckLettersAndDigits: true)) {
+            if (option.MatchesPartial(text, onlyCheckLettersAndDigits: text.Length > 3)) {
                partialMatches.Add(i);
                if (partialMatches.Count == desiredMatch && matches.Count == 0) value = i;
             }
@@ -323,7 +323,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             //   earlier starts
             partialMatches.Sort((a, b) => options[a].SkipCount(text) - options[b].SkipCount(text));
             partialMatches.Sort((a, b) => options[a].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase) - options[b].IndexOf(text[0], StringComparison.CurrentCultureIgnoreCase));
-            value = partialMatches[desiredMatch.LimitToRange(0, partialMatches.Count - 1)];
+            value = partialMatches[(desiredMatch - 1).LimitToRange(0, partialMatches.Count - 1)];
             return true;
          }
 

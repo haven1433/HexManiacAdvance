@@ -215,8 +215,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             } else if ((scriptType == 2 || scriptType == 4) && (arg != 2 && arg != 4)) {
                // if the new type is 2 or 4 and the old type is not, move the current script to be the first SubScript of the new table
                var destination = model.FindFreeSpace(model.FreeSpaceStart, 10);
-               model.WriteMultiByteValue(destination + 0, 2, token, 1);
-               model.WriteMultiByteValue(destination + 2, 2, token, 1);
+               model.WriteMultiByteValue(destination + 0, 2, token, 0x4000); // temp0
+               model.WriteMultiByteValue(destination + 2, 2, token, 0);      // check = 0
+                                                                             // by default, the script will now always run, until you make it stop!
                model.WritePointer(token, destination + 4, address);
                model.WriteMultiByteValue(destination + 8, 2, token, 0);
                model.UpdateArrayPointer(token, default, default, -1, this.start + 1, destination);

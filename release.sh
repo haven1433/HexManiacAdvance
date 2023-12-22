@@ -1,4 +1,13 @@
 
+if [ -z $1 ]; then
+  echo "Do one of these:"
+  echo "./releash.sh build"
+  echo "./releash.sh update"
+  echo "./releash.sh minor"
+  echo "./releash.sh major"
+  exit
+fi
+
 version=`python -m bump $1`
 git commit -a -m "version bump"
 git tag v$version

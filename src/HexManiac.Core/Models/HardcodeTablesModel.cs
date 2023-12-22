@@ -221,13 +221,35 @@ namespace HavenSoft.HexManiac.Core.Models {
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
+         // add item hold effects
+         if (isCFRU && TryGetList("holdeffects", out var holdeffects)) {
+            var newList = new List<string>(holdeffects);
+            newList.AddRange(new[] {
+               "UnusedA", "RockyHelmet", "UnusedB", "AssaultVest",
+               "Eviolite", "Plate", "MegaStone", "LifeOrb",
+               "ToxicOrb", "FlameOrb", "BlackSludge", "SmoothRock",
+               "DampRock", "HeatRock", "IcyRock", "LightClay",
+               "WideLens", "SafetyGoggles", "WeaknessPolicy", "Drive",
+               "Memory", "AdamantOrb", "LustrousOrb", "GriseousOrb",
+               "DestinyKnot", "ExpertBelt", "PrimalOrb", "Gem",
+               "WeaknessBerry", "CustapBerry", "LaggingTail", "IronBall",
+               "BindingBand", "UnusedC", "ProtectivePads", "AbsorbBulb",
+               "AirBalloon", "Bigroot", "CellBattery", "EjectButton",
+               "FloatStone", "GripClaw", "LuminousMoss", "UnusedD",
+               "Metronome", "MuscleBand", "RedCard", "RingTarget",
+               "ShedShell", "Snowball", "StickyBarb", "TerrainExtender",
+               "WiseGlasses", "Seeds", "JabocaRowapBerry", "KeeBerry",
+               "MarangaBerry", "ZoomLens", "AdrenalineOrb", "PowerHerb",
+               "MicleBerry", "EnigmaBerry", "TypeBoosters", "ZCrystal",
+               "AbilityCapsule", "EjectPack", "RoomService", "BlunderPolicy",
+               "HeavyDutyBoots", "UtilityUmbrella", "ThroatSpray",
+            });
+            SetList(new NoDataChangeDeltaModel(), "holdeffects", newList, null, StoredList.GenerateHash(newList));
+         }
+
          foreach (var table in tables) {
             // some tables have been removed from CFRU
-            if (isCFRU && table.Name.IsAny(
-               "graphics.pokemon.sprites.coordinates.front",
-               "data.pokedex.hoennToNational",        // causes problems with pokename count
-               "graphics.pokemon.sprites.anchor"      // causes problems with pokename count
-            )) continue;
+            if (isCFRU && CfruIgnoreTables.Contains(table.Name)) continue;
 
             using (ModelCacheScope.CreateScope(this)) {
                var format = table.Format;
@@ -237,6 +259,13 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          if (isCFRU) SetupCFRUSpecificTablesAndConstants();
       }
+
+      public static readonly IReadOnlyList<string> CfruIgnoreTables = new List<string>() {
+         "graphics.pokemon.sprites.coordinates.front",
+         "data.pokedex.hoennToNational",        // causes problems with pokename count
+         "graphics.pokemon.sprites.anchor",     // causes problems with pokename count
+         "data.pokedex.search.alpha"            // causes problems with shiny palettes
+      };
 
       public void SetupCFRUSpecificTablesAndConstants() {
          ShowRawIVByteForTrainer = true;
@@ -257,6 +286,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          SetList(new NoDataChangeDeltaModel(), "trainerballs", balls, null, StoredList.GenerateHash(balls));
          AddTable(0x1456790, 0, "data.trainers.classes.balls", "[ball.trainerballs]data.trainers.classes.names");
 
+         // randomizer restrictions
+         AddTable(0x1453828, 0, "data.randomizer.species.banlist", $"[species:{PokemonNameTable}]!FEFE");
+         AddTable(0x1454730, 0, "data.randomizer.ability.banlist", $"[ability.{AbilityNamesTable}]!FF");
+
          // physical/special/split list
          var pss = new[] { "Physical", "Special", "Status" };
          SetList(new NoDataChangeDeltaModel(), "movecategory", pss, null, StoredList.GenerateHash(pss));
@@ -271,6 +304,18 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // trainer sprite-based mugshots
          AddTable(0x144FC94, 0, "data.trainers.sprites.mugshots", "[sprite<`lzs4x8x8|data.trainers.sprites.mugshots`> pal<`lzp4`> size: x:|z y:|z unused:]graphics.trainers.sprites.front-0-1");
+
+         // kanto dex
+         // first hword is actually the length of the table - 1
+         // every hword after that is what pokemon appears in that slot of the dex (slot 1, slot 2, etc)
+         AddTable(0x160A52C, 0, "data.pokedex.kanto", "[mon:data.pokemon.names]152");
+
+         // PSS icons/palette
+         if (0x143B0EC < Count - 4) {
+            var spriteStart = ReadPointer(0x143B0EC);
+            AddTableDirect(spriteStart, "graphics.pokemon.moves.category.icons", "`ucs4x3x18|graphics.pokemon.moves.category.palette`");
+            AddTableDirect(spriteStart + 0x6C0, "graphics.pokemon.moves.category.palette", "`ucp4`");
+         }
 
          // z-effects
          var newList = new List<string>();
@@ -410,6 +455,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // type names
          if (name == TypesTableName) format = format.Split("]")[0] + "]24";
 
+         // type icons
+         if (name == "graphics.pokemon.type.icons") format = format.Replace("ucs4x16x16", "ucs4x16x18");
+
          // remove the extra +28 from pokemon-related tables
          if (format.EndsWith(PokemonNameTable + "+28")) format = format.Substring(0, format.Length - 3);
 
@@ -419,7 +467,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          // hidden abilities stored in pokemon stats
          if (name == PokemonStatsTable) format = format.Replace("padding:", $"hiddenAbility.{AbilityNamesTable} padding.");
 
+         // items: no constant
+         if (name == ItemsTableName) format = format.Replace("data.items.count", string.Empty);
+
          // moves
+         if (name == MoveNamesTable) format += "894";
          if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
 
          // level-up moves uses Jambo format

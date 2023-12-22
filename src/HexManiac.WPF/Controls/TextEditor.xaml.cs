@@ -102,7 +102,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       private void HandleViewModelCaretMove(object sender, EventArgs e) {
          var vm = (TextEditorViewModel)sender;
-         TransparentLayer.CaretIndex = vm.CaretIndex;
+         if (TransparentLayer.CaretIndex != vm.CaretIndex) TransparentLayer.CaretIndex = vm.CaretIndex;
       }
 
       private void HandleViewModelRequestKeyboardFocus(object sender, EventArgs e) {

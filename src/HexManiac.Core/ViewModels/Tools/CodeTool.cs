@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
-using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string Name => "Code Tool";
 
       private CodeMode mode;
+      private readonly Singletons singletons;
       private readonly ThumbParser thumb;
       private readonly ScriptParser script, battleScript, animationScript, battleAIScript;
       private readonly ViewPort viewPort;
@@ -33,6 +33,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool UseMultiContent => Mode.IsAny(CodeMode.Script, CodeMode.BattleScript, CodeMode.AnimationScript, CodeMode.TrainerAiScript);
 
       public IDataInvestigator Investigator { get; set; }
+
+      private bool isSelected;
+      public bool IsSelected { get => isSelected; set => Set(ref isSelected, value, old => UpdateContent()); }
 
       private bool insertAutoActive = true;
       public bool InsertAutoActive { get => insertAutoActive; set => Set(ref insertAutoActive, value); }
@@ -94,6 +97,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public double MultiBoxVerticalOffset { get; set; }
 
       public CodeTool(Singletons singletons, ViewPort viewPort, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
+         this.singletons = singletons;
          var gameHash = viewPort.Model.GetShortGameCode();
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(gameHash, singletons.ScriptLines, 0x02);
@@ -143,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void DataForCurrentRunChanged() => UpdateContent();
 
       public void UpdateContent() {
-         if (ignoreContentUpdates) return;
+         if (ignoreContentUpdates || !isSelected) return;
          var start = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionStart));
          var end = Math.Min(model.Count - 1, selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd));
 
@@ -291,6 +295,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          };
          var body = (CodeBody)viewModel;
          body.TryCompleteCommandToken();
+         if (InsertAutoActive && body.TryInsertAuto()) {
+            // update the caret later, or weird stuff happens
+            singletons.WorkDispatcher.DispatchWork(() =>
+               singletons.WorkDispatcher.BlockOnUIWork(() => body.Editor.CaretIndex += 6)
+            );
+         }
          if (InsertAutoActive) body.TryInsertAuto();
          var delta = body.Content.Length - e.OldValue.Length;
          var deltaSize = Math.Abs(delta);
@@ -419,7 +429,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             parser.CompileError += body.WatchForCompileErrors;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, body, out var movedData, out int ignoreCharacterCount);
             parser.CompileError -= body.WatchForCompileErrors;
-            if (originalCodeContent != codeContent) body.SaveCaret(codeContent.Length - previousText.Length - ignoreCharacterCount + caret - body.CaretPosition);
+            if (originalCodeContent != codeContent) body.Editor.CaretIndex = caret + codeContent.Length - previousText.Length - ignoreCharacterCount;
             if (code == null) {
                return;
             }

@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          this.AllowLengthErrors = allowLengthErrors;
          length = IsCompressedLzData(data, start, allowLengthErrors, out bool hasLengthErrors);
          HasLengthErrors = hasLengthErrors;
-         if (data.Count > start + 4) DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
+         if (start.InRange(0, data.Count - 4)) DecompressedLength = data.ReadMultiByteValue(start + 1, 3);
       }
 
       /// <returns>The length of the compressed data</returns>

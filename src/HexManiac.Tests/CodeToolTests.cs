@@ -44,6 +44,7 @@ namespace HavenSoft.HexManiac.Tests {
       public CodeToolTests() {
          Model.LoadMetadata(BaseModel.GetDefaultMetadatas().First()); // load default script-related lists, like script_compare
          SetFullModel(0xFF);
+         Tool.IsSelected = true;
       }
 
       [Fact]
@@ -882,6 +883,13 @@ label2:;goto <000050>;end";
          EventScript = "if.yes.goto <section1>;end;section1:;if.yes.goto <000000>;end";
 
          Assert.Equal(2, Tool.Contents.Count);
+      }
+
+      [Fact]
+      public void Compare_SingleEquals_CompilesToDoubleEquals() {
+         EventScript = "if.compare.goto 0x4000 = 7 <720010>";
+         var expected = "21 00 40 07 00 06 01 10 00 72 08 02".ToByteArray();
+         Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], Model[i]));
       }
    }
 }

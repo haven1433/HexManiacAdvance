@@ -414,6 +414,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else if (firstPart.Count('(') > firstPart.Count(')')) {
                // () pairs should not be split
                firstPart += "." + parts[i];
+            } else if (firstPart.Length == 1) {
+               // signle letters should not be split
+               firstPart += "." + parts[i];
             } else {
                break;
             }
@@ -466,7 +469,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             if (newSection.Tokens.Count == 1) {
                newSection.Tokens[0].IsSelected = true;
                var child = Build(model, filter, docs, previousSections.Concat(new[] { newSection }), includeMatchingMaps); // recursion ftw
-               newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
+               // only do the concatenation if the children are not unreadable long
+               if (child.Tokens.All(token => token.Content.Length < 20)) {
+                  newSection = new GotoLabelSection(newSection.Tokens[0].Content, child.Tokens);
+               } else {
+                  newSection.Tokens[0].IsSelected = false;
+               }
             }
 
             return newSection;
@@ -501,7 +509,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void UpdateHoverTip(IEditableViewPort viewPort, IReadOnlyList<DocLabel> docs, string fullName) {
          var model = viewPort.Model;
-         var matchingMaps = model.GetMatchingMaps(fullName);
+         var matchingMaps = new List<MapInfo>();
+         if (fullName.StartsWith("maps.bank") && fullName.Contains("-")) matchingMaps = model.GetMatchingMaps(fullName);
          var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
          var matchingDoc = docs.FirstOrDefault(doc => doc.Label == fullName);
          if (address != Pointer.NULL) {

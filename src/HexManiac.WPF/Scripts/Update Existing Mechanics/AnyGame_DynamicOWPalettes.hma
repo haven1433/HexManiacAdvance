@@ -1,0 +1,16 @@
+﻿﻿# Add support for dynamic overworld palette slots
+# All 16 palette slots are now dynamically loaded.
+# Slots 11+ may be used special graphics on some maps!
+
+@!game(AXVE0) @05AFCC @!game(AXPE0) @05AFD0
+@!game(AXVE1) @05AFEC @!game(AXPE1) @05AFF0
+@!game(BPRE0_BPGE0)   @05E590
+@!game(BPRE1_BPGE1)   @05E5A4
+@!game(BPEE0)         @08D98C
+@!game(All)   ^thumb.event_object_movement.TrySetupObjectEventSprite
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPGE0_BPRE1_BPGE1)
+  @thumb.event_object_movement.TrySetupObjectEventSprite+56 00 00
+@!game(BPEE0)
+  @thumb.event_object_movement.TrySetupObjectEventSprite+58 00 00
+  @thumb.event_object_movement.TrySetupObjectEventSprite+5C 29 1C

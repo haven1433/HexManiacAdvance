@@ -98,6 +98,14 @@ Offset = 0x000004
 Address = 0x13094C
 Offset = 0x000010
 
+[[OffsetPointer]]
+Address = 0x122CB0
+Offset = -8
+
+[[OffsetPointer]]
+Address = 0x122CD0
+Offset = -8
+
 [[List]]
 Name = '''pokenavTowns'''
 0 = [
@@ -263,7 +271,7 @@ Name = '''specials'''
 0x85 = '''SwapRegisteredBike'''
 0x86 = '''CalculatePlayerPartyCount'''
 0x87 = '''CountPartyNonEggMons'''
-0x88 = '''CountPartyAliveNonEggMons_IgnoreVar0x8004Slot'''
+0x88 = '''CountPartyAliveNonEggMons_IgnoreVar4Slot'''
 0x89 = '''ShouldReadyContestArtist'''
 0x8a = '''SaveMuseumContestPainting'''
 0x8b = '''DoesContestCategoryHaveMuseumPainting'''
@@ -289,7 +297,7 @@ Name = '''specials'''
 0x9f = '''ChooseStarter'''
 0xa0 = '''StartWallyTutorialBattle'''
 0xa1 = '''ChangePokemonNickname'''
-0xa2 = '''ChoosePartyMon'''                     # Selected index will be stored in 0x8004. 0x8004=1 for lead pokemon, 0x8004=6 for last pokemon, 0x8004=7 for cancel. Requires `waitstate` after.
+0xa2 = '''ChoosePartyMon'''                     # Selected index will be stored in var4. var4=1 for lead pokemon, var4=6 for last pokemon, var4=7 for cancel. Requires `waitstate` after.
 0xa3 = '''GetFirstFreePokeblockSlot'''
 0xa4 = '''DoBerryBlending'''
 0xa5 = '''PlayRoulette'''
@@ -327,8 +335,8 @@ Name = '''specials'''
 0xc5 = '''EggHatch'''
 0xc6 = '''CheckDaycareMonReceivedMail'''
 0xc7 = '''ShowLinkBattleRecords'''
-0xc8 = '''IsEnoughForCostInVar0x8005'''
-0xc9 = '''SubtractMoneyFromVar0x8005'''
+0xc8 = '''IsEnoughForCostInVar5'''
+0xc9 = '''SubtractMoneyFromVar5'''
 0xca = '''TryFieldPoisonWhiteOut'''
 0xcb = '''SetCB2WhiteOut'''
 0xcc = '''RotatingGate_InitPuzzle'''
@@ -456,7 +464,7 @@ Name = '''specials'''
 0x146 = '''SetRoute119Weather'''
 0x147 = '''SetRoute123Weather'''
 0x148 = '''GetContestMultiplayerId'''
-0x149 = '''GetPartyMonSpecies'''        # Read party index from 0x8004, return species.
+0x149 = '''GetPartyMonSpecies'''        # Read party index from var4, return species.
 0x14a = '''IsSelectedMonEgg'''
 0x14b = '''TryInitBattleTowerAwardManObjectEvent'''
 0x14c = '''MoveOutOfSecretBaseFromOutside'''
@@ -1308,4 +1316,4 @@ Destination = '''data.items.stats'''
 [[GotoShortcut]]
 Name = '''Maps'''
 Image = '''data.maps.banks/0/maps/9/map/0/layout/0/blockmap/'''
-Destination = '''maps.0-9 '''
+Destination = '''maps.bank0.littleroot town.0-9 '''

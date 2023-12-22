@@ -202,10 +202,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          var primaryMax = BlockmapRun.GetMaxUsedBlock(model, run.Start, run.BlockWidth, run.BlockHeight, run.PrimaryBlocks);
          var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, run.Start, run.BlockWidth, run.BlockHeight, 1024) - run.PrimaryBlocks;
          var blocks = BlockmapRun.ReadBlocks(primaryMax, secondaryMax, blocks1, blocks2);
+         var blockAttributes = BlockmapRun.ReadBlockAttributes(primaryMax, secondaryMax, blocks1, blocks2);
          var tiles = BlockmapRun.ReadTiles(blocks1, blocks2, run.PrimaryTiles);
          var pals = BlockmapRun.ReadPalettes(blocks1, blocks2, run.PrimaryPalettes);
          if (tiles == null || pals == null) return null;
-         var renders = BlockmapRun.CalculateBlockRenders(blocks, tiles, pals).ToList();
+         var renders = BlockmapRun.CalculateBlockRenders(blocks, blockAttributes, tiles, pals).ToList();
          return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }
 

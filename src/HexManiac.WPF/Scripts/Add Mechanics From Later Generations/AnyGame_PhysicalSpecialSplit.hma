@@ -913,9 +913,33 @@ for move in data.pokemon.moves.stats.battle:
   if move.power == 0:
     # Turns all 0 base power moves into status moves as a relatively safe conversion
     move.category = 'Status'
-  elif move.GetValue('type') > 9 and no_values_set:
-    # Turns all previously special moves into special moves (only if no values had been set.)
+  elif not move.info.contact and no_values_set:
+    # Turns all previously non-contact moves into special moves (only if no values had been set.)
     move.category = 'Special'
+
+if no_values_set:
+  # manual fixups of contact-special
+  data.pokemon.moves.stats.battle['Petal Dance'].category = 'Special'
+  
+  # manual fixups of non-contact-physical
+  no_contact_physical = [
+    'Barrage', 'BeatUp',
+    'BoneClub', 'BoneRush',
+    'Bonemerang', 'BulletSeed',
+    'Earthquake', 'EggBomb',
+    'Explosion', 'Fissure',
+    'IcicleSpear', 'Magnitude',
+    'PayDay', 'PinMissile',
+    'PoisonSting', 'Present',
+    'RazorLeaf', 'RockBlast',
+    'RockSlide', 'RockThrow',
+    'RockTomb', 'SacredFire',
+    'SandTomb', 'SecretPower',
+    'SelfDestruct', 'SkyAttack',
+    'SpikeCannon', 'Twineedle'
+  ]
+  for name in no_contact_physical:
+    data.pokemon.moves.stats.battle[name].category = 'Physical'
 
 print('Physical/Special Split applied.\nThanks AGSMGMaster64!')
 .end

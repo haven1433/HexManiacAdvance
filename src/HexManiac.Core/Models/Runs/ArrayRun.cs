@@ -115,7 +115,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                // if the run isn't a ITableRun, parse the data to see if it's valid
                // if it _is_ an ITableRun, skip this step
                if (currentSegment is ArrayRunPointerSegment pointerSegment && !(run is ITableRun)) {
-                  hasError |= data.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat).TryParseData(data, string.Empty, destination, ref run).HasError;
+                  var strategy = data.FormatRunFactory.GetStrategy(pointerSegment.InnerFormat);
+                  if (strategy != null) {
+                     hasError |= strategy.TryParseData(data, string.Empty, destination, ref run).HasError;
+                  }
                }
             }
          } else {
@@ -1339,6 +1342,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             var (format, formatLength, segmentLength) = ExtractSingleFormat(segments, model);
             if (name == string.Empty && format != ElementContentType.Splitter) throw new ArrayRunParseException($"expected name, but none was found: {segments}");
             if (format == ElementContentType.PCS && segmentLength < 1) throw new ArrayRunParseException($"Cannot have 0-length text: {name}");
+            if (format == ElementContentType.PCS && segmentLength > 1000) throw new ArrayRunParseException($"Cannot have text longer than 1k bytes in a table: {name}");
 
             // check to see if a name or length is part of the format
             if (format == ElementContentType.Integer && segments.Length > formatLength && segments[formatLength] != ' ') {

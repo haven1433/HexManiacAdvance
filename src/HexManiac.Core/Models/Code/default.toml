@@ -111,6 +111,29 @@ Name = '''Intro'''
 ]
 
 [[List]]
+Name = '''weathertypes'''
+0 = [
+   '''None''',
+   '''SunnyClouds''',
+   '''Sunny''',
+   '''Rain''',
+   '''Snow''',
+   '''RainThunderstorm''',
+   '''FogHorizontal''',
+   '''VolcanicAsh''',
+   '''Sandstorm''',
+   '''FogDiagonal''',
+   '''Underwater''',
+   '''Shade''',
+   '''Drought''',
+   '''Downpour''',
+   '''UnderwaterBubbles''',
+   '''Abnormal''',
+   '''Route119Cycle''',
+   '''Route123Cycle''',
+]
+
+[[List]]
 Name = '''maptypes'''
 0 = [
    '''none''',
@@ -446,8 +469,8 @@ Name = '''contestcombostarter'''
     '''Dragon Breath''',
     '''Dragon Rage''',
     '''Dragon Dance''',
-    '''Serf''',
-    '''Dife''',
+    '''Surf''',
+    '''Dive''',
     '''String Shot''',
     '''Leer''',
     '''Taunt''',
@@ -952,7 +975,7 @@ Name = '''traineraibits'''
 Name = '''script_compare'''
 0 = [
     '''<''',
-    '''=''',
+    '''==''',
     '''>''',
     '''<=''',
     '''>=''',

@@ -769,6 +769,23 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Single(Errors);
       }
 
+      [Fact]
+      public void TextTable_LongText_Error() {
+         var vm = new BaseViewModelTestClass(0x4000);
+         vm.SetFullModel(0xFF);
+         vm.ViewPort.Edit("^table[text\"\"2000]1 ");
+         Assert.NotEmpty(vm.Errors);
+      }
+
+      [Fact]
+      public void ListWithNoMatches_LookForBestPartialMatch_PreferTextStartsTheSame() {
+         var list = new List<string> { "abc", "cde", "xyz" };
+         var foundMatch = ArrayRunEnumSegment.TryMatch("c", list, out var value);
+
+         Assert.True(foundMatch);
+         Assert.Equal(1, value); // matches "cde" over "abc" because it starts with "c"
+      }
+
       private void HackTextConverter(string game) {
          var converter = New.PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));

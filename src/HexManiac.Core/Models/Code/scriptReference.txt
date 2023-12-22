@@ -36,7 +36,7 @@ msgbox.autoclose 0F 00 ptr<""> 09 06  # loadpointer, callstd 6
 wild.battle      B6 species:data.pokemon.names level. item:data.items.stats B7  # setwildbattle, dowildbattle
 find.item        1A 00 80 item:data.items.stats 1A 01 80 count: 09 01           # copyvarifnotzero (item and count), callstd 1
 npc.item         1A 00 80 item:data.items.stats 1A 01 80 count: 09 00           # copyvarifnotzero (item and count), callstd 0
-msgbox.item      0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
+[BPRE_BPGE] msgbox.item      msg<""> item:data.items.stats count: song:songnames -> msgbox.item 44 item:data.items.stats count: 0F 00 msg<""> 1A 00 80 item:data.items.stats 1A 01 80 count: 1A 02 80 song:songnames 09 09   # shows a message about a received item,
                                                                                                               # followed by a standard 'put away' message.
                                                                                                               # loadpointer, copyvarifnotzero (item, count, song), callstd 9
 [BPEE] msgbox.instant.autoclose          6A DB ptr<""> 66 6D 68 6C     #Skips the typewriter effect
@@ -104,6 +104,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPRE] cfru.init.roamer             16 00 80 species:data.pokemon.names 16 01 80 level: 16 02 80 onland:onland 16 03 80 onwater:onwater 25 29 01 # Creates a custom roaming pokemon if CFRU is enabled.
                                                                                                                                                  # result is 0 if that species is already roaming, or
                                                                                                                                                  # if you already have 10 roaming pokemon.
+[BPRE] cfru.set.wild.moves          29 0B 09 16 00 80 move0:data.pokemon.moves.names 16 01 80 move1:data.pokemon.moves.names 16 02 80 move2:data.pokemon.moves.names 16 30 80 move3:data.pokemon.moves.names
 
 00 nop                                          # does nothing
 01 nop1                                         # does nothing
@@ -158,6 +159,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 26 special2 variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
+26 specialvar variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
+                                                        # Check your TOML for a list of specials available in your game.
+                                                        # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 27 waitstate                                 # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
 28 pause time:                               # blocks script execution for 'time' frames
 29 setflag flag:|h                           # flag = 1
@@ -166,7 +170,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPRE_BPGE] 2C nop2C                         # does nothing
 [AXPE_AXVE_BPEE] 2C initclock hour: minute:  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
 2D checkdailyflags                           # nop in FRLG. Updates flags, variables, and other data in RSE based on real-time-clock
-2E gettime                                   # sets variables 0x8000, 0x8001, and 0x8002 to the current time in hours, minutes, and seconds (or all zeroes in FRLG)
+2E gettime                                   # sets variables var0, var1, and var2 to the current time in hours, minutes, and seconds (or all zeroes in FRLG)
 2E resetvars                                 # Alternate, old name for gettime
 2F sound number:songnames                    # play a song as a sound effect.
                                              # In FRLG, does nothing during certain parts of the credits where scripts run, or in the Quest Log.
@@ -203,10 +207,10 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 40 warp4 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates that the player would go to after using Dive.
 41 warp5 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates that the player would go to if they fell in a hole.
 42 getplayerpos varX: varY:                      # stores the current player position into varX and varY
-43 countPokemon                                  # stores number of pokemon in your party, including non-usable eggs and bad eggs, into LASTRESULT (variable 800D)
+43 countPokemon                                  # stores number of pokemon in your party, including non-usable eggs and bad eggs, into varResult
 44 additem item:data.items.stats quantity:       # Tries to put 'quantity' more of 'item' in the player's inventory.
                                                  # 'item' and 'quantity' can be variables.
-                                                 # if the operation was succcessful, LASTRESULT (variable 800D) is set to 1. If the operation fails, it is set to 0.
+                                                 # if the operation was succcessful, varResult is set to 1. If the operation fails, it is set to 0.
                                                  # In FRLG only, the TM case or berry pouch is also given to the player if they would need them to view the item, including setting the flag that enables the berry pouch.
                                                  # In FRLG only, receiving certain key items, or receiving the town map in the rival's house, will attempt to add an event to the Quest Log.
                                                  # In RSE only, this may result in having multiple stacks of the same item.
@@ -214,27 +218,27 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                                  # In Emerald only, this command may rarely result in the player losing all of their items or other bugs due to memory allocation failure.
 45 removeitem item:data.items.stats quantity:    # Tries to remove 'quantity' of 'item' from the player's inventory.
                                                  # 'item' and 'quantity' can be variables.
-                                                 # if the operation was successful, LASTRESULT (variable 800D) is set to 1. If the operation fails, it is set to 0.
+                                                 # if the operation was successful, varResult is set to 1. If the operation fails, it is set to 0.
                                                  # In Emerald only, if the appropriate flag is set or the map uses the appropriate layout, the item will be removed from the Battle Pyramid inventory instead.
                                                  # In Emerald only, this command may rarely result in the player losing all of their items or other bugs due to memory allocation failure.
-46 checkitemroom item:data.items.stats quantity: # 800D is set to 1 if additem would succeed, otherwise 0.
+46 checkitemroom item:data.items.stats quantity: # varResult is set to 1 if additem would succeed, otherwise 0.
                                                  # 'item' and 'quantity' can be variables.
-47 checkitem item:data.items.stats quantity:     # 800D is set to 1 if removeitem would succeed, otherwise 0.
+47 checkitem item:data.items.stats quantity:     # varResult is set to 1 if removeitem would succeed, otherwise 0.
                                                  # 'item' and 'quantity' can be variables.
-48 checkitemtype item:data.items.stats           # 800D is set to the bag pocket number of the item.
+48 checkitemtype item:data.items.stats           # varResult is set to the bag pocket number of the item.
                                                  # 'item' can be a variable.
 49 addpcitem item:data.items.stats quantity:     # same as additem, except the item is put into the player's PC
 4A checkpcitem item:data.items.stats quantity:   # same as checkitem, except it looks for the item in the player's PC
-4B adddecoration decoration:data.decorations.stats                 # In RSE only, this command tries to add a decoration to the player's PC. If the operation succeeds, 800D is set to 1, otherwise 0.
-                                                                   # In FRLG, this command does nothing and does not affect 800D.
+4B adddecoration decoration:data.decorations.stats                 # In RSE only, this command tries to add a decoration to the player's PC. If the operation succeeds, varResult is set to 1, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect varResult.
                                                                    # 'decoration' can be a variable.
-4C removedecoration decoration:data.decorations.stats              # In RSE only, this command tries to remove a decoration from the player's PC. If the operation succeeds, 800D is set to 1, otherwise 0.
-                                                                   # In FRLG, this command does nothing and does not affect 800D.
+4C removedecoration decoration:data.decorations.stats              # In RSE only, this command tries to remove a decoration from the player's PC. If the operation succeeds, varResult is set to 1, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect varResult.
                                                                    # 'decoration' can be a variable.
-4D checkdecoration decoration:data.decorations.stats               # In RSE only, this command sets 800D to 1 if the PC has at least one of that decoration, otherwise 0.
-                                                                   # In FRLG, this command does nothing and does not affect 800D.
-4E testdecoration decoration:data.decorations.stats                # In RSE only, this command sets 800D to 1 if the PC could store at least one more of that decoration, otherwise 0.
-                                                                   # In FRLG, this command does nothing and does not affect 800D.
+4D checkdecoration decoration:data.decorations.stats               # In RSE only, this command sets varResult to 1 if the PC has at least one of that decoration, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect varResult.
+4E testdecoration decoration:data.decorations.stats                # In RSE only, this command sets varResult to 1 if the PC could store at least one more of that decoration, otherwise 0.
+                                                                   # In FRLG, this command does nothing and does not affect varResult.
 4F applymovement npc: data<`move`>           # has character 'npc' in the current map move according to movement data 'data'
                                              # npc can be a character number or a variable.
                                              # FF is the player, 7F is the camera.
@@ -282,7 +286,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 62 readytrainer     trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
 63 movesprite2 npc: x: y:                    # permanently move the npc to the x/y location
 64 moveoffscreen npc:                        # moves the npc to just above the left-top corner of the screen
-65 spritebehave npc: behavior.               # temporarily changes the movement type of a selected NPC.
+65 spritebehave npc: behavior.FacingOptions  # temporarily changes the movement type of a selected NPC.
 66 waitmsg                                   # block script execution until box/text is fully drawn
 67 preparemsg text<"">                       # text can be a pointer to a text pointer, or just a pointer to text
                                              # starts displaying text in a textbox. Does not block. Call waitmsg to block.
@@ -292,8 +296,8 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 6B releaseall                                # closes open textboxes and lets characters move freely
 6C release                                   # allow the movement of the person that called the script
 6D waitkeypress                              # blocks script execution until the player pushes the A or B button
-6E yesnobox x. y.                            # shows a yes/no dialog, 800D stores 1 if YES was selected.
-6F multichoice x. y. list. allowCancel.allowcanceloptions            # player selection stored in 800D. If they backed out, 800D=7F
+6E yesnobox x. y.                            # shows a yes/no dialog, varResult stores 1 if YES was selected.
+6F multichoice x. y. list. allowCancel.allowcanceloptions            # player selection stored in varResult. If they backed out, varVesult=0x7F
 70 multichoice2 x. y. list. default. canCancel.allowcanceloptions    # like multichoice, but you can choose which option is selected at the start
 71 multichoicegrid x. y. list. per_row. canCancel.allowcanceloptions # like multichoice, but shows multiple columns.
 71 multichoice3 x. y. list. per_row. canCancel.allowcanceloptions    # like multichoice, but shows multiple columns.
@@ -306,16 +310,16 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
 79 givePokemon species:data.pokemon.names level. item:data.items.stats filler. filler:: filler::
                                              # gives the player one of that pokemon. the last 9 bytes are all 00.
-                                             # 800D=0 if it was added to the party
-                                             # 800D=1 if it was put in the PC
-                                             # 800D=2 if there was no room
+                                             # varResult=0 if it was added to the party
+                                             # varResult=1 if it was put in the PC
+                                             # varResult=2 if there was no room
                                              # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
 7A giveEgg species:data.pokemon.names        # species can be a pokemon or a variable
 7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokemon in your party to have a specific move.
                                              # Slots range 0-4 and 0-3.
-7C checkattack move:data.pokemon.moves.names # 800D=n, where n is the index of the pokemon that knows the move.
-                                             # 800D=6, if no pokemon in your party knows the move
-                                             # if successful, 8004 is set to the pokemon species
+7C checkattack move:data.pokemon.moves.names # varResult=n, where n is the index of the pokemon that knows the move.
+                                             # varResult=6, if no pokemon in your party knows the move
+                                             # if successful, var4 is set to the pokemon species
 7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # Species can be a literal or variable. Store the name in the given buffer
 7E bufferfirstPokemon buffer.bufferNames                            # Species of your first pokemon gets stored in the given buffer
 7F bufferpartyPokemon buffer.bufferNames party:                     # Nickname of pokemon 'party' from your party gets stored in the buffer
@@ -335,10 +339,10 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 8C startcontest                              # nop in FireRed. Starts a contest.
 8D showcontestresults                        # nop in FireRed. Shows contest results.
 8E contestlinktransfer                       # nop in FireRed. In Emerald, starts a wireless connection contest
-8F random high:                              # returns 0 <= number < high, stored in 800D (LASTRESULT)
+8F random high:                              # returns 0 <= number < high, stored in varResult
 90 givemoney money:: check.                  # if check is 0, gives the player money
 91 paymoney money:: check.                   # if check is 0, takes money from the player
-92 checkmoney money:: check.                 # if check is 0, checks if the player has at least that much money. if so, 800D=1
+92 checkmoney money:: check.                 # if check is 0, checks if the player has at least that much money. if so, varResult=1
 [AXPE_AXVE]      93 showmoney x. y.          # shows how much money the player has in a separate box
 [BPRE_BPGE_BPEE] 93 showmoney x. y. check.   # shows how much money the player has in a separate box (only works if check is 0)
 94 hidemoney x. y.
@@ -356,12 +360,12 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 9D setanimation animation. slot:             # which party pokemon to use for the next field animation?
 9E checkanimation animation:                 # if the given animation is playing, pause the script until the animation completes
 9F sethealingplace flightspot:               # sets where the player warps when they white out
-A0 checkgender                               # if male, 800D=0. If female, 800D=1
+A0 checkgender                               # if male, varResult=0. If female, varResult=1
 A1 cry species:data.pokemon.names effect:    # plays that pokemon's cry. Can use a variable or a literal. effect uses a cry mode constant.
 A2 setmaptile x: y: tile: isWall:            # sets the tile at x/y to be the given tile: with the attribute.
                                              # 0 = passable (false), 1 = impassable (true)
 A3 resetweather                              # queues a weather change to the map's default weather
-A4 setweather type:                          #
+A4 setweather type:weathertypes              #
 A5 doweather                                 # actually does the weather change from resetweather or setweather
 A6 changewalktile method.                    # used with ash-grass(1), breaking ice(4), and crumbling floor (7). Complicated.
 A7 setmapfooter footer:                      # updates the current map's footer. typically used on transition level scripts.
@@ -414,16 +418,16 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPRE_BPGE] CC comparehiddenvar a. value::   # compares a hidden value to a given value.
 [BPEE] CC nopCC
 [BPRE_BPGE_BPEE] CD setmodernfatefulencounter slot:       # a pokemon in your party now has its modern fateful encounter attribute set
-[BPRE_BPGE_BPEE] CE checkmodernfatefulencounter slot:     # if the pokemon is not a modern fateful encounter, then 800D = 1.
-                                                          # if the pokemon is a fateful encounter (or the specified slot is invalid), then 800D = 0.
+[BPRE_BPGE_BPEE] CE checkmodernfatefulencounter slot:     # if the pokemon is not a modern fateful encounter, then varResult = 1.
+                                                          # if the pokemon is a fateful encounter (or the specified slot is invalid), then varResult = 0.
 [BPRE_BPGE_BPEE] CF trywondercardscript      # Tries a wonder card script.
 [BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
-[BPRE_BPGE] D0 setworldmapflag flag:         # This lets the player fly to a given map, if the map has a flight spot
+[BPRE_BPGE] D0 setworldmapflag mapflag:|h    # This lets the player fly to a given map, if the map has a flight spot
 [BPEE] D0 nopD0                              # (nop in Emerald)
 [BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:               # clone of warpteleport, only used in FR/LG and only with specials
 [BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokemon in your party (0-5)
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
-[BPRE_BPGE] D3 braillelength pointer<>       # sets variable 8004 based on the braille string's length
+[BPRE_BPGE] D3 braillelength pointer<>       # sets variable var4 based on the braille string's length
                                              # call this, then special 0x1B2 to make a cursor appear at the end of the text
 [BPRE_BPGE] D4 bufferitems2 buffer.bufferNames item: quantity:         # buffers the item name, but pluralized if quantity is 2 or more
 [BPEE] D4 turnrotatingtileobjects

@@ -444,6 +444,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private string graphicsText;
+      public string GraphicsText {
+         get {
+            if (graphicsText != null) return graphicsText;
+            graphicsText = Graphics.ToString();
+            return graphicsText;
+         }
+         set {
+            graphicsText = value;
+            if (!graphicsText.TryParseInt(out var result)) return;
+            Graphics = result;
+         }
+      }
+
+      private bool showGraphicsAsText;
+      public bool ShowGraphicsAsText {
+         get => showGraphicsAsText;
+         set {
+            Set(ref showGraphicsAsText, value, old => {
+               graphicsText = null;
+               NotifyPropertyChanged(nameof(GraphicsText));
+            });
+         }
+      }
+
       /// <summary>
       /// FireRed Only.
       /// Kind is either 0 or 255.
@@ -613,6 +638,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      #region Flag
+
       public int Flag {
          get => element.GetValue("flag");
          set {
@@ -633,9 +660,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             flagText = value;
             element.SetValue("flag", value.TryParseHex(out int result) ? result : 0);
             NotifyPropertyChanged();
-            NotifyPropertyChanged(nameof(Flag), nameof(SampleLegendClearScript));
+            NotifyPropertiesChanged(nameof(Flag), nameof(SampleLegendClearScript), nameof(CanGenerateNewFlag));
          }
       }
+
+      public bool CanGenerateNewFlag => Flag == 0;
+
+      public void GenerateNewFlag() {
+         Flag = eventTemplate.FindNextUnusedFlag();
+         NotifyPropertiesChanged(nameof(FlagText), nameof(CanGenerateNewFlag));
+      }
+
+      #endregion
 
       public int Padding {
          get => element.TryGetValue("padding", out var value) ? value : 0;
@@ -649,7 +685,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObservableCollection<VisualComboOption> Options { get; } = new();
       public FilteringComboOptions FacingOptions { get; } = new();
       public ObservableCollection<string> ClassOptions { get; } = new();
-      public ObservableCollection<string> ItemOptions { get; } = new();
+      public FilteringComboOptions ItemOptions { get; } = new();
 
       #region Extended Properties
 
@@ -669,6 +705,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
             if (itemAddress == Pointer.NULL) return;
             element.Model.WriteMultiByteValue(itemAddress, 2, element.Token, value);
+            ItemOptions.Update(ItemOptions.AllOptions, value);
             NotifyPropertyChanged();
          }
       }
@@ -1176,11 +1213,13 @@ show:
          this.berries = berries;
          for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
          DefaultOW = defaultSprite;
+         ShowGraphicsAsText = Graphics >= Options.Count;
          objectEvent.Model.TryGetList("FacingOptions", out var list);
          FacingOptions.Update(ComboOption.Convert(list), MoveType);
-         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.SelectedIndex);
+         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.ModelValue);
          foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
-         foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) ItemOptions.Add(item);
+         ItemOptions.Update(ComboOption.Convert(objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)), ItemContents);
+         ItemOptions.Bind(nameof(ItemOptions.SelectedIndex), (sender, e) => ItemContents = ItemOptions.ModelValue);
 
          RefreshTrainerOptions();
          TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
@@ -1299,7 +1338,9 @@ show:
    }
 
    public class WarpEventViewModel : BaseEventViewModel {
-      public WarpEventViewModel(ModelArrayElement warpEvent) : base(warpEvent, "warpCount") { }
+      private readonly Action<int, int> gotoMap;
+
+      public WarpEventViewModel(ModelArrayElement warpEvent, Action<int, int> gotoMap) : base(warpEvent, "warpCount") => this.gotoMap = gotoMap;
 
       public int WarpID {
          get => element.GetValue("warpID") + 1;
@@ -1314,8 +1355,7 @@ show:
             element.SetValue("bank", value);
             NotifyPropertyChanged();
             if (!ignoreUpdateBankMap) bankMap = null;
-            NotifyPropertyChanged(nameof(BankMap));
-            NotifyPropertyChanged(nameof(TargetMapName));
+            NotifyPropertiesChanged(nameof(BankMap), nameof(TargetMapName), nameof(CanGotoBankMap));
          }
       }
 
@@ -1325,8 +1365,7 @@ show:
             element.SetValue("map", value);
             NotifyPropertyChanged();
             if (!ignoreUpdateBankMap) bankMap = null;
-            NotifyPropertyChanged(nameof(BankMap));
-            NotifyPropertyChanged(nameof(TargetMapName));
+            NotifyPropertiesChanged(nameof(BankMap), nameof(TargetMapName), nameof(CanGotoBankMap));
          }
       }
 
@@ -1345,12 +1384,16 @@ show:
             if (parts[0].TryParseInt(out int bank)) Bank = bank;
             if (parts[1].TryParseInt(out int map)) Map = map;
             ignoreUpdateBankMap = false;
+            NotifyPropertyChanged(nameof(CanGotoBankMap));
          }
       }
 
       public string TargetMapName => BlockMapViewModel.MapIDToText(element.Model, Bank, Map);
 
       public WarpEventModel WarpModel => new WarpEventModel(element);
+
+      public bool CanGotoBankMap => AllMapsModel.Create(element.Model) is AllMapsModel maps && maps.Count > Bank && maps[Bank].Count > Map;
+      public void GotoBankMap() => gotoMap(Bank, Map);
 
       #endregion
 
@@ -1383,9 +1426,11 @@ show:
 
    public class ScriptEventViewModel : BaseEventViewModel {
       private readonly Action<int> gotoAddress;
+      private readonly EventTemplate eventTemplate;
 
-      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent) : base(scriptEvent, "scriptCount") {
+      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent, EventTemplate eventTemplate) : base(scriptEvent, "scriptCount") {
          this.gotoAddress = gotoAddress;
+         this.eventTemplate = eventTemplate;
          UpdateScriptError(ScriptAddress);
       }
 
@@ -1404,7 +1449,15 @@ show:
             triggerHex = value;
             if (!value.TryParseHex(out int result)) return;
             Trigger = result;
+            NotifyPropertyChanged(nameof(CanGenerateNewTrigger));
          }
+      }
+
+      public bool CanGenerateNewTrigger => Trigger == 0;
+      public void GenerateNewTrigger() {
+         Trigger = eventTemplate.FindNextUnusedVariable();
+         triggerHex = null;
+         NotifyPropertiesChanged(nameof(TriggerHex), nameof(CanGenerateNewTrigger));
       }
 
       public int Index {

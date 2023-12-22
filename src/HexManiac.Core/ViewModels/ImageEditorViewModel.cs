@@ -1136,6 +1136,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   var index = parent.PaletteIndex(cache[x, selectionHeight - y - 1], inputPage);
                   parent.pixels[selectionStart.X + x, selectionStart.Y + y] = parent.ColorIndex(index, outputPage);
+                  if (underPixels != null && y <= selectionHeight / 2 - 1) {
+                     (underPixels[x, y], underPixels[x, selectionHeight - y - 1]) = (underPixels[x, selectionHeight - y - 1], underPixels[x, y]);
+                     (underMask[x, y], underMask[x, selectionHeight - y - 1]) = (underMask[x, selectionHeight - y - 1], underMask[x, y]);
+                  }
                }
             }
          }
@@ -1157,6 +1161,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
                   var index = parent.PaletteIndex(cache[selectionWidth - x - 1, y], inputPage);
                   parent.pixels[selectionStart.X + x, selectionStart.Y + y] = parent.ColorIndex(index, outputPage);
+                  if (underPixels != null && x <= selectionWidth / 2 - 1) {
+                     (underPixels[x, y], underPixels[selectionWidth - x - 1, y]) = (underPixels[selectionWidth - x - 1, y], underPixels[x, y]);
+                     (underMask[x, y], underMask[selectionWidth - x - 1, y]) = (underMask[selectionWidth - x - 1, y], underMask[x, y]);
+                  }
                }
             }
          }

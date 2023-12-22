@@ -88,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var args = (line is MacroScriptLine macro) ? macro.ShortFormArgs : line.Args;
             if (args.Count < tokens.Length) return false;
             var currentArg = args[tokens.Length - 1];
-            return currentArg.Name == "variable" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == string.Empty;
+            return currentArg.Name == "variable" && currentArg.Type == ArgType.Short && currentArg.EnumTableName == "scriptvariablealiases";
          }
       }
 
@@ -106,8 +106,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             content.Append(newContent);
 
             content.Append(afterContent);
-            SaveCaret(newContent.Length);
+            var caret = Editor.CaretIndex;
             Content = content.ToString();
+            Editor.CaretIndex = caret + newContent.Length;
+            NotifyPropertyChanged(nameof(CanInsertFlag));
          }
          Editor.FocusKeyboard();
       }
@@ -126,8 +128,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             content.Append(newContent);
 
             content.Append(afterContent);
-            SaveCaret(newContent.Length);
+            var caret = Editor.CaretIndex;
             Content = content.ToString();
+            Editor.CaretIndex = caret + newContent.Length;
+            NotifyPropertyChanged(nameof(CanInsertVar));
          }
          Editor.FocusKeyboard();
       }
@@ -294,7 +298,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var after = Content.Substring(CaretPosition + 1);
             using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
                Editor.Content = before + "<auto>" + after;
-               Editor.SaveCaret(7);
                return true;
             }
          }
@@ -324,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var after = Content[(CaretPosition)..];
          using (Scope(ref ignoreEditorContentUpdates, true, old => ignoreEditorContentUpdates = old)) {
             Editor.Content = before + candidates[0].LineCommand + after;
-            Editor.SaveCaret(candidates[0].LineCommand.Length - tokens[0].Length + 1);
+            Editor.CaretIndex += candidates[0].LineCommand.Length - tokens[0].Length + 1;
             return true;
          }
       }
@@ -426,7 +429,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          });
       }
 
-      public void SaveCaret(int lengthDelta) => Editor.SaveCaret(lengthDelta);
+      public void SaveCaret(int lengthDelta) => Editor.CaretIndex += lengthDelta;
 
       public void ClearErrors() {
          HasError = false;
@@ -512,12 +515,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
             candidates = ScriptParser.SortOptions(candidates, tokens[0], c => c.LineCommand).ToList();
-            before = before.Substring(0, before.Length - tokens[0].Length);
-            results.AddRange(candidates.Select(op => {
-               var afterText = after;
-               if (string.IsNullOrEmpty(afterText) && op.Args.Count + op.LineCode.Count > 1) afterText = " "; // insert whitespace after
-               return new AutocompleteItem(op.Usage, before + op.LineCommand + afterText);
-            }));
+            var length = before.Length - tokens[0].Length;
+            if (length >= 0) {
+               before = before.Substring(0, length);
+               results.AddRange(candidates.Select(op => {
+                  var afterText = after;
+                  if (string.IsNullOrEmpty(afterText) && op.Args.Count + op.LineCode.Count > 1) afterText = " "; // insert whitespace after
+                  return new AutocompleteItem(op.Usage, before + op.LineCommand + afterText);
+               }));
+            }
          } else {
             // script args
             var candidates = parser.PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();

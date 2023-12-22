@@ -10,7 +10,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public string Description => "Sorts all level-up moves of all Pokemon in ascending order." +
          Environment.NewLine + "By Petuuuhhh (thanks to Haven for walking me through it!)";
 
-      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Sorting-Level-Up-Moves:-Explained";
+      public string WikiLink => "https://github.com/haven1433/HexManiacAdvance/wiki/Sorting-Level-Up-Moves-Explained";
 
       public event EventHandler CanRunChanged;
 
