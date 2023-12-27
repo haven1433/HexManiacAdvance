@@ -168,6 +168,9 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 [BPEE] setoutcomeonteleport           76 battler.bs_battlers 19   # alias for set.outcome.teleport
 [BPEE] playtrainerdefeatbgm           76 battler.bs_battlers 1A   # alias for play.trainer.defeat.bgm
 
+# deprecated macros
+calculatedamage                       04 05 06 07                 # different from 'damagecalc'
+
 00 attackcanceler
 01 accuracycheck ptr<`bse`> param1:
 02 attackstring
