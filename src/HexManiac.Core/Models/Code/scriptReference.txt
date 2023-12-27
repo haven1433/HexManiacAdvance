@@ -250,7 +250,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 52 waitmovement2 npc: bank. map.             # like waitmovement, but does not assume the map that the NPC is from is the current map.
                                              # probably useful for using FRLG clone NPCs in cutscenes?
 53 hidesprite npc:                           # hides an NPC, but only if they have an associated flag. Doesn't work on the player.
-54 hidesprite2 npc: mapbank. map.                  # like hidesprite, but has extra parameters for a specifiable map.
+54 hidesprite2 npc: mapbank. map.            # like hidesprite, but has extra parameters for a specifiable map.
 55 showsprite npc:                           # opposite of hidesprite
 56 showsprite2 npc: bank. map.               # shows a previously hidden sprite; it also has extra parameters for a specifiable map.
 57 movesprite npc: x: y:
@@ -279,8 +279,8 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 
 5D repeattrainerbattle                       # starts a trainer battle with information stored in the RAM.
                                              # in most cases, it does the last trainer battle again.
-5E endtrainerbattle                          # returns from the trainerbattle screen without starting message (go to after battle script)
-5F endtrainerbattle2                         # same as 5E? (go to beaten battle script)
+5E endtrainerbattle                          # returns from the trainerbattle screen without a starting message (go to after battle script)
+5F endtrainerbattle2                         # returns from the trainerbattle screen without an ending message (go to beaten battle script)
 60 checktrainerflag trainer:data.trainers.stats    # if flag 0x500+trainer is 1, then the trainer has been defeated. Similar to checkflag
 61 defeatedtrainer  trainer:data.trainers.stats    # set flag 0x500+trainer to 1. That trainer now counts as defeated.
 62 readytrainer     trainer:data.trainers.stats    # set flag 0x500+trainer to 0. That trainer now counts as active.
@@ -335,7 +335,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 89 pokecasino index:
 [BPRE_BPGE] 8A nop8A
 [AXPE_AXVE_BPEE] 8A setberrytree plantID. berryID.data.items.berry.stats+1 growth.    # sets a specific berry-growing spot on the map with the specific berry and growth level.
-8B choosecontextpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
+8B choosecontestpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
 8C startcontest                              # nop in FireRed. Starts a contest.
 8D showcontestresults                        # nop in FireRed. Shows contest results.
 8E contestlinktransfer                       # nop in FireRed. In Emerald, starts a wireless connection contest
@@ -371,7 +371,7 @@ A6 changewalktile method.                    # used with ash-grass(1), breaking 
 A7 setmapfooter footer:                      # updates the current map's footer. typically used on transition level scripts.
 A8 spritelevelup npc: bank. map. subpriority.    # the chosen npc goes 'up one level'
 A9 restorespritelevel npc: bank. map.        # the chosen npc is restored to its original level
-AA createsprite sprite. virtualNPC. x: y: behavior. facing.     # creates a virtual sprite that can be used to bypass the 16 NPCs limit.
+AA createsprite sprite. virtualNPC. x: y: behavior.FacingOptions facing.     # creates a virtual sprite that can be used to bypass the 16 NPCs limit.
 AB spriteface2 virtualNPC. facing.
 AC setdooropened x: y:                       # queues the animation, but doesn't do it
 AD setdoorclosed x: y:                       # queues the animation, but doesn't do it
