@@ -168,6 +168,9 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 [BPEE] setoutcomeonteleport           76 battler.bs_battlers 19   # alias for set.outcome.teleport
 [BPEE] playtrainerdefeatbgm           76 battler.bs_battlers 1A   # alias for play.trainer.defeat.bgm
 
+# deprecated macros
+calculatedamage                       04 05 06 07                 # different from 'damagecalc'
+
 00 attackcanceler
 01 accuracycheck ptr<`bse`> param1:
 02 attackstring
@@ -180,34 +183,49 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 09 attackanimation
 0a waitanimation
 0b healthbarupdate battler.bs_battlers
+0b graphicalhpupdate battler.bs_battlers                  # Alias (old name)
 0c datahpupdate battler.bs_battlers
 0d critmessage
 0e effectivenesssound
+0e missmessage                                            # Alias (this is wrong)
 0f resultmessage
 10 printstring id:
 11 printselectionstring id:
+11 printstring2 id:                                       # Alias (old name)
 12 waitmessage param0:
 13 printfromtable ptr<>
 14 printselectionstringfromtable ptr<>
+14 printfromtable2 ptr<>                                  # Alias (old name)
 15 seteffectwithchance
+15 seteffectwithchancetarget                              # Alias (old name)
 16 seteffectprimary
+16 seteffecttarget                                        # Alias (this is wrong)
 17 seteffectsecondary
+17 seteffectuser                                          # Alias (this is wrong)
 18 clearstatusfromeffect battler.bs_battlers
+18 clearstatus battler.bs_battlers                        # Alias (not specific enough)
 19 tryfaintmon battler.bs_battlers fromMove. ptr<>
+19 faintpokemon battler.bs_battlers fromMove. ptr<>       # Alias (old name)
 1a dofaintanimation battler.bs_battlers
+1a cmd1a battler.bs_battlers                              # Alias (old name)
 1b cleareffectsonfaint battler.bs_battlers
 1c jumpifstatus battler.bs_battlers status1:: ptr<`bse`>
 1d jumpifstatus2 battler.bs_battlers status2:: ptr<`bse`>
+1d jumpifsecondarystatus battler.bs_battlers status2:: ptr<`bse`>            # Alias (old name)
 1e jumpifability battler.bs_battlers ability.data.abilities.names ptr<`bse`>
 1f jumpifsideaffecting battler.bs_battlers sidestatus: ptr<`bse`>
+1f jumpifhalverset battler.bs_battlers sidestatus: ptr<`bse`>                # Alias (old name)
 20 jumpifstat battler.bs_battlers ifflag.battle_compare stat.bs_stats value.stat_stages ptr<`bse`>
 21 jumpifstatus3condition battler.bs_battlers status3:: param2. ptr<`bse`>
+21 jumpifspecialstatusflag battler.bs_battlers status3:: param2. ptr<`bse`>  # Alias (old name)
 22 jumpiftype battler.bs_battlers type.data.pokemon.type.names ptr<`bse`>
 23 getexp battler.
 24 checkteamslost ptr<`bse`>
 25 movevaluescleanup
+25 cmd25                              # Alias (old name)
 26 setmultihit value.
 27 decrementmultihit ptr<`bse`>
+27 cmd27                              # Alias (old name)
 28 goto ptr<`bse`>
 29 jumpifbyte ifflag.battle_compare param1:: param2. ptr<`bse`>
 2a jumpifhalfword ifflag.battle_compare address:: value: ptr<`bse`>
@@ -217,6 +235,7 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 2e setbyte ram:: param1.
 2f addbyte ram:: param1.
 30 subbyte ram:: param1.
+30 subtractbyte ram:: param1.         # Alias (lengthened name)
 31 copyarray param0:: param1:: param2.
 32 copyarraywithindex param0:: param1:: param2:: param3.
 33 orbyte ram:: param1.
@@ -239,36 +258,53 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 44 endselectionscript
 45 playanimation battler.bs_battlers animation.effectanimations param2::
 46 playanimation_var battler.bs_battlers param1:: param2::
+46 cmd46 battler.bs_battlers param1:: param2::                                 # Alias (old name)
 47 setgraphicalstatchangevalues
+47 cmd47                                                                       # Alias (old name)
 48 playstatchangeanimation battler.bs_battlers param1.statanimation param2.
 49 moveend param0. param1.
+49 cmd49 param0. param1.                                                       # Alias (old name)
 4a typecalc2
+4a damagecalc2                                                                 # Alias (this is wrong)
 4b returnatktoball
+4b cmd4b                                                                       # Alias (old name)
 4c getswitchedmondata battler.bs_battlers
+4c switch1 battler.bs_battlers                                                 # Alias (old name)
 4d switchindataupdate battler.bs_battlers
+4d switch2 battler.bs_battlers                                                 # Alias (old name)
 4e switchinanim battler.bs_battlers dontclearsubstitutebit.
+4e switch3 battler.bs_battlers dontclearsubstitutebit.                         # Alias (old name)
 4f jumpifcantswitch battler.bs_battlers ptr<`bse`>
+4f jumpifcannotswitch battler.bs_battlers ptr<`bse`>                           # Alias (lengthened name)
 50 openpartyscreen param0. ptr<`bse`>
 51 switchhandleorder battler.bs_battlers param1.
+51 cmd51 battler.bs_battlers param1.                                           # Alias (old name)
 52 switchineffects battler.bs_battlers
+52 cmd52 battler.bs_battlers                                                   # Alias (old name)
 53 trainerslidein battler.bs_battlers
+53 cmd53 battler.bs_battlers                                                   # Alias (old name)
 54 playse song:songnames
 55 fanfare song:songnames
 56 playfaintcry battler.bs_battlers
 57 endlinkbattle
 58 returntoball battler.bs_battlers
+58 cmd58 battler.bs_battlers                                                   # Alias (old name)
 59 handlelearnnewmove param0<`bse`> param1<`bse`> param2.
 5a yesnoboxlearnmove ptr<`bse`>
 5b yesnoboxstoplearningmove ptr<`bse`>
 5c hitanimation battler.bs_battlers
+5c cmd5c battler.bs_battlers                                                   # Alias (old name)
 [BPRE_BPGE] 5d getmoneyreward ptr<`bse`>
+[BPRE_BPGE] 5d cmd5d ptr<`bse`>                                                # Alias (old name)
 [BPEE_AXPE_AXVE] 5d getmoneyreward
 5e updatebattlermoves battler.bs_battlers
 5f swapattackerwithtarget
 60 incrementgamestat param0.
+60 cmd60 param0.                                                               # Alias (old name)
 61 drawpartystatussummary battler.bs_battlers
 62 hidepartystatussummary battler.bs_battlers
 63 jumptocalledmove param0.
+63 jumptoattack param0.                                                        # Alias (old name)
 64 statusanimation battler.bs_battlers
 65 status2animation battler.bs_battlers status2::
 66 chosenstatusanimation battler.bs_battlers param1. param2::
@@ -285,72 +321,105 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 71 buffermovetolearn
 72 jumpifplayerran ptr<`bse`>
 73 hpthresholds battler.bs_battlers
+73 cmd73 battler.bs_battlers                          # Alias (old name)
 74 hpthresholds2 battler.bs_battlers
 75 useitemonopponent
 76 various battler.bs_battlers param1.
+76 cmd76  battler.bs_battlers param1.                 # Alias (old name)
 77 setprotectlike
+77 setprotect                                         # Alias (shortened name)
 78 tryexplosion
+78 faintifabilitynotdamp                              # Alias (old name)
 79 setatkhptozero
+79 setuserhptozero                                    # Alias (not specific enough)
 7a jumpifnexttargetvalid ptr<`bse`>
+7a jumpwhiletargetvalid ptr<`bse`>                    # Alias (this is wrong)
 7b tryhealhalfhealth ptr<`bse`> battler.bs_battlers
+7b setdamageasrestorehalfmaxhp ptr<`bse`> battler.bs_battlers       # Alias (old name)
 7c trymirrormove
+7c jumptolastusedattack                               # Alias (old name)
 7d setrain
 7e setreflect
 7f setseeded
+7f setleechseed                                       # Alias (lengthened name)
 80 manipulatedamage param0.
 81 trysetrest ptr<`bse`>
+81 setrest ptr<`bse`>                                 # Alias (shortened name)
 82 jumpifnotfirstturn ptr<`bse`>
 83 nop
 84 jumpifcantmakeasleep ptr<`bse`>
+84 jumpifcannotsleep ptr<`bse`>                       # Alias (not specific enough)
 85 stockpile
 86 stockpiletobasedamage ptr<`bse`>
 87 stockpiletohpheal ptr<`bse`>
+87 stockpiletohprecovery ptr<`bse`>                   # Alias (old name)
 88 negativedamage
 89 statbuffchange stat. ptr<`bse`>
 8a normalisebuffs
 8b setbide
 8c confuseifrepeatingattackends
 8d setmultihitcounter param0.
+8d setloopcounter param0.                             # Alias (not specific enough)
 8e initmultihitstring
+8e cmd8e                                              # Alias (old name)
 8f forcerandomswitch ptr<`bse`>
 90 tryconversiontypechange ptr<`bse`>
+90 changetypestoenemyattacktype ptr<`bse`>            # Alias (not specific enough)
 91 givepaydaymoney
+91 givemoney                                          # Alias (not specific enough)
 92 setlightscreen
 93 tryKO ptr<`bse`>
 94 damagetohalftargethp
+94 gethalfcurrentenemyhp                              # Alias (old name)
 95 setsandstorm
 96 weatherdamage
 97 tryinfatuating ptr<`bse`>
+97 tryinfatuatetarget ptr<`bse`>                      # Alias (old name)
 98 updatestatusicon battler.bs_battlers
 99 setmist
+99 setmisteffect                                      # Alias (lengthened name)
 9a setfocusenergy
+9a setincreasedcriticalchance                         # Alias (lengthened name)
 9b transformdataexecution
 9c setsubstitute
+9c setsubstituteeffect                                # Alias (lengthened name)
 9d mimicattackcopy ptr<`bse`>
+9d copyattack ptr<`bse`>                              # Alias (shortened name)
 9e metronome
+9e metronomeeffect                                    # Alias (lengthened name)
 9f dmgtolevel
+9f nightshadedamageeffect                             # Alias (too specific)
 a0 psywavedamageeffect
 a1 counterdamagecalculator ptr<`bse`>
 a2 mirrorcoatdamagecalculator ptr<`bse`>
 a3 disablelastusedattack ptr<`bse`>
 a4 trysetencore ptr<`bse`>
+a4 setencore ptr<`bse`>                               # Alias (shortened name)
 a5 painsplitdmgcalc ptr<`bse`>
+a5 painsplitdamagecalculator ptr<`bse`>               # Alias (lengthened name)
 a6 settypetorandomresistance ptr<`bse`>
 a7 setalwayshitflag
 a8 copymovepermanently ptr<`bse`>
 a9 trychoosesleeptalkmove ptr<`bse`>
+a9 selectrandommovefromusermoves ptr<`bse`>           # Alias (not specific enough)
 aa setdestinybond
+aa destinybondeffect                                  # Alias (old name)
 ab trysetdestinybondtohappen
 ac remaininghptopower
 ad tryspiteppreduce ptr<`bse`>
+ad reducepprandom ptr<`bse`>                          # Alias (not specific enough)
 ae healpartystatus
+ae clearstatusifnotsoundproofed                       # Alias (too specific)
 af cursetarget ptr<`bse`>
 b0 trysetspikes ptr<`bse`>
+b0 setspikes ptr<`bse`>                               # Alias (shortened name)
 b1 setforesight
 b2 trysetperishsong ptr<`bse`>
+b2 setperishsong ptr<`bse`>                           # Alias (shortened name)
 b3 rolloutdamagecalculation
 b4 jumpifconfusedandstatmaxed stat.bs_stats ptr<`bse`>
 b5 furycuttercalc
+b5 furycutterdamagecalculation                        # Alias (lengthened name)
 b6 happinesstodamagecalculation
 b7 presentdamagecalculation
 b8 setsafeguard
@@ -360,17 +429,25 @@ bb setsunny
 bc maxattackhalvehp ptr<`bse`>
 bd copyfoestats ptr<`bse`>
 be rapidspinfree
+be breakfree                                          # Alias (not specific enough)
 bf setdefensecurlbit
+bf setcurled                                          # Alias (not specific enough)
 c0 recoverbasedonsunlight ptr<`bse`>
 c1 hiddenpowercalc
+c1 hiddenpowerdamagecalculation                       # Alias (not specific enough)
 c2 selectfirstvalidtarget
+c2 selectnexttarget                                   # Alias (this is wrong)
 c3 trysetfutureattack ptr<`bse`>
+c3 setfutureattack ptr<`bse`>                         # Alias (shortened name)
 c4 trydobeatup ptr0<`bse`> ptr1<`bse`>
 c5 setsemiinvulnerablebit
+c5 hidepreattack                                      # Alias (not specific enough)
 c6 clearsemiinvulnerablebit
+c6 unhidepostattack                                   # Alias (not specific enough)
 c7 setminimize
 c8 sethail
 c9 trymemento ptr<`bse`>
+c9 jumpifattackandspecialattackcannotfall ptr<`bse>`  # Alias (old name)
 ca setforcedtarget
 cb setcharge
 cc callterrainattack
@@ -379,36 +456,52 @@ ce settorment ptr<`bse`>
 cf jumpifnodamage ptr<`bse`>
 d0 settaunt ptr<`bse`>
 d1 trysethelpinghand ptr<`bse`>
+d1 sethelpinghand ptr<`bse`>                          # Alias (shortened name)
 d2 tryswapitems ptr<`bse`>
+d2 itemswap ptr<`bse`>                                # Alias (shortened name)
 d3 trycopyability ptr<`bse`>
+d3 copyability ptr<`bse`>                             # Alias (shortened name)
 d4 trywish param0. param1<`bse`>
 d5 trysetroots ptr<`bse`>
+d5 setroots ptr<`bse`>                                # Alias (shortened name)
 d6 doubledamagedealtifdamaged
 d7 setyawn ptr<`bse`>
 d8 setdamagetohealthdifference ptr<`bse`>
 d9 scaledamagebyhealthratio
 da tryswapabilities ptr<`bse`>
+da abilityswap ptr<`bse`>                             # Alias (shortened name)
 db tryimprison ptr<`bse`>
+db imprisoneffect ptr<`bse`>                          # Alias (lengthened name)
 dc trysetgrudge ptr<`bse`>
+dc setgrudge ptr<`bse`>                               # Alias (shortened name)
 dd weightdamagecalculation
 de assistattackselect ptr<`bse`>
 df trysetmagiccoat ptr<`bse`>
+df setmagiccoat ptr<`bse`>                            # Alias (shortened name)
 e0 trysetsnatch ptr<`bse`>
+e0 setstealstatchange ptr<`bse`>                      # Alias (too specific)
 e1 trygetintimidatetarget ptr<`bse`>
 e2 switchoutabilities battler.bs_battlers
+e2 cmde2 battler.bs_battlers                          # Alias (old name)
 e3 jumpifhasnohp battler.bs_battlers ptr<`bse`>
+e3 jumpiffainted battler.bs_battlers ptr<`bse`>       # Alias (old name)
 e4 getsecretpowereffect
 e5 pickup
+e5 pickupitemcalculation                              # Alias (lengthened name)
 e6 docastformchangeanimation
 e7 trycastformdatachange
 e8 settypebasedhalvers ptr<`bse`>
 e9 setweatherballtype
+e9 seteffectbyweather                                 # Alias (old name)
 ea tryrecycleitem ptr<`bse`>
+ea recycleitem ptr<`bse`>                             # Alias (shortened name)
 eb settypetoterrain ptr<`bse`>
 ec pursuitdoubles ptr<`bse`>
 ed snatchsetbattlers
 ee removelightscreenreflect
+ee removereflectlightscreen                           # Alias (move names switched)
 ef handleballthrow
+ef pokemoncatchfunction                               # Alias (not specific enough)
 f0 givecaughtmon
 f1 trysetcaughtmondexflags ptr<`bse`>
 f2 displaydexinfo
