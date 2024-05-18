@@ -447,7 +447,6 @@ c6 unhidepostattack                                   # Alias (not specific enou
 c7 setminimize
 c8 sethail
 c9 trymemento ptr<`bse`>
-c9 jumpifattackandspecialattackcannotfall ptr<`bse>`  # Alias (old name)
 ca setforcedtarget
 cb setcharge
 cc callterrainattack
