@@ -520,8 +520,8 @@ graphics.battle.hud.hpbox.doublebattle.opponent, 20A4A4, 20A434, 20A4BC, 20A44C,
 graphics.battle.hud.hpbox.safarizone,            20A4AC, 20A43C, 20A4C4, 20A454, 260238, 260218, 2602A8, 260288, , `lzs4x8x16|graphics.battle.hud.palette`
 graphics.battle.hud.status,                            ,       ,       ,       , 26049C, 26047C, 26050C, 2604EC, 32C34C, `ucs4x13x4|graphics.battle.hud.hpbar.palette`
 graphics.battle.hud.pokeballbar,                       ,       ,       ,       , 26046C, 26044C, 2604DC, 2604BC, , `lzs4x16x1|graphics.battle.hud.palette`
-graphics.battle.hud.idlelevel.palette,                 ,       ,       ,       , 0264C8, 0264C8, 0264DC, 0264DC, , `ucp4`
-graphics.battle.hud.idlelevel.sprite,                  ,       ,       ,       , 0264CC, 0264CC, 0264E0, 0264E0, , `lzs4x12x3|graphics.battle.hud.idlelevel.palette`
+graphics.battle.hud.idlelevel.palette,                 ,       ,       ,       , 0264C8, 0264C8, 0264DC, 0264DC, 04F1C4, `ucp4`
+graphics.battle.hud.idlelevel.sprite,                  ,       ,       ,       , 0264CC, 0264CC, 0264E0, 0264E0, 04F1C8, `lzs4x12x3|graphics.battle.hud.idlelevel.palette`
 graphics.battle.textbox.palette,                 00DAF4, 00DAF4, 00DAF4, 00DAF4, 00F45C, 00F45C, 00F470, 00F470, 035AE0, `lzp4:01`
 graphics.battle.textbox.tileset,                 00DAE8, 00DAE8, 00DAE8, 00DAE8, 00F454, 00F454, 00F468, 00F468, 035AD8, `lzt4|graphics.battle.textbox.palette`
 graphics.battle.textbox.tilemap,                       ,       ,       ,       , 00F458, 00F458, 00F46C, 00F46C, 035ADC, `lzm4x32x64|graphics.battle.textbox.tileset`
