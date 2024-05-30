@@ -2095,6 +2095,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
+         if (!blockModel1.Start.InRange(0, model.Count) || !blockModel2.Start.InRange(0, model.Count)) return;
+
          int width = layout.GetValue("width"), height = layout.GetValue("height");
          int start = layout.GetAddress(Format.BlockMap);
          var maxUsedPrimary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, PrimaryBlocks);
@@ -2111,6 +2113,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
+         if (!blockModel1.Start.InRange(0, model.Count) || !blockModel2.Start.InRange(0, model.Count)) return;
+
          int width = layout.GetValue("width"), height = layout.GetValue("height");
          int start = layout.GetAddress(Format.BlockMap);
          var maxUsedPrimary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, PrimaryBlocks);
@@ -2127,6 +2131,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
+         if (!blockModel1.Start.InRange(0, model.Count) || !blockModel2.Start.InRange(0, model.Count)) return;
 
          lock (blockRenders) {
             if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
@@ -2192,7 +2197,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   continue;
                }
-               var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
+               var dataStart = start + ((y - border.North) * width + x - border.West) * 2;
+               var data = dataStart.InRange(0, model.Count - 2) ? model.ReadMultiByteValue(dataStart, 2) : 0;
                var collision = data >> 10;
                data &= 0x3FF;
                lock (blockRenders) {

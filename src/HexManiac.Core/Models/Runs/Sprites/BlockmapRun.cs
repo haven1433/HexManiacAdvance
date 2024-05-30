@@ -165,6 +165,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       public static int GetMaxUsedBlock(IReadOnlyList<byte> model, int start, int width, int height, int maxCheck) {
+         if (start < 0) return 0;
          return (width * height).Range(i => (start + i * 2 < model.Count - 2 ? model.ReadMultiByteValue(start + i * 2, 2) : 0) & 0x3FF).Where(i => maxCheck > i).Aggregate(0, Math.Max);
       }
 
@@ -336,6 +337,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
       public int PrimaryBlocks => primaryBlocks;
       public int BytesPerAttribute { get; }
+      public int Start => address;
 
       public BlocksetModel(IDataModel model, int address) {
          this.model = model;
