@@ -529,7 +529,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    public class BSEScriptLine : ScriptLine {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f, 0xef, 0xf6, 0xf7);
    }
 
    public class ASEScriptLine : ScriptLine {
