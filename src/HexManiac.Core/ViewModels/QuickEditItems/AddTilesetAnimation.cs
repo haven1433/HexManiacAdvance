@@ -69,7 +69,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       private int InsertCallback(IViewPort viewPort, string callbackName, int tableAddress) {
          var gamecode = viewPort.Model.GetGameCode();
          var mod = gamecode switch {
-            "BRPE0" => 0x1E4684,
+            "BPRE0" => 0x1E4684,
             _ => throw new NotImplementedException(),
          };
          var appendTilesetAnimToBuffer = gamecode switch {
