@@ -265,7 +265,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
             foreach (var arg in line.Args) {
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
-                  text.AppendLine($"{nl}*  `{arg.Name}` from {arg.EnumTableName}");
+                  text.AppendLine($"{nl}*  `{arg.Name}` is from {arg.EnumTableName}");
                } else if (arg.Type != ArgType.Pointer) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a number.");
