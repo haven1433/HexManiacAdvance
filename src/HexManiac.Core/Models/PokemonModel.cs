@@ -2621,7 +2621,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
          } else if (!allowAnchorOverwrite && nextAnchor.Start < runToWrite.Start + runToWrite.Length) {
             return new ErrorInfo("An existing anchor starts before the new one ends.");
-         } else if (!name.All(c => char.IsLetterOrDigit(c) || "-._".Contains(c))) { // at this point, the name might have a "-1" on the end, so still allow the dash
+         } else if (!name.All(c => char.IsLetterOrDigit(c) || "._".Contains(c))) {
             return new ErrorInfo("Anchor names must contain only letters, numbers, dots, and underscores.");
          } else if (runToWrite.Start + runToWrite.Length > model.Count) {
             return new ErrorInfo("Anchor format must not go past the end of the file.");
