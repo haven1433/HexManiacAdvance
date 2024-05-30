@@ -356,6 +356,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Debug.Assert(Scroll.DataLength == model.Count, "I forgot to update the Scroll.DataLength after expanding the data!");
          }
 
+         PreviewSelectionStartChanged?.Invoke(this, selectionStart);
          var startAddress = address;
          if (preferredWidth > 1) address -= (address - tableStart) % preferredWidth;
 
