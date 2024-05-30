@@ -216,6 +216,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       private BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight){
+         if (backupContent == null) StoreContentBackupForSizeChange();
          var (newWidth, newHeight) = (BlockWidth + leftAmount + rightAmount, BlockHeight + upAmount + downAmount);
          backupX -= leftAmount;
          backupY -= upAmount;
