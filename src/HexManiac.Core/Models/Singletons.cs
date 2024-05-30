@@ -91,8 +91,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (string.IsNullOrEmpty(line)) continue;
             if (!line.StartsWith(" ") && active != null) active = null;
             if (line.StartsWith("#")) continue;
-            if (line.Trim().StartsWith("#") && active != null) {
-               active.AddDocumentation(line.Trim());
+            if (line.Trim().StartsWith("#")) {
+               active?.AddDocumentation(line.Trim());
             } else {
                if (MacroScriptLine.IsMacroLine(line)) {
                   var macro = new MacroScriptLine(line);
