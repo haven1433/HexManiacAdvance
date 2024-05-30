@@ -54,7 +54,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          (BlockWidth, BlockHeight) = (width, height);
          var code = model.GetGameCode();
 
-         if (code.Contains("BPRE") || code.Contains("BPGE")) {
+         if (code.Contains("BPR") || code.Contains("BPG")) {
             PrimaryBlocks = 640;
             PrimaryTiles = 640;
             PrimaryPalettes = 7;

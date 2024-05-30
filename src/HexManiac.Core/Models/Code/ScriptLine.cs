@@ -54,18 +54,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private readonly IReadOnlyList<int> matchingGames;
 
       public IReadOnlyList<IScriptArg> Args { get; }
-      public IReadOnlyList<IScriptArg> ShortFormArgs {
-         get {
-            if (shortIndexFromLongIndex.Count == 0) {
-               return Args.Where(arg => arg is not SilentMatchArg).ToList();
-            }
-            var args = new IScriptArg[shortIndexFromLongIndex.Values.Distinct().Count()];
-            foreach (var pair in shortIndexFromLongIndex) {
-               args[pair.Value] = Args[pair.Key];
-            }
-            return args;
-         }
-      }
+      public IReadOnlyList<IScriptArg> ShortFormArgs { get; private set; }
       public IReadOnlyList<byte> LineCode => emptyByteList;
       public IReadOnlyList<string> Documentation => documentation;
       public string LineCommand { get; }
@@ -112,8 +101,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
 
          Args = args;
+         ShortFormArgs ??= Args.Where(arg => arg is not SilentMatchArg).ToList();
       }
 
+      /// <summary>
+      /// Once the short form is exatracted, the long form is left behind.
+      /// So either way, engineLine is now just the long form.
+      /// </summary>
       private void ExtractShortformInfo(ref string engineLine) {
          if (!engineLine.Contains("->")) return;
          var parts = engineLine.Split("->");
@@ -127,12 +121,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // for each entry in long, it shows up somewhere in short
          // entries in long can appear multiple times
+         // entries in long might not have any exact matches if the short-argument is multiple bytes and is split into multiple single-byte arguments in the long arguments.
          for (int i = 0; i < longTokens.Length; i++) {
             var index = shortTokens.IndexOf(longTokens[i]);
             if (index == -1) continue;
             shortIndexFromLongIndex.Add(i, index);
          }
 
+         // NOTE: short form args do not permit array args, such as with the animation scripts
+         ShortFormArgs = shortTokens.Select(token => new ScriptArg(token)).ToList();
          hasShortForm = true;
          Usage = parts[0];
       }
@@ -181,11 +178,26 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var builder = new StringBuilder(LineCommand);
          var streamContent = new List<string>();
          var args = new List<string>();
+         var shiftNames = new Dictionary<string, int>();
+         var carryNames = new Dictionary<string, int>();
+         int i = 0;
          foreach (var arg in Args) {
             if (arg is ScriptArg sarg) {
                var tempBuilder = new StringBuilder();
-               sarg.Build(false, data, start, tempBuilder, streamContent, labels, streamTypes);
+               int shift = 0, carry = 0;
+               var argLength = sarg.Length(data, start);
+               if (!shortIndexFromLongIndex.TryGetValue(i, out var shortIndex)) {
+                  var shortArg = ShortFormArgs.FirstOrDefault(arg => arg.Name == sarg.Name);
+                  if (shortArg != null && shortArg.Length(data, start) != argLength) {
+                     if (!carryNames.TryGetValue(sarg.Name, out carry)) carry = 0;
+                     if (!shiftNames.TryGetValue(sarg.Name, out shift)) shift = 0;
+                     shiftNames[sarg.Name] = shift + 8 * argLength;
+                     carryNames[sarg.Name] = carry + (data.ReadMultiByteValue(start, argLength) << shift);
+                  }
+               }
+               sarg.Build(false, data, start, tempBuilder, streamContent, shift, carry, labels, streamTypes);
                args.Add(tempBuilder.ToString());
+               i += 1;
             }
             start += arg.Length(data, start);
          }
@@ -235,10 +247,18 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          args = ConvertShortFormToLongForm(args);
          var results = new List<byte>();
          var specifiedArgIndex = 0;
+         var shiftNames = new Dictionary<string, int>();
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is ScriptArg scriptArg) {
+               int shift = 0;
+               if (!shortIndexFromLongIndex.ContainsKey(i)) {
+                  // the arguments length doesn't match the short version.
+                  // pull the current shift
+                  if (!shiftNames.TryGetValue(scriptArg.Name, out shift)) shift = 0;
+                  shiftNames[scriptArg.Name] = shift + scriptArg.Length(model, start + results.Count) * 8;
+               }
                var token = args[specifiedArgIndex];
-               var message = scriptArg.Build(model, start + results.Count, token, results, labels);
+               var message = scriptArg.Build(model, start + results.Count, token, shift, results, labels);
                if (message != null) return message;
                specifiedArgIndex += 1;
             } else if (Args[i] is SilentMatchArg silentArg) {
@@ -252,13 +272,17 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public void AddDocumentation(string doc) => documentation.Add(doc);
 
       private string[] ConvertShortFormToLongForm(string[] args) {
-         if (!hasShortForm) return args;
+         if (!hasShortForm || args.Length == 0) return args;
          // build long-form args from this short form
          var longForm = new List<string>();
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is SilentMatchArg) continue;
-            var shortIndex = shortIndexFromLongIndex[i];
-            if (shortIndex < args.Length) longForm.Add(args[shortIndex]);
+            if (shortIndexFromLongIndex.TryGetValue(i, out var shortIndex)) {
+               if (shortIndex < args.Length) longForm.Add(args[shortIndex]);
+            } else {
+               var shortformIndex = ShortFormArgs.Count.Range().FirstOrDefault(i => ShortFormArgs[i].Name == Args[i].Name);
+               longForm.Add(args[shortformIndex]);
+            }
          }
          return longForm.ToArray();
       }
@@ -267,10 +291,15 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (!hasShortForm) return args;
          var shortForm = new Dictionary<int, string>();
          int j = 0;
+
          for (int i = 0; i < Args.Count; i++) {
             if (Args[i] is SilentMatchArg) continue;
-            var shortIndex = shortIndexFromLongIndex[i];
-            shortForm[shortIndex] = args[j];
+            if (shortIndexFromLongIndex.TryGetValue(i, out var shortIndex)) {
+               shortForm[shortIndex] = args[j]; // this prefers to use the last instance of the argument, if the argument appears multiple times. Needs to work this way for split-byte args.
+            } else {
+               var shortformIndex = ShortFormArgs.Count.Range().FirstOrDefault(i => ShortFormArgs[i].Name == Args[i].Name);
+               shortForm[shortformIndex] = args[j];
+            }
             j += 1;
          }
          return shortForm.Count.Range(i => shortForm[i]).ToArray();
@@ -529,7 +558,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    public class BSEScriptLine : ScriptLine {
       public BSEScriptLine(string engineLine) : base(engineLine) { }
 
-      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f);
+      public override bool IsEndingCommand => LineCode.Count == 1 && LineCode[0].IsAny<byte>(0x28, 0x3c, 0x3d, 0x3e, 0x3f, 0xef, 0xf6, 0xf7);
    }
 
    public class ASEScriptLine : ScriptLine {

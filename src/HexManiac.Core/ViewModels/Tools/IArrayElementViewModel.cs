@@ -117,6 +117,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          return Type == ElementContentViewModelType.Address && ViewPort.Goto.CanExecute(Content);
       }
 
+      public void ResetContent() => Content = strategy.UpdateViewModelFromModel(this);
+
       public void Focus() => dataSelected?.Invoke(this, EventArgs.Empty);
 
       #region Increment/Decrement
