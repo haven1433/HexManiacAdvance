@@ -2699,6 +2699,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var direction = Direction.Reverse();
          var map = BlockMapViewModel.GetMapModel(Model, MapGroup, MapNum, Tokens);
          var neighbors = BlockMapViewModel.GetConnections(map, MapGroup, MapNum);
+         if (neighbors == null) return null;
          return neighbors.FirstOrDefault(c => c.MapGroup == sourceGroup && c.MapNum == sourceMap && c.Direction == direction);
       }
 
