@@ -788,7 +788,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
          // match linecode (if there is one)
-         if (tokens.Length > 1 && candidates.Any(candidate => candidate.LineCode.Count > 1) && tokens[1].TryParseInt(out var num)) candidates = candidates.Where(line => line.LineCode.Count == 1 || line.LineCode[1] == num).ToList();
+         if (tokens.Length > 1 && candidates.Any(candidate => candidate.LineCode.Count > 1) && tokens[1].TryParseInt(out var num)) candidates = candidates.Where(line => line.LineCode.Count < 2 || line.LineCode[1] == num).ToList();
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
