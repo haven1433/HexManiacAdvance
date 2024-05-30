@@ -55,10 +55,10 @@
 36 get_weather
 37 if_effect byte.moveeffectoptions ptr<`tse`>
 38 if_not_effect byte.moveeffectoptions ptr<`tse`>
-39 if_stat_level_less_than battler.AI_targets stat. level. ptr<`tse`>
-3a if_stat_level_more_than battler.AI_targets stat. level. ptr<`tse`>
-3b if_stat_level_equal battler.AI_targets stat. level. ptr<`tse`>
-3c if_stat_level_not_equal battler.AI_targets stat. level. ptr<`tse`>
+39 if_stat_level_less_than battler.AI_targets stat.bs_stats level.stat_stages ptr<`tse`>
+3a if_stat_level_more_than battler.AI_targets stat.bs_stats level.stat_stages ptr<`tse`>
+3b if_stat_level_equal battler.AI_targets stat.bs_stats level.stat_stages ptr<`tse`>
+3c if_stat_level_not_equal battler.AI_targets stat.bs_stats level.stat_stages ptr<`tse`>
 3d if_can_faint ptr<`tse`>
 3e if_cant_faint ptr<`tse`>
 3f if_has_move battler.AI_targets move:data.pokemon.moves.names ptr<`tse`>
