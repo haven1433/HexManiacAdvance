@@ -276,14 +276,33 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   }
 
                   // documentation check
-                  var matches = docs.Where(doc => doc.Label.Equals(str, StringComparison.InvariantCultureIgnoreCase)).ToList();
                   var prefixes = new[] { "scripting.overworld.reference.commands", "scripting.overworld.reference.specials" };
-                  foreach (var prefix in prefixes) {
-                     if (matches.Count != 1) matches = docs.Where(doc => doc.Label.Equals($"documentation.{prefix}.{str}", StringComparison.InvariantCultureIgnoreCase)).ToList();
-                  }
-                  if (matches.Count == 1) {
-                     OpenLink(matches[0].Url);
-                     return;
+                  if (str.Contains("/")) {
+                     var tokens = str.Split("/");
+                     if (tokens.Length == 2 && tokens[0].Length > 0 && tokens[1].Length > 0) {
+                        var group = tokens[0].ToLower();
+                        var token = tokens[1].ToLower();
+                        var matches = docs.Where(doc => doc.Label.ToLower().EndsWith(token) && doc.Label.Contains(group)).ToList();
+                        if (matches.Count == 1) {
+                           var bestTableMatch = possibleMatches.Aggregate(int.MaxValue, (acc, text) => Math.Min(acc, text.SkipCount(str)));
+                           if (bestTableMatch > matches[0].Label.SkipCount(str)) {
+                              OpenLink(matches[0].Url);
+                              return;
+                           }
+                        }
+                     }
+                  } else {
+                     var matches = docs.Where(doc => doc.Label.Equals(str, StringComparison.InvariantCultureIgnoreCase)).ToList();
+                     foreach (var prefix in prefixes) {
+                        if (matches.Count != 1) matches = docs.Where(doc => doc.Label.Equals($"documentation.{prefix}.{str}", StringComparison.InvariantCultureIgnoreCase)).ToList();
+                     }
+                     if (matches.Count == 1) {
+                        var bestTableMatch = possibleMatches.Aggregate(int.MaxValue, (acc, text) => Math.Min(acc, text.SkipCount(str)));
+                        if (bestTableMatch > matches[0].Label.SkipCount(str)) {
+                           OpenLink(matches[0].Url);
+                           return;
+                        }
+                     }
                   }
                }
 
