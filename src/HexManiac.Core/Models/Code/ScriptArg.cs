@@ -162,11 +162,14 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       /// <summary>
       /// Build from compiled bytes to text.
       /// </summary>
-      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
+      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes)
+         => Build(allFillerIsZero, data, start, builder, streamContent, 0, 0, labels, streamTypes);
+
+      public bool Build(bool allFillerIsZero, IDataModel data, int start, StringBuilder builder, List<string> streamContent, int shift, int carry, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
          if (allFillerIsZero && Name == "filler") return true;
-         if (Type == ArgType.Byte) builder.Append(Convert(data, data[start], 1));
-         if (Type == ArgType.Short) builder.Append(Convert(data, data.ReadMultiByteValue(start, 2), 2));
-         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4), 4));
+         if (Type == ArgType.Byte) builder.Append(Convert(data, (data[start] << shift) + carry, 1));
+         if (Type == ArgType.Short) builder.Append(Convert(data, (data.ReadMultiByteValue(start, 2) << shift) + carry, 2));
+         if (Type == ArgType.Word) builder.Append(Convert(data, data.ReadMultiByteValue(start, 4), 4)); // shift/carry not supported for 4-byte reads
          if (Type == ArgType.Pointer) {
             var address = data.ReadMultiByteValue(start, 4);
             if (address < 0x8000000) {
@@ -185,20 +188,23 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          return false;
       }
 
+      public string Build(IDataModel model, int address, string token, IList<byte> results, LabelLibrary labels)
+         => Build(model, address, token, 0, results, labels);
+
       /// <summary>
       /// Build from text to compiled bytes.
       /// </summary>
-      public string Build(IDataModel model, int address, string token, IList<byte> results, LabelLibrary labels) {
+      public string Build(IDataModel model, int address, string token, int shift, IList<byte> results, LabelLibrary labels) {
          int value;
          if (Type == ArgType.Byte) {
             var error = Convert(model, token, out value);
             if (error != null) return error;
-            results.Add((byte)value);
+            results.Add((byte)(value>>shift));
          } else if (Type == ArgType.Short) {
             var error = Convert(model, token, out value);
             if (error != null) return error;
-            results.Add((byte)value);
-            results.Add((byte)(value >> 8));
+            results.Add((byte)(value >> shift));
+            results.Add((byte)(value >> (shift + 8)));
          } else if (Type == ArgType.Word) {
             var error = Convert(model, token, out value);
             if (error != null) return error;

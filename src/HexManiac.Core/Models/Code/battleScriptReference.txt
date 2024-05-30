@@ -168,6 +168,8 @@ updatechoicemoveonlvlup               76 battler.bs_battlers 06   # alias for up
 [BPEE] setoutcomeonteleport           76 battler.bs_battlers 19   # alias for set.outcome.teleport
 [BPEE] playtrainerdefeatbgm           76 battler.bs_battlers 1A   # alias for play.trainer.defeat.bgm
 
+[BPRE_BPGE] set.current.move move:data.pokemon.moves.names -> set.current.move 2E 4A 3D 02 02 move.data.pokemon.moves.names 2E 4B 3D 02 02 move.data.pokemon.moves.names
+
 00 attackcanceler
 01 accuracycheck ptr<`bse`> param1:
 02 attackstring
