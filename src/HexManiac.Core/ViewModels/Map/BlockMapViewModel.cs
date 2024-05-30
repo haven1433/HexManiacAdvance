@@ -1830,11 +1830,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler CanEditTilesetChanged;
       public bool CanEditTileset(string type) {
          var model = new MapModel(GetMapModel(), group, map);
-         var spriteAddress = model.Layout.PrimaryBlockset.TilesetAddress;
-         var paletteAddress = model.Layout.PrimaryBlockset.PaletteAddress;
+         var spriteAddress = model.Layout?.PrimaryBlockset?.TilesetAddress ?? -1;
+         var paletteAddress = model.Layout?.PrimaryBlockset?.PaletteAddress ?? -1;
          if (type == "Secondary") {
-            spriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
-            paletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
+            spriteAddress = model.Layout?.SecondaryBlockset?.TilesetAddress ?? -1;
+            paletteAddress = model.Layout?.SecondaryBlockset?.PaletteAddress ?? -1;
          }
          return this.model.GetNextRun(spriteAddress) is ISpriteRun sRun && sRun.Start == spriteAddress &&
             this.model.GetNextRun(paletteAddress) is IPaletteRun pRun && pRun.Start == paletteAddress;
@@ -2125,7 +2125,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
-         if (blocks == null || tiles == null || palettes == null) {
+         if (blocks == null || tiles == null || palettes == null || blockModel1 == null || blockModel2 == null) {
             if (layout == null) layout = GetLayout();
             if (layout == null) return;
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
