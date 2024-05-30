@@ -471,7 +471,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (name == ItemsTableName) format = format.Replace("data.items.count", string.Empty);
 
          // moves
-         if (name == MoveNamesTable) format += "894";
+         if (name == MoveNamesTable) format += "896";
          if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
 
          // level-up moves uses Jambo format
