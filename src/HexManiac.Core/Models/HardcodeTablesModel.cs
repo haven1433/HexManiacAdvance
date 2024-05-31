@@ -246,6 +246,20 @@ namespace HavenSoft.HexManiac.Core.Models {
             });
             SetList(new NoDataChangeDeltaModel(), "holdeffects", newList, null, StoredList.GenerateHash(newList));
          }
+         
+         // Update the type chart effectivenesses list
+         if (isCFRU && TryGetList("effectiveness", out var multipliers)) {
+            var newMultipliers = new List<string>();
+            newMultipliers.add("1x");
+            newMultipliers.add("0x");
+            while (newMultipliers.Count <= 5)
+                newMultipliers.add(null);
+            newMultipliers.add("0.5x");
+            while (newMultipliers.Count <= 20)
+                newMultipliers.add(null);
+            newMultipliers.add("2x");
+            SetList(new NoDataChangeDeltaModel(), "effectiveness", newMultipliers. null, StoredList.GenerateHash(newMultipliers));
+         }
 
          foreach (var table in tables) {
             // some tables have been removed from CFRU
