@@ -248,26 +248,30 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             }
 
             var label = scriptStart.ToString("X6");
-            var body = Contents.Count > i ? Contents[i] :
-               new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label };
+            CodeBody body;
+            if (Contents.Count > i && Contents[i].Parser == parser) {
+               body = Contents[i];
+            } else {
+               body = new CodeBody(model, parser, Investigator) { Address = scriptStart, Label = label };
+               parser.AddKeywords(model, body);
+            }
 
             var info = model.CurrentCacheScope.GetScriptInfo(parser, scriptStart, body, ref existingSectionCount);
             bool needsAnimation = false;
 
             if (Contents.Count > i) {
-               Contents[i].ContentChanged -= ScriptChanged;
-               Contents[i].HelpSourceChanged -= UpdateScriptHelpFromLine;
-               Contents[i].Content = string.Empty;
-               if (Contents[i].Address != scriptStart) parser.AddKeywords(model, Contents[i]);
-               Contents[i].Content = info.Content;
-               Contents[i].Address = scriptStart;
-               Contents[i].CompiledLength = info.Length;
-               Contents[i].Label = label;
-               Contents[i].HelpSourceChanged += UpdateScriptHelpFromLine;
-               Contents[i].ContentChanged += ScriptChanged;
+               body.ContentChanged -= ScriptChanged;
+               body.HelpSourceChanged -= UpdateScriptHelpFromLine;
+               body.Content = string.Empty;
+               body.Content = info.Content;
+               body.Address = scriptStart;
+               body.CompiledLength = info.Length;
+               body.Label = label;
+               body.HelpSourceChanged += UpdateScriptHelpFromLine;
+               body.ContentChanged += ScriptChanged;
+               Contents[i] = body;
             } else {
                body.CompiledLength = info.Length;
-               parser.AddKeywords(model, body);
                body.Content = info.Content;
                body.ContentChanged += ScriptChanged;
                body.HelpSourceChanged += UpdateScriptHelpFromLine;
