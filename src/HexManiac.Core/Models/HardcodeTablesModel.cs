@@ -431,6 +431,10 @@ namespace HavenSoft.HexManiac.Core.Models {
             "EFFECT_TEATIME", "EFFECT_POLTERGEIST", "EFFECT_SKY_DROP",
          });
          SetList(new NoDataChangeDeltaModel(), "newmoveeffectoptions", newList, null, StoredList.GenerateHash(newList));
+
+         /* Adding the new type chart
+         AddTable(0x145BB74, 0, "data.pokemon.type.chart", 
+         "[Norm.effectiveness Fight.effectiveness Fly.effectiveness Poison.effectiveness Grd.effectiveness Rock.effectiveness Bug.effectiveness Ghost.effectiveness Steel.effectiveness param9.effectiveness Fire.effectiveness Water.effectiveness Grass.effectiveness Elec.effectiveness Psych.effectiveness Ice.effectiveness Drag.effectiveness Dark.effectiveness param18.effectiveness param19.effectiveness param20.effectiveness param21.effectiveness param22.effectiveness Fairy.effectiveness]data.pokemon.type.names"); */
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
@@ -587,6 +591,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (name == "data.maps.roaming.sets") source = 0x14889B0;
 
          if (name == ItemEffectsTableName) format = format.Replace("-199", string.Empty); // item effects are as long as the items
+
+         
+
+         // type chart
+         if (name == "data.pokemon.type.chart") {
+            source = 0x145BB74;
+            format = "[Norm.effectiveness Fight.effectiveness Fly.effectiveness Poison.effectiveness Grd.effectiveness Rock.effectiveness Bug.effectiveness Ghost.effectiveness Steel.effectiveness param9.effectiveness Fire.effectiveness Water.effectiveness Grass.effectiveness Elec.effectiveness Psych.effectiveness Ice.effectiveness Drag.effectiveness Dark.effectiveness param18.effectiveness param19.effectiveness param20.effectiveness param21.effectiveness param22.effectiveness Fairy.effectiveness]data.pokemon.type.names";
+         }
 
          return format;
       }
