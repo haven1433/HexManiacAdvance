@@ -982,7 +982,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Draw9Grid(ModelDelta token, int[,] grid, double x, double y) {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var (xx, yy) = ConvertCoordinates(x, y);
+         xx = xx.LimitToRange(0, width - 1);
+         yy = yy.LimitToRange(0, height - 1);
          Draw9Grid(token, grid, xx, yy);
       }
 
