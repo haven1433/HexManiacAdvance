@@ -2388,6 +2388,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
             if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
             var map = GetMapModel();
+            if (map == null) return null;
             var eventsTable = map.GetSubTable("events");
             if (eventsTable == null) return null;
             var eventElements = eventsTable[0];
