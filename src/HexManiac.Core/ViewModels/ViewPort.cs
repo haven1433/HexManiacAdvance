@@ -229,6 +229,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                      var words = Model.GetMatchedWords(str).ToList();
                      if (words.Count == 1) {
                         selection.Goto.Execute(words[0]);
+                        args = new TabChangeRequestedEventArgs(this);
+                        RequestTabChange?.Invoke(mapper, args);
                         return;
                      } else if (words.Count > 1) {
                         OpenSearchResultsTab(str, words.Select(word => (word, word)).ToList());
