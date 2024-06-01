@@ -198,16 +198,52 @@ namespace HavenSoft.HexManiac.Core.Models {
          // add move effects
          if (isCFRU && TryGetList(MoveEffectListName, out var moveeffectsoptions)) {
             var newList = new List<string>(moveeffectsoptions);
+            newList[12] = "RaiseSpeed1Primary";
+            newList[14] = "RaiseSpDefese1Primary";
+            newList[15] = "RaiseAccuracy1Primary";
+            newList[21] = "LowerSpAtk1Primary";
+            newList[22] = "LowerSpDef1Primary";
+            newList[25] = "RemoveStatChanges";
+            newList[55] = "RaiseAccuracy2Primary";
+            newList[56] = "RaiseEvasion2Primary";
+            newList[61] = "LowerSpAttack2Primary";
+            newList[63] = "LowerAccuracy2Primary";
+            newList[64] = "LowerEvasion2Primary";
+            newList[74] = "LowerEvasion1HitChance";
+            newList[77] = "Unused4D";
+            newList[78] = "Unused4E";
+            newList[96] = "RaiseSpeed1HitChance";
+            newList[110] = "RaiseSpAtk1HitChance";
+            newList[121] = "Unused79";
+            newList[123] = "Unused7B";
+            newList[125] = "BurnUp";
+            newList[135] = "RaiseDefense2HitChance";
+            newList[150] = "Unused96";
+            newList[169] = "UnusedA9";
+            newList[174] = "BoostNextElectricMoveAndRaiseSpDef";
+            newList[185] = "UnusedB9";
+            newList[196] = "UnusedC4";
+            newList[198] = "RaiseAttack1SpAtk1";
+            newList[199] = "RaiseAttack1Accuracy1";
+            newList[200] = "UnusedC8";
+            newList[202] = "UnusedCA";
+            newList[203] = "UnusedCB";
+            newList[207] = "RaiseAllStatsPrimary";
+            newList[213] = "Stat Swap or Split";
+            for(var k = 0; k < 4; k++) newList.Add(null); // 214 to 217 are unused.
             newList.Add("Me First");
             newList.Add("Eat Berry");
             newList.Add("Natural Gift");
             newList.Add("Smack Down");
             newList.Add("Remove Target Stat Changes");
-            newList.Add("Relic Song");
+            newList.Add("SleepHitChance");
+            newList.Add("UnusedE0");
+            newList.Add("UnusedE1");
             newList.Add("Set Terrain");
             newList.Add("Pledge");
             newList.Add("Field Effects");
             newList.Add("Fling");
+            newList.Add("Feint");
             newList.Add("Attack Blockers");
             newList.Add("Type Changes");
             newList.Add("Heal Target");
@@ -215,9 +251,17 @@ namespace HavenSoft.HexManiac.Core.Models {
             newList.Add("Fairy Lock Happy Hour");
             newList.Add("Instruct After You Quash");
             newList.Add("Sucker Punch");
+            newList.Add("Ignore Redirection");
             newList.Add("Team Effects");
             newList.Add("Camouflage");
+            newList.Add("Flame Burst");
+            newList.Add("Last Resort or Sky Drop");
+            newList.Add("Damage Set Terrain");
+            newList.Add("Teatime");
+            for(var k = 0; k < 8; k++) newList.Add(null); // 245 to 252 are unused.
+            newList.Add("Max Move");
             newList.Add("Synchronoise");
+            newList.Add("UnusedFF");
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
@@ -365,7 +409,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          SetList(new NoDataChangeDeltaModel(), "zeffects", newList, null, StoredList.GenerateHash(newList));
          
          // Move effects in HUBOL
-         var newList2 = new List<string>();
+         /* var newList2 = new List<string>();
          newList2.AddRange(new[] {
             "EFFECT_HIT", "EFFECT_SLEEP", "EFFECT_POISON_HIT", "EFFECT_ABSORB",
             "EFFECT_BURN_HIT", "EFFECT_FREEZE_HIT", "EFFECT_PARALYZE_HIT", "EFFECT_EXPLOSION",
@@ -430,7 +474,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             "EFFECT_CAMOUFLAGE", "EFFECT_FLAMEBURST", "EFFECT_LAST_RESORT", "EFFECT_DAMAGE_SET_TERRAIN",
             "EFFECT_TEATIME", "EFFECT_POLTERGEIST", "EFFECT_SKY_DROP",
          });
-         SetList(new NoDataChangeDeltaModel(), "newmoveeffectoptions", newList2, null, StoredList.GenerateHash(newList));
+         SetList(new NoDataChangeDeltaModel(), "newmoveeffectoptions", newList2, null, StoredList.GenerateHash(newList)); */
 
          /* Adding the new type chart
          AddTable(0x145BB74, 0, "data.pokemon.type.chart", 
