@@ -250,15 +250,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          // Update the type chart effectivenesses list
          if (isCFRU && TryGetList("effectiveness", out var multipliers)) {
             var newMultipliers = new List<string>();
-            newMultipliers.add("1x");
-            newMultipliers.add("0x");
+            newMultipliers.Add("1x");
+            newMultipliers.Add("0x");
             while (newMultipliers.Count <= 5)
-                newMultipliers.add(null);
-            newMultipliers.add("0.5x");
+                newMultipliers.Add(null);
+            newMultipliers.Add("0.5x");
             while (newMultipliers.Count <= 20)
-                newMultipliers.add(null);
-            newMultipliers.add("2x");
-            SetList(new NoDataChangeDeltaModel(), "effectiveness", newMultipliers. null, StoredList.GenerateHash(newMultipliers));
+                newMultipliers.Add(null);
+            newMultipliers.Add("2x");
+            SetList(new NoDataChangeDeltaModel(), "effectiveness", newMultipliers, null, StoredList.GenerateHash(newMultipliers));
          }
 
          foreach (var table in tables) {
@@ -365,8 +365,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          SetList(new NoDataChangeDeltaModel(), "zeffects", newList, null, StoredList.GenerateHash(newList));
          
          // Move effects in HUBOL
-         var newList = new List<string>();
-         newList.AddRange(new[] {
+         var newList2 = new List<string>();
+         newList2.AddRange(new[] {
             "EFFECT_HIT", "EFFECT_SLEEP", "EFFECT_POISON_HIT", "EFFECT_ABSORB",
             "EFFECT_BURN_HIT", "EFFECT_FREEZE_HIT", "EFFECT_PARALYZE_HIT", "EFFECT_EXPLOSION",
             "EFFECT_DREAM_EATER", "EFFECT_MIRROR_MOVE", "EFFECT_ATTACK_UP", "EFFECT_DEFENSE_UP",
@@ -430,7 +430,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             "EFFECT_CAMOUFLAGE", "EFFECT_FLAMEBURST", "EFFECT_LAST_RESORT", "EFFECT_DAMAGE_SET_TERRAIN",
             "EFFECT_TEATIME", "EFFECT_POLTERGEIST", "EFFECT_SKY_DROP",
          });
-         SetList(new NoDataChangeDeltaModel(), "newmoveeffectoptions", newList, null, StoredList.GenerateHash(newList));
+         SetList(new NoDataChangeDeltaModel(), "newmoveeffectoptions", newList2, null, StoredList.GenerateHash(newList));
 
          /* Adding the new type chart
          AddTable(0x145BB74, 0, "data.pokemon.type.chart", 
