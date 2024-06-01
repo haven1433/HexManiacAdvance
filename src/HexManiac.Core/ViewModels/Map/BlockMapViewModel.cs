@@ -1798,7 +1798,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private ITableRun GetOrCreateConnections(ModelArrayElement map, ModelDelta token) {
          if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
-         if (connectionsAndCountTable == null) {
+         if (connectionsAndCountTable == null || map.Model.GetNextRun(connectionsAndCountTable.Run.Start).Start != connectionsAndCountTable.Run.Start) {
             var newConnectionsAndCountTable = MapRepointer.CreateNewConnections(token);
             model.UpdateArrayPointer(token, null, null, -1, map.Start + 12, newConnectionsAndCountTable);
             connectionsAndCountTable = map.GetSubTable("connections");
@@ -1817,7 +1817,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             connectionsAndCount.SetAddress("connections", newConnectionTableStart);
             InformCreate(new("Connection", newConnectionTableStart));
          } else {
-            connections = connectionsAndCount.GetSubTable("connections").Run;
+            var connectionsTable = connectionsAndCount.GetSubTable("connections");
+            if (connectionsTable == null) return null;
+            connections = connectionsTable.Run;
          }
 
          return connections;
