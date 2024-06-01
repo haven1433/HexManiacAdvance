@@ -239,10 +239,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var args = tokens.Skip(1).ToArray();
          var shortArgs = args;
-         args = ConvertShortFormToLongForm(args);
          var commandText = LineCommand;
+         if (hasShortForm && shortArgs.Length != ShortFormArgs.Count) {
+            return $"Command {commandText} expects {ShortFormArgs.Count} arguments, but received {shortArgs.Length} instead.";
+         }
+         args = ConvertShortFormToLongForm(args);
          var specifiedArgs = Args.Where(arg => arg is ScriptArg).Count();
-         if (specifiedArgs != args.Length) {
+         if (!hasShortForm && specifiedArgs != args.Length) {
             return $"Command {commandText} expects {specifiedArgs} arguments, but received {shortArgs.Length} instead.";
          }
          return null;
