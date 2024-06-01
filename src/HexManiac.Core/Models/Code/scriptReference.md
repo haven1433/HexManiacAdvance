@@ -11,7 +11,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
 
 adddecoration `decoration`
 
-*  `decoration` from data.decorations.stats
+*  `decoration` is from data.decorations.stats
 
 Example:
 ```
@@ -62,7 +62,7 @@ Notes:
 
 additem `item` `quantity`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
@@ -92,7 +92,7 @@ Notes:
 
 addpcitem `item` `quantity`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
@@ -114,7 +114,7 @@ Notes:
 
 addvar `variable` `value`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `value` is a number.
 
@@ -339,9 +339,9 @@ Notes:
 
 bufferattack `buffer` `move`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
-*  `move` from data.pokemon.moves.names
+*  `move` is from data.pokemon.moves.names
 
 Example:
 ```
@@ -364,7 +364,7 @@ bufferboxname `buffer` `box`
 
   Only available in BPRE BPGE BPEE
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `box` is a number.
 
@@ -389,7 +389,7 @@ buffercontesttype `buffer` `contest`
 
   Only available in BPEE
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `contest` is a number.
 
@@ -412,7 +412,7 @@ Notes:
 
 bufferdecoration `buffer` `decoration`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `decoration` is a number.
 
@@ -431,7 +431,7 @@ bufferdecoration buffer1 88
 
 bufferfirstPokemon `buffer`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 Example:
 ```
@@ -452,9 +452,9 @@ Notes:
 
 bufferitem `buffer` `item`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 Example:
 ```
@@ -477,7 +477,7 @@ bufferitems2 `buffer` `item` `quantity`
 
   Only available in BPRE BPGE
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `item` is a number.
 
@@ -497,9 +497,9 @@ bufferitems2 `buffer` `item` `quantity`
 
   Only available in BPEE
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
@@ -521,7 +521,7 @@ Notes:
 
 buffernumber `buffer` `number`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `number` is a number.
 
@@ -544,7 +544,7 @@ Notes:
 
 bufferpartyPokemon `buffer` `party`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `party` is a number.
 
@@ -567,9 +567,9 @@ Notes:
 
 bufferPokemon `buffer` `species`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 Example:
 ```
@@ -590,7 +590,7 @@ Notes:
 
 bufferstd `buffer` `index`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `index` is a number.
 
@@ -613,7 +613,7 @@ Notes:
 
 bufferstring `buffer` `pointer`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `pointer` points to text or auto
 
@@ -641,9 +641,9 @@ buffertrainerclass `buffer` `class`
 
   Only available in BPEE
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
-*  `class` from data.trainers.classes.names
+*  `class` is from data.trainers.classes.names
 
 Example:
 ```
@@ -665,9 +665,9 @@ buffertrainername `buffer` `trainer`
 
   Only available in BPEE
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 Example:
 ```
@@ -750,7 +750,7 @@ Notes:
 
 callstdif `condition` `function`
 
-*  `condition` from script_compare
+*  `condition` is from script_compare
 
 *  `function` is a number.
 
@@ -774,13 +774,13 @@ cfru.init.roamer `species` `level` `onland` `onwater`
 
   Only available in BPRE
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 *  `level` is a number.
 
-*  `onland` from onland
+*  `onland` is from onland
 
-*  `onwater` from onwater
+*  `onwater` is from onwater
 
 Example:
 ```
@@ -804,13 +804,13 @@ cfru.set.wild.moves `move0` `move1` `move2` `move3`
 
   Only available in BPRE
 
-*  `move0` from data.pokemon.moves.names
+*  `move0` is from data.pokemon.moves.names
 
-*  `move1` from data.pokemon.moves.names
+*  `move1` is from data.pokemon.moves.names
 
-*  `move2` from data.pokemon.moves.names
+*  `move2` is from data.pokemon.moves.names
 
-*  `move3` from data.pokemon.moves.names
+*  `move3` is from data.pokemon.moves.names
 
 Example:
 ```
@@ -868,7 +868,7 @@ Notes:
 
 checkattack `move`
 
-*  `move` from data.pokemon.moves.names
+*  `move` is from data.pokemon.moves.names
 
 Example:
 ```
@@ -930,7 +930,7 @@ Notes:
 
 checkdecoration `decoration`
 
-*  `decoration` from data.decorations.stats
+*  `decoration` is from data.decorations.stats
 
 Example:
 ```
@@ -990,7 +990,7 @@ Notes:
 
 checkitem `item` `quantity`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
@@ -1014,7 +1014,7 @@ Notes:
 
 checkitemroom `item` `quantity`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
@@ -1038,7 +1038,7 @@ Notes:
 
 checkitemtype `item`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 Example:
 ```
@@ -1105,7 +1105,7 @@ Notes:
 
 checkpcitem `item` `quantity`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
@@ -1128,7 +1128,7 @@ Notes:
 
 checktrainerflag `trainer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 Example:
 ```
@@ -1141,17 +1141,17 @@ Notes:
 ```
 </details>
 
-## choosecontextpkmn
+## choosecontestpkmn
 
 <details>
-<summary> choosecontextpkmn</summary>
+<summary> choosecontestpkmn</summary>
 
 
-choosecontextpkmn
+choosecontestpkmn
 
 Example:
 ```
-choosecontextpkmn
+choosecontestpkmn
 ```
 Notes:
 ```
@@ -1232,7 +1232,7 @@ Notes:
 
 compare `variable` `value`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `value` is a number.
 
@@ -1255,9 +1255,9 @@ Notes:
 
 comparebanks `bankA` `bankB`
 
-*  `bankA` from 4
+*  `bankA` is from 4
 
-*  `bankB` from 4
+*  `bankB` is from 4
 
 Example:
 ```
@@ -1277,7 +1277,7 @@ Notes:
 
 comparebanktobyte `bank` `value`
 
-*  `bank` from 4
+*  `bank` is from 4
 
 *  `value` is a number.
 
@@ -1299,7 +1299,7 @@ Notes:
 
 compareBankTofarbyte `bank` `pointer`
 
-*  `bank` from 4
+*  `bank` is from 4
 
 *  `pointer` is a number (hex).
 
@@ -1345,7 +1345,7 @@ compareFarByteToBank `pointer` `bank`
 
 *  `pointer` is a number (hex).
 
-*  `bank` from 4
+*  `bank` is from 4
 
 Example:
 ```
@@ -1474,9 +1474,9 @@ Notes:
 
 copyscriptbanks `destination` `source`
 
-*  `destination` from 4
+*  `destination` is from 4
 
-*  `source` from 4
+*  `source` is from 4
 
 Example:
 ```
@@ -1496,9 +1496,9 @@ Notes:
 
 copyvar `variable` `source`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
-*  `source` from scriptvariablealiases
+*  `source` is from scriptvariablealiases
 
 Example:
 ```
@@ -1519,9 +1519,9 @@ Notes:
 
 copyvarifnotzero `variable` `source`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
-*  `source` from scriptvariablealiases
+*  `source` is from scriptvariablealiases
 
 Example:
 ```
@@ -1568,14 +1568,14 @@ createsprite `sprite` `virtualNPC` `x` `y` `behavior` `facing`
 
 *  `y` is a number.
 
-*  `behavior` is a number.
+*  `behavior` is from FacingOptions
 
 *  `facing` is a number.
 
 Example:
 ```
 # From BPEE0, 23BDCE:
-createsprite 5 10 12 3 3 3
+createsprite 5 10 12 3 WanderUpAndDown 3
 ```
 Notes:
 ```
@@ -1591,7 +1591,7 @@ Notes:
 
 cry `species` `effect`
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 *  `effect` is a number.
 
@@ -1704,7 +1704,7 @@ Notes:
 
 defeatedtrainer `trainer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 Example:
 ```
@@ -1764,7 +1764,7 @@ Notes:
 
 double.battle `trainer` `start` `playerwin` `needmorepokemonText`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -1803,7 +1803,7 @@ Notes:
 
 double.battle.continue.music `trainer` `start` `playerwin` `needmorepokemonText` `continuescript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -1850,7 +1850,7 @@ Notes:
 
 double.battle.continue.silent `trainer` `start` `playerwin` `needmorepokemonText` `continuescript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -1919,7 +1919,7 @@ Notes:
 
 double.battle.rematch `trainer` `start` `playerwin` `needmorepokemonText`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -2034,7 +2034,7 @@ endtrainerbattle
 ```
 Notes:
 ```
-  # returns from the trainerbattle screen without starting message (go to after battle script)
+  # returns from the trainerbattle screen without a starting message (go to after battle script)
 ```
 </details>
 
@@ -2052,7 +2052,7 @@ endtrainerbattle2
 ```
 Notes:
 ```
-  # same as 5E? (go to beaten battle script)
+  # returns from the trainerbattle screen without an ending message (go to beaten battle script)
 ```
 </details>
 
@@ -2167,7 +2167,7 @@ Notes:
 
 fadescreen `effect`
 
-*  `effect` from screenfades
+*  `effect` is from screenfades
 
 Example:
 ```
@@ -2186,7 +2186,7 @@ fadescreen3 `mode`
 
   Only available in BPEE
 
-*  `mode` from screenfades
+*  `mode` is from screenfades
 
 Example:
 ```
@@ -2207,7 +2207,7 @@ Notes:
 
 fadescreendelay `effect` `delay`
 
-*  `effect` from screenfades
+*  `effect` is from screenfades
 
 *  `delay` is a number.
 
@@ -2226,7 +2226,7 @@ fadescreendelay ToBlack 4
 
 fadesong `song`
 
-*  `song` from songnames
+*  `song` is from songnames
 
 Example:
 ```
@@ -2248,7 +2248,7 @@ Notes:
 
 fanfare `song`
 
-*  `song` from songnames
+*  `song` is from songnames
 
 Example:
 ```
@@ -2270,7 +2270,7 @@ Notes:
 
 find.item `item` `count`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `count` is a number.
 
@@ -2353,7 +2353,7 @@ getpricereduction `index`
 
   Only available in AXVE AXPE
 
-*  `index` from data.items.stats
+*  `index` is from data.items.stats
 
 Example:
 ```
@@ -2405,7 +2405,7 @@ givecoins 50
 
 giveEgg `species`
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 Example:
 ```
@@ -2448,11 +2448,11 @@ Notes:
 
 givePokemon `species` `level` `item`
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 *  `level` is a number.
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 Example:
 ```
@@ -2518,7 +2518,7 @@ Notes:
 
 gotostdif `condition` `function`
 
-*  `condition` from script_compare
+*  `condition` is from script_compare
 
 *  `function` is a number.
 
@@ -2714,18 +2714,18 @@ Notes:
 
 if.compare.call `variable` `value` `condition` `pointer`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `value` is a number.
 
-*  `condition` from script_compare
+*  `condition` is from script_compare
 
 *  `pointer` points to a script or section
 
 Example:
 ```
-# From BPRE0, 1640C0
-if.compare.call var4 <= 24 <section0>
+# From BPRE0, 1640CB
+if.compare.call var4 == 25 <section0>
 ```
 Notes:
 ```
@@ -2742,18 +2742,18 @@ Notes:
 
 if.compare.goto `variable` `value` `condition` `pointer`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `value` is a number.
 
-*  `condition` from script_compare
+*  `condition` is from script_compare
 
 *  `pointer` points to a script or section
 
 Example:
 ```
-# From BPRE0, 1C47EE
-if.no.goto <section0>
+# From BPRE0, 161917
+if.compare.goto 0x4060 >= 1 <section0>
 ```
 Notes:
 ```
@@ -2941,8 +2941,7 @@ if.male.call `ptr`
 
 Example:
 ```
-# From BPRE0, 170600
-if.gender.call <section0> <section1>
+if.male.call <section1>
 ```
 </details>
 
@@ -2958,8 +2957,8 @@ if.male.goto `ptr`
 
 Example:
 ```
-# From BPRE0, 16F76E
-if.gender.goto <section0> <section1>
+# From BPEE0, 1E7FF2
+if.male.goto <section0>
 ```
 </details>
 
@@ -2975,7 +2974,7 @@ if.no.call `ptr`
 
 Example:
 ```
-# From BPRE0, 163CE9
+# From BPRE0, 1BF483
 if.no.call <section0>
 ```
 </details>
@@ -2992,7 +2991,7 @@ if.no.goto `ptr`
 
 Example:
 ```
-# From BPRE0, 160E56
+# From BPRE0, 160725
 if.no.goto <section0>
 ```
 </details>
@@ -3005,14 +3004,14 @@ if.no.goto <section0>
 
 if.trainer.defeated.call `trainer` `pointer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `pointer` points to a script or section
 
 Example:
 ```
-# From BPEE0, 2048DA
-if.trainer.defeated.call ALEXIA <section0>
+# From BPRE0, 1613F7
+if.trainer.defeated.call GRUNT~17 <section0>
 ```
 Notes:
 ```
@@ -3028,14 +3027,14 @@ Notes:
 
 if.trainer.defeated.goto `trainer` `pointer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `pointer` points to a script or section
 
 Example:
 ```
-# From BPEE0, 1FC648
-if.trainer.defeated.goto BRAWLY <section0>
+# From BPRE0, 162B4D
+if.trainer.defeated.goto TERRY~27 <section0>
 ```
 Notes:
 ```
@@ -3051,7 +3050,7 @@ Notes:
 
 if.trainer.ready.call `trainer` `pointer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `pointer` points to a script or section
 
@@ -3074,7 +3073,7 @@ Notes:
 
 if.trainer.ready.goto `trainer` `pointer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `pointer` points to a script or section
 
@@ -3101,7 +3100,7 @@ if.yes.call `ptr`
 
 Example:
 ```
-# From BPRE0, 17095D
+# From BPRE0, 16EA6D
 if.yes.call <section0>
 ```
 </details>
@@ -3118,7 +3117,7 @@ if.yes.goto `ptr`
 
 Example:
 ```
-# From BPRE0, 16624E
+# From BPRE0, 1637F5
 if.yes.goto <section0>
 ```
 </details>
@@ -3131,13 +3130,13 @@ if.yes.goto <section0>
 
 if1 `condition` `pointer`
 
-*  `condition` from script_compare
+*  `condition` is from script_compare
 
 *  `pointer` points to a script or section
 
 Example:
 ```
-# From BPRE0, 1BE146:
+# From BPRE0, 1C47B3:
 if1 == <section0>
 ```
 Notes:
@@ -3154,14 +3153,14 @@ Notes:
 
 if2 `condition` `pointer`
 
-*  `condition` from script_compare
+*  `condition` is from script_compare
 
 *  `pointer` points to a script or section
 
 Example:
 ```
-# From BPRE0, 16144F:
-if2 == <section0>
+# From BPRE0, 162611:
+if2 < <section0>
 ```
 Notes:
 ```
@@ -3206,7 +3205,7 @@ initclock `hour` `minute`
 
 Example:
 ```
-initclock 0 1
+initclock 4 0
 ```
 Notes:
 ```
@@ -3228,7 +3227,7 @@ initrotatingtilepuzzle `isTrickHouse`
 
 Example:
 ```
-# From BPEE0, 220C84:
+# From BPEE0, 220C9A:
 initrotatingtilepuzzle 0
 ```
 </details>
@@ -3281,8 +3280,8 @@ lighten `flashSize`
 
 Example:
 ```
-# From BPEE0, 1FC71E:
-lighten 6
+# From BPEE0, 1FC734:
+lighten 4
 ```
 Notes:
 ```
@@ -3298,13 +3297,13 @@ Notes:
 
 loadbytefrompointer `bank` `pointer`
 
-*  `bank` from 4
+*  `bank` is from 4
 
 *  `pointer` is a number (hex).
 
 Example:
 ```
-loadbytefrompointer 3 0x0E
+loadbytefrompointer 1 0x0E
 ```
 Notes:
 ```
@@ -3320,13 +3319,13 @@ Notes:
 
 loadpointer `bank` `pointer`
 
-*  `bank` from 4
+*  `bank` is from 4
 
 *  `pointer` points to text or auto
 
 Example:
 ```
-loadpointer 0 <auto>
+loadpointer 3 <auto>
 ```
 Notes:
 ```
@@ -3402,21 +3401,15 @@ move.camera `data`
 
 Example:
 ```
-# From BPEE0, 1E594C
-move.camera <1E5A68>
+# From BPRE0, 170794
+move.camera <1707C3>
 {
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
-walk_slow_diag_southwest
+delay_16
+delay_16
+walk_down
+walk_down
+walk_left
+walk_left
 }
 ```
 Notes:
@@ -3440,14 +3433,14 @@ move.npc `npc` `data`
 
 Example:
 ```
-# From BPRE0, 1635F0
-move.npc 2 <163624>
+# From BPRE0, 163699
+move.npc 3 <1636BE>
 {
 walk_down
 walk_down
 walk_down
+walk_left
 walk_down
-walk_right
 walk_down
 walk_down
 }
@@ -3471,10 +3464,10 @@ move.player `data`
 
 Example:
 ```
-# From BPRE0, 164139
-move.player <1A75EB>
+# From BPRE0, 1A9110
+move.player <1A911C>
 {
-walk_in_place_fastest_right
+walk_up
 }
 ```
 Notes:
@@ -3496,8 +3489,8 @@ moveoffscreen `npc`
 
 Example:
 ```
-# From BPRE0, 1607C4:
-moveoffscreen 3
+# From BPRE0, 160F58:
+moveoffscreen 5
 ```
 Notes:
 ```
@@ -3519,8 +3512,8 @@ moverotatingtileobjects `puzzleNumber`
 
 Example:
 ```
-# From BPRE0, 1644A7:
-braillelength <1A9362>
+# From BPRE0, 163BCF:
+braillelength <1A92D0>
 ```
 </details>
 
@@ -3540,8 +3533,8 @@ movesprite `npc` `x` `y`
 
 Example:
 ```
-# From BPRE0, 164878:
-movesprite 255 9 7
+# From BPEE0, 1E81D4:
+movesprite 4 11 9
 ```
 </details>
 
@@ -3561,8 +3554,8 @@ movesprite2 `npc` `x` `y`
 
 Example:
 ```
-# From BPRE0, 16829E:
-movesprite2 1 25 5
+# From BPRE0, 1641C4:
+movesprite2 2 5 0
 ```
 Notes:
 ```
@@ -3582,11 +3575,11 @@ msgbox.autoclose `ptr`
 
 Example:
 ```
-# From BPRE0, 160809
-msgbox.autoclose <172D51>
+# From BPRE0, 160678
+msgbox.autoclose <172A26>
 {
-Darn it all!
-My associates won't stand for this!
+I saw them!
+I'm sure they're from TEAM ROCKET!
 }
 ```
 Notes:
@@ -3607,10 +3600,11 @@ msgbox.default `ptr`
 
 Example:
 ```
-# From BPRE0, 160DE7
-msgbox.default <174444>
+# From BPRE0, 160C52
+msgbox.default <173BA4>
 {
-MACHOKE: Gwoh! Goggoh!
+Waitress, I would like a cherry
+pie, please!
 }
 ```
 Notes:
@@ -3627,17 +3621,17 @@ Notes:
 
 msgbox.fanfare `song` `ptr`
 
-*  `song` from songnames
+*  `song` is from songnames
 
 *  `ptr` points to text or auto
 
 Example:
 ```
-# From BPRE0, 160765
-msgbox.fanfare mus_obtain_key_item <172BD6>
+# From BPRE0, 16E85D
+msgbox.fanfare mus_level_up <19A39E>
 {
-All right.
-Then this fossil is mine!
+[player] received the [buffer1]
+from the doctor.
 }
 ```
 Notes:
@@ -3720,25 +3714,26 @@ Notes:
 
 msgbox.item `item` `count` `msg` `item` `count` `song`
 
-*  `item` from data.items.stats
+  Only available in BPRE BPGE
+
+*  `item` is from data.items.stats
 
 *  `count` is a number.
 
 *  `msg` points to text or auto
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `count` is a number.
 
-*  `song` from songnames
+*  `song` is from songnames
 
 Example:
 ```
-# From BPRE0, 169F47
-msgbox.item <18F675> TM26 1 mus_level_up
+# From BPRE0, 160733
+msgbox.item <172ECD> "DOME FOSSIL" 1 mus_obtain_key_item
 {
-[player] received TM26
-from GIOVANNI.
+Obtained the DOME FOSSIL!
 }
 ```
 Notes:
@@ -3761,11 +3756,11 @@ msgbox.npc `ptr`
 
 Example:
 ```
-# From BPRE0, 160C1E
-msgbox.npc <173B21>
+# From BPRE0, 160AC5
+msgbox.npc <173462>
 {
-I always travel with WIGGLYTUFF.
-I never leave home without it.
+I'm so busy I'm getting dizzy!
+You have to give me room here!
 }
 ```
 Notes:
@@ -3790,11 +3785,11 @@ msgbox.sign `ptr`
 
 Example:
 ```
-# From BPRE0, 1BE091
-msgbox.sign <1BE0E2>
+# From BPRE0, 161770
+msgbox.sign <175B57>
 {
-It's a rugged rock, but a POKéMON
-may be able to smash it.
+SILPH CO. HEAD OFFICE
+4F
 }
 ```
 Notes:
@@ -3815,13 +3810,14 @@ msgbox.yesno `ptr`
 
 Example:
 ```
-# From BPRE0, 1BDF45
-msgbox.yesno <1BDF94>
+# From BPRE0, 160E4E
+msgbox.yesno <1A5AD6>
 {
-This tree looks like it can be CUT
-down!
+Hi!
+Do you have a [buffer1]?
 
-Would you like to CUT it?
+Want to trade it for my
+[buffer2]?
 }
 ```
 Notes:
@@ -3844,12 +3840,12 @@ multichoice `x` `y` `list` `allowCancel`
 
 *  `list` is a number.
 
-*  `allowCancel` from allowcanceloptions
+*  `allowCancel` is from allowcanceloptions
 
 Example:
 ```
-# From BPRE0, 166B46:
-multichoice 19 5 57 AllowCancel
+# From BPRE0, 1BEEE1:
+multichoice 18 6 18 AllowCancel
 ```
 Notes:
 ```
@@ -3873,12 +3869,12 @@ multichoice2 `x` `y` `list` `default` `canCancel`
 
 *  `default` is a number.
 
-*  `canCancel` from allowcanceloptions
+*  `canCancel` is from allowcanceloptions
 
 Example:
 ```
-# From BPRE0, 16C1C3:
-multichoice2 0 0 31 1 AllowCancel
+# From BPRE0, 161548:
+multichoice2 0 0 42 2 AllowCancel
 ```
 Notes:
 ```
@@ -3902,7 +3898,7 @@ multichoice3 `x` `y` `list` `per_row` `canCancel`
 
 *  `per_row` is a number.
 
-*  `canCancel` from allowcanceloptions
+*  `canCancel` is from allowcanceloptions
 
 Example:
 ```
@@ -3931,12 +3927,12 @@ multichoicegrid `x` `y` `list` `per_row` `canCancel`
 
 *  `per_row` is a number.
 
-*  `canCancel` from allowcanceloptions
+*  `canCancel` is from allowcanceloptions
 
 Example:
 ```
-# From AXVE0, 1579F7:
-multichoicegrid 8 1 13 3 AllowCancel
+# From BPRE0, 16A132:
+multichoicegrid 7 1 15 3 AllowCancel
 ```
 Notes:
 ```
@@ -4226,14 +4222,14 @@ Notes:
 
 npc.item `item` `count`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `count` is a number.
 
 Example:
 ```
-# From BPRE0, 164D98
-npc.item NUGGET 1
+# From BPRE0, 16655D
+npc.item "FAME CHECKER" 1
 ```
 Notes:
 ```
@@ -4276,8 +4272,8 @@ paymoney `money` `check`
 
 Example:
 ```
-# From BPRE0, 16D3E0:
-paymoney 500 0
+# From BPRE0, 16A438:
+paymoney 50 0
 ```
 Notes:
 ```
@@ -4293,14 +4289,14 @@ Notes:
 
 playsong `song` `mode`
 
-*  `song` from songnames
+*  `song` is from songnames
 
-*  `mode` from songloopoptions
+*  `mode` is from songloopoptions
 
 Example:
 ```
-# From BPRE0, 16919E:
-playsong mus_encounter_rival playOnce
+# From BPRE0, 163A25:
+playsong mus_encounter_rocket playOnce
 ```
 Notes:
 ```
@@ -4338,16 +4334,15 @@ pokemart `products`
 
 Example:
 ```
-# From BPRE0, 16B67C:
-pokemart <16B68C>
+# From BPRE0, 16BB64:
+pokemart <16BB74>
 {
-"POKé BALL"
-"SUPER POTION"
-ANTIDOTE
-"PARLYZ HEAL"
-AWAKENING
-"ICE HEAL"
-REPEL
+TM05
+TM15
+TM28
+TM31
+TM43
+TM45
 }
 ```
 Notes:
@@ -4413,11 +4408,11 @@ preparemsg `text`
 
 Example:
 ```
-# From BPRE0, 1A65BA:
-preparemsg <1A54E1>
+# From BPRE0, 161B4A:
+preparemsg <1762D7>
 {
-Okay, I'll take your POKéMON for a
-few seconds.
+[player] obtained a LAPRAS from
+the SILPH employee!
 }
 ```
 Notes:
@@ -4439,10 +4434,10 @@ preparemsg2 `pointer`
 
 Example:
 ```
-# From BPRE0, 1BB747:
-preparemsg2 <1BC590>
+# From BPEE0, 27A914:
+preparemsg2 <27BA15>
 {
-Please enter.
+MC: That's it for judging!
 }
 ```
 Notes:
@@ -4487,7 +4482,7 @@ pyramid.battle `trainer` `start` `playerwin`
 
   Only available in BPEE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -4522,8 +4517,8 @@ random `high`
 
 Example:
 ```
-# From BPEE0, 1E2BEC:
-random 10
+# From BPRE0, 166750:
+random 3
 ```
 Notes:
 ```
@@ -4539,12 +4534,12 @@ Notes:
 
 readytrainer `trainer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 Example:
 ```
-# From AXVE0, 150019:
-readytrainer VICTOR
+# From BPRE0, 1A6569:
+readytrainer TERRY~25
 ```
 Notes:
 ```
@@ -4560,13 +4555,13 @@ Notes:
 
 register.matchcall `trainer` `trainer`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 Example:
 ```
-register.matchcall ~43 MELISSA
+register.matchcall FINN ~43
 ```
 Notes:
 ```
@@ -4622,8 +4617,8 @@ removecoins `count`
 
 Example:
 ```
-# From BPEE0, 210035:
-removecoins 3500
+# From BPEE0, 20FFFB:
+removecoins 1500
 ```
 </details>
 
@@ -4635,11 +4630,11 @@ removecoins 3500
 
 removedecoration `decoration`
 
-*  `decoration` from data.decorations.stats
+*  `decoration` is from data.decorations.stats
 
 Example:
 ```
-removedecoration "ZIGZAG CUSHION"
+removedecoration "GLITTER MAT"
 ```
 Notes:
 ```
@@ -4657,14 +4652,14 @@ Notes:
 
 removeitem `item` `quantity`
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 *  `quantity` is a number.
 
 Example:
 ```
-# From BPRE0, 171741:
-removeitem TINYMUSHROOM 2
+# From BPRE0, 16FA1E:
+removeitem TEA 1
 ```
 Notes:
 ```
@@ -4747,8 +4742,8 @@ restorespritelevel `npc` `bank` `map`
 
 Example:
 ```
-# From AXVE0, 14F06B:
-restorespritelevel 2 0 11
+# From AXVE0, 14E277:
+restorespritelevel 2 0 24
 ```
 Notes:
 ```
@@ -4800,7 +4795,7 @@ Notes:
 
 savesong `song`
 
-*  `song` from songnames
+*  `song` is from songnames
 
 Example:
 ```
@@ -4849,8 +4844,8 @@ setanimation `animation` `slot`
 
 Example:
 ```
-# From BPRE0, 16C988:
-setanimation 0 255
+# From BPRE0, 16C98C:
+setanimation 1 10
 ```
 Notes:
 ```
@@ -4870,13 +4865,13 @@ setberrytree `plantID` `berryID` `growth`
 
 *  `plantID` is a number.
 
-*  `berryID` from data.items.berry.stats
+*  `berryID` is from data.items.berry.stats
 
 *  `growth` is a number.
 
 Example:
 ```
-setberrytree 2 POMEG 3
+setberrytree 2 HONDEW 2
 ```
 Notes:
 ```
@@ -4896,7 +4891,7 @@ setbyte `byte`
 
 Example:
 ```
-setbyte 2
+setbyte 3
 ```
 Notes:
 ```
@@ -4912,13 +4907,13 @@ Notes:
 
 setbyte2 `bank` `value`
 
-*  `bank` from 4
+*  `bank` is from 4
 
 *  `value` is a number.
 
 Example:
 ```
-setbyte2 1 1
+setbyte2 2 1
 ```
 Notes:
 ```
@@ -4938,11 +4933,11 @@ setcatchlocation `slot` `location`
 
 *  `slot` is a number.
 
-*  `location` from data.maps.names
+*  `location` is from data.maps.names
 
 Example:
 ```
-setcatchlocation 4 "SAFFRON CITY"
+setcatchlocation 1 "TANOBY CHAMBERS"
 ```
 Notes:
 ```
@@ -4985,8 +4980,8 @@ setdoorclosed `x` `y`
 
 Example:
 ```
-# From BPRE0, 1BBB04:
-setdoorclosed 5 1
+# From BPRE0, 1BBFCF:
+setdoorclosed 9 1
 ```
 Notes:
 ```
@@ -5008,7 +5003,7 @@ setdoorclosed2 `x` `y`
 
 Example:
 ```
-setdoorclosed2 0 4
+setdoorclosed2 0 0
 ```
 Notes:
 ```
@@ -5030,8 +5025,8 @@ setdooropened `x` `y`
 
 Example:
 ```
-# From BPRE0, 1BBAEF:
-setdooropened 5 1
+# From BPEE0, 27716D:
+setdooropened 9 1
 ```
 Notes:
 ```
@@ -5053,7 +5048,7 @@ setdooropened2 `x` `y`
 
 Example:
 ```
-setdooropened2 2 3
+setdooropened2 0 2
 ```
 Notes:
 ```
@@ -5069,13 +5064,13 @@ Notes:
 
 setfarbyte `bank` `pointer`
 
-*  `bank` from 4
+*  `bank` is from 4
 
 *  `pointer` is a number (hex).
 
 Example:
 ```
-setfarbyte 2 0x0D
+setfarbyte 2 0x0B
 ```
 Notes:
 ```
@@ -5095,7 +5090,7 @@ setflag `flag`
 
 Example:
 ```
-# From BPRE0, 162553:
+# From BPRE0, 162558:
 setflag 0x02BC
 ```
 Notes:
@@ -5116,8 +5111,8 @@ sethealingplace `flightspot`
 
 Example:
 ```
-# From BPRE0, 162DC1:
-sethealingplace 1
+# From BPRE0, 16FC3D:
+sethealingplace 13
 ```
 Notes:
 ```
@@ -5137,8 +5132,8 @@ setmapfooter `footer`
 
 Example:
 ```
-# From BPEE0, 236F0E:
-setmapfooter 169
+# From BPRE0, 164D50:
+setmapfooter 319
 ```
 Notes:
 ```
@@ -5164,8 +5159,8 @@ setmaptile `x` `y` `tile` `isWall`
 
 Example:
 ```
-# From BPRE0, 1614AA:
-setmaptile 18 12 641 0
+# From BPRE0, 1614B3:
+setmaptile 17 13 642 0
 ```
 Notes:
 ```
@@ -5208,11 +5203,11 @@ setmonmove `pokemonSlot` `attackSlot` `newMove`
 
 *  `attackSlot` is a number.
 
-*  `newMove` from data.pokemon.moves.names
+*  `newMove` is from data.pokemon.moves.names
 
 Example:
 ```
-setmonmove 4 0 DRAGONBREATH
+setmonmove 3 4 FLY
 ```
 Notes:
 ```
@@ -5249,13 +5244,13 @@ Notes:
 
 setorcopyvar `variable` `source`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `source` is a number.
 
 Example:
 ```
-# From BPRE0, 1BE5C7:
+# From BPRE0, 1BE5EE:
 setorcopyvar var1 1
 ```
 Notes:
@@ -5278,7 +5273,7 @@ setup.battle.A `trainer` `start` `playerwin`
 
   Only available in BPEE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -5286,7 +5281,7 @@ setup.battle.A `trainer` `start` `playerwin`
 
 Example:
 ```
-setup.battle.A GRUNT~15 <auto> <auto>
+setup.battle.A GERALD <auto> <auto>
 ```
 Notes:
 ```
@@ -5304,7 +5299,7 @@ setup.battle.B `trainer` `start` `playerwin`
 
   Only available in BPEE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -5312,7 +5307,7 @@ setup.battle.B `trainer` `start` `playerwin`
 
 Example:
 ```
-setup.battle.B GRUNT~29 <auto> <auto>
+setup.battle.B GRUNT~15 <auto> <auto>
 ```
 Notes:
 ```
@@ -5328,14 +5323,14 @@ Notes:
 
 setvar `variable` `value`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `value` is a number.
 
 Example:
 ```
-# From BPRE0, 160E3B:
-setvar var8 2
+# From BPRE0, 1ACE0A:
+setvar var5 4
 ```
 Notes:
 ```
@@ -5355,7 +5350,7 @@ setvirtualaddress `pointer`
 
 Example:
 ```
-setvirtualaddress 0x0F
+setvirtualaddress 0x0C
 ```
 Notes:
 ```
@@ -5384,8 +5379,8 @@ setwarpplace `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From BPRE0, 1620D4:
-setwarpplace 1 51 256 22 3
+# From BPRE0, 16C24B:
+setwarpplace 10 0 256 6 1
 ```
 Notes:
 ```
@@ -5401,12 +5396,12 @@ Notes:
 
 setweather `type`
 
-*  `type` is a number.
+*  `type` is from weathertypes
 
 Example:
 ```
-# From BPRE0, 1A9267:
-setweather 11
+# From BPEE0, 1F0FB0:
+setweather Sunny
 ```
 Notes:
 ```
@@ -5422,16 +5417,16 @@ Notes:
 
 setwildbattle `species` `level` `item`
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 *  `level` is a number.
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 Example:
 ```
-# From BPRE0, 16389D:
-setwildbattle ELECTRODE 34 ????????
+# From BPRE0, 168048:
+setwildbattle SNORLAX 30 ????????
 ```
 </details>
 
@@ -5441,16 +5436,16 @@ setwildbattle ELECTRODE 34 ????????
 <summary> setworldmapflag</summary>
 
 
-setworldmapflag `flag`
+setworldmapflag `mapflag`
 
   Only available in BPRE BPGE
 
-*  `flag` is a number.
+*  `mapflag` is a number (hex).
 
 Example:
 ```
-# From BPRE0, 160F2F:
-setworldmapflag 2218
+# From BPRE0, 160EBB:
+setworldmapflag 0x08A7
 ```
 Notes:
 ```
@@ -5476,7 +5471,7 @@ showbox `x` `y` `width` `height`
 
 Example:
 ```
-showbox 3 3 3 1
+showbox 1 3 3 3
 ```
 Notes:
 ```
@@ -5533,8 +5528,8 @@ showcontestwinner `contest`
 
 Example:
 ```
-# From BPEE0, 2199BD:
-showcontestwinner 10
+# From BPEE0, 21A75D:
+showcontestwinner 5
 ```
 Notes:
 ```
@@ -5578,7 +5573,7 @@ showmoney `x` `y`
 
 Example:
 ```
-# From BPRE0, 16D3A5:
+# From BPRE0, 1BF3A8:
 showmoney 0 0 0
 ```
 Notes:
@@ -5598,7 +5593,7 @@ showmoney `x` `y` `check`
 
 Example:
 ```
-# From BPEE0, 20ADC1:
+# From BPRE0, 16D3A5:
 showmoney 0 0 0
 ```
 Notes:
@@ -5615,7 +5610,7 @@ Notes:
 
 showpokepic `species` `x` `y`
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 *  `x` is a number (hex).
 
@@ -5623,8 +5618,8 @@ showpokepic `species` `x` `y`
 
 Example:
 ```
-# From BPEE0, 1FA039:
-showpokepic CHIKORITA 10 3
+# From BPEE0, 1F9FD1:
+showpokepic CYNDAQUIL 10 3
 ```
 Notes:
 ```
@@ -5644,7 +5639,7 @@ showsprite `npc`
 
 Example:
 ```
-# From BPRE0, 169AA5:
+# From BPRE0, 1664D7:
 showsprite 8
 ```
 Notes:
@@ -5669,7 +5664,7 @@ showsprite2 `npc` `bank` `map`
 
 Example:
 ```
-showsprite2 1 0 0
+showsprite2 2 1 0
 ```
 Notes:
 ```
@@ -5705,7 +5700,7 @@ Notes:
 
 single.battle `trainer` `start` `playerwin`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -5713,14 +5708,15 @@ single.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-# From BPRE0, 160653
-single.battle JOVAN <17290B> <172927>
+# From BPRE0, 16059F
+single.battle SAMMY <1723D4> <172402>
 {
-What!
-Don't sneak up on me!
+Hey, wait up!
+What's the hurry? Why the rush?
 }
 {
-My POKéMON won't do!
+I give!
+You're good at this!
 }
 ```
 Notes:
@@ -5739,7 +5735,7 @@ single.battle.canlose `trainer` `playerlose` `playerwin`
 
   Only available in BPRE BPGE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `playerlose` points to text or auto
 
@@ -5747,7 +5743,7 @@ single.battle.canlose `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-single.battle.canlose IRENE <auto> <auto>
+single.battle.canlose LUCA <auto> <auto>
 ```
 Notes:
 ```
@@ -5763,7 +5759,7 @@ Notes:
 
 single.battle.continue.music `trainer` `start` `playerwin` `winscript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -5773,14 +5769,14 @@ single.battle.continue.music `trainer` `start` `playerwin` `winscript`
 
 Example:
 ```
-# From BPRE0, 16CAF5
-single.battle.continue.music GRUNT~7 <196E69> <196E95> <section0>
+# From BPRE0, 16DB27
+single.battle.continue.music QUINN <19983F> <199870> <section0>
 {
-I'm guarding this poster!
-Go away, or else!
+I was a thief, but I went straight
+as a TRAINER.
 }
 {
-Dang!
+I surrender!
 }
 ```
 Notes:
@@ -5797,7 +5793,7 @@ Notes:
 
 single.battle.continue.silent `trainer` `start` `playerwin` `winscript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -5807,49 +5803,34 @@ single.battle.continue.silent `trainer` `start` `playerwin` `winscript`
 
 Example:
 ```
-# From BPRE0, 16A5A0
-single.battle.continue.silent BROCK <190CD4> <190E4F> <section0>
+# From BPEE0, 212F31
+single.battle.continue.silent ROXANNE <21362A> <21370B> <section0>
 {
-So, you're here. I'm BROCK.
-I'm PEWTER's GYM LEADER.
+Hello, I am ROXANNE, the RUSTBORO
+POKéMON GYM LEADER.
 
-My rock-hard willpower is evident
-even in my POKéMON.
+I became a GYM LEADER so that I might
+apply what I learned at the POKéMON
+TRAINER'S SCHOOL in battle.
 
-My POKéMON are all rock hard, and
-have true-grit determination.
-
-That's right - my POKéMON are all
-the ROCK type!
-
-Fuhaha! You're going to challenge
-me knowing that you'll lose?
-
-That's the TRAINER's honor that
-compels you to challenge me.
-
-Fine, then!
-Show me your best!\CC0B5601
+Would you kindly demonstrate how you
+battle, and with which POKéMON?
 }
 {
-I took you for granted, and so
-I lost.
+So\.
+I lost\.
 
-As proof of your victory, I confer
-on you this\.the official POKéMON
-LEAGUE BOULDERBADGE.
+It seems that I still have much more
+to learn\.
 
-\CC0602[player] received the BOULDERBADGE
-from BROCK![pause_music]\CC0B0401\CC08FE\CC0856[resume_music]
+I understand.
 
-\CC0604Just having the BOULDERBADGE makes
-your POKéMON more powerful.
+The POKéMON LEAGUE's rules state
+that TRAINERS are to be given this
+if they defeat a GYM LEADER.
 
-It also enables the use of the
-move FLASH outside of battle.
-
-Of course, a POKéMON must know the
-move FLASH to use it.
+Please accept the official POKéMON
+LEAGUE STONE BADGE.
 }
 ```
 Notes:
@@ -5866,16 +5847,17 @@ Notes:
 
 single.battle.nointro `trainer` `playerwin`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `playerwin` points to text or auto
 
 Example:
 ```
-# From BPRE0, 1639BE
-single.battle.nointro GRUNT~43 <17AA34>
+# From BPRE0, 161331
+single.battle.nointro GIOVANNI <175318>
 {
-Huh, what?
+WHAT!
+This can't be!
 }
 ```
 Notes:
@@ -5892,7 +5874,7 @@ Notes:
 
 single.battle.rematch `trainer` `start` `playerwin`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -5900,15 +5882,14 @@ single.battle.rematch `trainer` `start` `playerwin`
 
 Example:
 ```
-# From BPRE0, 1A94AA
-single.battle.rematch GREG <1C1521> <1836B3>
+# From BPRE0, 1A9A3C
+single.battle.rematch RICKY <1C163C> <183E2A>
 {
-You're a TRAINER, aren't you?
-Let's get with it right away!
+Oh! You're that nosy kid who
+eavesdropped on us!
 }
 {
-If I had new POKéMON, I would've
-won!
+I just can't win!
 }
 ```
 Notes:
@@ -5925,7 +5906,7 @@ Notes:
 
 sound `number`
 
-*  `number` from songnames
+*  `number` is from songnames
 
 Example:
 ```
@@ -5947,12 +5928,12 @@ Notes:
 
 special `function`
 
-*  `function` from specials
+*  `function` is from specials
 
 Example:
 ```
-# From BPRE0, 16122D:
-special DrawWholeMapView
+# From BPRE0, 160750:
+special QuestLog_CutRecording
 ```
 Notes:
 ```
@@ -5970,14 +5951,14 @@ Notes:
 
 special2 `variable` `function`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
-*  `function` from specials
+*  `function` is from specials
 
 Example:
 ```
-# From BPRE0, 163B6B:
-special2 varResult GetBattleOutcome
+# From BPRE0, 164D6B:
+special2 varResult IsNationalPokedexEnabled
 ```
 Notes:
 ```
@@ -5995,13 +5976,13 @@ Notes:
 
 specialvar `variable` `function`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
-*  `function` from specials
+*  `function` is from specials
 
 Example:
 ```
-# From BPRE0, 1637F0:
+# From BPRE0, 163B6B:
 special2 varResult GetBattleOutcome
 ```
 Notes:
@@ -6022,12 +6003,12 @@ spritebehave `npc` `behavior`
 
 *  `npc` is a number.
 
-*  `behavior` is a number.
+*  `behavior` is from FacingOptions
 
 Example:
 ```
-# From BPRE0, 163964:
-spritebehave 3 8
+# From BPRE0, 1C5028:
+spritebehave 2 FaceDown
 ```
 Notes:
 ```
@@ -6045,12 +6026,12 @@ spriteface `npc` `direction`
 
 *  `npc` is a number.
 
-*  `direction` from directions
+*  `direction` is from directions
 
 Example:
 ```
-# From BPEE0, 2240DA:
-spriteface 3 South
+# From BPRE0, 1626D0:
+spriteface 255 Down
 ```
 </details>
 
@@ -6068,8 +6049,8 @@ spriteface2 `virtualNPC` `facing`
 
 Example:
 ```
-# From BPEE0, 27AAAB:
-spriteface2 8 4
+# From BPEE0, 27AAA5:
+spriteface2 4 4
 ```
 </details>
 
@@ -6089,8 +6070,8 @@ spriteinvisible `npc` `bank` `map`
 
 Example:
 ```
-# From BPEE0, 277004:
-spriteinvisible 255 0 0
+# From BPEE0, 21E4FB:
+spriteinvisible 0x800F 13 10
 ```
 Notes:
 ```
@@ -6116,8 +6097,8 @@ spritelevelup `npc` `bank` `map` `subpriority`
 
 Example:
 ```
-# From BPEE0, 1EE817:
-spritelevelup 2 0 11 0
+# From AXVE0, 14F4D8:
+spritelevelup 2 0 24 0
 ```
 Notes:
 ```
@@ -6141,8 +6122,8 @@ spritevisible `npc` `bank` `map`
 
 Example:
 ```
-# From BPEE0, 1F0E72:
-spritevisible 255 0 9
+# From BPEE0, 2008E8:
+spritevisible 1 5 3
 ```
 Notes:
 ```
@@ -6176,7 +6157,7 @@ Notes:
 
 subvar `variable` `source`
 
-*  `variable` from scriptvariablealiases
+*  `variable` is from scriptvariablealiases
 
 *  `source` is a number.
 
@@ -6200,11 +6181,11 @@ Notes:
 
 testdecoration `decoration`
 
-*  `decoration` from data.decorations.stats
+*  `decoration` is from data.decorations.stats
 
 Example:
 ```
-# From AXVE0, 156C58:
+# From BPEE0, 20FDDD:
 testdecoration "TREECKO DOLL"
 ```
 Notes:
@@ -6245,7 +6226,7 @@ Notes:
 
 trainerbattle 0 `trainer` `arg` `start` `playerwin`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6255,21 +6236,21 @@ trainerbattle 0 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-# From BPRE0, 160A84:
-trainerbattle 00 EDMOND 0 <173308> <17332B>
+# From BPRE0, 16060E:
+trainerbattle 00 JOSH 0 <17281D> <172844>
 {
-Hey, matey!
-
-Let's do a little jig!
+Did you come to explore the cave,
+too?
 }
 {
-You're impressive!
+Losing stinks!
+It's so uncool.
 }
 ```
 
 trainerbattle 1 `trainer` `arg` `start` `playerwin` `winscript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6281,32 +6262,34 @@ trainerbattle 1 `trainer` `arg` `start` `playerwin` `winscript`
 
 Example:
 ```
-# From BPRE0, 16D55B:
-trainerbattle 01 KOGA 0 <19832E> <198444> <section0>
+# From AXVE0, 1578D9:
+trainerbattle 01 ROXANNE 0 <183EE5> <183FC4> <section0>
 {
-KOGA: Fwahahaha!
+Hello, I am ROXANNE, the RUSTBORO
+POKéMON GYM LEADER.
 
-A mere child like you dares to
-challenge me?
+I became a GYM LEADER so that I may
+apply what I learned at the POKéMON
+TRAINER'S SCHOOL in battle.
 
-The very idea makes me shiver
-with mirth!
-
-Very well, I shall show you true
-terror as a ninja master.
-
-Poison brings steady doom.
-Sleep renders foes helpless.
-
-Despair to the creeping horror of
-POISON-type POKéMON!\CC0B5601
+Would you kindly demonstrate how you
+battle, and with which POKéMON?
 }
 {
-Humph!
-You have proven your worth!
+So...
+I lost...
 
-Here!
-Take the SOULBADGE!
+It seems that I still have much more
+to learn...
+
+I understand.
+
+The POKéMON LEAGUE's rules state
+that TRAINERS are to be given this
+if they defeat a GYM LEADER.
+
+Please accept the official POKéMON
+LEAGUE STONE BADGE.
 }
 ```
 Notes:
@@ -6316,7 +6299,7 @@ Notes:
 
 trainerbattle 2 `trainer` `arg` `start` `playerwin` `winscript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6328,13 +6311,21 @@ trainerbattle 2 `trainer` `arg` `start` `playerwin` `winscript`
 
 Example:
 ```
-# From BPRE0, 16120A:
-trainerbattle 02 GRUNT~12 0 <17503A> <17505A> <section0>
+# From BPRE0, 16363D:
+trainerbattle 02 GRUNT~20 0 <17A3CD> <17A466> <section0>
 {
-Are you lost, you little mouse?
+This old guy marched right up to
+our HIDEOUT.
+
+Then, he starts ranting about how
+TEAM ROCKET's abusing POKéMON.
+
+So, we're just talking it over as
+adults.
 }
 {
-Why\.?
+Please!
+No more!
 }
 ```
 Notes:
@@ -6344,7 +6335,7 @@ Notes:
 
 trainerbattle 3 `trainer` `arg` `playerwin`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6366,7 +6357,7 @@ Notes:
 
 trainerbattle 4 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6378,21 +6369,22 @@ trainerbattle 4 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-# From BPRE0, 1AA649:
-trainerbattle 04 "GIA & JES" 0 <1858A6> <1858D0> <185908>
+# From BPRE0, 16115F:
+trainerbattle 04 "RAY & TYRA" 0 <174D0C> <174D45> <174D96>
 {
-GIA: Hey, JES\.
-
-If we win, I'll marry you!
+RAY: Together, the two of us are
+destined for greatness!
 }
 {
-GIA: Oh, but why?
+RAY: Ludicrous!
+This can't be!
 }
 {
-GIA: I can't bear to battle
-without my JES!
+RAY: Together, the two of us are
+striving for the pinnacle.
 
-Don't you have one more POKéMON?
+We need you to bring two POKéMON
+into battle with us.
 }
 ```
 Notes:
@@ -6402,7 +6394,7 @@ Notes:
 
 trainerbattle 5 `trainer` `arg` `start` `playerwin`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6412,16 +6404,15 @@ trainerbattle 5 `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-# From BPRE0, 1A93F0:
-trainerbattle 05 BEN 0 <1C149D> <1835A0>
+# From BPRE0, 1A942E:
+trainerbattle 05 CALVIN 0 <1C1588> <1837BD>
 {
-Hi! I like shorts!
-They're comfy and easy to wear!
-
-You should be wearing shorts, too!
+Hey! What's wrong with you?
+You're still not wearing shorts!
 }
 {
-I don't believe it!
+Lost!
+Lost! Lost!
 }
 ```
 Notes:
@@ -6431,7 +6422,7 @@ Notes:
 
 trainerbattle 6 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `continuescript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6445,24 +6436,25 @@ trainerbattle 6 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `conti
 
 Example:
 ```
-# From BPEE0, 1F6643:
-trainerbattle 06 "LILA & ROY" 0 <2A0E87> <2A0EFE> <2A0F8C> <section0>
+# From BPEE0, 28CF36:
+trainerbattle 06 "GABBY & TY~6" 0 <28B7B1> <28B8F6> <28B841> <section0>
 {
-LILA: Sigh\.
+TY: Hey, lookie here!
+I remember you!
 
-Here I am in the sea, but who's with me?
-My little brother!
-
-Let's battle so I won't have to dwell
-on that!
+I'll get this battle all on this
+here camera!
 }
 {
-LILA: ROY! It's your fault we lost!
-You're in for it later!
+TY: Yep, I got it all.
+That whole battle's on camera.
 }
 {
-LILA: You're planning to battle us?
-Not unless you have two POKéMON.
+TY: Do you only have the one POKéMON
+and that's it?
+
+If you had more POKéMON, it'd make for
+better footage, but\.
 }
 ```
 Notes:
@@ -6472,7 +6464,7 @@ Notes:
 
 trainerbattle 7 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6484,23 +6476,21 @@ trainerbattle 7 `trainer` `arg` `start` `playerwin` `needmorepokemonText`
 
 Example:
 ```
-# From BPRE0, 1AB6EE:
-trainerbattle 07 "LIA & LUC" 0 <1C2FAE> <187D7E> <187DE8>
+# From BPRE0, 1AC0C6:
+trainerbattle 07 "JOY & MEG" 0 <1C3B6E> <18A0F7> <18A138>
 {
-LUC: My big sis taught me all
-about POKéMON.
-
-I wonder if I'm better?
+JOY: We've gotten stronger!
+Lots and lots!
 }
 {
-LUC: Oh, wow!
-Someone tougher than my big sis!
+JOY: Ohh\.
+MEG!
 }
 {
-LUC: I don't want to if I can't
-battle you with my big sis.
+JOY: I really want to battle with
+MEG.
 
-Don't you have two POKéMON?
+One POKéMON isn't enough.
 }
 ```
 Notes:
@@ -6510,7 +6500,7 @@ Notes:
 
 trainerbattle 8 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `continuescript`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6524,12 +6514,12 @@ trainerbattle 8 `trainer` `arg` `start` `playerwin` `needmorepokemonText` `conti
 
 Example:
 ```
-# From BPEE0, 220898:
-trainerbattle 08 TATE&LIZA 0 <221783> <2218EC> <221BCE> <section0>
+# From AXVE0, 15A56B:
+trainerbattle 08 TATE&LIZA 0 <18CF02> <18D077> <18D324> <section0>
 {
-TATE: Hehehe\. Were you surprised?
+TATE: Hehehe... Were you surprised?
 
-LIZA: Fufufu\. Were you surprised?
+LIZA: Fufufu... Were you surprised?
 
 TATE: That there are two GYM LEADERS?
 LIZA: That there are two GYM LEADERS?
@@ -6537,28 +6527,28 @@ LIZA: That there are two GYM LEADERS?
 TATE: We're twins!
 LIZA: We're twins!
 
-TATE: We don't need to talk because\.
-LIZA: We can each determine what\.
+TATE: We don't need to talk because...
+LIZA: We can each determine what...
 
-TATE: The other is thinking\.
+TATE: The other is thinking...
 LIZA: All in our minds!
 
-TATE: This combination of ours\.
+TATE: This combination of ours...
 LIZA: Can you beat it?
 }
 {
-TATE: What?! Our combination\.
+TATE: What?! Our combination...
 LIZA: Was shattered!
 
-TATE: It can't be helped. You've won\.
+TATE: It can't be helped. You've won...
 LIZA: So, in recognition, take this.
 }
 {
-TATE: Hehehe\. Were you surprised?
+TATE: Hehehe... Were you surprised?
 
 LIZA: That there are two GYM LEADERS?
 
-TATE: Oops, you have only one\.
+TATE: Oops, you have only one...
 LIZA: POKéMON that can battle.
 
 TATE: We can't battle that way!
@@ -6574,7 +6564,7 @@ Notes:
 
 trainerbattle 9 `trainer` `arg` `playerwin` `playerlose`
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6584,12 +6574,11 @@ trainerbattle 9 `trainer` `arg` `playerwin` `playerlose`
 
 Example:
 ```
-# From BPRE0, 1693AC:
-trainerbattle 09 TERRY 3 <18DDEA> <18DE1A>
+# From BPRE0, 16837C:
+trainerbattle 09 TERRY~5 0 <188959> <18DE1A>
 {
-WHAT?
-Unbelievable!
-I picked the wrong POKéMON!
+Awww!
+You just lucked out!
 }
 {
 [rival]: Yeah!
@@ -6605,7 +6594,7 @@ trainerbattle `other` `trainer` `arg` `start` `playerwin`
 
 *  `other` is a number.
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `arg` is a number.
 
@@ -6615,15 +6604,14 @@ trainerbattle `other` `trainer` `arg` `start` `playerwin`
 
 Example:
 ```
-# From BPRE0, 160BEF:
-trainerbattle 00 ANN 0 <173A1A> <173A4F>
+# From BPRE0, 160A9B:
+trainerbattle 00 TREVOR 0 <173382> <1733A0>
 {
-I collected these POKéMON
-from all around the world!
+Ahoy, there!
+Are you seasick?
 }
 {
-Oh, no!
-I went around the world for these!
+I was just careless!
 }
 ```
 Notes:
@@ -6648,7 +6636,7 @@ trainerhill.battle `trainer` `start` `playerwin`
 
   Only available in BPEE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `start` points to text or auto
 
@@ -6656,7 +6644,7 @@ trainerhill.battle `trainer` `start` `playerwin`
 
 Example:
 ```
-trainerhill.battle "RAY & TYRA" <auto> <auto>
+trainerhill.battle TONY~2 <auto> <auto>
 ```
 Notes:
 ```
@@ -6710,7 +6698,7 @@ tutorial.battle `trainer` `playerlose` `playerwin`
 
   Only available in BPRE BPGE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `playerlose` points to text or auto
 
@@ -6718,7 +6706,7 @@ tutorial.battle `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-tutorial.battle SEBASTIAN <auto> <auto>
+tutorial.battle "RAY & TYRA" <auto> <auto>
 ```
 Notes:
 ```
@@ -6736,7 +6724,7 @@ tutorial.battle.canlose `trainer` `playerlose` `playerwin`
 
   Only available in BPRE BPGE
 
-*  `trainer` from data.trainers.stats
+*  `trainer` is from data.trainers.stats
 
 *  `playerlose` points to text or auto
 
@@ -6744,8 +6732,8 @@ tutorial.battle.canlose `trainer` `playerlose` `playerwin`
 
 Example:
 ```
-# From BPRE0, 16949F
-tutorial.battle.canlose TERRY~2 <18DDEA> <18DE1A>
+# From BPRE0, 169424
+tutorial.battle.canlose TERRY~3 <18DDEA> <18DE1A>
 {
 WHAT?
 Unbelievable!
@@ -6796,8 +6784,8 @@ updatecoins `x` `y`
 
 Example:
 ```
-# From BPRE0, 16CDE3:
-updatecoins 0 5
+# From BPEE0, 210003:
+updatecoins 1 1
 ```
 Notes:
 ```
@@ -6841,7 +6829,7 @@ updatemoney `x` `y` `check`
 
 Example:
 ```
-# From BPEE0, 22BC7F:
+# From BPRE0, 1BF4F7:
 updatemoney 0 0 0
 ```
 Notes:
@@ -6858,13 +6846,13 @@ Notes:
 
 virtualbuffer `buffer` `text`
 
-*  `buffer` from bufferNames
+*  `buffer` is from bufferNames
 
 *  `text` is a pointer.
 
 Example:
 ```
-virtualbuffer buffer1 <F00000>
+virtualbuffer buffer3 <F00000>
 
 ```
 Notes:
@@ -6903,7 +6891,7 @@ virtualcallif `condition` `destination`
 
 Example:
 ```
-virtualcallif 4 <F00000>
+virtualcallif 1 <F00000>
 
 ```
 </details>
@@ -7049,7 +7037,7 @@ waitmovement `npc`
 
 Example:
 ```
-# From BPRE0, 160BBC:
+# From BPRE0, 16371C:
 waitmovement 0
 ```
 Notes:
@@ -7075,8 +7063,8 @@ waitmovement2 `npc` `bank` `map`
 
 Example:
 ```
-# From AXVE0, 14B77F:
-waitmovement2 0 0 2
+# From BPEE0, 1DC363:
+waitmovement2 2 0 0
 ```
 Notes:
 ```
@@ -7159,8 +7147,8 @@ warp `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From BPRE0, 16D437:
-warp 1 63 256 26 30
+# From BPRE0, 1C5086:
+warp 2 10 256 9 7
 ```
 Notes:
 ```
@@ -7184,7 +7172,7 @@ warp.center `mapbank` `map`
 
 Example:
 ```
-warp.center 0 1
+warp.center 2 0
 ```
 Notes:
 ```
@@ -7208,7 +7196,7 @@ warp.towarp `mapbank` `map` `warp`
 
 Example:
 ```
-warp.towarp 2 2 1
+warp.towarp 1 2 2
 ```
 Notes:
 ```
@@ -7263,8 +7251,8 @@ warp3 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From BPEE0, 27718C:
-warp3 25 25 256 5 8
+# From BPEE0, 21A663:
+warp3 25 36 256 7 5
 ```
 Notes:
 ```
@@ -7293,8 +7281,8 @@ warp4 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From BPEE0, 2390BB:
-warp4 0 49 256 60 31
+# From BPEE0, 1F764A:
+warp4 24 69 256 8 6
 ```
 Notes:
 ```
@@ -7322,8 +7310,8 @@ warp5 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From AXVE0, 15F2F7:
-warp5 24 81 256 0 0
+# From BPEE0, 23AD3E:
+warp5 24 95 256 0 0
 ```
 Notes:
 ```
@@ -7351,8 +7339,8 @@ warp6 `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From BPEE0, 2742B7:
-warp6 0 44 255 17 15
+# From BPEE0, 2742C0:
+warp6 0 44 255 43 20
 ```
 Notes:
 ```
@@ -7413,8 +7401,8 @@ warp8 `bank` `map` `exit` `x` `y`
 
 Example:
 ```
-# From BPEE0, 1E5D78:
-warp8 0 7 255 29 53
+# From BPEE0, 1E5CC4:
+warp8 0 7 255 43 32
 ```
 Notes:
 ```
@@ -7436,8 +7424,8 @@ warphole `mapbank` `map`
 
 Example:
 ```
-# From AXVE0, 1C6BD9:
-warphole 255 255
+# From BPEE0, 224F3D:
+warphole 15 1
 ```
 Notes:
 ```
@@ -7466,8 +7454,8 @@ warpmuted `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From BPEE0, 243FB8:
-warpmuted 26 15 256 10 3
+# From BPEE0, 2C4058:
+warpmuted 26 39 256 4 19
 ```
 Notes:
 ```
@@ -7495,8 +7483,8 @@ warpteleport `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From AXVE0, 1632AE:
-warpteleport 29 9 256 3 19
+# From AXVE0, 15A743:
+warpteleport 14 0 256 14 29
 ```
 Notes:
 ```
@@ -7526,8 +7514,8 @@ warpteleport2 `bank` `map` `exit` `x` `y`
 
 Example:
 ```
-# From BPRE0, 1BBB10:
-warpteleport2 0 4 255 7 11
+# From BPEE0, 277618:
+warpteleport2 25 60 255 7 11
 ```
 Notes:
 ```
@@ -7555,7 +7543,7 @@ warpwalk `mapbank` `map` `warp` `x` `y`
 
 Example:
 ```
-# From AXVE0, 154BAC:
+# From BPEE0, 205170:
 warpwalk 8 1 256 0x8008 0x8009
 ```
 Notes:
@@ -7572,11 +7560,11 @@ Notes:
 
 wild.battle `species` `level` `item`
 
-*  `species` from data.pokemon.names
+*  `species` is from data.pokemon.names
 
 *  `level` is a number.
 
-*  `item` from data.items.stats
+*  `item` is from data.items.stats
 
 Example:
 ```
@@ -7603,7 +7591,7 @@ writebytetooffset `value` `offset`
 
 Example:
 ```
-writebytetooffset 3 0x00
+writebytetooffset 3 0x0A
 ```
 Notes:
 ```
@@ -7625,7 +7613,7 @@ yesnobox `x` `y`
 
 Example:
 ```
-# From AXVE0, 158CCB:
+# From BPEE0, 290360:
 yesnobox 20 8
 ```
 Notes:
@@ -9318,7 +9306,7 @@ special2 varResult CountPartyAliveNonEggMons
 
 Example Usage:
 ```
-special CountPartyAliveNonEggMons_IgnoreVar4Slot
+special2 varResult CountPartyAliveNonEggMons_IgnoreVar4Slot
 ```
 </details>
 
@@ -12208,7 +12196,7 @@ special2 varResult IsEnigmaBerryValid
 
 Example Usage:
 ```
-special IsEnoughForCostInVar5
+special2 varResult IsEnoughForCostInVar5
 ```
 </details>
 
@@ -12665,6 +12653,8 @@ Example Usage:
 ```
 special ListMenu
 ```
+Lists options from scripts.text.listmenu based on the value of var4
+
 </details>
 
 ## LoadLinkContestPlayerPalettes

@@ -216,6 +216,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          ExportReadableScriptReference(editor, ScriptLines, specials, ScriptReferenceDocumetationFileName);
       }
+
+      /// <summary>
+      /// For consistency, run this when the following tabs are open in the following order:
+      /// FireRed 1.0, Emerald 1.0, Ruby 1.0
+      /// </summary>
       private void ExportReadableScriptReference(EditorViewModel editor, IReadOnlyList<IScriptLine> lines, Dictionary<string, StoredList> specials, string filename) {
          // setup: make sure all the scripts have been fully determined
          foreach (var tab in editor) {
@@ -412,6 +417,9 @@ Use `special2 variable name` when doing an action that has a result.
             var header = "# From " + model.GetGameCode() + ", ";
             var spots = Flags.GetAllScriptSpots(model, viewPort.Tools.CodeTool.ScriptParser, top, start);
             foreach (var spot in spots.Where(spot => line.Matches(hash, model, spot.Address))) {
+               // skip spots that resolve to a different macro
+               if (spot.Line != line) continue;
+
                // skip spots where the variables are 'weird'
                var argStart = spot.Address + spot.Line.LineCode.Count;
                var reasonableArgs = true;
