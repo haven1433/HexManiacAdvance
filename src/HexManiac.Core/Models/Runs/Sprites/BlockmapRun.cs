@@ -251,28 +251,32 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          for (int y = yOffset - 1; y >= 0; y--) {
             for (int x = 0; x < newWidth; x++) {
                if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-               else newData[x, y] = newData[x, y + borderHeight];
+               else if (y + borderHeight < newHeight) newData[x, y] = newData[x, y + borderHeight];
+               else newData[x, y] = newData[x, y + 1];
             }
          }
          if (yOffset == 0) {
             for (int y = BlockHeight; y < newHeight; y++) {
                for (int x = 0; x < newWidth; x++) {
                   if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-                  else newData[x, y] = newData[x, y - borderHeight];
+                  else if (y - borderHeight >= 0) newData[x, y] = newData[x, y - borderHeight];
+                  else newData[x, y] = newData[x, y - 1];
                }
             }
          }
          for (int x = xOffset - 1; x >= 0; x--) {
             for (int y = 0; y < newHeight; y++) {
                if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-               else newData[x, y] = newData[x + borderWidth, y];
+               else if (x + borderWidth < newWidth) newData[x, y] = newData[x + borderWidth, y];
+               else newData[x, y] = newData[x + 1, y];
             }
          }
          if (xOffset == 0) {
             for (int x = BlockWidth; x < newWidth; x++) {
                for (int y = 0; y < newHeight; y++) {
                   if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-                  else newData[x, y] = newData[x - borderWidth, y];
+                  else if (x - borderWidth >= 0) newData[x, y] = newData[x - borderWidth, y];
+                  else newData[x, y] = newData[x - 1, y];
                }
             }
          }
@@ -376,8 +380,6 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             var conflict = false;
             for (var nextRun = model.GetNextRun(start + 1); nextRun.Start < formatRun.Start + formatRun.Length; nextRun = model.GetNextRun(nextRun.Start + nextRun.Length)) {
                if (nextRun is PointerRun) continue; // probably false pointer
-               if (nextRun is PCSRun pcsRun && model.GetAnchorFromAddress(-1, pcsRun.Start) == null) continue; // probably false text
-               if (nextRun is NoInfoRun && nextRun.PointerSources.Count == 1) continue; // probably false destination
                conflict = true;
                break;
             }
