@@ -356,7 +356,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
             var files = (string[])e.Data.GetData(DataFormats.FileDrop);
             foreach (var fileName in files) {
                var loadedFile = FileSystem.LoadFile(fileName);
-               ViewModel.Open.Execute(loadedFile);
+               if (loadedFile != null) ViewModel.Open.Execute(loadedFile);
             }
          }
 

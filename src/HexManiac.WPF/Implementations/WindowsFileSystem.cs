@@ -122,16 +122,21 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
          byte[] data;
 
          // use a buffered read with FileShare ReadWrite so we can open the file while another program is holding it.
-         using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite)) {
-            data = new byte[stream.Length];
-            var buffer = new byte[0x100000];
-            int readCount;
-            var totalRead = 0;
-            do {
-               readCount = stream.Read(buffer, 0, buffer.Length);
-               Array.Copy(buffer, 0, data, totalRead, readCount);
-               totalRead += readCount;
-            } while (readCount == buffer.Length);
+         try {
+            using (var stream = new FileStream(fileName, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite)) {
+               data = new byte[stream.Length];
+               var buffer = new byte[0x100000];
+               int readCount;
+               var totalRead = 0;
+               do {
+                  readCount = stream.Read(buffer, 0, buffer.Length);
+                  Array.Copy(buffer, 0, data, totalRead, readCount);
+                  totalRead += readCount;
+               } while (readCount == buffer.Length);
+            }
+         } catch (UnauthorizedAccessException) {
+            ShowCustomMessageBox("Unauthorized Access! Could not read file.", false);
+            return null;
          }
 
          return new LoadedFile(fileName, data);

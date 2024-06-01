@@ -200,6 +200,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
 
       private static void TryOpenFile(EditorViewModel editor, WindowsFileSystem fileSystem, string fileName, int address) {
          var loadedFile = fileSystem.LoadFile(fileName);
+         if (loadedFile == null) return;
          editor.Open.Execute(loadedFile);
          DebugLog(editor, "Tab Added");
          var tab = editor[editor.SelectedIndex] as ViewPort;
