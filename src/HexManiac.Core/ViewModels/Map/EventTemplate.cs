@@ -232,13 +232,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (pokedex[i - 1].GetValue(0) > maxPokedex) continue;
                if (MinLevel.TryGetValue(i, out var level) && level > maxLevel) continue;
                availablePokemon.Add(i);
-               if (pokestats[i].GetValue("type1") == preferredType || pokestats[i].GetValue("type2") == preferredType) {
-                  for (int j = 0; j < ChosenTypeOddsMultiplier; j++) availablePokemon.Add(i);
+               if (pokestats != null) {
+                  if (pokestats[i].GetValue("type1") == preferredType || pokestats[i].GetValue("type2") == preferredType) {
+                     for (int j = 0; j < ChosenTypeOddsMultiplier; j++) availablePokemon.Add(i);
+                  }
                }
             }
 
             var teamSize = rnd.Next(3) + 1;
             var teamStart = model.FindFreeSpace(model.FreeSpaceStart, 8 * teamSize);
+            if (availablePokemon.Count == 0) availablePokemon.Add(1);
             for (int i = 0; i < teamSize; i++) {
                // ivSpread: level: mon: padding:
                var pokemon = availablePokemon[rnd.Next(availablePokemon.Count)];
