@@ -380,6 +380,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             var conflict = false;
             for (var nextRun = model.GetNextRun(start + 1); nextRun.Start < formatRun.Start + formatRun.Length; nextRun = model.GetNextRun(nextRun.Start + nextRun.Length)) {
                if (nextRun is PointerRun) continue; // probably false pointer
+               if (nextRun is PCSRun pcsRun && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, pcsRun.Start))) continue; // probably false text
+               if (nextRun is NoInfoRun && nextRun.PointerSources.Count < 3) continue; // probably false destination
                conflict = true;
                break;
             }
