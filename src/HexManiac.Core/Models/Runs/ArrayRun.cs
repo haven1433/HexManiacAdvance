@@ -76,7 +76,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                var signedValue = signed.ReadValue(data, offsets.SegmentStart);
                return new Integer(offsets.SegmentStart, position, signedValue, currentSegment.Length);
             } else {
-               var value = ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length);
+               var value = offsets.SegmentStart < data.Count - currentSegment.Length ? ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length) : 0;
                return new Integer(offsets.SegmentStart, position, value, currentSegment.Length) { IsUnused = currentSegment.IsUnused() };
             }
          }
