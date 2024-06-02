@@ -1208,7 +1208,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (original.ElementContent.Count != moved.ElementContent.Count) return; // if the number of elements changed during the move, nop out
          // i loops over the different segments in the array
          for (int i = 0; i < moved.ElementContent.Count; i++) {
-            if (moved.ElementContent[i].Type != ElementContentType.Pointer) {
+            var seg = moved.ElementContent[i];
+            if (seg is ArrayRunRecordSegment recordSeg) seg = recordSeg.CreateConcrete(this, moved, segmentOffset);
+            if (seg.Type != ElementContentType.Pointer) {
                originalOffset += original.ElementContent[i].Length;
                segmentOffset += moved.ElementContent[i].Length;
                continue;
