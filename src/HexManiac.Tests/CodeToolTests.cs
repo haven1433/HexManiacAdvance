@@ -13,7 +13,7 @@ namespace HavenSoft.HexManiac.Tests {
    public class CodeToolTests : BaseViewModelTestClass {
       private CodeTool Tool => ViewPort.Tools.CodeTool;
       private string EventScript {
-         get => ";".Join(Tool.Contents[0].Content.SplitLines().Select(line => line.Trim()));
+         get => ";".Join(Tool.Contents[0].Content.SplitLines().Where(line => !string.IsNullOrWhiteSpace(line)).Select(line => line.Trim()));
          set {
             Tool.Mode = CodeMode.Script;
             Tool.Contents[0].Content = value.Replace(";", Environment.NewLine);
@@ -890,6 +890,17 @@ label2:;goto <000050>;end";
          EventScript = "if.compare.goto 0x4000 = 7 <720010>";
          var expected = "21 00 40 07 00 06 01 10 00 72 08 02".ToByteArray();
          Assert.All(expected.Length.Range(), i => Assert.Equal(expected[i], Model[i]));
+      }
+
+      [Fact]
+      public void EntireScriptSelected_SelectLastByte_ShownScriptUpdated() {
+         EventScript = "nop;end";
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.SelectionEnd = new(1, 0);
+
+         ViewPort.SelectionStart = new(1, 0);
+
+         Assert.Equal("end", EventScript);
       }
    }
 }

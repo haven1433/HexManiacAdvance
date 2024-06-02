@@ -110,7 +110,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.history = history;
          this.messageTab = messageTab;
          selection.PropertyChanged += (sender, e) => {
-            if (e.PropertyName == nameof(selection.SelectionEnd)) {
+            if (e.PropertyName == nameof(selection.SelectionStart)) {
+               if (selection.SelectionStart == selection.SelectionEnd) UpdateContent();
+            } else if (e.PropertyName == nameof(selection.SelectionEnd)) {
                UpdateContent();
             }
          };
