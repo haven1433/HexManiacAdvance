@@ -99,7 +99,15 @@
                             Background="{DynamicResource Backlight}"
                             Foreground="{DynamicResource Primary}"
                             Visibility="Hidden"
-                            IsReadOnly="{TemplateBinding IsReadOnly}"/>
+                            IsReadOnly="{TemplateBinding IsReadOnly}">
+                        <TextBox.ContextMenu>
+                           <ContextMenu>
+                              <MenuItem Command="ApplicationCommands.Cut" />
+                              <MenuItem Command="ApplicationCommands.Copy" />
+                              <MenuItem Command="ApplicationCommands.Paste" />
+                           </ContextMenu>
+                        </TextBox.ContextMenu>
+                     </TextBox>
                      <Popup
                             Grid.Column="1"
                             Name="Popup"
