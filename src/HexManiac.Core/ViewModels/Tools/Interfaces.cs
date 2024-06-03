@@ -45,7 +45,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       void RefreshContent();
    }
 
-   public interface IArrayElementViewModel : INotifyPropertyChanged {
+   public interface IArrayElementViewModel : ICanSilencePropertyNotifications {
       event EventHandler DataChanged;
       event EventHandler DataSelected;
       string Theme { get; set; }
@@ -127,6 +127,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   taevm.Children.Any(tupleChild => tupleChild.Name.MatchesPartial(filter));
             }
 
+            // using var scope = child.SilencePropertyNotifications();
             child.Visible = childVisible && visible;
             lastFieldVisible = childVisible;
             anyChildrenVisible = anyChildrenVisible || childVisible;

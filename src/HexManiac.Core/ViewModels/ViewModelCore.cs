@@ -46,10 +46,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    /// <summary>
+   /// Represents a superset of property notifiers
+   /// with functionality to temporarily turn notifications off.
+   /// This makes them less noisy in situations where a massive number of notifications are happening.
+   /// </summary>
+   public interface ICanSilencePropertyNotifications : INotifyPropertyChanged {
+      IDisposable SilencePropertyNotifications();
+   }
+
+   /// <summary>
    /// Utility base-class that adds the PropertyChanged event and adds protected methods to simplify calling it.
    /// It also adds protected methods to simplify the creation of commands.
    /// </summary>
-   public class ViewModelCore : INotifyPropertyChanged {
+   public class ViewModelCore : ICanSilencePropertyNotifications {
 #if DEBUG
       private static int IDGenerator = 0;
       public int ID { get; } = ++IDGenerator;
@@ -57,11 +66,41 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public event PropertyChangedEventHandler PropertyChanged;
 
+      private int deferCount = 0;
       private ISet<string> deferredPropertyNotifications;
 
-      public IDisposable DeferPropertyNotifications() {
-         deferredPropertyNotifications = new HashSet<string>();
+      private readonly Stack<List<IDisposable>> silenceScopes = new();
+      private readonly List<ICanSilencePropertyNotifications> silentChildren = new();
+      protected void AddSilentChild(ICanSilencePropertyNotifications child) {
+         silentChildren.Add(child);
+         if (silenceScopes.Count > 0) {
+            silenceScopes.Peek().Add(child.SilencePropertyNotifications());
+         }
+      }
+      protected void RemoveSilentChild(ICanSilencePropertyNotifications child) => silentChildren.Remove(child);
+      protected void ClearSilentChildren() => silentChildren.Clear();
+  
+      public IDisposable SilencePropertyNotifications() {
+         deferCount += 1;
+         silenceScopes.Push(silentChildren.Select(child => child.SilencePropertyNotifications()).ToList());
+         deferredPropertyNotifications ??= new HashSet<string>();
          return new StubDisposable { Dispose = () => {
+            deferCount -= 1;
+            silenceScopes.Pop().ForEach(scope => scope.Dispose());
+            if (deferCount != 0) {
+               deferredPropertyNotifications.Clear();
+            } else {
+               deferredPropertyNotifications = null;
+            }
+         } };
+      }
+
+      public IDisposable DeferPropertyNotifications() {
+         deferCount += 1;
+         deferredPropertyNotifications ??= new HashSet<string>();
+         return new StubDisposable { Dispose = () => {
+            deferCount -= 1;
+            if (deferCount != 0) return;
             var properties = deferredPropertyNotifications.ToArray();
             deferredPropertyNotifications = null;
             NotifyPropertiesChanged(properties);
@@ -73,13 +112,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (deferredPropertyNotifications != null) {
             deferredPropertyNotifications.Add(propertyName);
          } else {
-            PropertyChanged.Notify(this, propertyName);
+            PropertyChanged?.Notify(this, propertyName);
          }
       }
 
+      /// <summary>
+      /// The oldValue will not be stored / notified if we're deferring property notifications
+      /// </summary>
       protected void NotifyPropertyChanged<T>(T oldValue, [CallerMemberName]string propertyName = null) {
          Debug.Assert(GetType().GetProperty(propertyName) != null, $"Expected {propertyName} to be a property on type {GetType().Name}!");
-         PropertyChanged.Notify(this, oldValue, propertyName);
+         if (deferredPropertyNotifications != null) {
+            deferredPropertyNotifications.Add(propertyName);
+         } else {
+            PropertyChanged?.Notify(this, oldValue, propertyName);
+         }
       }
 
       protected void NotifyPropertiesChanged(params string[] propertyNames) {
@@ -88,7 +134,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       protected void NotifyPropertyChanged(PropertyChangedEventArgs args) {
          Debug.Assert(GetType().GetProperty(args.PropertyName) != null, $"Expected {args.PropertyName} to be a property on type {GetType().Name}!");
-         PropertyChanged.Notify(this, args);
+         PropertyChanged?.Notify(this, args);
       }
 
       /// <summary>
@@ -100,13 +146,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// <param name="newValue">The new value for the property.</param>
       /// <param name="propertyName">The name of the property to notify on. If the property is the caller, the compiler will figure this parameter out automatically.</param>
       /// <returns>false if the data did not need to be updated, true if it did.</returns>
-      protected bool TryUpdate<T>(ref T backingField, T newValue, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
-         return PropertyChanged.TryUpdate(this, ref backingField, newValue, propertyName);
+      protected bool TryUpdate<T>(ref T field, T value, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
+         if (field == null && value == null) return false;
+         if (field != null && field.Equals(value)) return false;
+         var oldValue = field;
+         field = value;
+         NotifyPropertyChanged(oldValue, propertyName);
+         return true;
       }
 
       protected void Set<T>(ref T field, T value, Action<T> changeHandler, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
          var oldValue = field;
-         if (PropertyChanged.TryUpdate(this, ref field, value, propertyName)) {
+         if (TryUpdate(ref field, value, propertyName)) {
             changeHandler?.Invoke(oldValue);
          }
       }

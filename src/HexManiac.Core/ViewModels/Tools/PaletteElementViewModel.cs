@@ -16,6 +16,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          var table = (ITableRun)viewPort.Model.GetNextRun(itemAddress);
          Colors = new PaletteCollection(viewPort, viewPort.Model, history);
+         AddSilentChild(Colors);
          Colors.RequestPageSet += HandleColorsPageSet;
          Colors.PaletteRepointed += HandlePaletteRepoint;
          TableName = viewPort.Model.GetAnchorFromAddress(-1, table.Start);

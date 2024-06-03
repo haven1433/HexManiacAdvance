@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private int sourcePalettePointer;
       public int SourcePalettePointer { get => sourcePalettePointer; set => Set(ref sourcePalettePointer, value); }
-      public ObservableCollection<SelectableColor> Elements { get; } = new ObservableCollection<SelectableColor>();
+      public ObservableCollection<SelectableColor> Elements { get; } = new();
 
       public int ColorWidth => Elements.Count / ColorHeight;
       public int ColorHeight => (int)Math.Ceiling(Math.Sqrt(Elements.Count));
@@ -180,6 +180,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void SetContents(IReadOnlyList<short> colors) {
          var (left, right) = (Math.Min(SelectionStart, SelectionEnd), Math.Max(SelectionStart, SelectionEnd));
          var toAdd = colors.Count.Range().Select(i => new SelectableColor { Color = colors[i], Index = i, Selected = left <= i && i <= right }).ToList();
+
+         ClearSilentChildren();
+         foreach (var child in toAdd) AddSilentChild(child);
+
          for (int i = 0; i < toAdd.Count; i++) {
             if (Elements.Count > i) {
                Elements[i] = toAdd[i];

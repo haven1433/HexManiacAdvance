@@ -362,12 +362,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var anchorParts = basename.Split('.');
          NotifyPropertyChanged(nameof(TableSections));
          if (anchorParts.Length == 1) {
-            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]), nameof(SelectedTableSection));
             NotifyPropertyChanged(nameof(TableList));
          } else if (anchorParts.Length == 2) {
-            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]));
+            TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0]), nameof(SelectedTableSection));
             NotifyPropertyChanged(nameof(TableList));
-            TryUpdate(ref selectedTableIndex, TableList.IndexOf(anchorParts[1]));
+            TryUpdate(ref selectedTableIndex, TableList.IndexOf(anchorParts[1]), nameof(SelectedTableSection));
          } else {
             TryUpdate(ref selectedTableSection, TableSections.IndexOf(anchorParts[0] + "." + anchorParts[1]), nameof(SelectedTableSection));
             NotifyPropertyChanged(nameof(TableList));
@@ -477,6 +477,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          foreach (var child in Children) {
             // update sprites now that all the associated palettes have been loaded.
             if (child is SpriteElementViewModel sevm) {
+               // using var scope = sevm.SilencePropertyNotifications();
                sevm.CurrentPalette = paletteIndex;
                sevm.UpdateTiles();
             }

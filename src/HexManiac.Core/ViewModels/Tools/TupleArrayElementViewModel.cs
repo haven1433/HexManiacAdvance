@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -25,14 +24,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Name = tupleItem.Name;
          var bitOffset = 0;
          for (int i = 0; i < tupleItem.Elements.Count; i++) {
+            ITupleElementViewModel child = null;
             if (string.IsNullOrEmpty(tupleItem.Elements[i].Name)) {
                // don't make a viewmodel for unnamed tuple item elements
             } else if (tupleItem.Elements[i].BitWidth == 1) {
-               Children.Add(new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged));
+               child = new CheckBoxTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged);
             } else if (!string.IsNullOrEmpty(tupleItem.Elements[i].SourceName)) {
-               Children.Add(new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected));
+               child = new EnumTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected);
             } else {
-               Children.Add(new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected));
+               child = new NumericTupleElementViewModel(viewPort, start, bitOffset, tupleItem.Elements[i], RaiseDataChanged, RaiseDataSelected);
+            }
+            if (child != null) {
+               Children.Add(child);
+               AddSilentChild(child);
             }
             bitOffset += tupleItem.Elements[i].BitWidth;
          }
@@ -51,7 +55,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       }
    }
 
-   public interface ITupleElementViewModel : INotifyPropertyChanged {
+   public interface ITupleElementViewModel : ICanSilencePropertyNotifications {
       string Name { get; }
       int BitOffset { get; }
       int BitLength { get; }
@@ -152,6 +156,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public EnumTupleElementViewModel(ViewPort viewPort, int start, int bitOffset, TupleSegment segment, Action raiseDataChanged, Action raiseDataSelected) {
          (this.viewPort, Start, BitOffset, seg) = (viewPort, start, bitOffset, segment);
+         AddSilentChild(FilteringComboOptions);
          RaiseDataChanged = raiseDataChanged;
          RaiseDataSelected = raiseDataSelected;
 

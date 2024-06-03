@@ -94,6 +94,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public ComboBoxArrayElementViewModel(ViewPort viewPort, Selection selection, string name, int start, int length) {
          var fullOptions = new List<ComboOption>();
+         AddSilentChild(FilteringComboOptions);
          int selectedIndex = 0;
          (ViewPort, Name, Start, Length) = (viewPort, name, start, length);
          var run = (ITableRun)ViewPort.Model.GetNextRun(Start);
