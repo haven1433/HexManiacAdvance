@@ -479,7 +479,7 @@ GetLevelUpMovesBySpecies:
 .end
 
 @thumb.GetNumberOfRelearnableMoves .thumb
-GetNumberOfRelearnableMoves: @ (mon)
+GetNumberOfRelearnableMoves: @ (mon) 043E2C
         push  {r4-r7, lr}
         mov   r7, r10
         mov   r6, r9
@@ -492,75 +492,76 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r0, r6
         mov   r1, #65
         mov   r2, #0
-        bl    <thumb.GetMonData>
+        bl    <thumb.GetMonData>  @ GetMonData(mon, Species, NULL)
         lsl   r0, r0, #16
         lsr   r4, r0, #16 @ r4 = species
         mov   r0, r6
         mov   r1, #56
         mov   r2, #0
-        bl    <thumb.GetMonData>
+        bl    <thumb.GetMonData>  @ GetMonData(mon, Level, NULL)
         lsl   r0, r0, #24
         lsr   r0, r0, #24
-        str   r0, [sp, #60] @!str   r0, [sp, #48]  @ sp[60] = level
+        str   r0, [sp, #60] @!str   r0, [sp, #48]  @ sp[60] = level @ (shifted by 12)
         mov   r0, #206
-        lsl   r0, r0, #1
+        lsl   r0, r0, #1 @ r0 = 412
         cmp   r4, r0
         bne   <afterEggCheck>      @ if (species == SPECIES_EGG)
             mov   r0, #0
             b     <returnnumMoves>
         afterEggCheck:
-        mov   r5, #0        @ r5 = i
+        mov   r5, #0        @ r5 is i
         lsl   r4, r4, #2    @ r4 = species*4
-        str   r4, [sp, #68] @! str   r4, [sp, #56] 
+        str   r4, [sp, #68] @! str   r4, [sp, #56]  sp[68] = species*4
         mov   r4, sp
     fori0to4:
         mov   r1, r5
-        add   r1, #13
+        add   r1, #13       @ r1 = i+13
         mov   r0, r6
         mov   r2, #0
-        bl    <thumb.GetMonData>
-        strh  r0, [r4, #0]
+        bl    <thumb.GetMonData>  @ GetMonData(mon, 13+i, NULL) (move1 -> move4)
+        strh  r0, [r4, #0]        @ sp[i*2] = move[i]
         add   r4, #2
         add   r5, #1
         cmp   r5, #3
         ble   <fori0to4>
+    @ reminder: lvlmoves[pokemon][0] -> 4 bytes. 2 low = move, 2 high = level
         mov   r5, #0    @ r5 = i = 0
-        ldr   r3, [pc, <lvlmoves>]
-        ldr   r2, [sp, #68]  @! ldr   r2, [sp, #56]
+        ldr   r3, [pc, <lvlmoves>]  @ = <data.pokemon.moves.levelup>
+        ldr   r2, [sp, #68]  @! ldr   r2, [sp, #56]  @ r2 = species*4
         add   r1, r2, r3     @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0]   @ r0 = lvlmoves[species]
         ldr   r0, [r0, #0]   @! ldrh  r0, [r0, #0]
-        ldr   r2, [pc, <shortbits>]
+        ldr   r2, [pc, <shortbits>] @ = 0xFFFFFFFF
         cmp   r0, r2
         beq   <break>
         mov   r9, r1  @ r9 = lvlmoves + species*4
         mov   r4, sp
-        add   r4, #8  @ r4 = moves + 0
-        str   r4, [sp, #64] @! str   r4, [sp, #52]
+        add   r4, #8  @ r4 = sp, after the 4 learned moves
+        str   r4, [sp, #64] @! str   r4, [sp, #52]  @ sp[64] = address after first 4 moves
     fori0to20:
-        mov   r1, r9
+        mov   r1, r9  @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
-        lsl   r2, r5, #2   @! lsl   r2, r5, #1 @ r2 = i*4
-        add   r0, r2, r0
+        lsl   r2, r5, #2   @! lsl   r2, r5, #1   @ r2 = i*4
+        add   r0, r2, r0   @ r0 = lvlmoves[species] + i*4
         ldr   r3, [r0, #0] @! ldrh  r3, [r0, #0]  @ r3 = lvlmoves[species][i]
-        ldr   r0, [pc, <movemask>]     @! mov   r0, #254
+        ldr   r0, [pc, <movemask>]     @! mov   r0, #254   @ r0 = 0xFFFF
         lsl   r0, r0, #16              @! lsl   r0, r0, #8
-        and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF0000
-        ldr   r4, [sp, #60] @! ldr   r4, [sp, #48]
-        lsl   r1, r4, #16   @! lsl   r1, r4, #9
+        and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF0000 -> the level<<16
+        ldr   r4, [sp, #60] @! ldr   r4, [sp, #48]  @ r4 = sp[60]
+        lsl   r1, r4, #16   @! lsl   r1, r4, #9     @ r1 = sp[60]<<16
         mov   r7, r2        @ r7 = i*4
-        add   r5, #1
-        mov   r12, r5
-        cmp   r0, r1
+        add   r5, #1        @ r5 += 1 -> i += 1
+        mov   r12, r5       @ r12 = r5 = i
+        cmp   r0, r1        @ if learnLevel[i]<<16 > monLevel<<16
         bgt   <afterLastIf>
         mov   r4, #0        @ r4 = j = 0
         mov   r0, sp
-        ldrh  r1, [r0, #0]  @ r1 = learnedMoves[0]
-        ldr   r0, [pc, <movemask>]
-        and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF
-        cmp   r1, r0
+        ldrh  r1, [r0, #0]  @ r1 = monMoves[0]
+        ldr   r0, [pc, <movemask>]  @ r0 = 0xFFFF
+        and   r0, r3        @ r0 = lvlmoves[species][i] & 0xFFFF -> learnMove[i]
+        cmp   r1, r0        @ if monMoves[0] == learnMove[i]
         beq   <ifjEquals4>
-        ldr   r0, [sp, #68] @! ldr   r0, [sp, #56]
+        ldr   r0, [sp, #68] @! ldr   r0, [sp, #56]   @ r0 = species*4
         ldr   r1, [pc, <lvlmoves>]
         add   r6, r0, r1    @ r6 = lvlmoves + species*4
         ldr   r2, [pc, <movemask>]
@@ -568,36 +569,36 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r3, sp        @ r3 = learnedMoves + 0
         mov   r5, r7        @ r5 = i*4
     forj0to4:
-        add   r3, #2
-        add   r4, #1
+        add   r3, #2        @ learnedMoves + j
+        add   r4, #1        @ j += 1
         cmp   r4, #3
-        bgt   <ifjEquals4>
-        ldr   r0, [r6, #0]
-        add   r0, r5, r0
+        bgt   <ifjEquals4>  @ if j>3
+        ldr   r0, [r6, #0]  @ lvlmoves[species]
+        add   r0, r5, r0    @ r0 = lvlmoves[species] + i*4
         ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0] @ r1 = lvlmoves[species][i]
-        ldrh  r2, [r3, #0]  @ r2 = learnedMoves[0]
-        mov   r0, r8
-        and   r0, r1        @ r0 = lvlmoves[species][i] & 0xFFFF
+        ldrh  r2, [r3, #0]  @ r2 = learnedMoves[j]
+        mov   r0, r8        @ r0 = 0xFFFF
+        and   r0, r1        @ r0 = 0xFFFF & lvlmoves[species][i] -> learnMove[i]
         cmp   r2, r0
-        bne   <forj0to4>
+        bne   <forj0to4>    @ loop if learnedMoves[j] != learnMove[i]
     ifjEquals4:
         cmp   r4, #4
         bne   <afterLastIf>
-        mov   r4, #0
+        mov   r4, #0       @ if we're here, then learnMove[i] not in learnedMoves[0..3]
         cmp   r4, r10      @ r10 = nummoves
         bge   <ifkEqualsnumMoves>
-        mov   r1, r9
+        mov   r1, r9       @ r1 = lvlmoves + species*4
         ldr   r0, [r1, #0] @ r0 = lvlmoves[species]
-        add   r0, r7, r0
-        ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0]
-        ldr   r0, [sp, #64] @! ldr   r0, [sp, #52]
+        add   r0, r7, r0   @ r0 = lvlmoves[species] + i*4
+        ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0]   @ r1 = lvlmoves[species][i]
+        ldr   r0, [sp, #64] @! ldr   r0, [sp, #52]  @ r0 = slots for storing checked moves
         ldrh  r2, [r0, #0]  @ r2 = moves[0]
-        ldr   r0, [pc, <movemask>]
-        and   r0, r1        @ r0 = lvlmoves[species][i] & 0xFFFF
+        ldr   r0, [pc, <movemask>] @ r0 = 0xFFFF
+        and   r0, r1        @ r0 = 0xFFFF & lvlmoves[species][i] -> learnMove[i]
         add   r1, sp, #8    @ r1 = moves + 0
         cmp   r2, r0
-        beq   <ifkEqualsnumMoves>
-        ldr   r2, [sp, #68] @! ldr   r2, [sp, #56]
+        beq   <ifkEqualsnumMoves> @ break if moves[0] == learnMove[i]
+        ldr   r2, [sp, #68] @! ldr   r2, [sp, #56]  r2 = species*4
         ldr   r0, [pc, <lvlmoves>]
         add   r6, r2, r0    @ r6 = lvlmoves + species*4
         ldr   r2, [pc, <movemask>]
@@ -605,22 +606,22 @@ GetNumberOfRelearnableMoves: @ (mon)
         mov   r3, r1        @ r3 = moves + 0
         mov   r5, r7        @ r5 = i*4
     fork0tonumMoves:
-        add   r3, #2
-        add   r4, #1
+        add   r3, #2        @ r3 = moves + k*2
+        add   r4, #1        @ r4 = k
         cmp   r4, r10
-        bge   <ifkEqualsnumMoves>
-        ldr   r0, [r6, #0]
-        add   r0, r5, r0
-        ldrh  r1, [r0, #0]  @ r1 = lvlmoves[species][i]
+        bge   <ifkEqualsnumMoves> @ if k >= nummoves
+        ldr   r0, [r6, #0]  @ r0 = lvlmoves[species]
+        add   r0, r5, r0    @ r0 = lvlmoves[species] + i*4
+        ldrh  r1, [r0, #0]  @ r1 = lvlmoves[species][i] -> learnMove[i]
         ldrh  r2, [r3, #0]  @ r2 = moves[k]
-        mov   r0, r8
-        and   r0, r1        @ r0 = lvlmoves[species][i] & 0xFFFF
+        mov   r0, r8        @ r0 = 0xFFFF
+        and   r0, r1        @ r0 = 0xFFFF & lvlmoves[species][i] -> learnMove[i]
         cmp   r2, r0
-        bne   <fork0tonumMoves>
+        bne   <fork0tonumMoves>  @ moves[k] != learnMove[i]
     ifkEqualsnumMoves:
         cmp   r4, r10
-        bne   <afterLastIf>
-        mov   r0, r10
+        bne   <afterLastIf>  @ k != numMoves
+        mov   r0, r10       @ r0 = numMoves
         add   r0, #1
         lsl   r0, r0, #24
         lsr   r0, r0, #24
@@ -633,17 +634,17 @@ GetNumberOfRelearnableMoves: @ (mon)
         add   r0, r7, r0    @ r0 = lvlmoves[species] + i*4
         ldr   r1, [r0, #0]  @! ldrh  r1, [r0, #0] @ r1 = lvlmoves[species][i]
         ldr   r0, [pc, <movemask>]
-        and   r0, r1        @ r0 = lvlmoves[species][i] & 0xFFFF
-        strh  r0, [r2, #0]  @ moves[k] = lvlmoves[species][i] & 0xFFFF
+        and   r0, r1        @ r0 = 0xFFFF & lvlmoves[species][i]
+        strh  r0, [r2, #0]  @ moves[k] = learnMove[i]
     afterLastIf:
-        mov   r5, r12
-        cmp   r5, #24       @ cmp   r5, #19
-        bgt   <break>
+        mov   r5, r12       @ r5 = i
+        cmp   r5, #24       @! cmp   r5, #19
+        bgt   <break>       @ i>24
         mov   r2, r9        @ r2 = lvlmoves + species*4
         ldr   r0, [r2, #0]  @ r0 = lvlmoves[species]
         lsl   r1, r5, #2    @! lsl   r1, r5, #1 @ r1 = i*4
         add   r1, r1, r0    @ r1 = lvlmoves[species] + i*4
-        ldrh  r0, [r1, #0]  @ r0 = lvlmoves[species][i]
+        ldr   r0, [r1, #0]  @ r0 = lvlmoves[species][i]
         ldr   r4, [pc, <shortbits>] @ r4 = 0xFFFF
         cmp   r0, r4
         bne   <fori0to20>
