@@ -539,7 +539,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // type chart
          if (name == "data.pokemon.type.chart") {
             source = 0x145BB74;
-            format = "[Norm.effectiveness Fight.effectiveness Fly.effectiveness Poison.effectiveness Grd.effectiveness Rock.effectiveness Bug.effectiveness Ghost.effectiveness Steel.effectiveness param9.effectiveness Fire.effectiveness Water.effectiveness Grass.effectiveness Elec.effectiveness Psych.effectiveness Ice.effectiveness Drag.effectiveness Dark.effectiveness param18.effectiveness param19.effectiveness param20.effectiveness param21.effectiveness param22.effectiveness Fairy.effectiveness]data.pokemon.type.names";
+            format = "Norm Fight Fly Poison Grd Rock Bug Ghost Steel arg9 Fire Water Grass Elec Psych Ice Drag Dark arg18 arg19 arg20 arg21 arg22 Fairy";
+            format = " ".Join(format.Split(' ').Select(type => $"{type}.effectiveness"));
+            format = $"[{format}]data.pokemon.type.names";
          }
 
          return format;
