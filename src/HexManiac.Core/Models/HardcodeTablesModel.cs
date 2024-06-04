@@ -232,8 +232,9 @@ namespace HavenSoft.HexManiac.Core.Models {
             newList[213] = "Stat Swap or Split";
             newList.AddRange(new string[] {null, null, null, null, "Me First", "Eat Berry", "Natural Gift", "Smack Down", "Remove Target Stat Changes", "SleepHitChance", null, null,
             "Set Terrain", "Pledge", "Field Effects", "Fling", "Feint", "Attack Blockers", "Type Changes", "Heal Target", "Topsy Turvy Electrify", "Fairy Lock Happy Hour",
-            "Instruct After You Quash", "Sucker Punch", "Ignore Redirection", "Team Effects", "Camouflage", "Flame Burst", "Last Resort Sky Drop", "Damage Set Terrain", "Teatime"});
-            for(var k = 0; k < 8; k++) newList.Add(null); // 245 to 252 are unused.
+            "Instruct After You Quash", "Sucker Punch", "Ignore Redirection", "Team Effects", "Camouflage", "Flame Burst", "Last Resort Sky Drop", "Damage Set Terrain", "Teatime",
+            "RaiseTarget\'sAttackSpAtk2"});
+            for(var k = 0; k < 7; k++) newList.Add(null); // 246 to 252 are unused.
             newList.AddRange(new string[] {"Max Move", "Synchronoise"});
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
