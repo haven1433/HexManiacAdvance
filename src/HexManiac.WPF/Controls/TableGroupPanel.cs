@@ -8,11 +8,11 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
 using System.Windows.Input;
+using System.Linq;
 
 namespace HavenSoft.HexManiac.WPF.Controls; 
 
@@ -20,6 +20,8 @@ public partial class TableGroupPanel : FrameworkElement {
    private readonly SpriteCache spriteCache = new();
 
    private IArrayElementViewModel focusElement;
+
+   private readonly Dictionary<IArrayElementViewModel, IGroupControl> controls = new();
 
    #region Source
 
@@ -40,26 +42,38 @@ public partial class TableGroupPanel : FrameworkElement {
       if (oldSource != null) {
          oldSource.CollectionChanged -= CollectionChanged;
          foreach (var element in oldSource) element.PropertyChanged -= CollectionPropertyChanged;
+         controls.Clear();
       }
       var newSource = (ObservableCollection<IArrayElementViewModel>)e.NewValue;
       if (newSource != null) {
          newSource.CollectionChanged += CollectionChanged;
-         foreach (var element in newSource) element.PropertyChanged += CollectionPropertyChanged;
+         foreach (var element in newSource) {
+            element.PropertyChanged += CollectionPropertyChanged;
+            controls[element] = BuildControl(element);
+         }
       }
       InvalidateVisual();
    }
 
    private void CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) {
       if (e.Action.IsAny(NotifyCollectionChangedAction.Replace, NotifyCollectionChangedAction.Remove)) {
-         foreach (IArrayElementViewModel item in e.OldItems) item.PropertyChanged -= CollectionPropertyChanged;
+         foreach (IArrayElementViewModel item in e.OldItems) {
+            item.PropertyChanged -= CollectionPropertyChanged;
+            controls.Remove(item);
+         }
       }
       if (e.Action.IsAny(NotifyCollectionChangedAction.Add, NotifyCollectionChangedAction.Replace)) {
-         foreach (IArrayElementViewModel item in e.NewItems) item.PropertyChanged += CollectionPropertyChanged;
+         foreach (IArrayElementViewModel item in e.NewItems) {
+            item.PropertyChanged += CollectionPropertyChanged;
+            controls[item] = BuildControl(item);
+         }
       }
       if (e.Action.IsAny(NotifyCollectionChangedAction.Reset, NotifyCollectionChangedAction.Move)) {
+         controls.Clear();
          foreach (var element in Source) {
             element.PropertyChanged -= CollectionPropertyChanged;
             element.PropertyChanged += CollectionPropertyChanged;
+            controls[element] = BuildControl(element);
          }
       }
       InvalidateVisual();
@@ -89,50 +103,61 @@ public partial class TableGroupPanel : FrameworkElement {
    protected override void OnRender(DrawingContext dc) {
       base.OnRender(dc);
       if (Source == null) return;
-      var renderer = new TableGroupPainter(dc, spriteCache, (int)ActualWidth, focusElement);
-      foreach (var member in Source) {
-         renderer.Render(member);
+      var offset = 0;
+      var width = (int)ActualWidth;
+      var context = new RenderContext(dc);
+      foreach (var element in Source) {
+         if (!element.Visible) continue;
+         controls[element].Render(context);
+         offset += controls[element].Height;
       }
    }
 
    protected override Size MeasureOverride(Size availableSize) {
-      // how big do I want to be?
-      var painter = new TableGroupPainter(null, spriteCache, (int)availableSize.Width, focusElement);
-      foreach (var member in Source) painter.Render(member);
-      return new Size(Math.Max(availableSize.Width, 100), painter.Y);
+      // how big I want to be
+      int width = (int)availableSize.Width, height = 0;
+      foreach (var element in Source) {
+         if (!element.Visible) continue;
+         height += controls[element].UpdateHeight(width, height);
+      }
+      return new Size(Math.Max(width, 100), height);
    }
 
    protected override Size ArrangeOverride(Size finalSize) {
       // how big do I actually get to be
-      var size = base.ArrangeOverride(finalSize);
-      var painter = new TableGroupPainter(null, spriteCache, (int)size.Width, focusElement);
-      foreach (var member in Source) painter.Render(member);
-      return new Size(Math.Max(size.Width, 100), painter.Y);
+      int width = (int)base.ArrangeOverride(finalSize).Width, height = 0;
+      foreach (var element in Source) {
+         if (!element.Visible) continue;
+         height += controls[element].UpdateHeight(width, height);
+      }
+      return new Size(Math.Max(width, 100), height);
+   }
+
+   private IArrayElementViewModel GetElementUnderCursor(int y) {
+      foreach (var member in Source) {
+         y -= controls[member].Height;
+         if (y < 0) return member;
+      }
+      return null;
    }
 
    protected override void OnMouseDown(MouseButtonEventArgs e) {
       base.OnMouseDown(e);
       var pos = e.GetPosition(this);
-      var painter = new TableGroupPainter(null, spriteCache, (int)ActualWidth, focusElement);
-      focusElement = null;
-      foreach (var member in Source) {
-         painter.Render(member);
-         if (painter.Y < pos.Y) continue;
-         focusElement = member;
-         pos.X -= painter.X;
-         pos.Y -= painter.Y;
-         new TableGroupMouseEditor(focusElement, painter.AvailableWidth, pos, e).Edit();
-         Focus();
-         InvalidateVisual();
-         e.Handled = true;
-         break;
-      }
+      var hoverElement = GetElementUnderCursor((int)pos.Y);
+      focusElement = hoverElement;
+      if (hoverElement == null) return;
+
+      Focus();
+      controls[hoverElement].MouseDown(e);
+      e.Handled = true;
+      InvalidateVisual();
    }
 
    protected override void OnTextInput(TextCompositionEventArgs e) {
       base.OnTextInput(e);
       if (focusElement == null) return;
-      new TableGroupTextEditor(focusElement, (int)ActualWidth, e).Edit();
+      controls[focusElement].TextInput(e);
       e.Handled = true;
    }
 
@@ -149,17 +174,23 @@ public partial class TableGroupPanel : FrameworkElement {
             focusElement = Source[index];
             e.Handled = true;
             InvalidateVisual();
+            // TODO some sort of "gained focus" notification for the GroupControl?
             return;
          }
       }
-      var editor = new TableGroupKeyEditor(this, (int)ActualWidth, e);
-      editor.Edit();
+      controls[focusElement].KeyInput(e);
    }
 
    private static SolidColorBrush Brush(string name) {
       return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
    }
 
+   private IGroupControl BuildControl(IArrayElementViewModel element) {
+      IGroupControl control = new GroupDefaultControl(element);
+      if (element is FieldArrayElementViewModel field) control = new GroupTextControl(field);
+      return control;
+   }
+   /*
    #region Helpers
 
    private record TableGroupMouseEditor(IArrayElementViewModel Element, int AvailableWidth, Point Position, MouseButtonEventArgs Args) {
@@ -549,6 +580,7 @@ public partial class TableGroupPanel : FrameworkElement {
    }
 
    #endregion
+   //*/
 }
 
 public class SpriteCache {
@@ -600,3 +632,110 @@ public class SpriteCache {
       if (cacheIndex >= 0) cacheNeedsRedraw |= 1L << cacheIndex;
    }
 }
+
+public record RenderContext(DrawingContext Api) {
+   private static readonly Typeface consolas = new Typeface("Consolas");
+
+   public int DefaultTextPadding => 4;
+   public int CurrentFontSize { get; set; } = 16;
+   public Pen AccentPen { get; } = new Pen(Brush(nameof(Theme.Accent)), 1);
+
+   public static SolidColorBrush Brush(string name) {
+      return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+   }
+
+   public void DrawText(Point origin, string text, int size, string foreground)
+      => Api.DrawText(FormattedText(text, size, foreground), origin);
+
+   public FormattedText FormattedText(string text, int size, string foreground)
+      => new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, consolas, size, Brush(foreground), 96);
+}
+
+/// <summary>
+/// Represents a lightweight set of methods for rendering and interacting with a section of a table panel
+/// </summary>
+public interface IGroupControl {
+   int YOffset { get; }
+   int Height { get; }
+   int UpdateHeight(int availableWidth, int currentHeight);
+   void MouseDown(MouseButtonEventArgs e);
+   void TextInput(TextCompositionEventArgs e);
+   void KeyInput(KeyEventArgs e);
+   void Render(RenderContext context);
+}
+
+public record GroupDefaultControl(IArrayElementViewModel Element) : IGroupControl {
+   public int YOffset { get; private set; }
+   public int Height => 20;
+   public int UpdateHeight(int availableWidth, int currentHeight) {
+      YOffset = currentHeight;
+      return Height;
+   }
+
+   public void Render(RenderContext context) {
+      context.DrawText(new(2, YOffset), Element.GetType().Name, 16, nameof(Theme.Primary));
+   }
+
+   public void KeyInput(KeyEventArgs e) {
+      // throw new NotImplementedException();
+   }
+
+   public void MouseDown(MouseButtonEventArgs e) {
+      // throw new NotImplementedException();
+   }
+
+   public void TextInput(TextCompositionEventArgs e) {
+      // throw new NotImplementedException();
+   }
+}
+
+public record GroupTextControl(FieldArrayElementViewModel Element) : IGroupControl {
+   public int Width { get; private set; }
+   public int YOffset { get; private set; }
+   public int Height => 20;
+   public int UpdateHeight(int availableWidth, int currentHeight) {
+      (Width, YOffset) = (availableWidth, currentHeight);
+      return Height;
+   }
+
+   public bool IsFocused { get; private set; }
+
+   public void KeyInput(KeyEventArgs e) {
+      // TODO
+   }
+
+   public void MouseDown(MouseButtonEventArgs e) {
+      // TODO focus
+   }
+
+   public void Render(RenderContext context) {
+      var topOfText = YOffset;
+
+      // label
+      // TODO what to do if the label text is too long?
+      context.DrawText(new(2, topOfText), Element.Name, context.CurrentFontSize - 4, nameof(Theme.Primary));
+
+      // TODO render the button
+
+      // box
+      var pen = IsFocused ? context.AccentPen : null;
+      var background = RenderContext.Brush(nameof(Theme.Backlight));
+      context.Api.DrawRectangle(background, pen, new Rect(Width / 2, YOffset + 1, Width / 2, Height - 2));
+
+      // content
+      var text = context.FormattedText(Element.Content, context.CurrentFontSize, nameof(Theme.Primary));
+      context.Api.DrawText(text, new(Width - text.Width - 4, topOfText));
+   }
+
+   public void TextInput(TextCompositionEventArgs e) {
+      // TODO
+   }
+}
+
+// next most important controls:
+// splitter
+// enums
+// images
+// bit arrays
+// tuples
+
