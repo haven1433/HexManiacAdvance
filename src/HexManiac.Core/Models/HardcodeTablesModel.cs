@@ -230,38 +230,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             newList[203] = "UnusedCB";
             newList[207] = "RaiseAllStatsPrimary";
             newList[213] = "Stat Swap or Split";
-            for(var k = 0; k < 4; k++) newList.Add(null); // 214 to 217 are unused.
-            newList.Add("Me First");
-            newList.Add("Eat Berry");
-            newList.Add("Natural Gift");
-            newList.Add("Smack Down");
-            newList.Add("Remove Target Stat Changes");
-            newList.Add("SleepHitChance");
-            newList.Add("UnusedE0");
-            newList.Add("UnusedE1");
-            newList.Add("Set Terrain");
-            newList.Add("Pledge");
-            newList.Add("Field Effects");
-            newList.Add("Fling");
-            newList.Add("Feint");
-            newList.Add("Attack Blockers");
-            newList.Add("Type Changes");
-            newList.Add("Heal Target");
-            newList.Add("Topsy Turvy Electrify");
-            newList.Add("Fairy Lock Happy Hour");
-            newList.Add("Instruct After You Quash");
-            newList.Add("Sucker Punch");
-            newList.Add("Ignore Redirection");
-            newList.Add("Team Effects");
-            newList.Add("Camouflage");
-            newList.Add("Flame Burst");
-            newList.Add("Last Resort or Sky Drop");
-            newList.Add("Damage Set Terrain");
-            newList.Add("Teatime");
+            newList.AddRange(new string[] {null, null, null, null, "Me First", "Eat Berry", "Natural Gift", "Smack Down", "Remove Target Stat Changes", "SleepHitChance", null, null,
+            "Set Terrain", "Pledge", "Field Effects", "Fling", "Feint", "Attack Blockers", "Type Changes", "Heal Target", "Topsy Turvy Electrify", "Fairy Lock Happy Hour",
+            "Instruct After You Quash", "Sucker Punch", "Ignore Redirection", "Team Effects", "Camouflage", "Flame Burst", "Last Resort Sky Drop", "Damage Set Terrain", "Teatime"});
             for(var k = 0; k < 8; k++) newList.Add(null); // 245 to 252 are unused.
-            newList.Add("Max Move");
-            newList.Add("Synchronoise");
-            newList.Add("UnusedFF");
+            newList.AddRange(new string[] {"Max Move", "Synchronoise"});
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
@@ -293,15 +266,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          
          // Update the type chart effectivenesses list
          if (isCFRU && TryGetList("effectiveness", out var multipliers)) {
-            var newMultipliers = new List<string>();
-            newMultipliers.Add("1x");
-            newMultipliers.Add("0x");
-            while (newMultipliers.Count <= 5)
-                newMultipliers.Add(null);
-            newMultipliers.Add("0.5x");
-            while (newMultipliers.Count <= 20)
-                newMultipliers.Add(null);
-            newMultipliers.Add("2x");
+            var newMultipliers = new string[21]; // 0 to 20
+            newMultipliers[0] = "1x";
+            newMultipliers[1] = "0x";
+            newMultipliers[5] = "0.5x";
+            newMultipliers[20] = "2x";
             SetList(new NoDataChangeDeltaModel(), "effectiveness", newMultipliers, null, StoredList.GenerateHash(newMultipliers));
          }
 
