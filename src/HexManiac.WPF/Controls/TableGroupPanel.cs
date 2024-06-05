@@ -673,7 +673,7 @@ public class SpriteCache {
       }
    }
 
-   public void NeedsRedraw(SpriteElementViewModel sprite) {
+   public void NeedsRedraw(IPixelViewModel sprite) {
       var cacheIndex = pvmCache.IndexOf(sprite);
       if (cacheIndex >= 0) cacheNeedsRedraw |= 1L << cacheIndex;
    }
@@ -902,17 +902,26 @@ public record GroupEnumControl(ComboBoxArrayElementViewModel Element) : GroupFix
 }
 
 public record GroupOffsetRenderControl(OffsetRenderViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
+   private double yStart = double.NaN;
+
    public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
       var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
       var multiple = (int)Math.Ceiling((double)Element.PixelHeight / unitHeight);
       return Height = unitHeight * multiple;
    }
 
-   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
-   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
-   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
-   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
-   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) => parent.Cursor = Cursors.Hand;
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) => yStart = e.GetPosition(parent).Y;
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
+      if (double.IsNaN(yStart)) return;
+      var newY = e.GetPosition(parent).Y;
+      var delta = (int)(newY - yStart);
+      yStart += delta;
+      Cache.NeedsRedraw(Element);
+      Element.ShiftDelta(0, delta);
+   }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) => yStart = double.NaN;
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) => parent.Cursor = Cursors.Arrow;
 
    public void Render(RenderContext context) {
       var image = Cache.WriteUpdate(Element);
