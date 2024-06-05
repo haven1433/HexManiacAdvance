@@ -228,6 +228,7 @@ public partial class TableGroupPanel : FrameworkElement {
          FieldArrayElementViewModel field => new GroupTextControl(field),
          ComboBoxArrayElementViewModel combo => new GroupEnumControl(combo),
          SpriteElementViewModel sprite => new GroupImageControl(sprite, spriteCache),
+         PaletteElementViewModel palette => new GroupPaletteControl(palette),
          OffsetRenderViewModel offsetRender => new GroupOffsetRenderControl(offsetRender, spriteCache),
          TextStreamElementViewModel textStream => new GroupTextStreamControl(textStream),
          _ => new GroupDefaultControl(element)
@@ -737,14 +738,14 @@ public interface IGroupControl {
 
    void Render(RenderContext context);
 
-   void MouseEnter(FrameworkElement parent, MouseEventArgs e);
-   void MouseDown(FrameworkElement parent, MouseButtonEventArgs e);
-   void MouseMove(FrameworkElement parent, MouseEventArgs e); // if the mouse is down, MouseMove will continue activating on whatever element got clicked.
-   void MouseUp(FrameworkElement parent, MouseButtonEventArgs e);
-   void MouseExit(FrameworkElement parent, MouseEventArgs e);
+   void MouseEnter(TableGroupPanel parent, MouseEventArgs e);
+   void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e);
+   void MouseMove(TableGroupPanel parent, MouseEventArgs e); // if the mouse is down, MouseMove will continue activating on whatever element got clicked.
+   void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e);
+   void MouseExit(TableGroupPanel parent, MouseEventArgs e);
 
-   void TextInput(FrameworkElement parent, TextCompositionEventArgs e);
-   void KeyInput(FrameworkElement parent, KeyEventArgs e);
+   void TextInput(TableGroupPanel parent, TextCompositionEventArgs e);
+   void KeyInput(TableGroupPanel parent, KeyEventArgs e);
 }
 
 public abstract record GroupFixedHeighteControl() {
@@ -771,14 +772,14 @@ public record GroupDefaultControl(IArrayElementViewModel Element) : GroupFixedHe
       context.DrawText(new(2, YOffset), context.CurrentFontSize, Element.GetType().Name, Primary);
    }
 
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) { }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
 
 public record GroupTextControl(FieldArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
@@ -804,30 +805,30 @@ public record GroupTextControl(FieldArrayElementViewModel Element) : GroupFixedH
       // TODO render the button
    }
 
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) {
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
       var p = e.GetPosition(parent);
       parent.Cursor = p.X > Width / 2 ? Cursors.IBeam : Cursors.Arrow;
    }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) {
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) {
       parent.Cursor = Cursors.Arrow;
    }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
 
 public record GroupSplitterControl(SplitterArrayElementViewModel Element, Action VisualChanged) : GroupFixedHeighteControl(), IGroupControl {
    private bool hover;
    public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) => Height = base.UpdateHeight(availableWidth, currentHeight, fontSize) * 2;
 
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { hover = true; VisualChanged(); }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { Element.ToggleVisibility.Execute();  VisualChanged(); }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) { hover = false; VisualChanged(); }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { hover = true; VisualChanged(); }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { Element.ToggleVisibility.Execute();  VisualChanged(); }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { hover = false; VisualChanged(); }
 
    public void Render(RenderContext context) {
       var collapserRect = new Rect(4, YOffset + Height * 11 / 16, Height / 2 - 8, Height / 4 - 4);
@@ -840,8 +841,8 @@ public record GroupSplitterControl(SplitterArrayElementViewModel Element, Action
       context.DrawText(new(Height / 2, YOffset + Height / 2), context.CurrentFontSize, Width - Height / 2, Element.SectionName, Primary);
    }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
 
 public record GroupImageControl(SpriteElementViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
@@ -860,27 +861,27 @@ public record GroupImageControl(SpriteElementViewModel Element, SpriteCache Cach
       return Height = unitHeight * multiple;
    }
 
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) { }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
 
    public void Render(RenderContext context) {
       var image = Cache.WriteUpdate(Element);
       context.Api.DrawImage(image, new Rect(0, YOffset, Element.PixelWidth * scale, Element.PixelHeight * scale));
    }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
 
 public record GroupEnumControl(ComboBoxArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) { }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
 
    public void Render(RenderContext context) {
       // name
@@ -896,8 +897,8 @@ public record GroupEnumControl(ComboBoxArrayElementViewModel Element) : GroupFix
       // TODO jump button
    }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
 
 public record GroupOffsetRenderControl(OffsetRenderViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
@@ -907,22 +908,22 @@ public record GroupOffsetRenderControl(OffsetRenderViewModel Element, SpriteCach
       return Height = unitHeight * multiple;
    }
 
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) { }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
 
    public void Render(RenderContext context) {
       var image = Cache.WriteUpdate(Element);
       context.Api.DrawImage(image, new Rect(0, YOffset, Element.PixelWidth, Element.PixelHeight));
    }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
 
-public record GroupTextStreamControl(TextStreamElementViewModel Element):GroupFixedHeighteControl(), IGroupControl {
+public record GroupTextStreamControl(TextStreamElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
    public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
       var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
 
@@ -933,19 +934,57 @@ public record GroupTextStreamControl(TextStreamElementViewModel Element):GroupFi
       return Height = unitHeight * multiple;
    }
 
-   public void MouseEnter(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseDown(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseMove(FrameworkElement parent, MouseEventArgs e) { }
-   public void MouseUp(FrameworkElement parent, MouseButtonEventArgs e) { }
-   public void MouseExit(FrameworkElement parent, MouseEventArgs e) { }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
 
    public void Render(RenderContext context) {
       context.DrawRectangle(Backlight, Secondary, 0, YOffset, Width, Height);
       context.DrawText(new(2, YOffset + 2), context.CurrentFontSize, Element.Content, Primary);
    }
 
-   public void KeyInput(FrameworkElement parent, KeyEventArgs e) { }
-   public void TextInput(FrameworkElement parent, TextCompositionEventArgs e) { }
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupPaletteControl(PaletteElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      var blockHeight = Element.Colors.ColorHeight * (fontSize * 2 / 3 + 4);
+      var multiple = (int)Math.Ceiling((double)blockHeight / unitHeight);
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      var colorWidth = Element.Colors.ColorWidth;
+      var unitWidth = context.CurrentFontSize * 2 / 3 + 4;
+      for (int y = 0; y < Element.Colors.ColorHeight; y++) {
+         for (int x = 0; x < colorWidth; x++) {
+            var color = Element.Colors.Elements[y * colorWidth + x];
+            var fill = new SolidColorBrush(TileImage.Convert16BitColor(color.Color));
+            var border = RenderContext.Brush(Primary);
+            context.Api.DrawRectangle(fill, new Pen(border, 1), new Rect(unitWidth * x + 1, unitWidth * y + 1 + YOffset, unitWidth - 2, unitWidth - 2));
+         }
+      }
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+
+   private int GetCell(TableGroupPanel parent, double x, double y) {
+      var unitWidth = parent.FontSize / 2 + 4;
+      var cellY = (int)((y - YOffset) / unitWidth).LimitToRange(0, Element.Colors.ColorHeight);
+      var cellX = (int)(x / unitWidth).LimitToRange(0,Element.Colors.ColorWidth);
+      return cellY * Element.Colors.ColorWidth + cellX;
+   }
 }
 
 // next most important controls:
