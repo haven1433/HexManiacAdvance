@@ -684,6 +684,8 @@
                <MenuItem Command="ApplicationCommands.Cut" />
                <MenuItem Command="ApplicationCommands.Copy" />
                <MenuItem Command="ApplicationCommands.Paste" />
+               <Separator />
+               <MenuItem Command="ApplicationCommands.SelectAll" />
             </ContextMenu>
          </Setter.Value>
       </Setter>
@@ -1334,6 +1336,8 @@
                <MenuItem Command="ApplicationCommands.Cut" />
                <MenuItem Command="ApplicationCommands.Copy" />
                <MenuItem Command="ApplicationCommands.Paste" />
+               <Separator />
+               <MenuItem Command="ApplicationCommands.SelectAll" />
             </ContextMenu>
          </Setter.Value>
       </Setter>

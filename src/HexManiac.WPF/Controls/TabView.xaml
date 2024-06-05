@@ -1004,15 +1004,6 @@
                                           SelectionChanged="CodeToolContentsSelectionChanged" PreviewKeyDown="CodeBodyKeyDown">
                                           <hsg3hv:TextEditor.Style>
                                              <Style TargetType="hsg3hv:TextEditor" BasedOn="{StaticResource {x:Type hsg3hv:TextEditor}}">
-                                                <Setter Property="ContextMenuOverride">
-                                                   <Setter.Value>
-                                                      <ContextMenu>
-                                                         <MenuItem Command="ApplicationCommands.Cut" />
-                                                         <MenuItem Command="ApplicationCommands.Copy" />
-                                                         <MenuItem Command="ApplicationCommands.Paste" />
-                                                      </ContextMenu>
-                                                   </Setter.Value>
-                                                </Setter>
                                                 <Style.Triggers>
                                                    <DataTrigger Binding="{Binding Tag.CanGotoAddress, ElementName=TextEditor}" Value="True">
                                                       <Setter Property="ContextMenuOverride">
