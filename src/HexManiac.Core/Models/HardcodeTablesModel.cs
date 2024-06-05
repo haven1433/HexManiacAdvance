@@ -198,26 +198,44 @@ namespace HavenSoft.HexManiac.Core.Models {
          // add move effects
          if (isCFRU && TryGetList(MoveEffectListName, out var moveeffectsoptions)) {
             var newList = new List<string>(moveeffectsoptions);
-            newList.Add("Me First");
-            newList.Add("Eat Berry");
-            newList.Add("Natural Gift");
-            newList.Add("Smack Down");
-            newList.Add("Remove Target Stat Changes");
-            newList.Add("Relic Song");
-            newList.Add("Set Terrain");
-            newList.Add("Pledge");
-            newList.Add("Field Effects");
-            newList.Add("Fling");
-            newList.Add("Attack Blockers");
-            newList.Add("Type Changes");
-            newList.Add("Heal Target");
-            newList.Add("Topsy Turvy Electrify");
-            newList.Add("Fairy Lock Happy Hour");
-            newList.Add("Instruct After You Quash");
-            newList.Add("Sucker Punch");
-            newList.Add("Team Effects");
-            newList.Add("Camouflage");
-            newList.Add("Synchronoise");
+            newList[12] = "RaiseSpeed1Primary";
+            newList[14] = "RaiseSpDefese1Primary";
+            newList[15] = "RaiseAccuracy1Primary";
+            newList[21] = "LowerSpAtk1Primary";
+            newList[22] = "LowerSpDef1Primary";
+            newList[25] = "RemoveStatChanges";
+            newList[55] = "RaiseAccuracy2Primary";
+            newList[56] = "RaiseEvasion2Primary";
+            newList[61] = "LowerSpAttack2Primary";
+            newList[63] = "LowerAccuracy2Primary";
+            newList[64] = "LowerEvasion2Primary";
+            newList[74] = "LowerEvasion1HitChance";
+            newList[77] = "Unused4D";
+            newList[78] = "Unused4E";
+            newList[96] = "RaiseSpeed1HitChance";
+            newList[110] = "RaiseSpAtk1HitChance";
+            newList[121] = "Unused79";
+            newList[123] = "Unused7B";
+            newList[125] = "BurnUp";
+            newList[135] = "RaiseDefense2HitChance";
+            newList[150] = "Unused96";
+            newList[169] = "UnusedA9";
+            newList[174] = "BoostNextElectricMoveAndRaiseSpDef";
+            newList[185] = "UnusedB9";
+            newList[196] = "UnusedC4";
+            newList[198] = "RaiseAttack1SpAtk1";
+            newList[199] = "RaiseAttack1Accuracy1";
+            newList[200] = "UnusedC8";
+            newList[202] = "UnusedCA";
+            newList[203] = "UnusedCB";
+            newList[207] = "RaiseAllStatsPrimary";
+            newList[213] = "Stat Swap or Split";
+            newList.AddRange(new string[] {null, null, null, null, "Me First", "Eat Berry", "Natural Gift", "Smack Down", "Remove Target Stat Changes", "SleepHitChance", null, null,
+            "Set Terrain", "Pledge", "Field Effects", "Fling", "Feint", "Attack Blockers", "Type Changes", "Heal Target", "Topsy Turvy Electrify", "Fairy Lock Happy Hour",
+            "Instruct After You Quash", "Sucker Punch", "Ignore Redirection", "Team Effects", "Camouflage", "Flame Burst", "Last Resort Sky Drop", "Damage Set Terrain", "Teatime",
+            "RaiseTarget\'sAttackSpAtk2"});
+            for(var k = 0; k < 7; k++) newList.Add(null); // 246 to 252 are unused.
+            newList.AddRange(new string[] {"Max Move", "Synchronoise"});
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
@@ -245,6 +263,16 @@ namespace HavenSoft.HexManiac.Core.Models {
                "HeavyDutyBoots", "UtilityUmbrella", "ThroatSpray",
             });
             SetList(new NoDataChangeDeltaModel(), "holdeffects", newList, null, StoredList.GenerateHash(newList));
+         }
+         
+         // Update the type chart effectivenesses list
+         if (isCFRU && TryGetList("effectiveness", out var multipliers)) {
+            var newMultipliers = new string[21]; // 0 to 20
+            newMultipliers[0] = "1x";
+            newMultipliers[1] = "0x";
+            newMultipliers[5] = "0.5x";
+            newMultipliers[20] = "2x";
+            SetList(new NoDataChangeDeltaModel(), "effectiveness", newMultipliers, null, StoredList.GenerateHash(newMultipliers));
          }
 
          foreach (var table in tables) {
@@ -295,7 +323,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          SetList(new NoDataChangeDeltaModel(), "movecategory", pss, null, StoredList.GenerateHash(pss));
 
          // trainers-with-EVs table
-         var trainerabilities = new List<string> { "Hidden", "Abiilty1", "Ability2", "RandomNormal", "RandomAny" };
+         var trainerabilities = new List<string> { "Hidden", "Ability1", "Ability2", "RandomNormal", "RandomAny" };
          SetList(new NoDataChangeDeltaModel(), "trainerabilities", trainerabilities, null, StoredList.GenerateHash(trainerabilities));
          AddTable(0x1456798, 0, "data.trainers.evs", "[nature.data.pokemon.natures.names ivs. hpEv. atkEv. defEv. spdEv. spAtkEv. spDefEv. ball.data.trainers.classes.names ability.trainerabilities]121");
 
@@ -349,6 +377,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          newList.Add("Acc Up 3");
          newList.Add("Evsn Up 3");
          SetList(new NoDataChangeDeltaModel(), "zeffects", newList, null, StoredList.GenerateHash(newList));
+         
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
@@ -471,7 +500,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (name == ItemsTableName) format = format.Replace("data.items.count", string.Empty);
 
          // moves
-         if (name == MoveNamesTable) format += "894";
+         if (name == MoveNamesTable) format += "896";
          if (name == MoveDataTable) format = format.Replace("unused. unused:", "zMovePower. category.movecategory zMoveEffect.zeffects");
 
          // level-up moves uses Jambo format
@@ -505,6 +534,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (name == "data.maps.roaming.sets") source = 0x14889B0;
 
          if (name == ItemEffectsTableName) format = format.Replace("-199", string.Empty); // item effects are as long as the items
+
+         
+
+         // type chart
+         if (name == "data.pokemon.type.chart") {
+            source = 0x145BB74;
+            format = "Norm Fight Fly Poison Grd Rock Bug Ghost Steel arg9 Fire Water Grass Elec Psych Ice Drag Dark arg18 arg19 arg20 arg21 arg22 Fairy";
+            format = " ".Join(format.Split(' ').Select(type => $"{type}.effectiveness"));
+            format = $"[{format}]data.pokemon.type.names";
+         }
 
          return format;
       }
