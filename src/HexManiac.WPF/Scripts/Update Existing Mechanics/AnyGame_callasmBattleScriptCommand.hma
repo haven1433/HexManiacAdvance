@@ -58,8 +58,8 @@ BattlescriptCurrInstr:
 # ---------------- All Games: Add the callasm command in the battle script command table ----------------
 
 # add dummy command at 248 (f8) since it doesn't exist in these games
-@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1) @scripts.battle.thumb/248 +
+@!game(AXVE0_AXPE0_AXVE1_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1) @scripts.commands.battle.battlescript/248 +
 
 @!game(All)
-@scripts.battle.thumb/249
+@scripts.commands.battle.battlescript/249
 + <thumb.battlescriptcommand.callasm+1>
