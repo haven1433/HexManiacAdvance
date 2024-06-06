@@ -186,7 +186,10 @@ public partial class TableGroupPanel : FrameworkElement {
 
    protected override void OnMouseLeave(MouseEventArgs e) {
       base.OnMouseLeave(e);
-      if (mouseHoverElement != null) controls[mouseHoverElement].MouseExit(this, e);
+      if (mouseHoverElement != null) {
+         controls[mouseHoverElement].MouseExit(this, e);
+         mouseHoverElement = null;
+      }
    }
 
    #endregion
@@ -232,6 +235,8 @@ public partial class TableGroupPanel : FrameworkElement {
          PaletteElementViewModel palette => new GroupPaletteControl(palette),
          OffsetRenderViewModel offsetRender => new GroupOffsetRenderControl(offsetRender, spriteCache),
          TextStreamElementViewModel textStream => new GroupTextStreamControl(textStream),
+         ButtonArrayElementViewModel button => new GroupButtonControl(button),
+         PythonButtonElementViewModel pButton => new GroupPythonButtonControl(pButton),
          _ => new GroupDefaultControl(element)
       };
 
@@ -727,6 +732,18 @@ public record RenderContext(DrawingContext Api) {
       }
    }
 
+   public void DrawTextButton(Rect rect, double fontSize, string text, bool isHover) {
+      var border = isHover ? nameof(Theme.Primary) : nameof(Theme.Secondary);
+      var fill = nameof(Theme.Backlight);
+      Api.DrawRectangle(Brush(fill), new Pen(Brush(border), 1), rect);
+      var formattedText = FormattedText(text, fontSize, nameof(Theme.Primary));
+      if (formattedText.Width > rect.Width - 2) {
+         fontSize *= (rect.Width - 2) / formattedText.Width;
+         formattedText = FormattedText(text, fontSize, nameof(Theme.Primary));
+      }
+      Api.DrawText(formattedText, new(rect.X + rect.Width / 2 - formattedText.Width / 2, rect.Y));
+   }
+
    public static FormattedText FormattedText(string text, double size, string foreground)
       => new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Consolas, size, Brush(foreground), 96);
 
@@ -1063,7 +1080,41 @@ public record GroupBitArrayControl(BitListArrayElementViewModel Element) : Group
    }
 }
 
+public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   // TODO CanExecute
+   private bool isHover;
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) => Element.Command.Execute();
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { isHover = false; parent.InvalidateVisual(); }
+
+   public void Render(RenderContext context) {
+      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Text, isHover);
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupPythonButtonControl(PythonButtonElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   // TODO CanExecute
+   private bool isHover;
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) => Element.Execute();
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { isHover = false; parent.InvalidateVisual(); }
+
+   public void Render(RenderContext context) {
+      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Name, isHover);
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
 // next most important controls:
-// bit arrays
+// SpriteIndicatorElementViewModel
 // tuples
 // calculated fields
