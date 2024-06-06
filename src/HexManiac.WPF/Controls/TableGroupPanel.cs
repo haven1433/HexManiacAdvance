@@ -232,6 +232,7 @@ public partial class TableGroupPanel : FrameworkElement {
          ComboBoxArrayElementViewModel combo => new GroupEnumControl(combo),
          BitListArrayElementViewModel bits => new GroupBitArrayControl(bits),
          SpriteElementViewModel sprite => new GroupImageControl(sprite, spriteCache),
+         SpriteIndicatorElementViewModel spriteIndicator => new GroupSpriteIndicatorControl(spriteIndicator, spriteCache),
          PaletteElementViewModel palette => new GroupPaletteControl(palette),
          OffsetRenderViewModel offsetRender => new GroupOffsetRenderControl(offsetRender, spriteCache),
          TextStreamElementViewModel textStream => new GroupTextStreamControl(textStream),
@@ -957,6 +958,32 @@ public record GroupOffsetRenderControl(OffsetRenderViewModel Element, SpriteCach
 
    public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
    public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupSpriteIndicatorControl(SpriteIndicatorElementViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
+   private double scale = 1;
+
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      scale = Math.Min(1, (double)availableWidth / Element.Image.PixelWidth);
+      var multiple = (int)Math.Ceiling(Element.Image.PixelHeight * scale / unitHeight);
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      var image = Cache.WriteUpdate(Element.Image);
+      context.Api.DrawImage(image, new Rect(0, YOffset, Element.Image.PixelWidth * scale, Element.Image.PixelHeight * scale));
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+
 }
 
 public record GroupTextStreamControl(TextStreamElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
