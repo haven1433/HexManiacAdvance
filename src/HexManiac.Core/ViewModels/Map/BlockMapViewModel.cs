@@ -796,7 +796,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void UpdateClone(BlockMapViewModel neighbor, ObjectEventViewModel parentEvent, bool deleted = false) {
          if (!model.IsFRLG() || neighbor == null || parentEvent == null) return;
-         var obj = EventGroup.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.Element.ArrayIndex + 1 && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
+         var obj = EventGroup?.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.Element.ArrayIndex + 1 && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
          var (thisX, thisY) = ConvertCoordinates(0, 0);
          var (thatX, thatY) = neighbor.ConvertCoordinates(0, 0);
          var (xDif, yDif) = (thisX - thatX, thisY - thatY);
