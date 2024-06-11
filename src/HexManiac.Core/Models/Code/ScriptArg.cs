@@ -125,7 +125,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var enumName = EnumTableName?.Split('|')[0];
          var table = string.IsNullOrEmpty(enumName) ? null : model.GetOptions(enumName);
          if (table == null || value - EnumOffset < 0 || table.Count <= value - EnumOffset || string.IsNullOrEmpty(table[value])) {
-            preferHex |= Math.Abs(value).InRange(0x4000, 20000) || Math.Abs(value) > 20100;
+            if (value != int.MinValue) preferHex |= Math.Abs(value).InRange(0x4000, 20000) || Math.Abs(value) > 20100;
             if (preferHex || value == int.MinValue) {
                return "0x" + ((uint)(value - EnumOffset)).ToString($"X{length * 2}");
             } else {

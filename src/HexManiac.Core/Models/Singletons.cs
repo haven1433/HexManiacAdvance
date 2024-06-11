@@ -91,8 +91,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (string.IsNullOrEmpty(line)) continue;
             if (!line.StartsWith(" ") && active != null) active = null;
             if (line.StartsWith("#")) continue;
-            if (line.Trim().StartsWith("#") && active != null) {
-               active.AddDocumentation(line.Trim());
+            if (line.Trim().StartsWith("#")) {
+               active?.AddDocumentation(line.Trim());
             } else {
                if (MacroScriptLine.IsMacroLine(line)) {
                   var macro = new MacroScriptLine(line);
@@ -216,6 +216,11 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          ExportReadableScriptReference(editor, ScriptLines, specials, ScriptReferenceDocumetationFileName);
       }
+
+      /// <summary>
+      /// For consistency, run this when the following tabs are open in the following order:
+      /// FireRed 1.0, Emerald 1.0, Ruby 1.0
+      /// </summary>
       private void ExportReadableScriptReference(EditorViewModel editor, IReadOnlyList<IScriptLine> lines, Dictionary<string, StoredList> specials, string filename) {
          // setup: make sure all the scripts have been fully determined
          foreach (var tab in editor) {
@@ -265,7 +270,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
             foreach (var arg in line.Args) {
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
-                  text.AppendLine($"{nl}*  `{arg.Name}` from {arg.EnumTableName}");
+                  text.AppendLine($"{nl}*  `{arg.Name}` is from {arg.EnumTableName}");
                } else if (arg.Type != ArgType.Pointer) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a number.");
@@ -412,6 +417,9 @@ Use `special2 variable name` when doing an action that has a result.
             var header = "# From " + model.GetGameCode() + ", ";
             var spots = Flags.GetAllScriptSpots(model, viewPort.Tools.CodeTool.ScriptParser, top, start);
             foreach (var spot in spots.Where(spot => line.Matches(hash, model, spot.Address))) {
+               // skip spots that resolve to a different macro
+               if (spot.Line != line) continue;
+
                // skip spots where the variables are 'weird'
                var argStart = spot.Address + spot.Line.LineCode.Count;
                var reasonableArgs = true;

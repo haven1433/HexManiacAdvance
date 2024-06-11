@@ -108,6 +108,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             throw new NotImplementedException();
          }
 
+         foreach (var child in children) AddSilentChild(child);
          UpdateViewFromModel();
       }
 

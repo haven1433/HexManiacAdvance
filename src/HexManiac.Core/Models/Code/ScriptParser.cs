@@ -182,55 +182,32 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             if (repeateLength > ScriptParser.MaxRepeates) break; // same command lots of times in a row is fishy
          }
 
-         // Include in the length any content that comes directly (or +1) after the script.
-         // This content should be considered part of the script.
-         // Only do this if the content is only referenced once, otherwise it may not be safe to include during repoints.
-         while (true) {
-            if (destinations.TryGetValue(address + length, out int additionalLength) && additionalLength > 0) {
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
-                  length += additionalLength;
-                  continue;
+         // concatenate destinations directly after the current script
+         // (only if the destination is only used once)
+         var initialAnchor = model.GetNextAnchor(address + length);
+         for (bool consolidateAgain = true; consolidateAgain;) {
+            consolidateAgain = false;
+            for (int i = 0; i < 4; i++) {
+               // we want to know if there's more script content detected closely after this script, with a possible gap of a few bytes
+               // go ahead and concatenate that content onto this script segment if nothing is using the space between.
+               if (destinations.TryGetValue(address + length + i, out int argLength) && argLength > 0) {
+                  if (i == 1 && initialAnchor.Start == address + length && initialAnchor.PointerSources.Count > 0) break;
+                  var spacedAnchor = model.GetNextAnchor(address + length + i);
+                  if (spacedAnchor.Start == address + length + i && spacedAnchor.PointerSources.Count == 1) {
+                     // if the argLength is 1, we may've skipped finding the length to prevent recursion.
+                     // Now that we know more lengths, go ahead and try to calculate it.
+                     if (argLength == 1 && spacedAnchor is IScriptStartRun childScript) {
+                        destinations.Remove(address + length + i);
+                        argLength = model.GetScriptLength(childScript, destinations);
+                        destinations[address + length + i] = argLength;
+                     }
+
+                     length += argLength + i;
+                     consolidateAgain = true;
+                     break;
+                  }
                }
             }
-            if (destinations.TryGetValue(address + length + 1, out additionalLength)) {
-               // there was a skip... should we ignore it?
-               // If something points to that position, we can't keep going.
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
-
-               anchor = model.GetNextAnchor(address + length + 1);
-               if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
-                  length += additionalLength + 1;
-                  continue;
-               }
-            }
-            if (destinations.TryGetValue(address + length + 2, out additionalLength)) {
-               // there was a skip... should we ignore it?
-               // If something points to that position, we can't keep going.
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
-
-               anchor = model.GetNextAnchor(address + length + 2);
-               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
-                  length += additionalLength + 2;
-                  continue;
-               }
-            }
-            if (destinations.TryGetValue(address + length + 3, out additionalLength)) {
-               // there was a skip... should we ignore it?
-               // If something points to that position, we can't keep going.
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
-
-               anchor = model.GetNextAnchor(address + length + 3);
-               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
-                  length += additionalLength + 3;
-                  continue;
-               }
-            }
-
-            break;
          }
 
          return length;
@@ -788,7 +765,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          var tokens = ScriptLine.Tokenize(currentLine.Trim());
          var candidates = PartialMatches(tokens[0]).Where(line => line.MatchesGame(gameHash)).ToList();
          // match linecode (if there is one)
-         if (tokens.Length > 1 && candidates.Any(candidate => candidate.LineCode.Count > 1) && tokens[1].TryParseInt(out var num)) candidates = candidates.Where(line => line.LineCode.Count == 1 || line.LineCode[1] == num).ToList();
+         if (tokens.Length > 1 && candidates.Any(candidate => candidate.LineCode.Count > 1) && tokens[1].TryParseInt(out var num)) candidates = candidates.Where(line => line.LineCode.Count < 2 || line.LineCode[1] == num).ToList();
 
          var isAfterToken = context.Index > 0 &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
@@ -1022,51 +999,30 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // concatenate destinations directly after the current script
          // (only if the destination is only used once)
-         while (true) {
-            if (destinationLengths.TryGetValue(address + length, out int argLength) && argLength > 0) {
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count == 1) {
-                  length += argLength;
-                  continue;
-               }
-            }
-            if (destinationLengths.TryGetValue(address + length + 1, out argLength)) {
-               // there was a skip... should we ignore it?
-               // If something points to that position, we can't keep going.
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
+         var initialAnchor = model.GetNextAnchor(address + length);
+         for (bool consolidateAgain = true; consolidateAgain;) {
+            consolidateAgain = false;
+            for (int i = 0; i < 4; i++) {
+               // we want to know if there's more script content detected closely after this script, with a possible gap of a few bytes
+               // go ahead and concatenate that content onto this script segment if nothing is using the space between.
+               if (destinationLengths.TryGetValue(address + length + i, out int argLength) && argLength > 0) {
+                  if (i == 1 && initialAnchor.Start == address + length && initialAnchor.PointerSources.Count > 0) break;
+                  var spacedAnchor = model.GetNextAnchor(address + length + i);
+                  if (spacedAnchor.Start == address + length + i && spacedAnchor.PointerSources.Count == 1) {
+                     // if the argLength is 1, we may've resisted finding the length to prevent recursion.
+                     // Now that we know more lengths, go ahead and try to calculate it.
+                     if (argLength == 1 && spacedAnchor is IScriptStartRun childScript) {
+                        destinationLengths.Remove(address + length + i);
+                        argLength = model.GetScriptLength(childScript, destinationLengths);
+                        destinationLengths[address + length + i] = argLength;
+                     }
 
-               anchor = model.GetNextAnchor(address + length + 1);
-               if (anchor.Start == address + length + 1 && anchor.PointerSources.Count == 1) {
-                  length += argLength + 1;
-                  continue;
+                     length += argLength + i;
+                     consolidateAgain = true;
+                     break;
+                  }
                }
             }
-            if (destinationLengths.TryGetValue(address + length + 2, out argLength)) {
-               // there was a skip... should we ignore it?
-               // If something points to that position, we can't keep going.
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
-
-               anchor = model.GetNextAnchor(address + length + 2);
-               if (anchor.Start == address + length + 2 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
-                  length += argLength + 2;
-                  continue;
-               }
-            }
-            if (destinationLengths.TryGetValue(address + length + 3, out argLength)) {
-               // there was a skip... should we ignore it?
-               // If something points to that position, we can't keep going.
-               var anchor = model.GetNextAnchor(address + length);
-               if (anchor.Start == address + length && anchor.PointerSources.Count > 0) break;
-
-               anchor = model.GetNextAnchor(address + length + 3);
-               if (anchor.Start == address + length + 3 && anchor.PointerSources.Count == 1 && anchor is not IScriptStartRun) {
-                  length += argLength + 3;
-                  continue;
-               }
-            }
-            break;
          }
 
          return length;

@@ -60,6 +60,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static HashSet<int> GetUsedItemFlags(IDataModel model, ScriptParser parser) {
          var usedFlags = new HashSet<int>();
 
+         if (model.IsEmerald()) {
+            for (int i = 0x15C; i <= 0x1A9; i++) usedFlags.Add(i); // Emerald Match Call flags
+         }
+
          foreach (var element in GetAllEvents(model, "objects")) {
             if (!element.HasField("flag")) continue;
             usedFlags.Add(element.GetValue("flag"));

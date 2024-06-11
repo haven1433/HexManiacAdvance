@@ -160,12 +160,21 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index) {
          if (Args.Count == 0) return false;
          if (!MatchesGame(gameCodeHash)) return false;
+         var expectedVariableValues = new Dictionary<string, int>();
          for (int i = 0; i < Args.Count; i++) {
             var arg = Args[i];
             if (arg is SilentMatchArg smarg) {
                if (data[index] != smarg.ExpectedValue) return false;
             } else if (arg is ScriptArg sarg) {
-               // don't validate, this part is variable
+               // if the argument is duplicated through multiple spots,
+               // make sure all the spots match the same value.
+               var matchingShortArg = ShortFormArgs.FirstOrDefault(shortArg => shortArg.Name == arg.Name);
+               var argLength = arg.Length(default, -1);
+               if ((matchingShortArg?.Length(default, -1) ?? 0) == argLength) {
+                  var value = data.ReadMultiByteValue(index, argLength);
+                  if (!expectedVariableValues.TryGetValue(sarg.Name, out var expectedValue)) expectedVariableValues[sarg.Name] = value;
+                  else if (expectedValue != value) return false; // only match the macro if all the variables match
+               }
             } else {
                throw new NotImplementedException();
             }
@@ -230,10 +239,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (tokens[0] != LineCommand) throw new ArgumentException($"Command {LineCommand} was expected, but received {tokens[0]} instead.");
          var args = tokens.Skip(1).ToArray();
          var shortArgs = args;
-         args = ConvertShortFormToLongForm(args);
          var commandText = LineCommand;
+         if (hasShortForm && shortArgs.Length != ShortFormArgs.Count) {
+            return $"Command {commandText} expects {ShortFormArgs.Count} arguments, but received {shortArgs.Length} instead.";
+         }
+         args = ConvertShortFormToLongForm(args);
          var specifiedArgs = Args.Where(arg => arg is ScriptArg).Count();
-         if (specifiedArgs != args.Length) {
+         if (!hasShortForm && specifiedArgs != args.Length) {
             return $"Command {commandText} expects {specifiedArgs} arguments, but received {shortArgs.Length} instead.";
          }
          return null;

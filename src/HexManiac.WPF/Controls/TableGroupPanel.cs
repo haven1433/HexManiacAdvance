@@ -8,18 +8,21 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Globalization;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Collections.Generic;
 using System.Windows.Input;
+using System.Linq;
+using HavenSoft.HexManiac.WPF.Resources;
 
 namespace HavenSoft.HexManiac.WPF.Controls; 
 
 public partial class TableGroupPanel : FrameworkElement {
    private readonly SpriteCache spriteCache = new();
 
-   private IArrayElementViewModel focusElement;
+   private IArrayElementViewModel keyboardFocusElement, mouseHoverElement;
+
+   private readonly Dictionary<IArrayElementViewModel, IGroupControl> controls = new();
 
    #region Source
 
@@ -40,26 +43,38 @@ public partial class TableGroupPanel : FrameworkElement {
       if (oldSource != null) {
          oldSource.CollectionChanged -= CollectionChanged;
          foreach (var element in oldSource) element.PropertyChanged -= CollectionPropertyChanged;
+         controls.Clear();
       }
       var newSource = (ObservableCollection<IArrayElementViewModel>)e.NewValue;
       if (newSource != null) {
          newSource.CollectionChanged += CollectionChanged;
-         foreach (var element in newSource) element.PropertyChanged += CollectionPropertyChanged;
+         foreach (var element in newSource) {
+            element.PropertyChanged += CollectionPropertyChanged;
+            controls[element] = BuildControl(element);
+         }
       }
       InvalidateVisual();
    }
 
    private void CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e) {
       if (e.Action.IsAny(NotifyCollectionChangedAction.Replace, NotifyCollectionChangedAction.Remove)) {
-         foreach (IArrayElementViewModel item in e.OldItems) item.PropertyChanged -= CollectionPropertyChanged;
+         foreach (IArrayElementViewModel item in e.OldItems) {
+            item.PropertyChanged -= CollectionPropertyChanged;
+            controls.Remove(item);
+         }
       }
       if (e.Action.IsAny(NotifyCollectionChangedAction.Add, NotifyCollectionChangedAction.Replace)) {
-         foreach (IArrayElementViewModel item in e.NewItems) item.PropertyChanged += CollectionPropertyChanged;
+         foreach (IArrayElementViewModel item in e.NewItems) {
+            item.PropertyChanged += CollectionPropertyChanged;
+            controls[item] = BuildControl(item);
+         }
       }
       if (e.Action.IsAny(NotifyCollectionChangedAction.Reset, NotifyCollectionChangedAction.Move)) {
+         controls.Clear();
          foreach (var element in Source) {
             element.PropertyChanged -= CollectionPropertyChanged;
             element.PropertyChanged += CollectionPropertyChanged;
+            controls[element] = BuildControl(element);
          }
       }
       InvalidateVisual();
@@ -72,94 +87,163 @@ public partial class TableGroupPanel : FrameworkElement {
 
    #endregion
 
+   public int FontSize { get; private set; } = 16; // TODO dependency property?
+
    public TableGroupPanel() {
       RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.NearestNeighbor);
+      VerticalAlignment = VerticalAlignment.Top;
       ClipToBounds = true;
       Focusable = true;
    }
 
    protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e) {
       base.OnLostKeyboardFocus(e);
-      if ((focusElement != null)) {
-         focusElement = null;
+      if ((keyboardFocusElement != null)) {
+         keyboardFocusElement = null;
          InvalidateVisual();
       }
    }
 
    protected override void OnRender(DrawingContext dc) {
       base.OnRender(dc);
+      dc.DrawRectangle(Brush(nameof(Theme.Background)), null, new(0, 0, ActualWidth, ActualHeight));
       if (Source == null) return;
-      var renderer = new TableGroupPainter(dc, spriteCache, (int)ActualWidth, focusElement);
-      foreach (var member in Source) {
-         renderer.Render(member);
+      var offset = 0;
+      var width = (int)ActualWidth;
+      var context = new RenderContext(dc);
+      foreach (var element in Source) {
+         if (!element.Visible && element is not SplitterArrayElementViewModel) continue;
+         controls[element].Render(context);
+         offset += controls[element].Height;
       }
    }
 
    protected override Size MeasureOverride(Size availableSize) {
-      // how big do I want to be?
-      var painter = new TableGroupPainter(null, spriteCache, (int)availableSize.Width, focusElement);
-      foreach (var member in Source) painter.Render(member);
-      return new Size(Math.Max(availableSize.Width, 100), painter.Y);
+      // how big I want to be
+      int width = (int)availableSize.Width, height = 0;
+      foreach (var element in Source) {
+         if (!element.Visible && element is not SplitterArrayElementViewModel) continue;
+         height += controls[element].UpdateHeight(width, height, FontSize);
+      }
+      return new Size(Math.Max(width, 100), height);
    }
 
    protected override Size ArrangeOverride(Size finalSize) {
       // how big do I actually get to be
-      var size = base.ArrangeOverride(finalSize);
-      var painter = new TableGroupPainter(null, spriteCache, (int)size.Width, focusElement);
-      foreach (var member in Source) painter.Render(member);
-      return new Size(Math.Max(size.Width, 100), painter.Y);
+      int width = (int)base.ArrangeOverride(finalSize).Width, height = 0;
+      foreach (var element in Source) {
+         if (!element.Visible && element is not SplitterArrayElementViewModel) continue;
+         height += controls[element].UpdateHeight(width, height, FontSize);
+      }
+      return new Size(Math.Max(width, 100), height);
+   }
+
+   #region Mouse
+
+   private IArrayElementViewModel GetElementUnderCursor(int y) {
+      foreach (var member in Source) {
+         if (member is SplitterArrayElementViewModel || member.Visible) y -= controls[member].Height;
+         if (y < 0) return member;
+      }
+      return null;
    }
 
    protected override void OnMouseDown(MouseButtonEventArgs e) {
       base.OnMouseDown(e);
       var pos = e.GetPosition(this);
-      var painter = new TableGroupPainter(null, spriteCache, (int)ActualWidth, focusElement);
-      focusElement = null;
-      foreach (var member in Source) {
-         painter.Render(member);
-         if (painter.Y < pos.Y) continue;
-         focusElement = member;
-         pos.X -= painter.X;
-         pos.Y -= painter.Y;
-         new TableGroupMouseEditor(focusElement, painter.AvailableWidth, pos, e).Edit();
-         Focus();
-         InvalidateVisual();
-         e.Handled = true;
-         break;
+      mouseHoverElement = GetElementUnderCursor((int)pos.Y);
+      keyboardFocusElement = mouseHoverElement;
+      if (mouseHoverElement == null) return;
+      Focus();
+      controls[mouseHoverElement].MouseDown(this, e);
+      e.Handled = true;
+      CaptureMouse();
+      InvalidateVisual();
+   }
+
+   protected override void OnMouseMove(MouseEventArgs e) {
+      base.OnMouseMove(e);
+      if (!IsMouseCaptured) {
+         var pos = e.GetPosition(this);
+         var previousHoverElement = mouseHoverElement;
+         mouseHoverElement = GetElementUnderCursor((int)pos.Y);
+         if (previousHoverElement != mouseHoverElement) {
+            if (previousHoverElement != null) controls[previousHoverElement].MouseExit(this, e);
+            if (mouseHoverElement != null) controls[mouseHoverElement].MouseEnter(this, e);
+         }
+         if (mouseHoverElement != null) controls[mouseHoverElement].MouseMove(this, e);
+      } else {
+         if (mouseHoverElement != null) controls[mouseHoverElement].MouseMove(this, e);
       }
    }
 
+   protected override void OnMouseUp(MouseButtonEventArgs e) {
+      base.OnMouseUp(e);
+      if (!IsMouseCaptured) return;
+      if (mouseHoverElement != null) controls[mouseHoverElement].MouseUp(this, e);
+      ReleaseMouseCapture();
+   }
+
+   protected override void OnMouseLeave(MouseEventArgs e) {
+      base.OnMouseLeave(e);
+      if (mouseHoverElement != null) {
+         controls[mouseHoverElement].MouseExit(this, e);
+         mouseHoverElement = null;
+      }
+   }
+
+   #endregion
+
    protected override void OnTextInput(TextCompositionEventArgs e) {
       base.OnTextInput(e);
-      if (focusElement == null) return;
-      new TableGroupTextEditor(focusElement, (int)ActualWidth, e).Edit();
+      if (keyboardFocusElement == null) return;
+      controls[keyboardFocusElement].TextInput(this, e);
       e.Handled = true;
    }
 
    protected override void OnKeyDown(KeyEventArgs e) {
       base.OnKeyDown(e);
-      if (focusElement == null) return;
+      if (keyboardFocusElement == null) return;
       if (e.Key == Key.Tab) {
-         var index = Source.IndexOf(focusElement);
+         var index = Source.IndexOf(keyboardFocusElement);
          if (index != -1) {
             index += 1;
             if (Keyboard.Modifiers == ModifierKeys.Shift) index -= 2;
             if (index < 0) index += Source.Count;
             if (index >= Source.Count) index -= Source.Count;
-            focusElement = Source[index];
+            keyboardFocusElement = Source[index];
             e.Handled = true;
             InvalidateVisual();
+            // TODO some sort of "gained focus" notification for the GroupControl?
             return;
          }
       }
-      var editor = new TableGroupKeyEditor(this, (int)ActualWidth, e);
-      editor.Edit();
+      controls[keyboardFocusElement].KeyInput(this, e);
    }
 
    private static SolidColorBrush Brush(string name) {
       return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
    }
 
+   private IGroupControl BuildControl(IArrayElementViewModel element) {
+      IGroupControl control = element switch {
+         SplitterArrayElementViewModel splitter => new GroupSplitterControl(splitter),
+         FieldArrayElementViewModel field => new GroupTextControl(field),
+         ComboBoxArrayElementViewModel combo => new GroupEnumControl(combo),
+         BitListArrayElementViewModel bits => new GroupBitArrayControl(bits),
+         SpriteElementViewModel sprite => new GroupImageControl(sprite, spriteCache),
+         SpriteIndicatorElementViewModel spriteIndicator => new GroupSpriteIndicatorControl(spriteIndicator, spriteCache),
+         PaletteElementViewModel palette => new GroupPaletteControl(palette),
+         OffsetRenderViewModel offsetRender => new GroupOffsetRenderControl(offsetRender, spriteCache),
+         TextStreamElementViewModel textStream => new GroupTextStreamControl(textStream),
+         ButtonArrayElementViewModel button => new GroupButtonControl(button),
+         PythonButtonElementViewModel pButton => new GroupPythonButtonControl(pButton),
+         _ => new GroupDefaultControl(element)
+      };
+
+      return control;
+   }
+   /*
    #region Helpers
 
    private record TableGroupMouseEditor(IArrayElementViewModel Element, int AvailableWidth, Point Position, MouseButtonEventArgs Args) {
@@ -549,6 +633,7 @@ public partial class TableGroupPanel : FrameworkElement {
    }
 
    #endregion
+   //*/
 }
 
 public class SpriteCache {
@@ -595,8 +680,468 @@ public class SpriteCache {
       }
    }
 
-   public void NeedsRedraw(SpriteElementViewModel sprite) {
+   public void NeedsRedraw(IPixelViewModel sprite) {
       var cacheIndex = pvmCache.IndexOf(sprite);
       if (cacheIndex >= 0) cacheNeedsRedraw |= 1L << cacheIndex;
    }
 }
+
+public record RenderContext(DrawingContext Api) {
+   public static Typeface Consolas { get; } = new Typeface("Consolas");
+
+   public int DefaultTextPadding => 4;
+   public int CurrentFontSize { get; set; } = 16;
+   public Pen AccentPen { get; } = new Pen(Brush(nameof(Theme.Accent)), 1);
+
+   public static SolidColorBrush Brush(string name) {
+      if (string.IsNullOrEmpty(name)) return null;
+      return (SolidColorBrush)Application.Current.Resources.MergedDictionaries[0][name];
+   }
+
+   public void DrawRectangle(string fill, string stroke, int x, int y, int width, int height) {
+      var borderPen = string.IsNullOrEmpty(stroke) ? null : new Pen(Brush(stroke), 1);
+      Api.DrawRectangle(Brush(fill), borderPen, new Rect(x, y, width, height));
+   }
+
+   public void DrawIcon(Rect placement, string icon, string fill, string border = null, double borderThickness = 1) {
+      var pen = border != null ? new Pen(Brush(border), borderThickness) : null;
+      var geometry = IconExtension.GetIcon(icon);
+      var widthRatio = placement.Width / geometry.Bounds.Width;
+      var heightRatio = placement.Height / geometry.Bounds.Height;
+      Api.PushTransform(new TranslateTransform(placement.X - geometry.Bounds.Left * widthRatio, placement.Y - geometry.Bounds.Top * heightRatio));
+      Api.PushTransform(new ScaleTransform(widthRatio, heightRatio));
+      Api.DrawGeometry(Brush(fill), pen, geometry);
+      Api.Pop();
+      Api.Pop();
+   }
+
+   public void DrawText(Point origin, double size, string text, string foreground)
+      => Api.DrawText(FormattedText(text, size, foreground), origin);
+
+   public void DrawText(Point origin, double preferredSize, double maxWidth, string text, string foreground) {
+      var formattedText = FormattedText(text, preferredSize, foreground);
+      if (formattedText.Width > maxWidth) formattedText = FormattedText(text, preferredSize * maxWidth / formattedText.Width, foreground);
+      Api.DrawText(formattedText, origin);
+   }
+
+   public void DrawCheckbox(int x, int y, int size, bool isChecked, bool isHover) {
+      var border = isHover ? nameof(Theme.Accent) : nameof(Theme.Secondary);
+      var fill = nameof(Theme.Backlight);
+      Api.DrawRectangle(Brush(fill), new Pen(Brush(border), 1), new(x, y, size, size));
+      if (isChecked) {
+         DrawIcon(new(x + 1, y - 2, size - 2, size + 2), nameof(Icons.Check), nameof(Theme.Accent));
+      }
+   }
+
+   public void DrawTextButton(Rect rect, double fontSize, string text, bool isHover) {
+      var border = isHover ? nameof(Theme.Primary) : nameof(Theme.Secondary);
+      var fill = nameof(Theme.Backlight);
+      Api.DrawRectangle(Brush(fill), new Pen(Brush(border), 1), rect);
+      var formattedText = FormattedText(text, fontSize, nameof(Theme.Primary));
+      if (formattedText.Width > rect.Width - 2) {
+         fontSize *= (rect.Width - 2) / formattedText.Width;
+         formattedText = FormattedText(text, fontSize, nameof(Theme.Primary));
+      }
+      Api.DrawText(formattedText, new(rect.X + rect.Width / 2 - formattedText.Width / 2, rect.Y));
+   }
+
+   public static FormattedText FormattedText(string text, double size, string foreground)
+      => new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Consolas, size, Brush(foreground), 96);
+
+   public static double GetDesiredFontSize(string text, double defaultSize, double maxWidth) {
+      var formattedText = FormattedText(text, defaultSize, null);
+      if (formattedText.Width <= maxWidth) return defaultSize;
+      return defaultSize * maxWidth / formattedText.Width;
+   }
+}
+
+/// <summary>
+/// Represents a lightweight set of methods for rendering and interacting with a section of a table panel
+/// </summary>
+public interface IGroupControl {
+   int YOffset { get; }
+   int Width { get; }
+   int Height { get; }
+   int UpdateHeight(int availableWidth, int currentHeight, int fontSize);
+
+   void Render(RenderContext context);
+
+   void MouseEnter(TableGroupPanel parent, MouseEventArgs e);
+   void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e);
+   void MouseMove(TableGroupPanel parent, MouseEventArgs e); // if the mouse is down, MouseMove will continue activating on whatever element got clicked.
+   void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e);
+   void MouseExit(TableGroupPanel parent, MouseEventArgs e);
+
+   void TextInput(TableGroupPanel parent, TextCompositionEventArgs e);
+   void KeyInput(TableGroupPanel parent, KeyEventArgs e);
+}
+
+public abstract record GroupFixedHeighteControl() {
+   public int YOffset { get; private set; }
+   public int Width { get; private set; }
+   public int Height { get; protected set; } = 20;
+   public virtual int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      Width = availableWidth;
+      YOffset = currentHeight;
+      Height = fontSize + 4;
+      return Height;
+   }
+
+   // helpers
+   protected static string Primary { get; } = nameof(Theme.Primary);
+   protected static string Accent { get; } = nameof(Theme.Accent);
+   protected static string Secondary { get; } = nameof(Theme.Secondary);
+   protected static string Background { get; } = nameof(Theme.Background);
+   protected static string Backlight { get; } = nameof(Theme.Backlight);
+}
+
+public record GroupDefaultControl(IArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   public void Render(RenderContext context) {
+      context.DrawText(new(2, YOffset), context.CurrentFontSize, Element.GetType().Name, Primary);
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupTextControl(FieldArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   public bool IsFocused { get; private set; }
+
+   public void Render(RenderContext context) {
+      var topOfText = YOffset;
+
+      // label
+      context.DrawText(new(2, topOfText + 2), context.CurrentFontSize - 4, Width / 2, Element.Name, Primary);
+
+      // box
+      var pen = IsFocused ? context.AccentPen : null;
+      var background = RenderContext.Brush(Backlight);
+      context.Api.DrawRectangle(background, pen, new Rect(Width / 2, YOffset + 1, Width / 2, Height - 2));
+
+      // content
+      var text = RenderContext.FormattedText(Element.Content, context.CurrentFontSize, Primary);
+      var textWidth = text.Width + 2;
+      if (textWidth > Width / 2) textWidth = Width / 2; // TODO crop the text if this happens
+      context.Api.DrawText(text, new(Width - textWidth, topOfText));
+
+      // TODO render the button
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
+      var p = e.GetPosition(parent);
+      parent.Cursor = p.X > Width / 2 ? Cursors.IBeam : Cursors.Arrow;
+   }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) {
+      parent.Cursor = Cursors.Arrow;
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupSplitterControl(SplitterArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   private bool hover;
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) => Height = base.UpdateHeight(availableWidth, currentHeight, fontSize) * 2;
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { hover = true; parent.InvalidateVisual(); }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { Element.ToggleVisibility.Execute(); parent.InvalidateVisual(); }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { hover = false; parent.InvalidateVisual(); }
+
+   public void Render(RenderContext context) {
+      var collapserRect = new Rect(4, YOffset + Height * 11 / 16, Height / 2 - 8, Height / 4 - 4);
+      var border = hover ? Accent : null;
+      if (Element.Visible) {
+         context.DrawIcon(collapserRect, nameof(Icons.Chevron), Primary, border, .2);
+      } else {
+         context.DrawIcon(collapserRect, nameof(Icons.ChevronUp), Primary, border, .2);
+      }
+      context.DrawText(new(Height / 2, YOffset + Height / 2), context.CurrentFontSize, Width - Height / 2, Element.SectionName, Primary);
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupImageControl(SpriteElementViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
+   private int scale;
+
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      var multiple = (int)Math.Ceiling((double)Element.PixelHeight / unitHeight);
+      if (multiple < 5) {
+         scale = 2;
+         multiple = (int)Math.Ceiling((double)Element.PixelHeight * 2 / unitHeight);
+      } else {
+         scale = 1;
+      }
+
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      var image = Cache.WriteUpdate(Element);
+      context.Api.DrawImage(image, new Rect(0, YOffset, Element.PixelWidth * scale, Element.PixelHeight * scale));
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupEnumControl(ComboBoxArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      // name
+      context.DrawText(new(2, YOffset + 2), context.CurrentFontSize - 4, Width / 2, Element.Name, Primary);
+
+      // box
+      context.Api.DrawRectangle(RenderContext.Brush(Backlight), new Pen(RenderContext.Brush(Secondary), 1), new(Width / 2, YOffset + 1, Width / 2, Height - 2));
+      var textSize = RenderContext.GetDesiredFontSize(Element.FilteringComboOptions.DisplayText, context.CurrentFontSize, Width / 2 - context.CurrentFontSize - 2);
+      context.DrawText(new(Width / 2 + 2, YOffset + 1), textSize, Element.FilteringComboOptions.DisplayText, Primary);
+      var unit = context.CurrentFontSize / 4;
+      context.DrawIcon(new(Width - unit * 4, YOffset + unit + 2, unit * 4 - 2, unit * 2), nameof(Icons.Chevron), Primary);
+
+      // TODO jump button
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupOffsetRenderControl(OffsetRenderViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
+   private double yStart = double.NaN;
+
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      var multiple = (int)Math.Ceiling((double)Element.PixelHeight / unitHeight);
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) => parent.Cursor = Cursors.Hand;
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) => yStart = e.GetPosition(parent).Y;
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
+      if (double.IsNaN(yStart)) return;
+      var newY = e.GetPosition(parent).Y;
+      var delta = (int)(newY - yStart);
+      yStart += delta;
+      Cache.NeedsRedraw(Element);
+      Element.ShiftDelta(0, delta);
+   }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) => yStart = double.NaN;
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) => parent.Cursor = Cursors.Arrow;
+
+   public void Render(RenderContext context) {
+      var image = Cache.WriteUpdate(Element);
+      context.Api.DrawImage(image, new Rect(0, YOffset, Element.PixelWidth, Element.PixelHeight));
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupSpriteIndicatorControl(SpriteIndicatorElementViewModel Element, SpriteCache Cache) : GroupFixedHeighteControl(), IGroupControl {
+   private double scale = 1;
+
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      scale = Math.Min(1, (double)availableWidth / Element.Image.PixelWidth);
+      var multiple = (int)Math.Ceiling(Element.Image.PixelHeight * scale / unitHeight);
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      var image = Cache.WriteUpdate(Element.Image);
+      context.Api.DrawImage(image, new Rect(0, YOffset, Element.Image.PixelWidth * scale, Element.Image.PixelHeight * scale));
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+
+}
+
+public record GroupTextStreamControl(TextStreamElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+
+      var formattedContent = new FormattedText(Element.Content, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, RenderContext.Consolas, fontSize, RenderContext.Brush(Primary), 96);
+      var minHeight = formattedContent.Height + 4;
+
+      var multiple = (int)Math.Ceiling((double)minHeight / unitHeight);
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      context.DrawRectangle(Backlight, Secondary, 0, YOffset, Width, Height);
+      context.DrawText(new(2, YOffset + 2), context.CurrentFontSize, Element.Content, Primary);
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupPaletteControl(PaletteElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      var unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      var blockHeight = Element.Colors.ColorHeight * (fontSize * 2 / 3 + 4);
+      var multiple = (int)Math.Ceiling((double)blockHeight / unitHeight);
+      return Height = unitHeight * multiple;
+   }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { }
+
+   public void Render(RenderContext context) {
+      var colorWidth = Element.Colors.ColorWidth;
+      var unitWidth = context.CurrentFontSize * 2 / 3 + 4;
+      for (int y = 0; y < Element.Colors.ColorHeight; y++) {
+         for (int x = 0; x < colorWidth; x++) {
+            var color = Element.Colors.Elements[y * colorWidth + x];
+            var fill = new SolidColorBrush(TileImage.Convert16BitColor(color.Color));
+            var border = RenderContext.Brush(Primary);
+            context.Api.DrawRectangle(fill, new Pen(border, 1), new Rect(unitWidth * x + 1, unitWidth * y + 1 + YOffset, unitWidth - 2, unitWidth - 2));
+         }
+      }
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+
+   private int GetCell(TableGroupPanel parent, double x, double y) {
+      var unitWidth = parent.FontSize / 2 + 4;
+      var cellY = (int)((y - YOffset) / unitWidth).LimitToRange(0, Element.Colors.ColorHeight);
+      var cellX = (int)(x / unitWidth).LimitToRange(0,Element.Colors.ColorWidth);
+      return cellY * Element.Colors.ColorWidth + cellX;
+   }
+}
+
+public record GroupBitArrayControl(BitListArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   private int unitHeight, unitWidth, childrenPerLine;
+   private BitElement hover, mouseClickElement;
+
+   public override int UpdateHeight(int availableWidth, int currentHeight, int fontSize) {
+      unitHeight = base.UpdateHeight(availableWidth, currentHeight, fontSize);
+      var characterLength = Element.Max(child => child.BitLabel.Length);
+      var sampleText = RenderContext.FormattedText(new string('X', characterLength), fontSize - 4, null);
+      unitWidth = (int)(sampleText.Width + fontSize + 4);
+      childrenPerLine = Math.Max(availableWidth / unitWidth, 1);
+      var rows = (Element.Count - 1) / childrenPerLine + 1;
+      return Height = unitHeight * (rows + 1);
+   }
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) => hover = null;
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) => mouseClickElement = GetBit(e.GetPosition(parent));
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
+      var newHover = GetBit(e.GetPosition(parent));
+      if (newHover != hover) parent.InvalidateVisual();
+      hover = newHover;
+   }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) {
+      if (GetBit(e.GetPosition(parent)) == mouseClickElement && mouseClickElement != null) {
+         mouseClickElement.IsChecked = !mouseClickElement.IsChecked;
+      }
+   }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) => hover = null;
+
+   public void Render(RenderContext context) {
+      context.DrawText(new(0, YOffset + 2), context.CurrentFontSize, Element.Name, Primary);
+
+      for (int i = 0; i < Element.Count; i++) {
+         var xOffset = (i % childrenPerLine) * unitWidth;
+         var yOffset = (i / childrenPerLine + 1) * unitHeight + YOffset;
+         context.DrawCheckbox(xOffset + 2, yOffset + context.CurrentFontSize / 4, context.CurrentFontSize * 3 / 4, Element[i].IsChecked, Element[i] == hover);
+         xOffset += context.CurrentFontSize + 2;
+         context.DrawText(new(xOffset, yOffset + 4), context.CurrentFontSize - 4, Element[i].BitLabel, Primary);
+      }
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+
+   private BitElement GetBit(Point p) {
+      p.Y -= YOffset + unitHeight;
+      if (p.Y < 0) return null;
+      var rows = (Element.Count - 1) / childrenPerLine + 1;
+      var yy = (int)(p.Y / unitHeight).LimitToRange(0, rows - 1);
+      var xx = (int)(p.X / unitWidth).LimitToRange(0, childrenPerLine - 1);
+      var hover = yy * childrenPerLine + xx;
+      if (hover >= Element.Count) {
+         return null;
+      } else {
+         return Element[hover];
+      }
+   }
+}
+
+public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   // TODO CanExecute
+   private bool isHover;
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) => Element.Command.Execute();
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { isHover = false; parent.InvalidateVisual(); }
+
+   public void Render(RenderContext context) {
+      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Text, isHover);
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+public record GroupPythonButtonControl(PythonButtonElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   // TODO CanExecute
+   private bool isHover;
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) => Element.Execute();
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { isHover = false; parent.InvalidateVisual(); }
+
+   public void Render(RenderContext context) {
+      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Name, isHover);
+   }
+
+   public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
+   public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
+}
+
+// next most important controls:
+// SpriteIndicatorElementViewModel
+// tuples
+// calculated fields

@@ -1113,7 +1113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (palettes != null && usablePalPages.All(upp => palettes.Length > upp)) {
             var newPalettes = usablePalPages.Select(i => palettes[i]).ToArray();
             newPalettes = DiscoverPalettes(allTiles.ToArray(), paletteRun?.PaletteFormat.Bits ?? 1, expectedPalettePages, newPalettes);
-            for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[usablePalPages[i]];
+            for (int i = 0; i < usablePalPages.Count; i++) palettes[usablePalPages[i]] = newPalettes[i];
          }
 
          bool palettePerSprite = false;

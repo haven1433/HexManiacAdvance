@@ -14,3 +14,7 @@
 @!game(BPEE0)
   @thumb.event_object_movement.TrySetupObjectEventSprite+58 00 00
   @thumb.event_object_movement.TrySetupObjectEventSprite+5C 29 1C
+
+# BUG This break palette reloading.
+# For example, make a new palette and assign it to an OW using palSlot 8. Then after the battle, the palette will look wrong.
+

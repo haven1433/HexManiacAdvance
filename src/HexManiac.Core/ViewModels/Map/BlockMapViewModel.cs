@@ -796,7 +796,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public void UpdateClone(BlockMapViewModel neighbor, ObjectEventViewModel parentEvent, bool deleted = false) {
          if (!model.IsFRLG() || neighbor == null || parentEvent == null) return;
-         var obj = EventGroup.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.Element.ArrayIndex + 1 && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
+         var obj = EventGroup?.Objects.FirstOrDefault(obj => obj.Kind && obj.Elevation == parentEvent.Element.ArrayIndex + 1 && obj.TrainerType == neighbor.map && obj.TrainerRangeOrBerryID == neighbor.group);
          var (thisX, thisY) = ConvertCoordinates(0, 0);
          var (thatX, thatY) = neighbor.ConvertCoordinates(0, 0);
          var (xDif, yDif) = (thisX - thatX, thisY - thatY);
@@ -982,7 +982,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Draw9Grid(ModelDelta token, int[,] grid, double x, double y) {
+         var layout = GetLayout();
+         var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var (xx, yy) = ConvertCoordinates(x, y);
+         xx = xx.LimitToRange(0, width - 1);
+         yy = yy.LimitToRange(0, height - 1);
          Draw9Grid(token, grid, xx, yy);
       }
 
@@ -1794,7 +1798,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private ITableRun GetOrCreateConnections(ModelArrayElement map, ModelDelta token) {
          if (map == null) return null;
          var connectionsAndCountTable = map.GetSubTable("connections");
-         if (connectionsAndCountTable == null) {
+         if (connectionsAndCountTable == null || map.Model.GetNextRun(connectionsAndCountTable.Run.Start).Start != connectionsAndCountTable.Run.Start) {
             var newConnectionsAndCountTable = MapRepointer.CreateNewConnections(token);
             model.UpdateArrayPointer(token, null, null, -1, map.Start + 12, newConnectionsAndCountTable);
             connectionsAndCountTable = map.GetSubTable("connections");
@@ -1813,7 +1817,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             connectionsAndCount.SetAddress("connections", newConnectionTableStart);
             InformCreate(new("Connection", newConnectionTableStart));
          } else {
-            connections = connectionsAndCount.GetSubTable("connections").Run;
+            var connectionsTable = connectionsAndCount.GetSubTable("connections");
+            if (connectionsTable == null) return null;
+            connections = connectionsTable.Run;
          }
 
          return connections;
@@ -1830,11 +1836,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler CanEditTilesetChanged;
       public bool CanEditTileset(string type) {
          var model = new MapModel(GetMapModel(), group, map);
-         var spriteAddress = model.Layout.PrimaryBlockset.TilesetAddress;
-         var paletteAddress = model.Layout.PrimaryBlockset.PaletteAddress;
+         var spriteAddress = model.Layout?.PrimaryBlockset?.TilesetAddress ?? -1;
+         var paletteAddress = model.Layout?.PrimaryBlockset?.PaletteAddress ?? -1;
          if (type == "Secondary") {
-            spriteAddress = model.Layout.SecondaryBlockset.TilesetAddress;
-            paletteAddress = model.Layout.SecondaryBlockset.PaletteAddress;
+            spriteAddress = model.Layout?.SecondaryBlockset?.TilesetAddress ?? -1;
+            paletteAddress = model.Layout?.SecondaryBlockset?.PaletteAddress ?? -1;
          }
          return this.model.GetNextRun(spriteAddress) is ISpriteRun sRun && sRun.Start == spriteAddress &&
             this.model.GetNextRun(paletteAddress) is IPaletteRun pRun && pRun.Start == paletteAddress;
@@ -2095,6 +2101,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
+         if (!blockModel1.Start.InRange(0, model.Count) || !blockModel2.Start.InRange(0, model.Count)) return;
+
          int width = layout.GetValue("width"), height = layout.GetValue("height");
          int start = layout.GetAddress(Format.BlockMap);
          var maxUsedPrimary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, PrimaryBlocks);
@@ -2111,6 +2119,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress("blockdata1"));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress("blockdata2"));
          }
+         if (!blockModel1.Start.InRange(0, model.Count) || !blockModel2.Start.InRange(0, model.Count)) return;
+
          int width = layout.GetValue("width"), height = layout.GetValue("height");
          int start = layout.GetAddress(Format.BlockMap);
          var maxUsedPrimary = BlockmapRun.GetMaxUsedBlock(model, start, width, height, PrimaryBlocks);
@@ -2121,12 +2131,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void RefreshBlockRenderCache(ModelArrayElement layout = null, BlocksetModel blockModel1 = null, BlocksetModel blockModel2 = null) {
-         if (blocks == null || tiles == null || palettes == null) {
+         if (blocks == null || tiles == null || palettes == null || blockModel1 == null || blockModel2 == null) {
             if (layout == null) layout = GetLayout();
             if (layout == null) return;
             if (blockModel1 == null) blockModel1 = new BlocksetModel(model, layout.GetAddress(Format.PrimaryBlockset));
             if (blockModel2 == null) blockModel2 = new BlocksetModel(model, layout.GetAddress(Format.SecondaryBlockset));
          }
+         if (!blockModel1.Start.InRange(0, model.Count) || !blockModel2.Start.InRange(0, model.Count)) return;
 
          lock (blockRenders) {
             if (blocks == null) RefreshBlockCache(layout, blockModel1, blockModel2);
@@ -2192,7 +2203,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   if (rightEdge && bottomEdge && xEdge % borderWidth == 0 && yEdge % borderHeight == 0) canvas.Draw(borderBlockCopy, x * 16, y * 16);
                   continue;
                }
-               var data = model.ReadMultiByteValue(start + ((y - border.North) * width + x - border.West) * 2, 2);
+               var dataStart = start + ((y - border.North) * width + x - border.West) * 2;
+               var data = dataStart.InRange(0, model.Count - 2) ? model.ReadMultiByteValue(dataStart, 2) : 0;
                var collision = data >> 10;
                data &= 0x3FF;
                lock (blockRenders) {
@@ -2378,6 +2390,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
             if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
             var map = GetMapModel();
+            if (map == null) return null;
             var eventsTable = map.GetSubTable("events");
             if (eventsTable == null) return null;
             var eventElements = eventsTable[0];
@@ -2693,6 +2706,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var direction = Direction.Reverse();
          var map = BlockMapViewModel.GetMapModel(Model, MapGroup, MapNum, Tokens);
          var neighbors = BlockMapViewModel.GetConnections(map, MapGroup, MapNum);
+         if (neighbors == null) return null;
          return neighbors.FirstOrDefault(c => c.MapGroup == sourceGroup && c.MapNum == sourceMap && c.Direction == direction);
       }
 

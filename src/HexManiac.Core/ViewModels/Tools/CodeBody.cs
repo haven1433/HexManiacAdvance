@@ -48,6 +48,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string errorText;
       public string ErrorText { get => errorText; set => Set(ref errorText, value); }
 
+      public ScriptParser Parser => parser;
+
       #region Insertion Utilities
 
       public bool CanInsertFlag {

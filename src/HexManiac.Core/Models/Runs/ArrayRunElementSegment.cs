@@ -414,7 +414,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
          if (matchFieldOffset == table.ElementLength) return defaultConcrete;
          var offsets = table.ConvertByteOffsetToArrayOffset(offset);
-         var matchFieldValue = model.ReadMultiByteValue(table.Start + offsets.ElementIndex * table.ElementLength + matchFieldOffset, table.ElementContent[matchFieldIndex].Length);
+         var fieldStart = table.Start + offsets.ElementIndex * table.ElementLength + matchFieldOffset;
+         if (!fieldStart.InRange(0, model.Count)) return defaultConcrete;
+         var matchFieldValue = model.ReadMultiByteValue(fieldStart, table.ElementContent[matchFieldIndex].Length);
          return CreateConcrete(model.FormatRunFactory, model.TextConverter, matchFieldValue);
       }
 

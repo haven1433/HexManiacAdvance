@@ -134,6 +134,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool CanRepointLayout() {
          var map = GetMapModel();
          if (map == null) return false;
+
+         var layoutTable = model.GetTable(HardcodeTablesModel.MapLayoutTable);
+         if (layoutTable == null) return false; // repointing a layout without a layout table isn't safe
+
          var layoutStart = map.GetAddress(Format.Layout);
          if (layoutStart < 0 || layoutStart >= model.Count) return false;
          var layoutRun = model.GetNextRun(layoutStart);
@@ -382,7 +386,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public (int currentCount, int maxCount) EstimateBlockCount(ModelArrayElement layout, bool primary) {
          var blocksetName = primary ? Format.PrimaryBlockset : Format.SecondaryBlockset;
          if (layout == null) return (0, 0);
-         var blockset = layout.GetSubTable(blocksetName)[0];
+         var blocksetTable = layout.GetSubTable(blocksetName);
+         if (blocksetTable == null) return (0, 0);
+         var blockset = blocksetTable[0];
          var blockCount = model.IsFRLG() ? 640 : 512;
          if (!primary) blockCount = 1024 - blockCount;
          var maxBlockCount = blockCount;
@@ -490,7 +496,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public string ExpandPrimaryTilesetText {
          get {
             var layout = GetLayout();
-            var (currentCount, maxCount) = layout == null ? (0, 0) : EstimateTileCount(layout.GetSubTable(Format.PrimaryBlockset)[0]);
+            var (currentCount, maxCount) = (0, 0);
+            if (layout != null) {
+               var primaryBlocksetTable = layout.GetSubTable(Format.PrimaryBlockset);
+               if (primaryBlocksetTable != null) {
+                  (currentCount, maxCount) = EstimateTileCount(primaryBlocksetTable[0]);
+               }
+            }
             return $"This primary tileset contains {currentCount} of {maxCount} tiles.";
          }
       }
@@ -520,7 +532,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool CanExpandTileset(string blocksetName) {
          var layout = GetLayout();
          if (layout == null) return false;
-         var blockset = layout.GetSubTable(blocksetName)[0];
+         var blocksetTable = layout.GetSubTable(blocksetName);
+         if (blocksetTable == null) return false;
+         var blockset = blocksetTable[0];
          var (currentTiles, maxTiles) = EstimateTileCount(blockset);
          return currentTiles < maxTiles;
       }

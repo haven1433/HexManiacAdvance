@@ -165,6 +165,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       public static int GetMaxUsedBlock(IReadOnlyList<byte> model, int start, int width, int height, int maxCheck) {
+         if (start < 0) return 0;
          return (width * height).Range(i => (start + i * 2 < model.Count - 2 ? model.ReadMultiByteValue(start + i * 2, 2) : 0) & 0x3FF).Where(i => maxCheck > i).Aggregate(0, Math.Max);
       }
 
@@ -215,6 +216,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
       }
 
       private BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight){
+         if (backupContent == null) StoreContentBackupForSizeChange();
          var (newWidth, newHeight) = (BlockWidth + leftAmount + rightAmount, BlockHeight + upAmount + downAmount);
          backupX -= leftAmount;
          backupY -= upAmount;
@@ -249,28 +251,32 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          for (int y = yOffset - 1; y >= 0; y--) {
             for (int x = 0; x < newWidth; x++) {
                if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-               else newData[x, y] = newData[x, y + borderHeight];
+               else if (y + borderHeight < newHeight) newData[x, y] = newData[x, y + borderHeight];
+               else newData[x, y] = newData[x, y + 1];
             }
          }
          if (yOffset == 0) {
             for (int y = BlockHeight; y < newHeight; y++) {
                for (int x = 0; x < newWidth; x++) {
                   if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-                  else newData[x, y] = newData[x, y - borderHeight];
+                  else if (y - borderHeight >= 0) newData[x, y] = newData[x, y - borderHeight];
+                  else newData[x, y] = newData[x, y - 1];
                }
             }
          }
          for (int x = xOffset - 1; x >= 0; x--) {
             for (int y = 0; y < newHeight; y++) {
                if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-               else newData[x, y] = newData[x + borderWidth, y];
+               else if (x + borderWidth < newWidth) newData[x, y] = newData[x + borderWidth, y];
+               else newData[x, y] = newData[x + 1, y];
             }
          }
          if (xOffset == 0) {
             for (int x = BlockWidth; x < newWidth; x++) {
                for (int y = 0; y < newHeight; y++) {
                   if ((x + backupX).InRange(0, bWidth) && (y + backupY).InRange(0, bHeight)) newData[x, y] = backupContent[x + backupX, y + backupY];
-                  else newData[x, y] = newData[x - borderWidth, y];
+                  else if (x - borderWidth >= 0) newData[x, y] = newData[x - borderWidth, y];
+                  else newData[x, y] = newData[x - 1, y];
                }
             }
          }
@@ -336,6 +342,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
 
       public int PrimaryBlocks => primaryBlocks;
       public int BytesPerAttribute { get; }
+      public int Start => address;
 
       public BlocksetModel(IDataModel model, int address) {
          this.model = model;
@@ -373,8 +380,8 @@ namespace HexManiac.Core.Models.Runs.Sprites {
             var conflict = false;
             for (var nextRun = model.GetNextRun(start + 1); nextRun.Start < formatRun.Start + formatRun.Length; nextRun = model.GetNextRun(nextRun.Start + nextRun.Length)) {
                if (nextRun is PointerRun) continue; // probably false pointer
-               if (nextRun is PCSRun pcsRun && model.GetAnchorFromAddress(-1, pcsRun.Start) == null) continue; // probably false text
-               if (nextRun is NoInfoRun && nextRun.PointerSources.Count == 1) continue; // probably false destination
+               if (nextRun is PCSRun pcsRun && string.IsNullOrEmpty(model.GetAnchorFromAddress(-1, pcsRun.Start))) continue; // probably false text
+               if (nextRun is NoInfoRun && nextRun.PointerSources.Count < 3) continue; // probably false destination
                conflict = true;
                break;
             }

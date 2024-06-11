@@ -105,7 +105,7 @@ for i in range(10):
 
 .end
 
-# ClearTempFieldEventData -> also clear gfx vars
+# ClearTempFieldEventData -> Clears temp variables when you change maps. Update to also clear gfx vars.
 @!game(AXVE0)       @06906C
 @!game(AXPE0)       @069070
 @!game(AXVE1)       @06908C

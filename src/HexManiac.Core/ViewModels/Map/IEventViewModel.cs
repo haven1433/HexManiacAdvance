@@ -1262,7 +1262,9 @@ show:
       public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing) {
          if (owTable == null || index >= owTable.Count) return defaultOW;
          var element = owTable[index];
-         var data = element.GetSubTable("data")[0];
+         var dataTable = element.GetSubTable("data");
+         if (dataTable == null) return defaultOW;
+         var data = dataTable[0];
          var sprites = data.GetSubTable("sprites");
          if (sprites == null) return defaultOW;
          bool invisible = facing == 76;

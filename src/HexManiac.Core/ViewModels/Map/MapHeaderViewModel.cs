@@ -51,13 +51,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // battle
          battleOptions.Add("Normal");
          battleOptions.Add("Gym");
-         battleOptions.Add("Evil Team");
-         battleOptions.Add("Unknown");
+         battleOptions.Add("Indoor 1 (Magma)");
+         battleOptions.Add("Indoor 2 (Aqua)");
          battleOptions.Add("Elite 1");
          battleOptions.Add("Elite 2");
          battleOptions.Add("Elite 3");
          battleOptions.Add("Elite 4");
-         battleOptions.Add("Big Red Pokeball");
+         battleOptions.Add("Big Red Poké ball");
       }
 
       public ObservableCollection<string> WeatherOptions => weatherOptions;

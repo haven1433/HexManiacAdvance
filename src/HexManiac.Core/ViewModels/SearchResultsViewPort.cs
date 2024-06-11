@@ -256,6 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (compositeLine >= 0) line = compositeLine;
 
          var range = childrenSelection[childIndex];
+         if (compositeChildIndex == -1 && range is SelectionRangeGroup) return;
          if (range is SelectionRangeGroup group) range = group[compositeChildIndex];
 
          if (child.Model.GetNextRun(child.DataOffset) is ITableRun) {

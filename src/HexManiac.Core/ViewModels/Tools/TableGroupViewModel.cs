@@ -7,7 +7,9 @@ using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
@@ -15,12 +17,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    ///// Sometimes notifying after every change is too noisy.
    ///// Custom <see cref="INotifyCollectionChanged"/> implementation that allows delayed notifications.
    ///// </summary>
-   //public class ObservableList<T> : List<T>, INotifyCollectionChanged {
-   //   public event NotifyCollectionChangedEventHandler? CollectionChanged;
+   public class ObservableList<T> : List<T>, INotifyCollectionChanged {
+      public event NotifyCollectionChangedEventHandler? CollectionChanged;
 
-   //   public void RaiseCollectionChanged(NotifyCollectionChangedEventArgs e) => CollectionChanged?.Invoke(this, e);
-   //   public void RaiseRefresh() => CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-   //}
+      public ObservableList() : base() { }
+      public ObservableList(IEnumerable<T> items) : base(items) { }
+
+      public void RaiseRefresh() => CollectionChanged?.Invoke(this, new(NotifyCollectionChangedAction.Reset));
+   }
 
    public class TableGroupViewModel : ViewModelCore {
       public const string DefaultName = "Other";
@@ -51,10 +55,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          child.Theme = theme;
          if (currentMember == Members.Count) {
             Members.Add(child);
-         } else if (!Members[currentMember].TryCopy(child)) {
-            Members[currentMember] = child;
          } else {
-            Members[currentMember].Theme = child.Theme;
+            // using var scope = Members[currentMember].SilencePropertyNotifications();
+            if (!Members[currentMember].TryCopy(child)) {
+               Members[currentMember] = child;
+            } else {
+               Members[currentMember].Theme = child.Theme;
+            }
          }
          currentMember += 1;
       }
@@ -212,6 +219,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
             ForwardModelChanged(newStream);
             ForwardModelDataMoved(newStream);
+            // using var scope = Members[myIndex].SilencePropertyNotifications();
             if (!Members[myIndex].TryCopy(newStream)) Members[myIndex] = newStream;
          };
          ForwardModelDataMoved(streamElement);
