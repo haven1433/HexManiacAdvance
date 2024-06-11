@@ -15,6 +15,7 @@ using System.Windows.Input;
 using System.Linq;
 using HavenSoft.HexManiac.WPF.Resources;
 using System.Windows.Threading;
+using System.Windows.Controls;
 
 namespace HavenSoft.HexManiac.WPF.Controls; 
 
@@ -778,6 +779,24 @@ public record RenderContext(DrawingContext Api) {
       Api.DrawText(formattedText, new(rect.X + rect.Width / 2 - formattedText.Width / 2, rect.Y));
    }
 
+   /// <summary>
+   /// Draws a squarish jump button based on the fontSize.
+   /// </summary>
+   public void DrawJumpButton(Point start, bool enabled, bool hover) {
+      int width = CurrentFontSize, height = CurrentFontSize;
+      Api.PushTransform(new TranslateTransform(start.X, start.Y));
+      var background = enabled ? nameof(Theme.Backlight) : nameof(Theme.Background);
+      var border = (hover && enabled) ? nameof(Theme.Primary) : nameof(Theme.Secondary);
+
+      var content = $"M0,0 L {width-4},0 {width},{height/2} {width-4},{height} 0,{height} 4,{height/2} Z";
+      Api.DrawGeometry(Brush(background), new Pen(Brush(border), 1), Geometry.Parse(content));
+
+      content = $"M4,3 L {width-6},3 {width-4},{height/2} {width-6},{height-3} 4,{height-3} 6,{height/2} Z";
+      Api.DrawGeometry(Brush(border), null, Geometry.Parse(content));
+
+      Api.Pop();
+   }
+
    public static FormattedText FormattedText(string text, double size, string foreground)
       => new FormattedText(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, Consolas, size, Brush(foreground), 96);
 
@@ -844,47 +863,88 @@ public record GroupDefaultControl(IArrayElementViewModel Element) : GroupFixedHe
 }
 
 public record GroupTextControl(FieldArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   enum ControlSegment { None, Label, TextBox, Button }
+   private ControlSegment mouseOver;
+
    public bool IsFocused { get; private set; }
 
    public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
    public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) {
       var text = RenderContext.FormattedText(Element.Content, parent.FontSize, null);
-      var leftEdge = Width - text.Width - 2;
+      var labelAndContentWidth = Width - parent.FontSize - 2;
+      var leftEdge = labelAndContentWidth - text.Width - 2;
       var characterWidth = text.Width / Element.Content.Length;
 
       var p = e.GetPosition(parent);
       var index = (p.X - leftEdge) / characterWidth + .5;
       index = (int)index.LimitToRange(0, Element.Content.Length);
-      parent.CursorPosition = new(leftEdge + index * characterWidth, YOffset);
+      parent.CursorPosition = new((int)(leftEdge + index * characterWidth), YOffset + 1);
    }
    public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
       var p = e.GetPosition(parent);
       parent.Cursor = p.X > Width / 2 ? Cursors.IBeam : Cursors.Arrow;
-      // TODO mouse drag
+
+      if (e.LeftButton == MouseButtonState.Pressed) {
+         // TODO mouse drag
+      } else {
+         // mouse hover
+         var newHover = CalculateMouseOver(parent, new(p.X, p.Y - YOffset));
+         if ((newHover == ControlSegment.Button) != (mouseOver == ControlSegment.Button)) {
+            mouseOver = newHover;
+            parent.InvalidateVisual(); // redraw for border
+         }
+      }
+
    }
-   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { } // TODO end mouse drag
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) {
+      // TODO end of mouse drag
+      // TODO need the ability to actually respond to these application commands
+      if (e.ChangedButton == MouseButton.Right) {
+         parent.ContextMenu = new ContextMenu {
+            Items = {
+               new MenuItem { Command = ApplicationCommands.Cut },
+               new MenuItem { Command = ApplicationCommands.Copy },
+               new MenuItem { Command = ApplicationCommands.Paste },
+               new Separator(),
+               new MenuItem { Command = ApplicationCommands.SelectAll },
+            },
+         };
+      }
+   }
    public void MouseExit(TableGroupPanel parent, MouseEventArgs e) {
       parent.Cursor = Cursors.Arrow;
+      if (mouseOver == ControlSegment.Button) {
+         mouseOver = ControlSegment.None;
+         parent.InvalidateVisual();
+      }
+   }
+   private ControlSegment CalculateMouseOver(TableGroupPanel parent, Point internalPoint) {
+      var labelAndContentWidth = Width - parent.FontSize;
+      if (internalPoint.X < labelAndContentWidth / 2) return ControlSegment.Label;
+      if (internalPoint.X > labelAndContentWidth) return ControlSegment.Button;
+      return ControlSegment.TextBox;
    }
 
    public void Render(RenderContext context) {
       var topOfText = YOffset;
+      var labelAndContentWidth = Width - context.CurrentFontSize - 2;
 
       // label
-      context.DrawText(new(2, topOfText + 2), context.CurrentFontSize - 4, Width / 2, Element.Name, Primary);
+      context.DrawText(new(2, topOfText + 2), context.CurrentFontSize - 4, labelAndContentWidth / 2, Element.Name, Primary);
 
       // box
       var pen = IsFocused ? context.AccentPen : null;
       var background = RenderContext.Brush(Backlight);
-      context.Api.DrawRectangle(background, pen, new Rect(Width / 2, YOffset + 1, Width / 2, Height - 2));
+      context.Api.DrawRectangle(background, pen, new Rect(labelAndContentWidth / 2, YOffset + 1, labelAndContentWidth / 2, Height - 2));
 
       // content
       var text = RenderContext.FormattedText(Element.Content, context.CurrentFontSize, Primary);
       var textWidth = text.Width + 2;
-      if (textWidth > Width / 2) textWidth = Width / 2; // TODO crop the text if this happens
-      context.Api.DrawText(text, new(Width - textWidth, topOfText));
+      if (textWidth > labelAndContentWidth / 2) textWidth = labelAndContentWidth / 2; // TODO crop the text if this happens
+      context.Api.DrawText(text, new(labelAndContentWidth - textWidth, topOfText));
 
-      // TODO render the button
+      // goto button
+      context.DrawJumpButton(new(Width - context.CurrentFontSize, topOfText + 2), Element.CanAccept(), mouseOver == ControlSegment.Button);
    }
 
    public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
@@ -1114,7 +1174,14 @@ public record GroupBitArrayControl(BitListArrayElementViewModel Element) : Group
       hover = newHover;
    }
    public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) {
-      if (GetBit(e.GetPosition(parent)) == mouseClickElement && mouseClickElement != null) {
+      if (e.ChangedButton == MouseButton.Right) {
+         parent.ContextMenu = new ContextMenu {
+            Items = {
+               new MenuItem { Header = "Select All", Command = Element.SelectAll },
+               new MenuItem { Header = "Unselect All", Command = Element.UnselectAll },
+            },
+         };
+      } else if (GetBit(e.GetPosition(parent)) == mouseClickElement && mouseClickElement != null) {
          mouseClickElement.IsChecked = !mouseClickElement.IsChecked;
       }
    }
@@ -1151,7 +1218,6 @@ public record GroupBitArrayControl(BitListArrayElementViewModel Element) : Group
 }
 
 public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
-   // TODO CanExecute
    private bool isHover;
    public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
    public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
@@ -1168,7 +1234,6 @@ public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFix
 }
 
 public record GroupPythonButtonControl(PythonButtonElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
-   // TODO CanExecute
    private bool isHover;
    public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
    public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
