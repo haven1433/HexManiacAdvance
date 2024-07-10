@@ -1751,7 +1751,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var map = GetMapModel();
          var connections = GetConnections(map, group, this.map);
-         for (int i = 0; i < connections.Count; i++) {
+         for (int i = 0; i < (connections?.Count ?? 0); i++) {
             if (connections[i].Direction != direction || connections[i].MapGroup != mapGroup || connections[i].MapNum != mapNum) continue;
 
             for (int j = i + 1; j < connections.Count; j++) {
