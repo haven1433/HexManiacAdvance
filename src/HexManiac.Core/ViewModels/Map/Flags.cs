@@ -60,13 +60,25 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public static HashSet<int> GetUsedItemFlags(IDataModel model, ScriptParser parser) {
          var usedFlags = new HashSet<int>();
 
+         var hiddenItemFlagStart = 600;
          if (model.IsEmerald()) {
-            for (int i = 0x15C; i <= 0x1A9; i++) usedFlags.Add(i); // Emerald Match Call flags
+            for (int i = 0x15C; i <= 0x1A9; i++) usedFlags.Add(i);        // Emerald Match Call flags
+            hiddenItemFlagStart = 500;
+         } else if (model.IsFRLG()) {
+            hiddenItemFlagStart = 1000;
          }
 
+         // object flags
          foreach (var element in GetAllEvents(model, "objects")) {
             if (!element.HasField("flag")) continue;
             usedFlags.Add(element.GetValue("flag"));
+         }
+
+         // hidden item flags
+         foreach (var element in GetAllEvents(model, "signposts")) {
+            var signpost = new SignpostEventModel(element);
+            if (!signpost.IsHiddenItem) continue;
+            usedFlags.Add(hiddenItemFlagStart + signpost.HiddenItemFlag);
          }
 
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {

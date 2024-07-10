@@ -229,6 +229,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public bool HasScript => Kind < 5;
       public bool IsHiddenItem => Kind.IsAny(5, 6, 7);
       public int ItemValue => Element.Model.ReadMultiByteValue(Element.Start + 8, 2);
+      public int HiddenItemFlag => Element.Model[Element.Start + 10];
+      public int HiddenItemCount => Element.Model[Element.Start + 11];
       public int ScriptAddress => Element.Model.ReadPointer(Element.Start + 8);
    }
 
