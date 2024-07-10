@@ -154,14 +154,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       private readonly Dictionary<int, ScriptInfo> cachedScripts = new();
 
       public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart, CodeBody updateBody, ref int existingSectionCount) {
-         if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo)) {
+         if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo) && scriptInfo.Parser == parser) {
             existingSectionCount = scriptInfo.SectionCount;
             return scriptInfo;
          }
          var destinations = ScriptDestinations(scriptStart);
          var scriptLength = parser.FindLength(model, scriptStart, destinations);
          var content = parser.Parse(model, scriptStart, scriptLength, ref existingSectionCount, updateBody);
-         scriptInfo = new ScriptInfo(scriptStart, scriptLength, content, existingSectionCount);
+         scriptInfo = new ScriptInfo(scriptStart, scriptLength, parser, content, existingSectionCount);
          destinations[scriptStart] = scriptLength;
          cachedScripts[scriptStart] = scriptInfo;
          return scriptInfo;
@@ -248,5 +248,5 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public void GotoMap() => JumpAction(new(Group, Map));
    }
 
-   public record ScriptInfo(int Start, int Length, string Content, int SectionCount) : ISearchTreePayload;
+   public record ScriptInfo(int Start, int Length, ScriptParser Parser, string Content, int SectionCount) : ISearchTreePayload;
 }
