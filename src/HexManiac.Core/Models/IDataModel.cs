@@ -381,7 +381,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
       public static bool IsFRLG(this IReadOnlyList<byte> model) {
          var code = model.GetGameCode();
-         return code.StartsWith("BPRE") || code.StartsWith("BPGE");
+         return code.StartsWith("BPR") || code.StartsWith("BPG");
       }
       public static bool IsEmerald(this IReadOnlyList<byte> model) => model.GetGameCode() == "BPEE0";
 

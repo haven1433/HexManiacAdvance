@@ -57,14 +57,14 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int NameIndex {
          get {
             var code = Element.Model.GetShortGameCode();
-            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            int offset = code.IsAny(0x45525042, 0x45475042, 0x49525042) ? 88 : 0; // BPRE, BPGE, BPRI
             if (!Element.TryGetValue("regionSectionID", out var value)) return -1;
             return value - offset;
          }
          set {
             if (!Element.HasField("regionSectionID")) return;
             var code = Element.Model.GetShortGameCode();
-            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            int offset = code.IsAny(0x45525042, 0x45475042, 0x49525042) ? 88 : 0; // BPRE, BPGE, BPRI
             Element.SetValue("regionSectionID", value + offset);
          }
       }
