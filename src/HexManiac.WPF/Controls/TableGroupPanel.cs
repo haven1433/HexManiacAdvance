@@ -17,7 +17,24 @@ using HavenSoft.HexManiac.WPF.Resources;
 using System.Windows.Threading;
 using System.Windows.Controls;
 
-namespace HavenSoft.HexManiac.WPF.Controls; 
+namespace HavenSoft.HexManiac.WPF.Controls;
+
+// TODO jump button for enums
+// TODO jump button for bit arrays
+// TODO jump button behavior
+// TODO text selection for textboxes
+// TODO text editing for textboxes
+// TODO application commands (cut/copy/paste/selectall) for textboxes
+// TODO keyboard shortcuts cut/copy/paste/selectall for textboxes
+// TODO home/end/left/right/increment/decrement for textboxes
+
+// TODO text editing for enums
+// TODO showing filtered dropdown for enums
+
+// additional controls:
+// tuples
+// calculated fields
+
 
 public partial class TableGroupPanel : FrameworkElement {
    private readonly SpriteCache spriteCache = new();
@@ -1248,7 +1265,3 @@ public record GroupPythonButtonControl(PythonButtonElementViewModel Element) : G
    public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
    public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
-
-// next most important controls:
-// tuples
-// calculated fields
