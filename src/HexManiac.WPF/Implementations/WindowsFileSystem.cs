@@ -207,6 +207,8 @@ namespace HavenSoft.HexManiac.WPF.Implementations {
 
       public Task RunBackgroundWork(Action action) => Task.Run(action);
 
+      public IDelayWorkTimer CreateDelayTimer() => new DelayWorkTimer();
+
       #endregion
 
       public string RequestNewName(string currentName, string extensionDescription = null, params string[] extensionOptions) {

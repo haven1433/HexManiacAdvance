@@ -158,14 +158,46 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       /// <param name="action"></param>
       Task RunBackgroundWork(Action action);
+
+      IDelayWorkTimer CreateDelayTimer();
    }
 
+   public class ImmediateWorkTimer : IDelayWorkTimer {
+      public bool HasScheduledWork => false;
+
+      public DelayWorkResult DelayCall(TimeSpan delay, Action action) {
+         action.Invoke();
+         return DelayWorkResult.WorkScheduled;
+      }
+
+      public void Reset() { }
+   }
+
+   public class ManualWorkTimer : IDelayWorkTimer {
+      Action? work;
+
+      public bool HasScheduledWork => work != null;
+
+      public DelayWorkResult DelayCall(TimeSpan delay, Action action) {
+         var result = work == null ? DelayWorkResult.WorkScheduled : DelayWorkResult.WorkScheduledAndPreviousWorkCleared;
+         work = action;
+         return result;
+      }
+
+      public void Reset() => work = null;
+
+      public void RunWork() {
+         work?.Invoke();
+         work = null;
+      }
+   }
    public class InstantDispatch : IWorkDispatcher {
       public static IWorkDispatcher Instance { get; } = new InstantDispatch();
       public Task WaitForRenderingAsync() => Task.CompletedTask;
       public void BlockOnUIWork(Action action) => action();
       public Task DispatchWork(Action action) { action?.Invoke(); return Task.CompletedTask; }
       public Task RunBackgroundWork(Action action) => DispatchWork(action);
+      public IDelayWorkTimer CreateDelayTimer() => new ImmediateWorkTimer();
    }
 
    public class ControlledDispatch : IWorkDispatcher {
@@ -195,6 +227,14 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public void RunAllWorkloads() {
          while (workloads.Count > 0) RunWorkloadAndContinuations(0);
+      }
+
+      public event EventHandler<ImmediateWorkTimer> DelayTimerRequested;
+
+      public IDelayWorkTimer CreateDelayTimer() {
+         var timer = new ImmediateWorkTimer();
+         DelayTimerRequested?.Invoke(this, timer);
+         return timer;
       }
    }
 

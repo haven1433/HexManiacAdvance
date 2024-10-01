@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ViewPort viewPort;
       private readonly IToolTrayViewModel toolTray;
       private readonly IWorkDispatcher dispatcher;
+      private readonly IDelayWorkTimer loadMapUsageTimer, dataChangedTimer;
 
       public string Name => "Table";
 
@@ -186,8 +187,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.viewPort = viewPort;
          this.toolTray = toolTray;
          this.dispatcher = dispatcher;
+         loadMapUsageTimer = dispatcher.CreateDelayTimer();
+         dataChangedTimer = dispatcher.CreateDelayTimer();
          CurrentElementSelector = new FilteringComboOptions();
-         CurrentElementSelector.Bind(nameof(FilteringComboOptions.SelectedIndex), UpdateViewPortSelectionFromTableComboBoxIndex);
+         CurrentElementSelector.Bind(nameof(FilteringComboOptions.ModelValue), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();
          UsageChildren = new();
 
@@ -337,6 +340,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private bool dataForCurrentRunChangeUpdate;
       public void DataForCurrentRunChanged() {
+         // ignore callbacks while any held comboboxes are open
+         foreach (var group in Groups) {
+            foreach (var member in group.Members) {
+               if (member is ComboBoxArrayElementViewModel box && box.FilteringComboOptions.DropDownIsOpen) return;
+            }
+         }
+
+         // must be longer than initial key-hold delay or app will studder
+         dataChangedTimer.DelayCall(TimeSpan.FromSeconds(.6), DataForCurrentRunChangedCore);
+      }
+
+      private void DataForCurrentRunChangedCore() {
          foreach (var group in Groups) {
             foreach (var member in group.Members) ClearHandlers(member);
          }
@@ -536,6 +551,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateViewPortSelectionFromTableComboBoxIndex(object sender = null, EventArgs e = null) {
          if (selfChange) return;
+         if (CurrentElementSelector.DropDownIsOpen) return;
          var array = (ITableRun)model.GetNextRun(Address);
          var address = array.Start + array.ElementLength * CurrentElementSelector.SelectedIndex;
          selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address);
@@ -624,7 +640,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // maps
          if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState && !viewPort.SpartanMode) {
-            var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
+            var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, loadMapUsageTimer, viewPort.MapEditor, basename, index);
             mapOptions.MapPreviews.CollectionChanged += (sender, e) => NotifyPropertyChanged(nameof(HasUsageOptions));
             AddUsageChild(mapOptions); // always add, but invisible when empty
          }
