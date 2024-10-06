@@ -188,7 +188,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.toolTray = toolTray;
          this.dispatcher = dispatcher;
          loadMapUsageTimer = dispatcher.CreateDelayTimer();
-         dataChangedTimer = dispatcher.CreateDelayTimer();
+         dataChangedTimer = new ImmediateWorkTimer(); // dispatcher.CreateDelayTimer();
          CurrentElementSelector = new FilteringComboOptions();
          CurrentElementSelector.Bind(nameof(FilteringComboOptions.ModelValue), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();
@@ -286,7 +286,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public IList<IArrayElementViewModel> Children => Groups.SelectMany(group => group.Members).ToList();
 
       private void AddGroup() {
-         Groups.Add(new TableGroupViewModel {
+         Groups.Add(new TableGroupViewModel(viewPort) {
             ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
             ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
          });
@@ -404,7 +404,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   streamGroup = Groups[1];
                   streamGroup.Open();
                } else {
-                  streamGroup = new TableGroupViewModel {
+                  streamGroup = new TableGroupViewModel(viewPort) {
                      ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
                      ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
                   };
@@ -429,7 +429,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      streamGroup.GroupName = TableGroupViewModel.DefaultName;
                      streamGroup.Open();
                   } else {
-                     streamGroup = new TableGroupViewModel {
+                     streamGroup = new TableGroupViewModel(viewPort) {
                         ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
                         ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
                      };

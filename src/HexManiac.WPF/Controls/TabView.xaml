@@ -388,7 +388,6 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                              </Grid.ColumnDefinitions>
-                                             <Rectangle Width="1" Margin="-2,-2,0,-2" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <hsg3hv:AngleBorder Grid.Column="1" Direction="Out">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
@@ -414,7 +413,6 @@
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="*"/>
                                              </Grid.ColumnDefinitions>
-                                             <Rectangle HorizontalAlignment="Left" Width="1" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <hsg3hv:AngleBorder Grid.Column="1" Direction="Left">
                                                 <TextBlock Text="{Binding Name}"/>
                                              </hsg3hv:AngleBorder>
@@ -433,7 +431,6 @@
                                                 <ColumnDefinition Width="*"/>
                                                 <ColumnDefinition Width="Auto"/>
                                              </Grid.ColumnDefinitions>
-                                             <Rectangle HorizontalAlignment="Left" Width="1" Margin="-2,-2,0,-2" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <hsg3hv:AngleBorder Grid.Column="1" Direction="Left">
                                                 <TextBlock Text="{Binding Name}" />
                                              </hsg3hv:AngleBorder>
@@ -466,7 +463,6 @@
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:BitListArrayElementViewModel}">
                                           <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                          <Rectangle HorizontalAlignment="Left" Width="1" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                           <StackPanel>
                                              <Grid HorizontalAlignment="Stretch" Margin="2">
                                                 <Grid.ColumnDefinitions>
@@ -524,29 +520,27 @@
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:StreamElementViewModel}">
                                           <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
-                                          <StackPanel ToolTip="{Binding ParentName}">
-                                             <hsg3hv:CommonTableStreamControl />
-                                             <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
-                                                <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
-                                                   Background="Transparent"
-                                                   VerticalAlignment="Top"
-                                                   CaretBrush="{DynamicResource Secondary}"
-                                                   AcceptsReturn="True" FontFamily="Consolas"
-                                                   Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
-                                                   <TextBox.InputBindings>
-                                                      <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
-                                                      <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
-                                                   </TextBox.InputBindings>
-                                                </TextBox>
-                                                <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
-                                             </Grid>
-                                          </StackPanel>
+                                             <StackPanel ToolTip="{Binding ParentName}">
+                                                <hsg3hv:CommonTableStreamControl />
+                                                <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
+                                                   <TextBox Name="StreamTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                      Background="Transparent"
+                                                      VerticalAlignment="Top"
+                                                      CaretBrush="{DynamicResource Secondary}"
+                                                      AcceptsReturn="True" FontFamily="Consolas"
+                                                      Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}">
+                                                      <TextBox.InputBindings>
+                                                         <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
+                                                         <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
+                                                      </TextBox.InputBindings>
+                                                   </TextBox>
+                                                   <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=StreamTextBox}"/>
+                                                </Grid>
+                                             </StackPanel>
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteElementViewModel}">
                                           <Grid Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                           <StackPanel>
                                              <hsg3hv:CommonTableStreamControl />
                                              <hsg3hv:AngleBorder Content="Palette Selection" FontSize="10" Direction="Out" Visibility="{Binding HasMultiplePalettes, Converter={StaticResource BoolToVisibility}}" HorizontalAlignment="Center" />
@@ -596,29 +590,24 @@
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:SpriteIndicatorElementViewModel}">
-                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                             <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
-                                             <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding Image}" />
-                                          </Grid>
+                                          <hsg3hv:PixelImage SnapsToDevicePixels="True" DataContext="{Binding Image}" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}" />
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:PaletteElementViewModel}">
                                           <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
-                                          <StackPanel PreviewMouseDown="ActivatePalette">
-                                             <hsg3hv:CommonTableStreamControl />
-                                             <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
-                                             <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
-                                                <hsg3hv:AngleButton MinWidth="20" Content="-" Direction="Left" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette" />
-                                                <hsg3hv:AngleButton MinWidth="20" Content="+" Direction="Right" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette" />
-                                                <hsg3hv:AngleButton MinWidth="60" Content="Previous" Direction="Left" DockPanel.Dock="Left" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
-                                                <hsg3hv:AngleButton MinWidth="60" Content="Next" Direction="Right" DockPanel.Dock="Right" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
-                                             </DockPanel>
-                                          </StackPanel>
+                                             <StackPanel PreviewMouseDown="ActivatePalette">
+                                                <hsg3hv:CommonTableStreamControl />
+                                                <hsg3hv:PaletteControl DataContext="{Binding Colors}" />
+                                                <DockPanel Visibility="{Binding ShowPageControls, Converter={StaticResource BoolToVisibility}}" LastChildFill="False">
+                                                   <hsg3hv:AngleButton MinWidth="20" Content="-" Direction="Left" Command="{Binding DeletePage}" HorizontalAlignment="Center" ToolTip="Delete the current page of this sprite and palette" />
+                                                   <hsg3hv:AngleButton MinWidth="20" Content="+" Direction="Right" Command="{Binding AddPage}" DockPanel.Dock="Right" ToolTip="Add a new page to this sprite and palette" />
+                                                   <hsg3hv:AngleButton MinWidth="60" Content="Previous" Direction="Left" DockPanel.Dock="Left" Click="PageMovePrevious" IsEnabled="{Binding CanMovePrevious}" />
+                                                   <hsg3hv:AngleButton MinWidth="60" Content="Next" Direction="Right" DockPanel.Dock="Right" Click="PageMoveNext" IsEnabled="{Binding CanMoveNext}" />
+                                                </DockPanel>
+                                             </StackPanel>
                                           </Grid>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:TrainerPokemonTeamElementViewModel}">
                                           <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                           <StackPanel ToolTip="{Binding ParentName}">
                                              <hsg3hv:CommonTableStreamControl />
                                              <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
@@ -667,7 +656,6 @@
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:TupleArrayElementViewModel}">
                                           <Grid Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                          <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                           <StackPanel>
                                              <TextBlock Text="{Binding Name}" Margin="5,0"/>
                                              <ItemsControl ItemsSource="{Binding Children}">
@@ -711,7 +699,6 @@
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:CalculatedElementViewModel}">
                                           <DockPanel HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                             <Rectangle Width="1" DockPanel.Dock="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
                                              <Grid Margin="1,2,2,2" DockPanel.Dock="Top">
                                                 <Grid.ColumnDefinitions>
                                                    <ColumnDefinition Width="Auto" SharedSizeGroup="LeftColumn"/>
@@ -750,14 +737,28 @@
                                           </DockPanel>
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:OffsetRenderViewModel}">
-                                          <Grid HorizontalAlignment="Stretch" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
-                                             <Rectangle Width="1" HorizontalAlignment="Left" Fill="{Binding Theme, Converter={StaticResource Theme}}" />
-                                             <hsg3hv:PixelImage SnapsToDevicePixels="True" Margin="1,0,0,0"
-                                                MouseDown="OffsetRenderMouseDown" MouseMove="OffsetRenderMouseMove" MouseUp="OffsetRenderMouseUp" />
-                                          </Grid>
+                                          <hsg3hv:PixelImage SnapsToDevicePixels="True" Margin="1,0,0,0" Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}"
+                                             MouseDown="OffsetRenderMouseDown" MouseMove="OffsetRenderMouseMove" MouseUp="OffsetRenderMouseUp" />
                                        </DataTemplate>
                                        <DataTemplate DataType="{x:Type hsg3hvmtr:PythonButtonElementViewModel}">
                                           <hsg3hv:AngleButton Direction="Out" Content="{Binding Name}" Margin="4" Command="{hsv:MethodCommand Execute}" ToolTip="{Binding Tooltip}" />
+                                       </DataTemplate>
+                                       <DataTemplate DataType="{x:Type hsg3hvmtr:MultiFieldArrayElementViewModel}">
+                                          <StackPanel Visibility="{Binding Visible, Converter={StaticResource BoolToVisibility}}">
+                                             <Grid Margin="20,2,2,2" Background="{DynamicResource Backlight}">
+                                                <TextBox Name="FieldsTextBox" UndoLimit="0" Text="{Binding Content, UpdateSourceTrigger=PropertyChanged}"
+                                                      Background="Transparent"
+                                                      VerticalAlignment="Top"
+                                                      CaretBrush="{DynamicResource Secondary}"
+                                                      AcceptsReturn="True" FontFamily="Consolas">
+                                                   <TextBox.InputBindings>
+                                                      <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
+                                                      <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
+                                                   </TextBox.InputBindings>
+                                                </TextBox>
+                                                <!--<hsg3hv:AutocompleteOverlay Target="{Binding ElementName=FieldsTextBox}"/>-->
+                                             </Grid>
+                                          </StackPanel>
                                        </DataTemplate>
                                     </ItemsControl.Resources>
                                  </ItemsControl>

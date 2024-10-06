@@ -92,6 +92,8 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             } else {
                throw new NotImplementedException();
             }
+         } else if (DataContext is MultiFieldArrayElementViewModel multi) {
+            getAutocomplete = multi.GetAutoComplete;
          } else if (DataContext is TrainerTeamViewModel team) {
             getAutocomplete = team.GetTrainerAutocomplete;
          } else if (DataContext is CodeBody body) {

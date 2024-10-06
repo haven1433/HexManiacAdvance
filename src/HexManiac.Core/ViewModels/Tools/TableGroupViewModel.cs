@@ -36,12 +36,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public bool DisplayHeader => GroupName != DefaultName;
       public string GroupName { get => groupName; set => Set(ref groupName, value, old => NotifyPropertyChanged(nameof(DisplayHeader))); }
 
+      private readonly ViewPort viewPort;
+
       public ObservableCollection<IArrayElementViewModel> Members { get; } = new();
 
       public Action<IStreamArrayElementViewModel> ForwardModelChanged { get; init; }
       public Action<IStreamArrayElementViewModel> ForwardModelDataMoved { get; init; }
 
-      public TableGroupViewModel() { GroupName = DefaultName; }
+      public TableGroupViewModel(ViewPort viewPort) { GroupName = DefaultName; this.viewPort = viewPort; }
 
       public bool IsOpen => isOpen;
 
@@ -51,26 +53,48 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          isOpen = true;
       }
 
+      const bool UseMultiFieldFeature = false;
+
       public void Add(IArrayElementViewModel child, string theme = null) {
          child.Theme = theme;
          if (currentMember == Members.Count) {
-            Members.Add(child);
+            if (child is FieldArrayElementViewModel newField) {
+               if (Members[Members.Count - 1] is FieldArrayElementViewModel field && UseMultiFieldFeature) {
+                  var multi = new MultiFieldArrayElementViewModel(viewPort);
+                  multi.Add(field);
+                  multi.Add(newField);
+                  Members[Members.Count - 1] = multi;
+               } else if (Members[Members.Count - 1] is MultiFieldArrayElementViewModel multi) {
+                  multi.Add(newField);
+               } else {
+                  Members.Add(child);
+                  currentMember++;
+               }
+            } else {
+               Members.Add(child);
+               currentMember++;
+            }
+         } else if (UseMultiFieldFeature && currentMember > 0 && Members[currentMember - 1] is FieldArrayElementViewModel existingField && child is FieldArrayElementViewModel newField) {
+            var multi = new MultiFieldArrayElementViewModel(viewPort);
+            multi.Add(existingField);
+            multi.Add(newField);
+            Members[currentMember - 1] = multi;
+         } else if (currentMember > 0 && Members[currentMember-1] is MultiFieldArrayElementViewModel multi && child is FieldArrayElementViewModel newField1) {
+            multi.Add(newField1);
          } else {
-            // using var scope = Members[currentMember].SilencePropertyNotifications();
             if (!Members[currentMember].TryCopy(child)) {
                Members[currentMember] = child;
             } else {
                Members[currentMember].Theme = child.Theme;
             }
+            currentMember += 1;
          }
-         currentMember += 1;
       }
 
       public void Close() {
          if (!isOpen) return;
          while (Members.Count > currentMember) Members.RemoveAt(Members.Count - 1);
          isOpen = false;
-         // Members.RaiseRefresh();
       }
 
       public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, string theme, SplitterArrayElementViewModel header, TableGroupViewModel helperGroup, int splitPortion = -1) {
