@@ -23,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel);
    }
 
-   public class FieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+   public class FieldArrayElementViewModel : ViewModelCore, IMultiEnabledArrayElementViewModel {
       private readonly IFieldArrayElementViewModelStrategy strategy;
 
       private string name;
@@ -325,7 +325,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class MultiFieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
       private string theme, content;
       private bool visible = true;
-      private List<FieldArrayElementViewModel> fields = new();
+      private List<IMultiEnabledArrayElementViewModel> fields = new();
 
       public string Theme { get => theme; set => Set(ref theme, value); }
       public bool Visible { get => visible; set => Set(ref visible, value); }
@@ -339,11 +339,21 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand Undo { get; }
       public ICommand Redo { get; }
 
+      public bool HasFocus { get; set; } // set by View when this textbox is in focus
+
       public MultiFieldArrayElementViewModel(ViewPort port) => (Undo, Redo) = (port.Undo, port.Redo);
 
-      public void Add(FieldArrayElementViewModel field) {
+      public void Add(IMultiEnabledArrayElementViewModel field) {
          fields.Add(field);
          RecalculateBody();
+      }
+
+      // consider hiding fields that don't match the filter
+      public bool Filter(string filter) {
+         foreach (var element in fields) {
+            if (element.Name.MatchesPartial(filter)) return true;
+         }
+         return false;
       }
 
       public string Content {
@@ -354,7 +364,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (i >= lines.Length) break;
                var parts = lines[i].Split(':', 2);
                if (parts.Length == 1) continue;
-               fields[i].Content = parts[1].Trim();
+               var content = parts[1].Trim();
+               if (fields[i] is FieldArrayElementViewModel field) {
+                  field.Content = content;
+               } else if (fields[i] is ComboBoxArrayElementViewModel combo) {
+                  combo.FilteringComboOptions.DisplayText = content;
+                  combo.FilteringComboOptions.SelectConfirm();
+               }
             }
             DataChanged?.Invoke(this, EventArgs.Empty);
          });
@@ -374,8 +390,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             else first = false;
 
             content.Append(field.Name.PadRight(longestName, ' '));
-            content.Append(": ");
-            content.Append(field.Content);
+            content.Append(" : ");
+            if (field is FieldArrayElementViewModel field1) {
+               content.Append(field1.Content);
+            } else if (field is ComboBoxArrayElementViewModel combo) {
+               content.Append(combo.FilteringComboOptions.DisplayText);
+            }
          }
          this.content = content.ToString();
          NotifyPropertyChanged(nameof(Content));
@@ -391,6 +411,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // right now, the field is always something like free text, free number, or free color
          // no auto-complete makes sense
          // but this method is here as a stub in case we add combobox content into the MultiField.
+         if (field is ComboBoxArrayElementViewModel combo) {
+            var content = parts[1].Trim();
+            combo.FilteringComboOptions.DisplayText = content;
+            return combo.FilteringComboOptions.FilteredOptions
+               .Select(option => new AutocompleteItem(option.Text, parts[0] + ": " + option.Text) { CharacterOffset = parts[0].Length })
+               .ToArray();
+         }
 
          return Array.Empty<AutocompleteItem>();
       }

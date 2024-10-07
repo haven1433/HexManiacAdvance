@@ -6,10 +6,12 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Resources;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace HavenSoft.HexManiac.WPF.Controls {
    public partial class AutocompleteOverlay {
@@ -115,9 +117,13 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var verticalOffset = TargetTextBox.VerticalOffset;
          var lineHeight = TargetTextBox.ExtentHeight / totalLines;
          var verticalStart = lineHeight * editLineIndex - verticalOffset + 2;
+         double horizontalStart = 0;
 
          var options = getAutocomplete(lines[lineIndex], lineIndex, index);
          if (options != null && options.Count > 0) {
+            var offset = options[0].CharacterOffset;
+            var typeFace = new Typeface(TargetTextBox.FontFamily, TargetTextBox.FontStyle, TargetTextBox.FontWeight, TargetTextBox.FontStretch);
+            horizontalStart = new FormattedText(new string('_', offset), CultureInfo.InvariantCulture, FlowDirection.LeftToRight, typeFace, Target.FontSize, null, 96).Width;
             AutocompleteItems.ItemsSource = AutoCompleteSelectionItem.Generate(options, 0).ToList();
             ShowAutocompleteOptions();
          } else if (options != null) {
@@ -126,7 +132,9 @@ namespace HavenSoft.HexManiac.WPF.Controls {
          var screenVertical = TargetTextBox.TranslatePoint(new Point(0, verticalStart), Application.Current.MainWindow).Y;
          ScrollBorder.UpdateLayout();
          if (Application.Current.MainWindow.ActualHeight - screenVertical < 200) verticalStart -= ScrollBorder.ActualHeight + 12;
+         AutocompleteTransform.X = horizontalStart;
          AutocompleteTransform.Y = verticalStart;
+
          Popup.Reposition();
 
          ignoreNextSelectionChange = true;

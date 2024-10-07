@@ -750,13 +750,15 @@
                                                       Background="Transparent"
                                                       VerticalAlignment="Top"
                                                       CaretBrush="{DynamicResource Secondary}"
+                                                      GotKeyboardFocus="MultiFieldGotKeyboardFocus"
+                                                      LostKeyboardFocus="MultiFieldLostKeyboardFocus"
                                                       AcceptsReturn="True" FontFamily="Consolas">
                                                    <TextBox.InputBindings>
                                                       <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>
                                                       <KeyBinding Modifiers="Ctrl" Key="Y" Command="{Binding Redo}"/>
                                                    </TextBox.InputBindings>
                                                 </TextBox>
-                                                <!--<hsg3hv:AutocompleteOverlay Target="{Binding ElementName=FieldsTextBox}"/>-->
+                                                <hsg3hv:AutocompleteOverlay Target="{Binding ElementName=FieldsTextBox}"/>
                                              </Grid>
                                           </StackPanel>
                                        </DataTemplate>

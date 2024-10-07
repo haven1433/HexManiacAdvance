@@ -188,7 +188,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.toolTray = toolTray;
          this.dispatcher = dispatcher;
          loadMapUsageTimer = dispatcher.CreateDelayTimer();
-         dataChangedTimer = new ImmediateWorkTimer(); // dispatcher.CreateDelayTimer();
+         dataChangedTimer =  /* */ new ImmediateWorkTimer(); //*/ dispatcher.CreateDelayTimer();
          CurrentElementSelector = new FilteringComboOptions();
          CurrentElementSelector.Bind(nameof(FilteringComboOptions.ModelValue), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();

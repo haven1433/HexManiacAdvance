@@ -58,8 +58,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public void Add(IArrayElementViewModel child, string theme = null) {
          child.Theme = theme;
          if (currentMember == Members.Count) {
-            if (child is FieldArrayElementViewModel newField) {
-               if (Members[Members.Count - 1] is FieldArrayElementViewModel field && UseMultiFieldFeature) {
+            if (child is IMultiEnabledArrayElementViewModel newField) {
+               if (Members[Members.Count - 1] is IMultiEnabledArrayElementViewModel field && UseMultiFieldFeature) {
                   var multi = new MultiFieldArrayElementViewModel(viewPort);
                   multi.Add(field);
                   multi.Add(newField);
@@ -74,12 +74,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                Members.Add(child);
                currentMember++;
             }
-         } else if (UseMultiFieldFeature && currentMember > 0 && Members[currentMember - 1] is FieldArrayElementViewModel existingField && child is FieldArrayElementViewModel newField) {
+         } else if (UseMultiFieldFeature && currentMember > 0 && Members[currentMember - 1] is IMultiEnabledArrayElementViewModel existingField && child is IMultiEnabledArrayElementViewModel newField) {
             var multi = new MultiFieldArrayElementViewModel(viewPort);
             multi.Add(existingField);
             multi.Add(newField);
             Members[currentMember - 1] = multi;
-         } else if (currentMember > 0 && Members[currentMember-1] is MultiFieldArrayElementViewModel multi && child is FieldArrayElementViewModel newField1) {
+         } else if (currentMember > 0 && Members[currentMember-1] is MultiFieldArrayElementViewModel multi && child is IMultiEnabledArrayElementViewModel newField1) {
             multi.Add(newField1);
          } else {
             if (!Members[currentMember].TryCopy(child)) {
