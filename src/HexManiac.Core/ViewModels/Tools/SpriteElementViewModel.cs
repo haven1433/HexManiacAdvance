@@ -194,6 +194,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var run = GetRun();
          Pages = run.Pages;
          UpdateAvailablePalettes(Start);
+         this.Bind(nameof(Visible), (sender, args) => {
+            if (Visible && needsUpdate) UpdateTiles(Start, CurrentPage, false);
+         });
       }
 
       private void UpdateAvailablePalettes(int start) {
@@ -241,13 +244,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       protected override void PageChanged() => UpdateTiles(CurrentPage);
 
+      private bool needsUpdate = false;
       public void UpdateTiles(int? pageOption = null) {
          // TODO support multiple layers
          int page = pageOption ?? CurrentPage;
 
          if (GetRun() is LzTilemapRun mapRun) mapRun.FindMatchingTileset(Model);
 
-         UpdateTiles(Start, page, false);
+         if (Visible) {
+            UpdateTiles(Start, page, false);
+         } else {
+            needsUpdate = true;
+         }
       }
 
       protected override bool CanExecuteAddPage() {
@@ -266,6 +274,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private int[,] lastPixels;
       private IReadOnlyList<short> lastColors;
       private void UpdateTiles(int start, int page, bool exitPaletteSearchEarly) {
+         needsUpdate = false;
          var run = GetRun();
 
          var tableIndex = -1;

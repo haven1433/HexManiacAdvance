@@ -53,51 +53,59 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          isOpen = true;
       }
 
-      const bool UseMultiFieldFeature = false;
+      private bool useMultiFieldFeature = false;
+      public bool UseMultiFieldFeature { get => useMultiFieldFeature; set => Set(ref useMultiFieldFeature, value); }
 
-      public void Add(IArrayElementViewModel child, string theme = null) {
-         child.Theme = theme;
-         if (currentMember == Members.Count) {
-            if (child is IMultiEnabledArrayElementViewModel newField) {
-               if (Members[Members.Count - 1] is IMultiEnabledArrayElementViewModel field && UseMultiFieldFeature) {
-                  var multi = new MultiFieldArrayElementViewModel(viewPort);
-                  multi.Add(field);
-                  multi.Add(newField);
-                  Members[Members.Count - 1] = multi;
-               } else if (Members[Members.Count - 1] is MultiFieldArrayElementViewModel multi) {
-                  multi.Add(newField);
-               } else {
-                  Members.Add(child);
-                  currentMember++;
-               }
-            } else {
-               Members.Add(child);
+      private MultiFieldArrayElementViewModel multiInProgress;
+
+      public void Add(IArrayElementViewModel child) {
+         if (UseMultiFieldFeature && child is IMultiEnabledArrayElementViewModel newField) {
+            if (multiInProgress == null) multiInProgress = new(viewPort);
+            multiInProgress.Add(newField);
+         } else if (currentMember == Members.Count) {
+            if (multiInProgress != null) {
+               Members.Add(multiInProgress);
+               multiInProgress = null;
                currentMember++;
             }
-         } else if (UseMultiFieldFeature && currentMember > 0 && Members[currentMember - 1] is IMultiEnabledArrayElementViewModel existingField && child is IMultiEnabledArrayElementViewModel newField) {
-            var multi = new MultiFieldArrayElementViewModel(viewPort);
-            multi.Add(existingField);
-            multi.Add(newField);
-            Members[currentMember - 1] = multi;
-         } else if (currentMember > 0 && Members[currentMember-1] is MultiFieldArrayElementViewModel multi && child is IMultiEnabledArrayElementViewModel newField1) {
-            multi.Add(newField1);
+            Members.Add(child);
+            currentMember++;
          } else {
-            if (!Members[currentMember].TryCopy(child)) {
-               Members[currentMember] = child;
+            if (multiInProgress != null) {
+               if (Members[currentMember].TryCopy(multiInProgress)) {
+                  // no need to copy
+               } else {
+                  Members[currentMember] = multiInProgress;
+               }
+               multiInProgress = null;
+               currentMember++;
+               Add(child); // we're adding a non-multi, and now have dealt with the current multi. Recurse so the child can be added using either "full" or "replace" strategy
+            } else if (Members[currentMember].TryCopy(child)) {
+               currentMember += 1; // copied over successfully
             } else {
-               Members[currentMember].Theme = child.Theme;
+               // replace existing
+               Members[currentMember] = child;
+               currentMember += 1;
             }
-            currentMember += 1;
          }
       }
 
       public void Close() {
          if (!isOpen) return;
+         if (multiInProgress != null) {
+            if (currentMember == Members.Count) {
+               Members.Add(multiInProgress);
+            } else if (!Members[currentMember].TryCopy(multiInProgress)) {
+               Members[currentMember] = multiInProgress;
+            }
+            currentMember += 1;
+            multiInProgress = null;
+         }
          while (Members.Count > currentMember) Members.RemoveAt(Members.Count - 1);
          isOpen = false;
       }
 
-      public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, string theme, SplitterArrayElementViewModel header, TableGroupViewModel helperGroup, int splitPortion = -1) {
+      public void AddChildrenFromTable(ViewPort viewPort, Selection selection, ITableRun table, int index, SplitterArrayElementViewModel header, TableGroupViewModel helperGroup, int splitPortion = -1) {
          var itemAddress = table.Start + table.ElementLength * index;
          var originalItemAddress = itemAddress;
          var currentPartition = 0;
@@ -150,9 +158,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             } else {
                throw new NotImplementedException();
             }
-            if (!item.IsUnused()) {
-               Add(viewModel, theme);
-               helperGroup.AddChildrenFromPointerSegment(viewPort, theme, itemAddress, item, viewModel, header, recursionLevel: 0);
+            if (!item.IsUnused() && viewModel is not null) {
+               Add(viewModel);
+               helperGroup.AddChildrenFromPointerSegment(viewPort, itemAddress, item, viewModel, header, recursionLevel: 0);
             }
             itemAddress += item.Length;
          }
@@ -202,7 +210,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          Add(new ButtonArrayElementViewModel("Edit Map", () => viewPort.Goto.Execute(name)));
       }
 
-      private void AddChildrenFromPointerSegment(ViewPort viewPort, string theme, int itemAddress, ArrayRunElementSegment item, IArrayElementViewModel parent, SplitterArrayElementViewModel header, int recursionLevel) {
+      private void AddChildrenFromPointerSegment(ViewPort viewPort, int itemAddress, ArrayRunElementSegment item, IArrayElementViewModel parent, SplitterArrayElementViewModel header, int recursionLevel) {
          if (!(item is ArrayRunPointerSegment pointerSegment)) return;
          if (pointerSegment.InnerFormat == string.Empty) return;
          var destination = viewPort.Model.ReadPointer(itemAddress);
@@ -247,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (!Members[myIndex].TryCopy(newStream)) Members[myIndex] = newStream;
          };
          ForwardModelDataMoved(streamElement);
-         Add(streamElement, theme);
+         Add(streamElement);
 
          if (streamRun is ITableRun tableRun && recursionLevel < 1) {
             int segmentOffset = 0;
@@ -255,7 +263,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                if (!(tableRun.ElementContent[i] is ArrayRunPointerSegment)) { segmentOffset += tableRun.ElementContent[i].Length; continue; }
                for (int j = 0; j < tableRun.ElementCount; j++) {
                   itemAddress = tableRun.Start + segmentOffset + j * tableRun.ElementLength;
-                  AddChildrenFromPointerSegment(viewPort, theme, itemAddress, tableRun.ElementContent[i], streamElement, header, recursionLevel + 1);
+                  AddChildrenFromPointerSegment(viewPort, itemAddress, tableRun.ElementContent[i], streamElement, header, recursionLevel + 1);
                }
                segmentOffset += tableRun.ElementContent[i].Length;
             }

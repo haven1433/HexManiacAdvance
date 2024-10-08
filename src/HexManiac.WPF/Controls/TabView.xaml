@@ -268,6 +268,7 @@
                      </Grid>
                      <!-- Add X New -->
                      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,4">
+                        <CheckBox IsChecked="{Binding UseMultiFieldFeature}" Margin="0,0,10,0" Content="Group Similar Fields" />
                         <Border ToolTipService.InitialShowDelay="0">
                            <Border.ToolTip>
                               <ToolTip Background="{DynamicResource Backlight}" BorderBrush="{DynamicResource Accent}" BorderThickness="1">
@@ -750,8 +751,6 @@
                                                       Background="Transparent"
                                                       VerticalAlignment="Top"
                                                       CaretBrush="{DynamicResource Secondary}"
-                                                      GotKeyboardFocus="MultiFieldGotKeyboardFocus"
-                                                      LostKeyboardFocus="MultiFieldLostKeyboardFocus"
                                                       AcceptsReturn="True" FontFamily="Consolas">
                                                    <TextBox.InputBindings>
                                                       <KeyBinding Modifiers="Ctrl" Key="Z" Command="{Binding Undo}"/>

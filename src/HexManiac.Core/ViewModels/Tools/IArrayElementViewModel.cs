@@ -339,8 +339,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public ICommand Undo { get; }
       public ICommand Redo { get; }
 
-      public bool HasFocus { get; set; } // set by View when this textbox is in focus
-
       public MultiFieldArrayElementViewModel(ViewPort port) => (Undo, Redo) = (port.Undo, port.Redo);
 
       public void Add(IMultiEnabledArrayElementViewModel field) {

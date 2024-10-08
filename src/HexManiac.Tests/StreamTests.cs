@@ -340,9 +340,9 @@ namespace HavenSoft.HexManiac.Tests {
 
          var tokenLines = lines.Select(line => line.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
          lines = tokenLines.Select(tokens => " ".Join(tokens)).ToArray();
-         Assert.Equal("index: (0)", lines[0]);
-         Assert.Equal("unknown: 0x0000", lines[1]);
-         Assert.Equal("unused: 0x0000", lines[2]);
+         Assert.Equal("index : (0)", lines[0]);
+         Assert.Equal("unknown : 0x0000", lines[1]);
+         Assert.Equal("unused : 0x0000", lines[2]);
       }
 
       [Fact]

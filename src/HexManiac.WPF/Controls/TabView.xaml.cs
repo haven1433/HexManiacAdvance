@@ -654,17 +654,5 @@ namespace HavenSoft.HexManiac.WPF.Controls {
             CodeContentsPopup.IsOpen = false;
          }
       }
-
-      private void MultiFieldGotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
-         var element = (FrameworkElement)sender;
-         if (element.DataContext is not MultiFieldArrayElementViewModel multi) return;
-         multi.HasFocus = true;
-      }
-
-      private void MultiFieldLostKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) {
-         var element = (FrameworkElement)sender;
-         if (element.DataContext is not MultiFieldArrayElementViewModel multi) return;
-         multi.HasFocus = false;
-      }
    }
 }
