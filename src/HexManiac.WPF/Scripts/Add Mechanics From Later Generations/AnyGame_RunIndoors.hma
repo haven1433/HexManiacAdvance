@@ -1,0 +1,7 @@
+# Remove restriction on running indoors.
+
+@!game(BPRE0) @0BD494 00
+@!game(BPGE0) @0BD468 00
+@!game(AXVE0) @0E5E00 00
+@!game(AXPE0) @0E5E00 00
+@!game(BPEE0) @11A1E8 00
