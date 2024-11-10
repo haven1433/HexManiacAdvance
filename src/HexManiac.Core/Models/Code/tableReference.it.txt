@@ -1,4 +1,5 @@
-﻿// Special thanks to Fred40 for helping with a lot of the FireRed image anchors
+﻿// Contributed by Leonardo Cariaggi (leqo-c) and Francesco Cariaggi (anferico)
+// Special thanks to Fred40 for helping with a lot of the FireRed image anchors
 
 // quick reference for formats
 // .          one byte
@@ -34,7 +35,7 @@
 // `bld`      block-data (flags plus pointers to tileset, palette, blockset, block attributes, and tileset animation)
 // `bla`      block-attributes
 //games,                                   BPRI0,
-//                                         Rosso Fuoco,
+//                                         FRedIt,
 
 data.pokemon.names                      , 000144,  [name""11]
 data.pokemon.moves.names                , 000148,  ^[name""13]

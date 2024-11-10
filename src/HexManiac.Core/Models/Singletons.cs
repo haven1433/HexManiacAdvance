@@ -155,7 +155,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return readonlyTables;
       }
 
-      public static IReadOnlyList<string> ReferenceOrderIta { get; } = new string[] { "name", RossoFuoco, "format" };
+      public static IReadOnlyList<string> ReferenceOrderItalian { get; } = new string[] { "name", FireRedIt, "format" };
       private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTablesEnglish() {
          if (!File.Exists(TableReferenceFileName)) return new Dictionary<string, GameReferenceTables>();
          var lines = File.ReadAllLines(TableReferenceFileName);
@@ -199,12 +199,12 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          var lines = File.ReadAllLines(TableReferenceFileNameItalian);
          var tables = new Dictionary<string, List<ReferenceTable>>();
-         for (int i = 0; i < ReferenceOrderIta.Count - 2; i++) tables[ReferenceOrderIta[i + 1]] = new List<ReferenceTable>();
+         for (int i = 0; i < ReferenceOrderItalian.Count - 2; i++) tables[ReferenceOrderItalian[i + 1]] = new List<ReferenceTable>();
          foreach (var line in lines) {
             var row = line.Trim();
             if (row.StartsWith("//")) continue;
             var segments = row.Split("//")[0].Split(",");
-            if (segments.Length != ReferenceOrderIta.Count) continue;
+            if (segments.Length != ReferenceOrderItalian.Count) continue;
             var name = segments[0].Trim();
             var offset = 0;
             if (name.Contains("+")) {
@@ -219,11 +219,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                offset = -offset;
             }
             var format = segments.Last().Trim();
-            for (int i = 0; i < ReferenceOrderIta.Count - 2; i++) {
+            for (int i = 0; i < ReferenceOrderItalian.Count - 2; i++) {
                var addressHex = segments[i + 1].Trim();
                if (addressHex == string.Empty) continue;
                if (!int.TryParse(addressHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) continue;
-               tables[ReferenceOrderIta[i + 1]].Add(new ReferenceTable(name, offset, address, format));
+               tables[ReferenceOrderItalian[i + 1]].Add(new ReferenceTable(name, offset, address, format));
             }
          }
 

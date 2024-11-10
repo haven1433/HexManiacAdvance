@@ -92,7 +92,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          Sapphire1_1 = "AXPE1",
          FireRed1_1 = "BPRE1",
          LeafGreen1_1 = "BPGE1",
-         RossoFuoco = "BPRI0";
+         FireRedFr = "BPRF0",
+         FireRedIt = "BPRI0",
+         EmeraldFr = "BPEF0",
+         EmeraldIt = "BPEI0";
 
       public const string
          TmMoves = "data.pokemon.moves.tms",
@@ -141,10 +144,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   Sapphire1_1,
                   FireRed1_1,
                   LeafGreen1_1,
-                  RossoFuoco,
-                  "BPRF0", // french firered
-                  "BPEF0", // french emerald
-                  "BPEI0", // italian emerald
+                  FireRedFr,
+                  FireRedIt,
+                  EmeraldFr,
+                  EmeraldIt,
                   "ABCD0", // for tests
                };
 
