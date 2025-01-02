@@ -425,8 +425,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var tableOffset = tableRun.ConvertByteOffsetToArrayOffset(source);
                if (tableOffset.SegmentOffset != 0) return;
                if (tableRun.ElementContent[tableOffset.SegmentIndex].Type != ElementContentType.Pointer) return;
-            }
-            else {
+            } else {
                // the source isn't actually a pointer, we shouldn't write anything
                return;
             }
@@ -439,16 +438,14 @@ namespace HavenSoft.HexManiac.Core.Models {
             while (!string.IsNullOrEmpty(array.LengthFromAnchor)) {
                if (GetNextRun(GetAddressFromAnchor(noChangeDelta, -1, array.LengthFromAnchor)) is ArrayRun nextArray) {
                   array = nextArray;
-               }
-               else {
+               } else {
                   break;
                }
             }
             if (array.ElementCount + desiredChange <= 0) {
                // erase the entire run
                ClearFormat(noChangeDelta, array.Start, array.Length);
-            }
-            else {
+            } else {
                var arrayName = GetAnchorFromAddress(-1, array.Start);
                array = array.Append(noChangeDelta, desiredChange); // if append is negative, the name might get erased. Store it.
                ObserveAnchorWritten(noChangeDelta, arrayName, array);

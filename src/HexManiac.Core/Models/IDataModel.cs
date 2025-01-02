@@ -631,7 +631,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          model.LoadMetadataProperties(metadata);
       }
 
-      public static void LoadMetadataProperties(this IDataModel model, StoredMetadata metadata){
+      public static void LoadMetadataProperties(this IDataModel model, StoredMetadata metadata) {
          if (metadata.NextExportID > 0) model.NextExportID = metadata.NextExportID;
          if (metadata.FreeSpaceSearch >= 0) model.FreeSpaceStart = Math.Min(model.Count - 1, metadata.FreeSpaceSearch);
          if (metadata.FreeSpaceBuffer >= 0) model.FreeSpaceBuffer = metadata.FreeSpaceBuffer;

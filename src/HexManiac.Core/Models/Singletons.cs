@@ -95,13 +95,11 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (line.StartsWith("#")) continue;
             if (line.Trim().StartsWith("#")) {
                active?.AddDocumentation(line.Trim());
-            }
-            else {
+            } else {
                if (MacroScriptLine.IsMacroLine(line)) {
                   var macro = new MacroScriptLine(line);
                   if (macro.IsValid) active = macro;
-               }
-               else {
+               } else {
                   active = factory(line);
                }
                if (active != null) scriptLines.Add(active);
@@ -127,11 +125,9 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (!dict.TryGetValue(key, out var list)) dict[key] = list = new List<DocLabel>();
                   lists.Add((List<DocLabel>)list);
                }
-            }
-            else if (trim.StartsWith("#")) {
+            } else if (trim.StartsWith("#")) {
                continue;
-            }
-            else {
+            } else {
                var content = trim.Split(" ", StringSplitOptions.RemoveEmptyEntries);
                if (content.Length != 2) continue;
                var label = new DocLabel(content[0], content[1]);
@@ -172,8 +168,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var parts = name.Split("+");
                name = parts[0];
                int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
-            }
-            else if (name.Contains("-")) {
+            } else if (name.Contains("-")) {
                var parts = name.Split("-");
                name = parts[0];
                int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
@@ -211,8 +206,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var parts = name.Split("+");
                name = parts[0];
                int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
-            }
-            else if (name.Contains("-")) {
+            } else if (name.Contains("-")) {
                var parts = name.Split("-");
                name = parts[0];
                int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
@@ -356,8 +350,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (arg is ArrayArg array) {
                   text.Append($" `[{arg.Name}]`");
-               }
-               else {
+               } else {
                   text.Append($" `{arg.Name}`");
                }
             }
@@ -368,35 +361,26 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
                   text.AppendLine($"{nl}*  `{arg.Name}` is from {arg.EnumTableName}");
-               }
-               else if (arg.Type != ArgType.Pointer) {
+               } else if (arg.Type != ArgType.Pointer) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a number.");
-                  }
-                  else {
+                  } else {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a number (hex).");
                   }
-               }
-               else if (arg.Type == ArgType.Pointer) {
+               } else if (arg.Type == ArgType.Pointer) {
                   if (arg.PointerType == ExpectedPointerType.Script) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to a script or section");
-                  }
-                  else if (arg.PointerType == ExpectedPointerType.Mart) {
+                  } else if (arg.PointerType == ExpectedPointerType.Mart) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to pokemart data or auto");
-                  }
-                  else if (arg.PointerType == ExpectedPointerType.Movement) {
+                  } else if (arg.PointerType == ExpectedPointerType.Movement) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to movement data or auto");
-                  }
-                  else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
+                  } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to sprite-template data or auto");
-                  }
-                  else if (arg.PointerType == ExpectedPointerType.Decor) {
+                  } else if (arg.PointerType == ExpectedPointerType.Decor) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to decor data or auto");
-                  }
-                  else if (arg.PointerType == ExpectedPointerType.Text) {
+                  } else if (arg.PointerType == ExpectedPointerType.Text) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to text or auto");
-                  }
-                  else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                  } else if (arg.PointerType == ExpectedPointerType.Unknown) {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a pointer.");
                   }
                }
@@ -412,8 +396,7 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                   text.Append(rnd.From(examples));
                   exampleFound = true;
                }
-            }
-            else if (line is MacroScriptLine macro) {
+            } else if (line is MacroScriptLine macro) {
                var examples = GetExamplesForMacroCommandReference(editor, macro);
                if (examples != null && examples.Count > 0) {
                   text.Append(rnd.From(examples));
@@ -430,23 +413,18 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                      var options = model.GetOptions(arg.EnumTableName);
                      if (options.Count == 0 && int.TryParse(arg.EnumTableName, out var count)) options = count.Range().Select(i => i.ToString()).ToList();
                      text.Append(" " + rnd.From(options));
-                  }
-                  else if (arg.Type != ArgType.Pointer) {
+                  } else if (arg.Type != ArgType.Pointer) {
                      if (string.IsNullOrEmpty(arg.EnumTableName)) {
                         text.Append($" {rnd.Next(5)}");
-                     }
-                     else {
+                     } else {
                         text.Append($" 0x{rnd.Next(16):X2}");
                      }
-                  }
-                  else if (arg.Type == ArgType.Pointer) {
+                  } else if (arg.Type == ArgType.Pointer) {
                      if (arg.PointerType == ExpectedPointerType.Script) {
                         text.Append(" <section1>");
-                     }
-                     else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                     } else if (arg.PointerType == ExpectedPointerType.Unknown) {
                         text.AppendLine(" <F00000>");
-                     }
-                     else {
+                     } else {
                         text.Append(" <auto>");
                      }
                   }
@@ -491,8 +469,7 @@ Use `special2 variable name` when doing an action that has a result.
             text.AppendLine();
             if (supportedGames.Count == specials.Count) {
                text.AppendLine("*(Supports all games.)*");
-            }
-            else {
+            } else {
                text.AppendLine($"*(Supports {", ".Join(supportedGames)})*");
             }
             text.AppendLine();
@@ -718,18 +695,15 @@ Use `special2 variable name` when doing an action that has a result.
             var offsetSplit = parts[0].Split('-');
             Name = offsetSplit[0];
             AddOffset = -int.Parse(offsetSplit[1]);
-         }
-         else if (parts[0].Contains("+")) {
+         } else if (parts[0].Contains("+")) {
             var offsetSplit = parts[0].Split('+');
             Name = offsetSplit[0];
             AddOffset = int.Parse(offsetSplit[1]);
-         }
-         else if (parts[0].Contains("*")) {
+         } else if (parts[0].Contains("*")) {
             var offsetSplit = parts[0].Split('*');
             Name = offsetSplit[0];
             MultOffset = int.Parse(offsetSplit[1]);
-         }
-         else {
+         } else {
             Name = parts[0];
          }
 
