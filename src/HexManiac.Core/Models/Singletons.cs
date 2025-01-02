@@ -20,7 +20,9 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class Singletons {
       private const string TableReferenceFileName = "resources/tableReference.txt";
+      private const string TableReferenceFileNameItalian = "resources/tableReference.it.txt";
       private const string ConstantReferenceFileName = "resources/constantReference.txt";
+      private const string ConstantReferenceFileNameItalian = "resources/constantReference.it.txt";
       private const string ThumbReferenceFileName = "resources/armReference.txt";
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
@@ -93,11 +95,13 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (line.StartsWith("#")) continue;
             if (line.Trim().StartsWith("#")) {
                active?.AddDocumentation(line.Trim());
-            } else {
+            }
+            else {
                if (MacroScriptLine.IsMacroLine(line)) {
                   var macro = new MacroScriptLine(line);
                   if (macro.IsValid) active = macro;
-               } else {
+               }
+               else {
                   active = factory(line);
                }
                if (active != null) scriptLines.Add(active);
@@ -123,9 +127,11 @@ namespace HavenSoft.HexManiac.Core.Models {
                   if (!dict.TryGetValue(key, out var list)) dict[key] = list = new List<DocLabel>();
                   lists.Add((List<DocLabel>)list);
                }
-            } else if (trim.StartsWith("#")) {
+            }
+            else if (trim.StartsWith("#")) {
                continue;
-            } else {
+            }
+            else {
                var content = trim.Split(" ", StringSplitOptions.RemoveEmptyEntries);
                if (content.Length != 2) continue;
                var label = new DocLabel(content[0], content[1]);
@@ -137,6 +143,20 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static IReadOnlyList<string> ReferenceOrder { get; } = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };
       private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTables() {
+         var tableEn = CreateGameReferenceTablesEnglish();
+         var tableIt = CreateGameReferenceTablesItalian();
+         var readonlyTables = new Dictionary<string, GameReferenceTables>();
+         foreach (var pair in tableEn) {
+            readonlyTables.Add(pair.Key, pair.Value);
+         }
+         foreach (var pair in tableIt) {
+            readonlyTables.Add(pair.Key, pair.Value);
+         }
+         return readonlyTables;
+      }
+
+      public static IReadOnlyList<string> ReferenceOrderItalian { get; } = new string[] { "name", FireRedIt, "format" };
+      private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTablesEnglish() {
          if (!File.Exists(TableReferenceFileName)) return new Dictionary<string, GameReferenceTables>();
          var lines = File.ReadAllLines(TableReferenceFileName);
          var tables = new Dictionary<string, List<ReferenceTable>>();
@@ -152,7 +172,8 @@ namespace HavenSoft.HexManiac.Core.Models {
                var parts = name.Split("+");
                name = parts[0];
                int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
-            } else if (name.Contains("-")) {
+            }
+            else if (name.Contains("-")) {
                var parts = name.Split("-");
                name = parts[0];
                int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
@@ -172,9 +193,84 @@ namespace HavenSoft.HexManiac.Core.Models {
          return readonlyTables;
       }
 
+      private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTablesItalian() {
+         if (!File.Exists(TableReferenceFileNameItalian)) {
+            return new Dictionary<string, GameReferenceTables>();
+         }
+         var lines = File.ReadAllLines(TableReferenceFileNameItalian);
+         var tables = new Dictionary<string, List<ReferenceTable>>();
+         for (int i = 0; i < ReferenceOrderItalian.Count - 2; i++) tables[ReferenceOrderItalian[i + 1]] = new List<ReferenceTable>();
+         foreach (var line in lines) {
+            var row = line.Trim();
+            if (row.StartsWith("//")) continue;
+            var segments = row.Split("//")[0].Split(",");
+            if (segments.Length != ReferenceOrderItalian.Count) continue;
+            var name = segments[0].Trim();
+            var offset = 0;
+            if (name.Contains("+")) {
+               var parts = name.Split("+");
+               name = parts[0];
+               int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+            }
+            else if (name.Contains("-")) {
+               var parts = name.Split("-");
+               name = parts[0];
+               int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+               offset = -offset;
+            }
+            var format = segments.Last().Trim();
+            for (int i = 0; i < ReferenceOrderItalian.Count - 2; i++) {
+               var addressHex = segments[i + 1].Trim();
+               if (addressHex == string.Empty) continue;
+               if (!int.TryParse(addressHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) continue;
+               tables[ReferenceOrderItalian[i + 1]].Add(new ReferenceTable(name, offset, address, format));
+            }
+         }
+
+         var readonlyTables = new Dictionary<string, GameReferenceTables>();
+         foreach (var pair in tables) readonlyTables.Add(pair.Key, new GameReferenceTables(pair.Value));
+         return readonlyTables;
+      }
+
+
       private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstants() {
+         var constantsEn = CreateGameReferenceConstantsEnglish();
+         var constantsIt = CreateGameReferenceConstantsItalian();
+         var readonlyConstants = new Dictionary<string, GameReferenceConstants>();
+         foreach (var pair in constantsEn) {
+            readonlyConstants.Add(pair.Key, pair.Value);
+         }
+         foreach (var pair in constantsIt) {
+            readonlyConstants.Add(pair.Key, pair.Value);
+         }
+         return readonlyConstants;
+      }
+
+      private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstantsEnglish() {
          if (!File.Exists(ConstantReferenceFileName)) return new Dictionary<string, GameReferenceConstants>();
          var lines = File.ReadAllLines(ConstantReferenceFileName);
+         var constants = new Dictionary<string, List<ReferenceConstant>>();
+         foreach (var line in lines) {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            var cleanLine = line.Trim();
+            if (cleanLine.Length < 6) continue;
+            if (!char.IsLetter(cleanLine[0])) continue;
+            var gameCode = cleanLine.Substring(0, 5).ToUpper();
+            if (!constants.TryGetValue(gameCode, out var collection)) {
+               collection = new List<ReferenceConstant>();
+               constants[gameCode] = collection;
+            }
+            collection.Add(new ReferenceConstant(cleanLine.Substring(5)));
+         }
+
+         var readonlyConstants = new Dictionary<string, GameReferenceConstants>();
+         foreach (var pair in constants) readonlyConstants.Add(pair.Key, new GameReferenceConstants(pair.Value));
+         return readonlyConstants;
+      }
+
+      private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstantsItalian() {
+         if (!File.Exists(ConstantReferenceFileNameItalian)) return new Dictionary<string, GameReferenceConstants>();
+         var lines = File.ReadAllLines(ConstantReferenceFileNameItalian);
          var constants = new Dictionary<string, List<ReferenceConstant>>();
          foreach (var line in lines) {
             if (string.IsNullOrWhiteSpace(line)) continue;
@@ -209,7 +305,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public void ExportReadableScriptReference(EditorViewModel editor) {
          var specials = new Dictionary<string, StoredList>(
             new[] { "axve", "axpe", "bpre", "bpge", "bpee" }
-            .Select<string, KeyValuePair<string,StoredList>>(
+            .Select<string, KeyValuePair<string, StoredList>>(
                code => new(code, BaseModel.GetDefaultMetadatas(code).SelectMany(md => md.Lists).Single(list => list.Name == "specials"))
             )
          );
@@ -260,7 +356,8 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (arg is ArrayArg array) {
                   text.Append($" `[{arg.Name}]`");
-               } else {
+               }
+               else {
                   text.Append($" `{arg.Name}`");
                }
             }
@@ -271,26 +368,35 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                if (arg is SilentMatchArg || arg.Name == "filler") continue;
                if (!string.IsNullOrEmpty(arg.EnumTableName) && !arg.EnumTableName.StartsWith("|")) {
                   text.AppendLine($"{nl}*  `{arg.Name}` is from {arg.EnumTableName}");
-               } else if (arg.Type != ArgType.Pointer) {
+               }
+               else if (arg.Type != ArgType.Pointer) {
                   if (string.IsNullOrEmpty(arg.EnumTableName)) {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a number.");
-                  } else {
+                  }
+                  else {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a number (hex).");
                   }
-               } else if (arg.Type == ArgType.Pointer) {
+               }
+               else if (arg.Type == ArgType.Pointer) {
                   if (arg.PointerType == ExpectedPointerType.Script) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to a script or section");
-                  } else if (arg.PointerType == ExpectedPointerType.Mart) {
+                  }
+                  else if (arg.PointerType == ExpectedPointerType.Mart) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to pokemart data or auto");
-                  } else if (arg.PointerType == ExpectedPointerType.Movement) {
+                  }
+                  else if (arg.PointerType == ExpectedPointerType.Movement) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to movement data or auto");
-                  } else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
+                  }
+                  else if (arg.PointerType == ExpectedPointerType.SpriteTemplate) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to sprite-template data or auto");
-                  } else if (arg.PointerType == ExpectedPointerType.Decor) {
+                  }
+                  else if (arg.PointerType == ExpectedPointerType.Decor) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to decor data or auto");
-                  } else if (arg.PointerType == ExpectedPointerType.Text) {
+                  }
+                  else if (arg.PointerType == ExpectedPointerType.Text) {
                      text.AppendLine($"{nl}*  `{arg.Name}` points to text or auto");
-                  } else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                  }
+                  else if (arg.PointerType == ExpectedPointerType.Unknown) {
                      text.AppendLine($"{nl}*  `{arg.Name}` is a pointer.");
                   }
                }
@@ -306,7 +412,8 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                   text.Append(rnd.From(examples));
                   exampleFound = true;
                }
-            } else if (line is MacroScriptLine macro) {
+            }
+            else if (line is MacroScriptLine macro) {
                var examples = GetExamplesForMacroCommandReference(editor, macro);
                if (examples != null && examples.Count > 0) {
                   text.Append(rnd.From(examples));
@@ -323,18 +430,23 @@ For example scripts and tutorials, see the [HexManiacAdvance Wiki](https://githu
                      var options = model.GetOptions(arg.EnumTableName);
                      if (options.Count == 0 && int.TryParse(arg.EnumTableName, out var count)) options = count.Range().Select(i => i.ToString()).ToList();
                      text.Append(" " + rnd.From(options));
-                  } else if (arg.Type != ArgType.Pointer) {
+                  }
+                  else if (arg.Type != ArgType.Pointer) {
                      if (string.IsNullOrEmpty(arg.EnumTableName)) {
                         text.Append($" {rnd.Next(5)}");
-                     } else {
+                     }
+                     else {
                         text.Append($" 0x{rnd.Next(16):X2}");
                      }
-                  } else if (arg.Type == ArgType.Pointer) {
+                  }
+                  else if (arg.Type == ArgType.Pointer) {
                      if (arg.PointerType == ExpectedPointerType.Script) {
                         text.Append(" <section1>");
-                     } else if (arg.PointerType == ExpectedPointerType.Unknown) {
+                     }
+                     else if (arg.PointerType == ExpectedPointerType.Unknown) {
                         text.AppendLine(" <F00000>");
-                     } else {
+                     }
+                     else {
                         text.Append(" <auto>");
                      }
                   }
@@ -379,7 +491,8 @@ Use `special2 variable name` when doing an action that has a result.
             text.AppendLine();
             if (supportedGames.Count == specials.Count) {
                text.AppendLine("*(Supports all games.)*");
-            } else {
+            }
+            else {
                text.AppendLine($"*(Supports {", ".Join(supportedGames)})*");
             }
             text.AppendLine();
@@ -605,15 +718,18 @@ Use `special2 variable name` when doing an action that has a result.
             var offsetSplit = parts[0].Split('-');
             Name = offsetSplit[0];
             AddOffset = -int.Parse(offsetSplit[1]);
-         } else if (parts[0].Contains("+")) {
+         }
+         else if (parts[0].Contains("+")) {
             var offsetSplit = parts[0].Split('+');
             Name = offsetSplit[0];
             AddOffset = int.Parse(offsetSplit[1]);
-         } else if (parts[0].Contains("*")) {
+         }
+         else if (parts[0].Contains("*")) {
             var offsetSplit = parts[0].Split('*');
             Name = offsetSplit[0];
             MultOffset = int.Parse(offsetSplit[1]);
-         } else {
+         }
+         else {
             Name = parts[0];
          }
 
