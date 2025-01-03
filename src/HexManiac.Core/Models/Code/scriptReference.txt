@@ -258,6 +258,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 59 spriteinvisible npc: bank. map.           # hides the sprite on the given map by setting its invisibility to true.
 5A faceplayer                                # if the script was called by a person event, make that person face the player
 5B spriteface npc: direction.directions
+5B turnobject npc: direction.directions
 
 5C trainerbattle 00 trainer:data.trainers.stats arg: start<""> playerwin<"">
 5C trainerbattle 01 trainer:data.trainers.stats arg: start<""> playerwin<""> winscript<`xse`>         # doesn't play encounter music, continues with winscript
