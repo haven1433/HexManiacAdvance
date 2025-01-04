@@ -4437,13 +4437,9 @@ Name = '''perstepcallbacks'''
 Name = '''directions'''
 1 = [
    '''South''',
-   '''Down''',
    '''North''',
-   '''Up''',
    '''West''',
-   '''Left''',
    '''East''',
-   '''Right''',
    '''Southwest''',
    '''Southeast''',
    '''Northwest''',
