@@ -359,7 +359,7 @@ graphics.misc.questionnaire.button.palette, 436E90,  `ucp4`
 graphics.misc.questionnaire.button.sprite, 436EB8,  `lzs4x8x8|graphics.misc.questionnaire.button.palette`
 
 
-graphics.overworld.firstpersonview.sprites, 0F8390,  [id.data.maps.names+88 transition.transitiontype worldmapflag: tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]graphics.firstpersonview.count
+graphics.overworld.firstpersonview.sprites, 0F8390,  [id.data.maps.names+88 transition.transitiontype worldmapflag: tileset<`lzt4|graphics.overworld.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.overworld.firstpersonview.sprites`> pal<`ucp4:DE`>]graphics.firstpersonview.count
 graphics.battle.background.sprites      , 00F224,  [battletiles<`lzt4`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> | introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
 graphics.battle.background.fighttype    , 00F1D0,  [id. entry.graphics.battle.background.sprites unused:]8
 graphics.battle.hud.palette             , 259340,  `ucp4`
