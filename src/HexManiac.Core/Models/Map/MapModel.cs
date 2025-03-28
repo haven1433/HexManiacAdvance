@@ -57,14 +57,14 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public int NameIndex {
          get {
             var code = Element.Model.GetShortGameCode();
-            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            int offset = code.IsAny(0x45525042, 0x45475042, 0x49525042) ? 88 : 0; // BPRE, BPGE, BPRI
             if (!Element.TryGetValue("regionSectionID", out var value)) return -1;
             return value - offset;
          }
          set {
             if (!Element.HasField("regionSectionID")) return;
             var code = Element.Model.GetShortGameCode();
-            int offset = code.IsAny(0x45525042, 0x45475042) ? 88 : 0; // BPRE, BPGE
+            int offset = code.IsAny(0x45525042, 0x45475042, 0x49525042) ? 88 : 0; // BPRE, BPGE, BPRI
             Element.SetValue("regionSectionID", value + offset);
          }
       }
@@ -177,7 +177,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       int Elevation { get; }
    }
 
-   public record BaseEventModel(ModelArrayElement Element): IEventModel {
+   public record BaseEventModel(ModelArrayElement Element) : IEventModel {
       public int X => Element.TryGetValue("x", out int x) ? x : 0;
       public int Y => Element.TryGetValue("y", out int y) ? y : 0;
       public int Elevation => Element.TryGetValue("elevation", out int elevation) ? elevation : 0;
@@ -229,6 +229,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public bool HasScript => Kind < 5;
       public bool IsHiddenItem => Kind.IsAny(5, 6, 7);
       public int ItemValue => Element.Model.ReadMultiByteValue(Element.Start + 8, 2);
+      public int HiddenItemFlag => Element.Model[Element.Start + 10];
+      public int HiddenItemCount => Element.Model[Element.Start + 11];
       public int ScriptAddress => Element.Model.ReadPointer(Element.Start + 8);
    }
 

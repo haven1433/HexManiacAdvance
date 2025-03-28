@@ -851,7 +851,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void TableTool_FilterTupleFieldName_TupleVisible() {
          var tool = ViewPort.Tools.TableTool;
          tool.Groups.Clear();
-         tool.Groups.Add(new());
+         tool.Groups.Add(new(ViewPort));
          var section = new SplitterArrayElementViewModel(ViewPort, "section", 0);
          var tuple = new TupleArrayElementViewModel(ViewPort, new ArrayRunTupleSegment("tuples", "|abc:|def:|ijk:|xyz:", 4), 0);
 

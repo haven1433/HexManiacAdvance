@@ -64,12 +64,12 @@ namespace HavenSoft.HexManiac.Core.Models {
    public static class PCSString {
       private const string TextReferenceFileName = "resources/pcsReference.txt";
 
-      public static IReadOnlyList<string> PCS;
-      public static IReadOnlySet<string> ValidInProgressEscapes;
-      public static IReadOnlyList<byte> Newlines;
-      public static IReadOnlyDictionary<byte, byte> ControlCodeLengths;
-      public static IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> TextMacros;
-      public static IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>> TextMacrosIndex;
+      public static readonly IReadOnlyList<string> PCS;
+      public static readonly IReadOnlySet<string> ValidInProgressEscapes;
+      public static readonly IReadOnlyList<byte> Newlines;
+      public static readonly IReadOnlyDictionary<byte, byte> ControlCodeLengths;
+      public static readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> TextMacros;
+      public static readonly IReadOnlyDictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>> TextMacrosIndex;
 
       public static readonly byte DynamicEscape = 0xF7;
       public static readonly byte FunctionEscape = 0xFC;
@@ -581,6 +581,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private static string FindMacro(IReadOnlyList<IReadOnlyDictionary<string, byte[]>> macrosIndex, IReadOnlyList<byte> data, int index) {
+         if (!index.InRange(0, data.Count)) return null;
          var macros = macrosIndex[data[index]];
          if (macros == null) return null;
          foreach (var kvp in macros) {

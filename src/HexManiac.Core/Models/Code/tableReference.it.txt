@@ -1,0 +1,650 @@
+﻿// Contributed by Leonardo Cariaggi (leqo-c) and Francesco Cariaggi (anferico)
+// Special thanks to Fred40 for helping with a lot of the FireRed image anchors
+
+// quick reference for formats
+// .          one byte
+// :          two bytes
+// ::         four bytes
+// ""         pokemon-character-set text, dynamic length
+// ""10       10 pokemon-character-set characters, the last one should be an 'end' (FF)
+// |h         display as hex
+// |z         signed value (can be negative)
+// |t         a tuple
+// |s         switch/record. Value type depends on other fields
+// |b[]       bit-array (1-bit per value, labeled after an enum or list)
+// <>         pointer
+// `asc`10    10 ascii characters
+// `ucp`      uncompressed palette
+// `lzp4`     compressed palette
+// `lzs4`     compressed sprite
+// `lzt4`     compressed tiles
+// `lzm4`     compressed tilemap
+// `ucs4x4x4` uncompressed sprite
+// `uct`      uncompressed tiles
+// `ucm`      uncompressed tilemap
+// `xse`      event script
+// `bse`      battle script
+// `ase`      animation script
+// `tse`      trainer AI script
+// `pie`      pokemon item effect
+// `tpt`      trainer pokemon team
+// `osl`      overworld sprite list
+// `egg`      egg moves
+// `blm`      block-map (which blocks go where in a map)
+// `bls`      block-set (which tiles/palettes make up a set of blocks)
+// `bld`      block-data (flags plus pointers to tileset, palette, blockset, block attributes, and tileset animation)
+// `bla`      block-attributes
+//games,                                   BPRI0,
+//                                         FRedIt,
+
+data.pokemon.names                      , 000144,  [name""11]
+data.pokemon.moves.names                , 000148,  ^[name""13]
+data.abilities.names                    , 0001C0,  [name""13]
+data.trainers.classes.names             , 0D7B0C,  [name""13]107
+data.pokemon.type.names                 , 0308B4,  ^[name""7]data.pokemon.type.length
+data.items.stats                        , 0001C8,  [name""13 unused. index: price: holdeffect.holdeffects param. description<""> keyitemvalue. bagkeyitem. pocket.pocketid type.|s=pocket(0=itemtype|1=itemtype|2=itemtype|4=itemtype|5=itemtype) fieldeffect<> battleusage:: battleeffect<> battleextra::]data.items.count
+data.abilities.descriptions             , 0001C4,  [description<"">]data.abilities.names
+data.pokemon.moves.descriptions         , 0E5664,  [description<"">]data.pokemon.moves.names-1
+scripts.text.multichoice                , 09CC28,  [options<[text<""> unused::]/count> count::]
+scripts.text.listmenu                   , 0CBC00,  [option1<""> option2<""> option3<""> option4<""> option5<""> option6<""> option7<""> option8<""> option9<""> optionA<""> optionB<""> optionC<"">]7
+
+data.pokemon.natures.names              , 0487B0,  [name<"">]25
+data.menus.text.options                 , 088EAC,  [text<"">]7
+data.menus.text.pc                      , 08FCCC,  [text<""> msgvar::messagevars]31
+data.menus.text.pokemon                 , 121E6C,  [text<"">]27
+data.menus.text.pcoptions               , 0EBA30,  [text<""> code<>]3
+data.menus.namescreen.content           , 09F738,  [line""8]12
+data.menus.namescreen.draw              , 09FB30,  [line<[unknown:|h gap. character""1]!FF>]12
+
+scripts.newgame.names.male              , 131780,  [name<"">]19
+scripts.newgame.names.female            , 13177C,  [name<"">]19
+scripts.newgame.names.rival             , 1317E0,  [name<"">]4
+
+data.maps.names                         , 0C0E44,  [name<"">]
+data.maps.banks                         , 055258,  [maps<[map<[layout<[width:: height:: borderblock<> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> borderwidth. borderheight. unused:]1> events<[objectCount.100 warpCount.100 scriptCount.100 signpostCount.100 objects<[id. graphics.graphics.overworld.sprites kind: x:|z y:|z elevation.11 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/objectCount> warps<[x:|z y:|z elevation.11 warpID. map. bank.]/warpCount> scripts<[x:|z y:|z elevation:11 trigger: index:: script<`xse`>]/scriptCount> signposts<[x:|z y:|z elevation.11 kind. unused:1 arg::|s=kind(0=<>|1=<>|2=<>|3=<>|4=<>)]/signpostCount>]1> mapscripts<[type. pointer<>]!00> connections<[count:: connections<[direction::mapdirections offset:: mapGroup. mapNum. unused:]/count>]1> music:songnames layoutID:data.maps.layouts+1 regionSectionID.data.maps.names+88 cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName. floorNum. battleType.]1>]?>]43
+data.maps.layouts                       , 0551A0,  [layout<[width:: height:: borderblock<> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> borderwidth. borderheight. unused:]1>]383
+data.maps.dungeons.stats                , 0C1A68,  [id:: name<""> description<"">]19
+
+data.maps.heal.map                      , 0BFF30,  [bank: map:]data.maps.heal.length
+data.maps.heal.healerNPC                , 0BFFC4,  [ID.]data.maps.heal.map
+
+// TODO Leo: Questo fly.spawn l'ho valorizzato correttamente ma nella rom inglese ci sono anche due copie del puntatore con -8.
+data.maps.fly.spawn                     , 0BFE24,  [bank. map. x: y: unused:]data.maps.heal.length
+data.maps.fly.connections               , 0C5440,  [bank. map. flight.]data.maps.names-0-1
+
+data.maps.roaming.sets                  , 141E88,  [loc1. loc2. loc3. loc4. loc5. loc6. loc7.]26 
+
+//                                          +28 pokemon are for egg and unown sprites (B-Z, !, ?),
+graphics.pokemon.sprites.front          , 000128,  ^[sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
+graphics.pokemon.sprites.back           , 00012C,  [sprite<`lzs4x8x8`> uncompressedLength: index:]data.pokemon.names+28
+graphics.pokemon.sprites.ghost          , 0345A4,  `lzs4x8x8|graphics.pokemon.palettes.ghost`
+graphics.pokemon.palettes.ghost         , 0345AC,  `lzp4`
+
+graphics.pokemon.sprites.elevation      , 0355E4,  [elevation.]data.pokemon.names
+graphics.pokemon.sprites.footprint      , 105ECC,  [footprint<`ucs1x2x2`>]data.pokemon.names+1
+graphics.pokemon.sprites.coordinates.front, 011ED0,  [size.|t|width::|height:: yOffset. render|render=graphics.battle.background.sprites/0/battlemap/|0|0|240|112|graphics.pokemon.sprites.front|144|8||yOffset-graphics.pokemon.sprites.elevation/elevation unused:]data.pokemon.names+28
+graphics.pokemon.sprites.coordinates.back, 074584,  [size.|t|width::|height:: yOffset. render|render=graphics.battle.background.sprites/0/battlemap/|0|0|240|112|graphics.pokemon.sprites.back|40|48||yOffset unused:]data.pokemon.names+28
+graphics.pokemon.sprites.anchor         , 12EB70,  [x1. y1. yClose. x2. y2.]data.pokemon.names-1+2 
+graphics.pokemon.palettes.normal        , 000130,  ^[palette<`lzp4`> index: unused:]data.pokemon.names+28
+graphics.pokemon.palettes.shiny         , 000134,  [palette<`lzp4`> index: unused:]data.pokemon.names+28
+graphics.pokemon.icons.sprites          , 000138,  [icon<`ucs4x4x8|graphics.pokemon.icons.index`>]data.pokemon.names+28
+graphics.pokemon.icons.index            , 00013C,  [index.graphics.pokemon.icons.palettes]data.pokemon.names+28
+graphics.pokemon.icons.palettes         , 000140,  [palette<`ucp4`> id::]3
+graphics.pokemon.icons.deoxys           , 3CC8D8,  `ucs4x4x16|graphics.pokemon.icons.index`
+graphics.pokemon.shiny.star.sprite      , 13AF44,  `lzs4x1x2|graphics.pokemon.shiny.star.palette`
+graphics.pokemon.shiny.star.palette     , 13AF48,  `ucp4`
+graphics.pokemon.evolution.scene.palette, 0D04F4,  `ucp4:AB`
+graphics.pokemon.evolution.scene.tileset, 0D05AC,  `lzt4|graphics.pokemon.evolution.scene.palette`
+graphics.pokemon.evolution.scene.tilemap1, 0D05B0,  `lzm4x32x32|graphics.pokemon.evolution.scene.tileset`
+graphics.pokemon.evolution.scene.tilemap2, 0D05B4,  `lzm4x32x32|graphics.pokemon.evolution.scene.tileset`
+graphics.trainers.sprites.front         , 034628,  [sprite<`lzs4x8x8|graphics.trainers.palettes.front`> uncompressedLength: index:]148
+
+graphics.trainers.sprites.back.enter    , 10BD1C,  [sprite<`ucs4x8x8|graphics.trainers.palettes.back`> a. b. c:]6
+graphics.trainers.animations.back       , 03F790,  [animationPointer<[animation<[frame: time:]!FFFF0000>]2>]graphics.trainers.sprites.back.enter
+graphics.trainers.animations.frames     , 10BE6C,  [animationPointer<[animation<>]1>]graphics.trainers.sprites.front
+graphics.trainers.coordinates.front     , 037F38,  [x. y. unused:]graphics.trainers.sprites.front
+graphics.trainers.palettes.front        , 034638,  [palette<`lzp4`> index: unused:]graphics.trainers.sprites.front
+graphics.trainers.sprites.back.throw    , 03F78C,  [titleTag:|h paletteTag:|h oam<> anims<> sprites<`osl|graphics.trainers.palettes.back:sprite`> affineAnimations<> callback<>]graphics.trainers.sprites.back.enter
+graphics.trainers.coordinates.back      , 032460,  [x. y. unused:]graphics.trainers.sprites.back.enter
+graphics.trainers.palettes.back         , 0334C0,  [pal<`lzp4`> sprite::]graphics.trainers.sprites.back.enter
+graphics.trainers.emotes.sprites        , 3C039C,  [pointer<`ucs4x2x2|graphics.overworld.palettes:id=1100`> length::]15
+
+
+graphics.pokedex.habitats               , 103198,  [sprite<`lzs4x8x6`> pal<`ucp4`>]data.pokedex.habitat.names+6
+graphics.pokedex.minibox                , 105118,  `lzs4x8x4|graphics.townmap.catchmap.palette`
+graphics.pokedex.regionaldex.tileset    , 1028F8,  `lzt4|graphics.townmap.catchmap.palette`
+graphics.pokedex.nationaldex.tileset    , 1027F0,  `lzt4|graphics.townmap.catchmap.palette`
+
+
+graphics.pokemon.moves.animations       , 072520,  [animation<`ase`>]data.pokemon.moves.names
+graphics.moves.particles.sprites-13880  , 072808,  [ptr<`lzt4`> size: index:move_particles+10000]move_particles
+graphics.moves.particles.palettes-13880 , 07280C,  [ptr<`lzp4`> index:move_particles+10000 unused:]graphics.moves.particles.sprites
+graphics.moves.backgrounds.all          , 0738B0,  [tileset<`lzt4`> palette<`lzp4:2`> tilemap<`lzm4x32x32|graphics.moves.backgrounds.all`>]animationbg
+graphics.moves.backgrounds.psychic      , 3A6E4C,  `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.opponent, 3A6E58,  `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.player, 3A6E64,  `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.contest, 3A6E70,  `lzm4x32x20|graphics.moves.backgrounds.all`
+graphics.moves.backgrounds.impact.fissure, 3A6F24,  `lzm4x32x64|graphics.moves.backgrounds.all`
+graphics.moves.surf.palette             , 0AB530,  `lzp4:8`
+graphics.moves.surf.tileset             , 0AB528,  `lzt4|graphics.moves.surf.palette`
+graphics.moves.surf.opponent            , 0AB4D0,  `lzm4x32x64|graphics.moves.surf.tileset`
+graphics.moves.surf.player              , 0AB4E0,  `lzm4x32x64|graphics.moves.surf.tileset`
+graphics.moves.surf.contest             , 0AB524,  `lzm4x32x64|graphics.moves.surf.tileset`
+
+graphics.items.ball.sprites             , 0001D0,  [sprite<`lzs4x2x6|graphics.items.ball.palettes`> uncompressedLength: tag:]12
+graphics.items.ball.palettes            , 0001D4,  [palette<`lzp4`> a b unused:]graphics.items.ball.sprites
+graphics.items.ball.trade.sprite        , 265EB4,  `ucs4x2x24|graphics.items.ball.trade.palette`
+graphics.items.ball.trade.palette       , 265EBC,  `ucp4`
+graphics.items.sprites                  , 098A8C,  [sprite<`lzs4x3x3`> palette<`lzp4`>]data.items.stats+1
+graphics.items.mail                     , 0BF060,  [pal<`ucp4`> tileset<`lzt4`> tilemap<`lzm4x32x20|graphics.items.mail`> size:: textcolor:|c shadow:|c]12
+graphics.items.fossils.palette1         , 09D6D4,  `ucp4`
+graphics.items.fossils.palette2         , 09D624,  `ucp4`
+graphics.items.fossils.sprite1          , 3D8690,  `ucs4x8x8|graphics.items.fossils.palette1`
+graphics.items.fossils.sprite2          , 3D8680,  `ucs4x8x8|graphics.items.fossils.palette2`
+
+
+data.pokemon.stats                      , 0001BC,  [hp. attack. def. speed. spatk. spdef. baseStatTotal|=hp+attack+def+speed+spatk+spdef type1.data.pokemon.type.names type2.data.pokemon.type.names catchRate. baseExp. evs:|t|hp:|atk:|def:|spd:|spatk:|spdef: item1:data.items.stats item2:data.items.stats genderratio.genderratiovalues steps2hatch. basehappiness. growthrate.growthrates egg1.egggroups egg2.egggroups ability1.data.abilities.names ability2.data.abilities.names runrate. dex.|t|color:::.bodycolors|noFlip. padding:]data.pokemon.names
+
+// TODO Leo: dati trovati, nessun anchor
+data.pokemon.deoxys.stats               , 0445F0,  [hp: atk: def: spd: spatk: spdef:]1
+
+data.pokemon.evolutions                 , 042E58,  [method1:evolutionmethods arg1:|s=method1(6=data.items.stats|7=data.items.stats) species1:data.pokemon.names unused1: method2:evolutionmethods arg2:|s=method2(6=data.items.stats|7=data.items.stats) species2:data.pokemon.names unused2: method3:evolutionmethods arg3:|s=method3(6=data.items.stats|7=data.items.stats) species3:data.pokemon.names unused3: method4:evolutionmethods arg4:|s=method4(6=data.items.stats|7=data.items.stats) species4:data.pokemon.names unused4: method5:evolutionmethods arg5:|s=method5(6=data.items.stats|7=data.items.stats) species5:data.pokemon.names unused5:]data.pokemon.names
+
+// TODO Leo: dati trovati, nessun anchor
+data.items.pokeball.catchrates          , 02D618,  [catchrate.]4
+
+data.items.effects                      , 03A19C,  [data<`pie`>]data.items.stats-13-199
+data.items.berry.stats                  , 09C84C,  [name""7 firmness. size: maxYield. minYield. description1<""> description2<""> stageDuration. spicy. dry. sweet. bitter. sour. smoothness:]43
+data.items.teachy.tv                    , 46E680,  [label<""> id::]data.items.teachy.count
+data.pokemon.moves.stats.battle         , 0001CC,  [effect.moveeffectoptions power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority.|z info|b[]moveinfo unused. unused:]data.pokemon.moves.names
+data.pokemon.moves.levelup              , 03E968,  [movesFromLevel<[pair:|t|move::::.data.pokemon.moves.names|level:::.]!FFFF>]data.pokemon.names
+data.pokemon.moves.tutors               , 120C5C,  [move:data.pokemon.moves.names]15
+
+// TODO Leo: dati trovati, nessun anchor
+data.pokemon.moves.tutorcompatibility   , 120CA8,  [moves|b[]data.pokemon.moves.tutors]data.pokemon.names
+
+data.pokemon.moves.tms                  , 125B1C,  [move:data.pokemon.moves.names]58
+data.pokemon.moves.tmcompatibility      , 043B54,  [moves|b[]data.pokemon.moves.tms]data.pokemon.names
+data.pokemon.moves.hms                  , 0440C8,  [move:data.pokemon.moves.names]8
+data.pokemon.moves.details.flash.radius , 07EFC0,  [levelToRadius:]scripts.moves.flash.maxlevel
+data.pokemon.moves.details.lowkick.power, 02C8B4,  [weight: basePower:]!FFFFFFFF
+data.pokemon.moves.details.singing      , 072638,  [move:data.pokemon.moves.names]!FFFF
+
+// TODO Leo: dati trovati, nessun anchor (3F5FD7). Tuttavia, sembra abbia risolto.
+data.pokemon.moves.details.fallback.names, 0D77C4,  [name<"">]data.pokemon.type.names
+
+data.trainers.stats                     , 00FB84,  [structType.trainerStructType class.data.trainers.classes.names introMusicAndGender.|t|music:::.encountersongs|female. sprite.graphics.trainers.sprites.front name""12 prizeMoney|=4*(data.trainers.money/class=class)/moneyrate*pokemon/last/level item1:data.items.stats item2:data.items.stats item3:data.items.stats item4:data.items.stats doubleBattle::doublebattleflag ai|b[]traineraibits | pokemonCount:: pokemon<`tpt`>]
+data.trainers.money                     , 025950,  [class.data.trainers.classes.names moneyrate. unused:]105  
+data.trainers.vsseeker                  , 10C8B0,  [match1:data.trainers.stats match2:data.trainers.stats match3:data.trainers.stats match4:data.trainers.stats match5:data.trainers.stats match6:data.trainers.stats mapbank: map:]221
+data.decorations.stats                  , 00014C,  [id. name""16 permission.decorpermissions shape.decorshape category.decorcategory price: unused: description<""> graphics<>]
+data.pokemon.wild                       , 0828E0,  [bank. map. unused: grass<[rate:: list<[basic|comment=0|20% common|comment=2|10% uncommon|comment=6|5% rare|comment=8|4% mythic|comment=10|1% lowLevel. highLevel. species:data.pokemon.names]12>]1> surf<[rate:: list<[lowLevel. highLevel. species:data.pokemon.names]5>]1> tree<[rate:: list<[lowLevel. highLevel. species:data.pokemon.names]5>]1> fish<[rate:: list<[old|comment=0|old_rod: good|comment=2|good_rod: super|comment=5|super_rod: lowLevel. highLevel. species:data.pokemon.names]10>]1>]!FFFF
+data.pokemon.trades                     , 053AE0,  [nickname""12 receive:data.pokemon.names hp. attack. defense. speed. spatk. spdef. abilitynum:: trainerid:: cool. tough. beauty. smart. cute. unused. unused: personality:: nature|=personality%25|data.pokemon.natures.names helditem:data.items.stats mailnum. trainername""11 trainergender.trainergender sheen. give::data.pokemon.names]9
+data.pokemon.moves.details.mimic.metronome.forbidden, 0294F4,  [move:data.pokemon.moves.names]!FFFF
+data.pokemon.moves.details.protect.successrate, 026FCC,  [rate:]4
+data.pokemon.friendship.changes         , 043778,  [lowFriendshipChange.|z mediumFriendshipChange.|z highFriendshipChange.|z]friendshipevents
+data.abilities.pickup.items             , 02CE68,  [item:data.items.stats chance:]data.abilities.pickup.length
+data.abilities.soundproof.moves         , 01A600,  [move:data.pokemon.moves.names]!FFFF
+data.pokemon.moves.egg                  , 045B40,  `egg`
+data.pokemon.type.chart                 , 01E8C8,  [attack.data.pokemon.type.names defend.data.pokemon.type.names strength.effectiveness]!FFFF00
+data.pokemon.type.holdEffects           , 03EE24,  [effect. type.data.pokemon.type.names]data.pokemon.type.holdEffect.length
+data.pokemon.natures.stats              , 0435C4,  [attack.|z defense.|z speed.|z spAttack.|z spDefense.|z]data.pokemon.natures.names
+scripts.moves.effects                   , 0162E8,  [effect<`bse`>]moveeffectoptions
+scripts.moves.setupeffects              , 1D8F02,  [effects.moveeffectoptions]!FF
+scripts.commands.battle.animationscript , 0727A8,  [code<>]48
+scripts.commands.events.specials        , 069EF8,  [code<>]444
+scripts.commands.events.thumb           , 069A78,  [code<>]213
+scripts.specials.vars                   , 06E470,  [variable::|h]21
+scripts.commands.battle.battlescript    , 014BA0,  [code<>]248
+scripts.commands.battle.ai_script       , 0C7278,  [command<>]94
+scripts.commands.battle.animations      , 3A6F64,  [code<>]48
+scripts.battle.ai.hpaware.discourage.when.self.high, 1D8FC7,  [effect.moveeffectoptions]!FF
+scripts.battle.ai.hpaware.discourage.when.self.medium, 1D8FD6,  [effect.moveeffectoptions]!FF
+scripts.battle.ai.hpaware.discourage.when.self.low, 1D8FB8,  [effect.moveeffectoptions]!FF
+scripts.battle.ai.hpaware.discourage.when.target.high, 1D900A,  [effect.moveeffectoptions]!FF
+scripts.battle.ai.hpaware.discourage.when.target.medium, 1D9019,  [effect.moveeffectoptions]!FF
+scripts.battle.ai.hpaware.discourage.when.target.low, 1D8FFB,  [effect.moveeffectoptions]!FF
+scripts.battle.ai.trainer               , 0C7250,  [ai<`tse`>]traineraibits
+scripts.newgame.setflags                , 054B78,  `xse`
+scripts.newgame.pc.item                 , 0EB8CC,  [item:data.items.stats count:]!00000000
+scripts.credits.panmap                  , 0F3E48,  [data<[loadmapCommand: bank: map:: x: y: delay:: xspeed: yspeed: length:: end1Command: end2Command: end3Command::]1>]13
+scripts.credits.text                    , 0F41A0,  [header<""> text<""> bool::|t|unknown.]
+scripts.evolution.routines              , 042EAC,  [thumb<>]scripts.evolution.count
+scripts.commands.events.callstd         , 069EFC,  [script<`xse`>]10
+
+graphics.pokemon.castform.sprite.coordinates.front, 074670,  [size. yOffset. unused:]4
+graphics.pokemon.castform.sprite.elevations, 0746D0,  [elevation.]graphics.pokemon.castform.sprite.coordinates.front
+graphics.pokemon.castform.sprite.coordinates.back, 0745A0,  [yOffset.]graphics.pokemon.castform.sprite.coordinates.front
+data.battle.text                        , 0CF174,  [text<"">]data.battle.textlength
+
+
+data.pokedex.regional                   , 0430DC,  [index:]data.pokemon.names-1
+data.pokedex.national                   , 043128,  [index:]data.pokemon.names-1
+// hoenn[treecko]  =   1, national[treecko]  = 252, HoeennToNationalDex[ 1]= 252
+// hoenn[bulbasaur]= 203, national[bulbasaur]=   1, HoennToNationalDex[203]=   1
+// -> this table's values can be determined automatically based on the first two
+data.pokedex.hoennToNational            , 043174,  [index:]data.pokemon.names-1
+data.pokedex.stats                      , 088F04,  [species""12 height: heightInches|=height÷.254 weight: weightLbs|=weight÷4.536 description1<""> description2<""> unused: pokemonScale: pokemonOffset:|z trainerScale: trainerOffset:|z unused:]
+data.pokedex.search.alpha               , 1038E8,  [species:data.pokedex.national]data.pokedex.national
+data.pokedex.search.weight              , 103A20,  [species:data.pokedex.national]data.pokedex.national-25
+data.pokedex.search.size                , 103ABC,  [species:data.pokedex.national]data.pokedex.national-25
+data.pokedex.search.type                , 103988,  [species:data.pokemon.names]data.pokedex.national
+data.pokemon.type.unionroom.options     , 44E04C,  [type<> index::]data.pokemon.type.names-1+1
+data.pokedex.habitat.names              , 105230,  [name<"">]
+data.pokedex.habitat.pages              , 106948,  [data<[pokemon<[species:data.pokemon.names]/pokecount> pokecount::]/count> count::]data.pokedex.habitat.names
+
+data.battletower.items                  , 0E65A0,  [item:data.items.stats]64
+data.battletower.pokemon.level50        , 0E659C,  [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.battletower.pokemon.level100       , 0E6540,  [species:data.pokemon.names heldItem.data.battletower.items flags.|h move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names evSpread|b[]battletowerEvFlags nature.data.pokemon.natures.names unused:]300
+data.battletower.prizes                 , 15E0E0,  [item:data.items.stats]15
+data.trainers.trainertower.trainers     , 15DA04,  [trainer<[id. floor. challengetype. prize. name""11 class. textColor. unused. beforeWord1:|h beforeWord2:|h beforeWord3:|h beforeWord4:|h beforeWord5:|h beforeWord6:|h winWord1:|h winWord2:|h winWord3:|h winWord4:|h winWord5:|h winWord6:|h lostWord1:|h lostWord2:|h lostWord3:|h lostWord4:|h lostWord5:|h lostWord6:|h afterWord1:|h afterWord2:|h afterWord3:|h afterWord4:|h afterWord5:|h afterWord6:|h unused: [species:data.pokemon.names heldItem:data.items.stats move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names unknown: hpEv. atkEv. defEv. speedEv. spatkEv. spdefEv. otID::|h IVs::|t|hp::.|atk::.|def::.|spd::.|spatk::.|spdef::.|unused.|2ndAbility. personality:: nickname""11 friendship.]6]1>]32
+
+
+//data.ec.words+8,                       ,,,, ,,,, 11EAA0, [list<[text<""> a:: b::]/count> count: other:]21 // before1-lose6 use the high 7 bits to select a group, and the low 9 bits to select a phrase.
+
+graphics.pokemon.type.icons             , 107E70,  `ucs4x16x16|graphics.pokemon.type.palettes`
+graphics.pokemon.type.pokeball.palettes , 107E10,  `ucp4`
+graphics.pokemon.type.palettes          , 107E24,  `ucp4`
+graphics.pokemon.type.map               , 107E6C,  [width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+5
+graphics.text.importer                  , 145444,  [titleTextPal. bodyTextPal. footerTextPal. stampShadowPal. tileset<`lzt4`> tilemap<`lzm4x30x20|graphics.text.importer`> pal<`ucp4`>]8
+graphics.text.box.about                 , 1130D0,  `ucs4x5x4|graphics.text.box.palette`
+graphics.text.box.palette               , 150154,  `ucp4:01234`
+graphics.text.box.message               , 14FA6C,  `uct4x18|graphics.text.box.palette`
+graphics.text.box.signpost              , 14FAA0,  `uct4x19|graphics.text.box.palette`
+graphics.text.boxes                     , 069778,  [sprite<`ucs4x3x3`> pal<`ucp4`>]10
+
+graphics.bag.male                       , 3CCCF4,  `lzs4x8x8|graphics.bag.palette`
+graphics.bag.female                     , 3CCCFC,  `lzs4x8x8|graphics.bag.palette`
+graphics.bag.palette                    , 3CCD04,  `lzp4`
+graphics.bag.berrycase.palette          , 45B49C,  `lzp4`
+graphics.bag.berrycase.sprite           , 45B494,  `lzs4x8x8|graphics.bag.berrycase.palette`
+graphics.bag.inside1.palette            , 1083C4,  `lzp4:012`
+graphics.bag.inside1.tileset            , 108354,  `lzt4|graphics.bag.inside1.palette`
+graphics.bag.inside1.tilemap.item       , 10837C,  `lzm4x32x32|graphics.bag.inside1.tileset`
+graphics.bag.inside1.tilemap.deposite   , 108390,  `lzm4x32x32|graphics.bag.inside1.tileset`
+graphics.bag.inside1.berry.palette      , 10D8C0,  `lzp4:012`
+graphics.bag.inside1.berry.tileset      , 10D890,  `lzt4|graphics.bag.inside1.berry.palette`
+graphics.bag.inside1.berry.tilemap      , 10D8AC,  `lzm4x32x32|graphics.bag.inside1.berry.tileset`
+graphics.bag.inside2.palette            , 13D248,  `lzp4:012`
+graphics.bag.inside2.tileset            , 13D208,  `lzt4|graphics.bag.inside2.palette`
+graphics.bag.inside2.tilemap            , 13D224,  `lzm4x32x32|graphics.bag.inside2.tileset`
+graphics.bag.inside3.palette            , 09B1D8,  `lzp4`
+graphics.bag.inside3.tileset            , 09B180,  `lzt4|graphics.bag.inside3.palette`
+graphics.bag.inside3.tilemap1           , 09B188,  `lzm4x32x32|graphics.bag.inside3.tileset`
+graphics.bag.inside3.tilemap2           , 09B1D0,  `lzm4x32x32|graphics.bag.inside3.tileset`
+
+
+graphics.menu.pokeball.palette          , 451458,  `lzp4`
+graphics.menu.pokeball.large            , 451450,  `lzs4x4x8|graphics.menu.pokeball.palette`
+graphics.menu.pokeball.small            , 4514C8,  `lzs4x2x4|graphics.menu.pokeball.palette`
+graphics.menu.status.palette            , 451558,  `lzp4`
+graphics.menu.status.sprite             , 451550,  `lzs4x4x8|graphics.menu.status.palette`
+graphics.menu.bar.palette               , 13AA54,  `ucp4`
+graphics.menu.bar.hp                    , 13A59C,  `lzs4x12x1|graphics.menu.bar.palette`
+graphics.menu.bar.exp                   , 13AA50,  `lzs4x12x1|graphics.menu.bar.palette`
+graphics.menu.summaryscreen.palette     , 136084,  `ucp4:0123456`
+graphics.menu.summaryscreen.tileset     , 1360D8,  `lzt4|graphics.menu.summaryscreen.palette`
+graphics.menu.summaryscreen.tilemap.info, 135E98,  `lzm4x32x20|graphics.menu.summaryscreen.tileset`
+graphics.menu.summaryscreen.tilemap.skills, 135E9C,  `lzm4x32x20|graphics.menu.summaryscreen.tileset`
+graphics.menu.summaryscreen.tilemap.knownmoves, 135E64,  `lzm4x32x32|graphics.menu.summaryscreen.tileset`
+graphics.menu.summaryscreen.tilemap.egg , 135E2C,  `lzm4x32x20|graphics.menu.summaryscreen.tileset`
+graphics.menu.summaryscreen.tilemap.changemoves, 135E68,  `lzm4x32x20|graphics.menu.summaryscreen.tileset`
+graphics.menu.relearner.palette         , 0E49A4,  `ucp4`
+graphics.menu.relearner.tileset         , 0E49A8,  `lzt4|graphics.menu.relearner.palette`
+graphics.menu.relearner.tilemap         , 0E49AC,  `lzm4x32x32|graphics.menu.relearner.tileset`
+graphics.menu.summaryscreen.tilemap.relearner, 135DF0,  `lzm4x32x32|graphics.menu.summaryscreen.tileset`
+graphics.menu.summaryscreen.unknown.tilemap3, 135E08,  `lzm4x32x20|graphics.menu.summaryscreen.tileset`
+graphics.menu.partyscreen.selection.palette, 13A1A4,  `ucp4`
+graphics.menu.partyscreen.selection.sprite1, 13A19C,  `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
+graphics.menu.partyscreen.selection.sprite2, 13A1A0,  `lzs4x8x8|graphics.menu.partyscreen.selection.palette`
+graphics.menu.pokemon.background.palette, 11F06C,  `lzp4:0123456789A`
+graphics.menu.pokemon.background.tileset, 11F028,  `lzt4|graphics.menu.pokemon.background.palette`
+graphics.menu.pokemon.background.tilemap, 11F044,  `lzm4x32x32|graphics.menu.pokemon.background.tileset`
+graphics.menu.pokemon.item.sprite       , 451408,  `ucs4x1x2|graphics.menu.pokemon.item.palette`
+graphics.menu.pokemon.item.palette      , 451410,  `ucp4`
+graphics.menu.boxes.background          , 091A20,  [tileset<`lzt4`> tilemap<`lzm4x20x18|graphics.menu.boxes.background`> palette<`ucp4:12`>]16
+graphics.menu.boxes.picker.party.palette, 08F810,  `ucp4`
+graphics.menu.boxes.picker.cursor.palette, 08F1B4,  `ucp4`
+graphics.menu.boxes.picker.palette      , 08F1B8,  `ucp4`
+graphics.menu.boxes.picker.palette2     , 08F1B4,  `ucp4`
+graphics.menu.boxes.picker.tileset      , 08F138,  `lzt4|graphics.menu.boxes.picker.palette`
+//graphics.menu.boxes.picker.tilemap,              ,,,, 08F038, 08F00C, 08F04C, 08F020, 0CA098, `lzm4x32x20|graphics.menu.boxes.picker.tileset` // BPRE0, needs testing for LG/1.1
+//  this tilemap assumes the tileset is loaded at index 0x100 instead of index 0x00. The tilemap won't show right unless we support that.
+graphics.menu.boxes.hand.palette.normal , 3C7530,  `ucp4`
+graphics.menu.boxes.hand.palette.catch  , 3CBF88,  `ucp4`
+graphics.menu.boxes.hand.sprite         , 3CBF70,  `ucs4x4x16|graphics.menu.boxes.hand.palette.normal`
+graphics.menu.tms.tileset               , 131C00,  `lzt4|graphics.menu.tms.palette`
+graphics.menu.tms.background            , 131C1C,  `lzm4x32x32|graphics.menu.tms.tileset`
+graphics.menu.tms.case                  , 131C38,  `lzm4x32x32|graphics.menu.tms.tileset`
+graphics.menu.tms.palette               , 131C58,  `lzp4:0123`
+graphics.menu.tms.palette2              , 131C68,  `lzp4`
+graphics.menu.tms.hm_logo               , 1336B8,  `ucs4x2x2`
+graphics.menu.help.palette              , 13BA68,  `ucp4`
+graphics.menu.text.bold.palette         , 10B9AC,  `ucp4`
+graphics.menu.storage.background.palette1, 08F1C4,  `ucp4:3`
+graphics.menu.storage.background.palette2, 08F1F0,  `ucp4:3`
+graphics.menu.storage.background.tileset, 08F0C0,  `lzs4x4x2|graphics.menu.storage.background.palette1`
+graphics.menu.storage.background.tilemap, 08F0C4,  `lzm4x32x32|graphics.menu.storage.background.tileset`
+graphics.menu.downarrow.palette         , 00AD88,  `ucp4`
+graphics.menu.downarrow.sprite1         , 0054E0,  `ucs4x2x4|graphics.menu.downarrow.palette`
+graphics.menu.downarrow.sprite2         , 00554C,  `ucs4x4x6|graphics.menu.downarrow.palette`
+graphics.menu.downarrow.sprite3         , 1E3730,  `ucs4x2x2|graphics.menu.downarrow.palette`
+graphics.menu.downarrow.sprite4         , 1E3738,  `ucs4x2x2|graphics.menu.downarrow.palette`
+
+
+// from AGSMG
+graphics.moves.substitute.sprite.front  , 034FE0,  `lzs4x8x8|graphics.moves.substitute.palette`
+graphics.moves.substitute.palette       , 035038,  `lzp4`
+graphics.moves.substitute.sprite.back   , 035030,  `lzs4x8x8|graphics.moves.substitute.palette`
+graphics.moves.tmcase.sprite            , 45A1F4,  `lzs4x4x4|graphics.moves.tmcase.palette`
+graphics.moves.tmcase.palette           , 1339D4,  `lzp4`
+graphics.moves.tmcase.palette2          , 1339D8,  `lzp4`
+graphics.moves.tmcase.palettemap        , 133864,  [offset:|t|::|page::::]data.pokemon.type.names
+data.pokemon.type.camouflage            , 02D1EC,  [type.data.pokemon.type.names]terrains
+data.pokemon.moves.details.naturepower.list, 02BDF8,  [move:data.pokemon.moves.names]terrains
+
+graphics.gamecorner.game.palette        , 1414AC,  `ucp4:01234`
+graphics.gamecorner.game.tileset        , 14149C,  `lzt4|graphics.gamecorner.game.palette`
+graphics.gamecorner.game.tilemap        , 1414A8,  `lzm4x32x20|graphics.gamecorner.game.tileset`
+graphics.gamecorner.score.palette       , 1414B4,  `ucp4:789`
+graphics.gamecorner.score.tileset       , 1414C0,  `lzt4|graphics.gamecorner.score.palette`
+graphics.gamecorner.score.tilemap       , 1414C4,  `lzm4x32x20|graphics.gamecorner.score.tileset`
+graphics.gamecorner.sprites             , 140D2C,  [rolls<`lzs4x4x4`> a:: cheer<`lzs4x4x4`> b:: digits<`lzs4x5x4`> c::]1
+graphics.gamecorner.palettes            , 140D30,  [pal<`ucp4`> id::]7
+data.gamecorner.payout                  , 140CC8,  [payout:]7
+
+graphics.misc.questionnaire.palette     , 100F64,  `ucp4`
+graphics.misc.questionnaire.tileset     , 1002B8,  `lzt4|graphics.misc.questionnaire.palette`
+graphics.misc.questionnaire.tilemap     , 1002BC,  `lzm4x32x20|graphics.misc.questionnaire.tileset`
+graphics.misc.questionnaire.button.palette, 436E90,  `ucp4`
+graphics.misc.questionnaire.button.sprite, 436EB8,  `lzs4x8x8|graphics.misc.questionnaire.button.palette`
+
+
+graphics.overworld.firstpersonview.sprites, 0F8390,  [id.data.maps.names+88 transition.transitiontype worldmapflag: tileset<`lzt4|graphics.overworld.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.overworld.firstpersonview.sprites`> pal<`ucp4:DE`>]graphics.firstpersonview.count
+graphics.battle.background.sprites      , 00F224,  [battletiles<`lzt4`> battlemap<`lzm4x32x64|graphics.battle.background.sprites|battletiles`> | introtiles<`lzt4`> intromap<`lzm4x32x14|graphics.battle.background.sprites|introtiles`> pal<`lzp4:234`>]
+graphics.battle.background.fighttype    , 00F1D0,  [id. entry.graphics.battle.background.sprites unused:]8
+graphics.battle.hud.palette             , 259340,  `ucp4`
+graphics.battle.hud.hpbar.sprite        , 047FA4,  `ucs4x11x6|graphics.battle.hud.hpbar.palette`
+graphics.battle.hud.hpbar.palette       , 259348,  `ucp4`
+graphics.battle.hud.hpbox.player        , 2592E8,  `lzs4x8x16|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.opponent      , 2592F0,  `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.doublebattle.player, 259300,  `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.doublebattle.opponent, 259310,  `lzs4x8x8|graphics.battle.hud.palette`
+graphics.battle.hud.hpbox.safarizone    , 259318,  `lzs4x8x16|graphics.battle.hud.palette`
+graphics.battle.hud.status              , 259584,  `ucs4x13x4|graphics.battle.hud.hpbar.palette`
+graphics.battle.hud.pokeballbar         , 25954C,  `lzs4x16x1|graphics.battle.hud.palette`
+graphics.battle.hud.idlelevel.palette   , 02644C,  `ucp4`
+graphics.battle.hud.idlelevel.sprite    , 026450,  `lzs4x12x3|graphics.battle.hud.idlelevel.palette`
+graphics.battle.textbox.palette         , 00F3E0,  `lzp4:01`
+graphics.battle.textbox.tileset         , 00F3D8,  `lzt4|graphics.battle.textbox.palette`
+graphics.battle.textbox.tilemap         , 00F3DC,  `lzm4x32x64|graphics.battle.textbox.tileset`
+graphics.battle.animations.status       , 078800,  [animation<`ase`>]statusanimations
+graphics.battle.animations.special      , 03403C,  [animation<`ase`>]effectanimations
+graphics.battle.animations.statchange.palette.p1, 0BB458,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p2, 0BB450,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p3, 0BB460,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p4, 0BB468,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p5, 0BB4C8,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p6, 0BB470,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p7, 0BB478,  `lzp4:8`
+graphics.battle.animations.statchange.palette.p8, 0BB48C,  `lzp4:8`
+graphics.battle.animations.statchange.tileset, 0BB424,  `lzt4|graphics.battle.animations.statchange.palette.p1`
+graphics.battle.animations.statchange.tilemap1, 0BB3D4,  `lzm4x32x32|graphics.battle.animations.statchange.tileset`
+graphics.battle.animations.statchange.tilemap2, 0BB420,  `lzm4x32x32|graphics.battle.animations.statchange.tileset`
+graphics.battle.animations.misc         , 034124,  [pointer<>]miscanimations
+graphics.battle.pokemon.shadow          , 249AEC,  `lzs4x4x1|graphics.battle.hud.palette`
+
+graphics.titlescreen.background.animation.sprite, 3B8BA4,  `lzs4x2x2|graphics.titlescreen.background.animation.palette`
+graphics.titlescreen.background.animation.palette, 3B8BC4,  `ucp4`
+graphics.titlescreen.logo.palette       , 0789E4,  `ucp8`
+graphics.titlescreen.logo.tileset       , 0789E8,  `lzt8|graphics.titlescreen.logo.palette`
+graphics.titlescreen.logo.tilemap       , 0789EC,  `lzm8x32x20|graphics.titlescreen.logo.tileset`
+graphics.titlescreen.pokemon.palette    , 0789F0,  `ucp4:D`
+graphics.titlescreen.pokemon.tileset    , 0789F4,  `lzt4|graphics.titlescreen.pokemon.palette`
+graphics.titlescreen.pokemon.tilemap    , 0789F8,  `lzm4x32x20|graphics.titlescreen.pokemon.tileset`
+graphics.titlescreen.publisher.palette  , 0789FC,  `ucp4:F`
+graphics.titlescreen.publisher.tileset  , 078A00,  `lzt4|graphics.titlescreen.publisher.palette`
+graphics.titlescreen.publisher.tilemap  , 078A04,  `lzm4x32x20|graphics.titlescreen.publisher.tileset`
+graphics.titlescreen.widescreen.tileset , 078A08,  `lzt4|graphics.titlescreen.publisher.palette`
+graphics.titlescreen.widescreen.tilemap , 078A0C,  `lzm4x32x20|graphics.titlescreen.widescreen.tileset`
+graphics.titlescreen.introscene.gengar.palette, 403644,  `ucp4:5`
+graphics.titlescreen.introscene.nidorino.palette, 40364C,  `ucp4`
+graphics.titlescreen.introscene.grass.palette, 403654,  `ucp4`
+graphics.titlescreen.introscene.gengar.sprite, 40360C,  `lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.nidorino.sprite, 403614,  `lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`
+graphics.titlescreen.introscene.nidorino.palette1, 0ED52C,  `ucp4:6`
+graphics.titlescreen.introscene.nidorino.tileset, 0ED53C,  `lzt4|graphics.titlescreen.introscene.nidorino.palette1`
+graphics.titlescreen.introscene.nidorino.tilemap, 0ED540,  `lzm4x32x32|graphics.titlescreen.introscene.nidorino.tileset`
+graphics.titlescreen.introscene.gengar.tileset, 0ED544,  `lzt4|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.gengar.tilemap, 0ED548,  `lzm4x32x32|graphics.titlescreen.introscene.gengar.tileset`
+graphics.titlescreen.introscene.gengar.tileset2, 0ED814,  `lzt4|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.gengar.tilemap2, 0ED818,  `lzm4x32x64|graphics.titlescreen.introscene.gengar.tileset2`
+graphics.titlescreen.introscene.nidorino.sprite2, 40361C,  `lzs4x8x8|graphics.titlescreen.introscene.nidorino.palette`
+graphics.titlescreen.introscene.grass.sprite, 403624,  `lzs4x8x4|graphics.titlescreen.introscene.grass.palette`
+graphics.titlescreen.introscene.gengar.sprite2, 40362C,  `lzs4x8x8|graphics.titlescreen.introscene.gengar.palette`
+graphics.titlescreen.introscene.slash.tiles, 403634,  `lzt4`
+graphics.titlescreen.introscene.forest.palette, 0ED7AC,  `ucp4:12`
+graphics.titlescreen.introscene.forest.tileset, 0ED7BC,  `lzt4|graphics.titlescreen.introscene.forest.palette`
+graphics.titlescreen.introscene.forest.tilemap, 0ED7C0,  `lzm4x32x20|graphics.titlescreen.introscene.forest.tileset`
+graphics.titlescreen.introscene.forest.palette2, 0ED524,  `ucp4:123`
+graphics.titlescreen.introscene.forest.tileset2, 0ED434,  `lzt4|graphics.titlescreen.introscene.forest.palette2`
+graphics.titlescreen.introscene.forest.tilemap2, 0ED438,  `lzm4x32x64|graphics.titlescreen.introscene.forest.tileset2`
+graphics.titlescreen.introscene.grass.palette1, 0ED170,  `ucp4:1`
+graphics.titlescreen.introscene.grass.tileset, 0ED1C4,  `lzt4|graphics.titlescreen.introscene.grass.palette1`
+graphics.titlescreen.introscene.grass.tilemap, 0ED1C8,  `lzm4x32x64|graphics.titlescreen.introscene.grass.tileset`
+graphics.titlescreen.introscene.grass.tileset2, 0ED534,  `lzt4|graphics.titlescreen.introscene.forest.palette2`
+graphics.titlescreen.introscene.grass.tilemap2, 0ED538,  `lzm4x32x20|graphics.titlescreen.introscene.grass.tileset2`
+graphics.titlescreen.introscene.grass.background.palette, 0ED174,  `ucp4:2`
+graphics.titlescreen.introscene.grass.background.tileset, 0ED180,  `lzt4|graphics.titlescreen.introscene.grass.background.palette`
+graphics.titlescreen.introscene.grass.background.tilemap, 0ED184,  `lzm4x32x64|graphics.titlescreen.introscene.grass.background.tileset`
+graphics.titlescreen.developer.palette1 , 403318,  `ucp4`
+graphics.titlescreen.developer.palette2 , 403320,  `ucp4`
+graphics.titlescreen.developer.palette3 , 403328,  `ucp4`
+graphics.titlescreen.developer.bigstar  , 4032F0,  `lzs4x2x2|graphics.titlescreen.developer.palette1`
+graphics.titlescreen.developer.littlestar, 4032F8,  `lzs4x1x1|graphics.titlescreen.developer.palette2`
+graphics.titlescreen.developer.mediumstar, 403300,  `lzs4x4x4|graphics.titlescreen.developer.palette2`
+graphics.titlescreen.developer.logo     , 403308,  `lzs4x4x8|graphics.titlescreen.developer.palette3`
+graphics.titlescreen.developer.presents , 403310,  `lzs4x8x1|graphics.titlescreen.developer.palette3`
+graphics.titlescreen.developer.text     , 0ECD90,  `lzs4x18x2|graphics.titlescreen.developer.palette3`
+graphics.titlescreen.copyright.tileset  , 0EC834,  `lzt4|graphics.titlescreen.copyright.palette`
+graphics.titlescreen.copyright.tilemap  , 0EC838,  `lzm4x32x32|graphics.titlescreen.copyright.tileset`
+graphics.titlescreen.copyright.palette  , 0EC83C,  `ucp4`
+
+graphics.newgame.platform.palette       , 459F00,  `ucp4`
+graphics.newgame.platform.sprite        , 459EF0,  `lzs4x4x12|graphics.newgame.platform.palette`
+graphics.newgame.pikachu.palette        , 459EF8,  `ucp4`
+graphics.newgame.pikachu.body           , 459ED8,  `lzs4x4x8|graphics.newgame.pikachu.palette`
+graphics.newgame.pikachu.ears           , 459EE0,  `lzs4x4x4|graphics.newgame.pikachu.palette`
+graphics.newgame.pikachu.eyes           , 459EE8,  `lzs4x2x2|graphics.newgame.pikachu.palette`
+graphics.newgame.player.male.palette    , 1312B8,  `ucp4:45`
+graphics.newgame.player.male.sprite     , 1312BC,  `lzs8x8x12|graphics.newgame.player.male.palette`
+graphics.newgame.player.female.palette  , 1312D0,  `ucp4:45`
+graphics.newgame.player.female.sprite   , 1312D4,  `lzs8x8x12|graphics.newgame.player.female.palette`
+graphics.newgame.rival.palette          , 1312F0,  `ucp4:67`
+graphics.newgame.rival.sprite           , 1312F4,  `lzs8x8x12|graphics.newgame.rival.palette`
+graphics.newgame.professor.palette      , 131390,  `ucp4:67`
+graphics.newgame.professor.sprite       , 131394,  `lzs8x8x12|graphics.newgame.professor.palette`
+graphics.newgame.background.palette     , 130E5C,  `ucp4:0123`
+graphics.newgame.background.tileset1    , 12EDF8,  `lzt4|graphics.newgame.background.palette`
+graphics.newgame.background.tilemap1    , 12F518,  `lzm4x30x18|graphics.newgame.background.tileset1`
+graphics.newgame.background.tileset2    , 130E74,  `lzt4|graphics.newgame.background.palette`
+graphics.newgame.background.tilemap2    , 130EC4,  `lzm4x32x20|graphics.newgame.background.tileset2`
+graphics.newgame.menu.naming.palette1   , 09F9CC,  `ucp4:0123`
+graphics.newgame.menu.naming.palette2   , 3D95C4,  `ucp4:01`
+graphics.newgame.menu.naming.palette3   , 09F9D0,  `ucp4`
+graphics.newgame.menu.naming.sprite1    , 3D954C,  `ucs4x5x18|graphics.newgame.menu.naming.palette2`
+graphics.newgame.menu.naming.sprite2    , 3D93F4,  `ucs4x2x6|graphics.newgame.menu.naming.palette1`
+graphics.newgame.menu.naming.tileset    , 09F980,  `lzt4|graphics.newgame.menu.naming.palette1`         
+// graphics.newgame.menu.naming.tilemap.m1, , , , , 09DF08, 09DEDC, 09DF1C, 09DEF0, , `lzm4x32x20|graphics.newgame.menu.naming.tileset` // has palette issue: wants to use palette 15?
+graphics.newgame.menu.naming.tilemap.m2 , 09DFE8,  `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap.m3 , 09DFE4,  `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.naming.tilemap.m4 , 3D9314,  `lzm4x32x20|graphics.newgame.menu.naming.tileset`
+graphics.newgame.menu.choosesave.palette, 00C43C,  `ucp4`
+
+// Introductory Speeches
+scripts.newgame.professor.speeches.intro.welcome, 12F980,  ""
+scripts.newgame.professor.speeches.intro.preShowcaseMon, 12FA24,  ""
+scripts.newgame.professor.speeches.intro.showcaseMon, 12FB98,  ""
+scripts.newgame.professor.speeches.intro.mainSpeech, 12FC2C,  "" 
+scripts.newgame.professor.speeches.intro.introduceSelf, 12FDB4,  ""
+scripts.newgame.professor.speeches.prompt.gender, 12FEC4,  ""
+scripts.newgame.professor.speeches.prompt.name, 13019C,  ""
+scripts.newgame.professor.speeches.prompt.confirmName, 130540,  ""
+scripts.newgame.professor.speeches.prompt.repromptRivalName, 13036C,  ""
+scripts.newgame.professor.speeches.prompt.confirmRival, 130588,  ""
+scripts.newgame.professor.speeches.rememberRivalName, 13068C,  ""
+scripts.newgame.professor.speeches.intro.rival, 130804,  ""
+scripts.newgame.professor.speeches.ready, 130954,  ""
+
+graphics.townmap.map.palette            , 0C049C,  `ucp4:01234`
+graphics.townmap.map.tileset            , 0C04E0,  `lzt4|graphics.townmap.map.palette`
+graphics.townmap.map.tilemap            , 0C050C,  `lzm4x30x20|graphics.townmap.map.tileset`
+graphics.townmap.islands.tilemap1       , 0C0520,  `lzm4x30x20|graphics.townmap.map.tileset`
+graphics.townmap.islands.tilemap2       , 0C0538,  `lzm4x30x20|graphics.townmap.map.tileset`
+graphics.townmap.islands.tilemap3       , 0C0554,  `lzm4x30x20|graphics.townmap.map.tileset`
+graphics.townmap.border.tileset         , 0C04EC,  `lzt4|graphics.townmap.map.palette`
+graphics.townmap.border.tilemap         , 0C0570,  `lzm4x30x20|graphics.townmap.border.tileset`
+graphics.townmap.border.tileset2        , 0C25F0,  `lzt4|graphics.townmap.map.palette`
+graphics.townmap.border.tilemap2        , 0C2608,  `lzm4x30x20|graphics.townmap.border.tileset2`
+graphics.townmap.namesoverlay.xy        , 0C3ED4,  [x: y:]data.maps.names
+graphics.townmap.namesoverlay.widthheight, 0C3ED0,  [width: height:]data.maps.names
+graphics.townmap.icon.palette           , 0C4790,  `ucp4`
+graphics.townmap.icon.area              , 0C4594,  `lzs4x1x1|graphics.townmap.icon.palette`
+graphics.townmap.icon.fly               , 0C4598,  `lzs4x2x2|graphics.townmap.icon.palette`
+graphics.townmap.icon.indicator         , 0C3224,  `lzs4x2x2|graphics.townmap.icon.palette`
+graphics.townmap.icon.head.male.palette , 0C4498,  `ucp4`
+graphics.townmap.icon.head.female.palette, 0C44B4,  `ucp4`
+graphics.townmap.icon.head.male.sprite  , 0C43D4,  `lzs4x2x2|graphics.townmap.icon.head.male.palette`
+graphics.townmap.icon.head.female.sprite, 0C43A4,  `lzs4x2x2|graphics.townmap.icon.head.female.palette`
+graphics.townmap.catchmap.palette       , 102914,  `ucp4:0123456789ABCDEF`
+graphics.townmap.catchmap.kanto         , 106514,  `lzs4x12x9|graphics.townmap.catchmap.palette`
+graphics.townmap.catchmap.island        , 106518,  [data<[a b c width height d e f]1> map<`lzt4|graphics.townmap.catchmap.palette`>]7
+graphics.townmap.catchmap.shape         , 1345B8,  [shape.catchmap_shape x. y. unused.]80
+graphics.townmap.catchmap.conversion.sevii, 13CBA8,  [data<[worldmap:data.maps.names+88 catchmap:]/length> length::]7
+graphics.townmap.catchmap.conversion.kanto, 13CBA4,  [worldmap:data.maps.names+88 catchmap:]data.maps.catchmap.conversion.kanto.length
+graphics.townmap.selector.tilemap       , 0C10D4,  `lzm4x30x20|graphics.townmap.selector.tileset`
+graphics.townmap.selector.tilemap2      , 0C10F4,  `lzm4x30x20|graphics.townmap.selector.tileset`
+graphics.townmap.selector.tilemap3      , 0C116C,  `lzm4x30x20|graphics.townmap.selector.tileset`
+graphics.townmap.selector.tileset       , 0C1170,  `lzt4`
+graphics.townmap.opening.left.top       , 0C2538,  `lzs4x4x8|graphics.townmap.map.palette`
+graphics.townmap.opening.left.center    , 0C2558,  `lzs4x4x8|graphics.townmap.map.palette`
+graphics.townmap.opening.left.down      , 0C2578,  `lzs4x4x8|graphics.townmap.map.palette`
+graphics.townmap.opening.right.top      , 0C2598,  `lzs4x4x8|graphics.townmap.map.palette`
+graphics.townmap.opening.right.center   , 0C25B8,  `lzs4x4x8|graphics.townmap.map.palette`
+graphics.townmap.opening.right.down     , 0C25D8,  `lzs4x4x8|graphics.townmap.map.palette`
+graphics.townmap.annotations.kanto      , 0C432C,  [worldmap.data.maps.names+88]graphics.townmap.map.tilemap*2-4-4-4-1
+graphics.townmap.annotations.island1    , 0C4334,  [worldmap.data.maps.names+88]graphics.townmap.islands.tilemap1*2-4-4-4-1
+graphics.townmap.annotations.island2    , 0C433C,  [worldmap.data.maps.names+88]graphics.townmap.islands.tilemap2*2-4-4-4-1
+graphics.townmap.annotations.island3    , 0C4364,  [worldmap.data.maps.names+88]graphics.townmap.islands.tilemap3*2-4-4-4-1
+
+graphics.credits.trainer.male.palette   , 0F4CB0,  `ucp4`
+graphics.credits.trainer.female.palette , 0F4CDC,  `ucp4`
+graphics.credits.trainer.rival.palette  , 0F4D70,  `ucp4`
+graphics.credits.trainer.male.sprite    , 0F4CA4,  `lzs4x8x8|graphics.credits.trainer.male.palette`
+graphics.credits.trainer.female.sprite  , 0F4CD8,  `lzs4x8x8|graphics.credits.trainer.female.palette`
+graphics.credits.trainer.rival.sprite   , 0F4D6C,  `lzs4x8x8|graphics.credits.trainer.rival.palette`
+graphics.credits.pokemon.Starter1.idle  , 0F4480,  `lzs4x10x10|graphics.pokemon.palettes.normal:index=6`
+graphics.credits.pokemon.Starter1.animate, 0F4484,  `lzs4x12x13|graphics.pokemon.palettes.normal:index=6`
+graphics.credits.pokemon.Starter2.idle  , 0F44C0,  `lzs4x10x10|graphics.pokemon.palettes.normal:index=3`
+graphics.credits.pokemon.Starter2.animate, 0F44C4,  `lzs4x12x10|graphics.pokemon.palettes.normal:index=3`
+graphics.credits.pokemon.Starter3.idle  , 0F4508,  `lzs4x10x10|graphics.pokemon.palettes.normal:index=9`
+graphics.credits.pokemon.Starter3.animate, 0F450C,  `lzs4x10x12|graphics.pokemon.palettes.normal:index=9`
+graphics.credits.pokemon.Mascot.idle    , 0F4570,  `lzs4x10x10|graphics.pokemon.palettes.normal:index=25`
+graphics.credits.pokemon.Mascot.animate , 0F4574,  `lzs4x12x12|graphics.pokemon.palettes.normal:index=25`
+
+graphics.trainercard.badges.palette     , 08AEA4,  `ucp4`
+graphics.trainercard.stickers.palette   , 08AEB0,  `ucp4`
+graphics.trainercard.badges.sprite      , 089600,  `lzs4x16x2|graphics.trainercard.stickers.palette`
+graphics.trainercard.stickers.sprite    , 089664,  `lzs4x2x8|graphics.trainercard.stickers.palette`
+graphics.trainercard.palettes.palette1  , 3C63A0,  `ucp4:012`
+graphics.trainercard.palettes.palette2  , 3C63A4,  `ucp4:012`
+graphics.trainercard.palettes.palette3  , 3C63AC,  `ucp4:012`
+graphics.trainercard.tileset            , 089638,  `lzt4|graphics.trainercard.palettes.palette1`
+graphics.trainercard.tileset2           , 089628,  `lzt4|graphics.trainercard.palettes.palette1`
+graphics.trainercard.front.tilemap      , 0895C4,  `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.front.nobadges.tilemap, 0895EC,  `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.front.unknown.tilemap, 0895B8,  `lzm4x30x20|graphics.trainercard.tileset2`
+graphics.trainercard.front.unknown.nobadges.tilemap, 0895E0,  `lzm4x30x20|graphics.trainercard.tileset2`
+graphics.trainercard.back.tilemap       , 08958C,  `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.back.unknown.tilemap, 08957C,  `lzm4x30x20|graphics.trainercard.tileset2`
+graphics.trainercard.background.tilemap , 089558,  `lzm4x30x20|graphics.trainercard.tileset`
+graphics.trainercard.background.tilemap2, 089548,  `lzm4x30x20|graphics.trainercard.tileset2`
+
+graphics.overworld.palettes             , 05F4C4,  [pal<`ucp4`> id:|h unused:]!0000000000000000
+graphics.overworld.palettes2            , 1D6C98,  [pal<`ucp4`> id:|h unused:]2
+graphics.overworld.sprites              , 05F2E0,  [data<[starterbytes:|h paletteid:|h secondid:|h length: width: height: info.|t|palSlot::|shadowSize:|inanimate.|reflectionPalette. footprint.owfootprints unused: distribution<> sizedraw<> animation<> sprites<`osl`> ramstore<>]1>]graphics.overworld.tablelength
+graphics.overworld.sprites2             , 05DF14,  [data<[starterbytes:|h paletteid:|h a<> b<> sprites<`osl|graphics.overworld.palettes2:id=`> d<> e<>]1>]36
+graphics.overworld.textcolor            , 13CE20,  [data.|t|low::|high::]76
+graphics.overworld.reflection.palettes.player, 05F61C,  [normalPalette:|h padding: pointer<[normalReflection:|h multiplayerReflection:|h unused: unused:]1>]!FF11
+graphics.overworld.reflection.palettes.slot10, 05F694,  [normalPalette:|h padding: pointer<[normalReflection:|h multiplayerReflection:|h unused: unused:]1>]!FF11
+
+# these should be loaded after the overworld palettes because some hacks change these semi-overworld sprites to use overworld palettes (example, Vega)
+graphics.newgame.rival.nameselection.palette, 3D9288,  `ucp4`
+graphics.newgame.rival.nameselection.sprite, 3D9280,  `ucs4x2x36|graphics.newgame.rival.nameselection.palette`
+
+graphics.text.font.other.characters     , 00650C,  `ucs2x2x1024`
+graphics.text.font.other.width          , 006514,  [width.]512
+graphics.text.font.black.characters     , 00666C,  `ucs2x2x1024`
+graphics.text.font.black.width          , 006618,  [width.]512
+graphics.text.font.blue.characters      , 0068A0,  `ucs2x2x1024`
+graphics.text.font.blue.width           , 00684C,  [width.]512
+graphics.text.font.red.characters       , 006A0C,  `ucs2x2x1024`
+graphics.text.font.red.width            , 0069B8,  [width.]512
+
+
+graphics.text.font.short.characters     , 006444,  `ucs2x1x1024`
+graphics.text.font.short.width          , 00644C,  [width.]512
+graphics.text.font.japan.short.japanese.characters, 006408,  `ucs2x16x64`
+graphics.text.font.japan.japan1.characters, 0064B4,  `ucs2x16x64`
+graphics.text.font.japan.japan2.characters, 0065D0,  `ucs2x16x128`
+graphics.text.font.japan.japan2.width   , 0065D8,  [width.]280
+graphics.text.font.japan.japan3.characters, 006804,  `ucs2x16x128`
+graphics.text.font.japan.japan3.width   , 00680C,  [width.]280
+graphics.text.font.japan.japan4.characters, 006970,  `ucs2x16x128`
+graphics.text.font.japan.japan4.width   , 006978,  [width.]280
+graphics.text.font.japan.japan5.characters, 006A88,  `ucs2x32x16`
+
+graphics.text.font.buttons.characters   , 006394,  `ucs4x16x4|graphics.menu.downarrow.palette`
+graphics.text.font.buttons.data         , 006390,  [tileOffset: width. height.]13
+
+data.text.menu.pokemon.battle           , 032B24,  ""
+data.text.menu.pause                    , 06EEEC,  [text<""> code<>]
+data.text.menu.pokemon.options          , 120FEC,  [text<""> code<>]
+data.text.menu.itemStorage              , 0EBCA8,  [text<""> thumb<>]
+
+sound.fanfares                          , 071B58,  [songID:songnames duration:]14
+sound.tracks                            , 1DA588,  [pointer<> musicplayer: unknown:]songnames
+sound.pokemon.cry.growl                 , 072054,  ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
+sound.pokemon.cry.normal                , 072064,  ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
+sound.pokemon.cry.hoennconversion       , 043214,  [index:]data.pokemon.names-277
+
+// From Shiny Till Dawn:
+data.pokemon.moves.details.flail.chart  , 02A450,  [hpbenchmark. power.]6
+scripts.trig.sinetable.radian           , 044D38,  [sine:|z]320
+scripts.trig.sinetable.degree           , 044D90,  [sine:|z]180
+scripts.commands.buffercommands.player  , 02E37C,  [thumb<>]57
+scripts.commands.buffercommands.opponent, 0359C8,  [thumb<>]57
+scripts.commands.buffercommands.linkopponent, 03A5B4,  [thumb<>]57
+scripts.commands.events.onstep.callbacks, 06E788,  [thumb<>]perstepcallbacks
+scripts.commands.weather.functions      , 079CA4,  [thumb<>]60
+scripts.text.stringvars                 , 06BC6C,  [ram::|h]3
+graphics.items.ball.trade.palette       , 265EBC,  `ucp4`
+graphics.items.ball.trade.sprite        , 265EB4,  `ucs4x2x24|graphics.items.ball.trade.palette`
+scripts.text.daycare.compatibility.messages, 0465B4,  [pointer<"">]4
+graphics.pokemon.palettes.egg           , 25920C,  `ucp4`
+graphics.pokemon.sprites.egg            , 2591FC,  `ucs4x4x17|graphics.pokemon.palettes.egg`
+data.text.trade.messages                , 124600,  [text<"">]9
+data.statstages.default                 , 014E58,  [numerator. denominator. ratio|=numerator÷denominator]13
+scripts.seagallop.destinations          , 146EF0,  [bank. map. x. y.]scripts.seagallop.count
+
+scripts.fromthumb.safari.end            , 0A1004,  `xse`
+scripts.text.names                      , 12DB90,  [text<"">]
+scripts.text.interviews                 , 12CE90,  [text<"">]
+scripts.text.destinations               , 09D8F4,  [text<"">]
+
+// From Soup
+data.statstages.accuracy                , 01E08C,  [numerator. divisor. unused:]13
+data.statstages.critical                , 01E4FC,  [rate:]!0000
+
+// From Yogia
+graphics.trainers.elite4.mugshot.palettes, 0D2AE0,  [palette<`ucp4`>]trainerMugshots
+graphics.trainers.players.mugshot.palettes, 0D2AE4,  [palette<`ucp4`>]playerMugshots

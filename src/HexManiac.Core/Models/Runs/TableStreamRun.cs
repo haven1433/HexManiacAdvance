@@ -275,8 +275,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             } else if (segment.Length == 0) {
                continue;
             }
-            var extraWhitespace = new string(' ', longestLabel - segment.Name.Length);
-            result.Append($"{segment.Name}:{extraWhitespace} {value}");
+            result.Append($"{segment.Name.PadRight(longestLabel)} : {value}");
             if (i < ElementContent.Count - 1) result.AppendLine();
             offset += segment.Length;
          }
@@ -295,7 +294,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int j = 0; j < ElementContent.Count; j++) {
             while (fieldIndex < fields.Length && string.IsNullOrWhiteSpace(fields[fieldIndex])) fieldIndex += 1;
             if (fieldIndex >= fields.Length) break;
-            var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last() : string.Empty;
+            var data = j < fields.Length ? fields[fieldIndex].Split(new[] { ':' }, 2).Last().Trim() : string.Empty;
             if (ElementContent[j].Write(this.ElementContent, model, token, Start + segmentOffset, ref data)) {
                changeAddresses.Add(Start + segmentOffset);
                changedSegments.Add(j);

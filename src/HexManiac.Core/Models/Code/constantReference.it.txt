@@ -1,0 +1,178 @@
+﻿- Shiny -------------------------------------------------------------------------------------------------------------------------
+# -1: CreateBoxMon,GetMonSpritePalFromSpeciesAndPersonality,GetMonSpritePalStructFromOtIdPersonality,IsShinyOtIdPersonality,sub_XXXXXX0
+#  0: apparently used for pokedex pokemon palette choosing, although I can't find the function in pokefirered
+BPRI0.scripts.shiny.odds   104C78                              # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+BPRI0.scripts.shiny.odds-1 03DA4A,04400C,044082,04439C,0F19FE  # The odds of a pokemon being shiny are n/65535. For example, if you set the odds to 250, then the final odds are about 1 in 262.
+
+# additional shiny constants found by AGSMG?, used in credits
+BPRI0.scripts.shiny.odds   0F4462,0F44A0,0F44E0,0F4528
+
+
+# Credit to Rubiibank for finding this!
+
+#  0: NewGameBirchSpeech_CreateLotadSprite,CreateMonSpriteFromNationalDexNumber,CreatePokemonFrontSprite
+
+
+
+
+- Regional Pokedex Length -------------------------------------------------------------------------------------------------------
+#  0: SpeciesToPokedexNum,CreatePokedexList,CreatePokedexList,GetPokedexRatingText
+# -1: GetHoennPokedexCount,GetPokedexRatingText
+# -2: GetPokedexRatingText
+# -3: HasAllHoennMons,GetPokedexRatingText
+
+#  0: sub_XXXXXX8,MonCanEvolve
+# -1: GetKantoPokedexCount,sub_XXXXXX8,sub_XXXXXXC
+# -2: HasAllKantoMons
+BPRI0.scripts.pokedex.regional.length   103780,126CDA
+BPRI0.scripts.pokedex.regional.length-1 088FE8,10384A,104E9E
+BPRI0.scripts.pokedex.regional.length-2 089046
+
+
+
+
+- Townmap Button Positions ------------------------------------------------------------------------------------------------------
+# PlaySEForSelectedMapsec,Task_RegionMap,HandleRegionMapInput,SnapToIconOrButton,Task_FlyMap
+BPRI0.graphics.townmap.position.cancel.x 0C067A,0C0894,0C3414,0C364C,0C523A
+BPRI0.graphics.townmap.position.cancel.y 0C0686,0C0704,0C3416,0C3648,0C5246
+
+# PlaySEForSelectedMapsec,Task_RegionMap,HandleRegionMapInput,SnapToIconOrButton
+BPRI0.graphics.townmap.position.switch.x 0C064C,0C0860,0C3418,0C3608
+BPRI0.graphics.townmap.position.switch.y 0C0658,0C086C,0C341A,0C360C
+
+# BufferRegionMapBg
+BPRI0.graphics.townmap.position.switch.x+3 0C0F02,0C0F04,0C0F18
+BPRI0.graphics.townmap.position.switch.y+3 0C0F1A
+BPRI0.graphics.townmap.position.switch.y+4 0C0F2E
+BPRI0.graphics.townmap.position.switch.y+5 0C0F30
+
+
+
+
+- EV caps: how many EVs you can gain from vitamins, or how many EVs you can have in any stat. -----------------------------------
+BPRI0.scripts.ev.cap.vitamins-1 0419FA
+BPRI0.scripts.ev.cap.vitamins   041A0A,041A0E
+BPRI0.scripts.ev.cap.vitamins-1 041FC4
+BPRI0.scripts.ev.cap.vitamins   041FD4,041FD8
+BPRI0.scripts.ev.cap.vitamins-1 042810,0429CC
+BPRI0.scripts.ev.cap.stat       0438E8,0438EE
+
+- Money cap: The maximum amount of money the player can carry at once. -----------------------------------
+
+# Coins
+BPRI0:scripts.coins.cap         0D0768
+BPRI0:scripts.coins.cap-1       0D0744
+BPRI0:scripts.coins.cap-9       16C7B5
+BPRI0:scripts.coins.cap-19      16C86C,16C8CC
+BPRI0:scripts.coins.cap-49      16C6E6
+BPRI0:scripts.coins.cap-499     16C6B8
+
+- Other -------------------------------------------------------------------------------------------------------------------------
+# TryProduceOrHatchEgg
+
+# TryProduceOrHatchEgg,ShouldEggHatch
+BPRI0.scripts.daycare.exp.multiplier 0461D8,0462C4 # Picking an even number will prevent new eggs from being created.
+
+# data.battle.text length
+BPRI0:data.battle.textlength+11 0D7968
+
+
+# Intro
+BPRI0:scripts.newgame.money 054B6C
+
+
+BPRI0.scripts.newgame.start.bank 054A10
+BPRI0.scripts.newgame.start.map  054A12
+BPRI0.scripts.newgame.start.x    054A14
+BPRI0.scripts.newgame.start.y    054A0C
+
+BPRI0.scripts.newgame.heal.bank  0BFF1C
+BPRI0.scripts.newgame.heal.map   0BFF20
+BPRI0.scripts.newgame.heal.x     0BFF24
+BPRI0.scripts.newgame.heal.y     0BFF28
+
+# Ruby, Sapphire, and Emerald spawn the player in the middle of the truck instead of predefined coordinates.
+
+BPRI0.scripts.newgame.professor.pokemon  12FBC8,130FD0,130FDC # ID of the pokemon shown during the professor's introduction. Also edit pointers to graphics.pokemon.sprites.front/29 and graphics.pokemon.palettes.normal/29
+
+
+# Catchmap. See http://sfc.pokefans.net/lesson.php?id=20
+BPRI0.data.maps.catchmap.conversion.kanto.length 13CB78
+
+# 2 entries for speed (because double battles), 1 entry each for atk, def, spatk, spdef
+BPRI0.scripts.battle.badge.boost 014DB0,014E98,03ED22,03ED54,03ED8A,03EDC2
+
+# lucky egg exp boost, normally 150%
+BPRI0.scripts.exp.boost.luckyegg 021D46
+
+# trainer battle exp boost, normall 150%
+BPRI0.scripts.exp.boost.trainer 021D62
+
+# Exp Boost for traded pokemon, normally 150%
+BPRI0.scripts.exp.boost.traded 021D96
+
+# Nature limiters
+# AXVE0.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# AXVE0.data.pokemon.natures.count-1 XXXXXX,XXXXXX,XXXXXX,XXXXXX
+# AXVE0.data.pokemon.natures.count-2 XXXXXX
+# AXPE0.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# AXPE0.data.pokemon.natures.count-1 XXXXXX,XXXXXX,XXXXXX,XXXXXX
+# AXPE0.data.pokemon.natures.count-2 XXXXXX
+# AXVE1.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# AXVE1.data.pokemon.natures.count-1 XXXXXX,XXXXXX,XXXXXX,XXXXXX
+# AXVE1.data.pokemon.natures.count-2 XXXXXX
+# AXPE1.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# AXPE1.data.pokemon.natures.count-1 XXXXXX,XXXXXX,XXXXXX,XXXXXX
+# AXPE1.data.pokemon.natures.count-2 XXXXXX
+# BPRE0.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# BPGE0.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# BPRE1.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# BPGE1.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# BPEE0.data.pokemon.natures.count   XXXXXX,XXXXXX,XXXXXX
+# BPEE0.data.pokemon.natures.count-1 XXXXXX,XXXXXX,XXXXXX,XXXXXX
+# BPEE0.data.pokemon.natures.count-2 XXXXXX
+
+# type limiter. See LoadMoveInfoUI and DrawMoveInfoUIMarkers
+BPRI0.data.pokemon.type.length   44E058
+BPRI0.data.pokemon.type.length+1 0E566C,1334E4
+BPRI0.data.pokemon.type.length+2 0E5678,1334F0
+BPRI0.data.pokemon.type.length+3 0E5684,1334FC
+BPRI0.data.pokemon.type.length+4 0E5690,133508
+BPRI0.data.pokemon.type.length+5 0E569C
+
+# number of item effects that link to type boost. See sHoldEffectToType
+BPRI0.data.pokemon.type.holdEffect.length-1   03EE2C
+
+# trainer phone calls
+
+# evolution methods limiter
+BPRI0.scripts.evolution.count-1  042E96
+
+# item count limiter
+BPRI0:data.items.count 098A88,09B4A0,10870C,10DAD8,13D504
+
+# data.abilities.pickup.items limiter
+BPRI0.data.abilities.pickup.length-2 02CE70
+
+# data.maps.heal.map limiter
+BPRI0.data.maps.heal.length-1        0BFE2C
+BPRI0.data.maps.heal.length          0BFE66
+
+# maximum flash level
+BPRI0.scripts.moves.flash.maxlevel-1 3BF8E8
+
+# number of balls in the safari zone
+BPRI0.scripts.games.safari.balls.count 0A0F9E
+
+# overworld table limiters (credit to phoenixbound)
+BPRI0.graphics.overworld.tablelength-1 05F2CC
+
+# firstpersonview table length
+BPRI0.graphics.firstpersonview.count-1 0F8398
+BPRI0.graphics.firstpersonview.count   0F839C,0F83BA,0F8440,0F87E6,0F880E
+
+BPRI0.data.items.teachy.count          46E68C
+
+# not really sure about this...
+BPRI0.scripts.seagallop.count-1 146E88
+

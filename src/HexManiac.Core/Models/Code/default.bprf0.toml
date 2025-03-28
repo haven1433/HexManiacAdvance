@@ -1421,7 +1421,7 @@ Format = '''[id:: tileset<`lzt4`> tilemap<`lzm4x30x24|table`> palette<`ucp4`>]8'
 [[NamedAnchors]]
 Name = '''graphics.overworld.firstpersonview.sprites'''
 Address = 0x436EBC
-Format = '''[id.data.maps.names+88 transition.transitiontype worldmapflag: tileset<`lzt4|graphics.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.firstpersonview.sprites`> pal<`ucp4:DE`>]graphics.firstpersonview.count'''
+Format = '''[id.data.maps.names+88 transition.transitiontype worldmapflag: tileset<`lzt4|graphics.overworld.firstpersonview.sprites`> tilemap<`lzm4x32x20|graphics.overworld.firstpersonview.sprites`> pal<`ucp4:DE`>]graphics.firstpersonview.count'''
 
 [[NamedAnchors]]
 Name = '''graphics.battle.background.sprites'''
@@ -4437,13 +4437,9 @@ Name = '''perstepcallbacks'''
 Name = '''directions'''
 1 = [
    '''South''',
-   '''Down''',
    '''North''',
-   '''Up''',
    '''West''',
-   '''Left''',
    '''East''',
-   '''Right''',
    '''Southwest''',
    '''Southeast''',
    '''Northwest''',

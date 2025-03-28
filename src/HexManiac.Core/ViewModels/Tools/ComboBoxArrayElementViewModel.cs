@@ -52,7 +52,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       };
    }
 
-   public class ComboBoxArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+   public class ComboBoxArrayElementViewModel : ViewModelCore, IMultiEnabledArrayElementViewModel {
       private string name, enumName;
       private int start, length;
 

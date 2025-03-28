@@ -18,6 +18,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly ViewPort viewPort;
       private readonly IToolTrayViewModel toolTray;
       private readonly IWorkDispatcher dispatcher;
+      private readonly IDelayWorkTimer loadMapUsageTimer, dataChangedTimer;
 
       public string Name => "Table";
 
@@ -129,6 +130,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
       }
 
+      private bool useMultiFieldFeature = false;
+      public bool UseMultiFieldFeature {
+         get => useMultiFieldFeature;
+         set => Set(ref useMultiFieldFeature, value, old => {
+            foreach (var group in Groups) group.UseMultiFieldFeature = useMultiFieldFeature;
+            DataForCurrentRunChanged();
+         });
+      }
+
       public ObservableCollection<IArrayElementViewModel> UsageChildren { get; }
       public ObservableCollection<TableGroupViewModel> Groups { get; }
 
@@ -186,8 +196,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          this.viewPort = viewPort;
          this.toolTray = toolTray;
          this.dispatcher = dispatcher;
+         loadMapUsageTimer = dispatcher.CreateDelayTimer();
+         dataChangedTimer =  /* */ new ImmediateWorkTimer(); //*/ dispatcher.CreateDelayTimer();
          CurrentElementSelector = new FilteringComboOptions();
-         CurrentElementSelector.Bind(nameof(FilteringComboOptions.SelectedIndex), UpdateViewPortSelectionFromTableComboBoxIndex);
+         CurrentElementSelector.Bind(nameof(FilteringComboOptions.ModelValue), UpdateViewPortSelectionFromTableComboBoxIndex);
          Groups = new();
          UsageChildren = new();
 
@@ -283,29 +295,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public IList<IArrayElementViewModel> Children => Groups.SelectMany(group => group.Members).ToList();
 
       private void AddGroup() {
-         Groups.Add(new TableGroupViewModel {
+         Groups.Add(new TableGroupViewModel(viewPort) {
             ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
             ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
          });
       }
 
-      private readonly string[] themes = new string[] {
-         //nameof(Theme.Text1),
-         //nameof(Theme.Text2),
-         //nameof(Theme.Data1),
-         //nameof(Theme.Data2),
-         //nameof(Theme.Accent),
-         //nameof(Theme.Stream1),
-         //nameof(Theme.Stream2),
-         nameof(Theme.Background),
-      };
-
-      private int childIndexGroup = 0, themeIndex = 0;
+      private int childIndexGroup = 0;
       private void AddChild(IArrayElementViewModel child) {
          if (child == null) return;
-         if (child is SplitterArrayElementViewModel) themeIndex = (themeIndex + 1) % themes.Length;
          while (Groups.Count <= childIndexGroup) AddGroup();
-         Groups[childIndexGroup].Add(child, themes[themeIndex]);
+         Groups[childIndexGroup].Add(child);
       }
 
       private void MoveToNextGroup() {
@@ -337,13 +337,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private bool dataForCurrentRunChangeUpdate;
       public void DataForCurrentRunChanged() {
+         // ignore callbacks while any held comboboxes are open
+         foreach (var group in Groups) {
+            foreach (var member in group.Members) {
+               if (member is ComboBoxArrayElementViewModel box && box.FilteringComboOptions.DropDownIsOpen) return;
+            }
+         }
+
+         // must be longer than initial key-hold delay or app will studder
+         dataChangedTimer.DelayCall(TimeSpan.FromSeconds(.6), DataForCurrentRunChangedCore);
+      }
+
+      private void DataForCurrentRunChangedCore() {
          foreach (var group in Groups) {
             foreach (var member in group.Members) ClearHandlers(member);
          }
          foreach (var child in UsageChildren) ClearHandlers(child);
          foreach (var group in Groups) group.Open();
          childIndexGroup = 0;
-         themeIndex = 0;
          usageChildInsertionIndex = 0;
 
          var array = model.GetNextRun(Address) as ITableRun;
@@ -389,7 +400,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                   streamGroup = Groups[1];
                   streamGroup.Open();
                } else {
-                  streamGroup = new TableGroupViewModel {
+                  streamGroup = new TableGroupViewModel(viewPort) {
                      ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
                      ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
                   };
@@ -398,7 +409,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
                var header = new SplitterArrayElementViewModel(viewPort, basename, elementOffset);
                AddChild(header);
-               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, themes[themeIndex], header, streamGroup);
+               Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, array, index, header, streamGroup);
                MoveToNextGroup();
                Groups[0].GroupName = basename;
             } else {
@@ -414,7 +425,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                      streamGroup.GroupName = TableGroupViewModel.DefaultName;
                      streamGroup.Open();
                   } else {
-                     streamGroup = new TableGroupViewModel {
+                     streamGroup = new TableGroupViewModel(viewPort) {
                         ForwardModelChanged = element => element.DataChanged += ForwardModelChanged,
                         ForwardModelDataMoved = element => element.DataMoved += ForwardModelDataMoved,
                      };
@@ -439,7 +450,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                         elementOffset = currentArray.Start + currentArray.ElementLength * currentIndex;
                         var header = new SplitterArrayElementViewModel(viewPort, tableName, elementOffset);
                         AddChild(header);
-                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, themes[themeIndex], header, helperGroup, partition);
+                        Groups[childIndexGroup].AddChildrenFromTable(viewPort, selection, currentArray, currentIndex, header, helperGroup, partition);
                      }
                   }
                   while (Groups.Count <= childIndexGroup) AddGroup();
@@ -536,6 +547,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       private void UpdateViewPortSelectionFromTableComboBoxIndex(object sender = null, EventArgs e = null) {
          if (selfChange) return;
+         if (CurrentElementSelector.DropDownIsOpen) return;
          var array = (ITableRun)model.GetNextRun(Address);
          var address = array.Start + array.ElementLength * CurrentElementSelector.SelectedIndex;
          selection.SelectionStart = selection.Scroll.DataIndexToViewPoint(address);
@@ -624,7 +636,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          // maps
          if (viewPort.MapEditor != null && viewPort.MapEditor.IsValidState && !viewPort.SpartanMode) {
-            var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, viewPort.MapEditor, basename, index);
+            var mapOptions = new MapOptionsArrayElementViewModel(dispatcher, loadMapUsageTimer, viewPort.MapEditor, basename, index);
             mapOptions.MapPreviews.CollectionChanged += (sender, e) => NotifyPropertyChanged(nameof(HasUsageOptions));
             AddUsageChild(mapOptions); // always add, but invisible when empty
          }

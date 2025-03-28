@@ -14,11 +14,32 @@ using System.Collections.Generic;
 using System.Windows.Input;
 using System.Linq;
 using HavenSoft.HexManiac.WPF.Resources;
+using System.Windows.Threading;
+using System.Windows.Controls;
 
-namespace HavenSoft.HexManiac.WPF.Controls; 
+namespace HavenSoft.HexManiac.WPF.Controls;
+
+// TODO jump button for enums
+// TODO jump button for bit arrays
+// TODO jump button behavior
+// TODO text selection for textboxes
+// TODO text editing for textboxes
+// TODO application commands (cut/copy/paste/selectall) for textboxes
+// TODO keyboard shortcuts cut/copy/paste/selectall for textboxes
+// TODO home/end/left/right/increment/decrement for textboxes
+
+// TODO text editing for enums
+// TODO showing filtered dropdown for enums
+
+// additional controls:
+// tuples
+// calculated fields
+
 
 public partial class TableGroupPanel : FrameworkElement {
    private readonly SpriteCache spriteCache = new();
+   private readonly DispatcherTimer timer;
+   private bool isCursorShowing;
 
    private IArrayElementViewModel keyboardFocusElement, mouseHoverElement;
 
@@ -87,6 +108,21 @@ public partial class TableGroupPanel : FrameworkElement {
 
    #endregion
 
+   private Point cursorPosition = new(double.NaN, double.NaN);
+   public Point CursorPosition {
+      get => cursorPosition;
+      set {
+         cursorPosition = value;
+         if (double.IsNaN(cursorPosition.X)) {
+            timer.Stop();
+            InvalidateVisual();
+         } else {
+            isCursorShowing = true;
+            timer.Start();
+         }
+      }
+   }
+
    public int FontSize { get; private set; } = 16; // TODO dependency property?
 
    public TableGroupPanel() {
@@ -94,14 +130,16 @@ public partial class TableGroupPanel : FrameworkElement {
       VerticalAlignment = VerticalAlignment.Top;
       ClipToBounds = true;
       Focusable = true;
+      timer = new DispatcherTimer(TimeSpan.FromSeconds(.6), DispatcherPriority.ApplicationIdle, BlinkCursor, Dispatcher);
    }
 
    protected override void OnLostKeyboardFocus(KeyboardFocusChangedEventArgs e) {
       base.OnLostKeyboardFocus(e);
-      if ((keyboardFocusElement != null)) {
+      if (keyboardFocusElement != null) {
          keyboardFocusElement = null;
          InvalidateVisual();
       }
+      CursorPosition = new(double.NaN, double.NaN);
    }
 
    protected override void OnRender(DrawingContext dc) {
@@ -116,6 +154,11 @@ public partial class TableGroupPanel : FrameworkElement {
          controls[element].Render(context);
          offset += controls[element].Height;
       }
+
+      if (isCursorShowing && !double.IsNaN(CursorPosition.X)) {
+         dc.DrawLine(new Pen(Brush(nameof(Theme.Secondary)), 1), CursorPosition, new(cursorPosition.X, cursorPosition.Y + FontSize));
+      }
+
    }
 
    protected override Size MeasureOverride(Size availableSize) {
@@ -243,6 +286,12 @@ public partial class TableGroupPanel : FrameworkElement {
 
       return control;
    }
+
+   private void BlinkCursor(object sender, EventArgs e) {
+      isCursorShowing = !isCursorShowing;
+      InvalidateVisual();
+   }
+
    /*
    #region Helpers
 
@@ -733,16 +782,36 @@ public record RenderContext(DrawingContext Api) {
       }
    }
 
-   public void DrawTextButton(Rect rect, double fontSize, string text, bool isHover) {
+   public void DrawTextButton(Rect rect, double fontSize, string text, bool isHover, bool isEnabled = true) {
       var border = isHover ? nameof(Theme.Primary) : nameof(Theme.Secondary);
       var fill = nameof(Theme.Backlight);
+      var textFill = nameof(Theme.Primary);
+      if (!isEnabled) { fill = nameof(Theme.Background); border = nameof(Theme.Secondary); textFill = nameof(Theme.Secondary); }
       Api.DrawRectangle(Brush(fill), new Pen(Brush(border), 1), rect);
-      var formattedText = FormattedText(text, fontSize, nameof(Theme.Primary));
+      var formattedText = FormattedText(text, fontSize, textFill);
       if (formattedText.Width > rect.Width - 2) {
          fontSize *= (rect.Width - 2) / formattedText.Width;
          formattedText = FormattedText(text, fontSize, nameof(Theme.Primary));
       }
       Api.DrawText(formattedText, new(rect.X + rect.Width / 2 - formattedText.Width / 2, rect.Y));
+   }
+
+   /// <summary>
+   /// Draws a squarish jump button based on the fontSize.
+   /// </summary>
+   public void DrawJumpButton(Point start, bool enabled, bool hover) {
+      int width = CurrentFontSize, height = CurrentFontSize;
+      Api.PushTransform(new TranslateTransform(start.X, start.Y));
+      var background = enabled ? nameof(Theme.Backlight) : nameof(Theme.Background);
+      var border = (hover && enabled) ? nameof(Theme.Primary) : nameof(Theme.Secondary);
+
+      var content = $"M0,0 L {width-4},0 {width},{height/2} {width-4},{height} 0,{height} 4,{height/2} Z";
+      Api.DrawGeometry(Brush(background), new Pen(Brush(border), 1), Geometry.Parse(content));
+
+      content = $"M4,3 L {width-6},3 {width-4},{height/2} {width-6},{height-3} 4,{height-3} 6,{height/2} Z";
+      Api.DrawGeometry(Brush(border), null, Geometry.Parse(content));
+
+      Api.Pop();
    }
 
    public static FormattedText FormattedText(string text, double size, string foreground)
@@ -811,37 +880,88 @@ public record GroupDefaultControl(IArrayElementViewModel Element) : GroupFixedHe
 }
 
 public record GroupTextControl(FieldArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
+   enum ControlSegment { None, Label, TextBox, Button }
+   private ControlSegment mouseOver;
+
    public bool IsFocused { get; private set; }
+
+   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
+   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) {
+      var text = RenderContext.FormattedText(Element.Content, parent.FontSize, null);
+      var labelAndContentWidth = Width - parent.FontSize - 2;
+      var leftEdge = labelAndContentWidth - text.Width - 2;
+      var characterWidth = text.Width / Element.Content.Length;
+
+      var p = e.GetPosition(parent);
+      var index = (p.X - leftEdge) / characterWidth + .5;
+      index = (int)index.LimitToRange(0, Element.Content.Length);
+      parent.CursorPosition = new((int)(leftEdge + index * characterWidth), YOffset + 1);
+   }
+   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
+      var p = e.GetPosition(parent);
+      parent.Cursor = p.X > Width / 2 ? Cursors.IBeam : Cursors.Arrow;
+
+      if (e.LeftButton == MouseButtonState.Pressed) {
+         // TODO mouse drag
+      } else {
+         // mouse hover
+         var newHover = CalculateMouseOver(parent, new(p.X, p.Y - YOffset));
+         if ((newHover == ControlSegment.Button) != (mouseOver == ControlSegment.Button)) {
+            mouseOver = newHover;
+            parent.InvalidateVisual(); // redraw for border
+         }
+      }
+
+   }
+   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) {
+      // TODO end of mouse drag
+      // TODO need the ability to actually respond to these application commands
+      if (e.ChangedButton == MouseButton.Right) {
+         parent.ContextMenu = new ContextMenu {
+            Items = {
+               new MenuItem { Command = ApplicationCommands.Cut },
+               new MenuItem { Command = ApplicationCommands.Copy },
+               new MenuItem { Command = ApplicationCommands.Paste },
+               new Separator(),
+               new MenuItem { Command = ApplicationCommands.SelectAll },
+            },
+         };
+      }
+   }
+   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) {
+      parent.Cursor = Cursors.Arrow;
+      if (mouseOver == ControlSegment.Button) {
+         mouseOver = ControlSegment.None;
+         parent.InvalidateVisual();
+      }
+   }
+   private ControlSegment CalculateMouseOver(TableGroupPanel parent, Point internalPoint) {
+      var labelAndContentWidth = Width - parent.FontSize;
+      if (internalPoint.X < labelAndContentWidth / 2) return ControlSegment.Label;
+      if (internalPoint.X > labelAndContentWidth) return ControlSegment.Button;
+      return ControlSegment.TextBox;
+   }
 
    public void Render(RenderContext context) {
       var topOfText = YOffset;
+      var labelAndContentWidth = Width - context.CurrentFontSize - 2;
 
       // label
-      context.DrawText(new(2, topOfText + 2), context.CurrentFontSize - 4, Width / 2, Element.Name, Primary);
+      context.DrawText(new(2, topOfText + 2), context.CurrentFontSize - 4, labelAndContentWidth / 2, Element.Name, Primary);
 
       // box
       var pen = IsFocused ? context.AccentPen : null;
       var background = RenderContext.Brush(Backlight);
-      context.Api.DrawRectangle(background, pen, new Rect(Width / 2, YOffset + 1, Width / 2, Height - 2));
+      context.Api.DrawRectangle(background, pen, new Rect(labelAndContentWidth / 2, YOffset + 1, labelAndContentWidth / 2, Height - 2));
 
       // content
       var text = RenderContext.FormattedText(Element.Content, context.CurrentFontSize, Primary);
       var textWidth = text.Width + 2;
-      if (textWidth > Width / 2) textWidth = Width / 2; // TODO crop the text if this happens
-      context.Api.DrawText(text, new(Width - textWidth, topOfText));
+      if (textWidth > labelAndContentWidth / 2) textWidth = labelAndContentWidth / 2; // TODO crop the text if this happens
+      context.Api.DrawText(text, new(labelAndContentWidth - textWidth, topOfText));
 
-      // TODO render the button
-   }
-
-   public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { }
-   public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
-   public void MouseMove(TableGroupPanel parent, MouseEventArgs e) {
-      var p = e.GetPosition(parent);
-      parent.Cursor = p.X > Width / 2 ? Cursors.IBeam : Cursors.Arrow;
-   }
-   public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) { }
-   public void MouseExit(TableGroupPanel parent, MouseEventArgs e) {
-      parent.Cursor = Cursors.Arrow;
+      // goto button
+      context.DrawJumpButton(new(Width - context.CurrentFontSize, topOfText + 2), Element.CanAccept(), mouseOver == ControlSegment.Button);
    }
 
    public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
@@ -1043,7 +1163,7 @@ public record GroupPaletteControl(PaletteElementViewModel Element) : GroupFixedH
    public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 
    private int GetCell(TableGroupPanel parent, double x, double y) {
-      var unitWidth = parent.FontSize / 2 + 4;
+      var unitWidth = parent.FontSize * 2 / 3 + 4;
       var cellY = (int)((y - YOffset) / unitWidth).LimitToRange(0, Element.Colors.ColorHeight);
       var cellX = (int)(x / unitWidth).LimitToRange(0,Element.Colors.ColorWidth);
       return cellY * Element.Colors.ColorWidth + cellX;
@@ -1071,7 +1191,14 @@ public record GroupBitArrayControl(BitListArrayElementViewModel Element) : Group
       hover = newHover;
    }
    public void MouseUp(TableGroupPanel parent, MouseButtonEventArgs e) {
-      if (GetBit(e.GetPosition(parent)) == mouseClickElement && mouseClickElement != null) {
+      if (e.ChangedButton == MouseButton.Right) {
+         parent.ContextMenu = new ContextMenu {
+            Items = {
+               new MenuItem { Header = "Select All", Command = Element.SelectAll },
+               new MenuItem { Header = "Unselect All", Command = Element.UnselectAll },
+            },
+         };
+      } else if (GetBit(e.GetPosition(parent)) == mouseClickElement && mouseClickElement != null) {
          mouseClickElement.IsChecked = !mouseClickElement.IsChecked;
       }
    }
@@ -1108,7 +1235,6 @@ public record GroupBitArrayControl(BitListArrayElementViewModel Element) : Group
 }
 
 public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
-   // TODO CanExecute
    private bool isHover;
    public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
    public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
@@ -1117,7 +1243,7 @@ public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFix
    public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { isHover = false; parent.InvalidateVisual(); }
 
    public void Render(RenderContext context) {
-      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Text, isHover);
+      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Text, isHover, Element.Command.CanExecute(null));
    }
 
    public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
@@ -1125,7 +1251,6 @@ public record GroupButtonControl(ButtonArrayElementViewModel Element) : GroupFix
 }
 
 public record GroupPythonButtonControl(PythonButtonElementViewModel Element) : GroupFixedHeighteControl(), IGroupControl {
-   // TODO CanExecute
    private bool isHover;
    public void MouseEnter(TableGroupPanel parent, MouseEventArgs e) { isHover = true; parent.InvalidateVisual(); }
    public void MouseDown(TableGroupPanel parent, MouseButtonEventArgs e) { }
@@ -1134,14 +1259,9 @@ public record GroupPythonButtonControl(PythonButtonElementViewModel Element) : G
    public void MouseExit(TableGroupPanel parent, MouseEventArgs e) { isHover = false; parent.InvalidateVisual(); }
 
    public void Render(RenderContext context) {
-      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Name, isHover);
+      context.DrawTextButton(new Rect(2, YOffset + 2, Width - 4, Height - 4), context.CurrentFontSize - 2, Element.Name, isHover, Element.CanExecute());
    }
 
    public void KeyInput(TableGroupPanel parent, KeyEventArgs e) { }
    public void TextInput(TableGroupPanel parent, TextCompositionEventArgs e) { }
 }
-
-// next most important controls:
-// SpriteIndicatorElementViewModel
-// tuples
-// calculated fields

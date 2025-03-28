@@ -40,9 +40,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (selectedIndex < 0 || selectedIndex >= FilteredOptions.Count) return;
             interactionType = InteractionType.DropDown;
             selectedIndex = value;
+            dropDownIsOpen = false;
             if (!ClearFilter()) {
                displayText = AllOptions[selectedIndex].Text;
-               NotifyPropertiesChanged(nameof(SelectedIndex), nameof(DisplayText), nameof(ModelValue));
+               NotifyPropertiesChanged(nameof(SelectedIndex), nameof(DisplayText), nameof(DropDownIsOpen), nameof(ModelValue));
             }
             interactionType = InteractionType.None;
          }

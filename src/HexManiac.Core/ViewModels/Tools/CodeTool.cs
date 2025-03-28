@@ -24,6 +24,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private readonly Selection selection;
       private readonly ChangeHistory<ModelDelta> history;
       private readonly IRaiseMessageTab messageTab;
+      private readonly IDelayWorkTimer recompileTimer;
 
       public event EventHandler<ErrorInfo> ModelDataChanged;
       public event EventHandler AttentionNewContent;
@@ -98,6 +99,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public CodeTool(Singletons singletons, ViewPort viewPort, Selection selection, ChangeHistory<ModelDelta> history, IRaiseMessageTab messageTab) {
          this.singletons = singletons;
+         recompileTimer = singletons.WorkDispatcher.CreateDelayTimer();
          var gameHash = viewPort.Model.GetShortGameCode();
          thumb = new ThumbParser(singletons);
          script = new ScriptParser(gameHash, singletons.ScriptLines, 0x02);
@@ -323,7 +325,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (run != null && run.Start != body.Address) run = null;
 
          int length = parser.FindLength(model, body.Address);
-         using (ModelCacheScope.CreateScope(model)) {
+         // don't need to run this if they're still typing
+         recompileTimer.DelayCall(TimeSpan.FromSeconds(.5), () => {
             var initialStart = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
             var initialEnd = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
             if (initialStart > initialEnd) (initialStart, initialEnd) = (initialEnd, initialStart);
@@ -353,7 +356,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.Address = start; // in case of the code getting repointed
             }
             UpdateContents(start, parser, body.Address, length);
-         }
+         });
       }
 
       private void UpdateScriptHelpFromLine(object sender, HelpContext context) {

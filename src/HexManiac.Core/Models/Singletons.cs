@@ -20,7 +20,9 @@ namespace HavenSoft.HexManiac.Core.Models {
    /// </summary>
    public class Singletons {
       private const string TableReferenceFileName = "resources/tableReference.txt";
+      private const string TableReferenceFileNameItalian = "resources/tableReference.it.txt";
       private const string ConstantReferenceFileName = "resources/constantReference.txt";
+      private const string ConstantReferenceFileNameItalian = "resources/constantReference.it.txt";
       private const string ThumbReferenceFileName = "resources/armReference.txt";
       private const string ScriptReferenceFileName = "resources/scriptReference.txt";
       private const string BattleScriptReferenceFileName = "resources/battleScriptReference.txt";
@@ -137,6 +139,20 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static IReadOnlyList<string> ReferenceOrder { get; } = new string[] { "name", Ruby, Sapphire, Ruby1_1, Sapphire1_1, FireRed, LeafGreen, FireRed1_1, LeafGreen1_1, Emerald, "format" };
       private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTables() {
+         var tableEn = CreateGameReferenceTablesEnglish();
+         var tableIt = CreateGameReferenceTablesItalian();
+         var readonlyTables = new Dictionary<string, GameReferenceTables>();
+         foreach (var pair in tableEn) {
+            readonlyTables.Add(pair.Key, pair.Value);
+         }
+         foreach (var pair in tableIt) {
+            readonlyTables.Add(pair.Key, pair.Value);
+         }
+         return readonlyTables;
+      }
+
+      public static IReadOnlyList<string> ReferenceOrderItalian { get; } = new string[] { "name", FireRedIt, "format" };
+      private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTablesEnglish() {
          if (!File.Exists(TableReferenceFileName)) return new Dictionary<string, GameReferenceTables>();
          var lines = File.ReadAllLines(TableReferenceFileName);
          var tables = new Dictionary<string, List<ReferenceTable>>();
@@ -172,9 +188,83 @@ namespace HavenSoft.HexManiac.Core.Models {
          return readonlyTables;
       }
 
+      private IReadOnlyDictionary<string, GameReferenceTables> CreateGameReferenceTablesItalian() {
+         if (!File.Exists(TableReferenceFileNameItalian)) {
+            return new Dictionary<string, GameReferenceTables>();
+         }
+         var lines = File.ReadAllLines(TableReferenceFileNameItalian);
+         var tables = new Dictionary<string, List<ReferenceTable>>();
+         for (int i = 0; i < ReferenceOrderItalian.Count - 2; i++) tables[ReferenceOrderItalian[i + 1]] = new List<ReferenceTable>();
+         foreach (var line in lines) {
+            var row = line.Trim();
+            if (row.StartsWith("//")) continue;
+            var segments = row.Split("//")[0].Split(",");
+            if (segments.Length != ReferenceOrderItalian.Count) continue;
+            var name = segments[0].Trim();
+            var offset = 0;
+            if (name.Contains("+")) {
+               var parts = name.Split("+");
+               name = parts[0];
+               int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+            } else if (name.Contains("-")) {
+               var parts = name.Split("-");
+               name = parts[0];
+               int.TryParse(parts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset);
+               offset = -offset;
+            }
+            var format = segments.Last().Trim();
+            for (int i = 0; i < ReferenceOrderItalian.Count - 2; i++) {
+               var addressHex = segments[i + 1].Trim();
+               if (addressHex == string.Empty) continue;
+               if (!int.TryParse(addressHex, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out int address)) continue;
+               tables[ReferenceOrderItalian[i + 1]].Add(new ReferenceTable(name, offset, address, format));
+            }
+         }
+
+         var readonlyTables = new Dictionary<string, GameReferenceTables>();
+         foreach (var pair in tables) readonlyTables.Add(pair.Key, new GameReferenceTables(pair.Value));
+         return readonlyTables;
+      }
+
+
       private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstants() {
+         var constantsEn = CreateGameReferenceConstantsEnglish();
+         var constantsIt = CreateGameReferenceConstantsItalian();
+         var readonlyConstants = new Dictionary<string, GameReferenceConstants>();
+         foreach (var pair in constantsEn) {
+            readonlyConstants.Add(pair.Key, pair.Value);
+         }
+         foreach (var pair in constantsIt) {
+            readonlyConstants.Add(pair.Key, pair.Value);
+         }
+         return readonlyConstants;
+      }
+
+      private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstantsEnglish() {
          if (!File.Exists(ConstantReferenceFileName)) return new Dictionary<string, GameReferenceConstants>();
          var lines = File.ReadAllLines(ConstantReferenceFileName);
+         var constants = new Dictionary<string, List<ReferenceConstant>>();
+         foreach (var line in lines) {
+            if (string.IsNullOrWhiteSpace(line)) continue;
+            var cleanLine = line.Trim();
+            if (cleanLine.Length < 6) continue;
+            if (!char.IsLetter(cleanLine[0])) continue;
+            var gameCode = cleanLine.Substring(0, 5).ToUpper();
+            if (!constants.TryGetValue(gameCode, out var collection)) {
+               collection = new List<ReferenceConstant>();
+               constants[gameCode] = collection;
+            }
+            collection.Add(new ReferenceConstant(cleanLine.Substring(5)));
+         }
+
+         var readonlyConstants = new Dictionary<string, GameReferenceConstants>();
+         foreach (var pair in constants) readonlyConstants.Add(pair.Key, new GameReferenceConstants(pair.Value));
+         return readonlyConstants;
+      }
+
+      private IReadOnlyDictionary<string, GameReferenceConstants> CreateGameReferenceConstantsItalian() {
+         if (!File.Exists(ConstantReferenceFileNameItalian)) return new Dictionary<string, GameReferenceConstants>();
+         var lines = File.ReadAllLines(ConstantReferenceFileNameItalian);
          var constants = new Dictionary<string, List<ReferenceConstant>>();
          foreach (var line in lines) {
             if (string.IsNullOrWhiteSpace(line)) continue;
@@ -209,7 +299,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public void ExportReadableScriptReference(EditorViewModel editor) {
          var specials = new Dictionary<string, StoredList>(
             new[] { "axve", "axpe", "bpre", "bpge", "bpee" }
-            .Select<string, KeyValuePair<string,StoredList>>(
+            .Select<string, KeyValuePair<string, StoredList>>(
                code => new(code, BaseModel.GetDefaultMetadatas(code).SelectMany(md => md.Lists).Single(list => list.Name == "specials"))
             )
          );

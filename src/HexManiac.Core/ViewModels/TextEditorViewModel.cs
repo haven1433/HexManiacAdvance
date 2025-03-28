@@ -30,6 +30,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public TextEditorViewModel() {
          Keywords.CollectionChanged += (sender, e) => UpdateLayers();
          Constants.CollectionChanged += (sender, e) => UpdateLayers();
+         SyntaxHighlighting = true;
       }
 
       public TextEditorViewModel(bool syntaxHighlighting) {

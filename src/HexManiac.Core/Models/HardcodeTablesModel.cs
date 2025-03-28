@@ -91,7 +91,11 @@ namespace HavenSoft.HexManiac.Core.Models {
          Ruby1_1 = "AXVE1",
          Sapphire1_1 = "AXPE1",
          FireRed1_1 = "BPRE1",
-         LeafGreen1_1 = "BPGE1";
+         LeafGreen1_1 = "BPGE1",
+         FireRedFr = "BPRF0",
+         FireRedIt = "BPRI0",
+         EmeraldFr = "BPEF0",
+         EmeraldIt = "BPEI0";
 
       public const string
          TmMoves = "data.pokemon.moves.tms",
@@ -140,9 +144,10 @@ namespace HavenSoft.HexManiac.Core.Models {
                   Sapphire1_1,
                   FireRed1_1,
                   LeafGreen1_1,
-                  "BPRF0", // french firered
-                  "BPEF0", // french emerald
-                  "BPEI0", // italian emerald
+                  FireRedFr,
+                  FireRedIt,
+                  EmeraldFr,
+                  EmeraldIt,
                   "ABCD0", // for tests
                };
 
@@ -234,8 +239,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             "Set Terrain", "Pledge", "Field Effects", "Fling", "Feint", "Attack Blockers", "Type Changes", "Heal Target", "Topsy Turvy Electrify", "Fairy Lock Happy Hour",
             "Instruct After You Quash", "Sucker Punch", "Ignore Redirection", "Team Effects", "Camouflage", "Flame Burst", "Last Resort Sky Drop", "Damage Set Terrain", "Teatime",
             "RaiseTarget\'sAttackSpAtk2"});
-            for(var k = 0; k < 7; k++) newList.Add(null); // 246 to 252 are unused.
-            newList.AddRange(new string[] {"Max Move", "Synchronoise"});
+            for (var k = 0; k < 7; k++) newList.Add(null); // 246 to 252 are unused.
+            newList.AddRange(new string[] { "Max Move", "Synchronoise" });
             SetList(new NoDataChangeDeltaModel(), MoveEffectListName, newList, null, StoredList.GenerateHash(newList));
          }
 
@@ -264,7 +269,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             });
             SetList(new NoDataChangeDeltaModel(), "holdeffects", newList, null, StoredList.GenerateHash(newList));
          }
-         
+
          // Update the type chart effectivenesses list
          if (isCFRU && TryGetList("effectiveness", out var multipliers)) {
             var newMultipliers = new string[21]; // 0 to 20
@@ -377,7 +382,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          newList.Add("Acc Up 3");
          newList.Add("Evsn Up 3");
          SetList(new NoDataChangeDeltaModel(), "zeffects", newList, null, StoredList.GenerateHash(newList));
-         
+
       }
 
       public static StoredMetadata DecodeConstantsFromReference(IReadOnlyList<byte> model, IMetadataInfo info, StoredMetadata metadata, GameReferenceConstants constants) {
@@ -535,7 +540,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          if (name == ItemEffectsTableName) format = format.Replace("-199", string.Empty); // item effects are as long as the items
 
-         
+
 
          // type chart
          if (name == "data.pokemon.type.chart") {

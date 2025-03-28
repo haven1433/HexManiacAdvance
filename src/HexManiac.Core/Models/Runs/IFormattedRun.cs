@@ -35,6 +35,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class AutocompleteItem {
       public string Text { get; } // text to show in completion tip
       public string LineText { get; } // text to use to replace entire line
+      public int CharacterOffset { get; set; } // character-size offset to use for the autocomplete options
       public AutocompleteItem(string text, string lineText) => (Text, LineText) = (text, lineText);
    }
 

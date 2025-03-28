@@ -2,7 +2,10 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
-using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public enum ElementContentViewModelType {
@@ -20,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       string UpdateViewModelFromModel(FieldArrayElementViewModel viewModel);
    }
 
-   public class FieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+   public class FieldArrayElementViewModel : ViewModelCore, IMultiEnabledArrayElementViewModel {
       private readonly IFieldArrayElementViewModelStrategy strategy;
 
       private string name;
@@ -46,7 +49,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
       public bool IsInError => errorText != string.Empty;
 
-      string errorText;
+      private string errorText;
       public string ErrorText {
          get => errorText;
          set {
@@ -316,6 +319,105 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var color = (short)viewModel.Model.ReadMultiByteValue(viewModel.Start, viewModel.Length);
          var text = UncompressedPaletteColor.Convert(color);
          return text;
+      }
+   }
+
+   public class MultiFieldArrayElementViewModel : ViewModelCore, IArrayElementViewModel {
+      private string theme, content;
+      private bool visible = true;
+      private List<IMultiEnabledArrayElementViewModel> fields = new();
+
+      public string Theme { get => theme; set => Set(ref theme, value); }
+      public bool Visible { get => visible; set => Set(ref visible, value); }
+      public bool IsInError => false;
+      public string ErrorText => string.Empty;
+      public int ZIndex => 0;
+
+      public event EventHandler DataChanged;
+      public event EventHandler DataSelected;
+
+      public ICommand Undo { get; }
+      public ICommand Redo { get; }
+
+      public MultiFieldArrayElementViewModel(ViewPort port) => (Undo, Redo) = (port.Undo, port.Redo);
+
+      public void Add(IMultiEnabledArrayElementViewModel field) {
+         fields.Add(field);
+         RecalculateBody();
+      }
+
+      // consider hiding fields that don't match the filter
+      public bool Filter(string filter) {
+         foreach (var element in fields) {
+            if (element.Name.MatchesPartial(filter)) return true;
+         }
+         return false;
+      }
+
+      public string Content {
+         get => content;
+         set => Set(ref content, value, oldValue => {
+            var lines = content.SplitLines();
+            for (int i = 0; i < fields.Count; i++) {
+               if (i >= lines.Length) break;
+               var parts = lines[i].Split(':', 2);
+               if (parts.Length == 1) continue;
+               var content = parts[1].Trim();
+               if (fields[i] is FieldArrayElementViewModel field) {
+                  field.Content = content;
+               } else if (fields[i] is ComboBoxArrayElementViewModel combo) {
+                  combo.FilteringComboOptions.DisplayText = content;
+                  combo.FilteringComboOptions.SelectConfirm();
+               }
+            }
+            DataChanged?.Invoke(this, EventArgs.Empty);
+         });
+      }
+
+      public bool TryCopy(IArrayElementViewModel other) {
+         if (other is not MultiFieldArrayElementViewModel that) return false;
+         return content == that.content && fields.Count == that.fields.Count && fields.Count.Range().All(i => fields[i].TryCopy(that.fields[i]));
+      }
+
+      private void RecalculateBody() {
+         var longestName = fields.Select(f => f.Name.Length).Max();
+         var content = new StringBuilder();
+         bool first = true;
+         foreach (var field in fields) {
+            if (!first) content.AppendLine();
+            else first = false;
+
+            content.Append(field.Name.PadRight(longestName, ' '));
+            content.Append(" : ");
+            if (field is FieldArrayElementViewModel field1) {
+               content.Append(field1.Content);
+            } else if (field is ComboBoxArrayElementViewModel combo) {
+               content.Append(combo.FilteringComboOptions.DisplayText);
+            }
+         }
+         this.content = content.ToString();
+         NotifyPropertyChanged(nameof(Content));
+      }
+
+      public IReadOnlyList<AutocompleteItem> GetAutoComplete(string line, int caretLineIndex, int caretCharacterIndex) {
+         var parts = line.Split(':', 2);
+         if (parts.Length != 2) return Array.Empty<AutocompleteItem>();
+         var name = parts[0].Trim();
+         var field = fields.FirstOrDefault(f => f.Name == name);
+         if (field == null) return Array.Empty<AutocompleteItem>();
+
+         // right now, the field is always something like free text, free number, or free color
+         // no auto-complete makes sense
+         // but this method is here as a stub in case we add combobox content into the MultiField.
+         if (field is ComboBoxArrayElementViewModel combo) {
+            var content = parts[1].Trim();
+            combo.FilteringComboOptions.DisplayText = content;
+            return combo.FilteringComboOptions.FilteredOptions
+               .Select(option => new AutocompleteItem(option.Text, parts[0] + ": " + option.Text) { CharacterOffset = parts[0].Length })
+               .ToArray();
+         }
+
+         return Array.Empty<AutocompleteItem>();
       }
    }
 }
