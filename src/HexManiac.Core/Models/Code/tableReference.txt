@@ -375,10 +375,10 @@ graphics.bag.inside1.berry.tilemap,    ,,,, 10D7E8, 10D7C0, 10D860, 10D838, , `l
 graphics.bag.inside2.palette,          ,,,, 13D16C, 13D144, 13D1E4, 13D1BC, , `lzp4:012`
 graphics.bag.inside2.tileset,          ,,,, 13D12C, 13D104, 13D1A4, 13D17C, , `lzt4|graphics.bag.inside2.palette`
 graphics.bag.inside2.tilemap,          ,,,, 13D148, 13D120, 13D1C0, 13D198, , `lzm4x32x32|graphics.bag.inside2.tileset`
-graphics.bag.inside3.palette,          ,,,, 09B108, 09B0DC, 09B11C, 09B0F0, , `lzp4`
-graphics.bag.inside3.tileset,          ,,,, 09B0B0, 09B084, 09B0C4, 09B098, , `lzt4|graphics.bag.inside3.palette`
-graphics.bag.inside3.tilemap1,         ,,,, 09B0B8, 09B08C, 09B0CC, 09B0A0, , `lzm4x32x32|graphics.bag.inside3.tileset`
-graphics.bag.inside3.tilemap2,         ,,,, 09B100, 09B0D4, 09B114, 09B0E8, , `lzm4x32x32|graphics.bag.inside3.tileset`
+graphics.bag.pokemart.palette,          ,,,, 09B108, 09B0DC, 09B11C, 09B0F0, , `lzp4`
+graphics.bag.pokemart.tileset,          ,,,, 09B0B0, 09B084, 09B0C4, 09B098, , `lzt4|graphics.bag.pokemart.palette`
+graphics.bag.pokemart.tilemap1,         ,,,, 09B0B8, 09B08C, 09B0CC, 09B0A0, , `lzm4x32x32|graphics.bag.pokemart.tileset`
+graphics.bag.pokemart.tilemap2,         ,,,, 09B100, 09B0D4, 09B114, 09B0E8, , `lzm4x32x32|graphics.bag.pokemart.tileset`
 graphics.bag.inside.palette.male,      0A35AC, 0A35AC, 0A35CC, 0A35CC, ,,,, , `lzp4`
 graphics.bag.inside.palette.female,    0A35BC, 0A35BC, 0A35DC, 0A35DC, ,,,, , `lzp4`
 
