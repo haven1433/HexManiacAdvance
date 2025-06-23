@@ -733,6 +733,7 @@ graphics.townmap.annotations.kanto,                                 ,,,, 0C4194,
 graphics.townmap.annotations.island1,                               ,,,, 0C419C, 0C4170, 0C41B0, 0C4184, , [worldmap.data.maps.names+88]graphics.townmap.islands.tilemap1*2-4-4-4-1
 graphics.townmap.annotations.island2,                               ,,,, 0C41A4, 0C4178, 0C41B8, 0C418C, , [worldmap.data.maps.names+88]graphics.townmap.islands.tilemap2*2-4-4-4-1
 graphics.townmap.annotations.island3,                               ,,,, 0C41CC, 0C41A0, 0C41E0, 0C41B4, , [worldmap.data.maps.names+88]graphics.townmap.islands.tilemap3*2-4-4-4-1
+graphics.townmap.annotations.hoenn,                                 ,,,,,,,, 1238A8, [worldmap.data.maps.names]graphics.townmap.map.tilemap-1-2-35-47
 
 graphics.credits.trainer.male.palette,         ,       ,       ,       , 0F4A1C, 0F49F4, 0F4A94, 0F4A6C, , `ucp4`
 graphics.credits.trainer.female.palette,       ,       ,       ,       , 0F4A48, 0F4A20, 0F4AC0, 0F4A98, , `ucp4`
