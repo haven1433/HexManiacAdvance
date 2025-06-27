@@ -85,7 +85,11 @@ namespace HavenSoft.HexManiac.Tests {
                   "graphics.townmap.map.tileset",
                   "graphics.text.font.japan.japan2.characters",
                   "graphics.misc.questionnaire.button.sprite",
-                  "graphics.misc.questionnaire.tileset"
+                  "graphics.misc.questionnaire.tileset",
+                  "graphics.bag.pokemart.palette",
+                  "graphics.bag.pokemart.tileset",
+                  "graphics.bag.pokemart.tilemap1",
+                  "graphics.bag.pokemart.tilemap2"
                )) {
                   return;
                }
@@ -104,7 +108,11 @@ namespace HavenSoft.HexManiac.Tests {
                "graphics.townmap.tileset",
                "graphics.questionnaire.button.sprite",
                "graphics.overworld.sprites",
-               "graphics.questionnaire.tileset"
+               "graphics.questionnaire.tileset",
+               "graphics.bag.inside3.palette",
+               "graphics.bag.inside3.tileset",
+               "graphics.bag.inside3.tilemap1",
+               "graphics.bag.inside3.tilemap2"
             )) return;
             if (tomlName == "_0.4.0.toml") {
                exemptAddress |= new[] { // legitimate moves: same name, new location
