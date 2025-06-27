@@ -20,7 +20,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
    /// <summary>
    /// Implements a sorted collection with methods for storing and retrieving elements.
-   /// Unlike a SortedDictionary<>, you can get a value using a key that's not in the dictionary.
+   /// Unlike a SortedDictionary&lt;&gt;, you can get a value using a key that's not in the dictionary.
    /// In such a case, you get the value with the _next_ start position.
    /// </summary>
    public class SearchTree<T> : IEnumerable<T> where T : class, ISearchTreePayload {
