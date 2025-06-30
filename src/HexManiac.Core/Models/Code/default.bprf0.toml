@@ -176,7 +176,7 @@ Format = '''[name<"">]109'''
 [[NamedAnchors]]
 Name = '''data.maps.banks'''
 Address = 0x34CAF8
-Format = '''[maps<[map<[layout<[width:: height:: borderblock<> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> borderwidth. borderheight. unused:]1> events<[objectCount.100 warpCount.100 scriptCount.100 signpostCount.100 objects<[id. graphics.graphics.overworld.sprites kind: x:|z y:|z elevation.11 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/objectCount> warps<[x:|z y:|z elevation.11 warpID. map. bank.]/warpCount> scripts<[x:|z y:|z elevation:11 trigger: index:: script<`xse`>]/scriptCount> signposts<[x:|z y:|z elevation.11 kind. unused:1 arg::|s=kind(0=<>|1=<>|2=<>|3=<>|4=<>)]/signpostCount>]1> mapscripts<[type. pointer<>]!00> connections<[count:: connections<[direction::mapdirections offset:: mapGroup. mapNum. unused:]/count>]1> music:songnames layoutID:data.maps.layouts+1 regionSectionID.data.maps.names+88 cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName. floorNum. battleType.]1>]?>]43'''
+Format = '''[maps<[map<[layout<[width:: height:: borderblock<> blockmap<`blm`> blockdata1<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> blockdata2<[isCompressed. isSecondary. padding: tileset<> pal<`ucp4:0123456789ABCDEF`> blockset<> animation<> attributes<>]1> borderwidth. borderheight. unused:]1> events<[objectCount.100 warpCount.100 scriptCount.100 signpostCount.100 objects<[id. graphics.graphics.overworld.sprites kind: x:|z y:|z elevation.11 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/objectCount> warps<[x:|z y:|z elevation.11 warpID. map. bank.]/warpCount> scripts<[x:|z y:|z elevation:11 trigger:|h index:: script<`xse`>]/scriptCount> signposts<[x:|z y:|z elevation.11 kind. unused:1 arg::|s=kind(0=<>|1=<>|2=<>|3=<>|4=<>)]/signpostCount>]1> mapscripts<[type. pointer<>]!00> connections<[count:: connections<[direction::mapdirections offset:: mapGroup. mapNum. unused:]/count>]1> music:songnames layoutID:data.maps.layouts+1 regionSectionID.data.maps.names+88 cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName. floorNum. battleType.]1>]?>]43'''
 
 [[NamedAnchors]]
 Name = '''data.maps.layouts'''
@@ -1014,24 +1014,24 @@ Address = 0xE85C40
 Format = '''`lzm4x32x32|graphics.bag.inside2.tileset`'''
 
 [[NamedAnchors]]
-Name = '''graphics.bag.inside3.palette'''
+Name = '''graphics.bag.pokemart.palette'''
 Address = 0xE8616C
 Format = '''`lzp4`'''
 
 [[NamedAnchors]]
-Name = '''graphics.bag.inside3.tileset'''
+Name = '''graphics.bag.pokemart.tileset'''
 Address = 0xE85DC4
-Format = '''`lzt4|graphics.bag.inside3.palette`'''
+Format = '''`lzt4|graphics.bag.pokemart.palette`'''
 
 [[NamedAnchors]]
-Name = '''graphics.bag.inside3.tilemap1'''
+Name = '''graphics.bag.pokemart.tilemap1'''
 Address = 0xE85EF8
-Format = '''`lzm4x32x32|graphics.bag.inside3.tileset`'''
+Format = '''`lzm4x32x32|graphics.bag.pokemart.tileset`'''
 
 [[NamedAnchors]]
-Name = '''graphics.bag.inside3.tilemap2'''
+Name = '''graphics.bag.pokemart.tilemap2'''
 Address = 0xE86034
-Format = '''`lzm4x32x32|graphics.bag.inside3.tileset`'''
+Format = '''`lzm4x32x32|graphics.bag.pokemart.tileset`'''
 
 [[NamedAnchors]]
 Name = '''graphics.menu.pokeball.palette'''
