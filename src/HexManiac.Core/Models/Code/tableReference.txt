@@ -895,6 +895,15 @@ scripts.text.names,        ,,,, 12DB00, 12DAD8, 12DB78, 12DB50, , [text<"">]
 scripts.text.interviews,   ,,,, 12CE00, 12CDD8, 12CE78, 12CE50, , [text<"">]
 scripts.text.destinations, ,,,, 09D824, 09D7F8, 09D838, 09D80C, , [text<"">]8
 
+data.battlefrontier.battlepike.level50.pool1,   ,,,, ,,,, 612264, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.level50.pool2,   ,,,, ,,,, 612268, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.level50.pool3,   ,,,, ,,,, 61226C, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.level50.pool4,   ,,,, ,,,, 612270, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.openlevel.pool1, ,,,, ,,,, 612304, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.openlevel.pool2, ,,,, ,,,, 612308, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.openlevel.pool3, ,,,, ,,,, 61230C, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+data.battlefrontier.battlepike.openlevel.pool4, ,,,, ,,,, 612310, [species:data.pokemon.names levelDelta: move1:data.pokemon.moves.names move2:data.pokemon.moves.names move3:data.pokemon.moves.names move4:data.pokemon.moves.names]3
+
 // From Soup
 data.statstages.accuracy,            01C578, 01C578, 01C578, 01C578, 01E108, 01E108, 01E11C, 01E11C, 046918, [numerator. divisor. unused:]13
 data.statstages.critical,            01C9C8, 01C9C8, 01C9C8, 01C9C8, 01E578, 01E578, 01E58C, 01E58C, 046D68, [rate:]!0000
@@ -905,10 +914,12 @@ graphics.berrycheck.tileset,  146308, 146308, 146328, 146328,       ,       ,   
 graphics.berrycheck.tilemap1, 14631C, 14631C, 14633C, 14633C,       ,       ,       ,       ,       , `lzm4x32x20|graphics.berrycheck.tileset`
 graphics.berrycheck.tilemap2, 146338, 146338, 146358, 146358,       ,       ,       ,       ,       , `lzm4x32x20|graphics.berrycheck.tileset`
 
-// From Yogia
+// From Sylinuser
 graphics.trainers.elite4.mugshot.palettes,         ,       ,       ,       , 0D2958, 0D292C, 0D296C, 0D2940,        , [palette<`ucp4`>]trainerMugshots
 graphics.trainers.players.mugshot.palettes,        ,       ,       ,       , 0D295C, 0D2930, 0D2970, 0D2944,        , [palette<`ucp4`>]playerMugshots 
-data.famechecker.trainerpics,                      ,       ,       ,       , 12D98C, 12D964, 12DA04, 12D9DC,        , [pic.graphics.trainers.sprites.front]16 
+data.famechecker.trainerpics,                      ,       ,       ,       , 12D98C, 12D964, 12DA04, 12D9DC,        , [pic.graphics.trainers.sprites.front]16
+data.resort.rewards,                               ,       ,       ,       , 0CB1CC, 0CB1A0, 0CB1E0, 0CB1B4,        , [item:data.items.stats]6
+scripts.elevator.floor,                            ,       ,       ,       , 0CB634, 0CB608, 0CB648, 0CB61C,        , [scripts<"">]16
 
 // From RedKraken
 scripts.newgame.pc.script,                   06824C, 06824C, 068268, 068268, 06CEDC, 06CEDC, 06CEF0, 06CEF0, 09C26C, `xse`
