@@ -919,6 +919,7 @@ graphics.trainers.elite4.mugshot.palettes,         ,       ,       ,       , 0D2
 graphics.trainers.players.mugshot.palettes,        ,       ,       ,       , 0D295C, 0D2930, 0D2970, 0D2944,        , [palette<`ucp4`>]playerMugshots 
 data.famechecker.trainerpics,                      ,       ,       ,       , 12D98C, 12D964, 12DA04, 12D9DC,        , [pic.graphics.trainers.sprites.front]16
 data.resort.rewards,                               ,       ,       ,       , 0CB1CC, 0CB1A0, 0CB1E0, 0CB1B4,        , [item:data.items.stats]6
+scripts.elevator.floor,                            ,       ,       ,       , 0CB634, 0CB608, 0CB648, 0CB61C,        , [scripts<"">]16
 
 // From RedKraken
 scripts.newgame.pc.script,                   06824C, 06824C, 068268, 068268, 06CEDC, 06CEDC, 06CEF0, 06CEF0, 09C26C, `xse`
