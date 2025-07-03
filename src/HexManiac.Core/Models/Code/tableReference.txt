@@ -101,7 +101,7 @@ data.maps.fly.connections,                   ,       ,       ,       ,       ,  
 
 data.maps.puzzle.fortree,    , , , , , , , , 0FB8F0, [x: y: turnstile. initialRotation. padding:]8
 data.maps.puzzle.trickhouse, , , , , , , , , 0FB91C, [x: y: turnstile. initialRotation. padding:]8
-data.maps.roaming.sets,      , , , , 141D98, 141D70, 141E10, 141DE8, , [loc1. loc2. loc3. loc4. loc5. loc6. loc7.]26 // BPRE0
+data.maps.roaming.sets,      , , , , 141D98, 141D70, 141E10, 141DE8, , [[loc.data.maps.names]7]26
 data.maps.roaming.sets,      , , , , , , , , 161CB8, [[loc.data.maps.names]6]21
 
 //                                          +28 pokemon are for egg and unown sprites (B-Z, !, ?), 
