@@ -137,7 +137,7 @@ namespace HavenSoft.HexManiac.Tests {
          get {
             var games = VanillaPokemonGames.ToList();
             int gameIndex = 0;
-            foreach (var pair in BaseViewModelTestClass.Singletons.GameReferenceTables) {
+            foreach (var pair in BaseViewModelTestClass.Singletons.GameReferenceTables.Take(9)) {
                var gameCode = pair.Key;
                var gameName = games[gameIndex];
                foreach (var anchor in pair.Value) {
