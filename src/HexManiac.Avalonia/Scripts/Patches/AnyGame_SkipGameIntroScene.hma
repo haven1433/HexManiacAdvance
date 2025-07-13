@@ -1,0 +1,150 @@
+# Skip Button Tutorial
+# Skip Intro
+# Skip Professor Speech
+# Skip Name/Gender Choice
+# (Use a Default Name)
+
+# Note to the reader:
+#
+# @!game allows us to run different parts of the scripts for different games.
+# So if we want a section to run only for FireRed, we can use @!game(BPRE0)
+
+# -------------------------- FireRed / LeafGreen --------------------------
+
+# Declare some anchors (Different for FireRed / LeafGreen)
+# These are the offsets of functions we need to know / modify
+@!game(BPRE0)
+@008D84 ^thumb.StringCopy
+@054A60 ^thumb.NewGameInitData
+@056644 ^thumb.CB2_NewGame
+@12EB2C ^thumb.StartNewGameScene
+
+@!game(BPGE0)
+@008D84 ^thumb.StringCopy
+@054A60 ^thumb.NewGameInitData
+@056644 ^thumb.CB2_NewGame
+@12EB04 ^thumb.StartNewGameScene
+
+@!game(BPRE1)
+@008D98 ^thumb.StringCopy
+@054A74 ^thumb.NewGameInitData
+@056658 ^thumb.CB2_NewGame
+@12EBA4 ^thumb.StartNewGameScene
+
+@!game(BPGE1)
+@008D98 ^thumb.StringCopy
+@054A74 ^thumb.NewGameInitData
+@056658 ^thumb.CB2_NewGame
+@12EB7C ^thumb.StartNewGameScene
+
+@!game(BPRE0_BPRE1_BPGE0_BPGE1)
+
+# Skips the newgame sequence
+
+# (1) Hack thumb.StartNewGameScene to call thumb.CB2_NewGame
+#     This skips the tutorial text, oak intro, and gender/name picking
+@thumb.StartNewGameScene+28 <thumb.CB2_NewGame+1>
+
+# (2) Add a new helper function that can set the names
+# FillNames: New function that sets the player/rival name
+# Assumes that r4 = SaveBlock2 and r6 = SaveBlock1
+@thumb.FillNames(28) .thumb
+    push  {lr}
+    ldr   r0, [r4, #0]
+    ldr   r1, [pc, <playerName>]
+    ldr   r2, [pc, <stringCopy>]
+    bl    <linker>           @ StringCopy(sb2->playerName, "playerName")
+    ldr   r0, [pc, <rivalNameOffset>]
+    ldr   r1, [r6, #0]
+    add   r0, r0, r1
+    ldr   r1, [pc, <rivalName>]
+    ldr   r2, [pc, <stringCopy>]
+    bl    <linker>           @ StringCopy(sb1->rivalName, "rivalName")
+    pop   {r0}
+    bx    r0
+linker:
+    bx    r2
+rivalNameOffset:
+    .word 0x00003A4C
+stringCopy:
+    .word <thumb.StringCopy+1>
+playerName:
+    .word <scripts.newgame.names.male/taylor/name/>
+rivalName:
+    .word <scripts.newgame.names.rival/toru/name/>
+.end
+
+# (3) Update NewGameInitData to call the new helper (FillNames)
+# remove the initial call to StringCopy
+@thumb.NewGameInitData+14 00000000 
+
+# Replace the 'rivalName' offset with the 'FillNames' offset
+@thumb.NewGameInitData+F4 <thumb.FillNames+01>
+
+# Replace the second call to StringCopy with a call to FillNames
+@thumb.NewGameInitData+D4 .thumb
+    ldr   r0, [pc, <thumb.NewGameInitData+F4>]
+    bl    <linker>
+    b     <continue>
+linker:
+    bx    r0
+continue:
+.end
+
+
+# -------------------------- Ruby/Sapphire --------------------------
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+
+# Declare some anchors (Same for Ruby / Sapphire)
+# These are the offsets of functions we need to know / modify
+@009EB0 ^thumb.Task_MainMenuPressedA
+@00B034 ^thumb.Task_NewGameSpeech33
+@00B808 ^thumb.SetPresetPlayerName
+
+# Make the 'start game' option skip most of the birch stuff.
+# Skip straight to the cleanup step (speech 33).
+@thumb.Task_MainMenuPressedA+A8 <thumb.Task_NewGameSpeech33+1>
+
+# Then modify the cleanup step to set the player name.
+# The function doesn't have any freespace, but we're no longer using the function at +2C
+# So branch to +2C and call SetPresetPlayerName in that extra space.
+@thumb.Task_NewGameSpeech33+20 .thumb
+    b <thumb.Task_NewGameSpeech33+2C>
+.end
+
+@thumb.Task_NewGameSpeech33+2C .thumb
+    mov r0, #2 @ see scripts.newgame.names.male for the list of options (1 to 4)
+    bl  <thumb.SetPresetPlayerName>
+    pop   {r0}
+    bx    r0
+.end
+
+
+# -------------------------- Emerald --------------------------
+
+@!game(BPEE0)
+
+# Declare some anchors
+# These are the offsets of functions we need to know / modify
+@031630 ^thumb.Task_NewGameBirchSpeech_Cleanup
+@031DC4 ^thumb.NewGameBirchSpeech_SetDefaultPlayerName
+@03027C ^thumb.Task_HandleMainMenuAPressed
+
+# Make the 'start game' option skip most of the birch stuff.
+# Skip straight to the cleanup step.
+@thumb.Task_HandleMainMenuAPressed+1C4 <thumb.Task_NewGameBirchSpeech_Cleanup+1>
+
+# Then modify that step to set the player name.
+@thumb.Task_NewGameBirchSpeech_Cleanup+12 .thumb
+    mov r0, #2  @ see scripts.newgame.names.male for the list of options (0 to 19)
+    bl  <thumb.NewGameBirchSpeech_SetDefaultPlayerName>
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+    nop
+.end
+

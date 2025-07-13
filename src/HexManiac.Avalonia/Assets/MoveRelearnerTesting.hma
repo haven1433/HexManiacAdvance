@@ -1,0 +1,31 @@
+﻿# Test Move Relearner
+# Change Fat Guy in entry town to
+#    be a free move relearner.
+
+@levelup/torchic @{
+    (tackle 1)
+    (watergun 2)
+    (doublekick 3)
+    (vinewhip 4)
+    (tailwhip 5)
+    (peck 6)
+@}
+
+@levelup/bulbasaur @{
+    (tackle 1)
+    (watergun 2)
+    (ember 3)
+    (doublekick 4)
+    (tailwhip 5)
+    (leechseed 6)
+@}
+
+@!game(AXVE0) @380924 <153CE4>   # Ruby      1.0
+@!game(AXPE0) @3808B4 <153C74>   # Sapphire  1.0
+@!game(AXVE1) @38093C <153D04>   # Ruby      1.1
+@!game(AXPE1) @3808CC <153C94>   # Sapphire  1.1
+@!game(BPRE0) @3B4DAC <1716BE>   # FireRed   1.0
+@!game(BPGE0) @3B4D8C <17169A>   # LeafGreen 1.0
+@!game(BPRE1) @3B4E1C <171736>   # FireRed   1.1
+@!game(BPGE1) @3B4DFC <171712>   # LeafGreen 1.1
+@!game(BPEE0) @5276D0 <2013D6>   # Emerald

@@ -1,0 +1,948 @@
+# Physical/Special Split
+# Credits to DoesntKnowHowToPlay for making the original patches
+# Credits to Darthatron/Jambo for the FR icon changes
+# Credis to Tlatchi/Xencleamas for the Emerald icon changes
+# Credits to AkameTheBulbasuar for the Thaw check fix
+# Edits and HMA script by AGSMGMaster64
+
+#	This script makes some changes to how physical/special damage is determined in the Gen 3 games
+#	More specifically, the category of a move is based on a normally unused byte for move stats instead of the move type
+#	This allows ???-type moves to do damage as well since it removes the hardcoding for them
+#	This script also adds the Sandstorm Rock Sp Def buff which relies on the physical/special split to work
+
+.python
+if data.pokemon.moves.stats.battle.Run.ElementContent[0].Length != 1:
+  editor.SelectedTab.RaiseError("Cannot apply PSS after move expansion.")
+  editor.SelectedTab.AbortScript()
+.end
+
+@data.pokemon.moves.stats.battle
+^data.pokemon.moves.stats.battle[effect.moveeffectoptions power. type.data.pokemon.type.names accuracy. pp. effectAccuracy. target|b[]movetarget priority.|z info|b[]moveinfo unused. category.movecategory unused.]data.pokemon.moves.names
+
+@!game(AXVE0) @1E0868
+@!game(AXVE1) @1E0880
+@!game(AXPE0) @1E07F8
+@!game(AXPE1) @1E0810
+@!game(BPRE0) @1E4018
+@!game(BPRE1) @1E4088
+@!game(BPGE0) @1E3FF4
+@!game(BPGE1) @1E4064
+@!game(BPEE0) @2E7540
+@!game(All) ^thumb.Divsi3
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @01C3AE
+@!game(BPRE0_BPGE0) @01DF3E
+@!game(BPRE1_BPGE1) @01DF52
+@!game(BPEE0) @04674E
+@!game(All) ^thumb.physicalspecialsplit.accuracy
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @01DB66
+@!game(BPRE0_BPGE0) @01F69A
+@!game(BPRE1_BPGE1) @01F6AE
+@!game(BPEE0) @047EDA
+@!game(All) ^thumb.physicalspecialsplit.datahp1
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @01DDD4
+@!game(BPRE0_BPGE0) @01F908
+@!game(BPRE1_BPGE1) @01F91C
+@!game(BPEE0) @048148
+@!game(All) ^thumb.physicalspecialsplit.datahp2
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @021A70
+@!game(BPRE0_BPGE0) @0234DC
+@!game(BPRE1_BPGE1) @0234F0
+@!game(BPEE0) @04BE98
+@!game(All) ^thumb.physicalspecialsplit.defrost
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @03BA2C
+@!game(BPRE0_BPGE0) @03ECEC
+@!game(BPRE1_BPGE1) @03ED00
+@!game(BPEE0) @06957C
+@!game(All) ^thumb.CalculateBaseDamage
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @03BC96
+@!game(BPRE0_BPGE0) @03EF06
+@!game(BPRE1_BPGE1) @03EF1A
+@!game(BPEE0) @069746
+@!game(All) ^thumb.physicalspecialsplit.typeboostitems
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @03BDD2
+@!game(BPRE0_BPGE0) @03F03A
+@!game(BPRE1_BPGE1) @03F04E
+@!game(BPEE0) @06986E
+@!game(All) ^thumb.physicalspecialsplit.thickfat
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @03BFBC
+@!game(BPRE0_BPGE0) @03F224
+@!game(BPRE1_BPGE1) @03F238
+@!game(BPEE0) @069A58
+@!game(All) ^thumb.physicalspecialsplit.physicalcheck
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @03C122
+@!game(BPRE0_BPGE0) @03F38A
+@!game(BPRE1_BPGE1) @03F39E
+@!game(BPEE0) @069BC2
+@!game(All) ^thumb.physicalspecialsplit.specialstatuscheck
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1) @03C25C
+@!game(BPRE0_BPGE0) @03F4C4
+@!game(BPRE1_BPGE1) @03F4D8
+@!game(BPEE0) @069CFC
+@!game(All) ^thumb.physicalspecialsplit.weather
+
+
+
+#	in "Cmd_accuracycheck"
+#	Changes the check for Hustle so that it checks for the 11th byte instead of the type byte
+
+@thumb.physicalspecialsplit.accuracy .thumb
+    ldrb  r0, [r0, #10]
+.end
+@thumb.physicalspecialsplit.accuracy+182 .thumb
+    cmp   r1, #0                    @ if (gBattleMons[gBattlerAttacker].ability == ABILITY_HUSTLE && IS_MOVE_PHYSICAL(move))
+    bne   <thumb.physicalspecialsplit.accuracy+196>
+.end
+
+
+
+#	in "Cmd_datahpupdate"
+#	Changes the way how physical and special damage are recorded for use with Counter/Mirror Coat
+
+@thumb.physicalspecialsplit.datahp1 .thumb
+    b     <thumb.physicalspecialsplit.datahp1+1A>	@ Without this, Hidden Power and other type-changing damaging moves will still refer to the actual type
+.end
+@thumb.physicalspecialsplit.datahp1+28 .thumb
+    ldrb  r6, [r0, #10]
+.end
+@thumb.physicalspecialsplit.datahp2 .thumb
+    cmp   r6, #0                    @ if (IS_MOVE_PHYSICAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
+    bne   <thumb.physicalspecialsplit.datahp2+84>
+.end
+@thumb.physicalspecialsplit.datahp2+84 .thumb
+    cmp   r6, #1                    @ else if (IS_MOVE_SPECIAL(move) && !(gHitMarker & HITMARKER_PASSIVE_DAMAGE))
+    bne   <thumb.physicalspecialsplit.datahp2+F2>
+.end
+
+
+
+#	in "Cmd_moveend"
+#	Changes the check for thawing/defrosting to check for any Fire damage and not just special
+
+@thumb.physicalspecialsplit.defrost .thumb
+    add   r0, r0, #4                @ if (gSpecialStatuses[gBattlerTarget].dmg)
+.end
+
+
+
+#	in "CalculateBaseDamage"
+#	Adds in r11 to store the split byte to be referenced later
+
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+@thumb.CalculateBaseDamage .thumb
+    push  {r4-r7, lr}
+    mov   r7, r11
+    mov   r6, r10
+    mov   r5, r9
+    mov   r4, r8
+    push  {r4-r7}
+    sub   sp, #44
+    mov   r7, r0
+    str   r1, [sp, #4]
+    str   r2, [sp, #8]
+    ldr   r0, [sp, #80]
+    ldr   r1, [sp, #84]
+    ldr   r2, [sp, #88]
+    ldr   r4, [sp, #92]
+    lsl   r3, r3, #16
+    lsr   r3, r3, #16
+    str   r3, [sp, #12]
+    lsl   r0, r0, #16
+    lsr   r3, r0, #16
+    lsl   r1, r1, #24
+    lsr   r6, r1, #24
+    lsl   r2, r2, #24
+    lsr   r2, r2, #24
+    str   r2, [sp, #16]
+    lsl   r4, r4, #24
+    lsr   r4, r4, #24
+    mov   r5, #0
+    cmp   r3, #0
+    bne   PowerOverride
+    ldr   r2, [pc, <thumb.CalculateBaseDamage+70>]
+    ldr   r1, [pc, <thumb.CalculateBaseDamage+74>]
+    ldr   r3, [sp, #8]
+    lsl   r0, r3, #1
+    add   r0, r0, r3
+    lsl   r0, r0, #2
+    add   r0, r0, r1
+    ldrb  r0, [r0, #1]
+    strh  r0, [r2, #0]
+    b     GetMoveCategory
+	nop
+PowerOverride:
+    ldr   r0, [pc, <thumb.CalculateBaseDamage+70>]
+    strh  r3, [r0, #0]
+GetMoveCategory:
+    ldr   r1, [pc, <thumb.CalculateBaseDamage+74>]
+    ldr   r2, [sp, #8]
+    lsl   r0, r2, #1
+    add   r0, r0, r2
+    lsl   r0, r0, #2
+    add   r0, r0, r1
+    ldrb  r2, [r0, #10]
+    mov   r11, r2                    @ Puts split byte for the move used in r11 to be checked later
+    cmp   r6, #0
+    bne   <thumb.CalculateBaseDamage+78>
+.end
+@!game(BPRE0_BPRE1_BPGE0_BPGE1)
+@thumb.CalculateBaseDamage .thumb
+    push  {r4-r7, lr}
+    mov   r7, r11
+    mov   r6, r10
+    mov   r5, r9
+    mov   r4, r8
+    push  {r4-r7}
+    sub   sp, #44
+    mov   r6, r0
+    str   r1, [sp, #4]
+    str   r2, [sp, #8]
+    ldr   r0, [sp, #80]
+    ldr   r1, [sp, #84]
+    ldr   r2, [sp, #88]
+    ldr   r4, [sp, #92]
+    lsl   r3, r3, #16
+    lsr   r3, r3, #16
+    str   r3, [sp, #12]
+    lsl   r0, r0, #16
+    lsr   r3, r0, #16
+    lsl   r1, r1, #24
+    lsr   r7, r1, #24
+    lsl   r2, r2, #24
+    lsr   r2, r2, #24
+    str   r2, [sp, #16]
+    lsl   r4, r4, #24
+    lsr   r4, r4, #24
+    mov   r5, #0
+    cmp   r3, #0
+    bne   PowerOverride
+    ldr   r2, [pc, <thumb.CalculateBaseDamage+70>]
+    ldr   r1, [pc, <thumb.CalculateBaseDamage+74>]
+    ldr   r3, [sp, #8]
+    lsl   r0, r3, #1
+    add   r0, r0, r3
+    lsl   r0, r0, #2
+    add   r0, r0, r1
+    ldrb  r0, [r0, #1]
+    strh  r0, [r2, #0]
+    b     GetMoveCategory
+    nop
+PowerOverride:
+    ldr   r0, [pc, <thumb.CalculateBaseDamage+70>]
+    strh  r3, [r0, #0]
+GetMoveCategory:
+    ldr   r1, [pc, <thumb.CalculateBaseDamage+74>]
+    ldr   r2, [sp, #8]
+    lsl   r0, r2, #1
+    add   r0, r0, r2
+    lsl   r0, r0, #2
+    add   r0, r0, r1
+    ldrb  r2, [r0, #10]
+    mov   r11, r2                    @ Puts split byte for the move used in r11 to be checked later
+    cmp   r7, #0
+    bne   <thumb.CalculateBaseDamage+78>
+.end
+@!game(BPEE0)
+@thumb.CalculateBaseDamage .thumb
+    push  {r4-r7, lr}
+    mov   r7, r11
+    mov   r6, r10
+    mov   r5, r9
+    mov   r4, r8
+    push  {r4-r7}
+    sub   sp, #48
+    mov   r6, r0
+    str   r1, [sp, #4]
+    str   r2, [sp, #8]
+    ldr   r0, [sp, #84]
+    ldr   r1, [sp, #88]
+    ldr   r2, [sp, #92]
+    ldr   r4, [sp, #96]
+    lsl   r3, r3, #16
+    lsr   r3, r3, #16
+    str   r3, [sp, #12]
+    lsl   r0, r0, #16
+    lsr   r3, r0, #16
+    lsl   r1, r1, #24
+    lsr   r7, r1, #24
+    lsl   r2, r2, #24
+    lsr   r2, r2, #24
+    str   r2, [sp, #16]
+    lsl   r4, r4, #24
+    lsr   r4, r4, #24
+    str   r4, [sp, #20]
+    mov   r5, #0
+    cmp   r3, #0
+    bne   PowerOverride
+    ldr   r2, BattleMovePower
+    ldr   r1, [pc, <thumb.CalculateBaseDamage+78>]
+    ldr   r3, [sp, #8]
+    lsl   r0, r3, #1
+    add   r0, r0, r3
+    lsl   r0, r0, #2
+    add   r0, r0, r1
+    ldrb  r0, [r0, #1]
+    strh  r0, [r2, #0]
+    b     GetMoveCategory
+BattleMovePower:
+    .word 0x020244E0
+PowerOverride:
+    ldr   r0, [pc, <thumb.CalculateBaseDamage+74>]
+    strh  r3, [r0, #0]
+GetMoveCategory:
+    ldr   r1, [pc, <thumb.CalculateBaseDamage+78>]
+    ldr   r2, [sp, #8]
+    lsl   r0, r2, #1
+    add   r0, r0, r2
+    lsl   r0, r0, #2
+    add   r0, r0, r1
+    ldrb  r2, [r0, #10]
+    mov   r11, r2                    @ Puts split byte for the move used in r11 to be checked later
+    cmp   r7, #0
+    bne   <0695F8>
+.end
+
+#	For Type-boosting items
+@!game(AXVE0_AXVE1_AXPE0_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
+@thumb.physicalspecialsplit.typeboostitems .thumb
+    mov   r1, r11
+    cmp   r1, #0                    @ if (IS_MOVE_PHYSICAL(move)) attack = (attack * (attackerHoldEffectParam + 100)) / 100;
+    bne   <thumb.physicalspecialsplit.typeboostitems+8>
+.end
+@!game(BPEE0)
+@thumb.physicalspecialsplit.typeboostitems .thumb
+    mov   r1, r11
+    cmp   r1, #0                    @ if (IS_MOVE_PHYSICAL(move)) attack = (attack * (attackerHoldEffectParam + 100)) / 100;
+    beq   <06966C>                  @ specific to Emerald, so it's ok to leave it like this
+.end
+
+
+
+#	Change Thick Fat to affect physical moves as well
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+@thumb.physicalspecialsplit.thickfat .thumb
+    cmp   r0, #47                   @ Abilty ID of Thick Fat
+    bne   HustleCheck
+    mov   r2, r9
+    cmp   r2, #10                   @ Fire Type
+    beq   ThickFat
+    cmp   r2, #15                   @ Ice Type
+    bne   HustleCheck
+ThickFat:
+    mov   r3, r8
+    lsr   r3, r3, #1
+    mov   r8, r3
+    lsr   r6, r6, #1
+    b     HustleCheck
+    nop
+    nop
+    nop
+HustleCheck:
+    ldr   r0, [sp, #36]
+    ldrb  r4, [r0, #0]
+    cmp   r4, #55                   @ Abilty ID of Hustle
+    bne   <thumb.physicalspecialsplit.thickfat+2A>
+    lsr   r0, r6, #1
+    add   r6, r0, r6
+.end
+@!game(BPRE0_BPRE1_BPGE0_BPGE1)
+@thumb.physicalspecialsplit.thickfat .thumb
+    cmp   r0, #47                   @ Abilty ID of Thick Fat
+    bne   HustleCheck
+    mov   r2, r9
+    cmp   r2, #10                   @ Fire Type
+    beq   ThickFat
+    cmp   r2, #15                   @ Ice Type
+    bne   HustleCheck
+ThickFat:
+    mov   r3, r8
+    lsr   r3, r3, #1
+    mov   r8, r3
+    lsr   r7, r7, #1
+    b     HustleCheck
+    nop
+    nop
+    nop
+HustleCheck:
+    ldr   r0, [sp, #36]
+    ldrb  r4, [r0, #0]
+    cmp   r4, #55                   @ Abilty ID of Hustle
+    bne   <thumb.physicalspecialsplit.thickfat+2A>
+    lsr   r0, r7, #1
+    add   r7, r0, r7
+.end
+@!game(BPEE0)
+@thumb.physicalspecialsplit.thickfat .thumb
+    cmp   r0, #47                   @ Abilty ID of Thick Fat
+    bne   HustleCheck
+    mov   r2, r10
+    cmp   r2, #10                   @ Fire Type
+    beq   ThickFat
+    cmp   r2, #15                   @ Ice Type
+    bne   HustleCheck
+ThickFat:
+    mov   r3, r8
+    lsr   r3, r3, #1
+    mov   r8, r3
+    lsr   r7, r7, #1
+    b     HustleCheck
+    nop
+    nop
+    nop
+HustleCheck:
+    ldr   r0, [sp, #40]
+    ldrb  r4, [r0, #0]
+    cmp   r4, #55                   @ Abilty ID of Hustle
+    bne   <thumb.physicalspecialsplit.thickfat+2A>
+    lsr   r0, r7, #1
+    add   r7, r0, r7
+.end
+@!game(All)
+
+
+
+#	Change a check for physical-based calculations to use the new byte
+@thumb.physicalspecialsplit.physicalcheck .thumb
+    mov   r1, r11
+    cmp   r1, #0                    @ if (IS_MOVE_PHYSICAL(move))
+    beq   <thumb.physicalspecialsplit.physicalcheck+8>
+.end
+
+#	Removes the ???-type hardcoding as well as changing the check for special-based calculations
+#	Also delinks Weather from only being affected by special attacks
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+@thumb.physicalspecialsplit.specialstatuscheck .thumb
+    mov   r6, r11
+    cmp   r6, #3                    @ if (IS_MOVE_STATUS(move))
+    bne   SpecialCategoryCheck
+    mov   r5, #0
+SpecialCategoryCheck:
+    mov   r0, r11
+    cmp   r0, #1                    @ if (IS_MOVE_SPECIAL(move))
+    beq   <thumb.physicalspecialsplit.specialstatuscheck+10>
+    b     <thumb.physicalspecialsplit.weather>
+.end
+@!game(BPRE0_BPRE1_BPGE0_BPGE1_BPEE0)
+@thumb.physicalspecialsplit.specialstatuscheck .thumb
+    mov   r7, r11
+    cmp   r7, #3                    @ if (IS_MOVE_STATUS(move))
+    bne   SpecialCategoryCheck
+    mov   r5, #0
+SpecialCategoryCheck:
+    mov   r0, r11
+    cmp   r0, #1                    @ if (IS_MOVE_SPECIAL(move))
+    beq   <thumb.physicalspecialsplit.specialstatuscheck+10>
+    b     <thumb.physicalspecialsplit.weather>
+.end
+@!game(All)
+
+
+#	Rewrites weather calcs to fit in Sp Def boost for Rock
+@thumb.physicalspecialsplit.weather+2C .thumb
+    ldr   r2, BattleWeather
+    ldrh  r4, [r2, #0]
+    cmp   r4, #0
+    beq   <thumb.physicalspecialsplit.weather+B0>
+    mov   r6, r10
+    mov   r0, #96                   @ B_WEATHER_SUN
+    and   r0, r4
+    cmp   r0, #0
+    beq   SandstormCheck
+    cmp   r6, #10                   @ Fire Type
+    beq   WeatherHalfBoost
+    cmp   r6, #11                   @ Water Type
+    beq   WeatherHalfDamage
+    b     <thumb.physicalspecialsplit.weather+B0>
+BattleTypeFlags:
+    .word 0x02022FEC
+MoveBattleStats:
+    .word <data.pokemon.moves.stats.battle>
+BattleWeather:
+    .word 0x020243CC                @ gBattleWeather
+SandstormCheck:
+    mov   r0, #24                   @ B_WEATHER_SANDSTORM
+    and   r0, r4
+    cmp   r0, #0
+    beq   MiscWeatherCheck
+    mov   r0, r11
+    cmp   r0, #1                    @ Special Move
+    bne   MiscWeatherCheck
+    ldr   r2, BattleMonsType1
+    ldr   r0, BattlerTarget
+    ldrb  r1, [r0, #0]
+    mov   r0, #88
+    mul   r0, r1
+    add   r3, r0, r2
+    ldrb  r0, [r3, #0]
+    cmp   r0, #5                    @ Rock type (Primary)
+    beq   SandstormBoostSpDef
+    ldrb  r0, [r3, #1]
+    cmp   r0, #5                    @ Rock type (Secondary)
+    bne   MiscWeatherCheck
+SandstormBoostSpDef:
+    mov   r0, #10
+    mul   r0, r5
+    mov   r1, #15
+    bl    <thumb.Divsi3>
+    mov   r5, r0
+MiscWeatherCheck:
+    ldr   r0, CurrentMove
+    ldrh  r0, [r0, #0]
+    cmp   r0, #76                   @ Solar Beam recieves half. The sun check skips this if there is sun up.
+    beq   WeatherHalfDamage
+    cmp   r4, #7                    @ B_WEATHER_RAIN
+    bhi   <thumb.physicalspecialsplit.weather+B0>
+    cmp   r6, #10                   @ Fire Type
+    beq   WeatherHalfDamage
+    cmp   r6, #11                   @ Water Type
+    beq   WeatherHalfBoost
+    b     <thumb.physicalspecialsplit.weather+B0>
+BattleMonsType1:
+    .word 0x020240A5                @ gBattleMons+21        gBattleMons[].type1
+BattlerTarget:
+    .word 0x0202420C                @ gBattlerTarget
+CurrentMove:
+    .word 0x020241EA                @ gCurrentMove
+WeatherHalfBoost:
+    lsr   r0, r5, #1                @ damage = (15 * damage) / 10;
+    add   r5, r5, r0
+    b     <thumb.physicalspecialsplit.weather+B0>
+WeatherHalfDamage:
+    lsr   r5, r5, #1                @ damage /= 2;
+.end
+#	Registers used and RAM addresses are different in other games
+@!game(AXVE0_AXVE1_AXPE0_AXPE1_BPRE0_BPRE1_BPGE0_BPGE1)
+@thumb.physicalspecialsplit.weather+34 .thumb
+    mov   r6, r9                    @ r9 is used in every other version
+.end
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+@thumb.physicalspecialsplit.weather+48
+F8 39 02 02 <data.pokemon.moves.stats.battle> B8 4D 02 02
+@thumb.physicalspecialsplit.weather+9C
+A1 4A 02 02 08 4C 02 02 E6 4B 02 02
+@!game(BPRE0_BPRE1_BPGE0_BPGE1)
+@thumb.physicalspecialsplit.weather+48
+4C 2B 02 02 <data.pokemon.moves.stats.battle> 1C 3F 02 02
+@thumb.physicalspecialsplit.weather+9C
+05 3C 02 02 6C 3D 02 02 4A 3D 02 02
+
+
+#	Pops back the r11 register added in for the physical/special split
+@!game(AXVE0_AXVE1_AXPE0_AXPE1)
+@thumb.physicalspecialsplit.weather+D8 .thumb
+    pop   {r3-r6}
+    mov   r8, r3
+    mov   r9, r4
+    mov   r10, r5
+    mov   r11, r6
+    pop   {r4-r7}
+    pop   {r1}
+    bx    r1
+.end
+@!game(BPRE0_BPRE1_BPGE0_BPGE1_BPEE0)
+@thumb.physicalspecialsplit.weather+DC .thumb
+    pop   {r3-r6}
+    mov   r8, r3
+    mov   r9, r4
+    mov   r10, r5
+    mov   r11, r6
+    pop   {r4-r7}
+    pop   {r1}
+    bx    r1
+.end
+
+#    Adds in the category icons for FRLG and Emerald
+
+@!game(BPRE0) @13A124
+@!game(BPRE1) @13A19C
+@!game(BPGE0) @13A0FC
+@!game(BPGE1) @13A174
+@!game(BPRE0_BPRE1_BPGE0_BPGE1) ^thumb.summary.SpriteCB_MoveSelectionCursor
+
+@graphics.pokemon.moves.categoryicons(240)
+00 00 00 00 00 00 00 00 20 22 22 22 12 11 11 11
+11 11 21 12 11 11 11 22 11 11 11 21 11 11 11 11
+00 00 00 00 00 00 00 00 22 22 22 22 11 11 11 11
+11 21 12 11 12 21 12 21 22 22 22 22 22 22 22 22
+00 00 00 00 00 00 00 00 22 22 22 02 11 11 11 21
+21 12 11 11 22 11 11 11 12 11 11 11 11 11 11 11
+11 11 21 22 11 11 11 11 11 11 11 21 11 11 11 22
+11 11 21 12 1E 11 11 11 E0 EE EE EE 00 00 00 00
+22 22 22 22 22 22 22 22 22 22 22 22 12 21 12 21
+11 21 12 11 11 11 11 11 EE EE EE EE 00 00 00 00
+22 12 11 11 11 11 11 11 12 11 11 11 22 11 11 11
+21 12 11 11 11 11 11 E1 EE EE EE 0E 00 00 00 00
+00 00 00 00 00 00 00 00 70 77 77 77 D7 DD DD DD
+DD DD DD DD DD DD DD FF DD DD FF DD DD DD DF DD
+00 00 00 00 00 00 00 00 77 77 77 77 DD DD DD DD
+FF FF FF FF DD DD DD DD DD FD FF DD FD DF DD FF
+00 00 00 00 00 00 00 00 77 77 77 07 DD DD DD 7D
+DF DD DD DD FD DF DD DD DD FD DF DD DD DD DF DD
+DD FD DD DD DD DD DF DD DD DD FF DD DD DD DD FF
+DD DD DD DD DE DD DD DD E0 EE EE EE 00 00 00 00
+DF DD DD DD FD DF DD FF DD FD FF DD DD DD DD DD
+FF FF FF FF DD DD DD DD EE EE EE EE 00 00 00 00
+DF DD FD DD DD DD DF DD DD FD DF DD FD DF DD DD
+DF DD DD DD DD DD DD ED EE EE EE 0E 00 00 00 00
+00 00 00 00 00 00 00 00 A0 AA AA AA 9A 99 99 99
+99 99 99 99 99 99 99 F9 99 99 F9 9F 99 99 F9 99
+00 00 00 00 00 00 00 00 AA AA AA AA 99 99 99 99
+F9 FF FF 9F 9F 99 99 F9 99 F9 FF 99 99 FF FF 9F
+00 00 00 00 00 00 00 00 AA AA AA 0A 99 99 99 A9
+99 99 99 99 9F 99 99 99 F9 9F 99 99 99 9F 99 99
+99 99 9F 99 99 99 F9 99 99 99 F9 9F 99 99 99 F9
+99 99 99 99 9E 99 99 99 E0 EE EE EE 00 00 00 00
+99 FF FF FF 99 99 FF FF 99 99 99 FF 9F 99 F9 FF
+F9 FF FF 9F 99 99 99 99 EE EE EE EE 00 00 00 00
+FF FF 99 99 FF 9F 99 99 FF 9F 99 99 9F 99 99 99
+99 99 99 99 99 99 99 E9 EE EE EE 0E 00 00 00 00
+@graphics.pokemon.moves.categoryicons ^graphics.pokemon.moves.categoryicons`ucs4x3x6|graphics.pokemon.type.palettes`
+
+@thumb.summary.CategoryIcons(70) .thumb
+Start:
+    push  {r0-r4}
+    ldr   r0, SummaryScreenRAMOffset1
+    ldrb  r1, [r0, #0]
+    lsl   r1, r1, #1
+    ldr   r0, Move_List_Loc
+    ldr   r0, [r0, #0]
+    ldr   r3, SomeNumber
+    add   r0, r0, r3
+    add   r0, r0, r1
+    ldrh  r3, [r0, #0]
+    cmp   r3, #0
+    beq   Return
+    lsl   r0, r3, #1
+    add   r0, r0, r3
+    lsl   r0, r0, #2
+    ldr   r1, MoveBattleStat
+    add   r0, r0, r1
+    ldrb  r4, [r0, #10]
+    lsl   r0, r4, #1
+    add   r4, r4, r0
+    lsl   r4, r4, #6
+    ldr   r0, CategoryIcons
+    add   r0, r0, r4
+    ldr   r1, VRAM
+    mov   r2, #48
+    swi   #11
+    ldr   r0, CategoryIcons
+    add   r0, r0, r4
+    add   r0, r0, #96
+    ldr   r1, VRAM
+    mov   r2, #30
+    lsl   r2, r2, #4
+    add   r1, r1, r2
+    mov   r2, #48
+    swi   #11
+Return:
+    pop   {r0-r4}
+    ldr   r4, Some_Offset
+    ldr   r0, [r4, #0]
+    ldr   r1, ReturnOffset
+    bx    r1
+MoveBattleStat:
+    .word <data.pokemon.moves.stats.battle>
+SomeNumber:
+    .word 0x00003258
+SummaryScreenRAMOffset1:
+    .word 0x0203B16D
+Move_List_Loc:
+    .word 0x0203B140
+VRAM:
+    .word 0x06001800
+CategoryIcons:
+    .word <graphics.pokemon.moves.categoryicons>
+Some_Offset:
+    .word 0x0203B148
+ReturnOffset:
+    .word <thumb.summary.SpriteCB_MoveSelectionCursor+59>
+.end
+
+
+@thumb.summary.SpriteCB_MoveSelectionCursor+C .thumb
+    ldr   r4, [pc, <thumb.summary.SpriteCB_MoveSelectionCursor+CC>]
+.end
+@thumb.summary.SpriteCB_MoveSelectionCursor+56 .thumb
+    bx    r4
+.end
+@thumb.summary.SpriteCB_MoveSelectionCursor+7C
+<thumb.summary.CategoryIcons+1>
+
+@!game(BPEE0)
+@1C0F44 ^thumb.summary.Task_HandleInput_MoveSelect
+@1C12E4 ^thumb.summary.Task_HandleInput_MovePositionSwitch
+@1C174C ^thumb.summary.Task_HandleReplaceMoveInput
+
+@graphics.pokemon.moves.categoryicons(180)
+00 00 00 00 00 00 00 00 00 00 00 00 00 20 22 22
+00 32 33 33 00 33 32 23 00 33 22 23 00 33 23 22
+00 00 00 00 00 00 00 00 00 00 00 00 22 22 02 00
+33 33 23 00 32 23 33 00 32 22 33 00 22 32 33 00
+00 33 22 22 00 33 23 22 00 33 22 23 00 33 32 23
+00 3B 33 33 00 B0 BB BB 00 00 00 00 00 00 00 00
+22 22 33 00 22 32 33 00 32 22 33 00 32 23 33 00
+33 33 B3 00 BB BB 0B 00 00 00 00 00 00 00 00 00
+00 00 00 00 00 00 00 00 00 00 00 00 00 20 22 22
+00 32 33 33 00 33 23 22 00 33 72 77 00 23 37 22
+00 00 00 00 00 00 00 00 00 00 00 00 22 22 02 00
+33 33 23 00 22 32 33 00 77 27 33 00 22 73 32 00
+00 23 23 33 00 23 73 22 00 73 32 77 00 33 27 22
+00 37 73 77 00 70 77 77 00 00 00 00 00 00 00 00
+33 32 32 00 22 37 32 00 77 23 37 00 22 72 33 00
+77 37 73 00 77 77 07 00 00 00 00 00 00 00 00 00 
+00 00 00 00 00 00 00 00 00 00 00 00 00 90 99 99
+00 89 88 88 00 88 F8 FF 00 88 8F 88 00 F8 88 F8
+00 00 00 00 00 00 00 00 00 00 00 00 99 99 09 00
+88 88 98 00 FF 8F 88 00 88 F8 88 00 FF 88 8F 00
+00 F8 88 88 00 F8 88 88 00 88 8F F8 00 88 F8 FF
+00 8A 88 88 00 A0 AA AA 00 00 00 00 00 00 00 00
+FF 8F 8F 00 FF FF 8F 00 FF FF 88 00 FF 8F 88 00
+88 88 A8 00 AA AA 0A 00 00 00 00 00 00 00 00 00
+@graphics.pokemon.moves.categoryicons ^graphics.pokemon.moves.categoryicons`ucs4x2x6|graphics.pokemon.type.palettes`
+
+@thumb.summary.CategoryIcons(118) .thumb
+Prestart:
+    add   r0, r0, r5
+    lsl   r0, r0, #3
+    ldr   r1, Replaced_Address
+    add   r4, r0, r1
+    push  {r0-r5}
+    ldr   r0, CategoryIcons
+    ldr   r1, OBJVRAM
+    mov   r2, #192
+    swi   #11
+    ldr   r0, CurMoveIndex_DMA
+    ldr   r0, [r0, #0]
+    mov   r2, #16
+    lsl   r2, r2, #8
+    add   r2, r2, #13
+    add   r0, r0, r2
+    ldrb  r0, [r0, #0]
+    cmp   r0, #0
+    bne   StatFinish
+    mov   r2, #16
+    lsl   r2, r2, #8
+    add   r2, r2, #10
+    cmp   r6, #0
+    beq   StatPreStart
+Start:
+    ldr   r0, CurMoveIndex_DMA
+    ldr   r0, [r0, #0]
+    add   r0, r0, r2
+    cmp   r6, #1
+    bne   Continue
+    add   r0, r0, #1
+Continue:
+    ldrb  r1, [r0, #0]
+    cmp   r1, #0
+    bne   GetMove
+    mov   r2, #32
+    lsl   r2, r2, #8
+    add   r0, r0, r2
+    ldrb  r1, [r0, #0]
+GetMove:
+    cmp   r1, #4
+    beq   GetFifthMove
+    lsl   r1, r1, #1
+    ldr   r0, SummaryScreenRAMOffset1
+    ldr   r2, [r0, #0]
+    add   r2, r2, #132
+    mov   r0, r2
+    add   r0, r0, r1
+    ldrh  r3, [r0, #0]
+Body:
+    mov   r0, #0
+    lsl   r0, r3, #1
+    add   r0, r0, r3
+    lsl   r0, r0, #2
+    ldr   r1, MoveBattleStat
+    add   r0, r0, r1
+    ldrb  r4, [r0, #10]
+    lsl   r4, r4, #1
+    mov   r0, #64
+    lsl   r0, r0, #20
+    ldr   r1, [r0, #0]
+    mov   r2, #32
+    orr   r1, r2
+    stmia r0, {r1}
+    ldr   r0, OAMMemAddress
+    ldr   r1, IconOAM1
+    ldr   r2, IconOAM2
+    cmp   r4, #2
+    beq   SpecAdd
+    cmp   r4, #4
+    beq   StatAdd
+Draw:
+    stmia r0, {r1-r2}
+    ldr   r0, OAMMemAddress
+    mov   r1, #112
+    lsl   r1, r1, #20
+    add   r1, r1, #216
+    mov   r2, #4
+    swi   #11
+StatFinish:
+    cmp   r6, #1
+    beq   MoveFinish
+    cmp   r6, #2
+    beq   LearnFinish
+    pop   {r0-r6}
+    ldr   r0, Return_Address_Stat
+    bx    r0
+GetFifthMove:
+    cmp   r6, #2
+    bne   StatFinish
+    ldr   r0, CurMoveIndex_DMA
+    ldr   r0, [r0, #0]
+    mov   r2, #16
+    lsl   r2, r2, #8
+    add   r2, r2, #10
+    add   r0, r0, r2
+    sub   r0, #2
+    ldrh  r3, [r0, #0]
+    cmp   r3, #0
+    bne   Body
+    mov   r2, #32
+    lsl   r2, r2, #8
+    add   r0, r0, r2
+    ldrh  r3, [r0, #0]
+    cmp   r3, #0
+    bne   Body
+    b     Start
+StatPreStart:
+    mov   r3, #32
+    lsl   r3, r3, #8
+    add   r2, r2, r3
+    b     Start
+LearnFinish:
+    pop   {r0-r6}
+    ldr   r0, Return_Address_Learn
+    bx    r0
+MoveFinish:
+    pop   {r0-r6}
+    ldr   r0, Return_Address_Move
+    bx    r0
+SpecAdd:
+    mov   r3, #16
+    lsl   r3, r3, #8
+    add   r3, r3, #4
+    add   r2, r2, r3
+    b     Draw
+StatAdd:
+    add   r2, r2, #8
+    b     Draw
+MoveBattleStat:
+    .word <data.pokemon.moves.stats.battle>
+CurMoveIndex_DMA:
+    .word 0x0300090C
+SummaryScreenRAMOffset1:
+    .word 0x0203CF1C
+Replaced_Address:
+    .word 0x03005E08
+Return_Address_Stat:
+    .word <thumb.summary.Task_HandleInput_MoveSelect+13>
+Return_Address_Move:
+    .word <thumb.summary.Task_HandleInput_MovePositionSwitch+13>
+Return_Address_Learn:
+    .word <thumb.summary.Task_HandleReplaceMoveInput+11>
+IconOAM1:
+    .word 0x40280078
+IconOAM2:
+    .word 0x0000D580
+OBJVRAM:
+    .word 0x06013000
+OAMMemAddress:
+    .word 0x030023E4
+CategoryIcons:
+    .word <graphics.pokemon.moves.categoryicons>
+.end
+
+@thumb.summary.Task_HandleInput_MoveSelect+A .thumb
+    push  {r6}
+    mov   r6, #0
+.end
+@thumb.summary.Task_HandleInput_MoveSelect+10 .thumb
+    bx    r1
+.end
+@thumb.summary.Task_HandleInput_MoveSelect+44
+<thumb.summary.CategoryIcons+1>
+
+@thumb.summary.Task_HandleInput_MovePositionSwitch+A .thumb
+    push  {r6}
+    mov   r6, #1
+.end
+@thumb.summary.Task_HandleInput_MovePositionSwitch+10 .thumb
+    bx    r1
+.end
+@thumb.summary.Task_HandleInput_MovePositionSwitch+44
+<thumb.summary.CategoryIcons+1>
+
+@thumb.summary.Task_HandleReplaceMoveInput+8 .thumb
+    push  {r6}
+    mov   r6, #2
+.end
+@thumb.summary.Task_HandleReplaceMoveInput+E .thumb
+    bx    r1
+.end
+@thumb.summary.Task_HandleReplaceMoveInput+54
+<thumb.summary.CategoryIcons+1>
+
+
+#	Adds in a list to be referenced by the move stat table to edit a move's category
+@!game(All)
+
+.python
+tab = editor.SelectedTab
+categoryList = ['Physical', 'Special', 'Status']
+tab.Model.SetList(tab.CurrentChange, "movecategory", categoryList, None, None)
+.end
+
+
+.python
+no_values_set = sum([move.GetValue('category') for move in data.pokemon.moves.stats.battle]) == 0
+for move in data.pokemon.moves.stats.battle:
+  if move.power == 0:
+    # Turns all 0 base power moves into status moves as a relatively safe conversion
+    move.category = 'Status'
+  elif not move.info.contact and no_values_set:
+    # Turns all previously non-contact moves into special moves (only if no values had been set.)
+    move.category = 'Special'
+
+if no_values_set:
+  # manual fixups of contact-special
+  data.pokemon.moves.stats.battle['Petal Dance'].category = 'Special'
+  
+  # manual fixups of non-contact-physical
+  no_contact_physical = [
+    'Barrage', 'BeatUp',
+    'BoneClub', 'BoneRush',
+    'Bonemerang', 'BulletSeed',
+    'Earthquake', 'EggBomb',
+    'Explosion', 'Fissure',
+    'IcicleSpear', 'Magnitude',
+    'PayDay', 'PinMissile',
+    'PoisonSting', 'Present',
+    'RazorLeaf', 'RockBlast',
+    'RockSlide', 'RockThrow',
+    'RockTomb', 'SacredFire',
+    'SandTomb', 'SecretPower',
+    'SelfDestruct', 'SkyAttack',
+    'SpikeCannon', 'Twineedle'
+  ]
+  for name in no_contact_physical:
+    data.pokemon.moves.stats.battle[name].category = 'Physical'
+
+print('Physical/Special Split applied.\nThanks AGSMGMaster64!')
+.end
+
+@data.pokemon.moves.stats.battle
+

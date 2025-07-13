@@ -1,0 +1,151 @@
+# Adds capability to run battle script when using an item in battle.
+# After running this script:
+#   Write your script in data.items.battlescripts. Leave the first entry null!
+#   Set `battleusage` to 1
+#   Set `battleeffect` to <thumb.item_use.BattleUseFunc.BattleScriptItem+1>
+#   Set `battleextra` to an index for a script within data.items.battlescripts
+
+
+@!game(AXVE0_AXPE0) @0A9538
+@!game(AXVE1_AXPE1) @0A9558
+@!game(BPRE0)       @09A1D8
+@!game(BPGE0)       @09A1AC
+@!game(BPRE1)       @09A1EC
+@!game(BPGE1)       @09A1C0
+@!game(BPEE0)       @0D6AA4
+@!game(All)         ^thumb.item.RemoveBagItem
+
+@!game(BPRE0) @108CB4
+@!game(BPGE0) @108C8C
+@!game(BPRE1) @108D2C
+@!game(BPGE1) @108D04
+@!game(BPRE0_BPGE0_BPRE1_BPGE1)   ^thumb.item_menu.Bag_BeginCloseWin0Animation
+
+@!game(AXVE0_AXPE0) @0A7094
+@!game(AXVE1_AXPE1) @0A70B4
+@!game(BPRE0)       @108B50
+@!game(BPGE0)       @108B28
+@!game(BPRE1)       @108BC8
+@!game(BPGE1)       @108BA0
+@!game(BPEE0)       @1AB8F8
+@!game(All)   ^thumb.item_use.ItemMenu_StartFadeToExitCallback
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1) @014858
+@!game(BPRE0_BPGE0) @0164F4
+@!game(BPRE1_BPGE1) @016508
+@!game(BPEE0)       @03E9CC
+@!game(All)         ^thumb.battle_main.HandleAction_UseItem.hook
+
+@!game(AXVE0) @1D9E7C
+@!game(AXPE0) @1D9E0C
+@!game(AXVE1) @1D9E94
+@!game(AXPE1) @1D9E24
+@!game(BPRE0) @1D99E4
+@!game(BPGE0) @1D99C0
+@!game(BPRE1) @1D9A54
+@!game(BPGE1) @1D9A30
+@!game(BPEE0) @2DBD3C
+@!game(All)   ^thumb.battle_main.gBattlescriptsForUsingItem
+
+# Introduce the new data.items.battlescripts table.
+@data.items.battlescripts(20) @!00(16) ^data.items.battlescripts[pointer<`bse`>]4
+
+# code that uses the new table
+@thumb.battle_main.item.battlescripts(90) .thumb
+   r0 = 0x02023D74 @ gBattlescriptCurrInstr              @ confirmed same for all FR/LG
+   r1 = <thumb.battle_main.gBattlescriptsForUsingItem>
+   ldr   r1, [r1, #0]
+   str   r1, [r0, #0]
+   @ check the gLastUsedItem's battleExtra
+   r1 = 0x02023D68 @ gLastUsedItem                       @ confirmed same for all FR/LG
+   ldrh r1, [r1]
+   r0 = data.items.stats[r1].battleextra
+   if r0 != 0 {
+      push {r2, r3}
+      r1 = data.items.battlescripts[r0].pointer
+      r0 = 0x02023D74 @ gBattlescriptCurrInstr
+      str  r1, [r0, #0]
+
+      @ set the target to a random alive opponent
+      r3 = 0x02023D6B @ gBattlerAttacker (+1 for target) @ confirmed same for all FR/LG
+      ldrb r2, [r3]
+      r0 = 1
+      r2 ^= r0        @ target = attacker ^ 1
+
+      r0 = 0x02022b4c @ gBattleTypeFlags                 @ confirmed same for all FR/LG
+      ldr  r0, [r0]
+      r1 = 1
+      r0 &= r1
+      if r0 == 1 { @ if double battle
+         ldrb r0, [r3, #5] @ gAbsentBattlerFlags
+         r1 = 1
+         r1 <<= r2
+         r0 &= r1
+         if r0 != 0 { @ if the battler is fainted
+            r0 = 2
+            r2 ^= r0
+         }
+      }
+      strb  r2, [r3, #1]
+      pop {r2, r3}
+   }
+   r0 = <thumb.battle_main.HandleAction_UseItem.hook> + 9
+   bx r0
+.end
+
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)
+   @thumb.battle_main.item.battlescripts+64 10 4C # gBattlescriptCurrInstr
+   @thumb.battle_main.item.battlescripts+6C 04 4C # gLastUsedItem
+   @thumb.battle_main.item.battlescripts+78 07 4C # gBattleAttacker
+   @thumb.battle_main.item.battlescripts+7C F8 39 # gBattleTypeFlags
+
+@!game(BPEE0)
+   @thumb.battle_main.item.battlescripts+64 14 42 # gBattlescriptCurrInstr
+   @thumb.battle_main.item.battlescripts+6C 08 42 # gLastUsedItem
+   @thumb.battle_main.item.battlescripts+78 0B 42 # gBattleAttacker
+   @thumb.battle_main.item.battlescripts+7C EC 2F # gBattleTypeFlags
+
+@!game(All) @thumb.battle_main.HandleAction_UseItem.hook 00 48 00 47 <thumb.battle_main.item.battlescripts+1>
+
+
+# New BattleUse Func
+@!game(AXVE0_AXPE0_AXVE1_AXPE1)
+@thumb.item_use.BattleUseFunc.BattleScriptItem(60) .thumb
+   push  {r4, lr}
+   mov   r4, r0
+   ldr   r0, =0x0203855E    @ gSpecialVar_ItemId        @ confirmed same for all R/S
+   ldrh  r0, [r0, #0]
+   mov   r1, #1
+   bl    <thumb.item.RemoveBagItem>
+   mov   r0, r4
+   bl    <thumb.item_use.ItemMenu_StartFadeToExitCallback>
+   pop   {r4, pc}
+.end
+@!game(BPRE0_BPGE0_BPRE1_BPGE1)
+@thumb.item_use.BattleUseFunc.BattleScriptItem(60) .thumb
+   push  {r4, lr}
+   mov   r4, r0
+   ldr   r0, =0x0203AD30    @ gSpecialVar_ItemId        @ confirmed same for all FR/LG
+   ldrh  r0, [r0, #0]
+   mov   r1, #1
+   bl    <thumb.item.RemoveBagItem>
+   bl    <thumb.item_menu.Bag_BeginCloseWin0Animation>
+   mov   r0, r4
+   bl    <thumb.item_use.ItemMenu_StartFadeToExitCallback>
+   pop   {r4, pc}
+.end
+@!game(BPEE0)
+@thumb.item_use.BattleUseFunc.BattleScriptItem(60) .thumb
+   push  {r4, lr}
+   mov   r4, r0
+   ldr   r0, =0x0203CE7C    @ gSpecialVar_ItemId
+   ldrh  r0, [r0, #0]
+   mov   r1, #1
+   bl    <thumb.item.RemoveBagItem>
+   mov   r0, r4
+   bl    <thumb.item_use.ItemMenu_StartFadeToExitCallback>
+   pop   {r4, pc}
+.end
+
+
+@!game(All) @data.items.battlescripts

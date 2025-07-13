@@ -1,0 +1,162 @@
+# Introduce a new table for abilities that activate when the pokemon enters the battle.
+# FireRed Only
+# Abilities in this table call a battle script.
+# Example: Intimidate, Drizzle
+# You can additionally set an move to use for `attackanimation` calls.
+# Remember that ability scripts must end with `end3`!
+
+# Adds this code, approximately, to the ABILITYEFFECT_ON_SWITCHIN section
+# from battle_util.c -> AbilityBattleEffects:
+#        foreach entry in data.abilities.entrance:
+#            if (gBattleMons[gBattlerAttacker].ability != entry.ability) continue;
+#            if (gSpecialStatuses[battler].intimidatedMon) continue;
+#            gSpecialStatuses[battler].intimidatedMon = 1;
+#            BattleScriptPushCursorAndCallback(entry.script);
+#            gBattleScripting.battler = battler;
+#            ++effect;
+
+
+
+# setup anchors
+@1D927F ^scripts.abilities.entrance.drizzle`bse`
+@1D92BF ^scripts.abilities.entrance.sandstream`bse`
+@1D9307 ^scripts.abilities.entrance.intimidate`bse`
+@1D9379 ^scripts.abilities.entrance.drought`bse`
+
+# update default scripts
+@scripts.abilities.entrance.drizzle    7D 83 83 # pause -> setrain
+@scripts.abilities.entrance.sandstream 95 83 83 # pause -> setsandstorm
+@scripts.abilities.entrance.drought    BB 83 83 # pause -> setsunny
+
+# create new table -> data.abilities.entrance
+@data.abilities.entrance(30)
+# Drizzle     #  02 00 F0 00 <scripts.abilities.entrance.drizzle>
+# Sand Stream #  2D 00 C9 00 <scripts.abilities.entrance.sandstream>
+# Intimidate  #  16 00 2D 00 <scripts.abilities.entrance.intimidate>
+# Drought     #  46 00 F1 00 <scripts.abilities.entrance.drought>
+# End Table   #  00 00 FF FF FF FF FF FF
+@data.abilities.entrance ^data.abilities.entrance[ability:data.abilities.names animation:data.pokemon.moves.names script<`bse`>]!0000
+
+
+
+# main routine
+@thumb.abilities.entrance(90) .thumb
+    push  {r0-r7}
+    @ r0 is the current ability
+    ldr   r4, =<data.abilities.entrance>
+    sub   r4, #8
+    loop:
+        add   r4, #8
+        @ if data.abilities.entrance[i].ability == 0: break
+        ldrh  r1, [r4, #0]
+        cmp   r1, #0
+        beq   <end>
+        @ if data.abilities.entrance[i].ability != ability: continue
+        cmp   r1, r0
+        bne   <loop>
+        @ if gSpecialStatuses[battler].entrance: continue
+        mov   r1, r10 @ battler
+        mov   r2, #20
+        mul   r1, r2
+        ldr   r2, [pc, <gSpecialStatuses>]
+        add   r1, r2
+        ldrb  r3, [r1, #1]    @ gSpecialStatuses[battler].0 (entrance is bit 9, previously unused)
+        lsl   r3, r3, #31     @ put bit 9 in the negative bit slot
+        cmp   r3, #0
+        blt   <loop>        @ branch if bit set
+        @ gSpecialStatuses[battler].entrance = 1
+        ldrb  r3, [r1, #1]
+        mov   r5, #1
+        orr   r3, r5
+        strb  r3, [r1, #1]
+        @ gBattleStruct->intimidateBattler = battler;
+        ldr   r0, [pc, <intimidateBattler>]
+        ldr   r0, [r0, #0]
+        add   r0, #216
+        mov   r1, r10 @ battler
+        strb  r1, [r0, #0]
+
+        @ BattleScriptPushCursorAndCallback(data.abilities.entrance[i].script)
+        ldr   r0, [r4, #4]
+        bl    <long_branch>
+        @ gBattlerTarget = battler^1
+        mov   r0, r10
+        mov   r1, #1
+        eor   r1, r0
+        ldr   r0, [pc, <gBattlerTarget>]
+        strb  r1, [r0, #0]
+        @ gCurrentMove = data.abilities.entrance[i].move // 02023d4a
+        ldr   r0, [pc, <gCurrentMove>]
+        ldrh  r1, [r4, #2]
+        strh  r1, [r0, #0]
+        @ gBattleScripting.battler = battler;
+        ldr   r0, [pc, <gBattleScripting>]
+        mov   r1, r10
+        strb  r1, [r0, #23] @ .battler
+        @ ++effect;
+        mov   r0, r9
+        add   r0, #1
+        mov   r9, r0
+    success:
+        pop   {r0-r7}
+        ldr   r0, =<01BB5B>
+        bx    r0
+    end:
+        pop   {r0-r7}
+        ldr   r4, =<01BBAB>
+        bx    r4
+    long_branch:
+        ldr   r1, =<01BC25>
+        bx    r1
+    gCurrentMove:      .word 0x02023D4A
+    gBattlerTarget:    .word 0x02023D6C
+    gSpecialStatuses:  .word 0x02023ECC
+    gBattleScripting:  .word 0x02023FC4
+    intimidateBattler: .word 0x02023FE8
+.end
+
+
+
+# hook
+@01A12C .thumb
+    ldr   r2, =0x02023D6B
+    ldr   r0, =0x02023BCC
+    ldrb  r1, [r2, #0]
+    mov   r3, r0
+    ldrb  r4, [r3, #0]
+    cmp   r1, r4
+    blo   <01A13E>
+    mov   r0, r10
+    strb  r0, [r2, #0]
+01A13E:
+    mov   r1, r8
+    ldrb  r0, [r1, #0]
+cloudnine:
+    cmp   r0, #13 @ cloudnine
+    bne   <trace>
+    bl    <01A3A8>
+trace:
+    cmp   r0, #36  @ trace
+    bne   <forecast>
+    bl    <01A36C>
+forecast:
+    cmp   r0, #59  @ forecast
+    bne   <airlock>
+    bl    <01A340>
+airlock:
+    cmp   r0, #77  @ air lock
+    bne   <switch_in_weather>
+    bl    <01A3A8>
+switch_in_weather:
+    cmp   r0, #255 @ ABILITYEFFECT_SWITCH_IN_WEATHER
+    beq   <01A19A>
+use_table:
+    ldr   r2, =0
+    bx    r2
+.end
+@01A174 <thumb.abilities.entrance+1>
+
+
+
+# goto the table so the user can edit it
+@data.abilities.entrance

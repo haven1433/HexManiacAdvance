@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HexManiac.WPF", "src\HexMan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HexManiac.Integration", "src\HexManiac.Integration\HexManiac.Integration.csproj", "{0581ACCA-F4BD-44DE-8D8F-01236CEB1634}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HexManiac.Avalonia", "src\HexManiac.Avalonia\HexManiac.Avalonia.csproj", "{CB327C66-99EB-595C-BF3A-4B99CD48C07D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -69,6 +71,18 @@ Global
 		{0581ACCA-F4BD-44DE-8D8F-01236CEB1634}.Release|x64.Build.0 = Release|Any CPU
 		{0581ACCA-F4BD-44DE-8D8F-01236CEB1634}.Release|x86.ActiveCfg = Release|Any CPU
 		{0581ACCA-F4BD-44DE-8D8F-01236CEB1634}.Release|x86.Build.0 = Release|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Debug|x64.Build.0 = Debug|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Debug|x86.Build.0 = Debug|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Release|x64.ActiveCfg = Release|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Release|x64.Build.0 = Release|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Release|x86.ActiveCfg = Release|Any CPU
+		{CB327C66-99EB-595C-BF3A-4B99CD48C07D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

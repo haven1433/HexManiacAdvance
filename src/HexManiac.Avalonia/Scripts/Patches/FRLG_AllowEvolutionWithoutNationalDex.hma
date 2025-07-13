@@ -1,0 +1,23 @@
+﻿# Allow Evolution without National Dex
+# FireRed / LeafGreen Only
+
+# level-up evolution
+@!game(BPRE0) @0CE904
+@!game(BPGE0) @0CE8D8
+@!game(BPRE1) @0CE918
+@!game(BPGE1) @0CE8EC
+@!game(BPRE0_BPGE0_BPRE1_BPGE1)   20 E0
+
+# item evolution
+@!game(BPRE0) @0CF560
+@!game(BPGE0) @0CF534
+@!game(BPRE1) @0CF574
+@!game(BPGE1) @0CF548
+@!game(BPRE0_BPGE0_BPRE1_BPGE1)   1A E0
+
+# trade evolution
+@!game(BPRE0) @126C26
+@!game(BPGE0) @126BFE
+@!game(BPRE1) @126C9E
+@!game(BPGE1) @126C76
+@!game(BPRE0_BPGE0_BPRE1_BPGE1)   1B E0

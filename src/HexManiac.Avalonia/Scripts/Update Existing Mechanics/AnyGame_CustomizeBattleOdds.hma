@@ -1,0 +1,131 @@
+# Add data.battle.odds tables for editing encounter odds.
+# Each table's odds should increase from 0 to 100.
+# The fishing table has 2 spots for old rod, 3 for good, and 5 for super.
+
+# Step 1: add anchors for the 3 required functions
+
+@!game(AXVE0_AXPE0)
+    @084B84 ^thumb.ChooseWildMonIndex.Land
+    @084C40 ^thumb.ChooseWildMonIndex.WaterRock
+    @084C94 ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(AXVE1_AXPE1)
+    @084BA4 ^thumb.ChooseWildMonIndex.Land
+    @084C60 ^thumb.ChooseWildMonIndex.WaterRock
+    @084CB4 ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(BPRE0)
+    @08274C ^thumb.ChooseWildMonIndex.Land
+    @082808 ^thumb.ChooseWildMonIndex.WaterRock
+    @08285C ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(BPGE0)
+    @082720 ^thumb.ChooseWildMonIndex.Land
+    @0827DC ^thumb.ChooseWildMonIndex.WaterRock
+    @082830 ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(BPRE1)
+    @082760 ^thumb.ChooseWildMonIndex.Land
+    @08281C ^thumb.ChooseWildMonIndex.WaterRock
+    @082870 ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(BPGE1)
+    @082734 ^thumb.ChooseWildMonIndex.Land
+    @0827F0 ^thumb.ChooseWildMonIndex.WaterRock
+    @082844 ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(BPEE0)
+    @0B4AC8 ^thumb.ChooseWildMonIndex.Land
+    @0B4B84 ^thumb.ChooseWildMonIndex.WaterRock
+    @0B4BD8 ^thumb.ChooseWildMonIndex.Fishing
+
+@!game(all)
+
+# Step 2: Insert the new tables and update the functions to use the new tables.
+#         The new functions are shorter than the originals, so this edit is in-place.
+
+# --- Grass ---
+
+@thumb.ChooseWildMonIndex.Land+2C ^data.battle.odds.grass[odds.]12
+    20 40 50
+    60 70 80
+    85 90 94
+    98 99 100
+
+@thumb.ChooseWildMonIndex.Land+10 .thumb
+        mov   r1, r0
+        ldr   r2, [pc, <table>]
+        mov   r0, #0
+    loop:
+        cmp   r0, #11
+        beq   <end>
+        ldrb  r3, [r2, r0]
+        cmp   r1, r3
+        blt   <end>
+        add   r0, r0, #1
+        b     <loop>
+    end:
+        pop   {pc}
+    table:
+        .word <data.battle.odds.grass>
+.end
+
+# --- Water/Rock ---
+@thumb.ChooseWildMonIndex.WaterRock+2C ^data.battle.odds.waterrock[odds.]5
+    60 90 95 99 100
+
+@thumb.ChooseWildMonIndex.WaterRock+10 .thumb
+        mov   r1, r0
+        ldr   r2, [pc, <table>]
+        mov   r0, #0
+    loop:
+        cmp   r0, #4
+        beq   <end>
+        ldrb  r3, [r2, r0]
+        cmp   r1, r3
+        blt   <end>
+        add   r0, r0, #1
+        b     <loop>
+    end:
+        pop   {pc}
+    table:
+        .word <data.battle.odds.waterrock>
+.end
+
+# --- Fishing ---
+
+@thumb.ChooseWildMonIndex.Fishing+48 ^data.battle.odds.fishing[odds.]10
+    70 100
+    60 80 100
+    40 80 95 99 100
+
+@thumb.ChooseWildMonIndex.Fishing+18 .thumb
+        mov   r1, r0
+        ldr   r2, [pc, <table>]
+        mov   r0, #0
+        cmp   r4, #0
+        beq   <loop>
+        mov   r0, #2
+        cmp   r4, #1
+        beq   <loop>
+        mov   r0, #5
+    loop:
+        cmp   r0, #1
+        beq   <end>
+        cmp   r0, #4
+        beq   <end>
+        cmp   r0, #9
+        beq   <end>
+        ldrb  r3, [r2, r0]
+        cmp   r1, r3
+        blt   <end>
+        add   r0, r0, #1
+        b     <loop>
+    end:
+        pop   {r4-r6, pc}
+    table:
+        .word <data.battle.odds.fishing>
+.end
+
+# Jump to the first one, just to make all the edits visible.
+@thumb.ChooseWildMonIndex.Land

@@ -1,0 +1,190 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <AssemblyName>HexManiacAdvance</AssemblyName>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <ImplicitUsings>false</ImplicitUsings>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Nullable>annotations</Nullable>
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x86;x64</Platforms>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Remove="Assets\Icons.axaml" />
+    <AvaloniaResource Remove="Assets\Icons.axaml.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="$(SolutionDir)src\SharedAssemblyInfo.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectCapability Include="Avalonia" />
+    <TrimmerRootAssembly Include="Avalonia.Themes.Fluent" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Assets\MoveRelearnerTesting.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_FairyType.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_PhysicalSpecialSplit.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Add Mechanics From Later Generations\AnyGame_PixilateStyleAbilities.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Add Mechanics From Later Generations\FairyIcon_Emerald.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Add Mechanics From Later Generations\FairyIcon_FR_LG.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Patches\AnyGame_SkipGameIntroScene.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Patches\Emerald_ExpandEVs.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Patches\Emerald_StevenTeamNaturesFix.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Patches\FRLG_AllowEvolutionWithoutNationalDex.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Patches\RSE_RemoveContestMovesTab.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_callasmBattleScriptCommand.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeBattleOdds.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_CustomizeNatureStats.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_ExpandedOWs.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_ExpandItems.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\AnyGame_TripleLayerMapBlocks.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\Emerald_ExpandStarters.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\Update Existing Mechanics\RS_AddProfessorPokemonConstants.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\AnyGame_CombatItems.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\AnyGame_ItemEffectToChangeSecondaryTypes.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\AnyGame_TutorItems.hma">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="Scripts\_Using_HMA_Scripts.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Labs.CommandManager" Version="11.3.0" />
+    <PackageReference Include="Crc32.NET" Version="1.2.0" />
+    <PackageReference Include="IronPython" Version="3.4.2" />
+    <PackageReference Include="Avalonia" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.2" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.2" />
+    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)src\HexManiac.Core\HexManiac.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\AppIcon.ico" />
+    <Resource Include="Assets\AppImage.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Update="Resources\Icons.axaml">
+      <SubType>Designer</SubType>
+    </AvaloniaXaml>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <PropertyGroup>
+      <PreBuildCommands Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+        echo "$(TargetDir)"
+        echo "$(SolutionDir)"
+        if [[ ! -d "$(TargetDir)resources" ]]; then mkdir "$(TargetDir)resources"; fi
+        if [[ ! -d "$(TargetDir)resources/Scripts" ]]; then mkdir "$(TargetDir)resources/Scripts"; fi
+        cp "$(TargetDir)Models/Code/*.txt" "$(TargetDir)resources"
+        rm "$(TargetDir)Models/Code/*.txt"
+        cp "$(TargetDir)Models/Code/*.hma" "$(TargetDir)resources"
+        rm "$(TargetDir)Models/Code/*.hma"
+        cp "$(TargetDir)Models/Code/*.toml" "$(TargetDir)resources"
+        rm "$(TargetDir)Models/Code/*.toml"
+        cp "$(TargetDir)Models/Code/*.py" "$(TargetDir)resources"
+        rm "$(TargetDir)Models/Code/*.py"
+        cp -r "$(TargetDir)Scripts" "$(TargetDir)resources"
+        cp "$(SolutionDir)src/HexManiac.Avalonia/Resources/Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+        cp "$(SolutionDir)src/HexManiac.Avalonia/Resources/Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+        cp "$(SolutionDir)src/HexManiac.Core/ViewModels/QuickEditItems/hubol_dpe_cfru.ups" "$(TargetDir)resources"
+        rm -r "$(TargetDir)Scripts" 1&gt;/dev/null
+        rm -r "$(TargetDir)Scripts"
+        rm -r "$(TargetDir)Models/Code"
+        rm -r "$(TargetDir)Models"
+        rm "$(TargetDir)IronPython.SQLite.dll"
+        rm "$(TargetDir)Mono.Unix.dll"
+        if [[ -d "$(SolutionDir)src/HexManiac.Avalonia/artifacts" ]]; then mv "$(SolutionDir)src/HexManiac.Avalonia/artifacts" "$(SolutionDir)"; fi
+      </PreBuildCommands>
+      <PreBuildCommands Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+        if not exist "$(TargetDir)resources" mkdir "$(TargetDir)resources"
+        if not exist "$(TargetDir)resources\Scripts" mkdir "$(TargetDir)resources\Scripts"
+        copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
+        del "$(TargetDir)Models\Code\*.txt"
+        copy "$(TargetDir)Models\Code\*.hma" "$(TargetDir)resources"
+        del "$(TargetDir)Models\Code\*.hma"
+        copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
+        del "$(TargetDir)Models\Code\*.toml"
+        copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
+        del "$(TargetDir)Models\Code\*.py"
+        xcopy "$(TargetDir)Scripts" "$(TargetDir)resources/Scripts" /i /c /k /e /r /y
+        copy "$(SolutionDir)src\HexManiac.Avalonia\Resources\Yogia16.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+        copy "$(SolutionDir)src\HexManiac.Avalonia\Resources\Yogia16-dark.graphics.titlescreen.copyright.tilemap.png" "$(TargetDir)resources"
+        copy "$(SolutionDir)src\HexManiac.Core\ViewModels\QuickEditItems\hubol_dpe_cfru.ups" "$(TargetDir)resources"
+        del /f /s /q "$(TargetDir)Scripts" 1&gt;nul
+        rmdir /s /q "$(TargetDir)Scripts"
+        rmdir "$(TargetDir)Models\Code"
+        rmdir "$(TargetDir)Models"
+        del "$(TargetDir)IronPython.SQLite.dll"
+        del "$(TargetDir)Mono.Unix.dll"
+      </PreBuildCommands>
+    </PropertyGroup>
+    <Exec Command="$(PreBuildCommands)" />
+  </Target>
+
+</Project>

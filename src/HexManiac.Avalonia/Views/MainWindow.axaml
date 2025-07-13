@@ -1,0 +1,325 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:HavenSoft.HexManiac.Avalonia.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:hsv="clr-namespace:HavenSoft.HexManiac.Avalonia.Resources"
+        xmlns:sys="clr-namespace:System;assembly=mscorlib"
+        xmlns:hshmcvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels;assembly=HexManiac.Core"
+        xmlns:mapvm="clr-namespace:HavenSoft.HexManiac.Core.ViewModels.Map;assembly=HexManiac.Core"
+        xmlns:viewModels="clr-namespace:HavenSoft.HexManiac.Avalonia.ViewModels"
+        xmlns:viewModels1="clr-namespace:HavenSoft.HexManiac.Avalonia.ViewModels"
+        xmlns:viewModels2="clr-namespace:HavenSoft.HexManiac.Avalonia.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        x:Class="HavenSoft.HexManiac.Avalonia.Views.MainWindow"
+        x:DataType="viewModels2:MainWindowViewModel"
+        Icon="/Assets/AppIcon.ico"
+        Title="Hex Maniac Advance">
+  <Design.DataContext>
+    <!-- This only sets the DataContext for the previewer in an IDE,
+             to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+    <viewModels2:MainWindowViewModel />
+  </Design.DataContext>
+
+  <NativeMenu.Menu>
+    <NativeMenu>
+      <NativeMenuItem Header="File" IsVisible="true">
+        <NativeMenu>
+          <NativeMenuItem Header="Open" Click="FileOpen_OnClick" Gesture="Meta+O" />
+          <NativeMenuItem Header="Save" Click="FileSave_OnClick" Gesture="Meta+S" />
+          <NativeMenuItem Header="Save As" Click="FileSaveAs_OnClick" Gesture="Meta+Shift+S" />
+        </NativeMenu>
+      </NativeMenuItem>
+      <NativeMenuItem Header="Edit" IsEnabled="true">
+        <NativeMenu>
+          <NativeMenuItem Header="Cut" Command="{Binding CutCommand}" Gesture="Meta+X" />
+          <NativeMenuItem Header="Copy" Command="{Binding CopyCommand}" Gesture="Meta+C" />
+          <NativeMenuItem Header="Past" Command="{Binding PasteCommand}" Gesture="Meta+V" />
+        </NativeMenu>
+      </NativeMenuItem>
+    </NativeMenu>
+  </NativeMenu.Menu>
+  <Grid Name="ContentPanel">
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Top" Background="{DynamicResource Background}">
+        <DockPanel.Resources>
+          <Style Selector="Panel" x:Key="AnimateOnVisibilityChanged">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="DockPanel.Dock" Value="Right"/>
+            <Setter Property="Background" Value="{DynamicResource Backlight}"/>
+          </Style>
+        </DockPanel.Resources>
+        <!-- Menu -->
+        <Menu DockPanel.Dock="Left">
+          <MenuItem Header="_File">
+            <MenuItem Header="_New" Command="{Binding New}" Gesture="Ctrl+N">
+              <MenuItem.Icon>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="_Open" Command="{Binding Open}" Gesture="Ctrl+O">
+            </MenuItem>
+            <MenuItem Header="Open Recent">
+              <MenuItem.ItemContainerTheme>
+              </MenuItem.ItemContainerTheme>
+            </MenuItem>
+            <MenuItem Header="Duplicate Current Tab" Command="{Binding DuplicateCurrentTab}" Gesture="Ctrl+T"/>
+            <Separator />
+            <MenuItem Header="_Save" Command="{Binding Save}" Gesture="Ctrl+S">
+            </MenuItem>
+            <MenuItem Header="Save _As" Command="{Binding SaveAs}" Gesture="Ctrl+Shift+S" />
+            <MenuItem Header="Save A_ll" Command="{Binding SaveAll}" Gesture="Ctrl+Shift+A" />
+            <MenuItem Header="_Export Backup" Command="{Binding ExportBackup}" Gesture="Ctrl+E" />
+            <Separator />
+            <MenuItem Header="Calculate Common _Hashes" />
+            <MenuItem Header="_Run" Command="{Binding RunFile}" Gesture="F5" CommandParameter="{DynamicResource FileSystem}"/>
+            <Separator />
+            <MenuItem Header="_Close Current Tab" Command="{Binding Close}" CommandParameter="{DynamicResource FileSystem}" Gesture="Ctrl+W" />
+            <MenuItem Header="E_xit" Click="ExitClicked" Gesture="Alt+F4">
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon Exit}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+          </MenuItem>
+          <MenuItem Header="_Edit">
+            <MenuItem Header="_Undo" Command="{Binding Undo}" Gesture="Ctrl+Z">
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon UndoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="_Redo" Command="{Binding Redo}" Gesture="Ctrl+Y">
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon RedoArrow}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <Separator />
+            <MenuItem Header="Display As...">
+              <MenuItem Header="Text" Command="{Binding DisplayAsText}" Gesture="Ctrl+D, T"/>
+              <MenuItem Header="Event Script" Command="{Binding DisplayAsEventScript}" Gesture="Ctrl+D, E"/>
+              <MenuItem Header="Sprite" Command="{Binding DisplayAsSprite}" Gesture="Ctrl+D, S"/>
+              <MenuItem Header="Color Palette" Command="{Binding DisplayAsColorPalette}" Gesture="Ctrl+D, C"/>
+            </MenuItem>
+            <MenuItem Header="Cu_t" Command="{Binding Cut}" Gesture="Ctrl+X"/>
+            <MenuItem Height="26" Header="_Copy" Command="{Binding Copy}" Gesture="Ctrl+C">
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon Copy}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="D_eep Copy" Command="{Binding DeepCopy}" Gesture="Ctrl+Shift+C"/>
+            <MenuItem Height="26" Header="_Paste / Replace" Command="{Binding Paste}" Gesture="Ctrl+V or Ctrl+B">
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon Paste}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="_Delete" Command="{Binding Delete}" Gesture="Del"/>
+            <MenuItem Header="_Select All" Command="{Binding SelectAll}" Gesture="Ctrl+A"/>
+            <Separator />
+            <MenuItem Header="_Find" Command="{Binding ShowFind}" Gesture="Ctrl+F">
+              <MenuItem.CommandParameter>
+                <sys:Boolean>true</sys:Boolean>
+              </MenuItem.CommandParameter>
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon Search}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="Find _Next" Command="{Binding FindNext}" CommandParameter="{Binding Text, ElementName=FindBox}" Gesture="F3"/>
+            <MenuItem Header="Find _Previous" Command="{Binding FindPrevious}" CommandParameter="{Binding Text, ElementName=FindBox}" Gesture="Shift+F3"/>
+            <MenuItem Header="_Goto" Command="{Binding GotoViewModel.ShowGoto}" Gesture="Ctrl+G">
+              <MenuItem.CommandParameter>
+                <sys:Boolean>true</sys:Boolean>
+              </MenuItem.CommandParameter>
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon Home}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="Go _Back" Command="{Binding Back}" Gesture="Ctrl+-"/>
+            <MenuItem Header="Go _Forward" Command="{Binding Forward}" Gesture="Ctrl+Shift+-"/>
+            <MenuItem Header="Show Hex Converter" Command="{Binding ShowHexConverter}" Gesture="Ctrl+H">
+              <MenuItem.CommandParameter>
+                <sys:Boolean>true</sys:Boolean>
+              </MenuItem.CommandParameter>
+            </MenuItem>
+          </MenuItem>
+          <MenuItem Header="_View">
+            <MenuItem Header="Diff">
+              <MenuItem Header="_Diff Since Last Save" Command="{Binding DiffSinceLastSave}" Gesture="Ctrl+Shift+D"/>
+              <MenuItem Header="Diff selected tab with left neighbor" Command="{Binding DiffLeft}" />
+              <MenuItem Header="Diff selected tab with right neighbor" Command="{Binding DiffRight}" />
+              <Separator />
+              <MenuItem Header="Exclude Pointer-only changes from diffs" IsCheckable="True" IsChecked="{Binding HideDiffPointerChanges}" />
+            </MenuItem>
+            <Separator/>
+            <MenuItem Header="Show _Matrix Grid" IsCheckable="True" IsChecked="{Binding ShowMatrix}" Gesture="Ctrl+M"/>
+            <MenuItem Header="_Animate when Scrolling" IsCheckable="True" IsChecked="{Binding AnimateScroll}"/>
+            <MenuItem Header="Use Table Entry Headers" IsCheckable="True" IsChecked="{Binding UseTableEntryHeaders}">
+              <MenuItem.ToolTip>
+                <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                  <TextBlock Text="Replaces raw address with a name when possible."/>
+                </ToolTip>
+              </MenuItem.ToolTip>
+            </MenuItem>
+            <MenuItem Header="Enable Single Table Focus" IsCheckable="True" IsChecked="{Binding AllowSingleTableMode}">
+              <MenuItem.ToolTip>
+                <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                  <TextBlock Text="Limit the scrollable area to a single table after a goto."/>
+                </ToolTip>
+              </MenuItem.ToolTip>
+            </MenuItem>
+            <Separator/>
+            <MenuItem Header="Reset _Zoom" Command="{Binding ResetZoom}">
+              <MenuItem.ToolTip>
+                <ToolTip BorderThickness="0" Background="{DynamicResource Backlight}">
+                  <TextBlock Text="You can increase or decrease the size of the text in the cells using Ctrl+Scroll."/>
+                </ToolTip>
+              </MenuItem.ToolTip>
+            </MenuItem>
+            <MenuItem Header="Reset _Alignment" Command="{Binding ResetAlignment}" />
+            <MenuItem Header="C_ustomize Theme" Click="ShowThemeSelector"/>
+            <MenuItem Header="_Clear Error" Command="{Binding ClearError}" Gesture="Esc"/>
+          </MenuItem>
+          <MenuItem Header="Developer" Visibility="{Binding ShowDeveloperMenu, Converter={StaticResource BoolToVisibility}}">
+            <MenuItem Header="Copy Aligned Address" Command="{Binding CopyAlignedAddress}" CommandParameter="{DynamicResource FileSystem}"/>
+            <Separator />
+            <MenuItem Header="Assert" Click="DeveloperRaiseAssert"/>
+            <MenuItem Header="Throw ArgumentOutOfRangeException" Click="DeveloperThrowArgumentOutOfRangeException"/>
+            <MenuItem Header="Throw AggregateException" Click="DeveloperThrowAggregateException"/>
+            <MenuItem Header="Write Debug" Click="DeveloperWriteDebug"/>
+            <MenuItem Header="Write Trace" Click="DeveloperWriteTrace"/>
+            <MenuItem Header="Update Documentation Files" Click="DeveloperUpdateDocs"/>
+            <MenuItem Header="Run Garbage Collection" Click="DeveloperRunGarbageCollection"/>
+            <Separator />
+            <MenuItem Header="Force Metadata Reload" Click="DeveloperReloadMetadata" />
+          </MenuItem>
+          <MenuItem Header="Utilities">
+            <MenuItem Name="QuickEditsPokedex" Header="Pokedex" />
+            <MenuItem Name="QuickEditsExpansion" Header="Expand" />
+            <MenuItem Name="QuickEditsMisc" Header="Misc" />
+            <MenuItem Header="Scripts" Command="{Binding LaunchScriptsLocation}" />
+          </MenuItem>
+          <MenuItem Header="_Tools">
+            <MenuItem Header="_Hide All Tools" Command="{Binding Tools.HideCommand}"/>
+            <Separator/>
+            <MenuItem Header="Toggle _Table Tool" Command="{Binding Tools.TableToolCommand}"/>
+            <MenuItem Header="Toggle Te_xt Tool" Command="{Binding Tools.StringToolCommand}"/>
+            <MenuItem Header="Toggle _Image Tool" Command="{Binding Tools.SpriteToolCommand}"/>
+            <MenuItem Header="Toggle _Code Tool" Command="{Binding Tools.CodeToolCommand}"/>
+            <MenuItem Header="Show _Hex Converter" Command="{Binding ShowHexConverter}" Gesture="Ctrl+H">
+              <MenuItem.CommandParameter>
+                <sys:Boolean>true</sys:Boolean>
+              </MenuItem.CommandParameter>
+            </MenuItem>
+            <MenuItem Header="Toggle _Automation Tool" IsCheckable="True" IsChecked="{Binding ShowAutomationPanel}" Gesture="Ctrl+R" />
+            <Separator/>
+            <MenuItem Header="_Spartan Mode" IsCheckable="True" IsChecked="{Binding SpartanMode}">
+              <MenuItem.ToolTip>
+                <ToolTip>
+                  <TextBlock>
+                    Spartan Mode runs faster and uses less memory,
+                    <LineBreak/>
+                    but disables optional ease-of-use features.
+                  </TextBlock>
+                </ToolTip>
+              </MenuItem.ToolTip>
+            </MenuItem>
+          </MenuItem>
+          <MenuItem Header="_Help">
+            <MenuItem Header="_Update" IsEnabled="{Binding IsNewVersionAvailable}" Click="UpdateClick" MouseMove="AcknowledgeAccentItem" Tag="NewVersionAcknowledged">
+              <MenuItem.ToolTip>
+                <ToolTip>
+                  <ToolTip.Content>
+                    <TextBlock>
+                      Takes you to the releases page so you
+                      <LineBreak/>
+                      can download the new version.
+                    </TextBlock>
+                  </ToolTip.Content>
+                </ToolTip>
+              </MenuItem.ToolTip>
+              <MenuItem.Style>
+                <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                  <Style.Triggers>
+                    <MultiDataTrigger>
+                      <MultiDataTrigger.Conditions>
+                        <Condition Binding="{Binding NewVersionAcknowledged}" Value="False"/>
+                        <Condition Binding="{Binding IsNewVersionAvailable}" Value="True"/>
+                      </MultiDataTrigger.Conditions>
+                      <MultiDataTrigger.Setters>
+                        <Setter Property="Background" Value="{DynamicResource Accent}"/>
+                      </MultiDataTrigger.Setters>
+                    </MultiDataTrigger>
+                  </Style.Triggers>
+                </Style>
+              </MenuItem.Style>
+            </MenuItem>
+            <MenuItem Header="_Wiki" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki" />
+            <MenuItem Header="_Tutorials" Click="WebLink" MouseMove="AcknowledgeAccentItem" Tag="TutorialsAcknowledged" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Tutorials" />
+            <MenuItem Header="_Event Script Reference" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/wiki/Everything-You-Need-for-Event-Scripting-in-HexManiacAdvance" />
+            <MenuItem Header="_Online Reference Content">
+              <MenuItem Header="Ruby">
+                <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/vars.h" />
+                <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/flags.h" />
+                <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeruby/symbols/pokeruby.sym" />
+                <MenuItem Header="Battle Outcome Constants" Click="WebLink" CommandParameter="https://github.com/pret/pokeruby/blob/master/include/constants/battle.h#L67" />
+              </MenuItem>
+              <MenuItem Header="FireRed">
+                <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/vars.h" />
+                <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/flags.h" />
+                <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokefirered/symbols/pokefirered.sym" />
+                <MenuItem Header="Battle Outcome Constants" Click="WebLink" CommandParameter="https://github.com/pret/pokefirered/blob/master/include/constants/battle.h#L75" />
+              </MenuItem>
+              <MenuItem Header="Emerald">
+                <MenuItem Header="List of Script Variables" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/vars.h" />
+                <MenuItem Header="List of Script Flags" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/master/include/constants/flags.h" />
+                <MenuItem Header="List of All Symbols" Click="WebLink" CommandParameter="https://raw.githubusercontent.com/pret/pokeemerald/symbols/pokeemerald.sym" />
+                <MenuItem Header="Battle Outcome Constants" Click="WebLink" CommandParameter="https://github.com/pret/pokeemerald/blob/c32fbf594aec382e3bd58a6651e1e382c5105e4b/include/constants/battle.h#L88" />
+              </MenuItem>
+            </MenuItem>
+            <MenuItem Header="_Report an Issue" Click="WebLink" CommandParameter="https://github.com/haven1433/HexManiacAdvance/issues" />
+            <MenuItem Header="_Discord" Click="WebLink" CommandParameter="https://discord.gg/x9eQuBg">
+              <MenuItem.Icon>
+                <Path Data="{hsv:Icon Discord}" Fill="{DynamicResource Secondary}" Stretch="Uniform"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="A_ssist Development">
+              <MenuItem Header="_Copy Anchor Reference" Command="{Binding CopyAnchorReference}" CommandParameter="{DynamicResource FileSystem}"/>
+            </MenuItem>
+            <MenuItem Header="_About" Click="AboutClick"/>
+          </MenuItem>
+        </Menu>
+      </DockPanel>
+      <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Stretch" Orientation="Horizontal">
+        <Button ToolTip.Tip="Navigate Back (Ctrl + (-))">
+          
+        </Button>
+        <Button ToolTip.Tip="Navigate Forward (Ctrl+Shift + (-))">
+
+        </Button>
+        <Rectangle Width="5"/>
+        <Button ToolTip.Tip="Save (Ctrl+S)">
+
+        </Button>
+
+        <Rectangle Width="5"/>
+        <Button ToolTip.Tip="Undo (Ctrl+Z)">
+          
+        </Button>
+        <Button ToolTip.Tip="Redo (Ctrl+Y)">
+          
+        </Button>
+        <Rectangle Width="5"/>
+        <Button ToolTip.Tip="Show Goto Menu (Ctrl+G)">
+
+        </Button>
+        <Button ToolTip.Tip="Find (Ctrl+F)">
+          
+        </Button>
+        <Rectangle Width="5"/>
+        <Button ToolTip.Tip="Launch Saved File (F5)">
+          
+        </Button>
+        <Rectangle Width="5"/>
+      </StackPanel>
+      
+      <TextBlock/>
+    </DockPanel>
+  </Grid>
+</Window>
