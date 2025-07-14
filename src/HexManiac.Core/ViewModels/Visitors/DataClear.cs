@@ -32,12 +32,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          buffer.WriteValue(currentChange, start, 0);
       }
 
-      public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-
-      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
-
-      public void Visit(StreamEndDecorator decorator, byte data) => decorator.OriginalFormat.Visit(this, data);
-
       public void Visit(PCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);
 
       public void Visit(EscapedPCS pcs, byte data) => currentChange.ChangeData(buffer, index, 0xFF);

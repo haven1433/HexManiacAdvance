@@ -26,7 +26,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
       public int Count => Table?.Count ?? 0;
 
-      private IEnumerable<MapBankModel> Enumerate() {
+      public IEnumerable<MapBankModel> Enumerate() {
          for (int i = 0; i < Count; i++) yield return this[i];
       }
    }
@@ -44,7 +44,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       }
       public int Count => Table.Count;
 
-      private IEnumerable<MapModel> Enumerate() {
+      public IEnumerable<MapModel> Enumerate() {
          for (int i = 0; i < Count; i++) yield return this[i];
       }
    }
@@ -260,8 +260,8 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public static string BorderHeight => "borderheight";
       public static string IsSecondary => "isSecondary";
 
-      private readonly IDataModel model;
-      private BlocksetCache cache;
+      public readonly IDataModel model;
+      public BlocksetCache cache;
 
       public BlocksetCache BlocksetCache => cache;
 
@@ -275,33 +275,6 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public string ConnectionsFormat { get; }
       public string HeaderFormat { get; }
       public string MapFormat { get; }
-
-      public Format(IDataModel model) {
-         this.model = model;
-         cache = new BlocksetCache(new(), new());
-         cache.CalculateBlocksetOptions(model);
-         bool isRSE = !model.IsFRLG();
-         BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {TileAnimationRoutine}<> {BlockAttributes}<>]1";
-         if (isRSE) BlockDataFormat = $"[isCompressed. isSecondary. padding: {Tileset}<> {Palette}<`ucp4:0123456789ABCDEF`> {Blocks}<> {BlockAttributes}<> {TileAnimationRoutine}<>]1";
-         LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}> {BorderWidth}. {BorderHeight}. unused:]1";
-         if (isRSE) LayoutFormat = $"[width:: height:: {BorderBlock}<> {BlockMap}<`blm`> {PrimaryBlockset}<{BlockDataFormat}> {SecondaryBlockset}<{BlockDataFormat}>]1";
-         var regionSectionIDFormat = "data.maps.names+88";
-         if (isRSE) regionSectionIDFormat = "data.maps.names";
-         var field3 = !isRSE ? "kind:" : "unused:1";
-         ObjectsFormat = $"[id. graphics.{HardcodeTablesModel.OverworldSprites} {field3} x:|z y:|z elevation.11 moveType. range:|t|x::|y:: trainerType: trainerRangeOrBerryID: script<`xse`> flag:|h padding:]/{ObjectCount}";
-         WarpsFormat = $"[x:|z y:|z elevation.11 warpID. map. bank.]/{WarpCount}";
-         ScriptsFormat = $"[x:|z y:|z elevation:11 trigger:|h index:: script<`xse`>]/{ScriptCount}";
-         SignpostsFormat = $"[x:|z y:|z elevation.11 kind. unused:1 arg::|h]/{SignpostCount}";
-         EventsFormat = $"[{ObjectCount}. {WarpCount}. {ScriptCount}. {SignpostCount}. {Objects}<{ObjectsFormat}> {Warps}<{WarpsFormat}> {Scripts}<{ScriptsFormat}> {Signposts}<{SignpostsFormat}>]1";
-         ConnectionsFormat = "[count:: connections<[direction:: offset:: mapGroup. mapNum. unused:]/count>]1";
-         HeaderFormat = $"music:songnames layoutID:data.maps.layouts+1 regionSectionID.{regionSectionIDFormat} cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.";
-         MapFormat = $"[{Layout}<{LayoutFormat}> events<{EventsFormat}> mapscripts<[type. pointer<>]!00> {Connections}<{ConnectionsFormat}> {HeaderFormat}]";
-      }
-
-      public void Refresh() {
-         cache = new BlocksetCache(new(), new());
-         cache.CalculateBlocksetOptions(model);
-      }
 
       public int RecentBank { get; set; }
    }

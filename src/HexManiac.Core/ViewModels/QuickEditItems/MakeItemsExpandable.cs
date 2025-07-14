@@ -24,48 +24,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return -1;
       }
 
-      public bool CanRun(IViewPort viewPortInterface) {
-         var viewPort = viewPortInterface as ViewPort;
-         if (viewPort == null) return false;
-         var model = viewPortInterface.Model;
-         var gameCode = model.GetGameCode();
-
-         var start = GetPrimaryEditAddress(gameCode);
-         if (start == -1) return false;
-         var run = model.GetNextRun(start);
-         return !(run is WordRun);
-      }
-
-      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
-         var viewPort = (ViewPort)viewPortInterface;
-         var model = viewPortInterface.Model;
-         var gameCode = model.GetGameCode();
-         var start = GetPrimaryEditAddress(gameCode);
-
-         // IsItemIDValid(itemID)
-         viewPort.Edit($"@{start:X6} 00 B5 00 04 00 0C 03 49 08 45 00 DB 00 20 02 BC 08 47 00 00 ::{ItemsTableName} ");
-
-         if (gameCode == FireRed) {
-            // DB: comparison was 'less or same'. Make it 'less than'.
-            //     then update the constant after the code to just be the number of items.
-            viewPort.Edit($"@098983 DB @098998 ::{ItemsTableName} ");
-         } else if (gameCode == LeafGreen) {
-            // DB: comparison was 'less or same'. Make it 'less than'.
-            //     then update the constant after the code to just be the number of items.
-            viewPort.Edit($"@098967 DB @09896C ::{ItemsTableName} ");
-         } else if (gameCode == Emerald) {
-            // Emerald code already uses the number of items specifically. Just add the
-            //    format so we can update the constant whenever the user adds new items.
-            viewPort.Edit($"@1B0014 ::{ItemsTableName} ");
-         }
-         // note that we make no updates for Ruby/Sapphire... that's because I don't
-         //    know where the item image tables are stored in those games :(
-
-         CanRunChanged?.Invoke(this, EventArgs.Empty);
-
-         return Task.FromResult(ErrorInfo.NoError);
-      }
-
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
    }
 }

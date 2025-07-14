@@ -81,8 +81,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => new LzUncompressed(index);
-
       public ISpriteRun Duplicate(SpriteFormat newFormat) => new SpriteRun(model, Start, newFormat, PointerSources);
 
       public byte[] GetData() {

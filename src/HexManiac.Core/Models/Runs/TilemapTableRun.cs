@@ -53,63 +53,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ITableRun Append(ModelDelta token, int length) => throw new NotImplementedException();
 
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
-         ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
-      }
-
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          ITableRunExtensions.Clear(this, model, changeToken, start, length);
       }
 
-      int lastFormatCreated = int.MaxValue;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var inner = ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
-         if (index > lastFormatCreated) {
-            lastFormatCreated = index;
-            return inner;
-         }
-
-         if ((index - Start) % ElementLength != 0) return inner;
-         var address = data.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, TilemapAnchor);
-         var run = data.GetNextRun(address) as ITilemapRun;
-         var pixels = data.CurrentCacheScope.GetImage(run);
-         if (pixels == null) return inner;
-
-         var missingTopRows = (index - Start) / ElementLength;
-         pixels = Crop(pixels, -Margins.Left * 8, -Margins.Top * 8, -Margins.Right * 8, -Margins.Bottom * 8);
-         pixels = DuplicateDown(pixels, Margins.LengthMultiplier);
-         pixels = Crop(pixels, 0, missingTopRows * 8, 0, 0);
-         lastFormatCreated = index;
-         return new SpriteDecorator(inner, pixels, pixels.PixelWidth / 8, pixels.PixelHeight / 8);
-      }
-
-      public static ReadonlyPixelViewModel Crop(IPixelViewModel pixels, int left, int top, int right, int bottom) {
-         var (width, height) = (pixels.PixelWidth - left - right, pixels.PixelHeight - top - bottom);
-         Debug.Assert(width % 8 == 0, $"Cropped image must still have a width/height that's a multiple of 8, but width was {width}.");
-         Debug.Assert(height % 8 == 0, $"Cropped image must still have a width/height that's a multiple of 8, but height was {height}.");
-         var pixelData = new short[width * height];
-         for (int y = 0; y < height; y++) {
-            var originalDataStart = pixels.PixelWidth * (y + top) + left;
-            if (originalDataStart < 0) continue;
-            var croppedDataStart = width * y;
-            Array.Copy(pixels.PixelData, originalDataStart, pixelData, croppedDataStart, width);
-         }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, width / 8, height / 8, string.Empty), pixelData, pixels.Transparent);
-      }
-
-      public static IPixelViewModel DuplicateDown(IPixelViewModel pixels, int count) {
-         if (count == 1) return pixels;
-         Debug.Assert(count > 0, $"Cannot duplicate {count} times.");
-         var pixelData = new short[pixels.PixelWidth * pixels.PixelHeight * count];
-         for (int y = 0; y < pixels.PixelHeight; y++) {
-            var originalDataStart = pixels.PixelWidth * y;
-            for (int i = 0; i < count; i++) {
-               var newDataStart = pixels.PixelWidth * y + pixels.PixelData.Length * i;
-               Array.Copy(pixels.PixelData, originalDataStart, pixelData, newDataStart, pixels.PixelWidth);
-            }
-         }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, pixels.PixelWidth / 8, pixels.PixelHeight / 8 * count, string.Empty), pixelData);
-      }
+      public int lastFormatCreated = int.MaxValue;
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
          return new TilemapTableRun(model, TilemapAnchor, Segment, Margins, start, pointerSources);

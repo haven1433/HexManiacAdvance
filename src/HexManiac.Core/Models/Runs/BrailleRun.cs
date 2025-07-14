@@ -66,10 +66,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0xFF);
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         return new Braille(Start, index - Start, data[index] == 0xFF ? '"' : Encoding.TryGetValue(data[index], out var value) ? value : ' ');
-      }
-
       public bool DependsOn(string anchorName) => false;
 
       public static byte DeserializeCharacter(char content) {

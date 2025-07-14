@@ -119,7 +119,5 @@ public class MetatileRun : BaseRun {
       throw new System.NotImplementedException();
    }
 
-   public override IDataFormat CreateDataFormat(IDataModel data, int index) => new LzUncompressed(index);
-
    protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new MetatileRun(model, Start, newPointerSources);
 }

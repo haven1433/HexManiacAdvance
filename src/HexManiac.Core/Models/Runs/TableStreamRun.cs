@@ -9,8 +9,8 @@ using System.Text;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class TableStreamRun : BaseRun, IStreamRun, ITableRun, IUpdateFromParentRun {
-      private readonly IDataModel model;
-      private readonly IStreamEndStrategy endStream;
+      public readonly IDataModel model;
+      public readonly IStreamEndStrategy endStream;
 
       public bool CanAppend => !(endStream is FixedLengthStreamStrategy || endStream is DynamicStreamStrategy);
 
@@ -142,31 +142,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       #region BaseRun
 
-      private string cachedCurrentString;
-      private int currentCachedStartIndex = -1, currentCachedIndex = -1;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var naturalLength = ElementCount * ElementLength;
-         var naturalStop = Start + naturalLength;
-         if (index >= naturalStop) return new EndStream(naturalStop, index - naturalStop, Length - naturalLength);
-
-         var offsets = this.ConvertByteOffsetToArrayOffset(index);
-         var currentSegment = ElementContent[offsets.SegmentIndex];
-         if (currentSegment.Type == ElementContentType.PCS) {
-            if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
-               currentCachedStartIndex = offsets.SegmentStart;
-               currentCachedIndex = offsets.SegmentOffset;
-               cachedCurrentString = data.TextConverter.Convert(data, offsets.SegmentStart, currentSegment.Length);
-            }
-
-            var pcsFormat = PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
-            if (offsets.SegmentIndex == 0) return new StreamEndDecorator(pcsFormat);
-            return pcsFormat;
-         }
-
-         var format = this.CreateSegmentDataFormat(data, index);
-         if (offsets.SegmentIndex == 0) return new StreamEndDecorator(format);
-         return format;
-      }
+      public string cachedCurrentString;
+      public int currentCachedStartIndex = -1, currentCachedIndex = -1;
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) =>
          new TableStreamRun(model, Start, newPointerSources, FormatString, ElementContent, endStream, ElementCount);
@@ -174,21 +151,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       #endregion
 
       #region StreamRun
-
-      public string SerializeRun() {
-         if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return SerializeSingleElementStream();
-         var builder = new StringBuilder();
-         AppendTo(model, builder, Start, ElementLength * ElementCount, 0);
-         var lines = builder.ToString().Split(Environment.NewLine);
-
-         // AppendTo is used in copy/paste scenarios, and includes the required '+' to work in that case.
-         // strip the '+', as it's not needed for stream serialization, which uses newlines instead.
-         return string.Join(Environment.NewLine, lines.Select(line => {
-            if (line.Length == 0) return line;
-            if (line[0] != ArrayRun.ExtendArray) return line;
-            return line.Substring(1);
-         }).ToArray());
-      }
 
       IStreamRun IStreamRun.DeserializeRun(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out IReadOnlyList<int> movedChildren) {
          var result = DeserializeRun(content, token, out changedOffsets, out var children);
@@ -204,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return DeserializeRun(content, token, ElementCount, out changedOffsets, out movedChildren);
       }
 
-      private TableStreamRun DeserializeRun(string content, ModelDelta token, int lengthOverride, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
+      public TableStreamRun DeserializeRun(string content, ModelDelta token, int lengthOverride, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
          if (endStream is FixedLengthStreamStrategy flss && flss.Count == 1) return DeserializeSingleElementStream(content, token, out changedOffsets, out movedChildren);
          var self = this;
          if (lengthOverride != ElementCount) self = new TableStreamRun(model, Start, PointerSources, FormatString, ElementContent, endStream, lengthOverride);
@@ -250,39 +212,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new byte[0];
       }
 
-      private string SerializeSingleElementStream() {
-         Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
-         var result = new StringBuilder();
-         int offset = Start;
-         var longestLabel = ElementContent.Select(seg => seg.Name.Length).Max();
-         for (int i = 0; i < ElementContent.Count; i++) {
-            var segment = ElementContent[i];
-            var rawValue = model.ReadMultiByteValue(offset, segment.Length);
-            var value = rawValue.ToString();
-            if (segment is ArrayRunEnumSegment enumSeg) {
-               var options = enumSeg.GetOptions(model).ToList();
-               if (options.Count > rawValue) value = options[rawValue];
-            } else if (segment is ArrayRunTupleSegment tupSeg) {
-               value = tupSeg.ToText(model, offset);
-            } else if (segment is ArrayRunHexSegment hexSeg) {
-               value = "0x" + rawValue.ToString("X" + segment.Length * 2);
-            } else if (segment.Type == ElementContentType.Pointer) {
-               var pointerValue = rawValue - BaseModel.PointerOffset;
-               value = $"<{pointerValue:X6}>";
-               if (pointerValue == Pointer.NULL) value = "<null>";
-            } else if (segment.Type == ElementContentType.PCS) {
-               value = model.TextConverter.Convert(model, offset, segment.Length);
-            } else if (segment.Length == 0) {
-               continue;
-            }
-            result.Append($"{segment.Name.PadRight(longestLabel)} : {value}");
-            if (i < ElementContent.Count - 1) result.AppendLine();
-            offset += segment.Length;
-         }
-         return result.ToString();
-      }
-
-      private TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
+      public TableStreamRun DeserializeSingleElementStream(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
          Debug.Assert(endStream is FixedLengthStreamStrategy flss && flss.Count == 1);
          movedChildren = new List<int>();
          var fields = content.SplitLines();
@@ -415,7 +345,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return results;
       }
 
-      private IReadOnlyList<AutocompleteItem> GetAutoCompleteOptionsForSingleElementStream(string line, int caretIndex) {
+      public IReadOnlyList<AutocompleteItem> GetAutoCompleteOptionsForSingleElementStream(string line, int caretIndex) {
          var results = new List<AutocompleteItem>();
 
          var lineStart = line.Substring(0, caretIndex);
@@ -452,7 +382,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return results;
       }
 
-      private IEnumerable<AutocompleteItem> CreateEnumAutocompleteOptions(IReadOnlyList<string> tokens, IEnumerable<string> optionText, string lineEnd) {
+      public IEnumerable<AutocompleteItem> CreateEnumAutocompleteOptions(IReadOnlyList<string> tokens, IEnumerable<string> optionText, string lineEnd) {
          foreach (var option in optionText) {
             string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
             if (newLine.Length > 0) newLine += ", ";
@@ -463,7 +393,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private IEnumerable<AutocompleteItem> CreateTupleEnumAutocompleteOptions(IReadOnlyList<string> tokens, ArrayRunTupleSegment tupleGroup, List<string> tupleTokens, IEnumerable<string> optionText, string lineEnd) {
+      public IEnumerable<AutocompleteItem> CreateTupleEnumAutocompleteOptions(IReadOnlyList<string> tokens, ArrayRunTupleSegment tupleGroup, List<string> tupleTokens, IEnumerable<string> optionText, string lineEnd) {
          foreach (var option in optionText) {
             string newLine = ", ".Join(tokens.Take(tokens.Count - 1));
             var previousTokens = tupleTokens.Take(tupleTokens.Count - 1).ToList();
@@ -476,14 +406,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private static IEnumerable<AutocompleteItem> CreateSingleElementEnumAutocompleteOptions(string lineEnd, string fieldName, IEnumerable<string> optionText) {
+      public static IEnumerable<AutocompleteItem> CreateSingleElementEnumAutocompleteOptions(string lineEnd, string fieldName, IEnumerable<string> optionText) {
          foreach (var option in optionText) {
             string newLine = $"{fieldName}: {option}{lineEnd}";
             yield return new AutocompleteItem(option, newLine);
          }
       }
 
-      private static IEnumerable<AutocompleteItem> CreateTupleEnumSingleElementAutocompleteOptions(string fieldName, ArrayRunTupleSegment tupleSegment, List<string> previousTupleElements, IEnumerable<string> optionText, string lineEnd) {
+      public static IEnumerable<AutocompleteItem> CreateTupleEnumSingleElementAutocompleteOptions(string fieldName, ArrayRunTupleSegment tupleSegment, List<string> previousTupleElements, IEnumerable<string> optionText, string lineEnd) {
          foreach (var option in optionText) {
             var newLine = $"{fieldName}: ";
             newLine += tupleSegment.ConstructAutocompleteLine(previousTupleElements, option);
@@ -512,11 +442,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ITableRun Append(ModelDelta token, int length) {
          return endStream.Append(this, token, length);
-      }
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
-         ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
-         if (start + length >= Start + Length && endStream is EndCodeStreamStrategy) builder.Append(Environment.NewLine + "[]");
       }
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
@@ -566,8 +491,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class DynamicStreamStrategy : IStreamEndStrategy {
-      private readonly IDataModel model;
-      private readonly IReadOnlyList<ArrayRunElementSegment> segments;
+      public readonly IDataModel model;
+      public readonly IReadOnlyList<ArrayRunElementSegment> segments;
       public DynamicStreamStrategy(IDataModel model, IReadOnlyList<ArrayRunElementSegment> segments) => (this.model, this.segments) = (model, segments);
 
       public int ExtraLength => 0;
@@ -619,7 +544,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class EndCodeStreamStrategy : IStreamEndStrategy {
-      private readonly IDataModel model;
+      public readonly IDataModel model;
 
       public IReadOnlyList<byte> EndCode { get; }
       public int ExtraLength => EndCode.Count;
@@ -675,9 +600,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class LengthFromParentStreamStrategy : IStreamEndStrategy {
-      private readonly IDataModel model;
-      private readonly string parentName, parentFieldForLength, parentFieldForThis;
-      private readonly IReadOnlyList<ArrayRunElementSegment> sourceSegments;
+      public readonly IDataModel model;
+      public readonly string parentName, parentFieldForLength, parentFieldForThis;
+      public readonly IReadOnlyList<ArrayRunElementSegment> sourceSegments;
 
       public int ExtraLength => 0;
 
@@ -786,7 +711,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return newRun;
       }
 
-      private int GetParentIndex(IReadOnlyList<int> pointerSources) {
+      public int GetParentIndex(IReadOnlyList<int> pointerSources) {
          if (parentName == string.Empty) {
             var matches = pointerSources.Where(SourceIsFromParentTable).ToList();
             if (matches.Count == 0) return -1;
@@ -806,7 +731,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private int GetSegmentIndex(IReadOnlyList<ArrayRunElementSegment> sourceSegments, string segmentName) {
+      public int GetSegmentIndex(IReadOnlyList<ArrayRunElementSegment> sourceSegments, string segmentName) {
          if (sourceSegments == null) return -1;
          for (int i = 0; i < sourceSegments.Count; i++) {
             if (sourceSegments[i].Name == segmentName) return i;
@@ -814,12 +739,12 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return -1;
       }
 
-      private bool SourceIsFromParentTable(int source) {
+      public bool SourceIsFromParentTable(int source) {
          if (!(model.GetNextRun(source) is ITableRun run)) return false;
          return run.ElementContent.Any(segment => segment.Name == parentFieldForLength);
       }
 
-      private void UpdateParents(ModelDelta token, ITableRun parent, int segmentIndex, int newValue, IReadOnlyList<int> pointerSources) {
+      public void UpdateParents(ModelDelta token, ITableRun parent, int segmentIndex, int newValue, IReadOnlyList<int> pointerSources) {
          if (parent == null || segmentIndex == -1) return;
          var segmentOffset = parent.ElementContent.Take(segmentIndex).Sum(segment => segment.Length);
          var segmentLength = parent.ElementContent[segmentIndex].Length;

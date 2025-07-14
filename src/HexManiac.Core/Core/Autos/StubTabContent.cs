@@ -9,37 +9,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels
     {
         public Action Duplicate { get; set; }
         
-        void ITabContent.Duplicate()
-        {
-            if (this.Duplicate != null)
-            {
-                this.Duplicate();
-            }
-        }
-        
         public Action Refresh { get; set; }
         
-        void ITabContent.Refresh()
-        {
-            if (this.Refresh != null)
-            {
-                this.Refresh();
-            }
-        }
-        
         public Func<HavenSoft.HexManiac.Core.Models.LoadedFile, HavenSoft.HexManiac.Core.Models.IFileSystem, bool> TryImport { get; set; }
-        
-        bool ITabContent.TryImport(HavenSoft.HexManiac.Core.Models.LoadedFile file, HavenSoft.HexManiac.Core.Models.IFileSystem fileSystem)
-        {
-            if (this.TryImport != null)
-            {
-                return this.TryImport(file, fileSystem);
-            }
-            else
-            {
-                return default(bool);
-            }
-        }
         
         public PropertyImplementation<string> Name = new PropertyImplementation<string>();
         
@@ -64,157 +36,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<System.Windows.Input.ICommand> Save = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Save
-        {
-            get
-            {
-                return this.Save.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> SaveAs = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.SaveAs
-        {
-            get
-            {
-                return this.SaveAs.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> ExportBackup = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.ExportBackup
-        {
-            get
-            {
-                return this.ExportBackup.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Undo = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Undo
-        {
-            get
-            {
-                return this.Undo.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Redo = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Redo
-        {
-            get
-            {
-                return this.Redo.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Copy = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Copy
-        {
-            get
-            {
-                return this.Copy.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> DeepCopy = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.DeepCopy
-        {
-            get
-            {
-                return this.DeepCopy.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Clear = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Clear
-        {
-            get
-            {
-                return this.Clear.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> SelectAll = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.SelectAll
-        {
-            get
-            {
-                return this.SelectAll.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Goto = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Goto
-        {
-            get
-            {
-                return this.Goto.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> ResetAlignment = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.ResetAlignment
-        {
-            get
-            {
-                return this.ResetAlignment.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Back = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Back
-        {
-            get
-            {
-                return this.Back.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Forward = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Forward
-        {
-            get
-            {
-                return this.Forward.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Close = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Close
-        {
-            get
-            {
-                return this.Close.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Diff = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Diff
-        {
-            get
-            {
-                return this.Diff.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> DiffLeft = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.DiffLeft
-        {
-            get
-            {
-                return this.DiffLeft.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> DiffRight = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.DiffRight
-        {
-            get
-            {
-                return this.DiffRight.get();
-            }
-        }
         public PropertyImplementation<bool> CanDuplicate = new PropertyImplementation<bool>();
         
         bool ITabContent.CanDuplicate

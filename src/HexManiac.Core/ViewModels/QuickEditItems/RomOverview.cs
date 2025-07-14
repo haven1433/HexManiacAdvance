@@ -1,6 +1,4 @@
-﻿using HavenSoft.HexManiac.Core.Models;
-using System;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
    public class RomOverview : IQuickEditItem {
@@ -13,13 +11,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       public event EventHandler EditSelected;
 
       public event EventHandler CanRunChanged;
-
-      public bool CanRun(IViewPort viewPort) => viewPort is ViewPort;
-
-      public Task<ErrorInfo> Run(IViewPort viewPort) {
-         if (viewPort is ViewPort v) EditSelected?.Invoke(this, EventArgs.Empty);
-         return Task.FromResult(ErrorInfo.NoError);
-      }
 
       public void TabChanged() => CanRunChanged?.Invoke(this, EventArgs.Empty);
    }

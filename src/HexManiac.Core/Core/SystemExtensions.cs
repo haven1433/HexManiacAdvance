@@ -9,7 +9,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Windows.Input;
+
 
 namespace HavenSoft.HexManiac.Core {
    public static class SystemExtensions {
@@ -18,8 +18,6 @@ namespace HavenSoft.HexManiac.Core {
 
       private static readonly IReadOnlyList<string> byteToString = 0x100.Range().Select(i => i.ToString("X2")).ToArray();
       public static string ToHexString(this byte value) => byteToString[value];
-
-      public static void RaiseCanExecuteChanged(this StubCommand self) => self?.CanExecuteChanged.Invoke(self, EventArgs.Empty);
 
       public static void Raise(this EventHandler handler, object source) => handler?.Invoke(source, EventArgs.Empty);
       public static void Raise<T>(this EventHandler<T> handler, object source, T args) => handler?.Invoke(source, args);

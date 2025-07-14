@@ -15,14 +15,12 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public interface IEventViewModel : IEquatable<IEventViewModel>, INotifyPropertyChanged {
       event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
-      public ICommand CycleEventCommand { get; }
       public ModelArrayElement Element { get; }
       string EventType { get; }
       string EventIndex { get; }
@@ -31,15 +29,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int X { get; set; }
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
-      void Render(IDataModel model, LayoutModel layout);
       bool Delete();
    }
 
    public enum EventCycleDirection { PreviousCategory, PreviousEvent, NextEvent, NextCategory, None }
 
    public class FlyEventViewModel : ViewModelCore, IEventViewModel {
-      private readonly ModelArrayElement flySpot;
-      private readonly ModelArrayElement connectionEntry;
+      public readonly ModelArrayElement flySpot;
+      public readonly ModelArrayElement connectionEntry;
 
       public string EventType => "Fly";
 
@@ -76,8 +73,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private bool ignoreUpdateXY;
-      private string xy;
+      public bool ignoreUpdateXY;
+      public string xy;
       public string XY {
          get {
             if (!Valid) return "(-1, -1)";
@@ -99,14 +96,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public IPixelViewModel EventRender { get; private set; }
+      public IPixelViewModel EventRender { get; set; }
 
       public bool Valid { get; }
-
-      private StubCommand cycleEventCommand;
-      public ICommand CycleEventCommand => StubCommand<EventCycleDirection>(ref cycleEventCommand, direction => {
-         CycleEvent.Raise(this, direction);
-      });
 
       public event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
@@ -175,13 +167,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler EventVisualUpdated;
       public event EventHandler<EventCycleDirection> CycleEvent;
 
-      private StubCommand cycleEventCommand;
-      public ICommand CycleEventCommand => StubCommand<EventCycleDirection>(ref cycleEventCommand, direction => {
-         CycleEvent?.Invoke(this, direction);
-      });
-
       protected readonly ModelArrayElement element;
-      private readonly string parentLengthField;
+      public readonly string parentLengthField;
 
       public ModelArrayElement Element => element;
       public ModelDelta Token => element.Token;
@@ -215,8 +202,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private bool ignoreUpdateXY;
-      private string xy;
+      public bool ignoreUpdateXY;
+      public string xy;
       public string XY {
          get {
             if (xy == null) xy = $"({X}, {Y})";
@@ -246,15 +233,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public IPixelViewModel EventRender { get; protected set; }
 
-      public BaseEventViewModel(ModelArrayElement element, string parentLengthField) => (this.element, this.parentLengthField) = (element, parentLengthField);
-
       #region Script Error
 
-      private bool hasScriptAddressError;
-      public bool HasScriptAddressError { get => hasScriptAddressError; private set => Set(ref hasScriptAddressError, value); }
+      public bool hasScriptAddressError;
+      public bool HasScriptAddressError { get => hasScriptAddressError; set => Set(ref hasScriptAddressError, value); }
 
-      private string scriptAddressError;
-      public string ScriptAddressError { get => scriptAddressError; private set => Set(ref scriptAddressError, value); }
+      public string scriptAddressError;
+      public string ScriptAddressError { get => scriptAddressError; set => Set(ref scriptAddressError, value); }
 
       protected void UpdateScriptError(int address) {
          if (address == Pointer.NULL) {
@@ -301,8 +286,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (other is not BaseEventViewModel bem) return false;
          return bem.element.Start == element.Start;
       }
-
-      public abstract void Render(IDataModel model, LayoutModel layout);
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
@@ -390,7 +373,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          element.SetAddress(fieldName, value.TryParseHex(out int result) ? result : Pointer.NULL, writeFormat);
       }
 
-      private static readonly Point[] focalPoints = new[] { new Point(0, 7), new Point(7, 0), new Point(15, 8), new Point(8, 15) };
+      public static readonly Point[] focalPoints = new[] { new Point(0, 7), new Point(7, 0), new Point(15, 8), new Point(8, 15) };
       public static IPixelViewModel BuildEventRender(short color, bool indentSides = false) {
          var pixels = new short[256];
          
@@ -404,24 +387,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          return new ReadonlyPixelViewModel(new SpriteFormat(4, 2, 2, default), pixels, transparent: 0);
       }
-
-      public static IPixelViewModel BuildInvisibleEventRender(IPixelViewModel colors) {
-         var pixels = new short[colors.PixelData.Length];
-         for (int x = 0; x < colors.PixelWidth; x++) {
-            for (int y = 0; y < colors.PixelHeight; y++) {
-               if (((x + y) & 1) != 0) pixels[y * colors.PixelWidth + x] = colors.Transparent;
-               else pixels[y * colors.PixelWidth + x] = colors.PixelData[y * colors.PixelWidth + x];
-            }
-         }
-         return new ReadonlyPixelViewModel(new SpriteFormat(4, colors.PixelWidth / 8, colors.PixelHeight / 8, default), pixels, colors.Transparent);
-      }
    }
 
    public class ObjectEventViewModel : BaseEventViewModel {
-      private readonly ScriptParser parser;
-      private readonly EventTemplate eventTemplate;
-      private readonly BerryInfo berries;
-      private readonly Action<int> gotoAddress;
+      public readonly ScriptParser parser;
+      public readonly EventTemplate eventTemplate;
+      public readonly BerryInfo berries;
+      public readonly Action<int> gotoAddress;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
@@ -444,7 +416,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private string graphicsText;
+      public string graphicsText;
       public string GraphicsText {
          get {
             if (graphicsText != null) return graphicsText;
@@ -458,7 +430,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private bool showGraphicsAsText;
+      public bool showGraphicsAsText;
       public bool ShowGraphicsAsText {
          get => showGraphicsAsText;
          set {
@@ -515,7 +487,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private string rangeXY;
+      public string rangeXY;
       public string RangeXY {
          get {
             if (rangeXY == null) rangeXY = $"({RangeX}, {RangeY})";
@@ -535,108 +507,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #endregion
 
-      public int TrainerType {
-         get => element.GetValue("trainerType");
-         set {
-            element.SetValue("trainerType", value);
-            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(ShowTrainerContent), nameof(ShowRematchTrainerContent), nameof(ShowNoContent));
-            NotifyPropertyChanged();
-         }
-      }
-
-      public int TrainerRangeOrBerryID {
-         get => element.GetValue("trainerRangeOrBerryID");
-         set {
-            element.SetValue("trainerRangeOrBerryID", value);
-            RaiseEventVisualUpdated();
-            NotifyPropertiesChanged(nameof(ShowBerryContent), nameof(BerryText));
-            NotifyPropertyChanged();
-         }
-      }
-
-      public int ScriptAddress {
-         get => element.GetAddress("script");
-         set {
-            element.SetAddress("script", value, false);
-            UpdateScriptError(element.GetAddress("script"));
-            NotifyPropertyChanged();
-            trainerSprite = null;
-            npcTextEditor =
-               trainerAfterText = trainerBeforeText = trainerWinText =
-               martHelloEditor = martGoodbyeEditor =
-               tutorFailedEditor = tutorInfoEditor = tutorSuccessEditor = tutorWhichPokemonEditor =
-               tradeFailedText = tradeInitialText = tradeSuccessText = tradeThanksText =
-               cryText = sampleLegendClearScript =
-               null;
-            scriptAddressText =
-               martContentText =
-               null;
-            NotifyPropertiesChanged(
-               nameof(ScriptAddressText),
-               nameof(ShowItemContents), nameof(ItemContents),
-               nameof(ShowNpcText), nameof(NpcTextEditor),
-               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
-               nameof(ShowRematchTrainerContent),
-               nameof(ShowMartContents), nameof(MartHelloEditor), nameof(MartContent), nameof(MartGoodbyeEditor),
-               nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
-               nameof(ShowTradeContent), nameof(TradeFailedEditor), nameof(TradeIndex), nameof(TradeInitialEditor), nameof(TradeSuccessEditor), nameof(TradeThanksEditor), nameof(TradeWrongSpeciesEditor),
-               nameof(ShowLegendaryContent), nameof(Level), nameof(LegendaryFlagText), nameof(HasCryText), nameof(CryEditor), nameof(SampleLegendClearScript),
-               nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
-         }
-      }
-
-      public void GotoScript() {
-         SetDestinationFormat();
-         gotoAddress(ScriptAddress);
-      }
-      public bool CanGotoScript => 0 <= ScriptAddress && ScriptAddress < element.Model.Count;
-
-      public bool CanCreateScript => IsValidScriptFreespace(ScriptAddress) || ScriptAddress == Pointer.NULL;
-      public void CreateScript() {
-         int start;
-         if (ScriptAddress != Pointer.NULL && IsValidScriptFreespace(ScriptAddress)) start = ScriptAddress;
-         else start = element.Model.FindFreeSpace(element.Model.FreeSpaceStart, 0x10);
-         Token.ChangeData(element.Model, start, new byte[] { 0x6A, 0x5A, 0x6C, 0x02 }); // lock, faceplayer, release, end
-         ScriptAddress = start;
-         SetDestinationFormat();
-         gotoAddress(start);
-      }
-
-      private string scriptAddressText;
-      public string ScriptAddressText {
-         get {
-            if (scriptAddressText != null) return scriptAddressText;
-            var value = element.GetAddress("script");
-            return GetAddressText(value, ref scriptAddressText);
-         }
-         set {
-            SetAddressText(value, ref scriptAddressText, "script", false);
-            NotifyPropertyChanged();
-            trainerSprite = null;
-            npcTextEditor =
-               trainerAfterText = trainerBeforeText = trainerWinText =
-               martHelloEditor = martGoodbyeEditor =
-               tutorFailedEditor = tutorInfoEditor = tutorSuccessEditor = tutorWhichPokemonEditor =
-               tradeFailedText = tradeInitialText = tradeSuccessText = tradeThanksText =
-               cryText = sampleLegendClearScript =
-               null;
-            martContentText =
-               null;
-
-            NotifyPropertiesChanged(
-               nameof(ScriptAddress),
-               nameof(ShowItemContents), nameof(ItemContents),
-               nameof(ShowNpcText), nameof(NpcTextEditor),
-               nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam),
-               nameof(ShowRematchTrainerContent),
-               nameof(ShowMartContents), nameof(MartHelloEditor), nameof(MartContent), nameof(MartGoodbyeEditor),
-               nameof(ShowTutorContent), nameof(TutorInfoText), nameof(TutorWhichPokemonText), nameof(TutorFailedText), nameof(TutorSucessText), nameof(TutorNumber),
-               nameof(ShowTradeContent), nameof(TradeFailedEditor), nameof(TradeIndex), nameof(TradeInitialEditor), nameof(TradeSuccessEditor), nameof(TradeThanksEditor), nameof(TradeWrongSpeciesEditor),
-               nameof(ShowLegendaryContent), nameof(Level), nameof(LegendaryFlagText), nameof(HasCryText), nameof(CryEditor), nameof(SampleLegendClearScript),
-               nameof(ShowBerryContent), nameof(BerryText), nameof(CanCreateScript));
-            UpdateScriptError(ScriptAddress);
-         }
-      }
+      public string scriptAddressText;
 
       #region Flag
 
@@ -693,29 +564,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // We can provide an enriched editing experience in the event panel.
       // These are the 'show' properties for those controls.
 
-      public bool ShowItemContents => EventTemplate.GetItemAddress(element.Model, this) != Pointer.NULL;
-
-      public int ItemContents {
-         get {
-            var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
-            if (itemAddress == Pointer.NULL) return -1;
-            return element.Model.ReadMultiByteValue(itemAddress, 2);
-         }
-         set {
-            var itemAddress = EventTemplate.GetItemAddress(element.Model, this);
-            if (itemAddress == Pointer.NULL) return;
-            element.Model.WriteMultiByteValue(itemAddress, 2, element.Token, value);
-            ItemOptions.Update(ItemOptions.AllOptions, value);
-            NotifyPropertyChanged();
-         }
-      }
-
       #region Npc Content
 
-      public bool ShowNpcText => EventTemplate.GetNPCTextPointer(element.Model, this) != Pointer.NULL;
 
-      private TextEditorViewModel npcTextEditor;
-      public TextEditorViewModel NpcTextEditor => CreateTextEditor(ref npcTextEditor, () => EventTemplate.GetNPCTextPointer(element.Model, this));
+      public TextEditorViewModel npcTextEditor;
 
       #endregion
 
@@ -723,244 +575,42 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public FilteringComboOptions TrainerOptions { get; } = new();
 
-      public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null && TrainerType != 0;
+      public IPixelViewModel trainerSprite;
 
-      public int TrainerClass {
-         get {
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return -1;
-            return element.Model[trainerContent.TrainerClassAddress];
-         }
-         set {
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return;
-            element.Token.ChangeData(element.Model, trainerContent.TrainerClassAddress, (byte)value);
+      public string trainerName;
 
-            var options = TrainerOptions.AllOptions.ToList();
-            options[trainerContent.TrainerIndex] = CreateOption(trainerContent.TrainerIndex, value, TrainerName);
-            TrainerOptions.Update(options, trainerContent.TrainerIndex);
-         }
-      }
-
-      private IPixelViewModel trainerSprite;
-      public IPixelViewModel TrainerSprite {
-         get {
-            if (trainerSprite != null) return trainerSprite;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return null;
-            var spriteIndex = element.Model[trainerContent.TrainerClassAddress + 2];
-            var spriteAddress = element.Model.GetTableModel(HardcodeTablesModel.TrainerSpritesName)[spriteIndex].GetAddress("sprite");
-            var spriteRun = element.Model.GetNextRun(spriteAddress) as ISpriteRun;
-            return trainerSprite = ReadonlyPixelViewModel.Create(element.Model, spriteRun, true, .5);
-         }
-      }
-
-      private string trainerName;
-      public string TrainerName {
-         get {
-            if (trainerName != null) return trainerName;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return null;
-            var text = element.Model.TextConverter.Convert(element.Model, trainerContent.TrainerNameAddress, 12);
-            return trainerName = text.Trim('"');
-         }
-         set {
-            trainerName = value;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return;
-            var bytes = element.Model.TextConverter.Convert(value, out _);
-            while (bytes.Count > 12) {
-               bytes.RemoveAt(bytes.Count - 1);
-               bytes[bytes.Count - 1] = 0xFF;
-            }
-            while (bytes.Count < 12) bytes.Add(0);
-            element.Token.ChangeData(element.Model, trainerContent.TrainerNameAddress, bytes);
-            NotifyPropertyChanged();
-            var options = TrainerOptions.AllOptions.ToList();
-            options[trainerContent.TrainerIndex] = CreateOption(trainerContent.TrainerIndex, element.Model[trainerContent.TrainerClassAddress], value);
-            TrainerOptions.Update(options, trainerContent.TrainerIndex);
-         }
-      }
-
-      public void RefreshTrainerOptions() {
-         var trainerTable = element.Model.GetTableModel(HardcodeTablesModel.TrainerTableName);
-         var trainers = element.Model.GetOptions(HardcodeTablesModel.TrainerTableName);
-         if (trainerTable == null) return;
-
-         var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-         var options = new List<ComboOption>();
-         for (int i = 0; i < trainers.Count; i++) {
-            options.Add(CreateOption(i, trainerTable[i].GetValue(1), trainers[i]));
-         }
-         TrainerOptions.Update(options, trainerContent?.TrainerIndex ?? 0);
-      }
-
-      private TextEditorViewModel trainerBeforeText, trainerWinText, trainerAfterText;
-      public TextEditorViewModel TrainerBeforeTextEditor => CreateTextEditor(ref trainerBeforeText, () => EventTemplate.GetTrainerContent(element.Model, this)?.BeforeTextPointer);
-      public TextEditorViewModel TrainerWinTextEditor => CreateTextEditor(ref trainerWinText, () => EventTemplate.GetTrainerContent(element.Model, this)?.WinTextPointer);
-      public TextEditorViewModel TrainerAfterTextEditor => CreateTextEditor(ref trainerAfterText, () => EventTemplate.GetTrainerContent(element.Model, this)?.AfterTextPointer);
-
-      private string teamText;
-      public string TrainerTeam {
-         get {
-            if (teamText != null) return teamText;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return null;
-            var address = element.Model.ReadPointer(trainerContent.TeamPointer);
-            if (address < 0 || address >= element.Model.Count) return null;
-            if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return null;
-            if (run.Start != address) return null;
-            if (TeamVisualizations.Count == 0) UpdateTeamVisualizations(run);
-            return teamText = run.SerializeRun();
-         }
-         set {
-            teamText = value;
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            if (trainerContent == null) return;
-            var address = element.Model.ReadPointer(trainerContent.TeamPointer);
-            if (address < 0 || address >= element.Model.Count) return;
-            if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return;
-            if (run.Start != address) return;
-            var newRun = run.DeserializeRun(value, element.Token, false, false, out _);
-            element.Model.ObserveRunWritten(element.Token, newRun);
-            if (newRun.Start != run.Start) DataMoved.Raise(this, new("Trainer Team", newRun.Start));
-            UpdateTeamVisualizations(newRun);
-            NotifyPropertyChanged();
-         }
-      }
+      public string teamText;
 
       public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
 
-      private void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
+      public void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
          TeamVisualizations.Clear();
          foreach (var vis in team.Visualizations) {
             TeamVisualizations.Add(vis);
          }
       }
 
-      private StubCommand openTrainerData;
-      public ICommand OpenTrainerData => StubCommand(ref openTrainerData, () => {
-         var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-         if (trainerContent == null) return;
-         gotoAddress(trainerContent.TrainerClassAddress - 1);
-      });
-
       public static ComboOption CreateOption(IReadOnlyList<string> classOptions, int index, int trainerClass, string name) => new($"{index} - {classOptions[trainerClass.LimitToRange(0, classOptions.Count - 1)]} {name}", index);
 
-      private ComboOption CreateOption(int index, int trainerClass, string name) => CreateOption(ClassOptions, index, trainerClass, name);
-
-      public IReadOnlyList<AutocompleteItem> GetTrainerAutocomplete(string line, int lineIndex, int characterIndex) {
-         var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-         if (trainerContent == null) return null;
-         var address = element.Model.ReadPointer(trainerContent.TeamPointer);
-         if (address < 0 || address >= element.Model.Count) return null;
-         if (element.Model.GetNextRun(address) is not TrainerPokemonTeamRun run) return null;
-         if (run.Start != address) return null;
-         return run.GetAutoCompleteOptions(line, lineIndex, characterIndex);
-      }
+      public ComboOption CreateOption(int index, int trainerClass, string name) => CreateOption(ClassOptions, index, trainerClass, name);
 
       #endregion
 
       #region Rematch Trainer Content
 
-      public bool ShowRematchTrainerContent {
-         get {
-            if (TrainerType == 0) return false;
-            if (element.Model.GetTableModel(HardcodeTablesModel.TrainerTableName) is not ModelTable trainers) return false;
-            var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
-            if (content == null) return false;
-            var table = element.Model.GetTableModel(HardcodeTablesModel.RematchTable) ?? element.Model.GetTableModel(HardcodeTablesModel.RematchTableRSE);
-            if (table == null) return false;
-            var rematchIndex = table.Count.Range().FirstOrDefault(i => table[i].GetValue(0) == content.TrainerID, -1);
-            if (rematchIndex == -1) return false;
-            TrainerTeams.Clear();
-            for (int i = 0; i < table[rematchIndex].Table.ElementContent.Count; i++) {
-               if (table[rematchIndex].Table.ElementContent[i] is not ArrayRunEnumSegment seg) continue;
-               if (seg.EnumName != HardcodeTablesModel.TrainerTableName) continue;
-               var trainerID = table[rematchIndex].GetValue(i);
-               if (!trainerID.InRange(1, trainers.Count)) continue;
-               TrainerTeams.Add(new(element.Model, trainerID, () => element.Token));
-            }
-            return true;
-         }
-      }
-
       public ObservableCollection<TrainerTeamViewModel> TrainerTeams { get; } = new();
-
-      public void GotoRematches() {
-         if (element.Model.GetTableModel(HardcodeTablesModel.TrainerTableName) is not ModelTable trainers) return;
-         var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
-         if (content == null) return;
-         var table = element.Model.GetTableModel(HardcodeTablesModel.RematchTable) ?? element.Model.GetTableModel(HardcodeTablesModel.RematchTableRSE);
-         if (table == null) return;
-         var rematchIndex = table.Count.Range().FirstOrDefault(i => table[i].GetValue(0) == content.TrainerID, -1);
-         if (rematchIndex == -1) return;
-         gotoAddress(table[rematchIndex].Start);
-      }
-
-      public void ReplaceRematchScript() {
-         // TODO replace script with simple trainer script (keep before/during/after battle text if we can)
-         var content = EventTemplate.GetRematchTrainerContent(element.Model, parser, this);
-         string before = "<auto>", win = "<auto", after = "<auto>";
-         if (content.BeforeTextPointer != Pointer.NULL) before = $"<{content.BeforeTextPointer:X6}>";
-         if (content.WinTextPointer != Pointer.NULL) win = $"<{content.WinTextPointer:X6}>";
-         if (content.AfterTextPointer != Pointer.NULL) after = $"<{content.AfterTextPointer:X6}>";
-
-         /*
-            trainerbattle 00 [trainerID] 0 <before> <during>
-            loadpointer 0 <after>
-            callstd 6
-            end
-         */
-         var nl = Environment.NewLine;
-         var script = new StringBuilder();
-         script.AppendLine($"trainerbattle 0 {content.TrainerID} 0 {before} {win}");
-         if (before == "<auto>") script.AppendLine($"{{{nl}Let's fight!{nl}}}");
-         if (win == "<auto>") script.AppendLine($"{{{nl}You win!{nl}}}");
-         script.AppendLine($"loadpointer 0 {after}");
-         if (after == "<auto>") script.AppendLine($"{{{nl}Later!{nl}}}");
-         script.AppendLine("callstd 6");
-         script.AppendLine("end");
-         var scriptText = script.ToString();
-         var compiled = parser.CompileWithoutErrors(Token, element.Model, ScriptAddress, ref scriptText);
-         Token.ChangeData(element.Model, ScriptAddress, compiled);
-         parser.FormatScript<XSERun>(Token, element.Model, ScriptAddress);
-
-         NotifyPropertiesChanged(nameof(ShowRematchTrainerContent),
-            nameof(ShowTrainerContent), nameof(TrainerClass), nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerTeam));
-      }
 
       #endregion
 
       #region Mart Content
 
-      private Lazy<MartEventContent> martContent;
+      public Lazy<MartEventContent> martContent;
 
       public bool ShowMartContents => martContent.Value != null;
 
-      private string martContentText;
+      public string martContentText;
 
-      public string MartContent {
-         get {
-            if (martContentText != null) return martContentText;
-            if (martContent.Value == null) return null;
-            var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
-            if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return null;
-            var lines = stream.SerializeRun().SplitLines().Select(line => line.Trim('"'));
-            return martContentText = Environment.NewLine.Join(lines);
-         }
-         set {
-            martContentText = value;
-            if (martContent.Value == null) return;
-            var martStart = element.Model.ReadPointer(martContent.Value.MartPointer);
-            if (element.Model.GetNextRun(martStart) is not IStreamRun stream) return;
-            var newStream = stream.DeserializeRun(value, Token, out var _, out var _);
-            element.Model.ObserveRunWritten(Token, newStream);
-            if (newStream.Start != stream.Start) DataMoved.Raise(this, new("Mart", newStream.Start));
-         }
-      }
-
-      private TextEditorViewModel martHelloEditor, martGoodbyeEditor;
+      public TextEditorViewModel martHelloEditor, martGoodbyeEditor;
       public TextEditorViewModel MartHelloEditor => CreateTextEditor(ref martHelloEditor, () => martContent.Value?.HelloPointer);
       public TextEditorViewModel MartGoodbyeEditor => CreateTextEditor(ref martGoodbyeEditor, () => martContent.Value?.GoodbyePointer);
 
@@ -975,7 +625,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Tutor Content
 
-      private Lazy<TutorEventContent> tutorContent;
+      public Lazy<TutorEventContent> tutorContent;
 
       public bool ShowTutorContent {
          get {
@@ -988,7 +638,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private TextEditorViewModel tutorInfoEditor, tutorWhichPokemonEditor, tutorFailedEditor, tutorSuccessEditor;
+      public TextEditorViewModel tutorInfoEditor, tutorWhichPokemonEditor, tutorFailedEditor, tutorSuccessEditor;
       public TextEditorViewModel TutorInfoText => CreateTextEditor(ref tutorInfoEditor, () => tutorContent.Value?.InfoPointer);
       public TextEditorViewModel TutorWhichPokemonText => CreateTextEditor(ref tutorWhichPokemonEditor , () => tutorContent.Value?.WhichPokemonPointer);
       public TextEditorViewModel TutorFailedText => CreateTextEditor(ref tutorFailedEditor, () => tutorContent.Value?.FailedPointer);
@@ -1013,7 +663,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Trade Content
 
-      private Lazy<TradeEventContent> tradeContent;
+      public Lazy<TradeEventContent> tradeContent;
 
       public FilteringComboOptions TradeOptions { get; } = new();
 
@@ -1037,7 +687,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
-      private TextEditorViewModel tradeInitialText, tradeThanksText, tradeSuccessText, tradeFailedText, tradeWrongSpeciesText;
+      public TextEditorViewModel tradeInitialText, tradeThanksText, tradeSuccessText, tradeFailedText, tradeWrongSpeciesText;
       public TextEditorViewModel TradeInitialEditor => CreateTextEditor(ref tradeInitialText, () => tradeContent.Value?.InfoPointer);
       public TextEditorViewModel TradeThanksEditor => CreateTextEditor(ref tradeThanksText, () => tradeContent.Value?.ThanksPointer);
       public TextEditorViewModel TradeSuccessEditor => CreateTextEditor(ref tradeSuccessText, () => tradeContent.Value?.SuccessPointer);
@@ -1061,7 +711,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       #region Legendary Content
 
-      private Lazy<LegendaryEventContent> legendaryContent;
+      public Lazy<LegendaryEventContent> legendaryContent;
 
       public bool ShowLegendaryContent {
          get {
@@ -1095,7 +745,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       public FilteringComboOptions HoldItemOptions { get; } = new();
       public void GotoHoldItem() => gotoAddress(element.Model.GetTableModel(HardcodeTablesModel.ItemsTableName)[HoldItemOptions.SelectedIndex].Start);
-      private string legendaryFlagText;
+      public string legendaryFlagText;
       public string LegendaryFlagText {
          get {
             if (legendaryContent.Value == null) return null;
@@ -1114,10 +764,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
       public bool HasCryText => (legendaryContent.Value?.CryTextPointer ?? Pointer.NULL) != Pointer.NULL;
 
-      private TextEditorViewModel cryText;
+      public TextEditorViewModel cryText;
       public TextEditorViewModel CryEditor => CreateTextEditor(ref cryText, () => legendaryContent.Value?.CryTextPointer);
 
-      private TextEditorViewModel sampleLegendClearScript;
+      public TextEditorViewModel sampleLegendClearScript;
       public TextEditorViewModel SampleLegendClearScript {
          get {
             var script = @$"  # somewhere in your script
@@ -1141,64 +791,25 @@ show:
 
       #endregion
 
-      #region Berry Content
-
-      public bool ShowBerryContent => TrainerType == 0 && TrainerRangeOrBerryID != 0;
-
-      public string BerryText {
-         get {
-            if (berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out BerrySpot spot)) {
-               if (spot.BerryID >= 0 && spot.BerryID < berries.BerryOptions.Count) {
-                  return berries.BerryOptions[spot.BerryID];
-               }
-            }
-            return "Unknown";
-         }
-      }
-
-      public void GotoBerryCode() {
-         if (berries.BerryMap.TryGetValue(TrainerRangeOrBerryID, out BerrySpot spot)) {
-            gotoAddress(spot.Address);
-         }
-      }
-
-      #endregion
-
-      #region NoContent
-
-      public bool ShowNoContent => ScriptAddress > 0 && !(
-         ShowItemContents ||
-         ShowNpcText ||
-         ShowTrainerContent ||
-         ShowRematchTrainerContent ||
-         ShowMartContents ||
-         ShowTutorContent ||
-         ShowTradeContent ||
-         ShowLegendaryContent ||
-         ShowBerryContent
-      );
-
-      #endregion
-
-      private string GetText(ref string cache, int? pointer) {
+      public string GetText(ref string cache, int? pointer) {
          if (cache != null) return cache;
          if (pointer == null) return null;
          return cache = GetText((int)pointer);
       }
 
-      private void SetText(ref string cache, int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
+      public void SetText(ref string cache, int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
          cache = value;
          if (pointer == null) return;
          var newStart = base.SetText((int)pointer, value, propertyName);
          if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
       }
 
-      private string GetText(int? pointer) {
+      public string GetText(int? pointer) {
          if (pointer == null) return null;
          return base.GetText((int)pointer);
       }
 
-      private void SetText(int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
+      public void SetText(int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
          if (pointer == null) return;
          var newStart = base.SetText((int)pointer, value, propertyName);
          if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
@@ -1206,121 +817,22 @@ show:
 
       #endregion
 
-      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
-         this.parser = parser;
-         this.gotoAddress = gotoAddress;
-         this.eventTemplate = eventTemplate;
-         this.berries = berries;
-         for (int i = 0; i < sprites.Count; i++) Options.Add(VisualComboOption.CreateFromSprite(i.ToString(), sprites[i].PixelData, sprites[i].PixelWidth, i, 2, true));
-         DefaultOW = defaultSprite;
-         ShowGraphicsAsText = Graphics >= Options.Count;
-         objectEvent.Model.TryGetList("FacingOptions", out var list);
-         FacingOptions.Update(ComboOption.Convert(list), MoveType);
-         FacingOptions.Bind(nameof(FacingOptions.SelectedIndex), (sender, e) => MoveType = FacingOptions.ModelValue);
-         foreach (var item in objectEvent.Model.GetOptions(HardcodeTablesModel.TrainerClassNamesTable)) ClassOptions.Add(item);
-         ItemOptions.Update(ComboOption.Convert(objectEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)), ItemContents);
-         ItemOptions.Bind(nameof(ItemOptions.SelectedIndex), (sender, e) => ItemContents = ItemOptions.ModelValue);
-
-         RefreshTrainerOptions();
-         TrainerOptions.Bind(nameof(TrainerOptions.SelectedIndex), (options, args) => {
-            this.eventTemplate.UseTrainerFlag(TrainerOptions.SelectedIndex);
-            var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
-            element.Model.WriteMultiByteValue(trainerContent.TrainerIndexAddress, 2, () => element.Token, TrainerOptions.SelectedIndex);
-            TeamVisualizations.Clear();
-            trainerSprite = null;
-            trainerName = teamText = null;
-            trainerBeforeText = trainerWinText = trainerAfterText = null;
-            NotifyPropertiesChanged(nameof(TrainerSprite), nameof(TrainerName), nameof(TrainerBeforeTextEditor), nameof(TrainerWinTextEditor), nameof(TrainerAfterTextEditor), nameof(TrainerTeam), nameof(TrainerClass));
-         });
-
-         tutorContent = new Lazy<TutorEventContent>(() => EventTemplate.GetTutorContent(element.Model, parser, this));
-         martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
-         tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this.ScriptAddress));
-         legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
-
-         UpdateScriptError(ScriptAddress);
-      }
-
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
       public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
-
-      public override void Render(IDataModel model, LayoutModel layout) {
-         var ows = model.GetTable(HardcodeTablesModel.OverworldSprites);
-         var owTable = ows == null ? null : new ModelTable(model, ows.Start);
-         var facing = MoveType switch {
-            7 => 1,
-            9 => 2,
-            10 => 3,
-            76 => 76, // invisible
-            _ => 0,
-         };
-         EventRender = Render(model, owTable, DefaultOW, Graphics, facing);
-         NotifyPropertyChanged(nameof(EventRender));
-      }
-
-      /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
-      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing) {
-         if (owTable == null || index >= owTable.Count) return defaultOW;
-         var element = owTable[index];
-         var dataTable = element.GetSubTable("data");
-         if (dataTable == null) return defaultOW;
-         var data = dataTable[0];
-         var sprites = data.GetSubTable("sprites");
-         if (sprites == null) return defaultOW;
-         bool invisible = facing == 76;
-         bool flip = facing == 3;
-         if (facing == 3) facing = 2;
-         if (facing >= sprites.Count) facing = 0;
-         var graphicsAddress = sprites.Run.Start;
-         var pointerAddress = data.Start;
-         var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
-         var paletteRun = graphicsRun.FindRelatedPalettes(model, pointerAddress).FirstOrDefault();
-         if (facing != -1) {
-            var sprite = sprites[facing];
-            graphicsAddress = sprite.GetAddress("sprite");
-            graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
-         }
-         if (graphicsRun == null) return defaultOW;
-         if (paletteRun == null) return defaultOW;
-         var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
-         if (invisible) ow = BuildInvisibleEventRender(ow);
-         if (flip) ow = ow.ReflectX();
-         return ow;
-      }
 
       public void ClearUnused() {
          element.SetValue(2, 0);
          element.SetValue(12, 0);
       }
 
-      private static readonly Dictionary<int, Point> facingVectors = new() {
+      public static readonly Dictionary<int, Point> facingVectors = new() {
          [7] = new(0, -1),
          [8] = new(0, 1),
          [9] = new(-1, 0),
          [10] = new(1, 0),
       };
-      public bool ShouldHighlight(int x, int y) {
-         if (TrainerType != 0 && facingVectors.TryGetValue(MoveType, out var vector)) {
-            var (xx, yy) = (X, Y);
-            var range = TrainerRangeOrBerryID;
-            if (Math.Sign(y - yy) == vector.Y && Math.Sign(x - xx) == vector.X && Math.Abs(y - yy) <= range && Math.Abs(x - xx) <= range) {
-               return true;
-            }
-         } else {
-            if (!MoveType.IsAny(2, 3, 4, 5, 6)) return false;
-            if (Math.Abs(x - X) <= RangeX && Math.Abs(y - Y) <= RangeY) return true;
-         }
-         return false;
-      }
 
-      private void SetDestinationFormat() {
-         var existingRun = element.Model.GetNextRun(ScriptAddress);
-         if (existingRun.Start == ScriptAddress && existingRun is NoInfoRun) {
-            element.Model.ObserveRunWritten(Token, new XSERun(ScriptAddress));
-         }
-      }
-
-      private TextEditorViewModel CreateTextEditor(ref TextEditorViewModel field, Func<int?> source, [CallerMemberName] string propertyName = null) {
+      public TextEditorViewModel CreateTextEditor(ref TextEditorViewModel field, Func<int?> source, [CallerMemberName] string propertyName = null) {
          if (field != null) return field;
          var text = GetText(source());
          if (text == null) return null;
@@ -1332,7 +844,7 @@ show:
          return field = UpdateTextErrorContent(newEditor);
       }
 
-      private TextEditorViewModel UpdateTextErrorContent(TextEditorViewModel editor) {
+      public TextEditorViewModel UpdateTextErrorContent(TextEditorViewModel editor) {
          editor.ErrorLocations.Clear();
          editor.ErrorLocations.AddRange(Element.Model.TextConverter.GetOverflow(editor.Content, CodeBody.MaxEventTextWidth));
          return editor;
@@ -1340,9 +852,7 @@ show:
    }
 
    public class WarpEventViewModel : BaseEventViewModel {
-      private readonly Action<int, int> gotoMap;
-
-      public WarpEventViewModel(ModelArrayElement warpEvent, Action<int, int> gotoMap) : base(warpEvent, "warpCount") => this.gotoMap = gotoMap;
+      public readonly Action<int, int> gotoMap;
 
       public int WarpID {
          get => element.GetValue("warpID") + 1;
@@ -1371,8 +881,8 @@ show:
          }
       }
 
-      private bool ignoreUpdateBankMap;
-      private string bankMap;
+      public bool ignoreUpdateBankMap;
+      public string bankMap;
       public string BankMap {
          get {
             if (bankMap == null) bankMap = $"({Bank}, {Map})";
@@ -1399,14 +909,6 @@ show:
 
       #endregion
 
-      public override void Render(IDataModel model, LayoutModel layout) {
-         if (WarpIsOnWarpableBlock(model, layout)) {
-            EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
-         } else {
-            EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31), true);
-         }
-      }
-
       public bool WarpIsOnWarpableBlock(IDataModel model, LayoutModel layout) {
          if (!model.TryGetList("MapAttributeBehaviors", out var list)) return false;
 
@@ -1427,21 +929,15 @@ show:
    }
 
    public class ScriptEventViewModel : BaseEventViewModel {
-      private readonly Action<int> gotoAddress;
-      private readonly EventTemplate eventTemplate;
-
-      public ScriptEventViewModel(Action<int> gotoAddress, ModelArrayElement scriptEvent, EventTemplate eventTemplate) : base(scriptEvent, "scriptCount") {
-         this.gotoAddress = gotoAddress;
-         this.eventTemplate = eventTemplate;
-         UpdateScriptError(ScriptAddress);
-      }
+      public readonly Action<int> gotoAddress;
+      public readonly EventTemplate eventTemplate;
 
       public int Trigger {
          get => element.GetValue("trigger");
          set => element.SetValue("trigger", value);
       }
 
-      private string triggerHex;
+      public string triggerHex;
       public string TriggerHex {
          get {
             if (triggerHex != null) return triggerHex;
@@ -1492,7 +988,7 @@ show:
          gotoAddress(start);
       }
 
-      private string scriptAddressText;
+      public string scriptAddressText;
       public string ScriptAddressText {
          get {
             if (scriptAddressText != null) return scriptAddressText;
@@ -1507,11 +1003,7 @@ show:
          }
       }
 
-      public override void Render(IDataModel model, LayoutModel layout) {
-         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
-      }
-
-      private void SetDestinationFormat() {
+      public void SetDestinationFormat() {
          var existingRun = element.Model.GetNextRun(ScriptAddress);
          if (existingRun.Start == ScriptAddress && existingRun is NoInfoRun) {
             element.Model.ObserveRunWritten(Token, new XSERun(ScriptAddress));
@@ -1526,22 +1018,9 @@ show:
       // kind = 8 => arg is secret base ID, just a 4-byte hex number
       // hidden item IDs are just flags starting at 0x3E8 (1000).
 
-      private readonly Action<int> gotoAddress;
+      public readonly Action<int> gotoAddress;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
-
-      public SignpostEventViewModel(ModelArrayElement signpostEvent, Action<int> gotoAddress) : base(signpostEvent, "signpostCount") {
-         if (signpostEvent.Model.TryGetList("MapSignpostKindOptions", out var names)) names.ForEach(KindOptions.Add);
-
-         foreach (var item in signpostEvent.Model.GetOptions(HardcodeTablesModel.ItemsTableName)) {
-            ItemOptions.Add(item);
-         }
-
-         SetDestinationFormat();
-
-         this.gotoAddress = gotoAddress;
-         if (ShowPointer) UpdateScriptError(Pointer);
-      }
 
       public void SetDestinationFormat() {
          if (!ShowPointer) return;
@@ -1627,7 +1106,7 @@ show:
          }
       }
 
-      private string pointerText;
+      public string pointerText;
       public string PointerText {
          get {
             if (pointerText != null) return pointerText;
@@ -1723,13 +1202,9 @@ show:
 
       #endregion
 
-      public override void Render(IDataModel model, LayoutModel layout) {
-         EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
-      }
-
       public bool ShowSignpostText => EventTemplate.GetSignpostTextPointer(element.Model, this) != DataFormats.Pointer.NULL;
 
-      private string signpostText;
+      public string signpostText;
       public string SignpostText {
          get {
             if (signpostText != null) return signpostText;
@@ -1745,9 +1220,9 @@ show:
    }
 
    public class TrainerTeamViewModel : ViewModelCore {
-      private readonly IDataModel model;
-      private readonly int trainerID;
-      private readonly Func<ModelDelta> tokenGenerator;
+      public readonly IDataModel model;
+      public readonly int trainerID;
+      public readonly Func<ModelDelta> tokenGenerator;
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
@@ -1765,7 +1240,7 @@ show:
          }
       }
 
-      private string teamText;
+      public string teamText;
       public string TrainerTeam {
          get {
             if (teamText != null) return teamText;
@@ -1795,7 +1270,7 @@ show:
 
       public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
 
-      private void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
+      public void UpdateTeamVisualizations(TrainerPokemonTeamRun team) {
          TeamVisualizations.Clear();
          foreach (var vis in team.Visualizations) {
             TeamVisualizations.Add(vis);

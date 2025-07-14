@@ -42,18 +42,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public static int CombineToken(int level, int move) => (level << 9) | move;
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         Debug.Assert(data == model);
-         var moveNames = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
-         var position = index - Start;
-         var groupStart = position % 2 == 1 ? position - 1 : position;
-         position -= groupStart;
-         var value = data.ReadMultiByteValue(Start + groupStart, 2);
-         var (level, move) = SplitToken(value);
-         var moveName = moveNames.Count > move ? moveNames[move] : move.ToString();
-         return new PlmItem(groupStart + Start, position, level, move, moveName);
-      }
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PLMRun(model, Start, newPointerSources);
 
       public bool TryGetMoveNumber(string moveName, out int move) {

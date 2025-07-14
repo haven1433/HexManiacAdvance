@@ -479,20 +479,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return hintRun.Start;
       }
 
-      int lastFormatRequested = int.MaxValue;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var basicFormat = base.CreateDataFormat(data, index);
-         if (!CreateForLeftEdge || data.SpartanMode) return basicFormat;
-         if (lastFormatRequested < index) {
-            lastFormatRequested = index;
-            return basicFormat;
-         }
-
-         var sprite = data.CurrentCacheScope.GetImage(this);
-         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
-         lastFormatRequested = index;
-         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
-      }
+      public int lastFormatRequested = int.MaxValue;
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new LzTilemapRun(Format, Model, Start, newPointerSources);
 

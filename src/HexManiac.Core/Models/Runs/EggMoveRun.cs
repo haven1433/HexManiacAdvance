@@ -82,30 +82,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int dataIndex) {
-         Debug.Assert(data == model);
-
-         var cache = ModelCacheScope.GetCache(data);
-         var cachedPokenames = cache.GetOptions(PokemonNameTable);
-         var cachedMovenames = cache.GetOptions(MoveNamesTable);
-
-         var position = dataIndex - Start;
-         var groupStart = position % 2 == 1 ? position - 1 : position;
-         position -= groupStart;
-         var value = data.ReadMultiByteValue(Start + groupStart, 2);
-         if (value >= MagicNumber) {
-            value -= MagicNumber;
-            string content = cachedPokenames.Count > value ? cachedPokenames[value] : value.ToString();
-            if (value == EndStream - MagicNumber) content = string.Empty;
-            if (content.StartsWith("\"")) content = content.Substring(1);
-            if (content.EndsWith("\"")) content = content.Substring(0, content.Length - 1);
-            return new EggSection(groupStart + Start, position, $"{GroupStart}{content}{GroupEnd}");
-         } else {
-            string content = cachedMovenames.Count > value ? cachedMovenames[value] : value.ToString();
-            return new EggItem(groupStart + Start, position, content);
-         }
-      }
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new EggMoveRun(model, Start, newPointerSources);
 
       public int GetPokemonNumber(string input) {

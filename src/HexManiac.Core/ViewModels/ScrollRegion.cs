@@ -4,7 +4,6 @@ using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public delegate bool TryGetUsefulHeader(int address, out string header);
@@ -17,24 +16,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          { Direction.Right, new Point( 1, 0) },
       };
 
-      private readonly StubCommand scroll;
+      public readonly TryGetUsefulHeader tryGetUsefulHeader;
+      public readonly IRaiseErrorTab raiseErrorTab;
 
-      private readonly TryGetUsefulHeader tryGetUsefulHeader;
-      private readonly IRaiseErrorTab raiseErrorTab;
+      public int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
 
-      private int dataIndex, width, height, scrollValue, maximumScroll, dataLength;
-
-      private int tableStart, tableLength;
-      private bool allowTableMode;
+      public int tableStart, tableLength;
+      public bool allowTableMode;
       public bool AllowSingleTableMode { get => allowTableMode; set => Set(ref allowTableMode, value, arg => ClearTableMode()); }
 
       public IToolTrayViewModel Scheduler { get; set; }
 
-      public ICommand Scroll => scroll;
-
       public int DataIndex {
          get => dataIndex;
-         private set {
+         set {
             var dif = value - dataIndex;
             if (TryUpdate(ref dataIndex, value)) {
                ScrollChanged?.Invoke(this, dif);
@@ -98,10 +93,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
             return Math.Max(lineCount - 1, 0);
          }
-         private set => TryUpdate(ref maximumScroll, value);
+         set => TryUpdate(ref maximumScroll, value);
       }
 
-      private bool useCustomHeaders;
+      public bool useCustomHeaders;
       public bool UseCustomHeaders {
          get => useCustomHeaders;
          set {
@@ -132,18 +127,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public event EventHandler HeadersChanged;
 
       public static bool DefaultHeaderStrategy(int address, out string header) { header = null; return false; }
-
-      public ScrollRegion(TryGetUsefulHeader headerStratey = null, IRaiseErrorTab raiseErrorTab = null) {
-         tryGetUsefulHeader = headerStratey ?? DefaultHeaderStrategy;
-         width = 4;
-         height = 4;
-         this.raiseErrorTab = raiseErrorTab;
-         scroll = new StubCommand {
-            CanExecute = args => dataLength > 0,
-            Execute = args => ScrollExecuted((Direction)args),
-         };
-         UpdateHeaders();
-      }
 
       public int ViewPointToDataIndex(Point p) => p.Y * width + p.X + dataIndex;
 
@@ -193,7 +176,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void ClearTableMode() => SetTableMode(0, 0);
 
-      private void ScrollExecuted(Direction direction) {
+      public void ScrollExecuted(Direction direction) {
          var dif = DirectionToDif[direction];
          if (dif.Y != 0) {
             ScrollValue += dif.Y;
@@ -203,7 +186,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private void UpdateScrollRange() {
+      public void UpdateScrollRange() {
          if (width < 1 || height < 1 || dataLength < 1) return;
          int effectiveDataLength = CalculateEffectiveDataLength();
          var lineCount = (int)Math.Ceiling((double)effectiveDataLength / width);
@@ -264,7 +247,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// to display at the start of the data. The 'effective data length' is the length
       /// of whatever actual data we have, plus the extra blank space on the first row.
       /// </summary>
-      private int CalculateEffectiveDataLength(int virtualDataLength = -1) {
+      public int CalculateEffectiveDataLength(int virtualDataLength = -1) {
          if (virtualDataLength == -1) virtualDataLength = dataLength;
          int effectiveDataLength = virtualDataLength;
 
@@ -276,10 +259,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class RowHeader : ViewModelCore, IEquatable<RowHeader> {
-      private bool isSelected;
+      public bool isSelected;
       public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
 
-      private string content;
+      public string content;
       public string Content { get => content; set => Set(ref content, value); }
 
       public static implicit operator RowHeader(string value) => new RowHeader { Content = value };

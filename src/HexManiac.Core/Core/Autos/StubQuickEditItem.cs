@@ -9,31 +9,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems
     {
         public Func<HavenSoft.HexManiac.Core.ViewModels.IViewPort, bool> CanRun { get; set; }
         
-        bool IQuickEditItem.CanRun(HavenSoft.HexManiac.Core.ViewModels.IViewPort viewPort)
-        {
-            if (this.CanRun != null)
-            {
-                return this.CanRun(viewPort);
-            }
-            else
-            {
-                return default(bool);
-            }
-        }
-        
         public Func<HavenSoft.HexManiac.Core.ViewModels.IViewPort, System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo>> Run { get; set; }
-        
-        System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo> IQuickEditItem.Run(HavenSoft.HexManiac.Core.ViewModels.IViewPort viewPort)
-        {
-            if (this.Run != null)
-            {
-                return this.Run(viewPort);
-            }
-            else
-            {
-                return default(System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo>);
-            }
-        }
         
         public Action TabChanged { get; set; }
         
@@ -56,13 +32,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems
         }
         public PropertyImplementation<string> Description = new PropertyImplementation<string>();
         
-        string IQuickEditItem.Description
-        {
-            get
-            {
-                return this.Description.get();
-            }
-        }
         public PropertyImplementation<string> WikiLink = new PropertyImplementation<string>();
         
         string IQuickEditItem.WikiLink

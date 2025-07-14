@@ -126,8 +126,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public override string FormatString => SharedFormatString;
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => this.CreateSegmentDataFormat(data, index);
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TrainerPokemonTeamRun(model, Start, showFullIVByteRange, newPointerSources, primarySource);
 
       #endregion
@@ -173,8 +171,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) => new TrainerPokemonTeamRun(model, start, showFullIVByteRange, pointerSources);
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          ITableRunExtensions.Clear(this, model, changeToken, start, length);

@@ -89,7 +89,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash);
       void UpdateGotoShortcut(int index, GotoShortcutModel shortcut);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
-      string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
       void Load(byte[] newData, StoredMetadata metadata);
       void ExpandData(ModelDelta changeToken, int minimumLength);
@@ -224,8 +223,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       public abstract void ClearFormatAndData(ModelDelta changeToken, int originalStart, int length);
 
       public virtual void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash) => throw new NotImplementedException();
-
-      public abstract string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false);
 
       public void ExpandData(ModelDelta changeToken, int minimumIndex) {
          if (Count > minimumIndex) return;
@@ -929,11 +926,6 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override void UpdateArrayPointer(ModelDelta changeToken, ArrayRunElementSegment segment, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, int address, int destination, bool writeDestinationFormat = true) {
          WritePointer(changeToken, address, destination);
-      }
-
-      public override string Copy(Func<ModelDelta> changeToken, int start, int length, bool deep = false) {
-         var bytes = Enumerable.Range(start, length).Select(i => RawData[i]);
-         return string.Join(" ", bytes.Select(value => value.ToString("X2")));
       }
    }
 }

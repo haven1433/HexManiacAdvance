@@ -12,7 +12,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       int Length { get; }
       SortedSpan<int> PointerSources { get; }
       string FormatString { get; }
-      IDataFormat CreateDataFormat(IDataModel data, int index);
       IFormattedRun MergeAnchor(SortedSpan<int> sources);
       IFormattedRun RemoveSource(int source);
       IFormattedRun Duplicate(int start, SortedSpan<int> pointerSources);
@@ -28,7 +27,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public interface IAppendToBuilderRun : IFormattedRun {
-      void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth);
       void Clear(IDataModel model, ModelDelta changeToken, int start, int length);
    }
 
@@ -45,11 +43,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    /// We want to be able to stringify streams, so we can use them with the tools.
    /// </summary>
    public interface IStreamRun : IFormattedRun {
-      /// <summary>
-      /// Should not change the data, only creates a string representation of that data.
-      /// </summary>
-      string SerializeRun();
-
       /// <summary>
       /// Updates data based on converting content back into the stream.
       /// Returns the run where the data was placed.
@@ -106,12 +99,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       protected bool CreateForLeftEdge { get; private set; }
       protected int ExpectedDisplayWidth { get; private set; }
-      public IDataFormat CreateDataFormat(IDataModel data, int index, bool leftEdgeHint, int displayWidth) {
-         CreateForLeftEdge = leftEdgeHint;
-         ExpectedDisplayWidth = displayWidth;
-         return CreateDataFormat(data, index);
-      }
-      public abstract IDataFormat CreateDataFormat(IDataModel data, int index);
 
       public IFormattedRun MergeAnchor(SortedSpan<int> sources) {
          if (sources == null) return this;
@@ -148,7 +135,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public NoInfoRun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) {
          return new NoInfoRun(Start, newPointerSources);
       }
@@ -164,7 +150,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override int Length => length;
       public override string FormatString => throw new NotImplementedException();
       public FakeRun(int start, int length, SortedSpan<int> sources = null) : base(start, sources) => this.length = length;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => throw new NotImplementedException();
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new FakeRun(Start, length, newPointerSources);
    }
 

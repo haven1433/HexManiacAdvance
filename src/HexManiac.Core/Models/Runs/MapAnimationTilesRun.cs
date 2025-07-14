@@ -29,15 +29,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementContent = new[] { new ArrayRunPointerSegment(model.FormatRunFactory, "frame", $"`uct4x{tileCount}`") };
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => this.CreateSegmentDataFormat(data, index);
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new MapAnimationTilesRun(model, Start, newPointerSources);
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
          return new MapAnimationTilesRun(model, start, pointerSources);
       }
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public ITableRun Append(ModelDelta token, int length) {
          var parent = PointerSources[0];

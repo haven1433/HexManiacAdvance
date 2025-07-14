@@ -37,10 +37,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          throw new NotImplementedException();
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         return this.CreateSegmentDataFormat(data, index);
-      }
-
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) {
          return new MapListRun(Model, start, pointerSources);
       }

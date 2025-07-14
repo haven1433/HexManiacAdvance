@@ -9,7 +9,6 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
@@ -18,62 +17,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public class ChildViewPort : ViewPort, IChildViewPort {
       public IViewPort Parent { get; }
 
-      public ChildViewPort(IViewPort viewPort, IWorkDispatcher dispatcher, Singletons singletons) : base(viewPort.FileName, viewPort.Model, dispatcher, singletons, null, null, null, viewPort.ChangeHistory) {
-         ScrollRegion.DeferHeader();
-         Parent = viewPort;
-         Width = Parent.Width;
-         viewPort.Model.ReferenceCount -= 1; // don't reference count child viewports
-      }
-
       public void RefreshHeaders() => ScrollRegion.UpdateDeferedHeader();
    }
 
    public class CompositeChildViewPort : List<IChildViewPort>, IChildViewPort {
-      public static bool TryCombine(IChildViewPort a, IChildViewPort b, out CompositeChildViewPort result) {
-         result = null;
-         if (b is CompositeChildViewPort) return false;
-         result = a is CompositeChildViewPort composite ? composite : new CompositeChildViewPort { a };
-         if (a.Parent != b.Parent) return false;
-         if (a.Width != b.Width) return false;
-         if (b.DataOffset < a.DataOffset) return false;
-         if ((b.DataOffset - a.DataOffset) % b.Width != 0) return false;
-         var bSelectionLine = (GetFirstVisibleSelectedAddress(b) - a.DataOffset) / b.Width;
-         var aSelectionLine = (GetLastVisibleSelectedAddress(a) - a.DataOffset) / b.Width;
-         var lineDif = bSelectionLine - aSelectionLine;
-         if (lineDif > 3) return false;
-         a.Height += lineDif;
-         b.ScrollValue -= (b.DataOffset - a.DataOffset) / b.Width;
-         b.Height = a.Height;
-         Debug.Assert(a.DataOffset == b.DataOffset, "Data Offsets should be the same at this point!");
-         result.Add(b);
-         return true;
-      }
 
       public void RefreshHeaders() => this[0].RefreshHeaders();
-
-      public static int GetFirstVisibleSelectedAddress(IViewPort viewPort) {
-         for (int y = 0; y < viewPort.Height; y++) {
-            for (int x = 0; x < viewPort.Width; x++) {
-               if (!viewPort.IsSelected(new Point(x, y))) continue;
-               return viewPort.DataOffset + y * viewPort.Width + x;
-            }
-         }
-
-         return -1;
-      }
-
-      public static int GetLastVisibleSelectedAddress(IViewPort viewPort) {
-         for (int y = viewPort.Height - 1; y >= 0; y--) {
-            for (int x = viewPort.Width - 1; x >= 0; x--) {
-               if (!viewPort.IsSelected(new Point(x, y))) continue;
-               return viewPort.DataOffset + y * viewPort.Width + x;
-            }
-         }
-
-         return -1;
-      }
-
-      public HexElement this[int x, int y] => this[0][x, y];
 
       public IViewPort Parent => this[0].Parent;
 
@@ -86,27 +35,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool SpartanMode { get; set; }
 
       public int PreferredWidth { get => this[0].PreferredWidth; set => ForEach(child => child.PreferredWidth = value); }
-      public int Width { get => this[0].Width; set => ForEach(child => child.Width = value); }
-      public int Height { get => this[0].Height; set => this[0].Height = value; }
       public bool AutoAdjustDataWidth { get => this[0].AutoAdjustDataWidth; set => ForEach(child => child.AutoAdjustDataWidth = value); }
       public bool StretchData { get => this[0].StretchData; set => ForEach(child => child.StretchData = value); }
       public bool AllowMultipleElementsPerLine { get => this[0].AllowMultipleElementsPerLine; set => ForEach(child => child.AllowMultipleElementsPerLine = value); }
-      public bool UseCustomHeaders { get => this[0].UseCustomHeaders; set => ForEach(child => child.UseCustomHeaders = value); }
       public bool Base10Length { get => this[0].Base10Length; set => ForEach(child => child.Base10Length = value); }
 
       public int MinimumScroll => this[0].MinimumScroll;
-
-      public int ScrollValue { get => this[0].ScrollValue; set => ForEach(child => child.ScrollValue = value); }
 
       public int MaximumScroll => this[0].MaximumScroll;
 
       public ObservableCollection<RowHeader> Headers => this[0].Headers;
 
       public ObservableCollection<ColumnHeaderRow> ColumnHeaders => this[0].ColumnHeaders;
-
-      public int DataOffset => this[0].DataOffset;
-
-      public ICommand Scroll => this[0].Scroll;
 
       public double Progress => this[0].Progress;
 
@@ -116,12 +56,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public string SelectedBytes => this[0].SelectedBytes;
 
-      public string AnchorText => this[0].AnchorText;
-
       public bool AnchorTextVisible => this[0].AnchorTextVisible;
 
       public IDataModel Model => this[0].Model;
-      public IDataModel ModelFor(Point p) => this[0].ModelFor(p);
 
       public bool HasTools => this[0].HasTools;
 
@@ -134,38 +71,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public bool IsMetadataOnlyChange => false;
 
       public byte[] FindBytes { get; set; }
-
-      public ICommand Save => this[0].Save;
-
-      public ICommand SaveAs => this[0].SaveAs;
-
-      public ICommand ExportBackup => this[0].ExportBackup;
-
-      public ICommand Undo => this[0].Undo;
-
-      public ICommand Redo => this[0].Redo;
-
-      public ICommand Copy => this[0].Copy;
-
-      public ICommand DeepCopy => this[0].DeepCopy;
-
-      public ICommand Diff => this[0].Diff;
-      public ICommand DiffLeft => this[0].DiffLeft;
-      public ICommand DiffRight => this[0].DiffRight;
-
-      public ICommand SelectAll => this[0].SelectAll;
-
-      public ICommand Goto => this[0].Goto;
-
-      public ICommand ResetAlignment => this[0].ResetAlignment;
-
-      public ICommand Back => this[0].Back;
-
-      public ICommand Forward => this[0].Forward;
-
-      public ICommand Close => this[0].Close;
-
-      ICommand ITabContent.Clear => this[0].Clear;
       public bool CanDuplicate => false;
       public void Duplicate() { }
 
@@ -197,8 +102,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          throw new NotImplementedException();
       }
 
-      public void ExpandSelection(int x, int y) => ForEach(child => child.ExpandSelection(x, y));
-
       public IReadOnlyList<(int start, int end)> Find(string search, bool matchExactCase = false) => new (int, int)[0];
 
       public bool CanFindFreeSpace => false;
@@ -210,11 +113,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public IReadOnlyList<IContextItem> GetContextMenuItems(Point point, IFileSystem fileSystem) => new IContextItem[0];
 
-      public bool IsSelected(Point point) => this.Any(child => child.IsSelected(point));
-
       public bool IsTable(Point point) => this[0].IsTable(point);
-
-      public void Refresh() => ForEach(child => child.Refresh());
 
       public bool TryImport(LoadedFile file, IFileSystem fileSystem) => false;
    }

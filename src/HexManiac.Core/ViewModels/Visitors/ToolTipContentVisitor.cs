@@ -26,66 +26,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public void Visit(UnderEdit dataFormat, byte data) { }
 
-      public void Visit(Pointer pointer, byte data) {
-         Content.Add(pointer.DestinationAsText);
-         var destinationRun = model.GetNextRun(pointer.Destination);
-         var runSpecificContent = BuildContentForRun(model, pointer.Source, pointer.Destination, destinationRun);
-         if (runSpecificContent != null) {
-            // special case: add images for pointers to OWs
-            if (destinationRun is ITableRun table && table.ElementCount == 1 && table.ElementContent.Any(seg => seg.Name == "sprites")) {
-               var source = table.Start + table.ElementContent.Until(seg => seg.Name == "sprites").Sum(seg => seg.Length);
-               if (model.GetNextRun(model.ReadPointer(source)) is OverworldSpriteListRun osl) {
-                  if (model.GetNextRun(osl.ReadPointer(model, 0, 0)) is ISpriteRun spriteRun) {
-                     var pals = spriteRun.FindRelatedPalettes(model, source);
-                     var image = ReadonlyPixelViewModel.Create(model, spriteRun, pals.FirstOrDefault(), true);
-                     Content.Add(image);
-                  }
-               }
-            }
-            Content.Add(runSpecificContent);
-         }
-      }
-
-      public static object BuildContentForRun(IDataModel model, int source, int destination, IFormattedRun destinationRun, int preferredPaletteStart = -1, int preferredSpritePage = 0) {
-         if (destination != destinationRun.Start) return null;
-         if (destinationRun is ISpriteRun sprite) {
-            if (sprite is LzTilemapRun tilemap) tilemap.FindMatchingTileset(model);
-            var paletteRuns = sprite.FindRelatedPalettes(model, source);
-            var paletteRun = paletteRuns.FirstOrDefault();
-            if (preferredPaletteStart >= 0) paletteRun = paletteRuns.FirstOrDefault(pRun => pRun.Start == preferredPaletteStart) ?? model.GetNextRun(preferredPaletteStart) as IPaletteRun;
-            var tableIndex = -1;
-            if (model.GetNextRun(source) is ITableRun tableRun) tableIndex = tableRun.ConvertByteOffsetToArrayOffset(source).ElementIndex;
-            var pixels = sprite.GetPixels(model, preferredSpritePage, tableIndex);
-            if (pixels == null) return null;
-            var colors = paletteRun?.AllColors(model) ?? TileViewModel.CreateDefaultPalette((int)Math.Pow(2, sprite.SpriteFormat.BitsPerPixel));
-            var imageData = SpriteTool.Render(pixels, colors, paletteRun?.PaletteFormat.InitialBlankPages ?? 0, 0);
-            return new ReadonlyPixelViewModel(sprite.SpriteFormat, imageData, colors[0]);
-         } else if (destinationRun is IPaletteRun paletteRun) {
-            var colors = paletteRun.GetPalette(model, 0);
-            return new ReadonlyPaletteCollection(colors);
-         } else if (destinationRun is IStreamRun streamRun) {
-            var lines = streamRun.SerializeRun().Split(Environment.NewLine);
-            if (lines.Length > 20) lines = lines.Take(20).ToArray();
-            return EllipsedLines(lines);
-         } else if (destinationRun is ArrayRun arrayRun) {
-            var stream = new StringBuilder();
-            arrayRun.AppendTo(model, stream, arrayRun.Start, arrayRun.ElementLength * Math.Min(20, arrayRun.ElementCount), 0);
-            return EllipsedLines(stream.ToString().SplitLines());
-         } else if (destinationRun is BlockmapRun blockmapRun) {
-            var canvas = model.CurrentCacheScope.GetImage(blockmapRun);
-            if (canvas == null) return null;
-            return new ReadonlyPixelViewModel(canvas.PixelWidth, canvas.PixelHeight, canvas.PixelData, canvas.Transparent);
-         } else {
-            return null;
-         }
-      }
-
-      public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-
-      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
-
-      public void Visit(StreamEndDecorator decorator, byte data) => decorator.OriginalFormat.Visit(this, data);
-
       public void Visit(PCS pcs, byte data) { }
 
       public void Visit(EscapedPCS pcs, byte data) { }

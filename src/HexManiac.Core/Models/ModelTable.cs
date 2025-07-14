@@ -102,26 +102,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public string Serialize(string fieldName) {
-         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
-         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
-         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-         if (seg.Type == ElementContentType.Pointer) {
-            var destination = model.ReadPointer(valueAddress);
-            if (destination == Pointer.NULL) return "null";
-            var run = model.GetNextRun(destination);
-            if (run is ArrayRun tRun) {
-               run = new TableStreamRun(model, run.Start, run.PointerSources, run.FormatString,
-                        tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
-            }
-            if (run is IStreamRun sRun) return sRun.SerializeRun();
-            return destination.ToAddress();
-         }
-         if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
-         if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
-         return GetValue(fieldName).ToString();
-      }
-
       public int[,] GetSprite(string fieldName) {
          var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
          var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
@@ -204,64 +184,10 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
       }
 
-      public string GetEnumValue(string fieldName) {
-         var elementOffset = table.ElementContent.Until(segment => segment.Name == fieldName).Sum(segment => segment.Length);
-         var valueAddress = table.Start + table.ElementLength * arrayIndex + elementOffset;
-         var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
-         if (seg is ArrayRunEnumSegment enumSeg) {
-            using (ModelCacheScope.CreateScope(model)) {
-               return enumSeg.ToText(model, valueAddress, 0).Trim('"');
-            }
-         } else {
-            throw new NotImplementedException();
-         }
-      }
-
       public ModelTupleElement GetTuple(string fieldName) {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
          return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunTupleSegment)seg, tokenFactory);
-      }
-
-      public object __getindex__(string key) => this[key];                     // for python
-      public void __setindex__(string key, object value) => this[key] = value; // for python
-      public object this[string fieldName] {
-         get {
-            var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
-            if (seg == null) return null;
-            var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
-            if (seg is ArrayRunEnumSegment) return GetEnumValue(fieldName);
-            if (seg.Type == ElementContentType.Pointer) {
-               var address = GetAddress(fieldName);
-               if (model.GetNextRun(address) is ITableRun table1) {
-                  return new ModelTable(model, table1.Start, tokenFactory);
-               }
-               return address;
-            }
-            if (seg.Type == ElementContentType.PCS) return GetStringValue(fieldName);
-            if (seg is ArrayRunTupleSegment tuple) {
-               return new ModelTupleElement(model, table, arrayIndex, segmentOffset, tuple, tokenFactory);
-            }
-            if (seg is ArrayRunBitArraySegment bits) {
-               return new ModelTupleElement(model, table, arrayIndex, segmentOffset, bits, tokenFactory);
-            }
-            return GetValue(fieldName);
-         }
-         set {
-            var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == fieldName);
-            if (seg is ArrayRunEnumSegment) {
-               if (value is string str) SetEnumValue(fieldName, str);
-               else if (value is BigInteger big) SetValue(fieldName, (int)big);
-               else SetValue(fieldName, (int)value);
-            } else if (seg.Type == ElementContentType.Pointer) {
-               if (value is string str) {
-                  SetStringValue(fieldName, str);
-               } else {
-                  SetAddress(fieldName, (int)value);
-               }
-            } else if (seg.Type == ElementContentType.PCS) SetStringValue(fieldName, (string)value);
-            else SetValue(fieldName, (int)value);
-         }
       }
 
       public void SetEnumValue(string fieldName, string valueText) {
@@ -378,39 +304,6 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (spriteRun == null) return null;
          return ReadonlyPixelViewModel.Create(Model, spriteRun, Start, true);
       }
-
-      #region DynamicObject
-
-      public override bool TryGetMember(GetMemberBinder binder, out object? result) {
-         result = null;
-         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == binder.Name);
-         if (seg == null) {
-            throw new ArgumentException($"Couldn't find a member named {binder.Name}. Available members include: {", ".Join(table.ElementContent.Select(s => s.Name))}");
-         }
-         result = this[seg.Name];
-         return true;
-      }
-
-      public override bool TrySetMember(SetMemberBinder binder, object? value) {
-         var seg = table.ElementContent.FirstOrDefault(segment => segment.Name == binder.Name);
-         if (seg == null) return base.TrySetMember(binder, value);
-         this[seg.Name] = value;
-         return true;
-      }
-
-      public override string ToString() {
-         var result = new StringBuilder("{ ");
-         bool first = true;
-         foreach (var seg in table.ElementContent) {
-            if (!first) result.Append(", ");
-            first = false;
-            result.Append(seg.Name + ": " + this[seg.Name]);
-         }
-         result.Append(" }");
-         return result.ToString();
-      }
-
-      #endregion
    }
 
    public class ModelTupleElement : DynamicObject {
@@ -615,33 +508,6 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly Func<ModelDelta> tokenFactory;
       private readonly EggMoveRun eggRun;
 
-      public bool is_pokemon => eggRun.CreateDataFormat(model, address) is EggSection;
-      public bool is_move => eggRun.CreateDataFormat(model, address) is EggItem;
-
       public EggElement(IDataModel model, int address, Func<ModelDelta> tokenFactory, EggMoveRun eggRun) => (this.model, this.address, this.tokenFactory, this.eggRun) = (model, address, tokenFactory, eggRun);
-
-      public string name {
-         get {
-            var format = eggRun.CreateDataFormat(model, address);
-            if (format is EggSection section) return section.SectionName.Trim('[', ']');
-            if (format is EggItem item) return item.ItemName;
-            throw new NotImplementedException();
-         }
-         set {
-            bool preferPokemon = value.StartsWith("[") || value.EndsWith("]");
-            value = value.Trim('[', ']');
-            var pokeOptions = model.GetOptions(HardcodeTablesModel.PokemonNameTable);
-            var moveOptions = model.GetOptions(HardcodeTablesModel.MoveNamesTable);
-            var pokeMatches = value.FindMatches(pokeOptions);
-            var moveMatches = value.FindMatches(moveOptions);
-            if (moveMatches.Count > 0 && !preferPokemon) {
-               model.WriteMultiByteValue(address, 2, tokenFactory(), moveMatches[0]);
-            } else if (pokeMatches.Count > 0) {
-               model.WriteMultiByteValue(address, 2, tokenFactory(), pokeMatches[0] + EggMoveRun.MagicNumber);
-            } else {
-               throw new InvalidOperationException($"Could not convert {value} to a move name or pokemon name.");
-            }
-         }
-      }
    }
 }

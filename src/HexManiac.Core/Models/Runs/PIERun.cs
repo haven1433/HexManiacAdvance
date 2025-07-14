@@ -222,8 +222,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          RefreshFlags();
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => new IntegerHex(index, 0, data[index], 1);
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PIERun(model, Start, newPointerSources);
 
       private void RefreshFlags() {

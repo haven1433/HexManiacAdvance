@@ -10,18 +10,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels
     {
         public Func<HavenSoft.HexManiac.Core.Models.Point, bool> IsSelected { get; set; }
         
-        bool IViewPort.IsSelected(HavenSoft.HexManiac.Core.Models.Point point)
-        {
-            if (this.IsSelected != null)
-            {
-                return this.IsSelected(point);
-            }
-            else
-            {
-                return default(bool);
-            }
-        }
-        
         public Func<HavenSoft.HexManiac.Core.Models.Point, bool> IsTable { get; set; }
         
         bool IViewPort.IsTable(HavenSoft.HexManiac.Core.Models.Point point)
@@ -38,61 +26,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         
         public Func<string, bool, System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>>> Find { get; set; }
         
-        System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>> IViewPort.Find(string search, bool matchExactCase)
-        {
-            if (this.Find != null)
-            {
-                return this.Find(search, matchExactCase);
-            }
-            else
-            {
-                return default(System.Collections.Generic.IReadOnlyList<System.ValueTuple<int, int>>);
-            }
-        }
-        
         public Action<HavenSoft.HexManiac.Core.Models.IFileSystem> FindFreeSpace { get; set; }
-        
-        void IViewPort.FindFreeSpace(HavenSoft.HexManiac.Core.Models.IFileSystem fileSystem)
-        {
-            if (this.FindFreeSpace != null)
-            {
-                this.FindFreeSpace(fileSystem);
-            }
-        }
         
         public Func<int, int, IChildViewPort> CreateChildView { get; set; }
         
-        IChildViewPort IViewPort.CreateChildView(int startAddress, int endAddress)
-        {
-            if (this.CreateChildView != null)
-            {
-                return this.CreateChildView(startAddress, endAddress);
-            }
-            else
-            {
-                return default(IChildViewPort);
-            }
-        }
-        
         public Action<int, int> FollowLink { get; set; }
         
-        void IViewPort.FollowLink(int x, int y)
-        {
-            if (this.FollowLink != null)
-            {
-                this.FollowLink(x, y);
-            }
-        }
-        
         public Action<int, int> ExpandSelection { get; set; }
-        
-        void IViewPort.ExpandSelection(int x, int y)
-        {
-            if (this.ExpandSelection != null)
-            {
-                this.ExpandSelection(x, y);
-            }
-        }
         
         public Action<HavenSoft.HexManiac.Core.Models.IFileSystem> ConsiderReload { get; set; }
         
@@ -106,28 +46,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         
         public Action<int, int> FindAllSources { get; set; }
         
-        void IViewPort.FindAllSources(int x, int y)
-        {
-            if (this.FindAllSources != null)
-            {
-                this.FindAllSources(x, y);
-            }
-        }
-        
         public Func<HavenSoft.HexManiac.Core.Models.Point, System.Collections.Generic.IReadOnlyList<Visitors.IContextItem>> GetContextMenuItems { get; set; }
         
-        System.Collections.Generic.IReadOnlyList<Visitors.IContextItem> IViewPort.GetContextMenuItems(HavenSoft.HexManiac.Core.Models.Point point, IFileSystem fileSystem)
-        {
-            if (this.GetContextMenuItems != null)
-            {
-                return this.GetContextMenuItems(point);
-            }
-            else
-            {
-                return default(System.Collections.Generic.IReadOnlyList<Visitors.IContextItem>);
-            }
-        }
-
         public PropertyImplementation<double> ToolPanelWidth = new();
         double IViewPort.ToolPanelWidth { get => ToolPanelWidth.get(); set => ToolPanelWidth.set(value); }
 
@@ -153,30 +73,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels
 
         public bool SpartanMode { get; set; }
 
-        int IViewPort.Width
-        {
-            get
-            {
-                return this.Width.get();
-            }
-            set
-            {
-                this.Width.set(value);
-            }
-        }
         public PropertyImplementation<int> Height = new PropertyImplementation<int>();
         
-        int IViewPort.Height
-        {
-            get
-            {
-                return this.Height.get();
-            }
-            set
-            {
-                this.Height.set(value);
-            }
-        }
         public PropertyImplementation<bool> AutoAdjustDataWidth = new PropertyImplementation<bool>();
         
         bool IViewPort.AutoAdjustDataWidth
@@ -218,17 +116,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<bool> UseCustomHeaders = new PropertyImplementation<bool>();
         
-        bool IViewPort.UseCustomHeaders
-        {
-            get
-            {
-                return this.UseCustomHeaders.get();
-            }
-            set
-            {
-                this.UseCustomHeaders.set(value);
-            }
-        }
         public PropertyImplementation<int> MinimumScroll = new PropertyImplementation<int>();
         
         int IViewPort.MinimumScroll
@@ -240,17 +127,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<int> ScrollValue = new PropertyImplementation<int>();
         
-        int IViewPort.ScrollValue
-        {
-            get
-            {
-                return this.ScrollValue.get();
-            }
-            set
-            {
-                this.ScrollValue.set(value);
-            }
-        }
         public PropertyImplementation<int> MaximumScroll = new PropertyImplementation<int>();
         
         int IViewPort.MaximumScroll
@@ -280,22 +156,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<int> DataOffset = new PropertyImplementation<int>();
         
-        int IViewPort.DataOffset
-        {
-            get
-            {
-                return this.DataOffset.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Scroll = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand IViewPort.Scroll
-        {
-            get
-            {
-                return this.Scroll.get();
-            }
-        }
         public PropertyImplementation<double> Progress = new PropertyImplementation<double>();
         
         double IViewPort.Progress
@@ -351,13 +213,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<string> AnchorText = new PropertyImplementation<string>();
         
-        string IViewPort.AnchorText
-        {
-            get
-            {
-                return this.AnchorText.get();
-            }
-        }
         public PropertyImplementation<bool> AnchorTextVisible = new PropertyImplementation<bool>();
         
         bool IViewPort.AnchorTextVisible
@@ -369,27 +224,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<System.Byte[]> FindBytes = new PropertyImplementation<System.Byte[]>();
         
-        System.Byte[] IViewPort.FindBytes
-        {
-            get
-            {
-                return this.FindBytes.get();
-            }
-            set
-            {
-                this.FindBytes.set(value);
-            }
-        }
         public Func<int, int, HexElement> get_Item = (x, y) => default(HexElement);
         
-        HexElement IViewPort.this[int x, int y]
-        {
-            get
-            {
-                return get_Item(x, y);
-            }
-        }
-
         public PropertyImplementation<HavenSoft.HexManiac.Core.Models.IDataModel> Model = new PropertyImplementation<HavenSoft.HexManiac.Core.Models.IDataModel>();
         HavenSoft.HexManiac.Core.Models.IDataModel IViewPort.Model
         {
@@ -400,7 +236,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
 
         public Func<Point,IDataModel> ModelFor;
-        IDataModel IViewPort.ModelFor(Point point) => ModelFor?.Invoke(point) ?? Model.value;
 
         public PropertyImplementation<bool> HasTools = new PropertyImplementation<bool>();
         
@@ -457,37 +292,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public Action Duplicate { get; set; }
         
-        void ITabContent.Duplicate()
-        {
-            if (this.Duplicate != null)
-            {
-                this.Duplicate();
-            }
-        }
-        
         public Action Refresh { get; set; }
         
-        void ITabContent.Refresh()
-        {
-            if (this.Refresh != null)
-            {
-                this.Refresh();
-            }
-        }
-
         public Func<HavenSoft.HexManiac.Core.Models.LoadedFile, HavenSoft.HexManiac.Core.Models.IFileSystem, bool> TryImport { get; set; }
-        
-        bool ITabContent.TryImport(HavenSoft.HexManiac.Core.Models.LoadedFile file, HavenSoft.HexManiac.Core.Models.IFileSystem fileSystem)
-        {
-            if (this.TryImport != null)
-            {
-                return this.TryImport(file, fileSystem);
-            }
-            else
-            {
-                return default(bool);
-            }
-        }
         
         public PropertyImplementation<string> Name = new PropertyImplementation<string>();
         
@@ -509,157 +316,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels
         }
         public PropertyImplementation<System.Windows.Input.ICommand> Save = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Save
-        {
-            get
-            {
-                return this.Save.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> SaveAs = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.SaveAs
-        {
-            get
-            {
-                return this.SaveAs.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> ExportBackup = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.ExportBackup
-        {
-            get
-            {
-                return this.ExportBackup.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Undo = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Undo
-        {
-            get
-            {
-                return this.Undo.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Redo = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Redo
-        {
-            get
-            {
-                return this.Redo.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Copy = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Copy
-        {
-            get
-            {
-                return this.Copy.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> DeepCopy = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.DeepCopy
-        {
-            get
-            {
-                return this.DeepCopy.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Clear = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Clear
-        {
-            get
-            {
-                return this.Clear.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> SelectAll = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.SelectAll
-        {
-            get
-            {
-                return this.SelectAll.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Goto = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Goto
-        {
-            get
-            {
-                return this.Goto.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> ResetAlignment = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.ResetAlignment
-        {
-            get
-            {
-                return this.ResetAlignment.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Back = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Back
-        {
-            get
-            {
-                return this.Back.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Forward = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Forward
-        {
-            get
-            {
-                return this.Forward.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Close = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Close
-        {
-            get
-            {
-                return this.Close.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> Diff = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.Diff
-        {
-            get
-            {
-                return this.Diff.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> DiffLeft = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.DiffLeft
-        {
-            get
-            {
-                return this.DiffLeft.get();
-            }
-        }
         public PropertyImplementation<System.Windows.Input.ICommand> DiffRight = new PropertyImplementation<System.Windows.Input.ICommand>();
         
-        System.Windows.Input.ICommand ITabContent.DiffRight
-        {
-            get
-            {
-                return this.DiffRight.get();
-            }
-        }
         public PropertyImplementation<bool> CanDuplicate = new PropertyImplementation<bool>();
         
         bool ITabContent.CanDuplicate

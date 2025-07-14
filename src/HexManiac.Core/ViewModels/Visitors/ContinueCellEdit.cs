@@ -22,51 +22,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public ContinueCellEdit(IDataModel model, char input, UnderEdit underEdit) => (Model, Input, UnderEdit) = (model, input, underEdit);
 
-      public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
-
-      public void Visit(None dataFormat, byte data) {
-         if (UnderEdit.CurrentText.Length > 0) {
-            if (UnderEdit.CurrentText[0] == PointerStart) {
-               Result = char.IsLetterOrDigit(Input) || Input.IsAny("/> .+-_".ToCharArray());
-               return;
-            }
-
-            if (UnderEdit.CurrentText[0] == ':') {
-               if (UnderEdit.CurrentText.Length == 1) {
-                  Result = char.IsLetterOrDigit(Input) || Input.IsAny(' ', '.', ':');
-               } else {
-                  Result = char.IsLetterOrDigit(Input) || Input.IsAny(' ', '.');
-               }
-               return;
-            }
-
-            if (UnderEdit.CurrentText[0] == '.') {
-               Result = char.IsLetterOrDigit(Input) || Input.IsAny(" .+-=".ToCharArray());
-               return;
-            }
-         }
-
-         Result = ViewPort.AllHexCharacters.Contains(Input);
-      }
-
       // 'ContinueCellEdit' is expected to be passed the innerformat. It should never get an UnderEdit cell.
       // The UnderEdit object that's currently being edited was passed in separately to the constructor.
       public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
-
-      // an in-process pointer edit acts the same way as an in-process None edit.
-      public void Visit(Pointer pointer, byte data) => Visit((None)null, data);
-
-      public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-
-      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
-
-      public void Visit(StreamEndDecorator decorator, byte data) {
-         if (UnderEdit.CurrentText == "[" && Input == ']') {
-            Result = true;
-         } else {
-            decorator.OriginalFormat.Visit(this, data);
-         }
-      }
 
       public void Visit(PCS pcs, byte data) {
          if (Input == StringDelimeter) { Result = true; return; }
@@ -77,10 +35,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
          Result = (currentText + Input).StartsWith("\\!") || PCSString.PCS.Any(str => str != null && str.StartsWith(currentText + Input)) ||
             Model.TextConverter.AnyMacroStartsWith(currentText + Input);
-      }
-
-      public void Visit(EscapedPCS pcs, byte data) {
-         Result = ViewPort.AllHexCharacters.Contains(Input);
       }
 
       public void Visit(ErrorPCS pcs, byte data) {
@@ -143,23 +97,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          Result = char.IsLetterOrDigit(Input) || "?-\" .'~|,_&%)".Contains(Input);
       }
 
-      public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
-
       public void Visit(EndStream endStream, byte data) {
          Result = "[]+".Contains(Input);
       }
 
       public void Visit(LzMagicIdentifier lz, byte data) => Result = char.ToLower(Input) == 'z';
 
-      public void Visit(LzGroupHeader lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input) || char.IsWhiteSpace(Input);
-
       public void Visit(LzCompressed lz, byte data) => Result = char.IsDigit(Input) || Input == ':' || char.IsWhiteSpace(Input);
-
-      public void Visit(LzUncompressed lz, byte data) => Result = ViewPort.AllHexCharacters.Contains(Input) || char.IsWhiteSpace(Input);
-
-      public void Visit(UncompressedPaletteColor color, byte data) {
-         Result = ViewPort.AllHexCharacters.Contains(Input) || Input.IsAny(':', ' ');
-      }
 
       public void Visit(DataFormats.Tuple tuple, byte data) => Result = true;
    }

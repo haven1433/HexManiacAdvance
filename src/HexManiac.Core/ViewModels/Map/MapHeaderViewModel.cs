@@ -10,14 +10,14 @@ using System.Runtime.CompilerServices;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    public class MapHeaderViewModel : ViewModelCore, INotifyPropertyChanged {
-      private ModelArrayElement map;
-      private readonly Func<ModelDelta> tokenFactory;
-      private readonly Format format;
+      public ModelArrayElement map;
+      public readonly Func<ModelDelta> tokenFactory;
+      public readonly Format format;
       // music: layoutID: regionSectionID. cave. weather. mapType. allowBiking. flags.|t|allowEscaping.|allowRunning.|showMapName::: floorNum. battleType.
 
-      private static readonly ObservableCollection<string> weatherOptions = new();
-      private static readonly ObservableCollection<string> caveOptions = new();
-      private static readonly ObservableCollection<string> battleOptions = new();
+      public static readonly ObservableCollection<string> weatherOptions = new();
+      public static readonly ObservableCollection<string> caveOptions = new();
+      public static readonly ObservableCollection<string> battleOptions = new();
       static MapHeaderViewModel() {
          // weather
          weatherOptions.Add("Indoor");
@@ -66,21 +66,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ObservableCollection<string> BattleOptions => battleOptions;
 
-      public MapHeaderViewModel(ModelArrayElement element, Format format, Func<ModelDelta> tokens) {
-         (map, this.format, tokenFactory) = (element, format, tokens);
-         if (element == null) return;
-         if (element.Model.TryGetList("songnames", out var songnames)) {
-            for (int i = 0; i < songnames.Count; i++) {
-               var name = songnames[i] ?? $"song_{i}";
-               MusicOptions.Add(name);
-            }
-         }
-         if (element.Model.TryGetList("maptypes", out var mapTypes)) {
-            foreach (var name in mapTypes) MapTypeOptions.Add(name);
-         }
-         Refresh();
-      }
-
       public void UpdateFromModel() {
          if (primaryIndex == -1 || secondaryIndex == -1) return; // only way this can ever be set is later in this same method (recursion guard)
          if (map == null) return;
@@ -115,14 +100,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertiesChanged(nameof(PrimaryIndex), nameof(SecondaryIndex));
       }
 
-      public void Refresh() {
-         format.Refresh();
-         UpdateFromModel();
-      }
-
       public ObservableCollection<BlocksetOption> PrimaryOptions { get; } = new();
       public ObservableCollection<BlocksetOption> SecondaryOptions { get; } = new();
-      private int primaryIndex, secondaryIndex;
+      public int primaryIndex, secondaryIndex;
       public int PrimaryIndex {
          get => primaryIndex;
          set {
@@ -141,7 +121,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             NotifyPropertyChanged();
          }
       }
-      private void UpdateBlocksets() {
+      public void UpdateBlocksets() {
          var map = new MapModel(this.map);
          if (map.Layout.Element == null) return;
          if (!primaryIndex.InRange(0, PrimaryOptions.Count)) return;
@@ -173,14 +153,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool HasMapTypeOptions => MapTypeOptions.Count > 0;
       public ObservableCollection<string> MapTypeOptions { get; } = new();
 
-      private int GetValue([CallerMemberName]string name = null) {
+      public int GetValue([CallerMemberName]string name = null) {
          name = char.ToLower(name[0]) + name.Substring(1);
          if (!map.HasField(name)) return -1;
          return map.GetValue(name);
       }
 
       // when we call SetValue, get the latest token
-      private void SetValue(int value, [CallerMemberName]string name = null) {
+      public void SetValue(int value, [CallerMemberName]string name = null) {
          if (value == GetValue(name)) return;
          map = new(map.Model, map.Table.Start, (map.Start - map.Table.Start) / map.Table.ElementCount, tokenFactory, map.Table);
          var originalName = name;
@@ -189,7 +169,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(originalName);
       }
 
-      private bool GetBool([CallerMemberName]string name = null) {
+      public bool GetBool([CallerMemberName]string name = null) {
          name = char.ToLower(name[0]) + name.Substring(1);
          if (map.HasField(name)) {
             return map.GetValue(name) != 0;
@@ -202,7 +182,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return false;
       }
 
-      private void SetBool(bool value, [CallerMemberName]string name = null) {
+      public void SetBool(bool value, [CallerMemberName]string name = null) {
          var originalName = name;
          name = char.ToLower(name[0]) + name.Substring(1);
          if (map.HasField(name)) {
@@ -219,16 +199,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class BlocksetOption : ViewModelCore { // changing this to a record would interfere with combobox selection changes.
-      private readonly Lazy<IPixelViewModel> render;
+      public readonly Lazy<IPixelViewModel> render;
       public IDataModel Model { get; }
       public int Address { get; }
       public IPixelViewModel Render => render?.Value;
       public string AddressText => Address.ToAddress();
-
-      public BlocksetOption(IDataModel model, int address) {
-         Model = model;
-         Address = address;
-         if (!model.SpartanMode) render = new Lazy<IPixelViewModel>(() => new BlocksetModel(Model, Address).RenderBlockset(.5));
-      }
    }
 }

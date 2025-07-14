@@ -24,10 +24,10 @@ using System.Text;
 
 namespace HexManiac.Core.Models.Runs.Sprites {
    public class BlockmapRun : BaseRun, IUpdateFromParentRun, IAppendToBuilderRun {
-      private readonly IDataModel model;
+      public readonly IDataModel model;
 
-      private static int TotalTiles => 1024;
-      private static int TotalPalettes => 13;
+      public static int TotalTiles => 1024;
+      public static int TotalPalettes => 13;
 
       public int BlockWidth { get; }
       public int BlockHeight { get; }
@@ -145,53 +145,15 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          blockModel2.WriteBlockAttributes(secondary.Take(maxUsedSecondary).ToArray(), tokenFactory);
       }
 
-      public static IEnumerable<IPixelViewModel> CalculateBlockRenders(byte[][] blocks, byte[][] blockAttributes, int[][,] tiles, IReadOnlyList<short>[] palettes) {
-         palettes = palettes.Select(SpriteTool.CreatePaletteWithUniqueTransparentColor).ToArray();
-         for (int i = 0; i < blocks.Length; i++) {
-            yield return BlocksetModel.RenderBlock(i, blocks, blockAttributes, tiles, palettes);
-         }
-      }
-
-      public static CanvasPixelViewModel RenderMap(IReadOnlyList<byte> model, int start, int width, int height, IReadOnlyList<IPixelViewModel> blocks) {
-         var canvas = new CanvasPixelViewModel(width * 16, height * 16);
-         for (int y = 0; y < height; y++) {
-            for (int x = 0; x < width; x++) {
-               var value = model.ReadMultiByteValue(start + (y * width + x) * 2, 2) & 0x3FF;
-               if (blocks.Count <= value) continue;
-               canvas.Draw(blocks[value], x * 16, y * 16);
-            }
-         }
-         return canvas;
-      }
-
       public static int GetMaxUsedBlock(IReadOnlyList<byte> model, int start, int width, int height, int maxCheck) {
          if (start < 0) return 0;
          return (width * height).Range(i => (start + i * 2 < model.Count - 2 ? model.ReadMultiByteValue(start + i * 2, 2) : 0) & 0x3FF).Where(i => maxCheck > i).Aggregate(0, Math.Max);
       }
 
-      int lastFormatRequested = int.MaxValue;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         IDataFormat basicFormat;
-         if (index % 2 == 0) {
-            basicFormat = new IntegerHex(index, 0, data.ReadMultiByteValue(index, 2), 2);
-         } else {
-            basicFormat = new IntegerHex(index - 1, 1, data.ReadMultiByteValue(index - 1, 2), 2);
-         }
-         if (!CreateForLeftEdge) return basicFormat;
-         if (lastFormatRequested < index) {
-            lastFormatRequested = index;
-            return basicFormat;
-         }
+      public int lastFormatRequested = int.MaxValue;
 
-         var sprite = data.CurrentCacheScope.GetImage(this);
-         if (sprite == null) return basicFormat;
-         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
-         lastFormatRequested = index;
-         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
-      }
-
-      private int backupX = 0, backupY = 0;
-      private int[,] backupContent;
+      public int backupX = 0, backupY = 0;
+      public int[,] backupContent;
       public void StoreContentBackupForSizeChange() {
          backupContent = new int[BlockWidth, BlockHeight];
          for (int y = 0; y < BlockHeight; y++) {
@@ -215,7 +177,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return result;
       }
 
-      private BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight){
+      public BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight){
          if (backupContent == null) StoreContentBackupForSizeChange();
          var (newWidth, newHeight) = (BlockWidth + leftAmount + rightAmount, BlockHeight + upAmount + downAmount);
          backupX -= leftAmount;
@@ -336,9 +298,9 @@ namespace HexManiac.Core.Models.Runs.Sprites {
    }
 
    public class BlocksetModel {
-      private readonly IDataModel model;
-      private readonly int address;
-      private readonly int primaryBlocks, primaryTiles, primaryPalettes, attributeOffset;
+      public readonly IDataModel model;
+      public readonly int address;
+      public readonly int primaryBlocks, primaryTiles, primaryPalettes, attributeOffset;
 
       public int PrimaryBlocks => primaryBlocks;
       public int BytesPerAttribute { get; }
@@ -417,7 +379,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return run.Start;
       }
 
-      private int[][,] ReadUncompressedTiles() {
+      public int[][,] ReadUncompressedTiles() {
          var list = new List<int[,]>();
          var start = ReadPointer(4);
          var tileCount = !IsSecondary ? primaryTiles : 1024 - primaryTiles;
@@ -435,7 +397,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return list.ToArray();
       }
 
-      private int WriteUncompressedTiles(int[][,] tiles, ModelDelta token) {
+      public int WriteUncompressedTiles(int[][,] tiles, ModelDelta token) {
          // TODO this currently doesn't worry about repointing or expansion, but it probably should
          var start = ReadPointer(4);
          for (int i = 0; i < tiles.Length; i++) {
@@ -492,33 +454,6 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return data;
       }
 
-      /// <summary>
-      /// Create a full image of just this one blockset, without using tiles/palettes from another.
-      /// </summary>
-      public IPixelViewModel RenderBlockset(double scale = 1) {
-         var blocks = ReadBlocks(PrimaryBlocks);
-         var blockAttributes = ReadBlockAttributes(PrimaryBlocks);
-         var tiles = ReadTiles();
-         var palettes = ReadPalettes();
-         if (IsSecondary) {
-            var fullTiles = new int[PrimaryBlocks + tiles.Length][,];
-            for (int i = 0; i < tiles.Length; i++) fullTiles[PrimaryBlocks + i] = tiles[i];
-            tiles = fullTiles;
-         }
-         var renders = BlockmapRun.CalculateBlockRenders(blocks, blockAttributes, tiles, palettes).ToList();
-
-         var rowWidth = BlockMapViewModel.BlocksPerRow;
-         var blockHeight = (renders.Count + rowWidth - 1) / rowWidth;
-         var canvas = new CanvasPixelViewModel(rowWidth * 16, blockHeight * 16) { SpriteScale = scale };
-         for (int i = 0; i < renders.Count; i++) {
-            var x = i % rowWidth;
-            var y = i / rowWidth;
-            canvas.Draw(renders[i], x * 16, y * 16);
-         }
-
-         return canvas;
-      }
-
       public void WriteBlocks(byte[][] blocks, Func<ModelDelta> tokenFactory) {
          int start = ReadPointer(12);
          for (int i = 0; i < blocks.Length; i++) {
@@ -557,58 +492,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          }
       }
 
-      public static IPixelViewModel RenderBlock(int i, byte[][] blocks, byte[][] blockAttributes, int[][,] tiles, IReadOnlyList<short>[] palettes) {
-         var canvas = new CanvasPixelViewModel(16, 16);
-
-         var block = blocks[i];
-
-         // bottom layer
-         var tile = Read(block, 0, tiles, palettes);
-         canvas.Draw(tile, 0, 0);
-
-         tile = Read(block, 1, tiles, palettes);
-         canvas.Draw(tile, 8, 0);
-
-         tile = Read(block, 2, tiles, palettes);
-         canvas.Draw(tile, 0, 8);
-
-         tile = Read(block, 3, tiles, palettes);
-         canvas.Draw(tile, 8, 8);
-
-         // top layer
-         tile = Read(block, 4, tiles, palettes);
-         canvas.Draw(tile, 0, 0);
-
-         tile = Read(block, 5, tiles, palettes);
-         canvas.Draw(tile, 8, 0);
-
-         tile = Read(block, 6, tiles, palettes);
-         canvas.Draw(tile, 0, 8);
-
-         tile = Read(block, 7, tiles, palettes);
-         canvas.Draw(tile, 8, 8);
-
-         if (blockAttributes != null && TileAttribute.Create(blockAttributes[i]) is TileAttribute t && t.Layer == 3 && blocks.Length > i + 1) {
-            block = blocks[i + 1];
-
-            // triple layer
-            tile = Read(block, 8, tiles, palettes);
-            canvas.Draw(tile, 0, 0);
-
-            tile = Read(block, 9, tiles, palettes);
-            canvas.Draw(tile, 8, 0);
-
-            tile = Read(block, 10, tiles, palettes);
-            canvas.Draw(tile, 0, 8);
-
-            tile = Read(block, 11, tiles, palettes);
-            canvas.Draw(tile, 8, 8);
-         }
-
-         return canvas;
-      }
-
-      private void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart, int maxUsedBlock) {
+      public void EstimateBlockCount(ref int blockCount, int blockStart, int attributeStart, int maxUsedBlock) {
          EstimateBlockCount(model, ref blockCount, blockStart, attributeStart);
          blockCount = Math.Max(blockCount, maxUsedBlock + 1);
       }
@@ -624,7 +508,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          if (blockCount < 1) blockCount = 1;
       }
 
-      private void EstimateTileCount(ref int tileCount, int tileStart) => EstimateTileCount(model, ref tileCount, tileStart);
+      public void EstimateTileCount(ref int tileCount, int tileStart) => EstimateTileCount(model, ref tileCount, tileStart);
       public static void EstimateTileCount(IDataModel model, ref int tileCount, int tileStart) {
          // each tile is 32 bytes
          int tileLength = 0x20;

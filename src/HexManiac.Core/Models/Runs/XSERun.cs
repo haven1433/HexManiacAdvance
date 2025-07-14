@@ -12,8 +12,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public XSERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new XSERun(Start, newPointerSources);
    }
 
@@ -25,8 +23,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string FormatString => SharedFormatString;
 
       public BSERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
-
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new BSERun(Start, newPointerSources);
    }
@@ -40,8 +36,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public ASERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new ASERun(Start, newPointerSources);
    }
 
@@ -53,8 +47,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string FormatString => SharedFormatString;
 
       public TSERun(int start, SortedSpan<int> sources = null) : base(start, sources) { }
-
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => None.Instance;
 
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new TSERun(Start, newPointerSources);
    }

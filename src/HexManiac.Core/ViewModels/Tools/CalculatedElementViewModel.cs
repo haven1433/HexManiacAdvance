@@ -3,7 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.ObjectModel;
-using System.Windows.Input;
+
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
    public class CalculatedElementViewModel : ViewModelCore, IArrayElementViewModel {
@@ -35,13 +35,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       public string Operator => segment.Operator;
       public bool HasOperator => segment.HasOperator;
 
-      public CalculatedElementViewModel(IViewPort viewPort, ArrayRunCalculatedSegment segment, int start) {
-         (this.segment, dataStart) = (segment, start);
-         this.model = viewPort.Model;
-         Operands = new ObservableCollection<CalculatedElementViewModelOperand>();
-         foreach (var operand in segment.Operands) Operands.Add(new CalculatedElementViewModelOperand(operand, viewPort, start));
-      }
-
       #region IArrayElementViewModel
 
       private string theme; public string Theme { get => theme; set => Set(ref theme, value); }
@@ -68,20 +61,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
    public class CalculatedElementViewModelOperand : ViewModelCore {
       public string Text { get; private set; }
-      public ICommand JumpTo { get; private set; }
-
-      public CalculatedElementViewModelOperand(string text, IViewPort viewPort, int sourceAddress) {
-         Text = text;
-         JumpTo = new StubCommand();
-
-         var table = viewPort.Model.GetNextRun(sourceAddress) as ITableRun;
-         if (table != null && table.Start <= sourceAddress) {
-            var offset = table.ConvertByteOffsetToArrayOffset(sourceAddress);
-            var destination = ArrayRunCalculatedSegment.CalculateSource(viewPort.Model, table, offset.ElementIndex, Text);
-            if (destination != Pointer.NULL) {
-               JumpTo = new StubCommand { Execute = arg => viewPort.Goto.Execute(destination), CanExecute = arg => true };
-            }
-         }
-      }
    }
 }

@@ -77,21 +77,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0xFF);
       }
 
-      int lastFormatRequested = int.MaxValue;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var basicFormat = CreateDataFormatCore(data, index);
-         if (!CreateForLeftEdge || data.SpartanMode) return basicFormat;
-         if (lastFormatRequested < index) {
-            lastFormatRequested = index;
-            return basicFormat;
-         }
-
-         var sprite = data.CurrentCacheScope.GetImage(this);
-         var availableRows = (Length - (index - Start)) / ExpectedDisplayWidth;
-         lastFormatRequested = index;
-         return new SpriteDecorator(basicFormat, sprite, ExpectedDisplayWidth, availableRows);
-      }
-      private IDataFormat CreateDataFormatCore(IDataModel model, int index) {
+      public int lastFormatRequested = int.MaxValue;
+      public IDataFormat CreateDataFormatCore(IDataModel model, int index) {
          var offset = index - Start;
          var segStart = Start + offset - offset % 2;
          return new IntegerHex(segStart, offset % 2, Model.ReadMultiByteValue(segStart, 2), 2);
@@ -101,7 +88,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          throw new System.NotImplementedException();
       }
 
-      private int arrayTilesetAddress;
+      public int arrayTilesetAddress;
       public int FindMatchingTileset(IDataModel model) => LzTilemapRun.FindMatchingTileset(this, model, -1, ref arrayTilesetAddress);
 
       public byte[] GetTilemapData() {

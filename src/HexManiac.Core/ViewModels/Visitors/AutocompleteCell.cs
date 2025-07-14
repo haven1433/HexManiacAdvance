@@ -15,29 +15,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
       public AutocompleteCell(IDataModel model, string input, int index) => (Model, InputText, SelectionIndex) = (model, input, index);
 
-      private void VisitNormal() {
-         if (InputText.StartsWith(PointerRun.PointerStart.ToString())) {
-            Result = Model.GetNewPointerAutocompleteOptions(InputText, SelectionIndex);
-         } else if (InputText.StartsWith(ViewPort.GotoMarker.ToString())) {
-            Result = Model.GetNewPointerAutocompleteOptions(InputText, SelectionIndex);
-         } else if (InputText.StartsWith(":")) {
-            Result = Model.GetNewWordAutocompleteOptions(InputText, SelectionIndex);
-         }
-      }
-
       public void Visit(Undefined dataFormat, byte data) { }
 
-      public void Visit(None dataFormat, byte data) => VisitNormal();
-
       public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
-
-      public void Visit(Pointer pointer, byte data) => VisitNormal();
-
-      public void Visit(Anchor anchor, byte data) => anchor.OriginalFormat.Visit(this, data);
-
-      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
-
-      public void Visit(StreamEndDecorator decorator, byte data) => decorator.OriginalFormat.Visit(this, data);
 
       public void Visit(PCS pcs, byte data) { }
 
@@ -83,8 +63,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
       }
 
       public void Visit(BitArray array, byte data) => GenerateOptions(array);
-
-      public void Visit(MatchedWord word, byte data) => VisitNormal();
 
       public void Visit(EndStream stream, byte data) { }
 

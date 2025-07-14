@@ -62,44 +62,6 @@ clr.ImportExtensions(HavenSoft.HexManiac.Core.Models)
 ''')";
       }
 
-      public void RunPython() {
-         ResultText = RunPythonScript(Text).ErrorMessage ?? "null";
-         editor.SelectedTab?.Refresh();
-      }
-
-      public ErrorInfo RunPythonScript(string code) {
-         var (engine, scope) = (this.engine.Value, this.scope.Value);
-         if (editor.SelectedTab is IEditableViewPort vp) {
-            var anchors = AnchorGroup.GetTopLevelAnchorGroups(vp.Model, () => vp.ChangeHistory.CurrentChange);
-            foreach (var key in anchors.Keys) scope.SetVariable(key, anchors[key]);
-         }
-         try {
-            var result = engine.Execute(code, scope);
-            string resultText = result?.ToString();
-            if (result is IEnumerable enumerable && result is not string && result is not IDataModel) {
-               resultText = string.Empty;
-               foreach (var item in enumerable) {
-                  if (resultText.Length > 0) resultText += Environment.NewLine;
-                  resultText += item.ToString();
-               }
-            }
-            if (resultText == null) return ErrorInfo.NoError;
-            return new ErrorInfo(resultText, isWarningLevel: true);
-         } catch (Exception ex) {
-            return new ErrorInfo(ex.Message);
-         }
-      }
-
-      public bool HasFunction(string name) {
-         var result = RunPythonScript($"'{name}' in globals()");
-         return result.IsWarning && result.ErrorMessage == "True";
-      }
-
-      public string GetComment(string functionName) {
-         var result = RunPythonScript($"{functionName}.__doc__");
-         return result.IsWarning ? result.ErrorMessage.Trim() : null;
-      }
-
       public void AddVariable(string name, object value) => scope.Value.SetVariable(name, value);
 
       public void Printer(string text) {
@@ -131,8 +93,6 @@ clr.ImportExtensions(HavenSoft.HexManiac.Core.Models)
          };
          return editor;
       }
-
-      public void Close() => editor.ShowAutomationPanel = false;
    }
 
    public class PythonTextFormatter : ITextPreProcessor {
@@ -153,20 +113,6 @@ clr.ImportExtensions(HavenSoft.HexManiac.Core.Models)
    }
 
    public record TableGetter(EditorViewModel Editor) {
-      public DynamicObject this[string name] {
-         get {
-            if (Editor.SelectedTab is IViewPort viewPort && viewPort.Model is IDataModel model) {
-               var address = model.GetAddressFromAnchor(new(), -1, name);
-               var run = model.GetNextRun(address);
-               ModelDelta factory() => viewPort.ChangeHistory.CurrentChange;
-               if (run is EggMoveRun eggMoveRun) {
-                  return new EggTable(model, factory, eggMoveRun);
-               } else {
-                  return new ModelTable(model, address, factory);
-               }
-            }
-            return null;
-         }
-      }
+      
    }
 }

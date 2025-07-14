@@ -34,27 +34,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
       public static IPixelViewModel Create(IDataModel model, ISpriteRun sprite, IPaletteRun palette, bool useTransparency = false) {
          return SpriteDecorator.BuildSprite(model, sprite, palette, useTransparency);
       }
-
-      public static ReadonlyPixelViewModel Crop(IPixelViewModel pixels, int x, int y, int width, int height) {
-         return TilemapTableRun.Crop(pixels, x, y, Math.Max(0, pixels.PixelWidth - width - x), Math.Max(0, pixels.PixelHeight - height - y));
-      }
-
-      public static IPixelViewModel Render(IPixelViewModel background, IPixelViewModel foreground, int x, int y) {
-         var data = new short[background.PixelData.Length];
-         Array.Copy(background.PixelData, data, background.PixelData.Length);
-
-         for (int yy = 0; yy < foreground.PixelHeight; yy++) {
-            for (int xx = 0; xx < foreground.PixelWidth; xx++) {
-               var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
-               if (pixel == foreground.Transparent) continue;
-               if (x + xx >= background.PixelWidth || y + yy >= background.PixelHeight) continue;
-               if (x + xx < 0 || y + yy < 0) continue;
-               int offset = background.PixelWidth * (y + yy) + x + xx;
-               data[offset] = pixel;
-            }
-         }
-
-         return new ReadonlyPixelViewModel(background.PixelWidth, background.PixelHeight, data, background.Transparent);
-      }
    }
 }

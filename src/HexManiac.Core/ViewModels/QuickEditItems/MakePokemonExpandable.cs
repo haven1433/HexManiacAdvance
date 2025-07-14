@@ -19,47 +19,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
 
       public event EventHandler CanRunChanged;
 
-      public bool CanRun(IViewPort viewPort) {
-         if (viewPort is not ViewPort) return false;
-         if (viewPort.Model.GetGameCode() != "BPRE0") return false;
-         var table = viewPort.Model.GetTable(HardcodeTablesModel.PokemonNameTable);
-         if (table == null || table.ElementCount != 412) return false;
-         if ((viewPort.Model.GetMatchedWords(PokemonCountConstant)?.Count ?? 0) > 0) return false;
-         return true;
-      }
-
-      public Task<ErrorInfo> Run(IViewPort viewPortInterface) {
-         var viewPort = (IEditableViewPort)viewPortInterface;
-         var token = viewPort.ChangeHistory.CurrentChange;
-
-         // increase number of caught/seen flags for pokedex
-         var freespace = UpdatePokedexFlagsCode(viewPort, token);
-
-         // update constants and allow for automatic code updates when the number of pokemon changes
-         var pokecount = UpdateConstants(viewPort, token);
-         var loadPokeCountFunctions = AddPokemonThumbConstantCode(viewPort, token, pokecount, freespace);
-         UpdatePokemonThumbConstants(viewPort, token, loadPokeCountFunctions);
-
-         // update constant and allow for automatic code updates when the size of the pokedex changes
-         var dexCount = viewPort.Model.GetTable(HardcodeTablesModel.DexInfoTableName).ElementCount; // TODO this can fail...
-         var loadDexCountFunctions = AddPokedexThumbConstantCode(viewPort, token, dexCount);
-         UpdatePokedexThumbConstants(viewPort, token, dexCount, loadDexCountFunctions);
-
-         // fix the really stupid table-index switch of PlayCryInternal
-         UpdatePlayCryInternal(viewPort, token);
-
-         UpdateOriginalTablesToMatchLengthToConstants(viewPort, token);
-
-         // still have 0x98 free at 072108 (UpdatePlayCryInternal)
-         // still have 0x20 free at 0549B4 (UpdatePokedexFlagsCode)
-         // still have 0x18 free at 104BA4 (UpdatePokedexFlagsCode, AddPokemonThumbConstantCode)
-
-         // TODO still need to update hall-of-fame data
-
-         return Task.FromResult(ErrorInfo.NoError);
-      }
-
-      private int UpdateConstants(IEditableViewPort viewPort, ModelDelta token) {
+      public int UpdateConstants(IEditableViewPort viewPort, ModelDelta token) {
          var model = viewPort.Model;
          var pokecount = model.GetTable(HardcodeTablesModel.PokemonNameTable).ElementCount; // TODO this can fail...
 
@@ -78,7 +38,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return pokecount;
       }
 
-      private int AddPokemonThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int pokecount, int freespace) {
+      public int AddPokemonThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int pokecount, int freespace) {
          var model = viewPort.Model;
 
          var newCode = viewPort.Tools.CodeTool.Parser.Compile(token, model, freespace,
@@ -124,7 +84,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return freespace;
       }
 
-      private void UpdatePokemonThumbConstants(IEditableViewPort viewPort, ModelDelta token, int pokecountFunctionAddress) {
+      public void UpdatePokemonThumbConstants(IEditableViewPort viewPort, ModelDelta token, int pokecountFunctionAddress) {
          var model = viewPort.Model;
          byte[] compile(int adr, int reg) => viewPort.Tools.CodeTool.Parser.Compile(token, model, adr, $"bl <{pokecountFunctionAddress + reg * 4:X6}>").ToArray();
          var registerUpdates = new[] {
@@ -166,7 +126,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          token.ChangeData(model, 0x12EAB4, viewPort.Tools.CodeTool.Parser.Compile(token, model, 0x12EAB4, $"bl <{pokecountFunctionAddress + 40:X6}>").ToArray()); // Menu2_GetMonSpriteAnchorCoord, species = SPECIES_OLD_UNOWN_B + unownLetter - 1
       }
 
-      private int AddPokedexThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int dexCount) {
+      public int AddPokedexThumbConstantCode(IEditableViewPort viewPort, ModelDelta token, int dexCount) {
          var model = viewPort.Model;
 
          var insertPoint = 0x157868;
@@ -188,7 +148,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return insertPoint;
       }
 
-      private void UpdatePokedexThumbConstants(IEditableViewPort viewPort, ModelDelta token, int dexCount, int dexcountFunctionAddress) {
+      public void UpdatePokedexThumbConstants(IEditableViewPort viewPort, ModelDelta token, int dexCount, int dexcountFunctionAddress) {
          var countMinusOne = new[] { 0x088EA4, 0x1037D4, 0x103870, 0x103920, 0x104C28 };
          foreach (var address in countMinusOne) {
             viewPort.Model.WriteMultiByteValue(address, 2, token, dexCount - 1);
@@ -208,7 +168,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       /// PlayCryInternal has a switch-statement at the end that limits the number of pokemon to 512 (128*4).
       /// We can rewrite that function to remove the limit and simplify the code.
       /// </summary>
-      private void UpdatePlayCryInternal(IEditableViewPort viewPort, ModelDelta token) {
+      public void UpdatePlayCryInternal(IEditableViewPort viewPort, ModelDelta token) {
          var scriptStart = 0x0720C2;
          var scriptLength = 35 * 2;
          var gMPlay_PokemonCry = 0x02037ECC;
@@ -261,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
       /// This function updates ClearPokedexFlags and sub_8104AB0 to use the new expanded arrays.
       /// These 0x200 bytes for caught and 0x200 for seen, meaning you can have up to 4096 pokemon without running out of flags.
       /// </summary>
-      private int UpdatePokedexFlagsCode(IEditableViewPort viewPort, ModelDelta token) {
+      public int UpdatePokedexFlagsCode(IEditableViewPort viewPort, ModelDelta token) {
          var code_ClearPokedexFlags = @"
 0549AC:
     push {lr}
@@ -373,7 +333,7 @@ new_ClearPokedexFlags: @ 104B2C
          return 0x104B58;
       }
 
-      private void UpdateOriginalTablesToMatchLengthToConstants(IEditableViewPort viewPort, ModelDelta token) {
+      public void UpdateOriginalTablesToMatchLengthToConstants(IEditableViewPort viewPort, ModelDelta token) {
          UpdateLength(HardcodeTablesModel.PokemonNameTable, PokemonCountConstant, viewPort.Model, token);
          UpdateLength(HardcodeTablesModel.DexInfoTableName, PokedexCountConstant, viewPort.Model, token);
       }

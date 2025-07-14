@@ -159,11 +159,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
 
       private IDisposable previousScope;
       private IDataFormat[] cache;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var scope = ModelCacheScope.GetCache(data);
-         if (previousScope != scope) UpdateCache(scope, data);
-         return cache[index - Start];
-      }
 
       /// <summary>
       /// In response to a change to the raw data,
@@ -364,40 +359,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
                   cacheIndex++;
                   start++;
                }
-            }
-         }
-      }
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
-         while (length > 0) {
-            if (start >= Start + Length) break;
-            var format = CreateDataFormat(model, start);
-            while (format is IDataFormatDecorator decorator) format = decorator.OriginalFormat;
-            if (format is LzMagicIdentifier) {
-               builder.Append("lz ");
-               start += 1;
-               length -= 1;
-            } else if (format is Integer integer) {
-               var uncompressedLength = model.ReadMultiByteValue(integer.Source, 3);
-               builder.Append($"{uncompressedLength} ");
-               start += 3 - integer.Position;
-               length -= 3 - integer.Position;
-            } else if (format is LzGroupHeader) {
-               builder.Append(model[start].ToHexString() + " ");
-               start += 1;
-               length -= 1;
-            } else if (format is LzUncompressed) {
-               builder.Append(model[start].ToHexString() + " ");
-               start += 1;
-               length -= 1;
-            } else if (format is LzCompressed compressed) {
-               var tempStart = start - compressed.Position;
-               var (runLength, runOffset) = ReadCompressedToken(model, ref tempStart);
-               builder.Append($"{runLength}:{runOffset} ");
-               length -= tempStart - start;
-               start = tempStart;
-            } else {
-               throw new NotImplementedException();
             }
          }
       }

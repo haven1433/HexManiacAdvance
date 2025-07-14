@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public static class PropertyChangedEventHandlerExtensions {
@@ -142,8 +141,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       /// If the backing field's value does not match the new value, the backing field is updated and PropertyChanged gets called.
       /// </summary>
       /// <typeparam name="T">The type of the property being updated.</typeparam>
-      /// <param name="backingField">A reference to the backing field of the property being changed.</param>
-      /// <param name="newValue">The new value for the property.</param>
       /// <param name="propertyName">The name of the property to notify on. If the property is the caller, the compiler will figure this parameter out automatically.</param>
       /// <returns>false if the data did not need to be updated, true if it did.</returns>
       protected bool TryUpdate<T>(ref T field, T value, [CallerMemberName]string propertyName = null) where T : IEquatable<T> {
@@ -196,24 +193,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          backingField = newValue;
          NotifyPropertyChanged(oldValue, propertyName);
          return true;
-      }
-
-      protected StubCommand StubCommand<T>(ref StubCommand field, Action<T> execute, Func<T, bool> canExecute = null) {
-         if (field != null) return field;
-         field = new StubCommand {
-            Execute = arg => execute(arg is T t ? t : default(T)),
-            CanExecute = arg => canExecute?.Invoke((T)arg) ?? true,
-         };
-         return field;
-      }
-
-      protected StubCommand StubCommand(ref StubCommand field, Action execute, Func<bool> canExecute = null) {
-         if (field != null) return field;
-         field = new StubCommand {
-            Execute = arg => execute(),
-            CanExecute = arg => canExecute?.Invoke() ?? true,
-         };
-         return field;
       }
 
       protected static IDisposable Scope<T>(ref T field, T value, Action<T> lambda) {

@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using System;
 using System.ComponentModel;
-using System.Windows.Input;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    /// <summary>
@@ -10,23 +9,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    public interface ITabContent : INotifyPropertyChanged {
       string Name { get; }
       bool IsMetadataOnlyChange { get; }
-      ICommand Save { get; }   // parameter: IFileSystem
-      ICommand SaveAs { get; } // parameter: IFileSystem
-      ICommand ExportBackup { get; } // parameter: IFileSystem
-      ICommand Undo { get; }
-      ICommand Redo { get; }
-      ICommand Copy { get; }   // parameter: IFileSystem
-      ICommand DeepCopy { get; }//parameter: IFileSystem
-      ICommand Clear { get; }
-      ICommand SelectAll { get; }
-      ICommand Goto { get; }   // parameter: target destination as string (example, a hex address)
-      ICommand ResetAlignment { get; }
-      ICommand Back { get; }
-      ICommand Forward { get; }
-      ICommand Close { get; }  // parameter: IFileSystem
-      ICommand Diff { get; }   // parameter: the tab to diff with. If null, then diff with self since last save
-      ICommand DiffLeft { get; }  // send a request to the editor to diff this tab with the tab on the left
-      ICommand DiffRight { get; } // send a request to the editor to diff this tab with the tab on the right
 
       event EventHandler<string> OnError;
       event EventHandler<string> OnMessage;
@@ -48,10 +30,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       void UpsPatchRight();
 
       bool CanDuplicate { get; }
-      void Duplicate();
-
-      void Refresh();
-      bool TryImport(LoadedFile file, IFileSystem fileSystem);
    }
 
    public record TabChangeRequestedEventArgs(ITabContent NewTab) {

@@ -31,31 +31,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
          NotifyPropertyChanged(nameof(PixelData));
       }
 
-      public void Draw(IPixelViewModel foreground, int x, int y) {
-         if (foreground == null) return;
-         if (x >= PixelWidth || y >= PixelHeight) return;
-         for (int yy = 0; yy < foreground.PixelHeight; yy++) {
-            if (y + yy < 0 || y + yy >= PixelHeight) continue;
-            if (foreground.Transparent == -1) {
-               // copy one row at a time, to account for gaps
-               var start = Math.Max(x, 0);
-               var end = Math.Min(x + foreground.PixelWidth, PixelWidth);
-               Array.Copy(foreground.PixelData, foreground.PixelWidth * yy + start - x, PixelData, PixelWidth * (y + yy) + x, end - start);
-            } else {
-               // go through each pixel to look for transparency
-               for (int xx = 0; xx < foreground.PixelWidth; xx++) {
-                  var pixel = foreground.PixelData[foreground.PixelWidth * yy + xx];
-                  if (pixel == foreground.Transparent) continue;
-                  if (x + xx >= PixelWidth) continue;
-                  if (x + xx < 0) continue;
-                  int offset = PixelWidth * (y + yy) + (x + xx);
-                  PixelData[offset] = pixel;
-               }
-            }
-         }
-         NotifyPropertyChanged(nameof(PixelData));
-      }
-
       public void DrawBox(int x, int y, int size, short color) => DrawRect(x, y, size, size, color);
 
       public void DrawRect(int x, int y, int width, int height, short color) {

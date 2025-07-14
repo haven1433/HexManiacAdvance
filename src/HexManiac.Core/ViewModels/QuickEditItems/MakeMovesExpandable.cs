@@ -48,37 +48,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
          return true;
       }
 
-      public async Task<ErrorInfo> Run(IViewPort viewPortInterface) {
-         var viewPort = (IEditableViewPort)viewPortInterface;
-         var model = viewPort.Model;
-         var token = viewPort.ChangeHistory.CurrentChange;
-         var parser = viewPort.Tools.CodeTool.Parser;
-
-         ErrorInfo error;
-         error = await ExpandMoveEffects(parser, viewPort, token, .5);
-         if (error.HasError) return error;
-
-         // update limiters for move names
-         error = ReplaceAll(parser, model, token,
-            new[] { "mov r0, #177", "lsl r0, r0, #1", "cmp r1, r0" },
-            new[] { "mov r0, #177", "lsl r0, r0, #9", "cmp r1, r0" });
-         if (error.HasError) return error;
-         await viewPort.UpdateProgress(.6);
-
-         // update levelup moves (update limit from 20 to 25)
-         var storeFreeSpaceBuffer = viewPort.Model.FreeSpaceBuffer;
-         viewPort.Model.FreeSpaceBuffer = 0;
-         using (new StubDisposable { Dispose = () => viewPort.Model.FreeSpaceBuffer = storeFreeSpaceBuffer }) {
-            ExpandLevelUpMoveData(viewPort.Model, token);
-         }
-         await viewPort.UpdateProgress(.7);
-         await ExpandLevelUpMoveCode(viewPort, token, .7, 1);
-
-         viewPort.Refresh();
-         CanRunChanged?.Invoke(this, EventArgs.Empty);
-         return ErrorInfo.NoError;
-      }
-
       public static async Task<ErrorInfo> ExpandMoveEffects(ThumbParser parser, IEditableViewPort viewPort, ModelDelta token, double targetLoadingPercent) {
          // make move effects 2 bytes instead of 1 byte
          var model = viewPort.Model;
@@ -259,11 +228,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems {
             throw new NotImplementedException("There was an unexpected error creating the new table: " + errorInfo.ErrorMessage);
          }
          model.ObserveAnchorWritten(token, LevelMovesTableName, newTableRun);
-      }
-
-      public static async Task ExpandLevelUpMoveCode(IEditableViewPort viewPort, ModelDelta token, double loadingStart, double loadingEnd) {
-         var script = File.ReadAllText(ExpandLevelUpMovesCode);
-         await viewPort.Edit(script, loadingStart, loadingEnd);
       }
 
       const byte OriginalElementLength = 13, NewElementLength = 17;

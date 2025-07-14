@@ -39,65 +39,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewDataIndex = memoryLocation;
       }
 
-      public void Visit(Undefined dataFormat, byte data) => Visit((None)null, data);
-
-      public void Visit(None dataFormat, byte data) {
-         if (CurrentText.StartsWith(PointerStart.ToString())) {
-            if (CurrentText.Last() != PointerEnd && CurrentText.Last() != ' ') return;
-            CompletePointerEdit();
-            Result = true;
-         } else if (CurrentText.StartsWith("::")) {
-            if (CurrentText.Last() != ' ') return;
-            CompleteWordEdit();
-            Result = true;
-         } else if (CurrentText.StartsWith(":")) {
-            if (CurrentText.Last() != ' ') return;
-            CompleteNamedConstantEdit(2);
-            Result = true;
-         } else if (CurrentText.StartsWith(".")) {
-            if (CurrentText.Last() != ' ') return;
-            CompleteNamedConstantEdit(1);
-            Result = true;
-         } else {
-            if (CurrentText.Length < 2) return;
-            CompleteHexEdit(CurrentText);
-            Result = true;
-         }
-      }
-
       public void Visit(UnderEdit dataFormat, byte data) => throw new NotImplementedException();
-
-      public void Visit(Pointer pointer, byte data) {
-         var run = Model.GetNextRun(memoryLocation);
-         if (run is ITableRun && CurrentText[0] != PointerStart) {
-            ErrorText = "Pointers in tables cannot be removed without removing the table.";
-            return;
-         }
-
-         Visit((None)null, data);
-      }
-
-      public void Visit(Anchor anchor, byte data) {
-         anchor.OriginalFormat.Visit(this, data);
-         if (NewCell != null) NewCell = new HexElement(NewCell, new Anchor(NewCell.Format, anchor.Name, anchor.Format, anchor.Sources));
-      }
-
-      public void Visit(SpriteDecorator sprite, byte data) => sprite.OriginalFormat.Visit(this, data);
-
-      public void Visit(StreamEndDecorator decorator, byte data) {
-         if (CurrentText == "[]") {
-            var run = (TableStreamRun)Model.GetNextRun(memoryLocation);
-            var newDesiredElementCount = (memoryLocation - run.Start) / run.ElementLength;
-            var newRun = run.Append(CurrentChange, newDesiredElementCount - run.ElementCount);
-            Model.ObserveRunWritten(CurrentChange, newRun);
-            for (int i = newRun.Length; i < run.Length; i++) CurrentChange.ChangeData(Model, newRun.Start + i, 0xFF);
-            var endTokenLength = run.Length - run.ElementLength * run.ElementCount;
-            NewDataIndex = memoryLocation + endTokenLength;
-            Result = true;
-         } else {
-            decorator.OriginalFormat.Visit(this, data);
-         }
-      }
 
       public void Visit(PCS pcs, byte data) => VisitPCS(pcs);
 
@@ -260,35 +202,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             Model.ObserveRunWritten(CurrentChange, lvlRun);
          }
       }
-
-      public void Visit(BitArray array, byte data) {
-         var currentText = CurrentText.Replace(" ", "");
-         if (currentText.All(ViewPort.AllHexCharacters.Contains) && currentText.Length == array.Length * 2) {
-            HandleHexChangeToBitArray(array, currentText);
-            return;
-         }
-         if (CurrentText.Equals("-")) {
-            HandleBitArrayClear(array);
-            return;
-         }
-         if (CurrentText.EndsWith(" ") && !CurrentText.StartsWith("\"")) {
-            currentText = CurrentText.Replace(" ", "");
-            if (!(currentText.All(ViewPort.AllHexCharacters.Contains) && (CurrentText.Count(c => c == ' ') > 1 || currentText.Length == 2))) {
-               HandleBitArrayEntry(CurrentText);
-               return;
-            }
-         }
-         if (CurrentText.StartsWith("\"") && CurrentText.Trim().EndsWith("\"") && CurrentText.Length > 1) {
-            HandleBitArrayEntry(CurrentText);
-            return;
-         }
-         if (CurrentText == "/") {
-            NewDataIndex = memoryLocation + array.Length;
-            Result = true;
-         }
-      }
-
-      public void Visit(MatchedWord word, byte data) => Visit((None)null, data);
 
       public void Visit(EndStream endStream, byte data) {
          // the only valid edit for an EndStream is to extend the stream, or to write the end token to move past it.
@@ -654,88 +567,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          NewCell = new HexElement(0xFF, true, new Braille(format.Source, format.Position, StringDelimeter));
          NewDataIndex = memoryLocation + 1;
          Model.ObserveRunWritten(CurrentChange,new BrailleRun(Model,run.Start,run.PointerSources));
-      }
-
-      private void CompletePointerEdit() {
-         // if they just started a pointer and then clicked off, there's nothing to complete
-         if (CurrentText == PointerStart + " ") return;
-
-         var destination = CurrentText.Substring(1, CurrentText.Length - 2);
-
-         if (destination.Length == 2 && destination.All(ViewPort.AllHexCharacters.Contains)) { CompleteHexEdit(destination); return; }
-
-         Model.ExpandData(CurrentChange, memoryLocation + 3);
-
-         var currentRun = Model.GetNextRun(memoryLocation);
-         if (currentRun.Start > memoryLocation) currentRun = null;
-         bool inArray = currentRun is ITableRun && currentRun.Start <= memoryLocation;
-         var sources = currentRun?.PointerSources;
-         var previousRawDestination = Model.ReadValue(memoryLocation) - BaseModel.PointerOffset; // we care what the bytes are, not the logical destination
-
-         if (!inArray) {
-            Model.ClearFormat(CurrentChange, memoryLocation, 4);
-            sources = null;
-         }
-
-         var (destinationValue, offset) = ParseDestination(destination);
-         if (destinationValue + offset != previousRawDestination) {
-            Model.ClearPointer(CurrentChange, memoryLocation, previousRawDestination);
-            Model.ClearData(CurrentChange, memoryLocation, 4);
-         }
-
-         var fullValue = destinationValue + offset;
-         if (fullValue == Pointer.NULL || (0 <= fullValue && fullValue < Model.Count)) {
-            if (inArray) {
-               UpdateArrayPointer((ITableRun)currentRun, fullValue);
-            } else {
-               if (Model.ReadPointer(memoryLocation) != fullValue) {
-                  Model.WritePointer(CurrentChange, memoryLocation, fullValue);
-               }
-               var newRun = new PointerRun(memoryLocation, sources);
-               if (offset != 0) newRun = new OffsetPointerRun(memoryLocation, offset, sources);
-               Model.ObserveRunWritten(CurrentChange, newRun);
-            }
-
-            NewDataIndex = memoryLocation + 4;
-         } else {
-            ErrorText = $"Address {destinationValue:X2} is not within the data.";
-         }
-      }
-
-      /// <summary>
-      /// Reads the user's text and current context to decide the destination for a new pointer.
-      /// Can set ErrorText if there is an error in this process.
-      /// </summary>
-      private (int, int) ParseDestination(string destination) {
-         int destinationValue;
-         int offset = 0;
-         if (destination == string.Empty) {
-            destinationValue = Model.ReadPointer(memoryLocation);
-         } else if (destination.All(ViewPort.AllHexCharacters.Contains) && destination.Length <= 7) {
-            while (destination.Length < 6) destination = "0" + destination;
-            destinationValue = int.Parse(destination, NumberStyles.HexNumber);
-         } else if (destination.Contains("+") && !destination.Contains("-")) {
-            var destinationParts = destination.Split("+");
-            if (!int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out destinationValue)) {
-               destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destinationParts[0]);
-            }
-            if (!int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
-               ErrorText = $"Could not parse {destinationParts[0]}+{destinationParts[1]} into an address.";
-            }
-         } else if (destination.Contains("-") && !destination.Contains("+")) {
-            var destinationParts = destination.Split("-");
-            if (!int.TryParse(destinationParts[0], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out destinationValue)) {
-               destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destinationParts[0]);
-            }
-            if (!int.TryParse(destinationParts[1], NumberStyles.HexNumber, CultureInfo.CurrentCulture, out offset)) {
-               ErrorText = $"Could not parse {destinationParts[0]}-{destinationParts[1]} into an adress.";
-            }
-            offset = -offset;
-         } else {
-            destinationValue = Model.GetAddressFromAnchor(CurrentChange, memoryLocation, destination);
-         }
-
-         return (destinationValue, offset);
       }
 
       private void CompleteWordEdit() {

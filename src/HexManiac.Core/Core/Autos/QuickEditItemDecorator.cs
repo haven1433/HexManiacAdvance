@@ -4,23 +4,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems
     public class QuickEditItemDecorator : IQuickEditItem
     {
         protected IQuickEditItem InnerQuickEditItem { get; set; }
-        public virtual bool CanRun(HavenSoft.HexManiac.Core.ViewModels.IViewPort viewPort)
-        {
-            if (InnerQuickEditItem != null)
-            {
-                return InnerQuickEditItem.CanRun(viewPort);
-            }
-            return default(bool);
-        }
-        
-        public virtual System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo> Run(HavenSoft.HexManiac.Core.ViewModels.IViewPort viewPort)
-        {
-            if (InnerQuickEditItem != null)
-            {
-                return InnerQuickEditItem.Run(viewPort);
-            }
-            return default(System.Threading.Tasks.Task<HavenSoft.HexManiac.Core.Models.ErrorInfo>);
-        }
         
         public virtual void TabChanged()
         {
@@ -37,17 +20,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.QuickEditItems
                 if (InnerQuickEditItem != null)
                 {
                     return InnerQuickEditItem.Name;
-                }
-                return default(string);
-            }
-        }
-        public virtual string Description
-        {
-            get
-            {
-                if (InnerQuickEditItem != null)
-                {
-                    return InnerQuickEditItem.Description;
                 }
                 return default(string);
             }

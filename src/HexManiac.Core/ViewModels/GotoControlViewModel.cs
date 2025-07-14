@@ -9,26 +9,25 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using static HavenSoft.HexManiac.Core.ICommandExtensions;
 
 namespace HavenSoft.HexManiac.Core.ViewModels {
    public class GotoShortcutViewModel : ViewModelCore {
-      private readonly GotoControlViewModel viewModel;
-      private readonly IViewPort viewPort;
-      private readonly string anchor;
+      public readonly GotoControlViewModel viewModel;
+      public readonly IViewPort viewPort;
+      public readonly string anchor;
 
       public string DisplayText { get; }
 
       public IPixelViewModel Image { get; }
 
-      private bool smallMode;
+      public bool smallMode;
       public bool SmallMode {
          get => smallMode;
          set => Set(ref smallMode, value);
       }
 
-      private bool visible = true;
+      public bool visible = true;
       public bool Visible { get => visible; set => Set(ref visible, value); }
 
       public GotoShortcutViewModel(GotoControlViewModel parent, IViewPort viewPort, IPixelViewModel image, string anchor, string display) {
@@ -38,22 +37,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          this.anchor = anchor;
          DisplayText = display;
       }
-
-      public void Goto() {
-         viewModel.ControlVisible = false;
-         viewModel.ShowAll = false;
-         viewPort.Goto.Execute(anchor);
-      }
    }
 
    public class GotoControlViewModel : ViewModelCore {
-      private readonly IEditableViewPort viewPort;
-      private IReadOnlyList<DocLabel> availableDocs;
-      private bool withinTextChange = false, devMode = false;
+      public readonly IEditableViewPort viewPort;
+      public IReadOnlyList<DocLabel> availableDocs;
+      public bool withinTextChange = false, devMode = false;
 
       #region NotifyProperties
 
-      private bool controlVisible;
+      public bool controlVisible;
       public bool ControlVisible {
          get => controlVisible;
          set {
@@ -62,28 +55,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private bool loading = true;
+      public bool loading = true;
       public bool Loading { get => loading; set => Set(ref loading, value); }
 
-      private string text = string.Empty;
-      public string Text {
-         get => text;
-         set {
-            if (viewPort?.Model == null) return;
-            if (TryUpdate(ref text, value)) {
-               ShowAll = true;
-               withinTextChange = true;
-               using (new StubDisposable { Dispose = () => withinTextChange = false }) {
-                  RefreshOptions();
-               }
-            }
-         }
-      }
-      public void RefreshOptions() {
-         UpdatePrefixSelectionsAfterTextChange();
-      }
-
-      private int completionIndex = -1;
+      public string text = string.Empty;
+      public int completionIndex = -1;
       public int CompletionIndex {
          get => completionIndex;
          set {
@@ -93,45 +69,36 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
       }
 
-      private bool showAutoCompleteOptions;
+      public bool showAutoCompleteOptions;
       public bool ShowAutoCompleteOptions {
          get => showAutoCompleteOptions;
          set => TryUpdate(ref showAutoCompleteOptions, value);
       }
 
-      private IReadOnlyList<AutoCompleteSelectionItem> autoCompleteOptions = new AutoCompleteSelectionItem[0];
+      public IReadOnlyList<AutoCompleteSelectionItem> autoCompleteOptions = new AutoCompleteSelectionItem[0];
       public IReadOnlyList<AutoCompleteSelectionItem> AutoCompleteOptions {
          get => autoCompleteOptions;
-         private set => TryUpdateSequence<IReadOnlyList<AutoCompleteSelectionItem>, AutoCompleteSelectionItem>(ref autoCompleteOptions, value);
+         set => TryUpdateSequence<IReadOnlyList<AutoCompleteSelectionItem>, AutoCompleteSelectionItem>(ref autoCompleteOptions, value);
       }
 
-      private bool showAll;
+      public bool showAll;
       public bool ShowAll { get => showAll; set => Set(ref showAll, value, oldValue => {
          if (showAll) MoveFocusToGoto?.Invoke(this, EventArgs.Empty);
          UpdateShortcutSize();
       }); }
 
-      private void UpdateShortcutSize() {
+      public void UpdateShortcutSize() {
          foreach (var shortcut in shortcuts) shortcut.SmallMode = false;
       }
 
-      private bool allowToggleShowAll = true;
+      public bool allowToggleShowAll = true;
       public bool AllowToggleShowAll { get => allowToggleShowAll; set => Set(ref allowToggleShowAll, value); }
-
-      #endregion
-
-      #region Commands
-
-      public ICommand MoveAutoCompleteSelectionUp { get; }
-      public ICommand MoveAutoCompleteSelectionDown { get; }
-      public ICommand Goto { get; }
-      public ICommand ShowGoto { get; }                        // arg -> true to show, false to hide
 
       #endregion
 
       public event EventHandler MoveFocusToGoto;
 
-      private ObservableCollection<GotoShortcutViewModel> shortcuts = new();
+      public ObservableCollection<GotoShortcutViewModel> shortcuts = new();
       public ObservableCollection<GotoShortcutViewModel> Shortcuts {
          get => shortcuts;
          set {
@@ -143,161 +110,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public ObservableCollection<GotoLabelSection> PrefixSelections { get; }
 
-      public GotoControlViewModel(ITabContent tabContent, IWorkDispatcher dispatcher, IReadOnlyList<DocLabel> docs, bool devMode) {
-         availableDocs = docs;
-         viewPort = (tabContent as IEditableViewPort);
-         this.devMode = devMode;
-         if (tabContent is MapEditorViewModel mevm) viewPort = mevm.ViewPort;
-
-         MoveAutoCompleteSelectionUp = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => CompletionIndex--,
-         };
-         MoveAutoCompleteSelectionDown = new StubCommand {
-            CanExecute = CanAlwaysExecute,
-            Execute = arg => CompletionIndex++,
-         };
-         Goto = new StubCommand {
-            CanExecute = arg => viewPort?.Goto != null,
-            Execute = arg => {
-               viewPort.Model.InitializationWorkload.ContinueWith(task => dispatcher.DispatchWork(() => {
-                  var text = Text;
-                  var index = completionIndex.LimitToRange(-1, AutoCompleteOptions.Count - 1);
-                  if (index != -1) text = AutoCompleteOptions[index].CompletionText;
-                  if (arg is string) text = (string)arg;
-                  if (viewPort is ViewPort editableViewport && text.StartsWith("@") && text.Contains(" ") && (text.Contains("^") || text.Contains("!"))) {
-                     // user just put a paste-script into the goto field.
-                     // this starts with a meta-input and then contains an anchor definition or another meta command.
-                     // Since this is clearly not meant to be a goto, just do it as an Edit instead.
-                     editableViewport.Edit(text + " ");
-                  } else {
-                     viewPort?.Goto?.Execute(text);
-                  }
-                  ControlVisible = false;
-                  ShowAutoCompleteOptions = false;
-               }), TaskContinuationOptions.ExecuteSynchronously);
-            },
-         };
-         ShowGoto = new StubCommand {
-            CanExecute = arg => viewPort?.Goto != null && (arg is bool || arg is null),
-            Execute = arg => {
-               AllowToggleShowAll = false;
-               ControlVisible = (bool)(arg ?? !ControlVisible);
-            },
-         };
-         PrefixSelections = new ObservableCollection<GotoLabelSection>();
-         UpdatePrefixSelectionsAfterTextChange();
-      }
-
       public void UpdateDocs(IList<DocLabel> docs) {
          availableDocs = availableDocs.Concat(docs).ToList();
       }
 
-      private void UpdatePrefixSelectionsAfterTextChange() {
-         var previousSelections = GotoLabelSection.GetSectionSelections(PrefixSelections).ToArray();
-         PrefixSelections.Clear();
-         if (viewPort == null || viewPort.Model == null) return;
-         var section = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, viewPort is ViewPort vp && vp.HasValidMapper);
-         PrefixSelections.Add(AddListeners(section));
-         for (int i = 0; i < previousSelections.Length; i++) {
-            if (PrefixSelections.Count <= i) break;
-            var matchingToken = PrefixSelections[i].Tokens.FirstOrDefault(token => token.Content == previousSelections[i]);
-            if (matchingToken == null) break;
-            matchingToken.IsSelected = true;
-         }
-         UpdateTooltips();
-         foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
-      }
+      public void OpenLink(string link) => NativeProcess.Start(link);
 
-      private void UpdatePrefixSelectionsAfterSelectionMade() {
-         var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections));
-         var address = Pointer.NULL;
-         var matchedWords = viewPort.Model.GetMatchedWords(currentSelection);
-         ShowAll = true;
-         if (matchedWords.Count > 0) {
-            viewPort?.Goto?.Execute(currentSelection);
-            ControlVisible = false;
-            ShowAutoCompleteOptions = false;
-            DeselectLastRow();
-            return;
-         }
-
-         var matchedMaps = viewPort.Model.GetMatchingMaps(currentSelection);
-         if (matchedMaps.Count == 1 || matchedMaps.Any(map => map.Name == currentSelection)) {
-            // if we can add a new section, then don't go to a map
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, viewPort is ViewPort vp1 && vp1.HasValidMapper);
-            if (newSection.Tokens.Count == 0) {
-               viewPort?.Goto?.Execute(currentSelection);
-               ControlVisible = false;
-               ShowAutoCompleteOptions = false;
-               DeselectLastRow();
-               return;
-            }
-         }
-
-         var matchingDoc = availableDocs.FirstOrDefault(doc => doc.Label == currentSelection);
-         if (matchingDoc != null && viewPort is ViewPort vp) {
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, vp.HasValidMapper);
-            if (newSection.Tokens.Count == 0) {
-               OpenLink(matchingDoc.Url);
-               ControlVisible = false;
-               ShowAutoCompleteOptions = false;
-               DeselectLastRow();
-               return;
-            }
-         }
-
-         using (ModelCacheScope.CreateScope(viewPort.Model)) {
-            address = viewPort.Model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, currentSelection);
-         }
-         if (address != Pointer.NULL && !withinTextChange) {
-            viewPort?.Goto?.Execute(address);
-            ControlVisible = false;
-            ShowAutoCompleteOptions = false;
-            DeselectLastRow();
-         } else if (address != Pointer.NULL) {
-            // we could go to the address, but this is a text change.
-            // The user may try to click the button.
-            // Deselect it.
-            DeselectLastRow();
-         } else {
-            var newSection = GotoLabelSection.Build(viewPort.Model, Text, availableDocs, PrefixSelections, viewPort is ViewPort vp2 && vp2.HasValidMapper);
-            PrefixSelections.Add(AddListeners(newSection));
-            foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
-         }
-         UpdateTooltips();
-      }
-
-      private void OpenLink(string link) => NativeProcess.Start(link);
-
-      private void UpdateTooltips() {
-         using (ModelCacheScope.CreateScope(viewPort.Model)) {
-            foreach (var prefix in PrefixSelections) {
-               var currentSelection = string.Join(".", GotoLabelSection.GetSectionSelections(PrefixSelections.Until(section => section == prefix)));
-               foreach (var token in prefix.Tokens) {
-                  var fullName = token.Content;
-                  if (!string.IsNullOrEmpty(currentSelection)) fullName = currentSelection + "." + token.Content;
-                  token.UpdateHoverTip(viewPort, availableDocs, fullName);
-               }
-            }
-         }
-      }
-
-      private void DeselectLastRow() {
+      public void DeselectLastRow() {
          ShowAll = true;
          foreach (var token in PrefixSelections.Last().Tokens) token.IsSelected = false;
-      }
-
-      private GotoLabelSection AddListeners(GotoLabelSection section) {
-         section.ClearLowerRows += (sender, e) => {
-            var index = PrefixSelections.IndexOf(sender);
-            while (index >= 0 && PrefixSelections.Count > index + 1) PrefixSelections.RemoveAt(PrefixSelections.Count - 1);
-            foreach (var sc in shortcuts) sc.Visible = PrefixSelections.Count == 1;
-         };
-         section.GenerateLowerRow += (sender, e) => {
-            UpdatePrefixSelectionsAfterSelectionMade();
-         };
-         return section;
       }
    }
 
@@ -341,7 +162,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public static bool EditorReleased => mapEditorRelease.Value;
 
-      private static readonly Lazy<bool> mapEditorRelease;
+      public static readonly Lazy<bool> mapEditorRelease;
       static IDataModelExtensions() {
          TimeZoneInfo centralZone = TimeZoneInfo.FindSystemTimeZoneById("Central Standard Time");
          mapEditorRelease = new(() => {
@@ -368,8 +189,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class GotoLabelSection : ViewModelCore {
-      private const int MaxCategories = 49;
-      private int width, height;
+      public const int MaxCategories = 49;
+      public int width, height;
       public int Width { get => width; set => Set(ref width, value); }
       public int Height { get => height; set => Set(ref height, value); }
       public ObservableCollection<GotoToken> Tokens { get; }
@@ -404,7 +225,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Initialize();
       }
 
-      private string DotSplit(string content) {
+      public string DotSplit(string content) {
          var parts = content.Split(".");
          var firstPart = parts[0];
          for (int i = 1; i < parts.Length; i++) {
@@ -435,7 +256,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Initialize();
       }
 
-      private void Initialize() {
+      public void Initialize() {
          height = (int)Math.Floor(Math.Sqrt(Tokens.Count));
          width = (int)Math.Ceiling(Tokens.Count / (double)height);
          foreach (var token in Tokens) {
@@ -483,19 +304,19 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public class GotoToken : ViewModelCore {
-      private bool isSelected;
+      public bool isSelected;
       public bool IsSelected { get => isSelected; set => Set(ref isSelected, value); }
 
-      private bool isSelectable = true;
+      public bool isSelectable = true;
       public bool IsSelectable { get => isSelectable; set => Set(ref isSelectable, value); }
 
-      private string content;
+      public string content;
       public string Content { get => content; set => Set(ref content, value); }
 
-      private bool isGoto; // true if clicking this button causes a goto, false if it opens another section.
+      public bool isGoto; // true if clicking this button causes a goto, false if it opens another section.
       public bool IsGoto { get => isGoto; set => Set(ref isGoto, value); }
 
-      private ObservableCollection<object> hoverTip;
+      public ObservableCollection<object> hoverTip;
       public ObservableCollection<object> HoverTip {
          get => hoverTip;
          set { hoverTip = value; NotifyPropertyChanged(); }
@@ -505,53 +326,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var collection = new ObservableCollection<GotoToken>();
          foreach (var c in content) collection.Add(new GotoToken { Content = c });
          return collection;
-      }
-
-      public void UpdateHoverTip(IEditableViewPort viewPort, IReadOnlyList<DocLabel> docs, string fullName) {
-         var model = viewPort.Model;
-         var matchingMaps = new List<MapInfo>();
-         if (fullName.StartsWith("maps.bank") && fullName.Contains("-")) matchingMaps = model.GetMatchingMaps(fullName);
-         var address = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, fullName);
-         var matchingDoc = docs.FirstOrDefault(doc => doc.Label == fullName);
-         if (address != Pointer.NULL) {
-            IsGoto = true;
-            var run = model.GetNextRun(address);
-            if (run != null && address == run.Start) {
-               var hoverContent = ToolTipContentVisitor.BuildContentForRun(model, -1, address, run);
-               if (hoverContent != null) {
-                  HoverTip = new ObservableCollection<object> { hoverContent };
-                  return;
-               }
-            }
-         } else if (matchingMaps.Count == 1 && viewPort.MapEditor != null) {
-            IsGoto = true;
-            var info = matchingMaps[0];
-            var hoverContent = viewPort.MapEditor.GetMapPreview(info.Group, info.Map, null);
-            if (hoverContent != null) {
-               var scale = 1.0;
-               if (hoverContent.PixelWidth >= 240 * 4 || hoverContent.PixelHeight >= 160 * 4) {
-                  scale = .25;
-               } else if (hoverContent.PixelWidth >= 240 * 2 || hoverContent.PixelHeight >= 160 * 2) {
-                  scale = .5;
-               }
-               if (scale < 1) {
-                  hoverContent = new ReadonlyPixelViewModel(hoverContent.PixelWidth, hoverContent.PixelHeight, hoverContent.PixelData, hoverContent.Transparent) {
-                     SpriteScale = scale
-                  };
-               }
-               HoverTip = new ObservableCollection<object> { hoverContent };
-               return;
-            }
-         } else if (matchingDoc != null) {
-            IsGoto = true;
-            HoverTip = new ObservableCollection<object> { "Web Link" };
-         } else if (model.GetMatchedWords(fullName).Count > 0) {
-            IsGoto = true;
-         } else {
-            IsGoto = false;
-         }
-
-         HoverTip = null;
       }
    }
 }

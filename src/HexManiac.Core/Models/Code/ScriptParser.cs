@@ -38,12 +38,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
       public int GetScriptSegmentLength(IDataModel model, int address) => engine.GetScriptSegmentLength(gameHash, model, address, new Dictionary<int, int>());
 
-      public string Parse(IDataModel data, int start, int length, ref int existingSectionCount, CodeBody updateBody = null) {
-         var builder = new StringBuilder();
-         foreach (var line in Decompile(data, start, length, updateBody, ref existingSectionCount)) builder.AppendLine(line);
-         return builder.ToString();
-      }
-
       public List<int> CollectScripts(IDataModel model, int address) {
          // do some basic validation to make sure this is actually a reasonable thing to decode
          var currentRun = model.GetNextRun(address);
@@ -878,85 +872,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             }
          }
          return -1;
-      }
-
-      private string[] Decompile(IDataModel data, int index, int length, CodeBody updateBody, ref int existingSectionCount) {
-         var results = new List<string>();
-         var nextAnchor = data.GetNextAnchor(index);
-         var destinations = new Dictionary<int, int>();
-
-         ISet<int> linesWithLabelsToUpdate = new HashSet<int>();
-         var labels = new DecompileLabelLibrary(data, index, length);
-         var streamTypes = new List<ExpectedPointerType>();
-
-         while (length > 0) {
-            if (index == nextAnchor.Start) {
-               if (nextAnchor is IScriptStartRun) {
-                  if (results.Count > 0) results.Add(string.Empty);
-                  results.Add($"{labels.AddressToLabel(nextAnchor.Start, true)}: # {nextAnchor.Start:X6}");
-                  linesWithLabelsToUpdate.Add(results.Count - 1);
-               } else if (nextAnchor is IStreamRun) {
-                  if (destinations.ContainsKey(index)) {
-                     index += nextAnchor.Length;
-                     length -= nextAnchor.Length;
-                  }
-               }
-               nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
-               continue;
-            } else if (index > nextAnchor.Start) {
-               nextAnchor = data.GetNextAnchor(nextAnchor.Start + nextAnchor.Length);
-               continue;
-            }
-
-            var line = engine.FirstOrDefault(option => option.Matches(gameHash, data, index));
-            if (line == null) {
-               results.Add($".raw {data[index]:X2}");
-               index += 1;
-               length -= 1;
-            } else {
-               results.Add("  " + line.Decompile(data, index, labels, streamTypes));
-               if (line.Args.Any(arg => arg.Type == ArgType.Pointer && arg.PointerType == ExpectedPointerType.Script)) {
-                  linesWithLabelsToUpdate.Add(results.Count - 1);
-               }
-               var compiledByteLength = line.CompiledByteLength(data, index, destinations);
-               index += compiledByteLength;
-               length -= compiledByteLength;
-
-               // if we point to shortly after, keep going
-               if (destinations.ContainsKey(index) && nextAnchor is IScriptStartRun && nextAnchor.Start == index) continue;
-               if (destinations.ContainsKey(index + 1) && nextAnchor is IScriptStartRun && nextAnchor.Start == index + 1) continue;
-               if (destinations.ContainsKey(index) && nextAnchor is IStreamRun && nextAnchor.Start == index) continue;
-               if (destinations.ContainsKey(index + 1) && nextAnchor is IStreamRun && nextAnchor.Start == index + 1) continue;
-               if (destinations.ContainsKey(index + 2) && nextAnchor is IStreamRun && nextAnchor.Start == index + 2) continue;
-               if (destinations.ContainsKey(index + 3) && nextAnchor is IStreamRun && nextAnchor.Start == index + 3) continue;
-
-               // if we're at an end command, don't keep going
-               if (line.IsEndingCommand) break;
-            }
-         }
-
-         // post processing: if a line has a stream pointer to within the script,
-         // change that pointer to be an -auto- pointer
-         foreach (var label in labels.AutoLabels.ToList()) {
-            var autoIndex = results.Count.Range().FirstOrDefault(i => results[i].Contains($"<{label:X6}>"));
-            var autoRun = data.GetNextRun(label);
-            var runIsStream = autoRun is IStreamRun;
-
-            if (runIsStream) {
-               results[autoIndex] = results[autoIndex].Replace($"<{label:X6}>", "<auto>");
-            } else {
-               continue;
-            }
-         }
-
-         // post processing: change the section labels to be in address order
-         var sections = labels.FinalizeLabels(ref existingSectionCount);
-         foreach (int i in linesWithLabelsToUpdate) {
-            results[i] = labels.FinalizeLine(sections, results[i]);
-         }
-
-         if (updateBody != null) updateBody.StreamTypes = streamTypes;
-         return results.ToArray();
       }
    }
 

@@ -20,7 +20,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       int CompiledByteLength(IDataModel model, int start, IDictionary<int, int> destinationLengths); // compile from the bytes in the model, at that start location
       int CompiledByteLength(IDataModel model, string line); // compile from the line of code passed in
       bool Matches(int gameCodeHash, IReadOnlyList<byte> data, int index);
-      string Decompile(IDataModel data, int start, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes);
 
       /// <summary>
       /// Returns true if the command looks correct, even if the arguments are incomplete.
@@ -181,46 +180,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             index += arg.Length(default, -1);
          }
          return true;
-      }
-
-      public string Decompile(IDataModel data, int start, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
-         var builder = new StringBuilder(LineCommand);
-         var streamContent = new List<string>();
-         var args = new List<string>();
-         var shiftNames = new Dictionary<string, int>();
-         var carryNames = new Dictionary<string, int>();
-         int i = 0;
-         foreach (var arg in Args) {
-            if (arg is ScriptArg sarg) {
-               var tempBuilder = new StringBuilder();
-               int shift = 0, carry = 0;
-               var argLength = sarg.Length(data, start);
-               if (!shortIndexFromLongIndex.TryGetValue(i, out var shortIndex)) {
-                  var shortArg = ShortFormArgs.FirstOrDefault(arg => arg.Name == sarg.Name);
-                  if (shortArg != null && shortArg.Length(data, start) != argLength) {
-                     if (!carryNames.TryGetValue(sarg.Name, out carry)) carry = 0;
-                     if (!shiftNames.TryGetValue(sarg.Name, out shift)) shift = 0;
-                     shiftNames[sarg.Name] = shift + 8 * argLength;
-                     carryNames[sarg.Name] = carry + (data.ReadMultiByteValue(start, argLength) << shift);
-                  }
-               }
-               sarg.Build(false, data, start, tempBuilder, streamContent, shift, carry, labels, streamTypes);
-               args.Add(tempBuilder.ToString());
-               i += 1;
-            }
-            start += arg.Length(data, start);
-         }
-         if (args.Count > 0) {
-            builder.Append(" ");
-            builder.Append(" ".Join(ConvertLongFormToShortForm(args.ToArray())));
-         }
-         foreach (var content in streamContent) {
-            builder.AppendLine();
-            builder.AppendLine("{");
-            builder.AppendLine(content);
-            builder.Append("}");
-         }
-         return builder.ToString();
       }
 
       public bool CanCompile(string line) {
@@ -491,38 +450,6 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
          result = results.ToArray();
          return null;
-      }
-
-      public string Decompile(IDataModel data, int start, DecompileLabelLibrary labels, IList<ExpectedPointerType> streamTypes) {
-         for (int i = 0; i < LineCode.Count; i++) {
-            if (LineCode[i] != data[start + i]) throw new ArgumentException($"Data at {start:X6} does not match the {LineCommand} command.");
-         }
-         var allFillerIsZero = IsAllFillerZero(data, start);
-         start += LineCode.Count;
-         var builder = new StringBuilder(LineCommand);
-         for (int i = 1; i < LineCode.Count; i++) {
-            builder.Append(" " + LineCode[i].ToHexString());
-         }
-
-         var streamContent = new List<string>();
-         foreach (var arg in Args) {
-            builder.Append(" ");
-            if (arg is ScriptArg scriptArg) {
-               if (scriptArg.Build(allFillerIsZero, data, start, builder, streamContent, labels, streamTypes)) continue;
-            } else if (arg is ArrayArg arrayArg) {
-               builder.Append(arrayArg.ConvertMany(data, start));
-            } else {
-               throw new NotImplementedException();
-            }
-            start += arg.Length(data, start);
-         }
-         foreach (var content in streamContent) {
-            builder.AppendLine();
-            builder.AppendLine("{");
-            builder.AppendLine(content);
-            builder.Append("}");
-         }
-         return builder.ToString();
       }
 
       private bool IsAllFillerZero(IDataModel data, int start) {

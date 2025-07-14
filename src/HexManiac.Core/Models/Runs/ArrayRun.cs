@@ -55,54 +55,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return segment is ArrayRunCommentSegment || segment.Name.StartsWith("unused") || segment.Name.StartsWith("padding");
       }
 
-      public static IDataFormat CreateSegmentDataFormat(this ITableRun self, IDataModel data, int index) {
-         var offsets = self.ConvertByteOffsetToArrayOffset(index);
-         var currentSegment = self.ElementContent[offsets.SegmentIndex];
-         var position = index - offsets.SegmentStart;
-         if (currentSegment is ArrayRunRecordSegment recordSegment) currentSegment = recordSegment.CreateConcrete(data, self, index);
-         if (currentSegment.Type == ElementContentType.Integer) {
-            if (currentSegment is ArrayRunEnumSegment enumSegment) {
-               var value = enumSegment.ToText(data, offsets.SegmentStart, 0);
-               return new IntegerEnum(offsets.SegmentStart, position, value, currentSegment.Length);
-            } else if (currentSegment is ArrayRunTupleSegment tupleSegment) {
-               return new ViewModels.DataFormats.Tuple(data, tupleSegment, offsets.SegmentStart, position);
-            } else if (currentSegment is ArrayRunHexSegment) {
-               var value = data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
-               return new IntegerHex(offsets.SegmentStart, position, value, currentSegment.Length) { IsUnused = currentSegment.IsUnused() };
-            } else if (currentSegment is ArrayRunColorSegment) {
-               var color = (short)data.ReadMultiByteValue(offsets.SegmentStart, currentSegment.Length);
-               return new UncompressedPaletteColor(offsets.SegmentStart, position, color);
-            } else if (currentSegment is ArrayRunSignedSegment signed) {
-               var signedValue = signed.ReadValue(data, offsets.SegmentStart);
-               return new Integer(offsets.SegmentStart, position, signedValue, currentSegment.Length);
-            } else {
-               var value = offsets.SegmentStart < data.Count - currentSegment.Length ? ArrayRunElementSegment.ToInteger(data, offsets.SegmentStart, currentSegment.Length) : 0;
-               return new Integer(offsets.SegmentStart, position, value, currentSegment.Length) { IsUnused = currentSegment.IsUnused() };
-            }
-         }
-
-         if (currentSegment.Type == ElementContentType.Pointer) {
-            var destination = data.ReadPointer(offsets.SegmentStart);
-            var destinationName = data.GetAnchorFromAddress(offsets.SegmentStart, destination);
-            var destinationRun = data.GetNextRun(destination);
-            var hasError = data.PointerHasError(destination, destinationRun, currentSegment);
-
-            return new Pointer(offsets.SegmentStart, position, destination, 0, destinationName, hasError);
-         }
-
-         if (currentSegment.Type == ElementContentType.BitArray) {
-            var displayValue = string.Join(" ", currentSegment.Length.Range()
-                 .Select(i => data[offsets.SegmentStart + i].ToHexString()));
-            return new BitArray(offsets.SegmentStart, position, currentSegment.Length, displayValue);
-         }
-
-         if (currentSegment.Type == ElementContentType.PCS) {
-            return new PCS(offsets.SegmentStart, offsets.SegmentOffset, data.TextConverter.Convert(data, offsets.SegmentStart, currentSegment.Length), PCSString.PCS[index]);
-         }
-
-         throw new NotImplementedException();
-      }
-
       public static bool PointerHasError(this IDataModel data, int destination, IFormattedRun destinationRun, ArrayRunElementSegment currentSegment = null) {
          var hasError = false;
          if (destination >= 0 && destination < data.Count) {
@@ -127,49 +79,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return hasError;
       }
 
-      public static void AppendTo(ITableRun self, IDataModel data, StringBuilder text, int start, int length, int depth) {
-         var names = self.ElementNames;
-         var offsets = self.ConvertByteOffsetToArrayOffset(start);
-         length += offsets.SegmentOffset;
-         var comments = new Dictionary<int, string>();
-         foreach (var seg in self.ElementContent) {
-            if (seg is not ArrayRunCommentSegment comment) continue;
-            if (comments.ContainsKey(comment.Index)) {
-               comments[comment.Index] += Environment.NewLine + comment.RenderCommentLine();
-            } else {
-               comments[comment.Index] = comment.RenderCommentLine();
-            }
-         }
-         for (int i = offsets.ElementIndex; i < self.ElementCount && length > 0; i++) {
-            if (comments.TryGetValue(i, out var comment)) {
-               if (i != 0) text.AppendLine();
-               text.AppendLine(comment);
-            }
-            var offset = offsets.SegmentStart;
-            var couldBeExtension = offsets.ElementIndex > 0 || self is TableStreamRun streamRun && streamRun.AllowsZeroElements;
-            if (offsets.SegmentIndex == 0 && couldBeExtension) text.Append(ArrayRun.ExtendArray);
-            for (int j = offsets.SegmentIndex; j < self.ElementContent.Count && length > 0; j++) {
-               var segment = self.ElementContent[j];
-               if (j == 0 && segment.Type != ElementContentType.PCS && names != null && names.Count > i && !string.IsNullOrEmpty(names[i])) {
-                  text.Append($"{ViewPort.CommentStart}{names[i]}{ViewPort.CommentStart}, ");
-               }
-
-               if (segment.Length > 0) {
-                  if (segment is ArrayRunRecordSegment rSeg) {
-                     text.Append(rSeg.ToText(data, self, offset, depth)?.Trim() ?? string.Empty);
-                  } else {
-                     text.Append(segment.ToText(data, offset, depth)?.Trim() ?? string.Empty);
-                  }
-                  if (j + 1 < self.ElementContent.Count) text.Append(", ");
-                  offset += segment.Length;
-                  length -= segment.Length;
-               }
-            }
-            if (i + 1 < self.ElementCount) text.Append(Environment.NewLine);
-            offsets = new ArrayOffset(i + 1, 0, offset, 0);
-         }
-      }
-
       public static void Clear(ITableRun self, IDataModel data, ModelDelta token, int start, int length) {
          for (int i = 0; i < length; i++) {
             var offset = self.ConvertByteOffsetToArrayOffset(start + i);
@@ -190,7 +99,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return false;
       }
 
-      private static void UpdateRecordType(ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex, ArrayRunRecordSegment recordSegment, int previousValue) {
+      public static void UpdateRecordType(ITableRun self, IDataModel model, ModelDelta token, int elementIndex, int segmentIndex, ArrayRunRecordSegment recordSegment, int previousValue) {
          var offset = self.ElementContent.Take(segmentIndex).Sum(seg => seg.Length);
          var sourceSegment = self.ElementContent[segmentIndex];
          var elementStart = self.Start + self.ElementLength * elementIndex;
@@ -512,9 +421,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const string CommentFormatString = "|comment=";
       public const string SplitterFormatString = "|";
 
-      private const int JunkLimit = 80;
+      public const int JunkLimit = 80;
 
-      private readonly IDataModel owner;
+      public readonly IDataModel owner;
 
       // length in bytes of the entire array
       public override int Length { get; }
@@ -577,7 +486,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
 
       public bool CanAppend => true;
 
-      private ArrayRun(IDataModel data, string formatText, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
+      public ArrayRun(IDataModel data, string formatText, int start, SortedSpan<int> pointerSources) : base(start, pointerSources) {
          owner = data;
          FormatString = formatText;
          var format = formatText.AsSpan();
@@ -637,7 +546,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private ArrayRun(IDataModel data, string format, string lengthFromAnchor, ParentOffset parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
+      public ArrayRun(IDataModel data, string format, string lengthFromAnchor, ParentOffset parentOffset, int start, int elementCount, IReadOnlyList<ArrayRunElementSegment> segments, SortedSpan<int> pointerSources, IReadOnlyList<SortedSpan<int>> pointerSourcesForInnerElements) : base(start, pointerSources) {
          owner = data;
          FormatString = format;
          ElementContent = segments;
@@ -770,7 +679,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, format, LengthFromAnchor, ParentOffset, Start, newCount, ElementContent, PointerSources, PointerSourcesForInnerElements);
       }
 
-      private static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength, Func<IFormattedRun, bool> runFilter) {
+      public static int StandardSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, out int bestLength, Func<IFormattedRun, bool> runFilter) {
          int bestAddress = Pointer.NULL;
          bestLength = 0;
 
@@ -824,7 +733,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return bestAddress;
       }
 
-      private static int KnownLengthSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, string lengthToken, out int bestLength, Func<IFormattedRun, bool> runFilter) {
+      public static int KnownLengthSearch(IDataModel data, List<ArrayRunElementSegment> elementContent, int elementLength, string lengthToken, out int bestLength, Func<IFormattedRun, bool> runFilter) {
          var noChange = new NoDataChangeDeltaModel();
          if (!int.TryParse(lengthToken, out bestLength)) {
             var matchedArrayName = lengthToken;
@@ -883,23 +792,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return Pointer.NULL;
       }
 
-      private string cachedCurrentString;
-      private int currentCachedStartIndex = -1, currentCachedIndex = -1;
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var offsets = this.ConvertByteOffsetToArrayOffset(index);
-         var currentSegment = ElementContent[offsets.SegmentIndex];
-         if (currentSegment.Type == ElementContentType.PCS) {
-            if (currentCachedStartIndex != offsets.SegmentStart || currentCachedIndex > offsets.SegmentOffset) {
-               currentCachedStartIndex = offsets.SegmentStart;
-               currentCachedIndex = offsets.SegmentOffset;
-               cachedCurrentString = data.TextConverter.Convert(data, offsets.SegmentStart, currentSegment.Length);
-            }
-
-            return PCSRun.CreatePCSFormat(data, offsets.SegmentStart, index, cachedCurrentString);
-         }
-
-         return this.CreateSegmentDataFormat(data, index);
-      }
+      public string cachedCurrentString;
+      public int currentCachedStartIndex = -1, currentCachedIndex = -1;
 
       ITableRun ITableRun.Append(ModelDelta token, int elementCount) => Append(token, elementCount);
       public ArrayRun Append(ModelDelta token, int elementCount) {
@@ -995,7 +889,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Find whatever run contains the 'end' of the values and bump their values.
       /// Then set the new elements based on the new value gap.
       /// </summary>
-      private void AdjustTableIndexValues(ModelDelta token, int newElementCount) {
+      public void AdjustTableIndexValues(ModelDelta token, int newElementCount) {
          for (int i = 0; i < ElementContent.Count; i++) {
             if (ElementContent[i].Type != ElementContentType.Integer) continue;
             if (ElementContent[i] is ArrayRunRecordSegment || ElementContent[i] is ArrayRunHexSegment || ElementContent[i] is ArrayRunEnumSegment) continue;
@@ -1018,7 +912,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private void UpdateNamedConstant(ModelDelta token, ref int desiredValue, bool alsoUpdateArrays) {
+      public void UpdateNamedConstant(ModelDelta token, ref int desiredValue, bool alsoUpdateArrays) {
          if (token is NoDataChangeDeltaModel) return; // nop during initial load
          var addresses = owner.GetMatchedWords(LengthFromAnchor);
          if (addresses.Count == 0) return;
@@ -1035,14 +929,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          CompleteCellEdit.UpdateAllWords(owner, lengthSource, token, length, alsoUpdateArrays);
       }
 
-      private void UpdateList(ModelDelta token, int desiredValue) {
+      public void UpdateList(ModelDelta token, int desiredValue) {
          if (!owner.TryGetList(LengthFromAnchor, out var originalList)) return;
          var newList = originalList.ToList();
          while (newList.Count < desiredValue) newList.Add($"unnamed{newList.Count}");
          owner.SetList(token, LengthFromAnchor, newList, originalList.Comments, originalList.StoredHash);
       }
 
-      private void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
+      public void WriteSegment(ModelDelta token, ArrayRunElementSegment segment, IReadOnlyList<byte> readData, int readPosition, int writePosition) {
          if (segment.Type == ElementContentType.Pointer) {
             var destination = readData.ReadMultiByteValue(readPosition, 4) + Pointer.NULL;
             var offset = this.ConvertByteOffsetToArrayOffset(writePosition);
@@ -1054,8 +948,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             }
          }
       }
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          ITableRunExtensions.Clear(this, model, changeToken, start, length);
@@ -1306,8 +1198,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return new ArrayRun(owner, FormatString, LengthFromAnchor, ParentOffset, Start, ElementCount, ElementContent, newPointerSources, newInnerPointerSources);
       }
 
-      private static bool IsValidFieldNameCharacter(char c) => char.IsLetterOrDigit(c) || c == '_'; // field names can contain underscores
-      private static bool IsValidTableNameCharacter(char c) => char.IsLetterOrDigit(c) || c.IsAny('_', '.'); // table names can contain underscores or dots
+      public static bool IsValidFieldNameCharacter(char c) => char.IsLetterOrDigit(c) || c == '_'; // field names can contain underscores
+      public static bool IsValidTableNameCharacter(char c) => char.IsLetterOrDigit(c) || c.IsAny('_', '.'); // table names can contain underscores or dots
 
       public static List<ArrayRunElementSegment> ParseSegments(string segments, IDataModel model) => ParseSegments(segments.AsSpan(), model);
       public static List<ArrayRunElementSegment> ParseSegments(ReadOnlySpan<char> segments, IDataModel model) {
@@ -1439,7 +1331,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return list;
       }
 
-      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(ReadOnlySpan<char> segments,IDataModel model) {
+      public static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(ReadOnlySpan<char> segments,IDataModel model) {
          if (segments.Length >= 2 && MemoryExtensions.Equals(segments.Slice(0, 2), PCSRun.SharedFormatString, StringComparison.Ordinal)) {
             var format = ElementContentType.PCS;
             var formatLength = 2;
@@ -1488,7 +1380,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return (ElementContentType.Unknown, 0, 0);
       }
 
-      private (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(ReadOnlySpan<char> length) {
+      public (string lengthFromAnchor, ParentOffset parentOffset, int elementCount) ParseLengthFromAnchor(ReadOnlySpan<char> length) {
          var parentOffset = ParentOffset.Parse(ref length);
          var lengthFromAnchor = length.ToString();
 
@@ -1521,14 +1413,14 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       // similar to DataMatchesElementFormat, but it only checks to make sure that things are pointers
-      private static bool CheckPointerFormat(IDataModel owner, int start) {
+      public static bool CheckPointerFormat(IDataModel owner, int start) {
          var destination = owner.ReadPointer(start);
          if (destination == Pointer.NULL) return true;
          if (destination < 0 || destination >= owner.Count) return false;
          return true;
       }
 
-      private static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, FormatMatchFlags flags, IFormattedRun nextAnchor) {
+      public static bool DataMatchesElementFormat(IDataModel owner, int start, IReadOnlyList<ArrayRunElementSegment> segments, int parentIndex, FormatMatchFlags flags, IFormattedRun nextAnchor) {
          foreach (var segment in segments) {
             if (start + segment.Length > owner.Count) return false;
             if (nextAnchor != null && start + segment.Length > nextAnchor.Start && nextAnchor is ArrayRun) return false; // don't blap over existing arrays
@@ -1625,8 +1517,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
    }
 
    public class ArrayRunCommentSegment : ArrayRunElementSegment {
-      public int Index { get; private set; }
-      public string Comment { get; private set; }
+      public int Index { get; set; }
+      public string Comment { get; set; }
       public override string SerializeFormat => $"{Name}|comment={Index}|{Comment}";
       public ArrayRunCommentSegment(string name, string contract) : base(name, ElementContentType.Integer, 0) {
          var parts = contract.Split('|', 2);

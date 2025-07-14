@@ -275,18 +275,6 @@ namespace HavenSoft.HexManiac.Core.Models
         
         public Func<System.Func<ModelDelta>, int, int, bool, string> Copy { get; set; }
         
-        string IDataModel.Copy(System.Func<ModelDelta> changeToken, int start, int length, bool deep)
-        {
-            if (this.Copy != null)
-            {
-                return this.Copy(changeToken, start, length, deep);
-            }
-            else
-            {
-                return default(string);
-            }
-        }
-        
         public Action<System.Byte[], StoredMetadata> Load { get; set; }
         
         void IDataModel.Load(System.Byte[] newData, StoredMetadata metadata)

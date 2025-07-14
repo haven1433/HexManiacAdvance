@@ -10,9 +10,9 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public const char StringDelimeter = '"';
       public static readonly string SharedFormatString = StringDelimeter + string.Empty + StringDelimeter;
 
-      private readonly IDataModel model;
-      private int cachedIndex = int.MaxValue;
-      private string cachedFullString;
+      public readonly IDataModel model;
+      public int cachedIndex = int.MaxValue;
+      public string cachedFullString;
 
       public override int Length { get; }
       public override string FormatString => SharedFormatString;
@@ -22,17 +22,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public bool Equals(IFormattedRun run) {
          if (!(run is PCSRun other)) return false;
          return Start == other.Start && Length == other.Length && model == other.model;
-      }
-
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         Debug.Assert(data == model);
-
-         // only read the full string from the data once per pass.
-         // This assumes that we read data starting at the lowest index and working our way up.
-         if (index < cachedIndex) cachedFullString = data.TextConverter.Convert(data, Start, Length);
-         cachedIndex = index;
-
-         return CreatePCSFormat(data, Start, index, cachedFullString);
       }
 
       public static IDataFormat CreatePCSFormat(IDataModel model, int start, int index, string fullString) {

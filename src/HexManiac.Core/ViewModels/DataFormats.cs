@@ -13,7 +13,6 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    public interface IDataFormat : IEquatable<IDataFormat> {
-      void Visit(IDataFormatVisitor visitor, byte data);
    }
 
    public interface IDataFormatInstance : IDataFormat {
@@ -28,33 +27,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
    }
 
    public interface IDataFormatVisitor {
-      void Visit(Undefined dataFormat, byte data);
-      void Visit(None dataFormat, byte data);
-      void Visit(UnderEdit dataFormat, byte data);
-      void Visit(Pointer pointer, byte data);
-      void Visit(Anchor anchor, byte data);
-      void Visit(SpriteDecorator decorator, byte data);
-      void Visit(StreamEndDecorator decorator, byte data);
-      void Visit(PCS pcs, byte data);
-      void Visit(EscapedPCS pcs, byte data);
-      void Visit(ErrorPCS pcs, byte data);
-      void Visit(Ascii ascii, byte data);
-      void Visit(Braille braille, byte data);
-      void Visit(Integer integer, byte data);
-      void Visit(IntegerEnum integer, byte data);
-      void Visit(IntegerHex integer, byte data);
-      void Visit(EggSection section, byte data);
-      void Visit(EggItem item, byte data);
-      void Visit(PlmItem item, byte data);
-      void Visit(BitArray array, byte data);
-      void Visit(MatchedWord word, byte data);
-      void Visit(EndStream stream, byte data);
-      void Visit(LzMagicIdentifier lz, byte data);
-      void Visit(LzGroupHeader lz, byte data);
-      void Visit(LzCompressed lz, byte data);
-      void Visit(LzUncompressed lz, byte data);
-      void Visit(UncompressedPaletteColor color, byte data);
-      void Visit(Tuple tuple, byte data);
    }
 
    /// <summary>
@@ -65,7 +37,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public static Undefined Instance { get; } = new Undefined();
       private Undefined() { }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) => format is Undefined;
    }
 
@@ -81,7 +52,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
 
       private None() { }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) => format is None;
    }
 
@@ -99,7 +69,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          AutocompleteOptions = autocompleteOptions;
       }
 
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
       public bool Equals(IDataFormat format) {
          if (!(format is UnderEdit that)) return false;
 
@@ -155,8 +124,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is Pointer pointer)) return false;
          return pointer.Source == Source && pointer.Position == Position && pointer.Destination == Destination;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public interface IDataFormatDecorator : IDataFormat {
@@ -175,8 +142,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is Anchor anchor)) return false;
          return anchor.Name == Name && anchor.Format == Format && anchor.Sources.SequenceEqual(Sources) && anchor.OriginalFormat.Equals(OriginalFormat);
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class SpriteDecorator : IDataFormatDecorator {
@@ -189,25 +154,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          OriginalFormat = inner;
          Pixels = pixels ?? new ReadonlyPixelViewModel(new SpriteFormat(4, cellWidth, cellHeight, string.Empty), new short[0]);
          (CellWidth, CellHeight) = (cellWidth, cellHeight);
-      }
-
-      public static IPixelViewModel BuildSprite(IDataModel model, BlockmapRun run) {
-         if (!IDataModelExtensions.EditorReleased) return null;
-         if (run.PointerSources.IsNullOrEmpty()) return null;
-         var primarySource = run.PointerSources[0];
-         var (address1, address2) = (model.ReadPointer(primarySource + 4), model.ReadPointer(primarySource + 8));
-         if (address1 < 0 || address2 < 0) return null;
-         var blocks1 = new BlocksetModel(model, model.ReadPointer(primarySource + 4));
-         var blocks2 = new BlocksetModel(model, model.ReadPointer(primarySource + 8));
-         var primaryMax = BlockmapRun.GetMaxUsedBlock(model, run.Start, run.BlockWidth, run.BlockHeight, run.PrimaryBlocks);
-         var secondaryMax = BlockmapRun.GetMaxUsedBlock(model, run.Start, run.BlockWidth, run.BlockHeight, 1024) - run.PrimaryBlocks;
-         var blocks = BlockmapRun.ReadBlocks(primaryMax, secondaryMax, blocks1, blocks2);
-         var blockAttributes = BlockmapRun.ReadBlockAttributes(primaryMax, secondaryMax, blocks1, blocks2);
-         var tiles = BlockmapRun.ReadTiles(blocks1, blocks2, run.PrimaryTiles);
-         var pals = BlockmapRun.ReadPalettes(blocks1, blocks2, run.PrimaryPalettes);
-         if (tiles == null || pals == null) return null;
-         var renders = BlockmapRun.CalculateBlockRenders(blocks, blockAttributes, tiles, pals).ToList();
-         return BlockmapRun.RenderMap(model, run.Start, run.BlockWidth, run.BlockHeight, renders);
       }
 
       public static ReadonlyPixelViewModel BuildSprite(IDataModel model, ISpriteRun sprite, bool useTransparency = false, double scale = 1) {
@@ -239,8 +185,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is SpriteDecorator sprite)) return false;
          return sprite.OriginalFormat.Equals(OriginalFormat) && sprite.CellWidth == CellWidth && sprite.CellHeight == CellHeight;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    /// <summary>
@@ -254,7 +198,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is StreamEndDecorator that)) return false;
          return that.OriginalFormat.Equals(OriginalFormat);
       }
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class PCS : IDataFormatStreamInstance {
@@ -269,8 +212,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is PCS pcs)) return false;
          return pcs.Source == Source && pcs.Position == Position && pcs.FullString == FullString && pcs.ThisCharacter == ThisCharacter;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class EscapedPCS : IDataFormatStreamInstance {
@@ -285,8 +226,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is EscapedPCS pcs)) return false;
          return pcs.Source == Source && pcs.Position == Position && pcs.FullString == FullString && pcs.ThisValue == ThisValue;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class ErrorPCS : IDataFormatStreamInstance {
@@ -301,8 +240,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is EscapedPCS pcs)) return false;
          return pcs.Source == Source && pcs.Position == Position && pcs.FullString == FullString && pcs.ThisValue == ThisValue;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class Ascii : IDataFormatStreamInstance {
@@ -316,8 +253,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is Ascii ascii)) return false;
          return ascii.Source == Source && ascii.Position == Position && ascii.ThisCharacter == ThisCharacter;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class Braille : IDataFormatStreamInstance {
@@ -331,8 +266,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is Braille braille)) return false;
          return braille.Source == Source && braille.Position == Position && braille.ThisCharacter == ThisCharacter;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class Integer : IDataFormatInstance {
@@ -352,8 +285,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public virtual bool CanStartWithCharacter(char input) {
          return char.IsNumber(input) || input == '-';
       }
-
-      public virtual void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class IntegerEnum : Integer {
@@ -383,8 +314,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
             input == PCSRun.StringDelimeter ||
             "?-".Contains(input);
       }
-
-      public override void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class IntegerHex : Integer {
@@ -394,10 +323,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is IntegerHex)) return false;
          return base.Equals(other);
       }
-
-      public override bool CanStartWithCharacter(char input) => ViewPort.AllHexCharacters.Contains(input);
-
-      public override void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
 
       public override string ToString() {
          var format = "X" + (Length * 2);
@@ -421,11 +346,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          Length = model.Length;
       }
 
-      public override string ToString() => Model.ToText(dataModel, Source);
-
       public bool Equals(IDataFormat other) => ToString() == other.ToString();
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class EggSection : IDataFormatInstance {
@@ -444,8 +365,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          }
          return false;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class EggItem : IDataFormatInstance {
@@ -462,8 +381,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          }
          return false;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class PlmItem : IDataFormatInstance {
@@ -481,8 +398,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       }
 
       public bool Equals(IDataFormat other) => ToString() == other.ToString();
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class BitArray : IDataFormatInstance {
@@ -499,10 +414,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is BitArray that)) return false;
          return Source == that.Source && Position == that.Position;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) {
-         visitor.Visit(this, data);
-      }
    }
 
    public class MatchedWord : IDataFormatInstance {
@@ -517,10 +428,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is MatchedWord that)) return false;
          return Source == that.Source && Position == that.Position;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) {
-         visitor.Visit(this, data);
-      }
    }
 
    public class EndStream : IDataFormatInstance {
@@ -534,8 +441,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is EndStream that)) return false;
          return (Source, Position, Length) == (that.Source, that.Position, that.Length);
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class LzMagicIdentifier : IDataFormatInstance {
@@ -544,7 +449,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Length => 1;
       public LzMagicIdentifier(int source) => Source = source;
       public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class LzGroupHeader : IDataFormatInstance {
@@ -553,7 +457,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Length => 1;
       public LzGroupHeader(int source) => Source = source;
       public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class LzUncompressed : IDataFormatInstance {
@@ -562,7 +465,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
       public int Length => 1;
       public LzUncompressed(int source) => Source = source;
       public bool Equals(IDataFormat other) => other is LzMagicIdentifier;
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class LzCompressed : IDataFormatInstance {
@@ -578,8 +480,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is LzCompressed that)) return false;
          return Source == that.Source && Position == that.Position && RunLength == that.RunLength && RunOffset == that.RunOffset;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
    }
 
    public class UncompressedPaletteColor : IDataFormatInstance {
@@ -617,8 +517,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.DataFormats {
          if (!(other is UncompressedPaletteColor that)) return false;
          return Source == that.Source && Position == that.Position && Color == that.Color;
       }
-
-      public void Visit(IDataFormatVisitor visitor, byte data) => visitor.Visit(this, data);
 
       public override string ToString() => Convert(Color);
    }

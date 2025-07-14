@@ -149,8 +149,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ElementNames = ElementCount.Range().Select(i => string.Empty).ToList();
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) => ITableRunExtensions.CreateSegmentDataFormat(this, data, index);
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new OverworldSpriteListRun(model, parent, PaletteHint, RunIndex, Start, ElementCount, newPointerSources);
 
       public ITableRun Append(ModelDelta token, int length) {
@@ -172,8 +170,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public ITableRun Duplicate(int start, SortedSpan<int> pointerSources, IReadOnlyList<ArrayRunElementSegment> segments) => throw new NotImplementedException();
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) => ITableRunExtensions.AppendTo(this, model, builder, start, length, depth);
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {
          for (int i = 0; i < length; i++) changeToken.ChangeData(model, start + i, 0);

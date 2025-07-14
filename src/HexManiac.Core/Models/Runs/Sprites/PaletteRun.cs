@@ -38,15 +38,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          return LzPaletteRun.TryParseDimensions(pointerFormat, out paletteFormat);
       }
 
-      public override IDataFormat CreateDataFormat(IDataModel data, int index) {
-         var runPosition = index - Start;
-         var colorPosition = runPosition % 2;
-         var colorStart = Start + runPosition - colorPosition;
-         var color = (short)data.ReadMultiByteValue(colorStart, 2);
-         color = FlipColorChannels(color);
-         return new UncompressedPaletteColor(colorStart, colorPosition, color);
-      }
-
       protected override BaseRun Clone(SortedSpan<int> newPointerSources) => new PaletteRun(Start, PaletteFormat, newPointerSources);
 
       public IPaletteRun Duplicate(PaletteFormat newFormat) => new PaletteRun(Start, newFormat, PointerSources);
@@ -102,21 +93,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Sprites {
          var g = ((color >> 5) & 0x1F);
          var b = ((color >> 0) & 0x1F);
          return (short)((b << 10) | (g << 5) | (r << 0));
-      }
-
-      public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
-         if (start < Start) {
-            length -= Start - start;
-            start = Start;
-         }
-         if (length > Length) length = Length;
-
-         while (length > 0) {
-            var format = (UncompressedPaletteColor)CreateDataFormat(model, start);
-            builder.Append(format.ToString() + " ");
-            start += 2 - format.Position;
-            length -= 2 - format.Position;
-         }
       }
 
       public void Clear(IDataModel model, ModelDelta changeToken, int start, int length) {

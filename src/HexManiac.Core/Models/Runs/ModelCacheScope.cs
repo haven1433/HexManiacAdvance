@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs {
    public class ModelCacheScope : IDisposable {
-      private readonly IDataModel model;
+      public readonly IDataModel model;
       public ModelCacheScope(IDataModel model) => this.model = model;
       public static IDisposable CreateScope(IDataModel model) {
          return model.CurrentCacheScope;
@@ -23,10 +23,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return model.CurrentCacheScope;
       }
 
-      private readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
-      private readonly Dictionary<string, IReadOnlyList<string>> cachedBitOptions = new Dictionary<string, IReadOnlyList<string>>();
-      private IReadOnlyList<MapInfo> cachedMapInfo;
-      private readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
+      public readonly Dictionary<string, IReadOnlyList<string>> cachedOptions = new Dictionary<string, IReadOnlyList<string>>();
+      public readonly Dictionary<string, IReadOnlyList<string>> cachedBitOptions = new Dictionary<string, IReadOnlyList<string>>();
+      public IReadOnlyList<MapInfo> cachedMapInfo;
+      public readonly Dictionary<int, IPixelViewModel> cachedImages = new Dictionary<int, IPixelViewModel>();
 
       public IReadOnlyList<string> GetOptions(string table) {
          if (model is PokemonModel pModel) {
@@ -46,7 +46,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      private readonly Dictionary<string, IReadOnlyList<ArrayRun>> cachedDependentArrays = new();
+      public readonly Dictionary<string, IReadOnlyList<ArrayRun>> cachedDependentArrays = new();
       public IEnumerable<ArrayRun> GetDependantArrays(string anchor) {
          if (cachedDependentArrays.TryGetValue(anchor, out var cache)) return cache;
 
@@ -110,15 +110,6 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
-      public IPixelViewModel GetImage(BlockmapRun run) {
-         lock (cachedImages) {
-            if (cachedImages.TryGetValue(run.Start, out var pixels)) return pixels;
-            pixels = SpriteDecorator.BuildSprite(model, run);
-            cachedImages[run.Start] = pixels;
-            return pixels;
-         }
-      }
-
       public IReadOnlyList<MapInfo> GetAllMaps() {
          if (cachedMapInfo != null) return cachedMapInfo;
          var results = new List<MapInfo>();
@@ -141,7 +132,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       #region Script Cache
 
       // stores only the start and length
-      private Dictionary<int, Dictionary<int, int>> scriptDestinations = new();
+      public Dictionary<int, Dictionary<int, int>> scriptDestinations = new();
       public Dictionary<int, int> ScriptDestinations(int start) {
          if (!scriptDestinations.TryGetValue(start, out var destinations)) {
             destinations = new();
@@ -151,25 +142,11 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       // stores start, length, and contents
-      private readonly Dictionary<int, ScriptInfo> cachedScripts = new();
-
-      public ScriptInfo GetScriptInfo(ScriptParser parser, int scriptStart, CodeBody updateBody, ref int existingSectionCount) {
-         if (cachedScripts.TryGetValue(scriptStart, out var scriptInfo) && scriptInfo.Parser == parser) {
-            existingSectionCount = scriptInfo.SectionCount;
-            return scriptInfo;
-         }
-         var destinations = ScriptDestinations(scriptStart);
-         var scriptLength = parser.FindLength(model, scriptStart, destinations);
-         var content = parser.Parse(model, scriptStart, scriptLength, ref existingSectionCount, updateBody);
-         scriptInfo = new ScriptInfo(scriptStart, scriptLength, parser, content, existingSectionCount);
-         destinations[scriptStart] = scriptLength;
-         cachedScripts[scriptStart] = scriptInfo;
-         return scriptInfo;
-      }
+      public readonly Dictionary<int, ScriptInfo> cachedScripts = new();
 
       #endregion
 
-      private static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
+      public static IReadOnlyList<string> GetOptions(IDataModel model, string enumName) {
          if (model.TryGetList(enumName, out var nameArray)) return nameArray;
 
          if (!model.TryGetNameArray(enumName, out var enumArray)) {
@@ -229,7 +206,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       /// Adds a ~n suffix onto results that have already been added to this result list before.
       /// This lets us easily distinguish multiple elements with the same name.
       /// </summary>
-      private static void AddResult(IDictionary<string, int> currentResultsCache, IList<string> results, string newResult) {
+      public static void AddResult(IDictionary<string, int> currentResultsCache, IList<string> results, string newResult) {
          if (!currentResultsCache.TryGetValue(newResult.ToLower(), out int count)) count = 1;
          currentResultsCache[newResult.ToLower()] = count + 1;
          var hasQuotes = newResult.StartsWith("\"") && newResult.EndsWith("\"");
