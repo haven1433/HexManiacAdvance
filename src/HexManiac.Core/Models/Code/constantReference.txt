@@ -534,3 +534,8 @@ BPGE0.scripts.seagallop.count-1 147124
 BPRE1.scripts.seagallop.count-1 1471C0
 BPGE1.scripts.seagallop.count-1 14719C
 
+# What level Pokémon eggs hatch at
+AXVE0.scripts.daycare.hatchlevel       042068,042132,042954,0A080C # You can change the level at which eggs hatch.
+AXPE0.scripts.daycare.hatchlevel       042068,042132,042954,0A080C # You can change the level at which eggs hatch.
+AXVE1.scripts.daycare.hatchlevel       042088,042152,042974,0A082C # You can change the level at which eggs hatch.
+AXPE1.scripts.daycare.hatchlevel       042088,042152,042974,0A082C # You can change the level at which eggs hatch.
