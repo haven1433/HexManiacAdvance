@@ -535,7 +535,12 @@ BPRE1.scripts.seagallop.count-1 1471C0
 BPGE1.scripts.seagallop.count-1 14719C
 
 # What level Pokémon eggs hatch at
-AXVE0.scripts.daycare.hatchlevel       042068,042132,042954,0A080C # You can change the level at which eggs hatch.
-AXPE0.scripts.daycare.hatchlevel       042068,042132,042954,0A080C # You can change the level at which eggs hatch.
-AXVE1.scripts.daycare.hatchlevel       042088,042152,042974,0A082C # You can change the level at which eggs hatch.
-AXPE1.scripts.daycare.hatchlevel       042088,042152,042974,0A082C # You can change the level at which eggs hatch.
+AXVE0.scripts.daycare.hatchlevel       042068,042132,042954,0A080C # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+AXPE0.scripts.daycare.hatchlevel       042068,042132,042954,0A080C # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+AXVE1.scripts.daycare.hatchlevel       042088,042152,042974,0A082C # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+AXPE1.scripts.daycare.hatchlevel       042088,042152,042974,0A082C # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+BPRE0.scripts.daycare.hatchlevel       04623E,046CBE,1375B0        # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+BPGE0.scripts.daycare.hatchlevel       04623E,046CBE,137588        # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+BPRE1.scripts.daycare.hatchlevel       046252,046CD2,137628        # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+BPGE1.scripts.daycare.hatchlevel       046252,046CD2,137600        # You can change the level at which eggs hatch. Choose a level between 1 and 100.
+BPEE0.scripts.daycare.hatchlevel       070A38,071414,1C3200        # You can change the level at which eggs hatch. Choose a level between 1 and 100.
