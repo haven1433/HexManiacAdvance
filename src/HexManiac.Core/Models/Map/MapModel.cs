@@ -119,7 +119,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public BlockCells BlockMap {
          get {
             var start = Element?.GetAddress(Format.BlockMap) ?? Pointer.NULL;
-            return new(Element.Model, start, Width, Height);
+            return new(Element?.Model, start, Width, Height);
          }
       }
    }
