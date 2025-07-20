@@ -363,7 +363,13 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          matchingGames = ExtractMatchingGames(ref engineLine);
          Usage = engineLine.Split(new[] { ' ' }, 2).Last();
          var usageTokens = Usage.Split(" ", StringSplitOptions.RemoveEmptyEntries);
-         Usage = usageTokens[0] + " " + " ".Join(usageTokens.Skip(1).Select(t => t.Split(".:|<".ToCharArray())[0]));
+         Usage = usageTokens[0] + " " + " ".Join(usageTokens.Skip(1).Select(t => {
+            var hasBraces = t.StartsWith('[') && t.EndsWith(']');
+            if (hasBraces) t = t.Substring(1, t.Length - 2);
+            t = t.Split(".:|<".ToCharArray())[0];
+            if (hasBraces) t = $"[{t}]";
+            return t;
+         }));
 
          var tokens = engineLine.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
          var lineCode = new List<byte>();

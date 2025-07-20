@@ -536,6 +536,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          if (IsSecondary) blockCount = 1024 - blockCount;
          var attributeStart = ReadPointer(attributeOffset);
          EstimateBlockCount(ref blockCount, start, attributeStart, maxUsedBlock);
+         if (!start.InRange(0, model.Count) || !attributeStart.InRange(0, model.Count)) return new byte[0][];
          var data = new byte[blockCount][];
          for (int i = 0; i < blockCount; i++) {
             data[i] = new byte[BytesPerAttribute];
