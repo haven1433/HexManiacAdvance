@@ -54,17 +54,17 @@ if.male.goto       A0 21 0D 80 00 00 06 01 ptr<`xse`>
 if.female.goto     A0 21 0D 80 01 00 06 01 ptr<`xse`>
 if.male.call       A0 21 0D 80 00 00 07 01 ptr<`xse`>
 if.female.call     A0 21 0D 80 01 00 07 01 ptr<`xse`>
-if.compare.goto variable:scriptvariablealiases condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable:scriptvariablealiases value: 06 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
+if.compare.goto variable:vars condition.script_compare value: pointer<`xse`> -> if.compare.goto 21 variable:vars value: 06 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
                                                                                                                                                                # If the comparison is true, goto another address or section.
-if.compare.call variable:scriptvariablealiases condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable:scriptvariablealiases value: 07 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
+if.compare.call variable:vars condition.script_compare value: pointer<`xse`> -> if.compare.call 21 variable:vars value: 07 condition.script_compare pointer<`xse`>     # Compare a variable with a value.
                                                                                                                                                                # If the comparison is true, call another address or section.
-if.flag.set.goto   2B flag:|h 06 01 pointer<`xse`>                                                                                                             # If the flag is set, goto another address or section.
+if.flag.set.goto   2B flag:flags 06 01 pointer<`xse`>                                                                                                             # If the flag is set, goto another address or section.
                                                                                                                                                                # (Flags begin as clear.)
-if.flag.set.call   2B flag:|h 07 01 pointer<`xse`>                                                                                                             # If the flag is set, call another address or section
+if.flag.set.call   2B flag:flags 07 01 pointer<`xse`>                                                                                                             # If the flag is set, call another address or section
                                                                                                                                                                # (Flags begin as clear.)
-if.flag.clear.goto 2B flag:|h 06 00 pointer<`xse`>                                                                                                             # If the flag is clear, goto another address or section
+if.flag.clear.goto 2B flag:flags 06 00 pointer<`xse`>                                                                                                             # If the flag is clear, goto another address or section
                                                                                                                                                                # (Flags begin as clear.)
-if.flag.clear.call 2B flag:|h 07 00 pointer<`xse`>                                                                                                             # If the flag is clear, call another address or section
+if.flag.clear.call 2B flag:flags 07 00 pointer<`xse`>                                                                                                             # If the flag is clear, call another address or section
                                                                                                                                                                # (Flags begin as clear.)
 if.trainer.defeated.goto 60 trainer:data.trainers.stats 06 01 pointer<`xse`>                                                                                   # If the trainer is defeated, goto another address or section
 if.trainer.defeated.call 60 trainer:data.trainers.stats 07 01 pointer<`xse`>                                                                                   # If the trainer is defeated, call another address or section
@@ -131,42 +131,42 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 13 setfarbyte bank.4 pointer::|h                # stores the byte in the specified memory bank to a RAM address
 14 copyscriptbanks destination.4 source.4       # copies the value in the source memory bank to destination memory bank
 15 copybyte destination::|h source::|h          # copies the value from the source RAM address to the destination RAM address
-16 setvar variable:scriptvariablealiases value:  # sets the given variable to the given value
-17 addvar variable:scriptvariablealiases value:  # variable += value
-18 subvar variable:scriptvariablealiases source: # variable -= source (or) variable -= *source
+16 setvar variable:vars value:  # sets the given variable to the given value
+17 addvar variable:vars value:  # variable += value
+18 subvar variable:vars source: # variable -= source (or) variable -= *source
                                                  # (if 'source' isn't a valid variable, it's read as a value)
-19 copyvar variable:scriptvariablealiases source:scriptvariablealiases # variable = source
-1A setorcopyvar variable:scriptvariablealiases source:                 # Works like the copyvar command if the source field is a variable number;
+19 copyvar variable:vars source:vars # variable = source
+1A setorcopyvar variable:vars source:                 # Works like the copyvar command if the source field is a variable number;
                                                 # works like the setvar command if the source field is not a variable number.
                                                 # In other words:
                                                 # destination = source (or) destination = *source
                                                 # (if source isn't a valid variable, it's read as a value)
-1A copyvarifnotzero variable:scriptvariablealiases source:scriptvariablealiases # Alternate, old name for 'setorcopyvar'.
+1A copyvarifnotzero variable:vars source:vars # Alternate, old name for 'setorcopyvar'.
 1B comparebanks bankA.4 bankB.4                 # sets the condition variable based on the value in memory bank A as compared to the value in memory bank B
 1C comparebanktobyte bank.4 value.              # sets the condition variable based on the value in the specified memory bank as compared to the given value
 1D compareBankTofarbyte bank.4 pointer::|h      # sets the condition variable based on the memory bank value as compared to the value stored in the RAM address
 1E compareFarByteToBank pointer::|h bank.4      # sets the condition variable based on the value stored in the RAM address as compared to the memory bank value
 1F compareFarByteToByte pointer::|h value.      # sets the condition variable based on the value at the RAM address as compared to the given value
 20 compareFarBytes a::|h b::|h                  # sets the condition variable based on the value at the RAM address A as compared to the value at RAM address B
-21 compare variable:scriptvariablealiases value: # sets the condition variable based on the value in the given variable, as compared to the given value
-22 comparevars var1: var2:                      # sets the condition variable based on the value in var1 as compared to the value in var2
+21 compare variable:vars value: # sets the condition variable based on the value in the given variable, as compared to the given value
+22 comparevars var1:vars var2:vars                      # sets the condition variable based on the value in var1 as compared to the value in var2
 23 callasm code<>                                       # run the given ASM code, then continue the script
 24 setcode pointer<>                                    # block script execution and instead run the given ASM code every frame until it returns 1
 
 25 special function:specials                            # Calls a piece of ASM code from a table.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
-26 special2 variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
+26 special2 variable:vars function:specials # Calls a special and puts the ASM's return value in the variable you listed.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
-26 specialvar variable:scriptvariablealiases function:specials # Calls a special and puts the ASM's return value in the variable you listed.
+26 specialvar variable:vars function:specials # Calls a special and puts the ASM's return value in the variable you listed.
                                                         # Check your TOML for a list of specials available in your game.
                                                         # In FRLG, an invalid special number will print an error message to the debugger log output and freeze the game.
 27 waitstate                                 # blocks script execution and disables the script running code until it gets reenabled by some ASM code.
 28 pause time:                               # blocks script execution for 'time' frames
-29 setflag flag:|h                           # flag = 1
-2A clearflag flag:|h                         # flag = 0
-2B checkflag flag:|h                         # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
+29 setflag flag:flags                           # flag = 1
+2A clearflag flag:flags                         # flag = 0
+2B checkflag flag:flags                         # sets the condition variable based on the value of the flag. Used with < (when the flag is 0) or = (when the flag is 1) compare values
 [BPRE_BPGE] 2C nop2C                         # does nothing
 [AXPE_AXVE_BPEE] 2C initclock hour: minute:  # Changes how many hours/minutes forward to adjust the real-time clock, without additional player input. 'hour' and 'minute' can be variables.
 2D checkdailyflags                           # nop in FRLG. Updates flags, variables, and other data in RSE based on real-time-clock
@@ -423,7 +423,7 @@ C5 waitcry                                   # used after cry, it pauses the scr
                                                           # if the pokemon is a fateful encounter (or the specified slot is invalid), then varResult = 0.
 [BPRE_BPGE_BPEE] CF trywondercardscript      # Tries a wonder card script.
 [BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
-[BPRE_BPGE] D0 setworldmapflag mapflag:|h    # This lets the player fly to a given map, if the map has a flight spot
+[BPRE_BPGE] D0 setworldmapflag mapflag:flags    # This lets the player fly to a given map, if the map has a flight spot
 [BPEE] D0 nopD0                              # (nop in Emerald)
 [BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:               # clone of warpteleport, only used in FR/LG and only with specials
 [BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokemon in your party (0-5)
