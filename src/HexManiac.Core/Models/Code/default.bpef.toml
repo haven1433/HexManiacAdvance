@@ -1515,13 +1515,13 @@ DefaultHash = '''FB0F1C4A'''
 [[NamedAnchors]]
 Name = '''sound.pokemon.cry.growl'''
 Address = 0x6A2E40
-Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24'''
+Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-1'''
 DefaultHash = '''39732051'''
 
 [[NamedAnchors]]
 Name = '''sound.pokemon.cry.normal'''
 Address = 0x6A1C10
-Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24'''
+Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-1'''
 DefaultHash = '''39732051'''
 
 [[NamedAnchors]]
