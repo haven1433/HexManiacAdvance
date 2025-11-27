@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Visitors;
 using System;
@@ -90,24 +89,24 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for a name, where is it?
       // for a location, what is its name?
-      private readonly ThreadSafeDictionary<string, int> addressForAnchor = new ThreadSafeDictionary<string, int>();
-      private readonly Dictionary<int, string> anchorForAddress = new Dictionary<int, string>();
+      private readonly ThreadSafeDictionary<string, int> addressForAnchor = new();
+      private readonly Dictionary<int, string> anchorForAddress = new();
 
       // for a name not actually in the file, what pointers point to it?
       // for a pointer pointing to something not actually in the file, what name is it pointing to?
-      private readonly Dictionary<string, SortedSpan<int>> unmappedNameToSources = new Dictionary<string, SortedSpan<int>>();
-      private readonly Dictionary<int, string> sourceToUnmappedName = new Dictionary<int, string>();
+      private readonly Dictionary<string, SortedSpan<int>> unmappedNameToSources = new();
+      private readonly Dictionary<int, string> sourceToUnmappedName = new();
 
-      private readonly Dictionary<string, int> unmappedConstants = new Dictionary<string, int>();
+      private readonly Dictionary<string, int> unmappedConstants = new();
 
       // for a name of a table (which may not actually be in the file),
       // get the list of addresses in the file that want to store a number that matches the length of the table.
-      private readonly Dictionary<string, ISet<int>> matchedWords = new Dictionary<string, ISet<int>>();
+      private readonly Dictionary<string, ISet<int>> matchedWords = new();
 
       // a list of all the offsets for all known offset pointers. This information is duplicated in the OffsetPointerRun.
-      private readonly Dictionary<int, int> pointerOffsets = new Dictionary<int, int>();
+      private readonly Dictionary<int, int> pointerOffsets = new();
 
-      private readonly ThreadSafeDictionary<string, ValidationList> lists = new ThreadSafeDictionary<string, ValidationList>();
+      private readonly ThreadSafeDictionary<string, ValidationList> lists = new();
 
       private readonly Singletons singletons;
       private readonly bool devMode;
@@ -123,7 +122,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void BuildDestinationToSourceCache(byte[] data) {
          var sourcesForDestinations = new Dictionary<int, List<int>>();
-         for (int i = 3; i < data.Length; i++) {
+         for (var i = 3; i < data.Length; i++) {
             if (data[i] != 0x08 && data[i] != 0x09) continue;
             var source = i - 3;
             var destination = ReadPointer(source);
@@ -282,7 +281,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private void RemoveMatchedWordsThatDoNotMatch(ModelDelta token) {
          foreach (var key in matchedWords.Keys.ToList()) {
-            bool allMatch = true;
+            var allMatch = true;
             var addresses = matchedWords[key].ToList();
             foreach (var address in addresses) {
                var run = GetNextRun(address) as WordRun;
@@ -372,7 +371,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             // update runs that care about this name
-            for (int i = 0; i < runs.Count; i++) {
+            for (var i = 0; i < runs.Count; i++) {
                // update matched-length lengths
                if (runs[i] is ArrayRun array) {
                   var parentName = array.LengthFromAnchor;
@@ -409,7 +408,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                // update enum names / bitarray names
                if (runs[i] is ITableRun table) {
-                  for (int j = 0; j < table.ElementContent.Count; j++) {
+                  for (var j = 0; j < table.ElementContent.Count; j++) {
                      if (table.ElementContent[j] is ArrayRunEnumSegment enumSegment && enumSegment.EnumName == anchor) {
                         var segments = table.ElementContent.ToList();
                         segments[j] = new ArrayRunEnumSegment(enumSegment.Name, enumSegment.Length, reference.Name);
@@ -469,7 +468,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private void SearchForPointers(Dictionary<int, SortedSpan<int>> pointersForDestination, SortedList<int, int> destinationForSource) {
          // pointers must be 4-byte aligned
-         for (int i = 0; i < RawData.Length - 3; i += 4) {
+         for (var i = 0; i < RawData.Length - 3; i += 4) {
 
             // pointers must end in 08 or 09
             if (RawData[i + 3] != 0x08 && RawData[i + 3] != 0x09) continue;
@@ -486,8 +485,8 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (destination < EarliestAllowedAnchor) continue;
 
             // pointers must point at something useful, not just a bunch of FF
-            bool pointsToManyFF = true;
-            for (int j = 0; j < 4 && pointsToManyFF && destination + j < RawData.Length; j++) pointsToManyFF = RawData[destination + j] == 0xFF;
+            var pointsToManyFF = true;
+            for (var j = 0; j < 4 && pointsToManyFF && destination + j < RawData.Length; j++) pointsToManyFF = RawData[destination + j] == 0xFF;
             if (pointsToManyFF) continue;
 
             // we found a pointer!
@@ -569,7 +568,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       [Conditional("DEBUG")]
       public void ResolveConflicts() {
          lock (threadlock) {
-            for (int i = 0; i < runs.Count; i++) {
+            for (var i = 0; i < runs.Count; i++) {
                if (!anchorForAddress.TryGetValue(runs[i].Start, out var pointerSourceName)) pointerSourceName = string.Empty;
                else pointerSourceName = " (" + pointerSourceName + ")";
 
@@ -620,7 +619,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   }
                }
                if (runs[i] is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers) {
-                  for (int j = 0; j < arrayRun2.ElementCount; j++) {
+                  for (var j = 0; j < arrayRun2.ElementCount; j++) {
                      foreach (var source in arrayRun2.PointerSourcesForInnerElements[j]) {
                         var run = GetNextRun(source);
                         if (run is PointerRun) {
@@ -637,10 +636,10 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                // for every table, make sure the things it points to know about the table
                if (runs[i] is ITableRun tableRun) {
-                  int elementOffset = 0;
+                  var elementOffset = 0;
                   foreach (var segment in tableRun.ElementContent) {
                      if (segment.Type != ElementContentType.Pointer) { elementOffset += segment.Length; continue; }
-                     for (int j = 0; j < tableRun.ElementCount; j++) {
+                     for (var j = 0; j < tableRun.ElementCount; j++) {
                         var start = tableRun.Start + elementOffset + tableRun.ElementLength * j;
                         var destination = ReadPointer(start);
                         var run = GetNextRun(destination);
@@ -775,16 +774,16 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
          // It already had _copy on the end... fine, append a number or increment it.
          if (char.IsDigit(name[name.Length - 1])) {
-            int digit = 0;
-            string number = "";
-            for (int i = name.Length - 1; i >= 0 && char.IsDigit(name[i]); i--) number = name[i] + number;
+            var digit = 0;
+            var number = "";
+            for (var i = name.Length - 1; i >= 0 && char.IsDigit(name[i]); i--) number = name[i] + number;
             digit = Convert.ToInt32(number);
             name = name.Replace(number, digit.ToString());
             name = name.Remove(name.IndexOf(digit.ToString()));
             name += $"{digit + 1}";
             UniquifyName(model, desiredAddressForName, ref name);
             return info;
-          }
+         }
          // It wasn't a number? Eh, just throw _copy1 on the end again, it'll be fine.
          name += "_copy1";
          UniquifyName(model, desiredAddressForName, ref name);
@@ -838,7 +837,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var nameparts = anchor.Split('/');
          anchor = nameparts.First();
 
-         if (addressForAnchor.TryGetValueCaseInsensitive(anchor, out int address)) {
+         if (addressForAnchor.TryGetValueCaseInsensitive(anchor, out var address)) {
             nameparts = nameparts.Skip(1).ToArray();
             if (nameparts.Length > 0) address = GetAddressFromAnchor(address, nameparts);
             return address;
@@ -849,7 +848,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var constantParts = anchor.Split('~');
             if (
                constantParts.Length == 2 &&
-               int.TryParse(constantParts[1], out int constantIndex) &&
+               int.TryParse(constantParts[1], out var constantIndex) &&
                matchedWords.TryGetValue(constantParts[0], out var constantAddresses) &&
                constantAddresses.Count >= constantIndex &&
                constantIndex > 0
@@ -915,7 +914,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override string GetAnchorFromAddress(int requestSource, int address) {
          // option 1: a known name exists for this address
-         if (anchorForAddress.TryGetValue(address, out string anchor)) return anchor;
+         if (anchorForAddress.TryGetValue(address, out var anchor)) return anchor;
 
          // option 2: a known name exists for this source, but the name doesn't actually exist in the file
          if (sourceToUnmappedName.TryGetValue(requestSource, out anchor)) return anchor;
@@ -935,7 +934,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          return string.Empty;
       }
 
-      private readonly object threadlock = new object(); // use threadlock when reading/writing to the runs collection, to make sure that the collection doesn't change while being searched.
+      private readonly object threadlock = new(); // use threadlock when reading/writing to the runs collection, to make sure that the collection doesn't change while being searched.
 
       /// <summary>
       /// Allow clients to do arbitrary operations that need the threadlock early.
@@ -1075,7 +1074,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                existingRun = runs[index];
                changeToken.RemoveRun(existingRun);
                if (existingRun is PointerRun) {
-                  bool needClearPointerRun = !(run is NoInfoRun) && !(run is PointerRun);
+                  var needClearPointerRun = !(run is NoInfoRun) && !(run is PointerRun);
                   if (((run as OffsetPointerRun)?.Offset ?? 0) != ((existingRun as OffsetPointerRun)?.Offset ?? 0)) needClearPointerRun = true;
                   if (needClearPointerRun) {
                      var destination = ReadPointer(existingRun.Start);
@@ -1126,7 +1125,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // we shortened a table that had inner anchors. Those inner anchors should not be cleared.
             if (existingRun is ArrayRun arrayRun2 && arrayRun2.SupportsInnerPointers && arrayRun2.Length > run.Length) {
-               for (int i = 0; i < arrayRun2.ElementCount; i++) {
+               for (var i = 0; i < arrayRun2.ElementCount; i++) {
                   if (arrayRun2.ElementLength * i < run.Length) continue;
                   var sources = arrayRun2.PointerSourcesForInnerElements[i];
                   foreach (var source in sources) {
@@ -1145,12 +1144,12 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public override int ReadPointer(int index) {
          var destination = base.ReadPointer(index);
-         if (pointerOffsets.TryGetValue(index, out int offset)) destination -= offset;
+         if (pointerOffsets.TryGetValue(index, out var offset)) destination -= offset;
          return destination;
       }
 
       public override bool WritePointer(ModelDelta changeToken, int address, int pointerDestination) {
-         if (pointerOffsets.TryGetValue(address, out int offset)) pointerDestination += offset;
+         if (pointerOffsets.TryGetValue(address, out var offset)) pointerDestination += offset;
          return base.WritePointer(changeToken, address, pointerDestination);
       }
 
@@ -1160,18 +1159,18 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// So update all the anchors based on any new pointers in this newly added array.
       /// </summary>
       private void ModifyAnchorsFromPointerArray(ModelDelta changeToken, ITableRun arrayRun, ITableRun previousTable, int elementCount, Action<ArrayRunElementSegment, IReadOnlyList<ArrayRunElementSegment>, int, ModelDelta, int> changeAnchors) {
-         int segmentOffset = arrayRun.Start;
+         var segmentOffset = arrayRun.Start;
          var formatMatches = previousTable != null && arrayRun.DataFormatMatches(previousTable);
          var parentOffset = 0;
          if (arrayRun is ArrayRun arrayRun1) parentOffset = Math.Max(arrayRun1.ParentOffset.EndMargin, 0);
          var shorterTable = Math.Min(arrayRun.ElementCount, previousTable?.ElementCount ?? arrayRun.ElementCount);
          // i loops over the different segments in the array
-         for (int i = 0; i < arrayRun.ElementContent.Count; i++) {
+         for (var i = 0; i < arrayRun.ElementContent.Count; i++) {
             var segment = arrayRun.ElementContent[i];
 
             // record segments _might_ be pointers... sometimes. Need to check every element
             if (segment is ArrayRunRecordSegment recordSeg) {
-               for (int j = 0; j < elementCount; j++) {
+               for (var j = 0; j < elementCount; j++) {
                   // segment=recordSeg.CreateConcrete(this,segmentOffset)
                   var start = segmentOffset + arrayRun.ElementLength * j;
                   segment = recordSeg.CreateConcrete(this, arrayRun, start);
@@ -1187,7 +1186,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // for a pointer segment, j loops over all the elements in the array
             var range = elementCount.Range();
             if (segment is ArrayRunPointerSegment pSeg && pSeg.InnerFormat.EndsWith("?")) range = range.Reverse();
-            foreach (int j in range) {
+            foreach (var j in range) {
                if (formatMatches && shorterTable - parentOffset > j) continue; // we can skip this one
                var start = segmentOffset + arrayRun.ElementLength * j;
                changeAnchors(segment, arrayRun.ElementContent, j, changeToken, start);
@@ -1203,11 +1202,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// Add new sources corresponding to the array's new location.
       /// </summary>
       private void UpdateAnchorsFromArrayMove(ModelDelta changeToken, ITableRun original, ITableRun moved) {
-         int originalOffset = original.Start;
-         int segmentOffset = moved.Start;
+         var originalOffset = original.Start;
+         var segmentOffset = moved.Start;
          if (original.ElementContent.Count != moved.ElementContent.Count) return; // if the number of elements changed during the move, nop out
          // i loops over the different segments in the array
-         for (int i = 0; i < moved.ElementContent.Count; i++) {
+         for (var i = 0; i < moved.ElementContent.Count; i++) {
             var seg = moved.ElementContent[i];
             if (seg is ArrayRunRecordSegment recordSeg) seg = recordSeg.CreateConcrete(this, moved, segmentOffset);
             if (seg.Type != ElementContentType.Pointer) {
@@ -1216,7 +1215,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                continue;
             }
             // for a pointer segment, j loops over all the elements in the array
-            for (int j = 0; j < moved.ElementCount; j++) {
+            for (var j = 0; j < moved.ElementCount; j++) {
                var originalStart = originalOffset + original.ElementLength * j;
                var movedStart = segmentOffset + moved.ElementLength * j;
                var destination = ReadPointer(movedStart);
@@ -1251,7 +1250,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// (Recursively, since other arrays might depend on those ones).
       /// </summary>
       private void UpdateDependantArrayLengths(ModelDelta changeToken, ArrayRun arrayRun) {
-         if (!anchorForAddress.TryGetValue(arrayRun.Start, out string anchor)) return;
+         if (!anchorForAddress.TryGetValue(arrayRun.Start, out var anchor)) return;
          var dependentArrays = this.GetDependantArrays(anchor).ToList();
          foreach (var table in dependentArrays) {
             var newTable = table;
@@ -1263,13 +1262,13 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // option 1: this table's length is based on the given table
             if (anchor.Equals(table.LengthFromAnchor)) {
-               int targetCount = arrayRun.ElementCount + table.ParentOffset.BeginningMargin + table.ParentOffset.EndMargin;
+               var targetCount = arrayRun.ElementCount + table.ParentOffset.BeginningMargin + table.ParentOffset.EndMargin;
                if (newTable.ElementCount == targetCount) continue;
                // only relocate if we're not in a loading situation
                if (!(changeToken is NoDataChangeDeltaModel)) {
                   newTable = RelocateForExpansion(changeToken, table, targetCount * table.ElementLength);
                }
-               int originalLength = newTable.Length;
+               var originalLength = newTable.Length;
 
                // clear any possible metadata in the way of appending (only matters if we didn't relocate
                // note that we need to do this _before_ Append is called
@@ -1294,7 +1293,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             // option 2: this table includes a bit-array based on the given table
             var requiredByteLength = (int)Math.Ceiling(arrayRun.ElementCount / 8.0);
-            for (int segmentIndex = 0; segmentIndex < newTable.ElementContent.Count; segmentIndex++) {
+            for (var segmentIndex = 0; segmentIndex < newTable.ElementContent.Count; segmentIndex++) {
                if (!(newTable.ElementContent[segmentIndex] is ArrayRunBitArraySegment bitSegment)) continue;
                if (bitSegment.SourceArrayName != anchor) continue;
                if (bitSegment.Length == requiredByteLength) continue;
@@ -1303,7 +1302,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // in that case, don't try to relocate/shift anything, just grow the proper segment based on the length of the newly loaded table
                var newElementWidth = newTable.ElementLength - bitSegment.Length + requiredByteLength;
                if (!(changeToken is NoDataChangeDeltaModel)) {
-                  newTable = (ArrayRun)RelocateForExpansion(changeToken, table, newTable.ElementCount * newElementWidth);
+                  newTable = RelocateForExpansion(changeToken, table, newTable.ElementCount * newElementWidth);
                   // within the new table, shift all the data to fit the new data width
                   ShiftTableBytesForGrowingSegment(changeToken, newTable, requiredByteLength, segmentIndex);
                } else {
@@ -1324,7 +1323,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var segment = table.ElementContent[segmentIndex];
          // since we're moving data in-place, start at the end and work our way to the front to avoid overwriting anything we haven't read yet.
          var (oldElementWidth, newElementWidth) = (table.ElementLength, table.ElementLength - segment.Length + newLength);
-         for (int elementIndex = table.ElementCount - 1; elementIndex >= 0; elementIndex--) {
+         for (var elementIndex = table.ElementCount - 1; elementIndex >= 0; elementIndex--) {
             var sourceIndex = table.Start + oldElementWidth * (elementIndex + 1) - 1;
             var destinationIndex = table.Start + newElementWidth * (elementIndex + 1) - 1;
             foreach (var movingSegment in table.ElementContent.Reverse()) {
@@ -1409,7 +1408,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             var existingRun = runs[index];
             var previousRun = existingRun;
             existingRun = existingRun.MergeAnchor(new SortedSpan<int>(start));
-            var hasAnchor = anchorForAddress.TryGetValue(existingRun.Start, out string existingAnchor);
+            var hasAnchor = anchorForAddress.TryGetValue(existingRun.Start, out var existingAnchor);
             if (includeFormatting) {
                UpdateNewRunFromPointerFormat(ref existingRun, segment as ArrayRunPointerSegment, segments, parentIndex, changeToken);
             }
@@ -1488,7 +1487,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public override void ObserveAnchorWritten(ModelDelta changeToken, string anchorName, IFormattedRun run) {
          Debug.Assert(run.Length > 0, $"Trying to write a run of length zero! {run.FormatString} at {run.Start:X6}"); // writing an anchor of length zero is stupid.
          lock (threadlock) {
-            int location = run.Start;
+            var location = run.Start;
             var index = BinarySearch(location);
 
             var existingRun = (index >= 0 && index < runs.Count) ? runs[index] : null;
@@ -1506,7 +1505,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
             }
 
-            if (anchorForAddress.TryGetValue(location, out string oldAnchorName)) {
+            if (anchorForAddress.TryGetValue(location, out var oldAnchorName)) {
                anchorForAddress.Remove(location);
                addressForAnchor.Remove(oldAnchorName);
                changeToken.RemoveName(location, oldAnchorName);
@@ -1528,7 +1527,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             seekPointers = seekPointers && noKnownPointers;
             var sources = GetSourcesPointingToNewAnchor(changeToken, anchorName, run, seekPointers).Add(run.PointerSources);
             // remove any sources that were added _within_ the existing run
-            for (int i = 0; i < sources.Count; i++) {
+            for (var i = 0; i < sources.Count; i++) {
                if (sources[i] <= run.Start || sources[i] >= run.Start + run.Length) continue;
                ClearFormat(changeToken, sources[i], 4);
                sources = sources.Remove1(sources[i]);
@@ -1658,7 +1657,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       public override T RelocateForExpansion<T>(ModelDelta changeToken, T run, int minimumLength) {
-         int currentLength = run.Length;
+         var currentLength = run.Length;
          if (run is IScriptStartRun scriptStart) {
             currentLength = GetScriptLength(scriptStart, new Dictionary<int, int>());
          }
@@ -1711,7 +1710,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
                // if the space we want already has some data in it that we don't have a run for, skip it
                var lastConflictingData = -1;
-               for (int i = start + minimumLength - 1; i >= start; i--) {
+               for (var i = start + minimumLength - 1; i >= start; i--) {
                   if (RawData[i] != 0xFF) {
                      lastConflictingData = i;
                      break;
@@ -1786,7 +1785,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       // for each of the results, we recognized it as text: see if we need to add a matching string run / pointers
       public override int ConsiderResultsAsTextRuns(Func<ModelDelta> futureChange, IReadOnlyList<int> searchResults) {
-         int resultsRecognizedAsTextRuns = 0;
+         var resultsRecognizedAsTextRuns = 0;
          lock (threadlock) {
             foreach (var result in searchResults) {
                var run = ConsiderAsTextStream(result, futureChange);
@@ -1882,7 +1881,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          for (var run = GetNextRun(start); length > 0 && run != null; run = GetNextRun(start)) {
 
             if (alsoClearData && start < run.Start) {
-               for (int i = 0; i < length && i < run.Start - start; i++) {
+               for (var i = 0; i < length && i < run.Start - start; i++) {
                   if (start + i < Count) {
                      changeToken.ChangeData(this, start + i, 0xFF);
                   }
@@ -1910,7 +1909,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   changeToken.AddRun(simpleRun);
                   // but we don't want to keep the inner-pointers
                   if (run is ArrayRun array && array.SupportsInnerPointers) {
-                     for (int i = 1; i < array.PointerSourcesForInnerElements.Count; i++) {
+                     for (var i = 1; i < array.PointerSourcesForInnerElements.Count; i++) {
                         foreach (var source in array.PointerSourcesForInnerElements[i]) {
                            index = BinarySearch(source);
                            if (index >= 0 && runs[index] is PointerRun) {
@@ -1926,7 +1925,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
 
             if (alsoClearData) {
-               for (int i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
+               for (var i = 0; i < run.Length; i++) changeToken.ChangeData(this, run.Start + i, 0xFF);
             }
 
             length -= run.Length + run.Start - start;
@@ -1940,7 +1939,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
          // case 1: anchor is named
          // delete the anchor.
-         if (anchorForAddress.TryGetValue(run.Start, out string name)) {
+         if (anchorForAddress.TryGetValue(run.Start, out var name)) {
             if (!(changeToken is NoDataChangeDeltaModel)) {
                // Clear pointers to it, but keep the names. They're pointers, just not to here anymore.
                foreach (var source in run.PointerSources) {
@@ -1950,7 +1949,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                }
                unmappedNameToSources[name] = run.PointerSources;
                if (run is ArrayRun array && array.SupportsInnerPointers) {
-                  for (int i = 0; i < array.PointerSourcesForInnerElements.Count; i++) {
+                  for (var i = 0; i < array.PointerSourcesForInnerElements.Count; i++) {
                      foreach (var source in array.PointerSourcesForInnerElements[i]) {
                         WriteValue(changeToken, source, i);
                         changeToken.AddUnmappedPointer(source, name);
@@ -2028,7 +2027,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private void AddAnchorsForRemovedArray(ArrayRun table, ModelDelta token) {
-         for (int i = 1; i < table.ElementCount; i++) {
+         for (var i = 1; i < table.ElementCount; i++) {
             var sources = table.PointerSourcesForInnerElements[i];
             if (sources == null || sources.Count == 0) continue;
             var destination = table.Start + table.ElementLength * i;
@@ -2136,7 +2135,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                         }
                      }
                   }
-                  if (!anchorForAddress.TryGetValue(start, out string anchor)) {
+                  if (!anchorForAddress.TryGetValue(start, out var anchor)) {
                      if ((run.PointerSources?.Count ?? 0) > 0) {
                         anchor = GenerateDefaultAnchorName(run);
                         var token = changeToken();
@@ -2176,7 +2175,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   start = run.Start + run.Length;
                } else if (run is AsciiRun ascii) {
                   var textLength = Math.Min(ascii.Length, length);
-                  for (int i = 0; i < textLength; i++) {
+                  for (var i = 0; i < textLength; i++) {
                      text.Append((char)RawData[start + i]);
                   }
                   start += textLength;
@@ -2200,7 +2199,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var defaultName = $"misc.temp.{gameCodeText}_{initialAddress}{textSample}";
          if (!addressForAnchor.ContainsKey(defaultName)) return defaultName;
 
-         int counter = 0;
+         var counter = 0;
          while (true) {
             counter++;
             if (!addressForAnchor.ContainsKey(defaultName + "_" + counter)) return defaultName + "_" + counter;
@@ -2311,7 +2310,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       private IEnumerable<string> GetAutoCompleteOptions(string prefix, ITableRun run, string[] parts) {
          var childNames = run.ElementNames;
-         for (int i = 0; i < run.ElementCount; i++) {
+         for (var i = 0; i < run.ElementCount; i++) {
             var options = new List<string> { i.ToString() };
             if (childNames != null && childNames.Count > i && !string.IsNullOrEmpty(childNames[i])) options.Add(childNames[i]);
             foreach (var option in options) {
@@ -2321,7 +2320,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                   continue;
                }
                // looking for a field name
-               int segmentOffset = 0;
+               var segmentOffset = 0;
                foreach (var segment in run.ElementContent) {
                   if (!segment.Name.MatchesPartial(parts[1])) {
                      segmentOffset += segment.Length;
@@ -2363,7 +2362,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                // We want to know the hash from the reference table,
                // because we only want to update the table if the hash matches the format
                var refTable = references == null ? null : references[name];
-               string hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : StoredList.GenerateHash(new[] { format });
+               var hash = refTable != null ? StoredList.GenerateHash(new[] { refTable.Format }) : StoredList.GenerateHash(new[] { format });
                anchors.Add(new StoredAnchor(address, name, format, hash));
             }
          }
@@ -2433,7 +2432,7 @@ namespace HavenSoft.HexManiac.Core.Models {
                var data = RawData;
                var chunkEnd = chunkLength * (group + 1);
                chunkEnd = Math.Min(chunkEnd, data.Length);
-               for (int i = chunkLength * group + 3; i < chunkEnd; i++) {
+               for (var i = chunkLength * group + 3; i < chunkEnd; i++) {
                   if (data[i] != 0x08 && data[i] != 0x09) continue;
                   var destination = ReadPointer(i - 3);
                   if (!addresses.Contains(destination)) continue;
@@ -2462,15 +2461,15 @@ namespace HavenSoft.HexManiac.Core.Models {
          return results;
       }
 
-      private SortedSpan<int> SearchForPointersInTables(ModelDelta changeToken, int address){
+      private SortedSpan<int> SearchForPointersInTables(ModelDelta changeToken, int address) {
          if (sourcesForDestinations != null || changeToken is TransientModelDelta) return SortedSpan<int>.None; // no need to search through tables if we're in a transient or doing initial load
          var results = new List<int>();
          lock (threadlock) {
             foreach (var run in All<ITableRun>()) {
-               int offset = 0;
+               var offset = 0;
                foreach (var seg in run.ElementContent) {
                   if (seg.Type == ElementContentType.Pointer) {
-                     for (int i = 0; i < run.ElementCount; i++) {
+                     for (var i = 0; i < run.ElementCount; i++) {
                         var source = run.Start + i * run.ElementLength + offset;
                         if (ReadPointer(source) == address) results.Add(source);
                      }
@@ -2489,7 +2488,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // remove sources that are already in use in other ways
-         for (int i = 0; i < results.Count; i++) {
+         for (var i = 0; i < results.Count; i++) {
             if (!TryMakePointerAtAddress(token, results[i], false, out var newRun)) {
                results = results.Remove1(results[i]);
                i -= 1;
@@ -2570,8 +2569,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static (string, string) SplitNameAndFormat(string text) {
          var name = text.Substring(1).Trim(); // lop off leading ^
-         string format = string.Empty;
-         int split = -1;
+         var format = string.Empty;
+         var split = -1;
 
          if (name.Contains(AnchorStart.ToString() + ArrayStart)) {
             split = name.IndexOf(AnchorStart);
@@ -2622,7 +2621,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             // the next run DOES start here, but nothing points to it
             return new ErrorInfo("An anchor with nothing pointing to it must have a name.");
          } else if (!allowAnchorOverwrite && nextAnchor.Start < runToWrite.Start + runToWrite.Length) {
-            return new ErrorInfo("An existing anchor starts before the new one ends.");
+            return new ErrorInfo($"An existing anchor starts at {nextAnchor.Start.ToAddress()}, before the new one ends.");
          } else if (!name.All(c => char.IsLetterOrDigit(c) || "._".Contains(c))) {
             return new ErrorInfo("Anchor names must contain only letters, numbers, dots, and underscores.");
          } else if (runToWrite.Start + runToWrite.Length > model.Count) {
@@ -2659,7 +2658,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// The list of sources that point at the new anchor
       /// </returns>
       private SortedSpan<int> GetSourcesPointingToNewAnchor(ModelDelta changeToken, string anchorName, IFormattedRun run, bool seekPointers) {
-         if (!addressForAnchor.TryGetValue(anchorName, out int location)) return SortedSpan<int>.None;     // new anchor is unnamed, so nothing points to it yet
+         if (!addressForAnchor.TryGetValue(anchorName, out var location)) return SortedSpan<int>.None;     // new anchor is unnamed, so nothing points to it yet
 
          if (!unmappedNameToSources.TryGetValue(anchorName, out var sources)) {
             // no pointer was waiting for this anchor to be created
@@ -2681,7 +2680,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             changeToken.RemoveUnmappedPointer(source, anchorName);
             sourceToUnmappedName.Remove(source);
-            int offset = 0;
+            var offset = 0;
             if (run is ArrayRun array && array.SupportsInnerPointers) {
                offset = (ReadValue(source) * array.ElementLength).LimitToRange(0, array.Length);
                if (offset != 0) sourcesDirectlyToThis = sourcesDirectlyToThis.Remove1(source);
@@ -2714,7 +2713,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             WritePointer(changeToken, source, newStart);
          }
          if (run is ArrayRun tableRun && tableRun.SupportsInnerPointers) {
-            for (int i = 1; i < tableRun.ElementCount; i++) {
+            for (var i = 1; i < tableRun.ElementCount; i++) {
                foreach (var source in tableRun.PointerSourcesForInnerElements[i]) {
                   WritePointer(changeToken, source, newStart + i * tableRun.ElementLength);
                }
@@ -2737,7 +2736,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          }
 
          // move data
-         for (int i = 0; i < length; i++) {
+         for (var i = 0; i < length; i++) {
             changeToken.ChangeData(this, newStart + i, RawData[run.Start + i]);
             changeToken.ChangeData(this, run.Start + i, 0xFF);
          }
@@ -2783,7 +2782,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (rangeEnd >= RawData.Length) return false;
 
          // make sure the data is clear
-         for (int i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
+         for (var i = rangeStart; i < rangeEnd; i++) if (RawData[i] != 0xFF && RawData[i] != 0x00) return false;
 
          return true;
       }
