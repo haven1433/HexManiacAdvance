@@ -653,7 +653,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          for (int i = format.Source + format.Position; i < run.Start + run.Length; i++) CurrentChange.ChangeData(Model, i, 0xFF);
          NewCell = new HexElement(0xFF, true, new Braille(format.Source, format.Position, StringDelimeter));
          NewDataIndex = memoryLocation + 1;
-         Model.ObserveRunWritten(CurrentChange,new BrailleRun(Model,run.Start,run.PointerSources));
+         Model.ObserveRunWritten(CurrentChange, new BrailleRun(Model, run.Start, run.PointerSources));
       }
 
       private void CompletePointerEdit() {
@@ -698,7 +698,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
 
             NewDataIndex = memoryLocation + 4;
          } else {
-            ErrorText = $"Address {destinationValue:X2} is not within the data.";
+            if (offset == 0) {
+               ErrorText = $"Address {destinationValue:X2} is not within the data.";
+            } else {
+               ErrorText = $"Address {destinationValue:X2}+{offset} is not within the data.";
+            }
          }
       }
 
@@ -918,7 +922,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
             }
          } else if (run is ITableRun array) {
             var offsets = array.ConvertByteOffsetToArrayOffset(memoryLocation);
-            while (array.ElementContent[offsets.SegmentIndex].Length < memoryLocation-offsets.SegmentStart+bytes.Count+1) {
+            while (array.ElementContent[offsets.SegmentIndex].Length < memoryLocation - offsets.SegmentStart + bytes.Count + 1) {
                memoryLocation--; // move back one byte and edit that one instead
             }
             if (bytes.Count.Range().Any(i => Model[memoryLocation + i] == 0xFF)) {
