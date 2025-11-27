@@ -1696,7 +1696,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                }
             }
          }
-         fileSystem.SaveImage(pixels, palette);
+         try {
+            fileSystem.SaveImage(pixels, palette);
+         } catch (Exception) {
+            // failed to export - try again using the un-indexed system.
+            fileSystem.SaveImage(PixelData, PixelWidth);
+         }
       }
    }
 

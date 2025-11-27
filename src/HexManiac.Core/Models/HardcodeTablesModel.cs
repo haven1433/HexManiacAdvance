@@ -1,7 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 
@@ -514,6 +513,9 @@ namespace HavenSoft.HexManiac.Core.Models {
          // tms / tutors
          if (name == MoveTutors) format = format.Replace("]15", "]128");
          if (name == TmMoves) format = format.Replace("]58", "]128");
+
+         // graphics.pokemon.type.map[width. height. xy:|t|:|x:|.|y::]data.pokemon.type.names+1+2
+         if (name == "graphics.pokemon.type.map") format = format.Replace("data.pokemon.type.names+1+5", "data.pokemon.type.names+1+2");
 
          // overworld sprites
          if (name == OverworldSprites) format = format.Replace("graphics.overworld.tablelength", "240");
