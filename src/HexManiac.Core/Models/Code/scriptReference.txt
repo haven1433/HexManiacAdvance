@@ -337,9 +337,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPRE_BPGE] 8A nop8A
 [AXPE_AXVE_BPEE] 8A setberrytree plantID. berryID.data.items.berry.stats+1 growth.    # sets a specific berry-growing spot on the map with the specific berry and growth level.
 8B choosecontestpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
-8C startcontest                              # nop in FireRed. Starts a contest.
-8D showcontestresults                        # nop in FireRed. Shows contest results.
-8E contestlinktransfer                       # nop in FireRed. In Emerald, starts a wireless connection contest
+8C startcontest                              # nop in FireRed & LeafGreen. Starts a contest.
+8D showcontestresults                        # nop in FireRed & LeafGreen. Shows contest results.
+8E contestlinktransfer                       # nop in FireRed & LeafGreen. In Emerald, starts a wireless connection contest
 8F random high:                              # returns 0 <= number < high, stored in varResult
 90 givemoney money:: check.                  # if check is 0, gives the player money
 91 paymoney money:: check.                   # if check is 0, takes money from the player
@@ -351,7 +351,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPRE_BPGE_BPEE] 95 updatemoney x. y. check. # updates the amount of money shown after a money change (only works if check is 0)
 [AXPE_AXVE] 96 getpricereduction index:data.items.stats
 [BPRE_BPGE] 96 nop96
-[BPEE]      96 getpokenewsactive newsKind:
+[BPEE]      96 getpokenewsactive newsKind:newsKinds
 97 fadescreen effect.screenfades
 98 fadescreendelay effect.screenfades delay.
 99 darken flashSize:                         # makes the screen go dark. Related to flash? Call from a level script.
