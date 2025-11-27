@@ -101,9 +101,9 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 [BPEE] trainerhill.battle           5C 0C trainer:data.trainers.stats 00 00 start<""> playerwin<"">   # trainerbattle 0C: Only works when called by Trainer Hill ASM.
 
 # CFRU specific macros
-[BPRE] cfru.init.roamer             16 00 80 species:data.pokemon.names 16 01 80 level: 16 02 80 onland:onland 16 03 80 onwater:onwater 25 29 01 # Creates a custom roaming pokemon if CFRU is enabled.
+[BPRE] cfru.init.roamer             16 00 80 species:data.pokemon.names 16 01 80 level: 16 02 80 onland:onland 16 03 80 onwater:onwater 25 29 01 # Creates a custom roaming pokémon if CFRU is enabled.
                                                                                                                                                  # result is 0 if that species is already roaming, or
-                                                                                                                                                 # if you already have 10 roaming pokemon.
+                                                                                                                                                 # if you already have 10 roaming pokémon.
 [BPRE] cfru.set.wild.moves          29 0B 09 16 00 80 move0:data.pokemon.moves.names 16 01 80 move1:data.pokemon.moves.names 16 02 80 move2:data.pokemon.moves.names 16 03 80 move3:data.pokemon.moves.names
 
 00 nop                                          # does nothing
@@ -207,7 +207,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 40 warp4 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates that the player would go to after using Dive.
 41 warp5 mapbank. map. warp.-1 x: y:             # Sets the map & coordinates that the player would go to if they fell in a hole.
 42 getplayerpos varX: varY:                      # stores the current player position into varX and varY
-43 countPokemon                                  # stores number of pokemon in your party, including non-usable eggs and bad eggs, into varResult
+43 countPokemon                                  # stores number of pokémon in your party, including non-usable eggs and bad eggs, into varResult
 44 additem item:data.items.stats quantity:       # Tries to put 'quantity' more of 'item' in the player's inventory.
                                                  # 'item' and 'quantity' can be variables.
                                                  # if the operation was succcessful, varResult is set to 1. If the operation fails, it is set to 0.
@@ -305,25 +305,25 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 72 showbox x. y. width. height.                 # nop in Emerald
 73 hidebox x. y. width. height.                 # ruby/sapphire only
 74 clearbox x. y. width. height.                # clear only a part of a custom box (nop in Emerald)
-75 showpokepic species:data.pokemon.names x.|z y.|z # show the pokemon in a box. Can be a literal or a variable.
+75 showpokepic species:data.pokemon.names x.|z y.|z # show the pokémon in a box. Can be a literal or a variable.
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
 79 givePokemon species:data.pokemon.names level. item:data.items.stats filler. filler:: filler::
-                                             # gives the player one of that pokemon. the last 9 bytes are all 00.
+                                             # gives the player one of that pokémon. the last 9 bytes are all 00.
                                              # varResult=0 if it was added to the party
                                              # varResult=1 if it was put in the PC
                                              # varResult=2 if there was no room
-                                             # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
-7A giveEgg species:data.pokemon.names        # species can be a pokemon or a variable
-7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokemon in your party to have a specific move.
-                                             # Slots range 0-5 and 0-3.
-7C checkattack move:data.pokemon.moves.names # varResult=n, where n is the index of the pokemon that knows the move.
-                                             # varResult=6, if no pokemon in your party knows the move
-                                             # if successful, var4 is set to the pokemon species
+                                             # 4037=? number of the PC box the pokémon was sent to, if it was boxed?
+7A giveEgg species:data.pokemon.names        # species can be a pokémon or a variable
+7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokémon in your party to have a specific move.
+                                             # Slots range from 0-5 for the pokémon and 0-3 for the move slot.
+7C checkattack move:data.pokemon.moves.names # varResult=n, where n is the index of the pokémon that knows the move.
+                                             # varResult=6, if no pokémon in your party knows the move
+                                             # if successful, var4 is set to the pokémon species
 7D bufferPokemon buffer.bufferNames species:data.pokemon.names      # Species can be a literal or variable. Store the name in the given buffer
-7E bufferfirstPokemon buffer.bufferNames                            # Species of your first pokemon gets stored in the given buffer
-7F bufferpartyPokemon buffer.bufferNames party:                     # Nickname of pokemon 'party' from your party gets stored in the buffer
+7E bufferfirstPokemon buffer.bufferNames                            # Species of your first pokémon gets stored in the given buffer
+7F bufferpartyPokemon buffer.bufferNames party:                     # Nickname of pokémon 'party' from your party gets stored in the buffer
 80 bufferitem buffer.bufferNames item:data.items.stats              # stores an item name in a buffer
 81 bufferdecoration buffer.bufferNames decoration:
 82 bufferattack buffer.bufferNames move:data.pokemon.moves.names    # Species, party, item, decoration, and move can all be literals or variables
@@ -336,7 +336,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 89 pokecasino index:
 [BPRE_BPGE] 8A nop8A
 [AXPE_AXVE_BPEE] 8A setberrytree plantID. berryID.data.items.berry.stats+1 growth.    # sets a specific berry-growing spot on the map with the specific berry and growth level.
-8B choosecontestpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokemon to enter contest
+8B choosecontestpkmn                         # in FireRed, 03000EA8 = '1'. In R/S/E, prompt for a pokémon to enter contest
 8C startcontest                              # nop in FireRed. Starts a contest.
 8D showcontestresults                        # nop in FireRed. Shows contest results.
 8E contestlinktransfer                       # nop in FireRed. In Emerald, starts a wireless connection contest
@@ -358,11 +358,11 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 9A lighten flashSize.                        # lightens an area around the player?
 9B preparemsg2 pointer<"">                   # prepares a message that automatically scrolls at a fixed speed
 9C doanimation animation:                    # executes field move animation
-9D setanimation animation. slot:             # which party pokemon to use for the next field animation?
+9D setanimation animation. slot:             # which party pokémon to use for the next field animation?
 9E checkanimation animation:                 # if the given animation is playing, pause the script until the animation completes
 9F sethealingplace flightspot:               # sets where the player warps when they white out
 A0 checkgender                               # if male, varResult=0. If female, varResult=1
-A1 cry species:data.pokemon.names effect:    # plays that pokemon's cry. Can use a variable or a literal. effect uses a cry mode constant.
+A1 cry species:data.pokemon.names effect:    # plays that pokémon's cry. Can use a variable or a literal. effect uses a cry mode constant.
 A2 setmaptile x: y: tile: isWall:            # sets the tile at x/y to be the given tile: with the attribute.
                                              # 0 = passable (false), 1 = impassable (true)
 A3 resetweather                              # queues a weather change to the map's default weather
@@ -418,15 +418,15 @@ C5 waitcry                                   # used after cry, it pauses the scr
 [BPEE] CB nopCB
 [BPRE_BPGE] CC comparehiddenvar a. value::   # compares a hidden value to a given value.
 [BPEE] CC nopCC
-[BPRE_BPGE_BPEE] CD setmodernfatefulencounter slot:       # a pokemon in your party now has its modern fateful encounter attribute set
-[BPRE_BPGE_BPEE] CE checkmodernfatefulencounter slot:     # if the pokemon is not a modern fateful encounter, then varResult = 1.
-                                                          # if the pokemon is a fateful encounter (or the specified slot is invalid), then varResult = 0.
+[BPRE_BPGE_BPEE] CD setmodernfatefulencounter slot:       # a pokémon in your party now has its modern fateful encounter attribute set
+[BPRE_BPGE_BPEE] CE checkmodernfatefulencounter slot:     # if the pokémon is not a modern fateful encounter, then varResult = 1.
+                                                          # if the pokémon is a fateful encounter (or the specified slot is invalid), then varResult = 0.
 [BPRE_BPGE_BPEE] CF trywondercardscript      # Tries a wonder card script.
 [BPRE_BPGE_BPEE] CF executeram               # Tries a wonder card script.
 [BPRE_BPGE] D0 setworldmapflag mapflag:|h    # This lets the player fly to a given map, if the map has a flight spot
 [BPEE] D0 nopD0                              # (nop in Emerald)
 [BPRE_BPGE_BPEE] D1 warpteleport2 bank. map. exit. x: y:               # clone of warpteleport, only used in FR/LG and only with specials
-[BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokemon in your party (0-5)
+[BPRE_BPGE_BPEE] D2 setcatchlocation slot: location.data.maps.names    # changes the catch location of a pokémon in your party (0-5)
 [BPEE] D3 moverotatingtileobjects puzzleNumber:
 [BPRE_BPGE] D3 braillelength pointer<>       # sets variable var4 based on the braille string's length
                                              # call this, then special 0x1B2 to make a cursor appear at the end of the text
