@@ -7,7 +7,6 @@ using Microsoft.Scripting.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -670,7 +669,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
          // done with script lines, now write deferred data
          foreach (var deferred in deferredContent) {
-             deferred.WriteData(result, start);
+            deferred.WriteData(result, start);
          }
 
          if (updateBody != null) updateBody.StreamTypes = streamTypes;
@@ -767,7 +766,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          // match linecode (if there is one)
          if (tokens.Length > 1 && candidates.Any(candidate => candidate.LineCode.Count > 1) && tokens[1].TryParseInt(out var num)) candidates = candidates.Where(line => line.LineCode.Count < 2 || line.LineCode[1] == num).ToList();
 
-         var isAfterToken = context.Index > 0 &&
+         var isAfterToken = context.Index > 0 && context.Index < context.Line.Length &&
             (context.Line.Length == context.Index || context.Line[context.Index] == ' ') &&
             (char.IsLetterOrDigit(context.Line[context.Index - 1]) || context.Line[context.Index - 1].IsAny("_~'\"-.".ToCharArray()));
          if (isAfterToken) {
@@ -971,7 +970,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
    }
 
    public static class ScriptExtensions {
-      public static MacroScriptLine GetMatchingMacro(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte>data, int start) {
+      public static MacroScriptLine GetMatchingMacro(this IReadOnlyList<IScriptLine> self, int gameHash, IReadOnlyList<byte> data, int start) {
          return (MacroScriptLine)self.FirstOrDefault(option => option is MacroScriptLine && option.Matches(gameHash, data, start));
       }
 
@@ -1105,7 +1104,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          }
       }
 
-      private (int, int) ReadSpriteTemplateField(string format,string content) {
+      private (int, int) ReadSpriteTemplateField(string format, string content) {
          content = content.Trim();
          if (format.EndsWith(":") && content.TryParseInt(out var result)) return (result, 2);
          if (format.EndsWith("<>") && content.Trim('<', '>').TryParseHex(out result)) return (result, 4);

@@ -786,6 +786,18 @@ namespace HavenSoft.HexManiac.Tests {
          Assert.Equal(1, value); // matches "cde" over "abc" because it starts with "c"
       }
 
+      [Fact]
+      public void TextContainsNewline_Copy_IncludeNewlines() {
+         SetFullModel(0xFF);
+         ViewPort.Edit("^text\"\" Line1\\nLine2");
+
+         ViewPort.SelectionStart = new(0, 0);
+         ViewPort.ExpandSelection(0, 0);
+         ViewPort.Copy.Execute(FileSystem);
+
+         Assert.Contains("\\n", FileSystem.CopyText.value);
+      }
+
       private void HackTextConverter(string game) {
          var converter = New.PCSConverter(game);
          var property = Model.GetType().GetProperty(nameof(Model.TextConverter));

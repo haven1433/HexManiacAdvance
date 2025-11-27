@@ -562,6 +562,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void GetSelectionFromTile(IPixelViewModel tileImage) {
+         if (tileImage is null) return;
          ShowTiles = true;
          var index = indexForTileImage[tileImage];
          var (pal, hFlip, vFlip, tileIndex) = LzTilemapRun.ReadTileData(blocks[blockIndex], index, 2);

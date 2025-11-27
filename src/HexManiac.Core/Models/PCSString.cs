@@ -10,7 +10,7 @@ using System.Text;
 namespace HavenSoft.HexManiac.Core.Models {
    public interface ITextConverter {
       List<byte> Convert(string text, out bool containsBadCharacters);
-      string Convert(IReadOnlyList<byte> data, int startIndex, int length);
+      string Convert(IReadOnlyList<byte> data, int startIndex, int length, bool includeNewlineCharacters = false);
       bool AnyMacroStartsWith(string input);
 
       /// <summary>
@@ -36,8 +36,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          return PCSString.Convert(text, gameCode, out containsBadCharacters);
       }
 
-      public string Convert(IReadOnlyList<byte> data, int startIndex, int length) {
-         return PCSString.Convert(gameCode, data, startIndex, length);
+      public string Convert(IReadOnlyList<byte> data, int startIndex, int length, bool includeNewlineCharacters = false) {
+         return PCSString.Convert(gameCode, data, startIndex, length, includeNewlineCharacters);
       }
 
       public bool AnyMacroStartsWith(string input) {
@@ -138,7 +138,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       private static IReadOnlyDictionary<string, IReadOnlyDictionary<string, byte[]>> GetTextMacrosFromReference(string[] reference) {
          var macros = new Dictionary<string, IReadOnlyDictionary<string, byte[]>>();
-         foreach(var game in new[] { "AXVE", "AXPE", "BPRE", "BPGE", "BPEE" }) {
+         foreach (var game in new[] { "AXVE", "AXPE", "BPRE", "BPGE", "BPEE" }) {
             macros.Add(game, GetTextMacrosFromReference(reference, game));
          }
          return macros;
@@ -148,7 +148,7 @@ namespace HavenSoft.HexManiac.Core.Models {
          var allIndex = new Dictionary<string, IReadOnlyList<IReadOnlyDictionary<string, byte[]>>>();
          foreach (var macroKvp in allMacros) {
             var index = new IReadOnlyDictionary<string, byte[]>[256];
-            foreach(var macro in macroKvp.Value) {
+            foreach (var macro in macroKvp.Value) {
                var (text, bytes) = macro;
                if (bytes.Length < 1) continue;
                var lead = bytes[0];
@@ -240,7 +240,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static string Convert(IReadOnlyList<byte> data, int startIndex, int length) => Convert(string.Empty, data, startIndex, length);
 
-      public static string Convert(string macroSet, IReadOnlyList<byte> data, int startIndex, int length) {
+      public static string Convert(string macroSet, IReadOnlyList<byte> data, int startIndex, int length, bool includeNewlineCharacters = false) {
          var result = new StringBuilder("\"", length * 2);
          if (!TextMacrosIndex.TryGetValue(macroSet, out var textMacros)) textMacros = null;
 
@@ -261,13 +261,16 @@ namespace HavenSoft.HexManiac.Core.Models {
 
             // this line optimized for maximum speed. Otherwise would like to use the Newlines array.
             if (length > 1 && (currentByte == 0xFA || currentByte == 0xFB || currentByte == 0xFE)) {
-               if (currentByte == 0xFB) {
+               if (currentByte == 0xFB) { // paragraph
+                  if (includeNewlineCharacters) result.Append("\\pn");
                   result.AppendLine(Environment.NewLine);
                   nextExpectedNewline = NewlineMode.Wrap;
                } else if (currentByte == 0xFE && nextExpectedNewline == NewlineMode.Wrap) {
+                  if (includeNewlineCharacters) result.Append("\\n");
                   result.AppendLine();
                   nextExpectedNewline = NewlineMode.Feed;
                } else if (currentByte == 0xFA && nextExpectedNewline == NewlineMode.Feed) {
+                  if (includeNewlineCharacters) result.Append("\\l");
                   result.AppendLine();
                   nextExpectedNewline = NewlineMode.Feed;
                } else {
@@ -324,7 +327,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             bool foundMatch = false;
 
             // check macros
-            if (input[index] == '[' && textMacros!=null) {
+            if (input[index] == '[' && textMacros != null) {
                var closeMacro = input.Substring(index).IndexOf(']') + index;
                if (closeMacro > index) {
                   var candidate = input.Substring(index, closeMacro + 1 - index);

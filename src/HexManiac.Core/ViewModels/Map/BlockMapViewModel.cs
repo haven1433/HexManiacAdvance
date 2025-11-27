@@ -101,7 +101,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (events[i].Equals(selectedEvent)) {
                selectionIndex = categories[currentCategory].Count - 1;
                selectedCategory = currentCategory;
-            };
+            }
+            ;
          }
 
          // remove unused categories
@@ -225,10 +226,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public double WidthRatio => 80.0 / PixelWidth / Math.Min(1, SpriteScale);
       public double HeightRatio => 80.0 / PixelHeight / Math.Min(1, SpriteScale);
       private bool showBeneath;
-      public bool ShowBeneath { get => showBeneath; set => Set(ref showBeneath, value, old => {
-         NotifyPropertiesChanged(nameof(WidthRatio), nameof(HeightRatio));
-         tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
-      } ); }
+      public bool ShowBeneath {
+         get => showBeneath; set => Set(ref showBeneath, value, old => {
+            NotifyPropertiesChanged(nameof(WidthRatio), nameof(HeightRatio));
+            tutorials.Complete(Tutorial.SpaceBar_ShowBeneath);
+         });
+      }
 
       private MapDisplayOptions showEvents;
       public MapDisplayOptions ShowEvents { get => showEvents; set => SetEnum(ref showEvents, value, old => ClearPixelCache()); }
@@ -1044,8 +1047,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var defaultBlock = grid[1, 1] & 0x3FF;
          var key = corner7.MostCommonKey(); corners[0, 0] = key != 0 ? key : defaultBlock;
          key = corner9.MostCommonKey(); corners[1, 0] = key != 0 ? key : defaultBlock;
-         key =  corner1.MostCommonKey(); corners[0, 1] = key != 0 ? key : defaultBlock;
-         key =  corner3.MostCommonKey(); corners[1, 1] = key != 0 ? key : defaultBlock;
+         key = corner1.MostCommonKey(); corners[0, 1] = key != 0 ? key : defaultBlock;
+         key = corner3.MostCommonKey(); corners[1, 1] = key != 0 ? key : defaultBlock;
          innerCornersFor9Grid = corners;
       }
 
@@ -2242,7 +2245,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var (borderWidth, borderHeight) = (borderBlockCopy.PixelWidth / 16, borderBlockCopy.PixelHeight / 16);
          for (int y = 0; y < height + border.North + border.South; y++) {
             for (int x = 0; x < width + border.West + border.East; x++) {
-               if (y < border.North || x < border.West || y >= border.North + height || x >= border.West + width) {
+               if ((y < border.North || x < border.West || y >= border.North + height || x >= border.West + width) && borderWidth > 0 && borderHeight > 0) {
                   var (xEdge, yEdge) = (x - border.West - width, y - border.North - height);
                   var (rightEdge, bottomEdge) = (xEdge >= 0, yEdge >= 0);
                   // top/left
@@ -2637,7 +2640,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return MapIDToText(model, group, map);
       }
 
-      public static string MapIDToText(IDataModel model, int group, int map){
+      public static string MapIDToText(IDataModel model, int group, int map) {
          var offset = model.IsFRLG() ? 0x58 : 0;
 
          var mapBanks = new ModelTable(model, model.GetTable(HardcodeTablesModel.MapBankTable).Start);
