@@ -107,6 +107,16 @@ Address = 0x122CD0
 Offset = -8
 
 [[List]]
+Name = '''newsKinds'''
+0 = [
+   '''None''',
+   '''Slateport''',
+   '''GameCorner''',
+   '''Lilycove''',
+   '''BlendMaster''',
+]
+
+[[List]]
 Name = '''pokenavTowns'''
 0 = [
    '''LITTLEROOT TOWN''',
