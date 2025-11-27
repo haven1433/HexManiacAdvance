@@ -317,7 +317,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
                                              # 4037=? number of the PC box the pokemon was sent to, if it was boxed?
 7A giveEgg species:data.pokemon.names        # species can be a pokemon or a variable
 7B setmonmove pokemonSlot. attackSlot. newMove:data.pokemon.moves.names  # set a given pokemon in your party to have a specific move.
-                                             # Slots range 0-4 and 0-3.
+                                             # Slots range 0-5 and 0-3.
 7C checkattack move:data.pokemon.moves.names # varResult=n, where n is the index of the pokemon that knows the move.
                                              # varResult=6, if no pokemon in your party knows the move
                                              # if successful, var4 is set to the pokemon species
