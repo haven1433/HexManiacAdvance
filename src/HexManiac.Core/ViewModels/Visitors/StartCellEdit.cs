@@ -255,7 +255,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
          if (Result) NewFormat = new UnderEdit(color, Input.ToString(), 2);
       }
 
-      public void Visit(Tuple tuple, byte data) {
+      public void Visit(DataFormats.Tuple tuple, byte data) {
          if (" +,".Contains(Input)) {
             Result = false;
             return;

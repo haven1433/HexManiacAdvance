@@ -5,6 +5,14 @@
         <ImplicitUsings>false</ImplicitUsings>
         <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
         <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+        <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+        <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+        <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+        <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+        <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+        <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+        <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
         <Nullable>annotations</Nullable>
         <CodeGenDir>$(SolutionDir)artifacts\$(AssemblyName)\codegen\</CodeGenDir>
         <AutoImplement>$(SolutionDir)artifacts\AutoImplement.Tool\bin\$(Configuration)\$(TargetFramework)\AutoImplement.Tool</AutoImplement>
