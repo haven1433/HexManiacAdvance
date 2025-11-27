@@ -1,16 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <AssemblyName>HexManiacAdvance</AssemblyName>
     <TargetFramework>net6.0-windows</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <UseWPF>true</UseWPF>
+    <XamlGenerateAssemblyInfo>false</XamlGenerateAssemblyInfo>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>false</ImplicitUsings>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <TargetLatestRuntimePatch>false</TargetLatestRuntimePatch>
+    <UseWindowsDesktopSdk>true</UseWindowsDesktopSdk>
+    <GenerateTemporaryTargetAssemblyAttribute>false</GenerateTemporaryTargetAssemblyAttribute>
+    <GenerateManifests>false</GenerateManifests>
+    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
+    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
+    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
+    <GenerateAssemblyFileVersionAttribute>false</GenerateAssemblyFileVersionAttribute>
+    <GenerateAssemblyInformationalVersionAttribute>false</GenerateAssemblyInformationalVersionAttribute>
+    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyVersionAttribute>false</GenerateAssemblyVersionAttribute>
     <Nullable>annotations</Nullable>
-  <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
-  <Platforms>AnyCPU;x86;x64</Platforms>
+    <ApplicationIcon>Resources\AppIcon.ico</ApplicationIcon>
+    <Platforms>AnyCPU;x86;x64</Platforms>
   </PropertyGroup>
   <ItemGroup>
     <None Remove="Resources\HMA_Splash.xcf" />
