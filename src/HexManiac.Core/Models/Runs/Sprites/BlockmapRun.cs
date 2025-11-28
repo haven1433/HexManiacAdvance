@@ -2,7 +2,6 @@
 using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
-using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
@@ -215,7 +214,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          return result;
       }
 
-      private BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight){
+      private BlockmapRun TryChangeSize(Func<ModelDelta> tokenFactory, int leftAmount, int upAmount, int rightAmount, int downAmount, int borderWidth, int borderHeight) {
          if (backupContent == null) StoreContentBackupForSizeChange();
          var (newWidth, newHeight) = (BlockWidth + leftAmount + rightAmount, BlockHeight + upAmount + downAmount);
          backupX -= leftAmount;
@@ -424,7 +423,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          EstimateTileCount(ref tileCount, start);
          for (int i = 0; i < tileCount; i++) {
             var tile = new int[8, 8];
-            for(int y = 0; y < 8; y++) {
+            for (int y = 0; y < 8; y++) {
                for (int x = 0; x < 4; x++) {
                   tile[x * 2 + 0, y] = model[start + i * 32 + y * 4 + x] & 0xF;
                   tile[x * 2 + 1, y] = model[start + i * 32 + y * 4 + x] >> 4;
@@ -589,7 +588,7 @@ namespace HexManiac.Core.Models.Runs.Sprites {
          tile = Read(block, 7, tiles, palettes);
          canvas.Draw(tile, 8, 8);
 
-         if (blockAttributes != null && TileAttribute.Create(blockAttributes[i]) is TileAttribute t && t.Layer == 3 && blocks.Length > i + 1) {
+         if (blockAttributes != null && blockAttributes.Length > i && TileAttribute.Create(blockAttributes[i]) is TileAttribute t && t.Layer == 3 && blocks.Length > i + 1) {
             block = blocks[i + 1];
 
             // triple layer
