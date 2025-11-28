@@ -902,7 +902,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var canvas = new CanvasPixelViewModel(9 * 16, 9 * 16);
          for (int y = 0; y < 9; y++) {
             for (int x = 0; x < 9; x++) {
-               canvas.Draw(viewModel.BlockRenders[blockMap[x, y] & 0x3FF], x * 16, y * 16);
+               var blockIndex = blockMap[x, y] & 0x3FF;
+               var blockRender = blockIndex < viewModel.BlockRenders.Count ? viewModel.BlockRenders[0] : null;
+               canvas.Draw(blockRender, x * 16, y * 16);
             }
          }
 

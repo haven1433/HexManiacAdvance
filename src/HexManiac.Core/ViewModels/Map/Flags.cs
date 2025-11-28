@@ -82,7 +82,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
 
          foreach (var spot in GetAllScriptSpots(model, parser, GetAllTopLevelScripts(model), 0x29, 0x2A, 0x2B)) {
-            usedFlags.Add(model.ReadMultiByteValue(spot.Address + 1, 2));  
+            usedFlags.Add(model.ReadMultiByteValue(spot.Address + 1, 2));
          }
 
          return usedFlags;
@@ -241,7 +241,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var spot in GetAllScriptSpots(model, parser, new[] { start }, 0x8A)) {
             var plantID = model[spot.Address + 1];
             var berryID = model[spot.Address + 2];
-            results[plantID] =  new(spot.Address, berryID - 1);
+            results[plantID] = new(spot.Address, berryID - 1);
          }
          return results;
       }
@@ -258,7 +258,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          // check rematch table
          var rematches = model.GetTableModel(HardcodeTablesModel.RematchTable);
          if (rematches != null) {
-            foreach(var rematch in rematches) {
+            foreach (var rematch in rematches) {
                if (!trainerFlags.Contains(rematch.GetValue("match1"))) continue;
                foreach (var match in new[] { "match2", "match3", "match4", "match5", "match6" }.Select(rematch.GetValue)) trainerFlags.Add(match);
             }

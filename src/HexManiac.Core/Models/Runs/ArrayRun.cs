@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Code;
-using HavenSoft.HexManiac.Core.Models.Runs.Factory;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
@@ -380,6 +379,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
                for (int j = 0; j < self.ElementCount; j++) {
                   var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
                   if (recordSeg.CreateConcrete(model, segmentStart) is not ArrayRunEnumSegment enumSeg || enumSeg.EnumName != baseName) continue;
+                  if (model.Count < segmentStart + recordSeg.Length) continue;
                   if (model.ReadMultiByteValue(segmentStart, recordSeg.Length) != index) continue;
                   yield return (segmentStart, segmentStart + recordSeg.Length - 1);
                }
@@ -387,6 +387,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
             if (self.ElementContent[i] is ArrayRunEnumSegment segment && segment.EnumName == baseName) {
                for (int j = 0; j < self.ElementCount; j++) {
                   var segmentStart = self.Start + j * self.ElementLength + segmentOffset;
+                  if (model.Count < segmentStart + segment.Length) continue;
                   if (model.ReadMultiByteValue(segmentStart, segment.Length) != index + segment.ValueOffset) continue;
                   yield return (segmentStart, segmentStart + segment.Length - 1);
                }
@@ -1439,7 +1440,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return list;
       }
 
-      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(ReadOnlySpan<char> segments,IDataModel model) {
+      private static (ElementContentType format, int formatLength, int segmentLength) ExtractSingleFormat(ReadOnlySpan<char> segments, IDataModel model) {
          if (segments.Length >= 2 && MemoryExtensions.Equals(segments.Slice(0, 2), PCSRun.SharedFormatString, StringComparison.Ordinal)) {
             var format = ElementContentType.PCS;
             var formatLength = 2;

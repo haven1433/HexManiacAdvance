@@ -1,10 +1,10 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 
 namespace HavenSoft.HexManiac.Core.Models.Code {
 
@@ -199,7 +199,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
          if (Type == ArgType.Byte) {
             var error = Convert(model, token, out value);
             if (error != null) return error;
-            results.Add((byte)(value>>shift));
+            results.Add((byte)(value >> shift));
          } else if (Type == ArgType.Short) {
             var error = Convert(model, token, out value);
             if (error != null) return error;
@@ -242,7 +242,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                labels.AddUnresolvedLabel(token, address);
                value = Pointer.NULL;
             }
-            value -= Pointer.NULL;
+            if (value < 0x02000000) value -= Pointer.NULL;
             results.Add((byte)value);
             results.Add((byte)(value >> 0x8));
             results.Add((byte)(value >> 0x10));

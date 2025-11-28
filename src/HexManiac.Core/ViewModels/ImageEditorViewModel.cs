@@ -315,7 +315,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                HasMultiplePalettePages &&
                model.GetNextRun(spriteAddress) is ITilemapRun tilemap &&
                tilemap.Start == spriteAddress &&
-               model.GetNextRun( tilemap.FindMatchingTileset(model)) is ITilesetRun tileset &&
+               model.GetNextRun(tilemap.FindMatchingTileset(model)) is ITilesetRun tileset &&
                tileset.TilesetFormat.BitsPerPixel == 4 &&
                tilemap.BytesPerTile == 2;
          }
@@ -540,7 +540,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var (x, y) = (point.X, point.Y);
          xOffset -= x;
          yOffset -= y;
-         var xPartial  = xOffset / SpriteScale;
+         var xPartial = xOffset / SpriteScale;
          var yPartial = yOffset / SpriteScale;
          SpriteScale += 1;
          var xRange = (int)(PixelWidth * SpriteScale / 2);
@@ -790,7 +790,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private bool SpriteOnlyExpects16Colors() {
          var spriteAddress = model.ReadPointer(SpritePointer);
-         var spriteRun = (ISpriteRun)model.GetNextRun(spriteAddress);
+         var run = model.GetNextRun(spriteAddress);
+         if (run is not ISpriteRun spriteRun) return false;
          if (spriteRun is ITilesetRun tileset && tileset.TilesetFormat.BitsPerPixel == 4) return true;
          if (spriteRun is ITilemapRun) return false;
          if (spriteRun.SpriteFormat.BitsPerPixel < 8 && spriteRun.Pages == 1) return true;
@@ -850,7 +851,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                drawPoint = new Point(point.X - point.X % drawWidth, point.Y - point.Y % drawHeight);
 
                // allow editing the selected palette to match the tile if a tile is selected
-               var pageChange = (int)Math.Floor((float) parent.PaletteIndex(tile[0, 0]) / parent.Palette.Elements.Count);
+               var pageChange = (int)Math.Floor((float)parent.PaletteIndex(tile[0, 0]) / parent.Palette.Elements.Count);
                if (!spriteOnlyExpects16Colors && drawWidth == 8 && drawHeight == 8 && pageChange != 0) {
                   parent.PalettePage += pageChange;
                   pageChange = 0;
@@ -1399,8 +1400,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             } else {
                underPixels = new int[selectionWidth, selectionHeight];
                for (int x = 0; x < selectionWidth; x++) for (int y = 0; y < selectionHeight; y++) {
-                  underPixels[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
-               }
+                     underPixels[x, y] = parent.pixels[selectionStart.X + x, selectionStart.Y + y];
+                  }
 
                parent.BlockPreview.Set(parent.PixelData, parent.PixelWidth, selectionStart, selectionWidth, selectionHeight);
             }
