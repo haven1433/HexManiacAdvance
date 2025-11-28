@@ -496,7 +496,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
          if (context.ContentBoundaryCount > 0) {
             // stream content
-            if (!context.ContentBoundaryIndex.InRange(0, StreamTypes.Count)) return null;
+            if (StreamTypes is null || !context.ContentBoundaryIndex.InRange(0, StreamTypes.Count)) return null;
             var expectedType = StreamTypes[context.ContentBoundaryIndex];
             if (expectedType == ExpectedPointerType.Mart) {
                var options = parser.ReadOptions(model, HardcodeTablesModel.ItemsTableName, context.Line);
