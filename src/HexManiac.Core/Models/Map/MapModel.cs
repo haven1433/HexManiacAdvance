@@ -6,7 +6,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Linq;
 
 namespace HavenSoft.HexManiac.Core.Models.Map {
 
@@ -99,7 +98,7 @@ namespace HavenSoft.HexManiac.Core.Models.Map {
       public BlockmapRun Run => Model.GetNextRun(Start) as BlockmapRun;
       public BlockCell this[int x, int y] {
          get {
-            if (Start == Pointer.NULL) return null;
+            if (Start < 0) return null;
             var data = Model.ReadMultiByteValue(Start + (y * Width + x) * 2, 2);
             return new(data & 0x3FF, data >> 10);
          }

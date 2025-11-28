@@ -263,7 +263,7 @@ namespace HavenSoft.HexManiac.WPF.Controls {
 
       public async void UpdateSource() {
          var vm = ViewModel;
-         if (vm == null) return;
+         if (vm == null || vm.PixelWidth < 0 || vm.PixelHeight < 0) return;
          short[] pixels;
          if (vm is not BlockMapViewModel) {
             pixels = vm.PixelData;

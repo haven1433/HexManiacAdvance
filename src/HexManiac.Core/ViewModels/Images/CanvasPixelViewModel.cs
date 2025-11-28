@@ -40,7 +40,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Images {
                // copy one row at a time, to account for gaps
                var start = Math.Max(x, 0);
                var end = Math.Min(x + foreground.PixelWidth, PixelWidth);
-               Array.Copy(foreground.PixelData, foreground.PixelWidth * yy + start - x, PixelData, PixelWidth * (y + yy) + x, end - start);
+               if (end > start) {
+                  Array.Copy(foreground.PixelData, foreground.PixelWidth * yy + start - x, PixelData, PixelWidth * (y + yy) + x, end - start);
+               }
             } else {
                // go through each pixel to look for transparency
                for (int xx = 0; xx < foreground.PixelWidth; xx++) {

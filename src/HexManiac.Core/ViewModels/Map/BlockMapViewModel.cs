@@ -2359,6 +2359,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var canvas = new CanvasPixelViewModel(width * 16, height * 16);
          for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
+               var address = start + (y * width + x);
+               if (address + 2 >= model.Count || address < 0) continue;
                var data = model.ReadMultiByteValue(start + (y * width + x) * 2, 2);
                data &= 0x3FF;
                lock (blockRenders) {
