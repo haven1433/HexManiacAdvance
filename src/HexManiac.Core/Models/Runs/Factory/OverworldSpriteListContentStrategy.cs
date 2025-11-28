@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+using System.Collections.Generic;
 
 namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
    public class OverworldSpriteListContentStrategy : RunStrategy {
@@ -40,6 +41,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
 
       public override int LengthForNewRun(IDataModel model, int pointerAddress) {
          var destination = model.ReadPointer(pointerAddress);
+         if (destination == Pointer.NULL) return 8;
          if (destination < 0 || destination >= model.Count) return -1;
          return new OverworldSpriteListRun(model, parentTemplate, Hint, 0, destination, new SortedSpan<int>(pointerAddress)).Length;
       }
@@ -75,7 +77,10 @@ namespace HavenSoft.HexManiac.Core.Models.Runs.Factory {
       }
 
       public override IFormattedRun WriteNewRun(IDataModel owner, ModelDelta token, int source, int destination, string name, IReadOnlyList<ArrayRunElementSegment> sourceSegments) {
-         return new OverworldSpriteListRun(owner, sourceSegments, Hint, 0, destination, new SortedSpan<int>(source));
+         var run = new OverworldSpriteListRun(owner, sourceSegments, Hint, 0, destination, new SortedSpan<int>(source));
+         owner.WritePointer(token, destination, Pointer.NULL);
+         owner.WriteMultiByteValue(destination + 4, 4, token, 0x100);
+         return run;
       }
    }
 }

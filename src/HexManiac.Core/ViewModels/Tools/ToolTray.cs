@@ -25,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                using (ModelCacheScope.CreateScope(model)) {
                   if (SelectedTool == TableTool) TableTool.DataForCurrentRunChanged();
                   if (SelectedTool == SpriteTool) SpriteTool.DataForCurrentRunChanged();
+                  if (SelectedTool == StringTool) StringTool.DataForCurrentRunChanged();
                   CodeTool.IsSelected = SelectedTool == CodeTool;
                }
             }

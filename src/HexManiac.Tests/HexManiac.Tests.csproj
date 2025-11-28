@@ -55,6 +55,10 @@
     <PostBuildEvent>
       mkdir "$(TargetDir)resources"
       mkdir "$(TargetDir)resources\Scripts"
+      mkdir "$(TargetDir)resources\Scripts\Add Mechanics From Later Generations"
+      mkdir "$(TargetDir)resources\Scripts\internal"
+      mkdir "$(TargetDir)resources\Scripts\Patches"
+      mkdir "$(TargetDir)resources\Scripts\Update Existing Mechanics"
       copy "$(TargetDir)Models\Code\*.txt" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.txt"
       copy "$(TargetDir)Models\Code\*.toml" "$(TargetDir)resources"
@@ -64,6 +68,10 @@
       copy "$(TargetDir)Models\Code\*.py" "$(TargetDir)resources"
       del "$(TargetDir)Models\Code\*.py"
       copy "$(SolutionDir)src\HexManiac.WPF\Scripts\*.hma" "$(TargetDir)resources\Scripts"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\Add Mechanics From Later Generations\*.hma" "$(TargetDir)resources\Scripts\Add Mechanics From Later Generations"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\internal\*.hma" "$(TargetDir)resources\Scripts\internal"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\Patches\*.hma" "$(TargetDir)resources\Scripts\Patches"
+      copy "$(SolutionDir)src\HexManiac.WPF\Scripts\Update Existing Mechanics\*.hma" "$(TargetDir)resources\Scripts\Update Existing Mechanics"
     </PostBuildEvent>
   </PropertyGroup>
 

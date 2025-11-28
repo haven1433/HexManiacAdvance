@@ -154,7 +154,7 @@ namespace HavenSoft.HexManiac.Tests {
                   if (tileset == null) continue;
                   var hasPalette = tileset.Format.Contains("|");
                   if (!hasPalette) continue;
-                  
+
                   yield return new object[] { gameName, anchor.Name };
                }
                gameIndex++;
@@ -647,7 +647,7 @@ namespace HavenSoft.HexManiac.Tests {
       public void ExpandableTutorsWorks(string game) {
          var fileSystem = new StubFileSystem();
          var model = fixture.LoadModelNoCache(game);
-         var editor = new New(fileSystem,fixture.Singletons).EditorViewModel();
+         var editor = new New(fileSystem, fixture.Singletons).EditorViewModel();
          var viewPort = NewViewPort(game, model);
          editor.Add(viewPort);
          var expandTutors = editor.QuickEditsExpansion.Single(edit => edit.Name == new MakeTutorsExpandable().Name);
@@ -838,7 +838,7 @@ namespace HavenSoft.HexManiac.Tests {
          var errors = new List<string>();
          viewport.OnError += (sender, e) => errors.Add(e);
 
-         var fairyTypeScript = File.ReadAllBytes("resources/Scripts/AddFairyType.hma");
+         var fairyTypeScript = File.ReadAllBytes("resources/Scripts/Add Mechanics From Later Generations/AnyGame_FairyType.hma");
          viewport.TryImport(new("fairy.hma", fairyTypeScript), default);
 
          Assert.Empty(errors);
