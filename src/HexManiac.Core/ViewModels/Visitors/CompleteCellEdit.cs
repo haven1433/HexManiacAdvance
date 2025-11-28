@@ -564,7 +564,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Visitors {
                      var name = newArray.Start.ToAddress();
                      var anchorName = model.GetAnchorFromAddress(-1, newArray.Start);
                      if (!string.IsNullOrWhiteSpace(anchorName)) name = anchorName;
-                     messageText = $"Table {name} was moved. Pointers have been updated.";
+                     if (newArray.Start != array.Start) {
+                        messageText = $"Table {name} was moved. Pointers have been updated.";
+                     } else {
+                        messageText = $"Table {name} was resized. Address has not changed.";
+                     }
                      if (newArray.Length > array.Length && newArray.Start == array.Start) {
                         model.ClearFormat(token, array.Start + array.Length, newArray.Length - array.Length);
                         // edge case: if the run in this spot isn't the run we're about to add, clear that too

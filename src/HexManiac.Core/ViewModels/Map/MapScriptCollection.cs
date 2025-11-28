@@ -18,12 +18,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool Unloaded => address == 0;
       public ObservableCollection<MapScriptViewModel> Scripts { get; } = new();
       public bool CollectionExists => address > 0;
+      public bool AllowAddMoreScripts { get; private set; } = true;
 
       public event EventHandler<NewMapScriptsCreatedEventArgs> NewMapScriptsCreated;
 
       public MapScriptCollection(IEditableViewPort viewPort) => this.viewPort = viewPort;
 
       public void Load(ModelArrayElement owner) {
+         foreach (var script in Scripts) script.DeleteMe -= HandleDelete;
          Scripts.Clear();
          this.owner = owner;
          if (owner == null) return;
@@ -31,12 +33,18 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (address == Pointer.NULL) return;
          var model = viewPort.Model;
          var scriptStart = address;
+         AllowAddMoreScripts = true;
          while (model[scriptStart] != 0) {
+            if (Scripts.Count == 10) {
+               Scripts.Add(new(viewPort, Pointer.NULL)); // 'UI is full' sentinel
+               AllowAddMoreScripts = false;
+               break;
+            }
             Scripts.Add(new(viewPort, scriptStart));
             AddDeleteHandler(Scripts.Count - 1);
             scriptStart += 5;
          }
-         NotifyPropertiesChanged(nameof(CollectionExists), nameof(Unloaded), nameof(Address));
+         NotifyPropertiesChanged(nameof(CollectionExists), nameof(Unloaded), nameof(Address), nameof(AllowAddMoreScripts));
       }
 
       public bool CanCreateCollection => address < 0;
@@ -71,9 +79,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          model.UpdateArrayPointer(token, default, default, default, run.Start + run.Length - 5, newScript);
          model.ObserveRunWritten(token, run);
          model.ObserveRunWritten(token, new XSERun(newScript));
-         Scripts.Add(new(viewPort, address + Scripts.Count * 5));
-         AddDeleteHandler(Scripts.Count - 1);
          viewPort.ChangeHistory.ChangeCompleted();
+         Load(owner); // do a full reload, in case we need to truncate scripts
       }
 
       private void AddDeleteHandler(int index) {
@@ -88,16 +95,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var tableRun = model.GetNextRun(address) as ITableRun;
          if (tableRun == null) return;
          var table = new ModelTable(model, tableRun, () => token); // type. pointer<>
-         for (int i = index; i < Scripts.Count - 1; i++) {
+         for (int i = index; i < table.Count - 1; i++) {
             table[i].SetValue(0, table[i + 1].GetValue(0));
             table[i].SetAddress("pointer", table[i + 1].GetAddress("pointer"));
          }
          tableRun = tableRun.Append(token, -1);
          model.ObserveRunWritten(token, tableRun);
-         Scripts[index].DeleteMe -= HandleDelete;
-         Scripts.RemoveAt(index);
          e.Success = true;
          viewPort.ChangeHistory.ChangeCompleted();
+         Load(owner); // do a reload, in case we were truncating scripts.
       }
    }
 
@@ -114,6 +120,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public event EventHandler<MapScriptDeleteEventArgs> DeleteMe;
 
       public bool HasSubScripts => scriptType == 2 || scriptType == 4;
+      public bool MoreScriptsTruncated { get; } = false;
+      public bool ShowMapScript => !MoreScriptsTruncated;
 
       public ObservableCollection<VisualOption> ScriptOptions { get; } = new();
       public ObservableCollection<MapSubScriptViewModel> SubScripts { get; } = new();
@@ -122,6 +130,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          this.viewPort = viewPort;
          var model = viewPort.Model;
          this.start = start;
+         if (start == Pointer.NULL) {
+            MoreScriptsTruncated = true;
+            return;
+         }
          this.scriptType = model[start];
          this.address = model.ReadPointer(start + 1);
          this.displayAddress = $"<{address:X6}>";
@@ -335,25 +347,31 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          addressText = $"<{address:X6}>";
       }
 
-      public string Variable { get => variableText; set => Set(ref variableText, value, arg => {
-         if (!variableText.TryParseHex(out int result)) return;
-         variable = result;
-         viewPort.Model.WriteMultiByteValue(start, 2, viewPort.ChangeHistory.CurrentChange, variable);
-      }); }
+      public string Variable {
+         get => variableText; set => Set(ref variableText, value, arg => {
+            if (!variableText.TryParseHex(out int result)) return;
+            variable = result;
+            viewPort.Model.WriteMultiByteValue(start, 2, viewPort.ChangeHistory.CurrentChange, variable);
+         });
+      }
 
-      public string Value { get => valueText; set => Set(ref valueText, value, arg => {
-         if (!int.TryParse(valueText, out int result)) return;
-         val = result;
-         viewPort.Model.WriteMultiByteValue(start + 2, 2, viewPort.ChangeHistory.CurrentChange, val);
-      }); }
+      public string Value {
+         get => valueText; set => Set(ref valueText, value, arg => {
+            if (!int.TryParse(valueText, out int result)) return;
+            val = result;
+            viewPort.Model.WriteMultiByteValue(start + 2, 2, viewPort.ChangeHistory.CurrentChange, val);
+         });
+      }
 
-      public string Address { get => addressText; set => Set(ref addressText, value, arg => {
-         var text = addressText.Trim("<> ".ToCharArray());
-         if (!text.TryParseHex(out int result)) return;
-         // do the same work that we do in the code tool, removing scripts that aren't needed
-         address = result;
-         viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, -1, start + 4, address);
-      }); }
+      public string Address {
+         get => addressText; set => Set(ref addressText, value, arg => {
+            var text = addressText.Trim("<> ".ToCharArray());
+            if (!text.TryParseHex(out int result)) return;
+            // do the same work that we do in the code tool, removing scripts that aren't needed
+            address = result;
+            viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, -1, start + 4, address);
+         });
+      }
 
       public void Delete() {
          var args = new MapScriptDeleteEventArgs();

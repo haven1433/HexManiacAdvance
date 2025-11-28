@@ -1279,65 +1279,70 @@
             <ItemsControl ItemsSource="{Binding PrimaryMap.MapScriptCollection.Scripts}">
                <ItemsControl.ItemTemplate>
                   <DataTemplate>
-                     <StackPanel>
-                        <DockPanel Margin="2">
-                           <DockPanel.Resources>
-                              <DataTemplate DataType="{x:Type models:VisualOption}">
-                                 <TextBlock Text="{Binding Option}">
-                                    <TextBlock.ToolTip>
-                                       <TextBlock>
-                                          <Bold>
-                                             <Run Text="{Binding ShortDescription}" />
-                                          </Bold>
-                                          <LineBreak /> <LineBreak />
-                                          <Run Text="{Binding Description}" />
+                     <Grid>
+                        <StackPanel Visibility="{Binding ShowMapScript, Converter={StaticResource BoolToVisibility}}">
+                           <DockPanel Margin="2">
+                              <DockPanel.Resources>
+                                 <DataTemplate DataType="{x:Type models:VisualOption}">
+                                    <TextBlock Text="{Binding Option}">
+                                       <TextBlock.ToolTip>
+                                          <TextBlock>
+                                             <Bold>
+                                                <Run Text="{Binding ShortDescription}" />
+                                             </Bold>
+                                             <LineBreak /> <LineBreak />
+                                             <Run Text="{Binding Description}" />
+                                          </TextBlock>
+                                       </TextBlock.ToolTip>
                                        </TextBlock>
-                                    </TextBlock.ToolTip>
-                                    </TextBlock>
-                              </DataTemplate>
-                           </DockPanel.Resources>
-                           <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
-                              <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20"/>
-                           </local:AngleButton>
-                           <local:AngleButton Command="{res:MethodCommand Goto}" DockPanel.Dock="Right" Direction="Right" Padding="0" Width="20" Height="18">
-                              <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
-                           </local:AngleButton>
-                           <local:AngleComboBox SelectedIndex="{Binding ScriptTypeIndex}" ItemsSource="{Binding ScriptOptions}" Direction="Out" DockPanel.Dock="Left" Width="140" Height="18" />
-                           <local:AngleTextBox Direction="Right" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
-                        </DockPanel>
-                        <ItemsControl Visibility="{Binding HasSubScripts, Converter={StaticResource BoolToVisibility}}" ItemsSource="{Binding SubScripts}">
-                           <ItemsControl.ItemTemplate>
-                              <DataTemplate>
-                                 <StackPanel Margin="8,2">
-                                    <!-- Do I need multiple lines for this? -->
-                                    <!-- One line for Delete, Address, Goto -->
-                                    <!-- One line for variable/value pair -->
-                                    <DockPanel>
-                                       <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
-                                          <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20" />
-                                       </local:AngleButton>
-                                       <local:AngleButton Command="{res:MethodCommand Goto}" DockPanel.Dock="Right" Direction="Right" Padding="0" Width="20" Height="18">
-                                          <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
-                                       </local:AngleButton>
-                                       <local:AngleBorder Direction="Left" Content="Address:" Padding="2,0" />
-                                       <local:AngleTextBox Direction="Out" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
-                                    </DockPanel>
-                                    <UniformGrid Columns="4" Margin="20,0">
-                                       <local:AngleBorder Direction="Out" Content="Var:" />
-                                       <local:AngleTextBox Direction="Right" TextBinding="{Binding Variable, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" />
-                                       <local:AngleBorder Direction="Out" Content="Value:" Margin="2,0,0,0" />
-                                       <local:AngleTextBox Direction="Right" TextBinding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
-                                    </UniformGrid>
-                                 </StackPanel>
-                              </DataTemplate>
-                           </ItemsControl.ItemTemplate>
-                        </ItemsControl>
-                        <local:AngleButton Margin="8,2" Visibility="{Binding HasSubScripts, Converter={StaticResource BoolToVisibility}}" Command="{res:MethodCommand AddSubScript}" Direction="Out" Content="Add Table Script" />
-                     </StackPanel>
+                                 </DataTemplate>
+                              </DockPanel.Resources>
+                              <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
+                                 <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20"/>
+                              </local:AngleButton>
+                              <local:AngleButton Command="{res:MethodCommand Goto}" DockPanel.Dock="Right" Direction="Right" Padding="0" Width="20" Height="18">
+                                 <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
+                              </local:AngleButton>
+                              <local:AngleComboBox SelectedIndex="{Binding ScriptTypeIndex}" ItemsSource="{Binding ScriptOptions}" Direction="Out" DockPanel.Dock="Left" Width="140" Height="18" />
+                              <local:AngleTextBox Direction="Right" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+                           </DockPanel>
+                           <ItemsControl Visibility="{Binding HasSubScripts, Converter={StaticResource BoolToVisibility}}" ItemsSource="{Binding SubScripts}">
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <StackPanel Margin="8,2">
+                                       <!-- Do I need multiple lines for this? -->
+                                       <!-- One line for Delete, Address, Goto -->
+                                       <!-- One line for variable/value pair -->
+                                       <DockPanel>
+                                          <local:AngleButton Command="{res:MethodCommand Delete}" DockPanel.Dock="Left" Direction="Left" Padding="0" VerticalAlignment="Center" Height="18">
+                                             <Path Fill="{DynamicResource Secondary}" Stretch="Uniform" Data="{res:Icon Exit}" Width="10" Height="20" />
+                                          </local:AngleButton>
+                                          <local:AngleButton Command="{res:MethodCommand Goto}" DockPanel.Dock="Right" Direction="Right" Padding="0" Width="20" Height="18">
+                                             <Path Fill="{DynamicResource Secondary}" Stretch="Fill" Data="{res:Icon RightAngleArrow}" Width="10" Height="12" />
+                                          </local:AngleButton>
+                                          <local:AngleBorder Direction="Left" Content="Address:" Padding="2,0" />
+                                          <local:AngleTextBox Direction="Out" TextBinding="{Binding Address, UpdateSourceTrigger=PropertyChanged}" />
+                                       </DockPanel>
+                                       <UniformGrid Columns="4" Margin="20,0">
+                                          <local:AngleBorder Direction="Out" Content="Var:" />
+                                          <local:AngleTextBox Direction="Right" TextBinding="{Binding Variable, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,2,0" />
+                                          <local:AngleBorder Direction="Out" Content="Value:" Margin="2,0,0,0" />
+                                          <local:AngleTextBox Direction="Right" TextBinding="{Binding Value, UpdateSourceTrigger=PropertyChanged}" />
+                                       </UniformGrid>
+                                    </StackPanel>
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
+                           <local:AngleButton Margin="8,2" Visibility="{Binding HasSubScripts, Converter={StaticResource BoolToVisibility}}" Command="{res:MethodCommand AddSubScript}" Direction="Out" Content="Add Table Script" />
+                        </StackPanel>
+                        <TextBlock Visibility="{Binding MoreScriptsTruncated, Converter={StaticResource BoolToVisibility}}" FontStyle="Italic"
+                           Text="Further scripts truncated for performance. View the table data to see the remaining scripts." TextWrapping="Wrap" />
+                     </Grid>
                   </DataTemplate>
                </ItemsControl.ItemTemplate>
             </ItemsControl>
-            <local:AngleButton DataContext="{Binding PrimaryMap.MapScriptCollection}" Content="Add New Script" Direction="Out" Margin="2" Command="{res:MethodCommand AddScript}" />
+            <local:AngleButton DataContext="{Binding PrimaryMap.MapScriptCollection}" Content="Add New Script" Direction="Out" Margin="2" Command="{res:MethodCommand AddScript}"
+               Visibility="{Binding AllowAddMoreScripts, Converter={StaticResource BoolToVisibility}}"/>
          </StackPanel>
       </ScrollViewer>
 
