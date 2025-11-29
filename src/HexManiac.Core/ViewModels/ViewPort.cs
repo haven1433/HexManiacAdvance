@@ -221,6 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             dispatcher.BlockOnUIWork(() => {
                TabChangeRequestedEventArgs args;
                if (arg is string str) {
+                  tools.LogTool.LogMessages.Add("Attempting to Goto Token: " + str);
                   var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
                   if (possibleMatches.Count == 1) str = possibleMatches[0];
                   else if (possibleMatches.Count > 1 && possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
@@ -306,6 +307,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         }
                      }
                   }
+               }
+
+               if (arg is int address) {
+                  tools.LogTool.LogMessages.Add("Attempting to Goto Address: " + address.ToString());
                }
 
                selection.Goto.Execute(arg);
@@ -891,7 +896,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       #endregion
 
-      public int FreeSpaceStart { get => Model.FreeSpaceStart; set {
+      public int FreeSpaceStart {
+         get => Model.FreeSpaceStart; set {
             if (Model.FreeSpaceStart != value) {
                Model.FreeSpaceStart = value;
                NotifyPropertyChanged();
@@ -943,6 +949,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   index = Model.ReadPointer(run.Start);
                   run = Model.GetNextRun(index);
                }
+               tools.LogTool.LogMessages.Add($"Attempting to Update Anchor at address {run.Start.ToAddress()}: {anchorText}");
                if (run.Start <= index) {
                   var token = new NoDataChangeDeltaModel();
 
@@ -1410,7 +1417,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (tableRun.ElementContent[contentIndex].Type == ElementContentType.Pointer) {
                      Model.ClearFormat(CurrentChange, index + i, 1);
                   }
-               } 
+               }
                if (run is PointerRun) Model.ClearFormat(CurrentChange, index + i, 1);
             }
             CurrentChange.ChangeData(Model, index + i, value);
@@ -1502,7 +1509,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          return false;
       }
 
-      public void RaiseError(string text) => OnError?.Invoke(this, text);
+      public void RaiseError(string text) {
+         tools.LogTool.LogMessages.Add("Error: " + text);
+         OnError?.Invoke(this, text);
+      }
 
       private string deferredMessage;
       public void RaiseMessage(string text) {
@@ -1510,7 +1520,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          deferredMessage = text;
          tools.Schedule(RaiseMessage);
       }
-      private void RaiseMessage() => OnMessage?.Invoke(this, deferredMessage);
+      private void RaiseMessage() {
+         tools.LogTool.LogMessages.Add("Message: " + deferredMessage);
+         OnMessage?.Invoke(this, deferredMessage);
+      }
 
       public void RaiseRequestTabChange(ITabContent tab) => RequestTabChange?.Invoke(this, new(tab));
       public void RaiseRequestTabChange(TabChangeRequestedEventArgs args) => RequestTabChange?.Invoke(this, args);
@@ -2353,6 +2366,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             // follow pointer
             if (format is Pointer pointer) {
                if (pointer.Destination != Pointer.NULL) {
+                  tools.LogTool.LogMessages.Add($"Follow Link {pointer.DestinationAsText}");
                   selection.GotoAddress(pointer.Destination);
                } else if (string.IsNullOrEmpty(pointer.DestinationName)) {
                   OnError(this, $"null pointers point to nothing, so going to their source isn't possible.");
@@ -2457,7 +2471,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                // try again soon.
                RequestDelayedWork?.Invoke(this, () => ConsiderReload(fileSystem));
             }
-         };
+         }
+         ;
 
          if (fileSystem is IWorkDispatcher dispatcher) {
             dispatcher.BlockOnUIWork(action);
@@ -2553,6 +2568,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private List<ViewPort> RecentDuplicates = new();
       public void GotoScript(int address) {
+         tools.LogTool.LogMessages.Add("Goto Script: " + address.ToAddress());
          if (RecentDuplicates.Count == 0) RecentDuplicates.Add(this);
 
          int start;
@@ -2720,7 +2736,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var startPlaces = Model.FindPossibleTextStartingPlaces(left, length);
 
             // do the actual search now that we know places to start
-            var foundCount = Model.ConsiderResultsAsTextRuns( () => history.InsertCustomChange(new NoDataChangeDeltaModel()), startPlaces);
+            var foundCount = Model.ConsiderResultsAsTextRuns(() => history.InsertCustomChange(new NoDataChangeDeltaModel()), startPlaces);
             if (foundCount == 0) {
                OnError?.Invoke(this, "Failed to automatically find text at that location.");
             } else {
@@ -3096,7 +3112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                RaiseError($"Writing {length} 00 bytes would overwrite existing data.");
                exitEditEarly = true;
             }
-         } else if (command.StartsWith("ff(")&&paramsEnd>3&&command.Substring(3,paramsEnd-3).TryParseInt(out length)) {
+         } else if (command.StartsWith("ff(") && paramsEnd > 3 && command.Substring(3, paramsEnd - 3).TryParseInt(out length)) {
             var currentRun = Model.GetNextRun(index);
             if (currentRun.Start < index || (currentRun.Start == index && currentRun is not NoInfoRun) || (currentRun.Start > index && currentRun.Start < index + length)) {
                RaiseError($"Writing {length} FF bytes would overwrite formatted data.");
@@ -3314,7 +3330,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          }
 
          if (run is ITableRun && sender != Tools.StringTool && Model.GetNextRun(Tools.StringTool.Address).Start == run.Start) Tools.StringTool.DataForCurrentRunChanged();
-         if (run is ITableRun && Model.GetNextRun(Tools.TableTool.Address).Start  == run.Start) Tools.TableTool.DataForCurrentRunChanged();
+         if (run is ITableRun && Model.GetNextRun(Tools.TableTool.Address).Start == run.Start) Tools.TableTool.DataForCurrentRunChanged();
       }
 
       private void ModelDataMovedByTool(object sender, (int originalLocation, int newLocation) locations) {

@@ -366,10 +366,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
       public ICommand SpriteToolCommand { get; } = new StubCommand();
       public ICommand CodeToolCommand { get; } = new StubCommand();
 
-      public PCSTool StringTool => null;
-      public TableTool TableTool => null;
-      public SpriteTool SpriteTool => null;
-      public CodeTool CodeTool => null;
+      public PCSTool? StringTool => null;
+      public TableTool? TableTool => null;
+      public SpriteTool? SpriteTool => null;
+      public CodeTool? CodeTool => null;
+      public LogTool? LogTool => null;
 
       public IDisposable DeferUpdates => new StubDisposable();
 

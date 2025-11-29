@@ -118,6 +118,17 @@
                </Style>
             </Button.Style>
          </Button>
+         <Button Content="Logs" Command="{Binding Tools.LogToolCommand}" Margin="0,2" LayoutTransform="{StaticResource Sideways}">
+            <Button.Style>
+               <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                  <Style.Triggers>
+                     <DataTrigger Binding="{Binding Tools.SelectedIndex}" Value="4">
+                        <Setter Property="BorderBrush" Value="{DynamicResource Accent}"/>
+                     </DataTrigger>
+                  </Style.Triggers>
+               </Style>
+            </Button.Style>
+         </Button>
       </StackPanel>
       <Grid>
          <Grid.ColumnDefinitions>
@@ -1121,6 +1132,19 @@
                   </DockPanel>
                </Grid>
             </DockPanel>
+            <Grid Name="LogToolPanel">
+               <Grid.Style>
+                  <Style TargetType="Grid">
+                     <Setter Property="Visibility" Value="Collapsed"/>
+                     <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedIndex}" Value="4">
+                           <Setter Property="Visibility" Value="Visible"/>
+                        </DataTrigger>
+                     </Style.Triggers>
+                  </Style>
+               </Grid.Style>
+               <TextBox Text="{Binding LogTool.AllLogText, Mode=OneWay}" IsReadOnly="True" Margin="4" />
+            </Grid>
          </Grid>
 
          <GridSplitter Grid.Column="1" Focusable="False" HorizontalAlignment="Stretch" Background="{DynamicResource Backlight}" Width="4" MouseDoubleClick="ResetLeftToolsPane"/>

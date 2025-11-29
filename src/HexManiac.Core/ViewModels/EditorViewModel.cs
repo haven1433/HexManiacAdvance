@@ -790,6 +790,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   if (!Singletons.GameReferenceTables.TryGetValue(model.GetGameCode(), out var refTable)) refTable = null;
                   fileSystem.SaveMetadata(file.Name, viewPort.Model.ExportMetadata(refTable, Singletons.MetadataInfo).Serialize());
                   Debug.Assert(viewPort.ChangeHistory.IsSaved, "Put a breakpoint in ChangeHistory.CurrentChange, because a changable token is being created too soon!");
+                  if (model is HardcodeTablesModel hardcode) viewPort.Tools.LogTool.LogMessages.AddRange(hardcode.LoadingMessages);
                }, TaskContinuationOptions.ExecuteSynchronously);
             }
             Add(viewPort);
@@ -1286,7 +1287,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          var collection = CreateGotoShortcuts(GotoViewModel);
          if (collection != null) GotoViewModel.Shortcuts = new ObservableCollection<GotoShortcutViewModel>(collection);
          GotoViewModel.PropertyChanged += GotoPropertyChanged;
-         if(SelectedTab is IEditableViewPort vp1 && vp1.Model is BaseModel bm) {
+         if (SelectedTab is IEditableViewPort vp1 && vp1.Model is BaseModel bm) {
             var vm = GotoViewModel;
             vp1.InitializationWorkload.ContinueWith(task => {
                if (vm == GotoViewModel) vm.UpdateDocs(bm.GenerateDocumentationLabels(Singletons.ScriptLines));
@@ -1409,9 +1410,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          if (e.PropertyName == nameof(gotoViewModel.ShowAll)) FocusOnGotoShortcuts = !gotoViewModel.ShowAll;
       }
 
-      private void AcceptError(object sender, string message) => ErrorMessage = message;
+      private void AcceptError(object sender, string message) {
+         if (sender is MapEditorViewModel map) map.ViewPort.Tools.LogTool.LogMessages.Add("Error: " + message);
+         ErrorMessage = message;
+      }
 
-      private void AcceptMessage(object sender, string message) => InformationMessage = message;
+      private void AcceptMessage(object sender, string message) {
+         if (sender is MapEditorViewModel map) map.ViewPort.Tools.LogTool.LogMessages.Add("Message: " + message);
+         InformationMessage = message;
+      }
 
       private void AcceptMessageClear(object sender, EventArgs e) => HideSearchControls.Execute();
 

@@ -70,7 +70,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var model = viewPort.Model;
          var run = model.GetNextRun(address) as ITableRun;
          if (run == null) return;
+         var originalRun = run;
          run = model.RelocateForExpansion(token, run, run.Length + 5);
+         if (originalRun.Start != run.Start) viewPort.RaiseMessage($"Repointed data from {originalRun.Start.ToAddress()} to {run.Start.ToAddress()}.");
          run = run.Append(token, 1);
          address = run.Start;
          var newScript = model.FindFreeSpace(model.FreeSpaceStart, 1);
@@ -273,8 +275,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          var run = model.GetNextRun(address);
          if (run is not ITableRun tableRun) return;
+         var originalRun = tableRun;
          tableRun = tableRun.Append(token, 1);
          model.ObserveRunWritten(token, tableRun);
+         if (originalRun.Start != tableRun.Start) viewPort.RaiseMessage($"Repointed data from {originalRun.Start.ToAddress()} to {tableRun.Start.ToAddress()}.");
 
          // add new element data
          var newScriptStart = model.FindFreeSpace(model.FreeSpaceStart, 1);

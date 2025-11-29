@@ -113,6 +113,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       public override int EarliestAllowedAnchor => 0x200;
 
+      public List<string> LoadingMessages { get; } = new();
+
       public HardcodeTablesModel(Singletons singletons, byte[] data, StoredMetadata metadata = null, bool devMode = false) : base(data, metadata, singletons, devMode) {
          gameCode = this.GetGameCode();
          if (metadata != null && !metadata.IsEmpty) {
@@ -422,8 +424,14 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (interruptingSourceRun.Start < source && interruptingSourceRun.Start + interruptingSourceRun.Length > source) {
             if (interruptingSourceRun is ITableRun tableRun) {
                var tableOffset = tableRun.ConvertByteOffsetToArrayOffset(source);
-               if (tableOffset.SegmentOffset != 0) return;
-               if (tableRun.ElementContent[tableOffset.SegmentIndex].Type != ElementContentType.Pointer) return;
+               if (tableOffset.SegmentOffset != 0) {
+                  LoadingMessages.Add($"Failed to add table {name}: it conflicted with an existing table found at {tableRun.Start.ToAddress()}.");
+                  return;
+               }
+               if (tableRun.ElementContent[tableOffset.SegmentIndex].Type != ElementContentType.Pointer) {
+                  LoadingMessages.Add($"Failed to add table {name} at {destination.ToAddress()}: data in the table didn't match pointers in the file.");
+                  return;
+               }
             } else {
                // the source isn't actually a pointer, we shouldn't write anything
                return;
@@ -443,6 +451,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             }
             if (array.ElementCount + desiredChange <= 0) {
                // erase the entire run
+               LoadingMessages.Add($"When trying to add table {name}, had to clear existing format from {array.Start.ToAddress()} to {(array.Start + array.Length).ToAddress()} because a formatting conflict was found.");
                ClearFormat(noChangeDelta, array.Start, array.Length);
             } else {
                var arrayName = GetAnchorFromAddress(-1, array.Start);

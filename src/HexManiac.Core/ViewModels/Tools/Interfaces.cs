@@ -36,6 +36,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       SpriteTool? SpriteTool { get; }
 
+      LogTool? LogTool { get; }
+
       IDisposable DeferUpdates { get; }
 
       event EventHandler<string> OnError;

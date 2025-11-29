@@ -521,7 +521,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          foreach (var newM in newMaps) {
             bool match = false;
             foreach (var existingM in VisibleMaps) {
-               if (existingM.UpdateFrom(newM)) { 
+               if (existingM.UpdateFrom(newM)) {
                   match = true;
                   break;
                }
@@ -631,15 +631,17 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool ShowBeneath { get => showBeneath; set => Set(ref showBeneath, value, old => PrimaryMap.ShowBeneath = ShowBeneath); }
 
       private bool hideEvents;
-      public bool HideEvents { get => hideEvents; set => Set(ref hideEvents, value, old => {
-         foreach (var m in VisibleMaps) m.ShowEvents = hideEvents ? MapDisplayOptions.NoEvents : MapDisplayOptions.AllEvents;
-         Tutorials.Complete(Tutorial.Ctrl_HideEvents);
-      }); }
+      public bool HideEvents {
+         get => hideEvents; set => Set(ref hideEvents, value, old => {
+            foreach (var m in VisibleMaps) m.ShowEvents = hideEvents ? MapDisplayOptions.NoEvents : MapDisplayOptions.AllEvents;
+            Tutorials.Complete(Tutorial.Ctrl_HideEvents);
+         });
+      }
 
       // if it returns an empty array: no hover tip to display
       // if it returns null: continue displaying previous hover tip
       // if it returns content: display that as the new hover tip
-      private static readonly object[] EmptyTooltip = new object[0]; 
+      private static readonly object[] EmptyTooltip = new object[0];
       public object Hover(double x, double y) {
          var map = MapUnderCursor(x, y);
          if (map == null) return EmptyTooltip;
@@ -2309,5 +2311,5 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public enum MapDisplayOptions { AllEvents, ObjectEvents, NoEvents }
 
-   public record TileSelection(int[]Tiles, int Width);
+   public record TileSelection(int[] Tiles, int Width);
 }
