@@ -56,6 +56,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          ColumnHeaders = headers;
       }
 
+      public ColumnHeaderRow(string token, int length) => ColumnHeaders = new[] { new ColumnHeader(token, length) };
+
       public static IReadOnlyList<ColumnHeaderRow> GetDefaultColumnHeaders(int columnCount, int startingDataIndex) {
          if (columnCount > 0x10 && columnCount % 0x10 != 0) return new List<ColumnHeaderRow>();
          if (columnCount < 0x10 && 0x10 % columnCount != 0) return new List<ColumnHeaderRow>();
