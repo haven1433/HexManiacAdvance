@@ -215,15 +215,21 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       public MacroScriptLine GetMacro(IDataModel model, int address) => engine.GetMatchingMacro(gameHash, model, address);
       public ScriptLine GetLine(IDataModel model, int address) => engine.GetMatchingLine(gameHash, model, address);
 
+      // for each table, a list of scripts lines that depend on it.
+      private Dictionary<string, List<IScriptLine>> tableDependencyCache = new();
+
       public IEnumerable<IScriptLine> DependsOn(string basename) {
+         if (tableDependencyCache.ContainsKey(basename)) return tableDependencyCache[basename];
+         var matches = new List<IScriptLine>();
          foreach (var line in engine) {
             foreach (var arg in line.Args) {
                if (arg.EnumTableName == basename) {
-                  yield return line;
+                  matches.Add(line);
                   break;
                }
             }
          }
+         return tableDependencyCache[basename] = matches;
       }
 
       private HashSet<string> constantCache, keywordCache;
@@ -471,6 +477,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
 
             // special case: no blank line between open and close
             if (close == i + 3) {
+               while (text.Count < i) text.Add(' ');
                text.Insert(i + 1, '\r');
                text.Insert(i + 2, '\n');
                if (i < caret) { caret += 2; caretMove -= 2; }

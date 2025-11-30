@@ -316,7 +316,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
 
       public bool HasUsageOptions {
          get {
-            foreach(var child in UsageChildren) {
+            foreach (var child in UsageChildren) {
                if (child is not MapOptionsArrayElementViewModel mapUsage) return true;
                return mapUsage.MapPreviews.Count > 0;
             }

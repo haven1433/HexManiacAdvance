@@ -115,7 +115,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var bank = allMaps[bankIndex];
             for (int mapIndex = 0; mapIndex < bank.Count; mapIndex++) {
                var map = bank[mapIndex];
-               foreach (var ev in map.Events.Objects) {
+               if (map is null) continue;
+               if (map.Events is not Models.Map.EventGroupModel events) continue;
+               foreach (var ev in events.Objects) {
                   if (cancel) yield break;
                   if (ev.Graphics != index) continue;
                   var button = new GotoMapButton(mapEditor, this, bankIndex, mapIndex, ev);
