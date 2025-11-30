@@ -361,6 +361,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void NavigateTo(int bank, int map, int x, int y) {
+         viewPort.Tools.LogTool.LogMessages.Add($"Navigate to ({x}, {y}) in map {bank}.{map}");
          if (primaryMap != null) {
             backStack.Add(primaryMap.MapID);
             if (backStack.Count == 1) backCommand.RaiseCanExecuteChanged();

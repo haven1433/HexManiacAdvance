@@ -18,6 +18,8 @@ namespace HavenSoft.HexManiac.Core.Models {
       /// </summary>
       Task InitializationWorkload { get; }
 
+      event EventHandler<string>? LogMessage;
+
       byte[] RawData { get; }
       ModelCacheScope CurrentCacheScope { get; }
       int ReferenceCount { get; set; }
@@ -133,6 +135,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       private readonly ISet<int> changes = new LimitSet<int>(5000);
 
       public Task InitializationWorkload { get; protected set; }
+
+      public event EventHandler<string>? LogMessage;
+      protected void RaiseLogMessage(string message) => LogMessage?.Invoke(this, message);
 
       public byte[] RawData { get; private set; }
 

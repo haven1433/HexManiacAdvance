@@ -221,7 +221,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             dispatcher.BlockOnUIWork(() => {
                TabChangeRequestedEventArgs args;
                if (arg is string str) {
-                  tools.LogTool.LogMessages.Add("Attempting to Goto Token: " + str);
+                  tools?.LogTool.LogMessages.Add("Attempting to Goto Token: " + str);
                   var possibleMatches = Model.GetExtendedAutocompleteOptions(str);
                   if (possibleMatches.Count == 1) str = possibleMatches[0];
                   else if (possibleMatches.Count > 1 && possibleMatches.All(match => Model.GetMatchedWords(match).Any())) str = possibleMatches[0];
@@ -310,7 +310,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                }
 
                if (arg is int address) {
-                  tools.LogTool.LogMessages.Add("Attempting to Goto Address: " + address.ToString());
+                  tools?.LogTool.LogMessages.Add("Attempting to Goto Address: " + address.ToString());
                }
 
                selection.Goto.Execute(arg);
@@ -1102,6 +1102,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
          if (this is not ChildViewPort) { // child viewports don't need tools
             tools = new ToolTray(Singletons, Model, selection, history, this);
+            tools.LogTool.LogMessages.Add($"Start of session {Name} - {DateTime.Now}");
             Tools.OnError += (sender, e) => OnError?.Invoke(this, e);
             Tools.OnMessage += (sender, e) => RaiseMessage(e);
             tools.RequestMenuClose += (sender, e) => RequestMenuClose?.Invoke(this, e);
@@ -1111,6 +1112,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             Tools.TableTool.ModelDataMoved += ModelDataMovedByTool;
             Tools.CodeTool.ModelDataChanged += ModelChangedByCodeTool;
             Tools.CodeTool.ModelDataMoved += ModelDataMovedByTool;
+            model.LogMessage += (sender, e) => tools.LogTool.LogMessages.Add(e);
             scroll.Scheduler = tools;
          }
 

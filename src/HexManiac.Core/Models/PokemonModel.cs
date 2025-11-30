@@ -2703,6 +2703,9 @@ namespace HavenSoft.HexManiac.Core.Models {
       }
 
       private T MoveRun<T>(ModelDelta changeToken, T run, int length, int newStart) where T : IFormattedRun {
+         var logName = run.Start.ToAddress();
+         if (anchorForAddress.TryGetValue(run.Start, out var existingAnchorName)) logName = existingAnchorName;
+         RaiseLogMessage($"Moving {run.GetType().Name} {logName} to {newStart.ToAddress()}");
          // repoint
          foreach (var source in run.PointerSources?.ToList() ?? new()) {
             // special update for pointers to this run that live within this run

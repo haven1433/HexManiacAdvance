@@ -8,6 +8,8 @@ namespace HavenSoft.HexManiac.Core.Models
 {
     public class StubDataModel : IDataModel
     {
+        public event EventHandler<string> LogMessage;
+
         public Func<int, bool> HasChanged { get; set; }
         
         bool IDataModel.HasChanged(int index)

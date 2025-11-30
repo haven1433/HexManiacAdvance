@@ -6,6 +6,7 @@ using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
 using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.Map;
 using HavenSoft.HexManiac.Core.ViewModels.QuickEditItems;
+using HavenSoft.HexManiac.Core.ViewModels.Tools;
 using HavenSoft.HexManiac.WPF.Controls;
 using HavenSoft.HexManiac.WPF.Implementations;
 using System;
@@ -97,6 +98,15 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          text.AppendLine(DateTime.Now.ToString());
          text.AppendLine("General Information:");
          AppendGeneralAppInfo(text);
+         var logLines = new List<string>();
+         if (ViewModel.SelectedTab is IViewPort vp && vp.Tools is ToolTray tray && tray.LogTool is LogTool logs) {
+            text.AppendLine("Recent Log Information:");
+            logLines.AddRange(logs.LogMessages);
+         } else if (ViewModel.SelectedTab is MapEditorViewModel mapEditor && mapEditor.ViewPort.Tools is ToolTray mapTray && mapTray.LogTool is LogTool mapLogs) {
+            logLines.AddRange(mapLogs.LogMessages);
+         }
+         while (logLines.Count > 15) logLines.RemoveAt(1);
+         if (logLines.Count > 0) text.AppendLine(Environment.NewLine.Join(logLines));
          text.AppendLine("Exception Information:");
          AppendException(text, e.Exception);
          text.AppendLine("-------------------------------------------");
@@ -104,7 +114,7 @@ namespace HavenSoft.HexManiac.WPF.Windows {
          File.AppendAllText("crash.log", text.ToString());
          var editor = DataContext as EditorViewModel;
          var tabCount = editor?.Count ?? 0;
-         var shortError = Environment.NewLine.Join(text.ToString().SplitLines().Take(15 + tabCount * 5));
+         var shortError = Environment.NewLine.Join(text.ToString().SplitLines().Take(15 + tabCount * 5 + logLines.Count));
          shortError = Environment.NewLine.Join(new[] {
             $"~I got a crash! ({ViewModel.Singletons.MetadataInfo.VersionNumber})",
             "```",
@@ -766,14 +776,23 @@ namespace HavenSoft.HexManiac.WPF.Windows {
                Debugger.Break();
                break;
             } else {
+               string logs = string.Empty;
+               if (Application.Current.MainWindow is MainWindow window && window.ViewModel is EditorViewModel editor) {
+                  if (editor.SelectedTab is IViewPort viewPort && viewPort.Tools is ToolTray tray && tray.LogTool is LogTool logTool) {
+                     logs = Environment.NewLine.Join(logTool.LogMessages);
+                  } else if (editor.SelectedTab is MapEditorViewModel mapEditor && mapEditor.ViewPort.Tools is ToolTray mapTray && mapTray.LogTool is LogTool mapLogTool) {
+                     logs = Environment.NewLine.Join(mapLogTool.LogMessages);
+                  }
+               }
                Application.Current.Dispatcher.Invoke(() => {
                   result = fileSystem.ShowOptions(
                      "Attach a Debugger",
                      "Attach a debugger and click 'Debug' to get more information about the following assertion:" + Environment.NewLine +
                      message + Environment.NewLine +
                      detailMessage + Environment.NewLine +
-                     "To report the assert, copy & paste the stack trace to the Discord's #hma-bug-reports channel." + 
+                     "To report the assert, copy & paste the stack trace to the Discord's #hma-bug-reports channel." +
                      Environment.NewLine + Environment.NewLine +
+                     logs + Environment.NewLine +
                      "Stack Trace:" + Environment.NewLine +
                      Environment.StackTrace,
                      null,
