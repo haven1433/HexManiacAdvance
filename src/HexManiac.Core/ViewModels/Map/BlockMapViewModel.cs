@@ -526,7 +526,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          (LeftEdge, TopEdge) = (-PixelWidth / 2, -PixelHeight / 2);
 
-         mapScriptCollection = new(viewPort);
+         mapScriptCollection = new(viewPort, eventTemplate);
          mapScriptCollection.NewMapScriptsCreated += (sender, e) => GetMapModel().SetAddress("mapscripts", e.Address);
 
          mapRepointer = new MapRepointer(format, fileSystem, viewPort, viewPort.ChangeHistory, MapID, () => {

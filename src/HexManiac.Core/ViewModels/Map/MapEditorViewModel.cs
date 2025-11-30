@@ -185,6 +185,24 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      public bool IsSingleBlock => tilesToDraw is not null && tilesToDraw.GetLength(0) == 1 && tilesToDraw.GetLength(1) == 1;
+      public int BlockUsageCount {
+         get {
+            if (preferredCollisionsPrimary == null) CountCollisionForBlocks();
+            var layout = new LayoutModel(primaryMap?.GetLayout());
+            if (layout.PrimaryBlockset?.Start is not int primaryAddress) return -1;
+            if (layout.SecondaryBlockset?.Start is not int secondaryAddress) return -1;
+            if (!IsSingleBlock) return -1;
+
+            var isPrimary = drawBlockIndex < PrimaryBlocks;
+            if (isPrimary) {
+               return blockUsageCount[primaryAddress][drawBlockIndex];
+            } else {
+               return blockUsageCount[secondaryAddress][drawBlockIndex];
+            }
+         }
+      }
+
       public ObservableCollection<string> CollisionOptions { get; } = new();
 
       public bool BlockSelectionToggle { get; private set; }
@@ -1075,7 +1093,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private bool drawMultipleTiles;
       public bool DrawMultipleTiles {
          get => drawMultipleTiles;
-         private set => Set(ref drawMultipleTiles, value, old => NotifyPropertyChanged(nameof(BlockBagVisible)));
+         private set {
+            Set(ref drawMultipleTiles, value, old => NotifyPropertyChanged(nameof(BlockBagVisible)));
+            NotifyPropertiesChanged(nameof(IsSingleBlock), nameof(BlockUsageCount));
+         }
       }
 
       private bool blockEditorVisible;
@@ -1708,9 +1729,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          });
       }
       public bool IsValid9GridSelection {
-         get {
-            return tilesToDraw != null && tilesToDraw.GetLength(0) == 3 && tilesToDraw.GetLength(1) == 3;
-         }
+         get => tilesToDraw != null && tilesToDraw.GetLength(0) == 3 && tilesToDraw.GetLength(1) == 3;
       }
 
       public void SelectBlock(int x, int y) {
@@ -2078,9 +2097,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private Dictionary<long, int[]> preferredCollisionsPrimary;
       private Dictionary<long, int[]> preferredCollisionsSecondary;
+      private readonly AutoDictionary<long, AutoDictionary<int, int>> blockUsageCount = new(_ => new(_ => 0)); // for a tileset, for a block, the total number of times that block is used
       private void CountCollisionForBlocks() {
          preferredCollisionsPrimary = new Dictionary<long, int[]>();
          preferredCollisionsSecondary = new Dictionary<long, int[]>();
+         blockUsageCount.Clear();
 
          // step 1: count the usages of each collision for each block in each blockset
          var banksTable = model.GetTable(HardcodeTablesModel.MapBankTable);
@@ -2121,9 +2142,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                   var tile = pair & 0x3FF;
                   var isPrimary = tile < PrimaryTiles;
                   if (isPrimary) {
+                     blockUsageCount[address1][tile] += 1;
                      if (!blocks1[tile].TryGetValue(collision, out var value)) value = 0;
                      blocks1[tile][collision] = value + 1;
                   } else {
+                     blockUsageCount[address2][tile] += 1;
                      if (!blocks2[tile].TryGetValue(collision, out var value)) value = 0;
                      blocks2[tile][collision] = value + 1;
                   }

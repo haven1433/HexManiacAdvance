@@ -11,6 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class MapScriptCollection : ViewModelCore {
       private readonly IEditableViewPort viewPort;
+      private readonly EventTemplate eventTemplate;
       private ModelArrayElement owner;
       private int address;
 
@@ -22,7 +23,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<NewMapScriptsCreatedEventArgs> NewMapScriptsCreated;
 
-      public MapScriptCollection(IEditableViewPort viewPort) => this.viewPort = viewPort;
+      public MapScriptCollection(IEditableViewPort viewPort, EventTemplate eventTemplate) => (this.viewPort, this.eventTemplate) = (viewPort, eventTemplate);
 
       public void Load(ModelArrayElement owner) {
          foreach (var script in Scripts) script.DeleteMe -= HandleDelete;
@@ -36,11 +37,11 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          AllowAddMoreScripts = true;
          while (model[scriptStart] != 0) {
             if (Scripts.Count == 10) {
-               Scripts.Add(new(viewPort, Pointer.NULL)); // 'UI is full' sentinel
+               Scripts.Add(new(viewPort, eventTemplate, Pointer.NULL)); // 'UI is full' sentinel
                AllowAddMoreScripts = false;
                break;
             }
-            Scripts.Add(new(viewPort, scriptStart));
+            Scripts.Add(new(viewPort, eventTemplate, scriptStart));
             AddDeleteHandler(Scripts.Count - 1);
             scriptStart += 5;
          }
@@ -115,6 +116,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
    public class MapScriptViewModel : ViewModelCore {
       private readonly IEditableViewPort viewPort;
+      private readonly EventTemplate eventTemplate;
       private readonly int start;
       private int scriptType, address;
       private string displayAddress;
@@ -128,8 +130,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public ObservableCollection<VisualOption> ScriptOptions { get; } = new();
       public ObservableCollection<MapSubScriptViewModel> SubScripts { get; } = new();
 
-      public MapScriptViewModel(IEditableViewPort viewPort, int start) {
+      public MapScriptViewModel(IEditableViewPort viewPort, EventTemplate eventTemplate, int start) {
          this.viewPort = viewPort;
+         this.eventTemplate = eventTemplate;
          var model = viewPort.Model;
          this.start = start;
          if (start == Pointer.NULL) {
@@ -193,7 +196,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             while (true) {
                var currentValue = model.ReadMultiByteValue(destination, 2);
                if (currentValue == 0 || currentValue == 0xFFFF) break;
-               var child = new MapSubScriptViewModel(viewPort, destination);
+               var child = new MapSubScriptViewModel(viewPort, eventTemplate, destination);
                child.DeleteMe += HandleDelete;
                SubScripts.Add(child);
                destination += 8;
@@ -292,7 +295,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (run.Start != tableRun.Start) {
             Load();
          } else {
-            SubScripts.Append(new MapSubScriptViewModel(viewPort, tableRun.Start + tableRun.ElementCount * tableRun.ElementLength - 4));
+            SubScripts.Append(new MapSubScriptViewModel(viewPort, eventTemplate, tableRun.Start + tableRun.ElementCount * tableRun.ElementLength - 4));
          }
       }
 
@@ -333,6 +336,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    /// </summary>
    public class MapSubScriptViewModel : ViewModelCore {
       private readonly IEditableViewPort viewPort;
+      private readonly EventTemplate eventTemplate;
       private int start, variable, val, address;
       private string variableText, valueText, addressText;
 
@@ -340,8 +344,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<MapScriptDeleteEventArgs> DeleteMe;
 
-      public MapSubScriptViewModel(IEditableViewPort viewPort, int start) {
-         (this.viewPort, this.start) = (viewPort, start);
+      public MapSubScriptViewModel(IEditableViewPort viewPort, EventTemplate eventTemplate, int start) {
+         (this.viewPort, this.eventTemplate, this.start) = (viewPort, eventTemplate, start);
          this.variable = viewPort.Model.ReadMultiByteValue(start, 2);
          this.val = viewPort.Model.ReadMultiByteValue(start + 2, 2);
          this.address = viewPort.Model.ReadPointer(start + 4);
@@ -356,6 +360,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (!variableText.TryParseHex(out int result)) return;
             variable = result;
             viewPort.Model.WriteMultiByteValue(start, 2, viewPort.ChangeHistory.CurrentChange, variable);
+            NotifyPropertyChanged(nameof(CanGenerateNewVar));
          });
       }
 
@@ -375,6 +380,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             address = result;
             viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, -1, start + 4, address);
          });
+      }
+
+      public bool CanGenerateNewVar => variable == 0;
+      public void GenerateNewVar() {
+         variable = eventTemplate.FindNextUnusedVariable();
+         Variable = variable.ToString("X4");
       }
 
       public void Delete() {

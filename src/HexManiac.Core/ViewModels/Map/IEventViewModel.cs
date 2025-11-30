@@ -1,5 +1,4 @@
-﻿using HavenSoft.HexManiac.Core;
-using HavenSoft.HexManiac.Core.Models;
+﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
@@ -980,7 +979,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool ShowTutorContent {
          get {
             var content = tutorContent.Value;
-            if (content != null && TutorOptions .AllOptions == null) {
+            if (content != null && TutorOptions.AllOptions == null) {
                TutorOptions.Update(ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.MoveTutors)), TutorNumber);
                TutorOptions.Bind(nameof(TutorOptions.SelectedIndex), (sender, e) => TutorNumber = TutorOptions.SelectedIndex);
             }
@@ -990,7 +989,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private TextEditorViewModel tutorInfoEditor, tutorWhichPokemonEditor, tutorFailedEditor, tutorSuccessEditor;
       public TextEditorViewModel TutorInfoText => CreateTextEditor(ref tutorInfoEditor, () => tutorContent.Value?.InfoPointer);
-      public TextEditorViewModel TutorWhichPokemonText => CreateTextEditor(ref tutorWhichPokemonEditor , () => tutorContent.Value?.WhichPokemonPointer);
+      public TextEditorViewModel TutorWhichPokemonText => CreateTextEditor(ref tutorWhichPokemonEditor, () => tutorContent.Value?.WhichPokemonPointer);
       public TextEditorViewModel TutorFailedText => CreateTextEditor(ref tutorFailedEditor, () => tutorContent.Value?.FailedPointer);
       public TextEditorViewModel TutorSucessText => CreateTextEditor(ref tutorSuccessEditor, () => tutorContent.Value?.SuccessPointer);
 
