@@ -448,7 +448,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                break;
             }
             if (close == -1) {
-               if (i == caret) {
+               if (i == caret || (i == caret - 1 && caret == text.Count)) {
                   text.Insert(i + 1, '\r');
                   text.Insert(i + 2, '\n');
                }
@@ -827,7 +827,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
             partialDocumentation = candidates[0].Usage + Environment.NewLine + string.Join(Environment.NewLine, candidates[0].Documentation);
          }
 
-         if (context.Index > 0 && context.Line[context.Index - 1] == ' ' && tokens.Length > 0) {
+         if (context.Index > 0 && context.Index < context.Line.Length && context.Line[context.Index - 1] == ' ' && tokens.Length > 0) {
             // I'm directly after a space, I'm at the start of a new token, there is no existing documentation
             var skipCount = candidates[0].LineCode.Count;
             if (skipCount == 0) skipCount = 1;

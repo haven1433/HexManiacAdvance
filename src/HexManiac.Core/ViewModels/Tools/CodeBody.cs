@@ -463,7 +463,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             if (lines[i].Trim() == "{") {
                var type = queue.Count == 0 ? ExpectedPointerType.Unknown : queue.Dequeue();
                i += 1;
-               while (lines[i].Trim() != "}") {
+               while (i < lines.Length && lines[i].Trim() != "}") {
                   results.Add(new(i, type, lines[i]));
                   i += 1;
                   if (lines.Length <= i) break;
