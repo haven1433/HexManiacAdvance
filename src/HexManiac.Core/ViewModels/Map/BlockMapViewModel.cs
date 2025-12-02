@@ -1351,6 +1351,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      /// <param name="wave">A function that, for a given x/y pair, returns a superposition of possible block probabilities for that cell, based on its known neighbors.</param>
       public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave) {
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
@@ -1376,14 +1377,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             // reduction loop: find the most restricted cell, collapse it, then propogate its new restrictions
             while (toDraw.Count > 0) {
-               var smallest = toDraw.Values.Select(v => v.Probabilities.Count).Min();
-               var smallestPoints = toDraw.Where(kvp => kvp.Value.Probabilities.Count == smallest).Select(kvp => kvp.Key).ToList();
-               var point = rnd.From(smallestPoints);
-               Fill(point, toDraw[point].Collapse(rnd));
+               var cellsWithRestrictions = toDraw.Values.Where(cell => cell.HasRestrictions);
+               var smallest = cellsWithRestrictions.Select(v => v.Probabilities.Count).Min(); // what is the smallest number of options
+               var restrictedCells = cellsWithRestrictions.Where(cell => cell.Probabilities.Count == smallest).ToList(); // get the cells with that least number of options
+               var cell = rnd.From(restrictedCells);
+               var point = toDraw.Keys.Single(key => toDraw[key] == cell);
+               Fill(point, cell.Collapse(rnd));
                toDraw.Remove(point);
-               foreach (var neighbor in new List<Point> { point - right, point + right, point - down, point + down }) {
+               foreach (var neighbor in new List<Point> { point - right, point + right, point - down, point + down, point - right - down, point + right - down, point - right + down, point + right + down }) {
                   if (!toDraw.ContainsKey(neighbor)) continue;
-                  toDraw[neighbor] = wave(neighbor.X, neighbor.Y);
+                  toDraw[neighbor] = wave(neighbor.X, neighbor.Y); // re-evaluate from scratch now that a new neighbor has been found
                }
             }
          }
