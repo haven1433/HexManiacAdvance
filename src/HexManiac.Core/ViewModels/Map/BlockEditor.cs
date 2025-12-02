@@ -418,6 +418,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       private IPixelViewModel drawTileRender;
       public IPixelViewModel DrawTileRender => drawTileRender;
+      public int DrawTileIndex => drawTile;
 
       public BlockEditor(ChangeHistory<ModelDelta> history, IDataModel listSource, MapTutorialsViewModel tutorials, short[][] palettes, int[][,] tiles, byte[][] blocks, byte[][] blockAttributes) {
          this.history = history;
@@ -739,7 +740,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private void UpdateDrawTileRender() {
          var palette = SpriteTool.CreatePaletteWithUniqueTransparentColor(palettes[drawPalette]);
          drawTileRender = new CanvasPixelViewModel(8, 8, SpriteTool.Render(tiles[drawTile], palette, 0, 0)) { Transparent = palette[0], SpriteScale = 4 };
-         NotifyPropertiesChanged(nameof(DrawTileRender));
+         NotifyPropertiesChanged(nameof(DrawTileRender), nameof(DrawTileIndex));
       }
 
       #endregion

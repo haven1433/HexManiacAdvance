@@ -1534,9 +1534,12 @@
             </StackPanel>
             <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Horizontal" Margin="0,0,0,4" DataContext="{Binding PrimaryMap.BlockEditor}">
                <TextBlock Text="Selected Tile:" VerticalAlignment="Center" Margin="5,0" Width="100" TextAlignment="Right" />
-               <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" Margin="0,0,30,0" VerticalAlignment="Center" HorizontalAlignment="Left">
-                  <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
-               </Border>
+               <StackPanel Margin="0,10,30,0" HorizontalAlignment="Left">
+                  <Border Padding="2" BorderBrush="{DynamicResource Secondary}" BorderThickness="1" VerticalAlignment="Center">
+                     <local:PixelImage DataContext="{Binding DrawTileRender}" TransparentBrush="{DynamicResource Background}" />
+                  </Border>
+                  <TextBlock HorizontalAlignment="Center" Text="{Binding DrawTileIndex}" />
+               </StackPanel>
                <TextBlock VerticalAlignment="Center" Margin="5,0" TextAlignment="Center">
                   <Run Text="Selected Palette:" />
                   <LineBreak />
