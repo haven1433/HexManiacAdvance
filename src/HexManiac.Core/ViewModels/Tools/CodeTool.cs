@@ -325,8 +325,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (run != null && run.Start != body.Address) run = null;
 
          int length = parser.FindLength(model, body.Address);
-         // don't need to run this if they're still typing
-         recompileTimer.DelayCall(TimeSpan.FromSeconds(.5), () => {
+         Action action = () => {
             var initialStart = selection.Scroll.ViewPointToDataIndex(selection.SelectionStart);
             var initialEnd = selection.Scroll.ViewPointToDataIndex(selection.SelectionEnd);
             if (initialStart > initialEnd) (initialStart, initialEnd) = (initialEnd, initialStart);
@@ -356,7 +355,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
                body.Address = start; // in case of the code getting repointed
             }
             UpdateContents(start, parser, body.Address, length);
-         });
+         };
+
+         // don't need to run this if they're still typing
+         /*
+         action();
+         /*/
+         body.CaretPosition += ScriptParser.InsertMissingClosers(ref codeContent, body.CaretPosition);
+         body.Content = codeContent;
+         recompileTimer.DelayCall(TimeSpan.FromSeconds(.5), action);
+         //*/
       }
 
       private void UpdateScriptHelpFromLine(object sender, HelpContext context) {
@@ -435,6 +443,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
             var originalCodeContent = codeContent;
             int caret = body.CaretPosition;
             body.ClearErrors();
+            body.EvaluateTextLength();
             parser.CompileError += body.WatchForCompileErrors;
             var code = parser.Compile(history.CurrentChange, model, start, ref codeContent, ref caret, body, out var movedData, out int ignoreCharacterCount);
             parser.CompileError -= body.WatchForCompileErrors;
