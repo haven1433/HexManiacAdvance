@@ -261,6 +261,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          });
       }
 
+      public int ScriptAddress => address;
+
       public IReadOnlyCollection<int> GetScripts() {
          var results = new List<int>();
          foreach (var script in SubScripts) {
@@ -381,6 +383,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             viewPort.Model.UpdateArrayPointer(viewPort.ChangeHistory.CurrentChange, default, default, -1, start + 4, address);
          });
       }
+
+      public int ScriptAddress => address;
 
       public bool CanGenerateNewVar => variable == 0;
       public void GenerateNewVar() {

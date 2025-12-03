@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -30,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int X { get; set; }
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
-      void Render(IDataModel model, LayoutModel layout);
+      void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites);
       bool Delete();
    }
 
@@ -165,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return X == fly.X && Y == fly.Y && flySpot.Start == fly.flySpot.Start;
       }
 
-      public void Render(IDataModel model, LayoutModel layout) {
+      public void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
          EventRender = BaseEventViewModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 31, 0));
       }
    }
@@ -301,7 +302,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return bem.element.Start == element.Start;
       }
 
-      public abstract void Render(IDataModel model, LayoutModel layout);
+      public abstract void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites);
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
@@ -392,7 +393,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private static readonly Point[] focalPoints = new[] { new Point(0, 7), new Point(7, 0), new Point(15, 8), new Point(8, 15) };
       public static IPixelViewModel BuildEventRender(short color, bool indentSides = false) {
          var pixels = new short[256];
-         
+
          for (int x = 1; x < 15; x++) {
             for (int y = 1; y < 15; y++) {
                if (((x + y) & 1) != 0) continue;
@@ -1243,7 +1244,7 @@ show:
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
       public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
-      public override void Render(IDataModel model, LayoutModel layout) {
+      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
          var ows = model.GetTable(HardcodeTablesModel.OverworldSprites);
          var owTable = ows == null ? null : new ModelTable(model, ows.Start);
          var facing = MoveType switch {
@@ -1253,28 +1254,56 @@ show:
             76 => 76, // invisible
             _ => 0,
          };
-         EventRender = Render(model, owTable, DefaultOW, Graphics, facing);
+         EventRender = Render(model, owTable, DefaultOW, Graphics, facing, dynamicSprites);
          NotifyPropertyChanged(nameof(EventRender));
       }
 
       /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
-      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing) {
-         if (owTable == null || index >= owTable.Count) return defaultOW;
-         var element = owTable[index];
-         var dataTable = element.GetSubTable("data");
-         if (dataTable == null) return defaultOW;
-         var data = dataTable[0];
+      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing, Func<List<int>[]> dynamicSprites) {
+         // special case: gfx variables
+         if (index >= 240 && index <= 255 && dynamicSprites()[index - 240] is List<int> options && options.Count > 0) index = options[0];
+         // special case: expanded OWs for pokemon / sprites20k (HMA expansion utility integration)
+         ModelTable dataTable;
+         if (index.InRange(10000, 20000)) {
+            dataTable = model.GetTableModel("graphics.overworld.pokemon");
+            index -= 10000;
+
+         } else if (index.InRange(20000, 30000)) {
+            dataTable = model.GetTableModel("graphics.overworld.sprites20k");
+            index -= 20000;
+
+         } else {
+            if (owTable == null || index >= owTable.Count) return defaultOW;
+            dataTable = owTable[index].GetSubTable("data");
+            index = 0;
+
+         }
+
+         if (dataTable is null) return defaultOW;
+         if (index >= dataTable.Count) return defaultOW;
+         var data = dataTable[index];
          var sprites = data.GetSubTable("sprites");
-         if (sprites == null) return defaultOW;
-         bool invisible = facing == 76;
-         bool flip = facing == 3;
-         if (facing == 3) facing = 2;
-         if (facing >= sprites.Count) facing = 0;
-         var graphicsAddress = sprites.Run.Start;
+
+         int graphicsAddress;
+         bool invisible = false;
+         bool flip = false;
+         if (sprites == null) {
+            // overworld.pokemon
+            graphicsAddress = data.GetAddress("sprite");
+            if (graphicsAddress == Pointer.NULL) return defaultOW;
+         } else {
+            // overworld.sprites or overworld.sprites20k
+            invisible = facing == 76;
+            flip = facing == 3;
+            if (facing == 3) facing = 2;
+            if (facing >= sprites.Count) facing = 0;
+            graphicsAddress = sprites.Run.Start;
+         }
+
          var pointerAddress = data.Start;
          var graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
          var paletteRun = graphicsRun.FindRelatedPalettes(model, pointerAddress).FirstOrDefault();
-         if (facing != -1) {
+         if (facing != -1 && sprites is not null) {
             var sprite = sprites[facing];
             graphicsAddress = sprite.GetAddress("sprite");
             graphicsRun = model.GetNextRun(graphicsAddress) as ISpriteRun;
@@ -1282,6 +1311,7 @@ show:
          if (graphicsRun == null) return defaultOW;
          if (paletteRun == null) return defaultOW;
          var ow = ReadonlyPixelViewModel.Create(model, graphicsRun, paletteRun, true);
+         if (sprites is null) ow = ReadonlyPixelViewModel.Crop(ow, 0, 0, ow.PixelWidth, ow.PixelHeight / 2);
          if (invisible) ow = BuildInvisibleEventRender(ow);
          if (flip) ow = ow.ReflectX();
          return ow;
@@ -1398,7 +1428,7 @@ show:
 
       #endregion
 
-      public override void Render(IDataModel model, LayoutModel layout) {
+      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
          if (WarpIsOnWarpableBlock(model, layout)) {
             EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
          } else {
@@ -1506,7 +1536,7 @@ show:
          }
       }
 
-      public override void Render(IDataModel model, LayoutModel layout) {
+      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
       }
 
@@ -1722,7 +1752,7 @@ show:
 
       #endregion
 
-      public override void Render(IDataModel model, LayoutModel layout) {
+      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
       }
 

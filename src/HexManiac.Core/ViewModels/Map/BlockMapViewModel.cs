@@ -620,6 +620,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          borderBlock = null;
          berryInfo = null;
          WildPokemon.ClearCache();
+         dynamicOverworldSprites = null;
          RefreshMapSize(false);
          RefreshBlockAttributeCache();
          if (borderEditor != null) {
@@ -2298,7 +2299,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var list = new List<IEventViewModel>();
          var events = GetEvents();
          foreach (var obj in events) {
-            obj.Render(model, layoutModel);
+            obj.Render(model, layoutModel, () => { LoadDynamicOverworldSprites(); return dynamicOverworldSprites; });
             list.Add(obj);
          }
          eventRenders = list;
@@ -2514,7 +2515,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var ows = run == null ? null : new ModelTable(model, run.Start, null, run);
          var defaultImage = GetDefaultOW(model);
          for (int i = 0; i < (ows?.Count ?? 1); i++) {
-            list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1));
+            list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1, () => null));
          }
          return list;
       }
@@ -2737,6 +2738,38 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (name.Length == 0) name = "(unnamed)";
 
          return $"{name}.{group}-{map}";
+      }
+
+      #endregion
+
+      #region Getting overworld sprites for dynamic sprites
+
+      private List<int>[]? dynamicOverworldSprites;
+      private void LoadDynamicOverworldSprites() {
+         if (dynamicOverworldSprites is not null) return;
+         dynamicOverworldSprites = new List<int>[0x10];
+         var collection = new MapScriptCollection(viewPort, eventTemplate);
+         collection.Load(GetMapModel());
+         var checkAddresses = new HashSet<int>();
+         foreach (var script in collection.Scripts) {
+            if (script.HasSubScripts) {
+               foreach (var sub in script.SubScripts) {
+                  checkAddresses.Add(sub.ScriptAddress);
+               }
+            } else {
+               checkAddresses.Add(script.ScriptAddress);
+            }
+         }
+         // look for all the map scripts
+         // look for places where we load dynamic sprites
+         var setvarSpots = Flags.GetAllScriptSpots(model, ViewPort.Tools.CodeTool.ScriptParser, checkAddresses, 0x16);
+         foreach (var spot in setvarSpots) {
+            var graphicsSlot = model.ReadMultiByteValue(spot.Address + 1, 2) - 0x4010; // 0x4010=gfx0
+            if (!graphicsSlot.InRange(0, dynamicOverworldSprites.Length)) continue;
+            dynamicOverworldSprites[graphicsSlot] ??= new();
+            dynamicOverworldSprites[graphicsSlot].Add(model.ReadMultiByteValue(spot.Address + 3, 2));
+         }
+         // the first one will be shown directly, the rest are available through the tooltip?
       }
 
       #endregion

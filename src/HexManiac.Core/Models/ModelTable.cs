@@ -165,7 +165,8 @@ namespace HavenSoft.HexManiac.Core.Models {
          if (seg == null) return -1;
          if (seg.Type == ElementContentType.Integer && seg is ArrayRunSignedSegment signedSeg) {
             return signedSeg.ReadValue(model, valueAddress);
-         } if (seg.Type == ElementContentType.Integer) {
+         }
+         if (seg.Type == ElementContentType.Integer) {
             return model.ReadMultiByteValue(valueAddress, seg.Length);
          } else {
             return model.ReadMultiByteValue(valueAddress, seg.Length.LimitToRange(0, 3));
