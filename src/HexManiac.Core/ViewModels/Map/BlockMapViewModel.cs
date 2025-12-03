@@ -11,6 +11,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using static HavenSoft.HexManiac.Core.ViewModels.Map.MapSliderIcons;
 
 namespace HavenSoft.HexManiac.Core.ViewModels.Map {
@@ -952,11 +954,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       /// If blockIndex is not valid, it's ignored.
       /// </summary>
       public void DrawBlock(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
+         waveFunctionActive?.Cancel();
          var (xx, yy) = ConvertCoordinates(x, y);
          DrawBlock(token, blockIndex, collisionIndex, xx, yy);
       }
 
       public void DrawBlock(ModelDelta token, int blockIndex, int collisionIndex, int xx, int yy) {
+         waveFunctionActive?.Cancel();
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var border = GetBorderThickness(layout);
@@ -987,6 +991,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void Draw9Grid(ModelDelta token, int[,] grid, double x, double y) {
+         waveFunctionActive?.Cancel();
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var (xx, yy) = ConvertCoordinates(x, y);
@@ -1138,6 +1143,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private int[,]? innerCornersFor9Grid;
       // 9-grid is always drawn 2x2
       public void Draw9Grid(ModelDelta token, int[,] grid, int x, int y) {
+         waveFunctionActive?.Cancel();
          var innerCornersFor9Grid = this.innerCornersFor9Grid ?? new[,] { { grid[1, 1], grid[1, 1] }, { grid[1, 1], grid[1, 1] } }; // copy so that there's no reference changing during the method
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
@@ -1166,6 +1172,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void DrawBlocks(ModelDelta token, int[,] tiles, Point source, Point destination) {
+         waveFunctionActive?.Cancel();
          while (Math.Abs(destination.X - source.X) % tiles.GetLength(0) != 0) destination -= new Point(1, 0);
          while (Math.Abs(destination.Y - source.Y) % tiles.GetLength(1) != 0) destination -= new Point(0, 1);
 
@@ -1190,6 +1197,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void RepeatBlock(Func<ModelDelta> futureToken, IReadOnlyList<int> blockOptions, int collision, int x, int y, int w, int h, bool refreshScreen) {
+         waveFunctionActive?.Cancel();
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
@@ -1217,6 +1225,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void RepeatBlocks(Func<ModelDelta> futureToken, int[,] blockValues, int x, int y, int w, int h, bool refreshScreen) {
+         waveFunctionActive?.Cancel();
          var layout = GetLayout();
          var (width, height) = (layout.GetValue("width"), layout.GetValue("height"));
          var start = layout.GetAddress("blockmap");
@@ -1257,6 +1266,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void PaintBlock(ModelDelta token, int blockIndex, int collisionIndex, double x, double y) {
+         waveFunctionActive?.Cancel();
          if (blockIndex == -1) return;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
@@ -1280,6 +1290,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       private void PaintBlock(ModelDelta token, Point p, Point size, int start, int before, int after) {
+         waveFunctionActive?.Cancel();
          if (before == after) return;
          if (p.X < 0 || p.Y < 0 || p.X >= size.X || p.Y >= size.Y) return;
          var address = start + (p.Y * size.X + p.X) * 2;
@@ -1292,6 +1303,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       public void PaintBlockBag(ModelDelta token, List<int> blockIndexes, int collisionIndex, double x, double y) {
+         waveFunctionActive?.Cancel();
          if (blockIndexes.Count < 1) return;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
@@ -1352,7 +1364,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       /// <param name="wave">A function that, for a given x/y pair, returns a superposition of possible block probabilities for that cell, based on its known neighbors.</param>
-      public void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave) {
+      public async void PaintWaveFunction(ModelDelta token, double x, double y, Func<int, int, WaveCell> wave, CancellationToken cancelToken) {
+         waveFunctionActive?.Cancel();
+         waveFunctionActive = CancellationTokenSource.CreateLinkedTokenSource(cancelToken);
+         cancelToken = waveFunctionActive.Token;
          (x, y) = ((x - leftEdge) / spriteScale, (y - topEdge) / spriteScale);
          (x, y) = (x / 16, y / 16);
          var layout = GetLayout();
@@ -1374,25 +1389,80 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
             // initial wave function collapse values
             foreach (var cell in allCells) toDraw[cell] = wave(cell.X, cell.Y);
+         }
 
-            // reduction loop: find the most restricted cell, collapse it, then propogate its new restrictions
-            while (toDraw.Count > 0) {
-               var cellsWithRestrictions = toDraw.Values.Where(cell => cell.HasRestrictions);
-               var smallest = cellsWithRestrictions.Select(v => v.Probabilities.Count).Min(); // what is the smallest number of options
+         // reduction loop: find the most restricted cell, collapse it, then propogate its new restrictions
+         var stack = new List<CollapseAttempt>();
+         int delayCount = 0;
+         var attemptLimit = 10;
+         if (toDraw.Count < 300) attemptLimit *= 2;
+         while (toDraw.Count > 0) {
+            var cellsWithRestrictions = toDraw.Values.Where(cell => cell.HasRestrictions);
+            var smallest = cellsWithRestrictions.Select(v => v.Probabilities.Count).Min(); // what is the smallest number of options
+
+            if (smallest > 0 && (stack.Count == 0 || stack.Sum(item => item.AttemptCount) < attemptLimit) && !cancelToken.IsCancellationRequested) {
+               // good case: we have a cell to callapse
                var restrictedCells = cellsWithRestrictions.Where(cell => cell.Probabilities.Count == smallest).ToList(); // get the cells with that least number of options
                var cell = rnd.From(restrictedCells);
                var point = toDraw.Keys.Single(key => toDraw[key] == cell);
-               Fill(point, cell.Collapse(rnd));
+
+               var attempt = cell.Collapse(rnd);
+               var uncollapsedNeighbors = GetUncollapsedNeighbors(point, toDraw);
+               stack.Add(new(new(point, cell), attempt & 0x3FF, uncollapsedNeighbors));
+               lock (pixelWriteLock) Fill(point, cell.Collapse(rnd));
+
                toDraw.Remove(point);
                foreach (var neighbor in new List<Point> { point - right, point + right, point - down, point + down, point - right - down, point + right - down, point - right + down, point + right + down }) {
                   if (!toDraw.ContainsKey(neighbor)) continue;
                   toDraw[neighbor] = wave(neighbor.X, neighbor.Y); // re-evaluate from scratch now that a new neighbor has been found
                }
+            } else {
+               // bad case:
+               //  (1) last collapse caused a contradiction - need to backtrack
+               //      or
+               //  (2) we've been backtracking too much along this line, we need to back out and try something else.
+               if (stack.Count == 0) {
+                  viewPort.RaiseError("Wave Function Collapse failed: no valid options remain.");
+                  break;
+               }
+               var lastAttempt = stack.Last();
+               stack.RemoveAt(stack.Count - 1);
+               // restore the last attempt's cell and neighbors
+               toDraw[lastAttempt.SpotToCollapse.CollapsedPoint] = lastAttempt.SpotToCollapse.CellBeforeCollapse;
+               foreach (var neighbor in lastAttempt.NeighborsBeforeCollapse) {
+                  toDraw[neighbor.CollapsedPoint] = neighbor.CellBeforeCollapse;
+               }
+               lock (pixelWriteLock) Fill(lastAttempt.SpotToCollapse.CollapsedPoint, 0); // reset to uncollapsed
+               // remove the chosen collapse from options
+               var badOption = lastAttempt.SpotToCollapse.CellBeforeCollapse.Probabilities.Single(prob => prob.Block == lastAttempt.ChosenCollapse);
+               lastAttempt.SpotToCollapse.CellBeforeCollapse.Probabilities.Remove(badOption);
+               if (stack.Count > 0) stack[^1].AttemptCount += 1;
+            }
+            delayCount += 1;
+            if (delayCount == 50) {
+               await Task.Delay(5);
+               delayCount = 0;
+               ClearPixelCache();
             }
          }
 
          ClearPixelCache();
       }
+
+      private static List<WaveSpot> GetUncollapsedNeighbors(Point point, Dictionary<Point, WaveCell> toDraw) {
+         var results = new List<WaveSpot>();
+         Point right = new(1, 0), down = new(0, 1);
+         foreach (var direction in new[] { -right - down, -right, -right + down, down, -down, right + down, right, right - down }) {
+            if (!toDraw.TryGetValue(point + direction, out var cell)) continue;
+            results.Add(new(point + direction, cell));
+         }
+         return results;
+      }
+
+      private record WaveSpot(Point CollapsedPoint, WaveCell CellBeforeCollapse);
+      private record CollapseAttempt(WaveSpot SpotToCollapse, int ChosenCollapse, List<WaveSpot> NeighborsBeforeCollapse) {
+         public int AttemptCount { get; set; }
+      };
 
       #endregion
 
@@ -1576,7 +1646,9 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
       }
 
+      private CancellationTokenSource? waveFunctionActive;
       private void ResizeMapData(MapDirection direction, int amount) {
+         waveFunctionActive?.Cancel();
          if (amount == 0) return;
          var token = tokenFactory();
          var map = GetMapModel();

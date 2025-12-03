@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
@@ -777,7 +778,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             PrimaryMap.SurfConnection.FollowConnection();
             return;
          }
-         DrawDown(x, y, click);
+         if (DrawDown(x, y, click)) waveFunctionActive?.Cancel();
       }
 
       public void PrimaryMove(double x, double y) {
@@ -796,7 +797,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
 
       Point drawSource, lastDraw;
-      private void DrawDown(double x, double y, PrimaryInteractionStart click) {
+      private bool DrawDown(double x, double y, PrimaryInteractionStart click) {
+         bool didDraw = true;
          interactionType = PrimaryInteractionType.Draw;
          if ((click & PrimaryInteractionStart.ControlClick) != 0) interactionType = PrimaryInteractionType.RectangleDraw;
          if (use9Grid && IsValid9GridSelection) {
@@ -824,17 +826,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             lastDraw = drawSource;
             if (click == PrimaryInteractionStart.ControlClick) RectangleDrawMove(x, y);
             else if (interactionType == PrimaryInteractionType.Draw9Grid) Draw9Grid(x, y);
-            else if (click == PrimaryInteractionStart.Click) DrawMove(x, y);
+            else if (click == PrimaryInteractionStart.Click) didDraw = DrawMove(x, y);
          }
+         return didDraw;
       }
 
-      private void DrawMove(double x, double y) {
+      private bool DrawMove(double x, double y) {
+         var didDraw = false;
          var map = MapUnderCursor(x, y);
          if (map != null) {
             using (map.DeferPropertyNotifications()) {
                if (drawMultipleTiles && tilesToDraw != null) {
                   var tilePosition = ToBoundedMapTilePosition(map, x, y, tilesToDraw.GetLength(0), tilesToDraw.GetLength(1));
                   map.DrawBlocks(history.CurrentChange, tilesToDraw, drawSource, tilePosition);
+                  didDraw = true;
                } else {
                   var tilePosition = ToBoundedMapTilePosition(map, x, y, 1, 1);
                   if (drawBlockIndex < 0 && collisionIndex < 0) {
@@ -843,16 +848,20 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                         lastDraw = tilePosition;
                         FillBackup();
                         SwapBlocks(lastDraw, drawSource);
+                        didDraw = true;
                      }
                   } else if (blockBag.Contains(drawBlockIndex)) {
                      map.DrawBlock(history.CurrentChange, rnd.From(blockBag), collisionIndex, x, y);
+                     didDraw = true;
                   } else {
                      map.DrawBlock(history.CurrentChange, drawBlockIndex, collisionIndex, x, y);
+                     didDraw = true;
                   }
                }
             }
          }
          Hover(x, y);
+         return didDraw;
       }
 
       private void RectangleDrawMove(double x, double y) {
@@ -962,9 +971,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             eventCreationType = EventCreationType.None;
             // user wants to do a wave function collapse at this position
             if (map != primaryMap) return;
-            map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision);
+            if (waveFunctionPrimary == null) CalculateWaveCollapseProbabilities();
+            waveFunctionActive = new();
+            map.PaintWaveFunction(history.CurrentChange, x, y, RunWaveFunctionCollapseWithCollision, waveFunctionActive.Token);
          }
       }
+      private CancellationTokenSource? waveFunctionActive;
 
       #region Rectangle-Drawing helper methods
 
@@ -1971,7 +1983,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       // if we still can't find a neighbor after that, leave it blank.
 
       private IList<CollapseProbability> RunWaveFunctionCollapse(int xx, int yy) {
-         if (waveFunctionPrimary == null) CalculateWaveCollapseProbabilities();
          var layout = new LayoutModel(PrimaryMap.GetLayout());
          var primary = layout.PrimaryBlockset.Start;
          var secondary = layout.SecondaryBlockset.Start;
@@ -1994,11 +2005,6 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
          if (probabilities.Count == 0) return null; // no known neighbors, no restrictions... yet
 
-         // remove all the empty probability sets (they're not adding any restrictions)
-         for (int i = probabilities.Count - 1; i >= 0; i--) {
-            if (probabilities[i].Count == 0) probabilities.RemoveAt(i);
-         }
-
          // combine the list of probabilities down to a single list by merging from all the neighbors.
          // the block is constrained in options based on _all_ its neighbors together.
          // if the neighbor can only be A/B based on the left and only B/C based on the top, it must be B.
@@ -2014,23 +2020,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
                if (cp2 == null) continue; // no match
                merged.Add(new(cp1.Block) { Count = cp1.Count + cp2.Count });
             }
-            if (merged.Count == 0) {
-               // couldn't find a match
-               // matching one is better than matching neither
-               probabilities.Add(rnd.Next(2) == 0 ? last : next);
-            } else {
+            if (merged.Count != 0) {
                probabilities.Add(merged);
             }
          }
 
-         // possible failure state: no probabilities were found
-         // pick block '1' which is most likely safe.
-         if (probabilities.Count == 0 || probabilities[0].Count == 0) {
-            // no restriction, pick any block
-            //var (availableBlocks, _) = PrimaryMap.MapRepointer.EstimateBlockCount(layout.Element, true);
-            //return availableBlocks.Range().Select(i => new CollapseProbability(i)).ToList();
-            return new List<CollapseProbability> { new CollapseProbability(1) { Count = 1 } };
-         }
+         // possible failure state: no probabilities were found. We had probabilities before merging, but none survived.
+         // we're returning 'null' if there are no restrictions. This is the opposite: the restrictions are so tight as to have no valid results.
+         if (probabilities.Count == 0) return new List<CollapseProbability>();
 
          // new version that returns the current probabilities, which need collapsing
          return probabilities[0];
