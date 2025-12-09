@@ -11,7 +11,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
       private InteractionType interactionType;
 
       public ObservableCollection<ComboOption> AllOptions { get; private set; }
-      public ObservableCollection<ComboOption> FilteredOptions { get; private set; }
+      public ObservableCollection<ComboOption> FilteredOptions { get; private set; } = new();
 
       public bool CanFilter => AllOptions?.All(option => option.DisplayAsText) ?? false;
 

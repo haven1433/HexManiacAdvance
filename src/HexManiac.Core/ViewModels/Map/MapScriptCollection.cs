@@ -25,6 +25,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public MapScriptCollection(IEditableViewPort viewPort, EventTemplate eventTemplate) => (this.viewPort, this.eventTemplate) = (viewPort, eventTemplate);
 
+      // owner is expected to be the map that owns the map scripts
       public void Load(ModelArrayElement owner) {
          foreach (var script in Scripts) script.DeleteMe -= HandleDelete;
          Scripts.Clear();

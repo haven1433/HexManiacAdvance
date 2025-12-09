@@ -31,7 +31,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       int X { get; set; }
       int Y { get; set; }
       IPixelViewModel EventRender { get; }
-      void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites);
+      void Render(IDataModel model, LayoutModel layout);
       bool Delete();
    }
 
@@ -166,7 +166,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return X == fly.X && Y == fly.Y && flySpot.Start == fly.flySpot.Start;
       }
 
-      public void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
+      public void Render(IDataModel model, LayoutModel layout) {
          EventRender = BaseEventViewModel.BuildEventRender(UncompressedPaletteColor.Pack(31, 31, 0));
       }
    }
@@ -302,7 +302,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return bem.element.Start == element.Start;
       }
 
-      public abstract void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites);
+      public abstract void Render(IDataModel model, LayoutModel layout);
 
       protected void RaiseEventVisualUpdated() => EventVisualUpdated.Raise(this);
 
@@ -418,6 +418,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
    }
 
    public class ObjectEventViewModel : BaseEventViewModel {
+      private readonly BlockMapViewModel parent;
       private readonly ScriptParser parser;
       private readonly EventTemplate eventTemplate;
       private readonly BerryInfo berries;
@@ -441,6 +442,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             element.SetValue("graphics", value);
             RaiseEventVisualUpdated();
             NotifyPropertyChanged();
+            NotifyPropertyChanged(nameof(HasGraphicsInTransitionScript), nameof(CanAddDynamicGraphicsToTransitionScript));
          }
       }
 
@@ -455,6 +457,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             graphicsText = value;
             if (!graphicsText.TryParseInt(out var result)) return;
             Graphics = result;
+            NotifyPropertyChanged(nameof(CanAddDynamicGraphicsToTransitionScript), nameof(HasGraphicsInTransitionScript));
+            if (HasGraphicsInTransitionScript) LoadDynamicOverworldGraphicsCategories();
          }
       }
 
@@ -464,10 +468,166 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          set {
             Set(ref showGraphicsAsText, value, old => {
                graphicsText = null;
-               NotifyPropertyChanged(nameof(GraphicsText));
+               NotifyPropertiesChanged(nameof(GraphicsText), nameof(CanAddDynamicGraphicsToTransitionScript), nameof(HasGraphicsInTransitionScript));
+               if (value) {
+                  LoadDynamicOverworldGraphicsCategories();
+               }
             });
          }
       }
+
+      #region Dynamic Overworld Graphics
+
+      public bool CanAddDynamicGraphicsToTransitionScript => !HasGraphicsInTransitionScript && ShowGraphicsAsText && Graphics >= 240;
+
+      public void AddDynamicGraphicsToTransitionScript() {
+         if (HasGraphicsInTransitionScript) return;
+         var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
+         scripts.Load(parent.GetMapModel());
+         bool transitionScriptFound = false;
+         foreach (var script in scripts.Scripts) {
+            if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
+            transitionScriptFound = true;
+            var tool = parent.ViewPort.Tools.CodeTool;
+
+            parent.ViewPort.GotoScript(script.ScriptAddress);
+            var body = tool.Contents[0];
+            body.Content = $"setvar gfx{Graphics - 240} 18" + Environment.NewLine + body.Content;
+            break;
+         }
+         if (!transitionScriptFound) {
+            scripts.AddScript();
+            scripts.Scripts.Last().ScriptTypeIndex = 2; // Transition
+            AddDynamicGraphicsToTransitionScript();
+         }
+      }
+
+      public int PullValueFromTransitionScript() {
+         var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
+         scripts.Load(parent.GetMapModel());
+         foreach (var script in scripts.Scripts) {
+            if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
+
+            var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
+               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+
+            var spot = spots.FirstOrDefault();
+            if (spot is null) continue;
+            var categoryIndex = DynamicOverworldGraphicsCategories.SelectedIndex;
+            var dynamicValue = element.Model.ReadMultiByteValue(spot.Address + 3, 2);
+            return dynamicValue;
+         }
+         return -1;
+      }
+
+      public bool HasGraphicsInTransitionScript {
+         get {
+            if (!ShowGraphicsAsText) return false; // short circuit: if we're not doing dynamic graphics, don't show anything
+            // check that we have a transition script that sets graphics
+            var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
+            scripts.Load(parent.GetMapModel());
+            foreach (var script in scripts.Scripts) {
+               if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
+               var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
+                  Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+
+               if (spots.Count() > 0) return true;
+            }
+            return false;
+         }
+      }
+      public void UpdateDynamicOverworldGraphicsInScript() {
+         if (DynamicOverworldGraphicsSelectedIndex == -1) return;
+         var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
+         scripts.Load(parent.GetMapModel());
+         foreach (var script in scripts.Scripts) {
+            if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
+
+            var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
+               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+
+            var spot = spots.FirstOrDefault();
+            if (spot is null) continue;
+            var categoryIndex = DynamicOverworldGraphicsCategories.SelectedIndex;
+            var dynamicOffset = 0;
+            if (DynamicOverworldGraphicsCategories.FilteredOptions[categoryIndex].Text == "Pokemon Icons") dynamicOffset = 10000;
+            if (DynamicOverworldGraphicsCategories.FilteredOptions[categoryIndex].Text == "Expanded Overworld Sprites") dynamicOffset = 20000;
+            var existingValue = Element.Model.ReadMultiByteValue(spot.Address + 3, 2);
+            if (existingValue == DynamicOverworldGraphicsSelectedIndex + dynamicOffset) continue;
+            Element.Model.WriteMultiByteValue(spot.Address + 3, 2, Token, DynamicOverworldGraphicsSelectedIndex + dynamicOffset);
+            RaiseEventVisualUpdated();
+         }
+      }
+      private IDisposable previousCategoryListener;
+      private void LoadDynamicOverworldGraphicsCategories() {
+         var options = new List<string>();
+         if (Element.Model.GetTable("graphics.overworld.sprites") != null) options.Add("Overworld Sprites");
+         if (Element.Model.GetTable("graphics.overworld.pokemon") != null) options.Add("Pokemon Icons");
+         if (Element.Model.GetTable("graphics.overworld.sprites20k") != null) options.Add("Expanded Overworld Sprites");
+         if (options.Count == 0) return;
+         var scripts = new MapScriptCollection(parent.ViewPort, eventTemplate);
+         scripts.Load(parent.GetMapModel());
+         var selectedIndex = 0;
+         foreach (var script in scripts.Scripts) {
+            if (script.ScriptOptions[script.ScriptTypeIndex].Option != "Transition") continue;
+            var spots = Flags.GetAllScriptSpots(Element.Model, parser, new[] { script.ScriptAddress }, 0x16).
+               Where(spot => Element.Model.ReadMultiByteValue(spot.Address + 1, 2) == 0x4010 + Graphics - 240); // setvar gfxN
+            var spot = spots.FirstOrDefault();
+            if (spot is null) continue;
+            var desiredTable = Element.Model.ReadMultiByteValue(spot.Address + 3, 2) / 10000;
+            if (desiredTable == 0) selectedIndex = options.IndexOf("Overworld Sprites");
+            if (desiredTable == 1) selectedIndex = options.IndexOf("Pokemon Icons");
+            if (desiredTable == 2) selectedIndex = options.IndexOf("Expanded Overworld Sprites");
+            if (selectedIndex == -1) selectedIndex = 0;
+         }
+
+         previousCategoryListener?.Dispose();
+         DynamicOverworldGraphicsCategories.Update(options.Select((option, i) => new ComboOption(option, i)), selectedIndex);
+         LoadDynamicOverworldGraphicsOptions();
+         previousCategoryListener = DynamicOverworldGraphicsCategories.Bind(nameof(FilteringComboOptions.SelectedIndex), (options, args) => LoadDynamicOverworldGraphicsOptions());
+      }
+
+      // depending on the selected category, load the sprites
+      private void LoadDynamicOverworldGraphicsOptions() {
+         var model = element.Model;
+         var categoryText = DynamicOverworldGraphicsCategories.FilteredOptions[DynamicOverworldGraphicsCategories.SelectedIndex].Text;
+         if (categoryText == "Overworld Sprites") {
+            DynamicOverworldOptions.Clear();
+            foreach (var option in Options) DynamicOverworldOptions.Add(VisualComboOption.CreateFromSprite(option.Text, option.PixelData, option.PixelWidth, option.Index, 2, true));
+            DynamicOverworldGraphicsSelectedIndex = PullValueFromTransitionScript();
+         } else if (categoryText == "Pokemon Icons") {
+            int index = -1;
+            DynamicOverworldOptions.Clear();
+            foreach (var mon in new ModelTable(model, model.GetTable("graphics.overworld.pokemon"))) {
+               index += 1;
+               var run = model.GetNextRun(mon.GetAddress("sprite")) as ISpriteRun;
+               if (run is null) continue;
+               var sprite = ReadonlyPixelViewModel.Create(model, run);
+               sprite = ReadonlyPixelViewModel.Crop(sprite, 0, 0, sprite.PixelWidth, sprite.PixelWidth);
+               DynamicOverworldOptions.Add(VisualComboOption.CreateFromSprite(index.ToString(), sprite.PixelData, sprite.PixelWidth, index, 2, true));
+            }
+            DynamicOverworldGraphicsSelectedIndex = PullValueFromTransitionScript() - 10000;
+         } else if (categoryText == "Expanded Overworld Sprites") {
+            int index = -1;
+            DynamicOverworldOptions.Clear();
+            foreach (var item in new ModelTable(model, model.GetTable("graphics.overworld.sprites20k"))) {
+               index += 1;
+               var sprites = item.GetSubTable("sprites");
+               if (sprites is null) continue;
+               var run = model.GetNextRun(sprites[0].GetAddress("sprite")) as ISpriteRun;
+               if (run is null) continue;
+               var sprite = ReadonlyPixelViewModel.Create(model, run);
+               DynamicOverworldOptions.Add(VisualComboOption.CreateFromSprite(index.ToString(), sprite.PixelData, sprite.PixelWidth, index, 2, true));
+            }
+            DynamicOverworldGraphicsSelectedIndex = PullValueFromTransitionScript() - 20000;
+         }
+      }
+      public FilteringComboOptions DynamicOverworldGraphicsCategories { get; } = new();
+      private int dynamicGraphicsIndex;
+      public int DynamicOverworldGraphicsSelectedIndex { get => dynamicGraphicsIndex; set => Set(ref dynamicGraphicsIndex, value, old => UpdateDynamicOverworldGraphicsInScript()); }
+      public ObservableCollection<VisualComboOption> DynamicOverworldOptions { get; } = new();
+
+      #endregion
 
       /// <summary>
       /// FireRed Only.
@@ -1206,8 +1366,9 @@ show:
 
       #endregion
 
-      public ObjectEventViewModel(ScriptParser parser, Action<int> gotoAddress, ModelArrayElement objectEvent, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
-         this.parser = parser;
+      public ObjectEventViewModel(BlockMapViewModel parent, Action<int> gotoAddress, ModelArrayElement objectEvent, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> sprites, IPixelViewModel defaultSprite, BerryInfo berries) : base(objectEvent, "objectCount") {
+         this.parent = parent;
+         this.parser = parent.ViewPort.Tools.CodeTool.ScriptParser;
          this.gotoAddress = gotoAddress;
          this.eventTemplate = eventTemplate;
          this.berries = berries;
@@ -1244,7 +1405,7 @@ show:
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
       public override int LeftOffset => (16 - (EventRender?.PixelWidth ?? 0)) / 2;
 
-      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          var ows = model.GetTable(HardcodeTablesModel.OverworldSprites);
          var owTable = ows == null ? null : new ModelTable(model, ows.Start);
          var facing = MoveType switch {
@@ -1254,14 +1415,18 @@ show:
             76 => 76, // invisible
             _ => 0,
          };
-         EventRender = Render(model, owTable, DefaultOW, Graphics, facing, dynamicSprites);
+         EventRender = Render(model, owTable, DefaultOW, Graphics, facing, PullValueFromTransitionScript);
          NotifyPropertyChanged(nameof(EventRender));
       }
 
       /// <param name="facing">(0, 1, 2, 3) = (down, up, left, right)</param>
-      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing, Func<List<int>[]> dynamicSprites) {
+      public static IPixelViewModel Render(IDataModel model, ModelTable owTable, IPixelViewModel defaultOW, int index, int facing, Func<int> dynamicSprites) {
          // special case: gfx variables
-         if (index >= 240 && index <= 255 && dynamicSprites()[index - 240] is List<int> options && options.Count > 0) index = options[0];
+         if (index >= 240 && index <= 255) {
+            var fromScript = dynamicSprites();
+            if (fromScript > -1) index = fromScript;
+         }
+
          // special case: expanded OWs for pokemon / sprites20k (HMA expansion utility integration)
          ModelTable dataTable;
          if (index.InRange(10000, 20000)) {
@@ -1428,7 +1593,7 @@ show:
 
       #endregion
 
-      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          if (WarpIsOnWarpableBlock(model, layout)) {
             EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 0, 31));
          } else {
@@ -1536,7 +1701,7 @@ show:
          }
       }
 
-      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(0, 31, 0));
       }
 
@@ -1752,7 +1917,7 @@ show:
 
       #endregion
 
-      public override void Render(IDataModel model, LayoutModel layout, Func<List<int>[]> dynamicSprites) {
+      public override void Render(IDataModel model, LayoutModel layout) {
          EventRender = BuildEventRender(UncompressedPaletteColor.Pack(31, 0, 0));
       }
 

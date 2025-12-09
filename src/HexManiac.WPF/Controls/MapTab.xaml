@@ -294,29 +294,57 @@
                            </local:AngleBorder>
                            <local:AngleTextBox Direction="Out" TextBinding="{Binding ObjectID, UpdateSourceTrigger=PropertyChanged}" />
                            <CheckBox IsChecked="{Binding ShowGraphicsAsText}" Content="Dynamic Graphics" />
+                           <StackPanel Orientation="Horizontal" Visibility="{Binding CanAddDynamicGraphicsToTransitionScript, Converter={StaticResource BoolToVisibility}}">
+                              <StackPanel.ToolTip>
+                                 <ToolTip>
+                                    Automatically adjust the map transition script to set graphics for this object.
+                                 </ToolTip>
+                              </StackPanel.ToolTip>
+                              <TextBlock Text="Insert setvar gfx" />
+                              <local:AngleButton Direction="Right" Height="18" Width="22" Padding="2"
+                                    Command="{res:MethodCommand AddDynamicGraphicsToTransitionScript}">
+                                 <Path Data="{res:Icon Add}" Fill="{DynamicResource Secondary}" Stretch="Uniform" />
+                              </local:AngleButton>
+                           </StackPanel>
+                           <local:AngleComboBox Direction="Out"
+                              SelectedIndex="{Binding DynamicOverworldGraphicsCategories.SelectedIndex}"
+                              ItemsSource="{Binding DynamicOverworldGraphicsCategories.FilteredOptions}"
+                              Visibility="{Binding HasGraphicsInTransitionScript, Converter={StaticResource BoolToVisibility}}" />
                         </StackPanel>
 
-                        <Decorator Grid.Row="0" Grid.Column="1">
-                           <Decorator.Style>
-                              <Style TargetType="Decorator">
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding ShowGraphicsAsText}" Value="True">
-                                       <Setter Property="Visibility" Value="Hidden" />
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Decorator.Style>
-                           <local:AngleComboBox Direction="Right" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}" Margin="0,2,2,2">
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,2,2,2">
+                           <Decorator>
+                              <Decorator.Style>
+                                 <Style TargetType="Decorator">
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding ShowGraphicsAsText}" Value="True">
+                                          <Setter Property="Visibility" Value="Collapsed" />
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Decorator.Style>
+                              <local:AngleComboBox Direction="Right" SelectedIndex="{Binding Graphics}" ItemsSource="{Binding Options}">
+                                 <local:AngleComboBox.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                       <WrapPanel Width="220" />
+                                    </ItemsPanelTemplate>
+                                 </local:AngleComboBox.ItemsPanel>
+                              </local:AngleComboBox>
+                           </Decorator>
+                           <local:AngleComboBox Direction="Out"
+                                 SelectedIndex="{Binding DynamicOverworldGraphicsSelectedIndex}"
+                                 ItemsSource="{Binding DynamicOverworldOptions}"
+                                 Visibility="{Binding HasGraphicsInTransitionScript, Converter={StaticResource BoolToVisibility}}">
                               <local:AngleComboBox.ItemsPanel>
                                  <ItemsPanelTemplate>
                                     <WrapPanel Width="220" />
                                  </ItemsPanelTemplate>
                               </local:AngleComboBox.ItemsPanel>
                            </local:AngleComboBox>
-                        </Decorator>
+                           <local:AngleTextBox Direction="Right" TextBinding="{Binding GraphicsText, UpdateSourceTrigger=PropertyChanged}"
+                                 Visibility="{Binding ShowGraphicsAsText, Converter={StaticResource BoolToVisibility}}" />
+                        </StackPanel>
 
-                        <local:AngleTextBox Grid.Row="0" Grid.Column="1" Direction="Right" VerticalAlignment="Bottom" TextBinding="{Binding GraphicsText, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,2,2"
-                                            Visibility="{Binding ShowGraphicsAsText, Converter={StaticResource BoolToVisibility}}" />
 
                         <CheckBox Grid.Row="1" Grid.Column="1" Visibility="{Binding HasKind, Converter={StaticResource BoolToVisibility}}" IsChecked="{Binding Kind}" Content="Clone">
                            <CheckBox.ToolTip>

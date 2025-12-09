@@ -1,5 +1,4 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
-using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Map;
 using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
@@ -1509,7 +1508,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
          var map = GetMapModel();
          if (map == null) return null;
-         var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, GotoBankMap, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+         var events = new EventGroupModel(this, GotoAddress, GotoBankMap, map.GetSubTable("events")[0], eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
          if (events.Warps.Count <= warpID) return null;
          var warp = events.Warps[warpID];
          return AutoCrop(warp.X, warp.Y);
@@ -2010,7 +2009,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          while (targetID < element.Table.ElementCount && takenIDs.Contains(targetID)) targetID++;
          if (allOverworldSprites == null) allOverworldSprites = RenderOWs(model);
          if (defaultOverworldSprite == null) defaultOverworldSprite = GetDefaultOW(model);
-         var newEvent = new ObjectEventViewModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, element, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
+         var newEvent = new ObjectEventViewModel(this, GotoAddress, element, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo) {
             X = 0, Y = 0,
             Elevation = 0,
             ObjectID = targetID,
@@ -2299,7 +2298,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var list = new List<IEventViewModel>();
          var events = GetEvents();
          foreach (var obj in events) {
-            obj.Render(model, layoutModel, () => { LoadDynamicOverworldSprites(); return dynamicOverworldSprites; });
+            obj.Render(model, layoutModel);
             list.Add(obj);
          }
          eventRenders = list;
@@ -2449,7 +2448,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return BorderBlock = canvas;
       }
 
-      private ModelArrayElement GetMapModel() => GetMapModel(model, group, map, tokenFactory);
+      public ModelArrayElement GetMapModel() => GetMapModel(model, group, map, tokenFactory);
       public static ModelArrayElement GetMapModel(IDataModel model, int group, int map, Func<ModelDelta> tokenFactory) {
          var table = model.GetTable(HardcodeTablesModel.MapBankTable);
          if (table == null) return null;
@@ -2515,7 +2514,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var ows = run == null ? null : new ModelTable(model, run.Start, null, run);
          var defaultImage = GetDefaultOW(model);
          for (int i = 0; i < (ows?.Count ?? 1); i++) {
-            list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1, () => null));
+            list.Add(ObjectEventViewModel.Render(model, ows, defaultImage, i, -1, () => -1));
          }
          return list;
       }
@@ -2530,7 +2529,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
             if (eventsTable == null) return null;
             var eventElements = eventsTable[0];
             if (eventElements == null) return null;
-            var events = new EventGroupModel(ViewPort.Tools.CodeTool.ScriptParser, GotoAddress, GotoBankMap, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
+            var events = new EventGroupModel(this, GotoAddress, GotoBankMap, eventElements, eventTemplate, allOverworldSprites, defaultOverworldSprite, BerryInfo, group, this.map);
             events.DataMoved += HandleEventDataMoved;
             return events;
          }
@@ -2887,7 +2886,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public event EventHandler<DataMovedEventArgs> DataMoved;
 
-      public EventGroupModel(ScriptParser parser, Action<int> gotoAddress, Action<int, int> gotoBankMap, ModelArrayElement events, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> ows, IPixelViewModel defaultOW, BerryInfo berries, int bank, int map) {
+      public EventGroupModel(BlockMapViewModel parent, Action<int> gotoAddress, Action<int, int> gotoBankMap, ModelArrayElement events, EventTemplate eventTemplate, IReadOnlyList<IPixelViewModel> ows, IPixelViewModel defaultOW, BerryInfo berries, int bank, int map) {
          this.events = events;
 
          var objectCount = events.GetValue("objectCount");
@@ -2895,7 +2894,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          var objectList = new List<ObjectEventViewModel>();
          if (objects != null) {
             for (int i = 0; i < objectCount; i++) {
-               var newEvent = new ObjectEventViewModel(parser, gotoAddress, objects[i], eventTemplate, ows, defaultOW, berries);
+               var newEvent = new ObjectEventViewModel(parent, gotoAddress, objects[i], eventTemplate, ows, defaultOW, berries);
                newEvent.DataMoved += (sender, e) => DataMoved.Raise(this, e);
                objectList.Add(newEvent);
             }
