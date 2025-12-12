@@ -22,6 +22,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
    }
 
    public record SelectionTabChangeArgs(ITabContent Tab, bool IsBackArrow);
+   public record SelectionGotoArgs(string Text, ViewPort Container);
 
    public class Selection : ViewModelCore {
       private const int DefaultPreferredWidth = 0x10;
@@ -172,6 +173,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                return true;
             },
             Execute = args => {
+               var gotoArgs = args as SelectionGotoArgs;
+               if (gotoArgs != null) args = gotoArgs.Text;
                if (args is int intArgs) args = intArgs.ToString("X6");
                var address = args.ToString().Trim();
                if (address.StartsWith(ViewPort.GotoMarker.ToString())) address = address.Substring(1);
@@ -218,6 +221,15 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                         if (bestMatches.Count > 0) {
                            var shortestMatch = bestMatches.OrderBy(match => match.Split("/").Last().Length).First();
                            anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, shortestMatch);
+                           if (anchor == Pointer.NULL) {
+                              var matches = this.model.GetMatchedWords(shortestMatch);
+                              if (matches.Count == 1) {
+                                 anchor = matches[0];
+                              } else if (matches.Count > 1 && gotoArgs is not null) {
+                                 gotoArgs.Container.OpenSearchResultsTab(shortestMatch, matches.Select(match => (match, match)).ToList());
+                                 return;
+                              }
+                           }
                         } else {
                            anchor = this.model.GetAddressFromAnchor(new ModelDelta(), -1, options[0]);
                         }

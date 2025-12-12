@@ -230,7 +230,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void RunQuickEdit(IQuickEditItem edit) {
          var tab = tabs[SelectedIndex];
-         if (tab is MapEditorViewModel map) tab = map.ViewPort;
+         if (tab is MapEditorViewModel map) { TabChangeRequested(map, new(map.ViewPort)); tab = map.ViewPort; }
          var viewPort = tab as IViewPort;
          gotoViewModel.ControlVisible = false;
          var errorTask = edit.Run(viewPort);

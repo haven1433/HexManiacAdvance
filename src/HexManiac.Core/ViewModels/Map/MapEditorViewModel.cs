@@ -1367,6 +1367,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public ReadonlyPixelViewModel GetMapPreview(int bank, int map, int x, int y) {
          var blockmap = new BlockMapViewModel(FileSystem, Tutorials, viewPort, format, templates, bank, map) { AllOverworldSprites = primaryMap.AllOverworldSprites, IncludeBorders = false };
+         if (!blockmap.PixelWidth.InRange(16, 0x1000)) return null;
+         if (!blockmap.PixelHeight.InRange(16, 0x1000)) return null;
          var image = blockmap.AutoCrop(x, y);
          if (image != null) {
             return new ReadonlyPixelViewModel(image.PixelWidth, image.PixelHeight, image.PixelData);
