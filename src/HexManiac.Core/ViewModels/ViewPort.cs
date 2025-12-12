@@ -313,7 +313,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
                   tools?.LogTool.LogMessages.Add("Attempting to Goto Address: " + address.ToString());
                }
 
-               selection.Goto.Execute(new SelectionGotoArgs(arg.ToString(), this));
+               if (arg is string stringArg) selection.Goto.Execute(new SelectionGotoArgs(stringArg, this));
+               else selection.Goto.Execute(arg);
 
                args = new TabChangeRequestedEventArgs(this);
                RequestTabChange?.Invoke(mapper, args);
