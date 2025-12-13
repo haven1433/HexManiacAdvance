@@ -394,7 +394,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          if (start > end) (start, end) = (end, start);
          int length = end - start + 1;
          int originalLength = length;
-         var code = thumb.Compile(model, start, out var newRuns, Content.Split(Environment.NewLine));
+         var code = thumb.Compile(model, start, out var newRuns, Content.Split(new[] { Environment.NewLine, "\n" }, StringSplitOptions.None));
 
          // if more length is needed and the next available bytes are free, allow it.
          while (code.Count > length && model.Count > start + length + 1 && model[start + length] == 0xFF && model[start + length + 1] == 0xFF) length += 2;
