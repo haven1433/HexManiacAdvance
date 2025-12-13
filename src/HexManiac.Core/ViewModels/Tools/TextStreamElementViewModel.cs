@@ -67,6 +67,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          var destination = viewPort.Model.ReadPointer(Start);
          if (viewPort.Model.GetNextRun(destination) is IStreamRun run) {
             content = run.SerializeRun() ?? string.Empty;
+            ElementContent.PreFormatter = run.PreFormatter;
          } else if (viewPort.Model.GetNextRun(destination) is ITableRun tRun) {
             var proxy = new TableStreamRun(Model, tRun.Start, tRun.PointerSources, tRun.FormatString,
                tRun.ElementContent, new FixedLengthStreamStrategy(tRun.ElementCount));
