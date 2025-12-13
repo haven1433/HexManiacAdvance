@@ -219,7 +219,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
       private Dictionary<string, List<IScriptLine>> tableDependencyCache = new();
 
       public IEnumerable<IScriptLine> DependsOn(string basename) {
-         if (tableDependencyCache.ContainsKey(basename)) return tableDependencyCache[basename];
+         lock (tableDependencyCache) if (tableDependencyCache.ContainsKey(basename)) return tableDependencyCache[basename];
          var matches = new List<IScriptLine>();
          foreach (var line in engine) {
             foreach (var arg in line.Args) {
@@ -229,7 +229,7 @@ namespace HavenSoft.HexManiac.Core.Models.Code {
                }
             }
          }
-         return tableDependencyCache[basename] = matches;
+         lock (tableDependencyCache) return tableDependencyCache[basename] = matches;
       }
 
       private HashSet<string> constantCache, keywordCache;

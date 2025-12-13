@@ -1439,6 +1439,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       public void Refresh() {
          scroll.DataLength = Model.Count;
+         Model.ClearCacheScope();
          var selectionStart = ConvertViewPointToAddress(SelectionStart);
          if (selectionStart > Model.Count + 1) SelectionStart = ConvertAddressToViewPoint(Model.Count + 1);
          scroll.UpdateHeaders();
@@ -1447,6 +1448,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Tools?.TableTool.DataForCurrentRunChanged();
          Tools?.SpriteTool.DataForCurrentRunChanged();
          Tools?.CodeTool.ClearConstantCache();
+         Tools?.CodeTool.DataForCurrentRunChanged();
          UpdateAnchorText(ConvertViewPointToAddress(SelectionStart));
       }
 

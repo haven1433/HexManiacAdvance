@@ -1348,8 +1348,26 @@ show:
       );
 
       public ObservableCollection<EventTextViewModel> BasicText { get; } = new();
+      public ObservableCollection<int> BasicItemAddresses { get; } = new();
+      public ObservableCollection<int> BasicFlagAddresses { get; } = new();
+      private int basicFlag = -1;
+      public FilteringComboOptions BasicItem { get; } = new();
+      public bool HasBasicItem => (BasicItem.AllOptions?.Count ?? 0) > 0;
+      public int BasicFlag { get => basicFlag; set => Set(ref basicFlag, value, old => NotifyPropertyChanged(nameof(HasBasicFlag))); }
+      public bool HasBasicFlag => basicFlag != -1;
+      private string basicFlagText = string.Empty;
+      public string BasicFlagText {
+         get => basicFlagText;
+         set => Set(ref basicFlagText, value, old => {
+            if (!basicFlagText.TryParseHex(out int result)) return;
+            foreach (var address in BasicFlagAddresses) element.Model.WriteMultiByteValue(address, 2, Token, result);
+            basicFlag = result;
+            NotifyPropertyChanged(nameof(BasicFlag));
+         });
+      }
 
       private void FillBasicContent() {
+         // text
          BasicText.Clear();
          foreach (var spot in Flags.GetAllScriptSpots(Element.Model, parser, new[] { ScriptAddress }, 0x0F)) {
             var element = new EventTextViewModel() { PointerAddress = spot.Address + 2, Text = { Content = GetText(spot.Address + 2) } };
@@ -1360,11 +1378,56 @@ show:
             BasicText.Add(element);
          }
 
+         // items
+         BasicItemAddresses.Clear();
          var filter = new List<byte>();
          foreach (var line in parser.DependsOn(HardcodeTablesModel.ItemsTableName)) {
             if (line is MacroScriptLine macro && macro.Args[0] is SilentMatchArg silent) filter.Add(silent.ExpectedValue);
             if (line is ScriptLine sl) filter.Add(line.LineCode[0]);
          }
+         var spots = new List<int>();
+         var item = -1;
+         foreach (var spot in Flags.GetAllScriptSpots(element.Model, parser, new[] { ScriptAddress }, true, filter.ToArray())) {
+            var offset = spot.Address + spot.Line.Args.Until(arg => arg.EnumTableName == HardcodeTablesModel.ItemsTableName).Sum(arg => arg.Length(Element.Model, -1)) + spot.Line.LineCode.Count;
+            var chosenItem = Element.Model.ReadMultiByteValue(offset, 2);
+            if (item == -1 || item == chosenItem) {
+               item = chosenItem;
+               spots.Add(offset);
+            } else {
+               spots.Clear();
+               break;
+            }
+         }
+         if (spots.Count > 0) {
+            BasicItem.Update(ComboOption.Convert(element.Model.GetOptions(HardcodeTablesModel.ItemsTableName)), item);
+            foreach (var address in spots.Distinct()) BasicItemAddresses.Add(address);
+            BasicItem.Bind(nameof(BasicItem.SelectedIndex), (sender, e) => {
+               foreach (var address in BasicItemAddresses) element.Model.WriteMultiByteValue(address, 2, Token, sender.SelectedIndex);
+            });
+         }
+
+         // flags
+         BasicFlagAddresses.Clear();
+         spots.Clear();
+         var flag = -1;
+         foreach (var spot in Flags.GetAllScriptSpots(element.Model, parser, new[] { ScriptAddress }, false, 0x29, 0x2A, 0x2B)) { // setflag, clearflag, checkflag
+            var offset = spot.Address + 1;
+            var chosenFlag = element.Model.ReadMultiByteValue(offset, 2);
+            if (flag == -1 || flag == chosenFlag) {
+               flag = chosenFlag;
+               spots.Add(offset);
+            } else {
+               spots.Clear();
+               break;
+            }
+         }
+         if (spots.Count > 0) {
+            BasicFlag = flag;
+            foreach (var address in spots.Distinct()) BasicFlagAddresses.Add(address);
+            basicFlagText = flag.ToString("X4");
+         }
+      }
+
       #endregion
 
       private string GetText(ref string cache, int? pointer) {

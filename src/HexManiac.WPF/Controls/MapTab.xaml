@@ -762,6 +762,22 @@
                                  </Decorator>
                               </StackPanel>
                            </Border>
+                           <Grid Visibility="{Binding HasBasicFlag, Converter={StaticResource BoolToVisibility}}">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                              </Grid.ColumnDefinitions>
+                              <local:AngleBorder Direction="Left" Content="Flag:" />
+                              <local:AngleTextBox Grid.Column="1" Direction="Out" TextBinding="{Binding BasicFlagText, UpdateSourceTrigger=PropertyChanged}" />
+                           </Grid>
+                           <Grid Visibility="{Binding HasBasicItem, Converter={StaticResource BoolToVisibility}}">
+                              <Grid.ColumnDefinitions>
+                                 <ColumnDefinition />
+                                 <ColumnDefinition />
+                              </Grid.ColumnDefinitions>
+                              <local:AngleBorder Direction="Left" Content="Item:" />
+                              <local:AngleComboBox Grid.Column="1" Direction="Out" DataContext="{Binding BasicItem}" />
+                           </Grid>
                            <ItemsControl ItemsSource="{Binding BasicText}">
                               <ItemsControl.ItemTemplate>
                                  <DataTemplate>

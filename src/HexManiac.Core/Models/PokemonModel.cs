@@ -1495,7 +1495,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             if (existingRun == null || existingRun.Start != run.Start) {
                // no format starts exactly at this anchor, so clear any format that goes over this anchor.
                ClearFormat(changeToken, location, run.Length);
-            } else if (!(run is NoInfoRun)) {
+            } else if (run is not NoInfoRun) {
                // a format starts exactly at this anchor.
                if (existingRun.Length < run.Length) {
                   // the new format may extend further. Clear excess space to make room for the longer format.

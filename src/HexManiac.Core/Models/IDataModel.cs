@@ -88,6 +88,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       void ClearFormat(ModelDelta changeToken, int start, int length);
       void ClearData(ModelDelta changeToken, int start, int length);
       void ClearFormatAndData(ModelDelta changeToken, int start, int length);
+      void ClearCacheScope();
       void SetList(ModelDelta changeToken, string name, IEnumerable<string> list, IReadOnlyDictionary<int, string> comments, string hash);
       void UpdateGotoShortcut(int index, GotoShortcutModel shortcut);
       void ClearPointer(ModelDelta currentChange, int source, int destination);
@@ -142,7 +143,7 @@ namespace HavenSoft.HexManiac.Core.Models {
       public byte[] RawData { get; private set; }
 
       private ModelCacheScope currentCacheScope;
-      protected void ClearCacheScope() => currentCacheScope = null;
+      public void ClearCacheScope() => currentCacheScope = null;
       public ModelCacheScope CurrentCacheScope {
          get {
             var instance = currentCacheScope;
