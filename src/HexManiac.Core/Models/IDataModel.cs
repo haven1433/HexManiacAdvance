@@ -839,6 +839,8 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public static IReadOnlyList<string> GetBitOptions(this IDataModel model, string tableName) => ModelCacheScope.GetCache(model).GetBitOptions(tableName);
 
+      public static bool TryMatch(this IReadOnlyList<string> list, string text, out int value) => ArrayRunEnumSegment.TryMatch(text, list, out value);
+
       public static IEnumerable<ArrayRun> GetRelatedArrays(this IDataModel model, ArrayRun table) {
          yield return table; // a table is related to itself
          var basename = model.GetAnchorFromAddress(-1, table.Start);

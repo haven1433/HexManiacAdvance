@@ -267,6 +267,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return trainerFlags;
       }
 
+      #region Derived Pokemon Data
+
       public static IReadOnlyDictionary<int, int> GetMinimumLevelForPokemon(IDataModel model) {
          var evolutions = model.GetTableModel(HardcodeTablesModel.EvolutionTableName);
          var levelMethods = new[] { 4, 8, 9, 10, 11, 12, 13, 14 };
@@ -283,6 +285,101 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          return results;
       }
+
+      /// <summary>
+      /// For a given pokemon, find what pokemon (if any evolves into it)
+      /// </summary>
+      public static IReadOnlyDictionary<int, int> GetPokemonDevolutions(IDataModel model) {
+         var evolutions = model.GetTableModel(HardcodeTablesModel.EvolutionTableName);
+         var levelMethods = new[] { 4, 8, 9, 10, 11, 12, 13, 14 };
+         var results = new Dictionary<int, int>();
+         foreach (var evo in evolutions) {
+            // method1:evolutionmethods arg1:|s=method1(6=data.items.stats|7=data.items.stats) species1:data.pokemon.names unused1:
+            for (int i = 0; i < evo.Length; i += 8) {
+               var species = model.ReadMultiByteValue(evo.Start + i + 4, 2);
+               results[species] = evo.ArrayIndex;
+            }
+         }
+         return results;
+      }
+
+      public static IReadOnlyDictionary<int, IReadOnlyList<int>> GetPokemonEggMoves(IDataModel model) {
+         var start = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.EggMovesTableName);
+         if (!start.InRange(0, model.Count)) return null;
+         if (model.GetNextRun(start) is not EggMoveRun eggRun) return null;
+         var table = new EggTable(model, null, eggRun);
+         int currentPokemon = -1;
+         var results = new AutoDictionary<int, List<int>>(i => new());
+         foreach (var element in table) {
+            var value = model.ReadMultiByteValue(element.Address, 2);
+            if (element.is_pokemon) {
+               value -= EggMoveRun.MagicNumber;
+               currentPokemon = value;
+            } else {
+               results[currentPokemon].Add(value);
+            }
+         }
+         return new Dictionary<int, IReadOnlyList<int>>(results.Select(kvp => new KeyValuePair<int, IReadOnlyList<int>>(kvp.Key, kvp.Value)));
+      }
+
+      public static IReadOnlyDictionary<int, IReadOnlyList<int>> GetPokemonLevelupMoves(IDataModel model) {
+         var start = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.LevelMovesTableName);
+         if (!start.InRange(0, model.Count)) return null;
+         if (model.GetNextRun(start) is not ArrayRun array) return null;
+         var table = new ModelTable(model, array);
+         var results = new AutoDictionary<int, List<int>>(i => new());
+         foreach (var element in table) {
+            var sub = element.GetSubTable("movesFromLevel");
+            foreach (var move in sub) {
+               if (sub.Run.ElementContent.Count == 1) {
+                  results[element.ArrayIndex].Add(model.ReadMultiByteValue(move.Start, 2) & 0x1FF);
+               } else if (move.TryGetValue("move", out int moveIndex)) {
+                  results[element.ArrayIndex].Add(moveIndex);
+               }
+            }
+         }
+         return new Dictionary<int, IReadOnlyList<int>>(results.Select(kvp => new KeyValuePair<int, IReadOnlyList<int>>(kvp.Key, kvp.Value)));
+      }
+
+      public static IReadOnlyDictionary<int, IReadOnlyList<int>> GetPokemonTutorMoves(IDataModel model) {
+         var start = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.TutorCompatibility);
+         if (!start.InRange(0, model.Count)) return null;
+         if (model.GetNextRun(start) is not ArrayRun array) return null;
+         var table = new ModelTable(model, array);
+         var options = model.GetTableModel(HardcodeTablesModel.MoveTutors);
+         if (options == null) return null;
+         var results = new AutoDictionary<int, List<int>>(i => new());
+         foreach (var element in table) {
+            if (!element.HasField("moves")) break;
+            var move = element.GetTuple("moves");
+            for (int i = 0; i < move.FieldCount; i++) {
+               if ((model[element.Start + i / 8] & (1 << i)) == 0) continue;
+               results[element.ArrayIndex].Add(options[i].GetValue(0));
+            }
+         }
+         return new Dictionary<int, IReadOnlyList<int>>(results.Select(kvp => new KeyValuePair<int, IReadOnlyList<int>>(kvp.Key, kvp.Value)));
+      }
+
+      public static IReadOnlyDictionary<int, IReadOnlyList<int>> GetPokemonTmMoves(IDataModel model) {
+         var start = model.GetAddressFromAnchor(new NoDataChangeDeltaModel(), -1, HardcodeTablesModel.TmCompatibility);
+         if (!start.InRange(0, model.Count)) return null;
+         if (model.GetNextRun(start) is not ArrayRun array) return null;
+         var table = new ModelTable(model, array);
+         var options = model.GetTableModel(HardcodeTablesModel.TmMoves);
+         if (options == null) return null;
+         var results = new AutoDictionary<int, List<int>>(i => new());
+         foreach (var element in table) {
+            if (!element.HasField("moves")) break;
+            var move = element.GetTuple("moves");
+            for (int i = 0; i < move.FieldCount; i++) {
+               if ((model[element.Start + i / 8] & (1 << i)) == 0) continue;
+               results[element.ArrayIndex].Add(options[i].GetValue(0));
+            }
+         }
+         return new Dictionary<int, IReadOnlyList<int>>(results.Select(kvp => new KeyValuePair<int, IReadOnlyList<int>>(kvp.Key, kvp.Value)));
+      }
+
+      #endregion
 
       public static ISet<int> GetTrainerFlagUsages(IDataModel model, ScriptParser parser, int flag) {
          var flagUsages = new HashSet<int>();

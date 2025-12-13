@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections.Generic;
@@ -130,6 +131,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
+      public ITextPreProcessor PreFormatter { get; }
       public bool DependsOn(string anchorName) => anchorName == HardcodeTablesModel.MoveNamesTable;
 
       public IEnumerable<(int, int)> Search(int index) {

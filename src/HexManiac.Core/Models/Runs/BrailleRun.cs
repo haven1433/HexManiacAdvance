@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System.Collections.Generic;
 using System.Linq;
@@ -55,6 +56,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string FormatString => SharedFormatString;
 
       public IReadOnlyList<IPixelViewModel> Visualizations => null;
+      public ITextPreProcessor PreFormatter { get; }
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {
          for (int i = 0; i < length - 1; i++) {

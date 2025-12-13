@@ -221,7 +221,11 @@ namespace HavenSoft.HexManiac.Core.Models {
       public ModelTupleElement GetTuple(string fieldName) {
          var seg = table.ElementContent.Single(segment => segment.Name == fieldName);
          var segmentOffset = table.ElementContent.Until(s => s == seg).Sum(s => s.Length);
-         return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunTupleSegment)seg, tokenFactory);
+         if (seg is ArrayRunBitArraySegment bitSeg) {
+            return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunBitArraySegment)seg, tokenFactory);
+         } else {
+            return new ModelTupleElement(model, table, arrayIndex, segmentOffset, (ArrayRunTupleSegment)seg, tokenFactory);
+         }
       }
 
       public object __getindex__(string key) => this[key];                     // for python
@@ -459,7 +463,7 @@ namespace HavenSoft.HexManiac.Core.Models {
             SetValue(fieldName, (int)value);
          }
       }
-
+      public int FieldCount => tuple.Elements.Count;
       public bool HasField(string name) => tuple.Elements.Any(field => field.Name == name);
 
       public int GetValue(string fieldName) {
@@ -618,6 +622,7 @@ namespace HavenSoft.HexManiac.Core.Models {
 
       public bool is_pokemon => eggRun.CreateDataFormat(model, address) is EggSection;
       public bool is_move => eggRun.CreateDataFormat(model, address) is EggItem;
+      public int Address => address;
 
       public EggElement(IDataModel model, int address, Func<ModelDelta> tokenFactory, EggMoveRun eggRun) => (this.model, this.address, this.tokenFactory, this.eggRun) = (model, address, tokenFactory, eggRun);
 

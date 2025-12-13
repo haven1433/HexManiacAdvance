@@ -1330,6 +1330,7 @@
 
    <!-- Text Editor Style -->
    <Style TargetType="hsc:TextEditor">
+      <Setter Property="Background" Value="{DynamicResource Backlight}" />
       <Setter Property="ContextMenuOverride">
          <Setter.Value>
             <ContextMenu>

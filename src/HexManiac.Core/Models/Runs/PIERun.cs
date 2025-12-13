@@ -1,4 +1,5 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Runs.Factory;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
@@ -146,7 +147,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          get => GetBit(Start + 5, 7);
          set => SetBit(Start + 5, 7, value);
       }
-      public bool ChangeHappinessWhenBetween100And199{
+      public bool ChangeHappinessWhenBetween100And199 {
          get => GetBit(Start + 5, 6);
          set => SetBit(Start + 5, 6, value);
       }
@@ -462,6 +463,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
+      public ITextPreProcessor PreFormatter { get; }
       public bool DependsOn(string anchorName) => false;
 
       public void AppendTo(IDataModel model, StringBuilder builder, int start, int length, int depth) {

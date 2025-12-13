@@ -520,9 +520,8 @@
                                     </ItemsControl.ItemTemplate>
                                  </ItemsControl>
                               </Viewbox>
-                              <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}"
-                                       HorizontalAlignment="Right" AcceptsReturn="True" FontFamily="Consolas"
-                                       Name="TrainerTeamBox" Background="Transparent" Width="230" CaretBrush="{DynamicResource Secondary}" />
+                              <local:TextEditor x:Name="TrainerTeamBox" DataContext="{Binding TrainerContent}" Width="230"
+                                 Background="Transparent" VerticalAlignment="Top" Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}" />
                               <local:AutocompleteOverlay Target="{Binding ElementName=TrainerTeamBox}" />
                            </Grid>
                            <local:AngleBorder Direction="Right" HorizontalAlignment="Left" Margin="4,10,0,0">
@@ -569,9 +568,8 @@
                                              </ItemsControl.ItemTemplate>
                                           </ItemsControl>
                                        </Viewbox>
-                                       <TextBox VerticalAlignment="Top" Text="{Binding TrainerTeam, UpdateSourceTrigger=PropertyChanged}"
-                                          HorizontalAlignment="Stretch" AcceptsReturn="True" FontFamily="Consolas"
-                                          Name="TrainerTeamBox" Background="Transparent" CaretBrush="{DynamicResource Secondary}" />
+                                       <local:TextEditor x:Name="TrainerTeamBox" DataContext="{Binding TrainerContent}"
+                                          Background="Transparent" HorizontalAlignment="Stretch" Visibility="{Binding ShowContent, Converter={StaticResource BoolToVisibility}}" />
                                        <Button Command="{res:MethodCommand Refresh}" ToolTip="Refresh" BorderBrush="{DynamicResource Secondary}"
                                                HorizontalAlignment="Right" VerticalAlignment="Top" Width="20" Height="20">
                                           <Path Data="{res:Icon RotationArrow}" Fill="{DynamicResource Primary}" Stretch="Uniform" />
@@ -1030,8 +1028,7 @@
 
                <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" DisplayMemberPath="AddressText"
                                     ItemContainerStyle="{StaticResource BlocksetOptionsContainer}"
-                                    ItemsSource="{Binding PrimaryOptions}" SelectedIndex="{Binding PrimaryIndex}">
-               </local:AngleComboBox>
+                                    ItemsSource="{Binding PrimaryOptions}" SelectedIndex="{Binding PrimaryIndex}" />
                <local:AngleComboBox Grid.Column="1" Direction="Out" Margin="0,2,2,2" Grid.Row="1" DisplayMemberPath="AddressText"
                                     ItemContainerStyle="{StaticResource BlocksetOptionsContainer}"
                                     ItemsSource="{Binding SecondaryOptions}" SelectedIndex="{Binding SecondaryIndex}" />

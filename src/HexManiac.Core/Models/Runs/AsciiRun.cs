@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System.Collections.Generic;
 using System.Text;
@@ -16,6 +17,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       public override string FormatString => "`asc`" + Length;
 
       public IReadOnlyList<IPixelViewModel> Visualizations => throw new System.NotImplementedException();
+      public ITextPreProcessor PreFormatter { get; }
 
       public AsciiRun(IDataModel model, int start, int length, SortedSpan<int> pointerSources = null) : base(start, pointerSources) => (this.model, Length) = (model, length.LimitToRange(1, 1000));
 

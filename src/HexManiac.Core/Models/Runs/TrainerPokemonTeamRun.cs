@@ -1,8 +1,8 @@
 ﻿using HavenSoft.HexManiac.Core.Models.Code;
 using HavenSoft.HexManiac.Core.Models.Runs.Sprites;
+using HavenSoft.HexManiac.Core.ViewModels;
 using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
-using Mono.Unix.Native;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,6 +36,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       string IUpdateFromParentRun.RepointContentShortName => "Team";
 
       private readonly bool showFullIVByteRange = false;
+      private object minimumLevels;
 
       #region Constructors
 
@@ -377,6 +378,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          }
       }
 
+      public ITextPreProcessor PreFormatter => new TrainerTextFormatter(model);
+
       public bool DependsOn(string anchorName) =>
          anchorName == HardcodeTablesModel.ItemsTableName ||
          anchorName == HardcodeTablesModel.MoveNamesTable ||
@@ -594,6 +597,72 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          while (results.Count > 4) results.RemoveAt(0); // restrict to the last 4 moves
          while (results.Count < 4) results.Add(0);      // pad with extra '0' moves if needed
          return results;
+      }
+   }
+
+   public record TrainerTextFormatter(IDataModel Model) : ITextPreProcessor {
+      public TextFormatting[] Format(string content) => new TextFormatting[0];
+
+      public IEnumerable<TextSegment> FindErrors(string content) {
+         var errors = new List<TextSegment>();
+         int species = 0;
+         var lines = content.SplitLines();
+         for (int i = 0; i < lines.Length; i++) {
+            if (string.IsNullOrWhiteSpace(lines[i])) continue;
+            if (lines[i].Trim().StartsWith("-")) {
+               CheckMoveError(species, i, lines[i], errors);
+            } else {
+               species = CheckPokemonError(i, lines[i], errors);
+            }
+         }
+         return errors;
+      }
+
+      private int CheckPokemonError(int lineNumber, string line, IList<TextSegment> errors) {
+         var tokens = line.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
+         tokens.CombineTokens("\"", "\"");
+         if (tokens.Count < 2) return 0;
+         if (!int.TryParse(tokens[0], out var level)) return 0;
+         var cache = ModelCacheScope.GetCache(Model);
+         var pokemonNames = cache.GetOptions(HardcodeTablesModel.PokemonNameTable);
+         if (!pokemonNames.TryMatch(tokens[1], out var pokemon)) return 0;
+
+         // error: pokemon is too low of a level
+         var minimumLevels = cache.GetPokemonMinimumLevels();
+         if (minimumLevels is not null) {
+            if (minimumLevels.TryGetValue(pokemon, out var minLevel) && minLevel > level) {
+               errors.Add(new(lineNumber, line.IndexOf(tokens[1]), tokens[1].Length, SegmentType.Warning));
+            } else if (cache.GetPokemonDevolutions()?.TryGetValue(pokemon, out var baby) ?? false) {
+               // check that the lower evolution is also allowed. Important for stage 3 pokmeon that evolve via stone
+               if (minimumLevels.TryGetValue(baby, out var babyLevel) && babyLevel > level) {
+                  errors.Add(new(lineNumber, line.IndexOf(tokens[1]), tokens[1].Length, SegmentType.Warning));
+               }
+            }
+         }
+
+         return pokemon;
+      }
+
+      private void CheckMoveError(int species, int lineNumber, string line, IList<TextSegment> errors) {
+         var moveName = line.Substring(1).Trim();
+         var cache = ModelCacheScope.GetCache(Model);
+         var moveNames = cache.GetOptions(HardcodeTablesModel.MoveNamesTable);
+         if (!moveNames.TryMatch(line, out var move)) return;
+
+         var allMoves = new HashSet<int>();
+         for (int i = 0; i < 5; i++) {
+            if (cache.GetLevelupMoves()?.TryGetValue(species, out var lvlMoves) ?? false) allMoves.AddRange(lvlMoves);
+            if (cache.GetTutorMoves()?.TryGetValue(species, out var tutMoves) ?? false) allMoves.AddRange(tutMoves);
+            if (cache.GetPokemonEggMoves()?.TryGetValue(species, out var eggMoves) ?? false) allMoves.AddRange(eggMoves);
+            if (cache.GetTmMoves()?.TryGetValue(species, out var tmMoves) ?? false) allMoves.AddRange(tmMoves);
+            if (!(cache.GetPokemonDevolutions()?.TryGetValue(species, out var baby) ?? false)) break;
+            species = baby;
+         }
+
+         // error: pokemon cannot learn move
+         if (!allMoves.Contains(move) && line.Length > 2) {
+            errors.Add(new(lineNumber, 2, line.Length - 2, SegmentType.Warning));
+         }
       }
    }
 }

@@ -585,6 +585,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          }
          return result;
       }
+      public IEnumerable<TextSegment> FindErrors(string content) { yield break; }
    }
 
    public record HelpContext(string Line, int Index, int ContentBoundaryCount = 0, int ContentBoundaryIndex = -1, bool IsSelection = false);

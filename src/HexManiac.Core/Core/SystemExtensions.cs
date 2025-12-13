@@ -155,7 +155,7 @@ namespace HavenSoft.HexManiac.Core {
          foreach (var item in items) set.Add(item);
       }
 
-      public static bool All<T>(this ReadOnlySpan<T> span, Func<T,bool> predicate) {
+      public static bool All<T>(this ReadOnlySpan<T> span, Func<T, bool> predicate) {
          var match = true;
          for (int i = 0; match && i < span.Length; i++) {
             match = predicate(span[i]);
@@ -211,6 +211,8 @@ namespace HavenSoft.HexManiac.Core {
          }
          return result;
       }
+
+      public static void CombineTokens(this IList<string> tokens, string startToken, string endToken) => TableStreamRun.Recombine(tokens, startToken, endToken);
 
       public static string CombineLines(this IReadOnlyList<string> lines) => lines.Aggregate((a, b) => a + Environment.NewLine + b);
 

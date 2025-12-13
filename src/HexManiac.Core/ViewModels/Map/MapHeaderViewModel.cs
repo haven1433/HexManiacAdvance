@@ -1,5 +1,6 @@
 ﻿using HavenSoft.HexManiac.Core.Models;
 using HavenSoft.HexManiac.Core.Models.Map;
+using HavenSoft.HexManiac.Core.Models.Runs;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using HexManiac.Core.Models.Runs.Sprites;
 using System;
@@ -173,14 +174,14 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool HasMapTypeOptions => MapTypeOptions.Count > 0;
       public ObservableCollection<string> MapTypeOptions { get; } = new();
 
-      private int GetValue([CallerMemberName]string name = null) {
+      private int GetValue([CallerMemberName] string name = null) {
          name = char.ToLower(name[0]) + name.Substring(1);
          if (!map.HasField(name)) return -1;
          return map.GetValue(name);
       }
 
       // when we call SetValue, get the latest token
-      private void SetValue(int value, [CallerMemberName]string name = null) {
+      private void SetValue(int value, [CallerMemberName] string name = null) {
          if (value == GetValue(name)) return;
          map = new(map.Model, map.Table.Start, (map.Start - map.Table.Start) / map.Table.ElementCount, tokenFactory, map.Table);
          var originalName = name;
@@ -189,7 +190,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          NotifyPropertyChanged(originalName);
       }
 
-      private bool GetBool([CallerMemberName]string name = null) {
+      private bool GetBool([CallerMemberName] string name = null) {
          name = char.ToLower(name[0]) + name.Substring(1);
          if (map.HasField(name)) {
             return map.GetValue(name) != 0;
@@ -202,7 +203,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          return false;
       }
 
-      private void SetBool(bool value, [CallerMemberName]string name = null) {
+      private void SetBool(bool value, [CallerMemberName] string name = null) {
          var originalName = name;
          name = char.ToLower(name[0]) + name.Substring(1);
          if (map.HasField(name)) {
@@ -222,12 +223,22 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       private readonly Lazy<IPixelViewModel> render;
       public IDataModel Model { get; }
       public int Address { get; }
+      public string NameHint { get; }
       public IPixelViewModel Render => render?.Value;
-      public string AddressText => Address.ToAddress();
+      public string AddressText => Address.ToAddress() + NameHint;
 
       public BlocksetOption(IDataModel model, int address) {
          Model = model;
          Address = address;
+
+         var sources = model.GetNextRun(address)?.PointerSources ?? Enumerable.Empty<int>();
+         var layoutRuns = sources.Select(source => model.GetNextRun(source)).Distinct();
+         var layoutSources = layoutRuns.SelectMany(run => run?.PointerSources ?? Enumerable.Empty<int>());
+         var mapRuns = layoutSources.Select(source => model.GetNextRun(source)).Where(run => model.GetAnchorFromAddress(-1, run.Start) != "data.maps.layouts" && run is ITableRun);
+         var elements = mapRuns.Select(run => new ModelTable(model, (ITableRun)run)[0]).Where(element => element.HasField("regionSectionID"));
+         NameHint = elements.Select(element => element.GetEnumValue("regionSectionID")).Distinct().OrderBy(s => s).FirstOrDefault() ?? string.Empty;
+         if (NameHint != string.Empty) NameHint = $" (ex. {NameHint})";
+
          if (!model.SpartanMode) render = new Lazy<IPixelViewModel>(() => new BlocksetModel(Model, Address).RenderBlockset(.5));
       }
    }

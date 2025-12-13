@@ -21,7 +21,7 @@
             <RowDefinition />
          </Grid.RowDefinitions>
          <local:AngleBorder Direction="Left" Content="Behavior:" Margin="0,0,-2,0" />
-         <local:AngleComboBox Direction="Out" Grid.Column="1" SelectedIndex="{Binding Behavior}" ItemsSource="{Binding BehaviorOptions}" Margin="2" />
+         <local:AngleComboBox Direction="Out" Grid.Column="1" DataContext="{Binding BehaviorOptions}" Margin="2" />
          <local:AngleBorder Direction="Left" Content="Layer:" Grid.Row="1" Margin="0,0,-2,0" />
          <local:AngleComboBox Direction="Out" Grid.Row="1" Grid.Column="1" SelectedIndex="{Binding Layer}" ItemsSource="{Binding LayerOptions}" Margin="2" />
 

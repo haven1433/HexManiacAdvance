@@ -1,4 +1,5 @@
-﻿using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
+﻿using HavenSoft.HexManiac.Core.ViewModels;
+using HavenSoft.HexManiac.Core.ViewModels.DataFormats;
 using HavenSoft.HexManiac.Core.ViewModels.Images;
 using System;
 using System.Collections;
@@ -66,6 +67,8 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       IReadOnlyList<AutocompleteItem> GetAutoCompleteOptions(string line, int caretLineIndex, int caretCharacterIndex);
 
       IReadOnlyList<IPixelViewModel> Visualizations { get; }
+
+      ITextPreProcessor PreFormatter { get; }
    }
 
    public class FormattedRunComparer : IComparer<IFormattedRun> {

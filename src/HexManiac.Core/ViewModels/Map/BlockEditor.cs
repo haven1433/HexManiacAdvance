@@ -6,6 +6,7 @@ using HexManiac.Core.Models.Runs.Sprites;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 /*
       #define MB_NORMAL 0x00
@@ -431,7 +432,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          hasTerrainAndEncounter = blockAttributes[0].Length > 2;
          images = new CanvasPixelViewModel[8];
          indexForTileImage = new Dictionary<IPixelViewModel, int>();
-         if (listSource.TryGetList("MapAttributeBehaviors", out var behaviors)) behaviors.ForEach(BehaviorOptions.Add);
+         if (listSource.TryGetList("MapAttributeBehaviors", out var behaviors)) BehaviorOptions.Update(behaviors.Select((behavior, i) => new ComboOption(behavior, i)), behavior);
+         BehaviorOptions.Bind(nameof(BehaviorOptions.SelectedIndex), (obj, e) => Behavior = BehaviorOptions.SelectedIndex);
          if (listSource.TryGetList("MapLayerOptions", out var layer)) layer.ForEach(LayerOptions.Add);
          if (listSource.TryGetList("MapTerrainOptions", out var terrain)) terrain.ForEach(TerrainOptions.Add);
          if (listSource.TryGetList("MapEncounterOptions", out var encounters)) encounters.ForEach(EncounterOptions.Add);
@@ -594,7 +596,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       public bool HasError => errorText != null;
       public string ErrorText => errorText;
 
-      public ObservableCollection<string> BehaviorOptions { get; } = new();
+      public FilteringComboOptions BehaviorOptions { get; } = new();
       public ObservableCollection<string> LayerOptions { get; } = new();
       public ObservableCollection<string> TerrainOptions { get; } = new();
       public ObservableCollection<string> EncounterOptions { get; } = new();
@@ -612,6 +614,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
          }
          errorText = attributes.ErrorInfo;
          NotifyPropertiesChanged(nameof(Behavior), nameof(Layer), nameof(Terrain), nameof(Encounter), nameof(HasError), nameof(ErrorText));
+         BehaviorOptions.Update(BehaviorOptions.AllOptions, behavior);
       }
 
       private void SaveAttributes(int arg = default) {

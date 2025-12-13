@@ -527,6 +527,7 @@
                <local:SelectionRender x:Name="SelectionRender" Stretch="None" />
             </local:GridDecorator>
          </Canvas>
+         <TextBlock Background="{DynamicResource Background}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Text="{Binding QuickInfo}" />
       </Grid>
    </DockPanel>
 </UserControl>

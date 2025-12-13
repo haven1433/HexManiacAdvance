@@ -196,7 +196,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return result;
       }
 
-      public TableStreamRun DeserializeRunFromZero(string content,ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
+      public TableStreamRun DeserializeRunFromZero(string content, ModelDelta token, out IReadOnlyList<int> changedOffsets, out List<int> movedChildren) {
          return DeserializeRun(content, token, 0, out changedOffsets, out movedChildren);
       }
 
@@ -361,7 +361,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return tokens;
       }
 
-      public static void Recombine(List<string> tokens, string startToken, string endToken) {
+      public static void Recombine(IList<string> tokens, string startToken, string endToken) {
          for (int i = 0; i < tokens.Count - 1; i++) {
             if (tokens[i].StartsWith(startToken) == tokens[i].EndsWith(endToken)) continue;
             tokens[i] += " " + tokens[i + 1];
@@ -493,6 +493,7 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
       }
 
       public IReadOnlyList<IPixelViewModel> Visualizations => new List<IPixelViewModel>();
+      public ITextPreProcessor PreFormatter { get; }
 
       #endregion
 

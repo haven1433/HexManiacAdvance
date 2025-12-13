@@ -399,6 +399,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       /// <param name="toSelect">Points range from (0,0) to (PixelWidth, PixelHeight) </param>
       private void RaiseRefreshSelection(params Point[] toSelect) {
+         SelectionSize = Point.Zero;
          selectedPixels = new bool[PixelWidth, PixelHeight];
          foreach (var s in toSelect) {
             if (WithinImage(s)) selectedPixels[s.X, s.Y] = true;
@@ -417,6 +418,10 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
 
       private double spriteScale = 4;
       public double SpriteScale { get => spriteScale; set => Set(ref spriteScale, value, arg => NotifyPropertyChanged(nameof(FontSize))); }
+
+      private string quickInfo = string.Empty;
+      public string QuickInfo { get => quickInfo; set => Set(ref quickInfo, value); }
+      public Point SelectionSize { get; private set; }
 
       public PaletteCollection Palette { get; }
 
@@ -595,6 +600,16 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          } else {
             toolStrategy.ToolDrag(point);
          }
+
+         QuickInfo = string.Empty;
+         point = ToSpriteSpace(point);
+         if (!point.X.InRange(0, PixelWidth)) return;
+         if (!point.Y.InRange(0, PixelHeight)) return;
+         var text = point.ToString();
+         if (SelectionSize.X > 1 || SelectionSize.Y > 1) {
+            text = $"[{SelectionSize}]";
+         }
+         QuickInfo = text;
       }
 
       public void ToolUp(Point point) {
@@ -1048,6 +1063,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
             var selectionPoints = new Point[width * height];
             for (int x = 0; x < width; x++) for (int y = 0; y < height; y++) selectionPoints[y * width + x] = start + new Point(x, y);
             parent.RaiseRefreshSelection(selectionPoints);
+            parent.SelectionSize = new Point(width, height);
          }
 
          public void ClearSelection() {

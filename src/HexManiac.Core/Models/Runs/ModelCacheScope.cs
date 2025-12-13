@@ -138,6 +138,15 @@ namespace HavenSoft.HexManiac.Core.Models.Runs {
          return results;
       }
 
+      private IReadOnlyDictionary<int, int> devolutions, minimumLevel;
+      private IReadOnlyDictionary<int, IReadOnlyList<int>> eggMoves, levelupMoves, tutorMoves, tmMoves;
+      public IReadOnlyDictionary<int, int> GetPokemonDevolutions() => devolutions ??= Flags.GetPokemonDevolutions(model);
+      public IReadOnlyDictionary<int, int> GetPokemonMinimumLevels() => minimumLevel ??= Flags.GetMinimumLevelForPokemon(model);
+      public IReadOnlyDictionary<int, IReadOnlyList<int>> GetPokemonEggMoves() => eggMoves ??= Flags.GetPokemonEggMoves(model);
+      public IReadOnlyDictionary<int, IReadOnlyList<int>> GetLevelupMoves() => levelupMoves ??= Flags.GetPokemonLevelupMoves(model);
+      public IReadOnlyDictionary<int, IReadOnlyList<int>> GetTutorMoves() => tutorMoves ??= Flags.GetPokemonTutorMoves(model);
+      public IReadOnlyDictionary<int, IReadOnlyList<int>> GetTmMoves() => tmMoves ??= Flags.GetPokemonTmMoves(model);
+
       #region Script Cache
 
       // stores only the start and length

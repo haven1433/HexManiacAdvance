@@ -885,6 +885,8 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
 
       public bool ShowTrainerContent => EventTemplate.GetTrainerContent(element.Model, this) != null && TrainerType != 0;
 
+      public TextEditorViewModel TrainerContent { get; } = new();
+
       public int TrainerClass {
          get {
             var trainerContent = EventTemplate.GetTrainerContent(element.Model, this);
@@ -1400,6 +1402,10 @@ show:
          legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
 
          UpdateScriptError(ScriptAddress);
+
+         TrainerContent.PreFormatter = new TrainerTextFormatter(objectEvent.Model);
+         TrainerContent.Content = TrainerTeam;
+         TrainerContent.Bind(nameof(TextEditorViewModel.Content), (sender, e) => TrainerTeam = sender.Content);
       }
 
       public override int TopOffset => 16 - (EventRender?.PixelHeight ?? 0);
@@ -1948,6 +1954,9 @@ show:
       public TrainerTeamViewModel(IDataModel model, int trainerID, Func<ModelDelta> tokenGenerator) {
          (this.model, this.trainerID) = (model, trainerID);
          this.tokenGenerator = tokenGenerator;
+         TrainerContent.PreFormatter = new TrainerTextFormatter(model);
+         TrainerContent.Content = TrainerTeam;
+         TrainerContent.Bind(nameof(TextEditorViewModel.Content), (sender, e) => TrainerTeam = sender.Content);
       }
 
       public string TrainerIDText {
@@ -1986,6 +1995,8 @@ show:
             NotifyPropertyChanged();
          }
       }
+
+      public TextEditorViewModel TrainerContent { get; } = new();
 
       public ObservableCollection<IPixelViewModel> TeamVisualizations { get; } = new();
 

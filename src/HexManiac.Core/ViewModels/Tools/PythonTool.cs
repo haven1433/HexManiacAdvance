@@ -3,6 +3,7 @@ using HavenSoft.HexManiac.Core.Models.Runs;
 using Microsoft.Scripting.Hosting;
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
 
@@ -150,6 +151,7 @@ clr.ImportExtensions(HavenSoft.HexManiac.Core.Models)
          }
          return result;
       }
+      public IEnumerable<TextSegment> FindErrors(string content) { yield break; }
    }
 
    public record TableGetter(EditorViewModel Editor) {
