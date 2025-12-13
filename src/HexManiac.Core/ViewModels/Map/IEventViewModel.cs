@@ -417,6 +417,13 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Map {
       }
    }
 
+   public class EventTextViewModel : ViewModelCore {
+      private int pointerAddress;
+      public int PointerAddress { get => pointerAddress; set => Set(ref pointerAddress, value, old => NotifyPropertyChanged(nameof(PointerAddressText))); }
+      public string PointerAddressText => PointerAddress.ToAddress();
+      public TextEditorViewModel Text { get; } = new();
+   }
+
    public class ObjectEventViewModel : BaseEventViewModel {
       private readonly BlockMapViewModel parent;
       private readonly ScriptParser parser;
@@ -1340,6 +1347,24 @@ show:
          ShowBerryContent
       );
 
+      public ObservableCollection<EventTextViewModel> BasicText { get; } = new();
+
+      private void FillBasicContent() {
+         BasicText.Clear();
+         foreach (var spot in Flags.GetAllScriptSpots(Element.Model, parser, new[] { ScriptAddress }, 0x0F)) {
+            var element = new EventTextViewModel() { PointerAddress = spot.Address + 2, Text = { Content = GetText(spot.Address + 2) } };
+            element.Text.Bind(nameof(TextEditorViewModel.Content), (editor, e) => {
+               var newStart = SetText(spot.Address + 2, editor.Content, "Unknown", "BasicText");
+               if (newStart != -1) element.PointerAddress = newStart;
+            });
+            BasicText.Add(element);
+         }
+
+         var filter = new List<byte>();
+         foreach (var line in parser.DependsOn(HardcodeTablesModel.ItemsTableName)) {
+            if (line is MacroScriptLine macro && macro.Args[0] is SilentMatchArg silent) filter.Add(silent.ExpectedValue);
+            if (line is ScriptLine sl) filter.Add(line.LineCode[0]);
+         }
       #endregion
 
       private string GetText(ref string cache, int? pointer) {
@@ -1360,10 +1385,11 @@ show:
          return base.GetText((int)pointer);
       }
 
-      private void SetText(int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
-         if (pointer == null) return;
+      private int SetText(int? pointer, string value, string type, [CallerMemberName] string propertyName = null) {
+         if (pointer == null) return -1;
          var newStart = base.SetText((int)pointer, value, propertyName);
          if (newStart != -1) DataMoved.Raise(this, new(type, newStart));
+         return newStart;
       }
 
       #endregion
@@ -1400,6 +1426,7 @@ show:
          martContent = new Lazy<MartEventContent>(() => EventTemplate.GetMartContent(element.Model, parser, this));
          tradeContent = new Lazy<TradeEventContent>(() => EventTemplate.GetTradeContent(element.Model, parser, this.ScriptAddress));
          legendaryContent = new Lazy<LegendaryEventContent>(() => EventTemplate.GetLegendaryEventContent(element.Model, parser, this));
+         if (ShowNoContent) FillBasicContent();
 
          UpdateScriptError(ScriptAddress);
 

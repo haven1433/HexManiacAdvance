@@ -748,7 +748,12 @@
                         <StackPanel Margin="2,12" Grid.Row="11" Grid.ColumnSpan="2" Visibility="{Binding ShowNoContent, Converter={StaticResource BoolToVisibility}}">
                            <Border BorderThickness="1" BorderBrush="{DynamicResource Secondary}" Margin="20,10" >
                               <StackPanel>
-                                 <TextBlock Margin="30,20,30,0" TextWrapping="Wrap" Text="(Elaborate scripts must be edited with the script editor.)" FontStyle="Italic" Foreground="{DynamicResource Secondary}" />
+                                 <TextBlock Margin="30,20,30,0" TextWrapping="Wrap" FontStyle="Italic" Foreground="{DynamicResource Secondary}">
+                                    <TextBlock.Text>
+                                       (Elaborate scripts must be edited with the script editor.
+                                       Only partial editing is available here.)
+                                    </TextBlock.Text>
+                                 </TextBlock>
                                  <Decorator Margin="0,0,2,2">
                                     <local:AngleButton Command="{res:MethodCommand GotoScript}" Direction="Right" HorizontalAlignment="Right"
                                        Width="22" Height="18" IsTabStop="False" Padding="0,2" BorderBrush="{DynamicResource Backlight}">
@@ -757,6 +762,16 @@
                                  </Decorator>
                               </StackPanel>
                            </Border>
+                           <ItemsControl ItemsSource="{Binding BasicText}">
+                              <ItemsControl.ItemTemplate>
+                                 <DataTemplate>
+                                    <StackPanel>
+                                       <TextBlock Text="{Binding PointerAddressText}" />
+                                       <local:TextEditor DataContext="{Binding Text}" Margin="0,0,0,8" />
+                                    </StackPanel>
+                                 </DataTemplate>
+                              </ItemsControl.ItemTemplate>
+                           </ItemsControl>
                         </StackPanel>
                      </Grid>
                   </DataTemplate>
