@@ -957,30 +957,38 @@
                </Grid>
                <Grid Name="CodeToolBody" DataContext="{Binding CodeTool}" PreviewMouseWheel="WheelCodeBody" TextBlock.FontSize="{Binding FontSize}">
                   <DockPanel Visibility="{Binding UseSingleContent, Converter={StaticResource BoolToVisibility}}">
-                     <Decorator DockPanel.Dock="Top" HorizontalAlignment="Right" ToolTipService.ShowDuration="15000">
-                        <Decorator.ToolTip>
-                           <TextBlock>
-                              Repoint the selected commmands to free space, allowing you to expand this part of the routine. <LineBreak/>
-                              <LineBreak/>
-                              To use this, you must: <LineBreak/>
-                              → Select exactly 4 thumb commands (8 bytes). <LineBreak/>
-                              → None of the commands can be branch or ldr-pc commands. <LineBreak/>
-                              → At least one command must be a 'mov #' command.
-                           </TextBlock>
-                        </Decorator.ToolTip>
-                        <Button Content="Insert Thumb Hook" Margin="5" Command="{hsv:MethodCommand RepointThumb}">
-                           <Button.Style>
-                              <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-                                 <Setter Property="Visibility" Value="Collapsed"/>
-                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding Mode}" Value="Thumb">
-                                       <Setter Property="Visibility" Value="Visible"/>
-                                    </DataTrigger>
-                                 </Style.Triggers>
-                              </Style>
-                           </Button.Style>
-                        </Button>
-                     </Decorator>
+                     <Grid DockPanel.Dock="Top">
+                        <Grid.ColumnDefinitions>
+                           <ColumnDefinition Width="*" />
+                           <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Foreground="{DynamicResource Error}" TextWrapping="Wrap" Margin="4"
+                           Text="{Binding ErrorText}"  Visibility="{Binding ShowErrorText, Converter={StaticResource BoolToVisibility}}" />
+                        <Decorator Grid.Column="1" HorizontalAlignment="Right" ToolTipService.ShowDuration="15000">
+                           <Decorator.ToolTip>
+                              <TextBlock>
+                                 Repoint the selected commmands to free space, allowing you to expand this part of the routine. <LineBreak/>
+                                 <LineBreak/>
+                                 To use this, you must: <LineBreak/>
+                                 → Select exactly 4 thumb commands (8 bytes). <LineBreak/>
+                                 → None of the commands can be branch or ldr-pc commands. <LineBreak/>
+                                 → At least one command must be a 'mov #' command.
+                              </TextBlock>
+                           </Decorator.ToolTip>
+                           <Button Content="Insert Thumb Hook" Margin="5" Command="{hsv:MethodCommand RepointThumb}">
+                              <Button.Style>
+                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                       <DataTrigger Binding="{Binding Mode}" Value="Thumb">
+                                          <Setter Property="Visibility" Value="Visible"/>
+                                       </DataTrigger>
+                                    </Style.Triggers>
+                                 </Style>
+                              </Button.Style>
+                           </Button>
+                        </Decorator>
+                     </Grid>
                      <hsg3hv:TextEditor x:Name="CodeToolSingleTextBox" DataContext="{Binding Editor}" Margin="5" IsReadOnly="{Binding IsReadOnly}" />
                   </DockPanel>
                   <DockPanel Visibility="{Binding UseMultiContent, Converter={StaticResource BoolToVisibility}}">

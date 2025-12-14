@@ -399,7 +399,12 @@ namespace HavenSoft.HexManiac.Core.ViewModels.Tools {
          // if more length is needed and the next available bytes are free, allow it.
          while (code.Count > length && model.Count > start + length + 1 && model[start + length] == 0xFF && model[start + length + 1] == 0xFF) length += 2;
 
-         if (code.Count > length) return;
+         if (code.Count > length) {
+            ErrorText = $"Thumb compiled to {code.Count} bytes, but only {length} bytes are available.";
+            ShowErrorText = true;
+            return;
+         }
+         ShowErrorText = false;
 
          model.ClearFormat(history.CurrentChange, start + 1, length - 1);
          for (int i = 0; i < code.Count; i++) history.CurrentChange.ChangeData(model, start + i, code[i]);
