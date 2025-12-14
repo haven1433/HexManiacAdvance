@@ -2606,12 +2606,12 @@ Format = '''[pointer<> musicplayer: unknown:]songnames'''
 [[NamedAnchors]]
 Name = '''sound.pokemon.cry.growl'''
 Address = 0x483C0C
-Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24'''
+Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-1'''
 
 [[NamedAnchors]]
 Name = '''sound.pokemon.cry.normal'''
 Address = 0x4829DC
-Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24'''
+Format = '''^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-1'''
 
 [[NamedAnchors]]
 Name = '''sound.pokemon.cry.hoennconversion'''
