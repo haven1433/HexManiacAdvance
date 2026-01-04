@@ -1829,7 +1829,7 @@ namespace HavenSoft.HexManiac.Core.ViewModels {
          Model.WritePointer(CurrentChange, pointer, newDestination); // point to the new destination
          var destination2 = Model.GetNextRun(destination.Start);
          Model.ObserveRunWritten(CurrentChange, destination2.Duplicate(newDestination, new SortedSpan<int>(pointer))); // create a new run at the new destination
-         RaiseMessage("New Copy added at " + newDestination.ToString("X6"));
+         RaiseMessage("New copy added at " + newDestination.ToString("X6") + ".");
       }
 
       public void OpenInNewTab(int destination) {
