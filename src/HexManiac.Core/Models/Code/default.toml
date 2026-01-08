@@ -935,43 +935,6 @@ Name = '''battletowerEvFlags'''
 ]
 
 [[List]]
-Name = '''traineraibits'''
-0 = [
-   '''CheckBadMove''',
-   '''TryToKO''',
-   '''CheckViability''',
-   '''SetupFirstTurn''',
-   '''Risky''',
-   '''PreferStrongestMove''',
-   '''PreferBatonPass''',
-   '''DoubleBattle''',
-   '''HPAware''',
-   '''Unknown''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Roaming''',
-   '''Safari''',
-   '''FirstBattle''',
-]
-
-[[List]]
 Name = '''script_compare'''
 0 = [
     '''<''',

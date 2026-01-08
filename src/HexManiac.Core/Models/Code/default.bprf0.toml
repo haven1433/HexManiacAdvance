@@ -4198,8 +4198,8 @@ Name = '''battletowerEvFlags'''
 Name = '''traineraibits'''
 0 = [
    '''CheckBadMove''',
-   '''TryToKO''',
    '''CheckViability''',
+   '''TryToKO''', 
    '''SetupFirstTurn''',
    '''Risky''',
    '''PreferStrongestMove''',

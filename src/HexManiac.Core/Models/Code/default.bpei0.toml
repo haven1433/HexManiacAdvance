@@ -2718,44 +2718,6 @@ DefaultHash = '''0D84B8FB'''
 ]
 
 [[List]]
-Name = '''traineraibits'''
-DefaultHash = '''D888191A'''
-0 = [
-   '''CheckBadMove''',
-   '''TryToKO''',
-   '''CheckViability''',
-   '''SetupFirstTurn''',
-   '''Risky''',
-   '''PreferStrongestMove''',
-   '''PreferBatonPass''',
-   '''DoubleBattle''',
-   '''HPAware''',
-   '''Unknown''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Ret''',
-   '''Roaming''',
-   '''Safari''',
-   '''FirstBattle''',
-]
-
-[[List]]
 Name = '''script_compare'''
 DefaultHash = '''BC033B2D'''
 0 = [
