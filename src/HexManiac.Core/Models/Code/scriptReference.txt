@@ -309,7 +309,7 @@ double.battle.continue.silent       5C 08 trainer:data.trainers.stats 00 00 star
 76 hidepokepic                                  # hides all shown pokepics
 77 showcontestwinner contest.                   # nop in FireRed. Shows the painting of a winner of the given contest.
 78 braille text<>                               # displays a message in braille. The text must be formatted to use braille.
-79 givePokemon species:data.pokemon.names level. item:data.items.stats filler. filler:: filler::
+79 givePokemon species:data.pokemon.names level. item:data.items.stats filler:: filler:: filler.
                                              # gives the player one of that pokémon. the last 9 bytes are all 00.
                                              # varResult=0 if it was added to the party
                                              # varResult=1 if it was put in the PC
