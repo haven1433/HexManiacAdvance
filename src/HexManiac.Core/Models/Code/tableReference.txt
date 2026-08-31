@@ -861,6 +861,42 @@ sound.pokemon.cry.growl,               0752D8, 0752DC, 0752F8, 0752FC, 072104, 0
 sound.pokemon.cry.normal,              0752E8, 0752EC, 075308, 07530C, 072114, 072114, 072128, 072128, 0A35EC, ^[type.|h key. length. pan_sweep. p<> attack. decay. sustain. release.]data.pokemon.names-24
 sound.pokemon.cry.hoennconversion,     03F928, 03F928, 03F928, 03F928, 043328, 043328, 04333C, 04333C, 06D534, [index:]data.pokemon.names-277
 
+// Tested for FireRed 1.0 only (so far)
+scripts.overworld.behaviors.secret_base_pc,             ,       ,       ,       ,       ,       ,       ,       , 09C25C, `xse`
+scripts.overworld.behaviors.picture_books,              ,       ,       ,       ,       ,       ,       ,       , 09C628, `xse`
+scripts.overworld.behaviors.bookshelf,            0685B4, 0685B4, 0685D0, 0685D0, 06D244, 06D244, 06D258, 06D258, 09C640, `xse`
+scripts.overworld.behaviors.magazines,                  ,       ,       ,       ,       ,       ,       ,       , 09C658, `xse`
+scripts.overworld.behaviors.vase,                       ,       ,       ,       ,       ,       ,       ,       , 09C670, `xse`
+scripts.overworld.behaviors.shop_counter,         0685CC, 0685CC, 0685E8, 0685E8, 06D25C, 06D25C, 06D270, 06D270, 09C6A0, `xse`
+scripts.overworld.behaviors.blueprint,                  ,       ,       ,       ,       ,       ,       ,       , 09C6B8, `xse`
+scripts.overworld.behaviors.map,                  06859C, 06859C, 0685B8, 0685B8, 06D22C, 06D22C, 06D240, 06D240, 09C5F8, `xse` 
+scripts.overworld.behaviors.tv,                         ,        ,      ,       , 168C6A, 168C46, 168CE2, 168CBE, 09C558, `xse`
+scripts.overworld.behaviors.pokecenter,           0688B4, 0688B4, 0688D0, 0688D0, 06D544, 06D544, 06D558, 06D558,       , `xse`
+scripts.overworld.behaviors.pokemart,             068890, 068890, 0688AC, 0688AC, 06D520, 06D520, 06D534, 06D534,       , `xse`
+scripts.overworld.behaviors.dishes,               0686A4, 0686A4, 0686C0, 0686C0, 06D334, 06D334, 06D348, 06D348,       , `xse`
+scripts.overworld.behaviors.smells_delicious,     0686BC, 0686BC, 0686D8, 0686D8, 06D34C, 06D34C, 06D360, 06D360,       , `xse`
+scripts.overworld.behaviors.dresser,              0686D4, 0686D4, 0686F0, 0686F0, 06D364, 06D364, 06D378, 06D378,       , `xse` 
+scripts.overworld.behaviors.snack_pile,           0686EC, 0686EC, 068708, 068708, 06D37C, 06D37C, 06D390, 06D390,       , `xse` 
+scripts.overworld.behaviors.questionnaire,        068824, 068824, 068840, 068840, 06D4B4, 06D4B4, 06D4C8, 06D4C8, 09C700, `xse` 
+scripts.overworld.behaviors.fridge,               0685E4, 0685E4, 068600, 068600, 06D274, 06D274, 06D288, 06D288,       , `xse` 
+scripts.overworld.behvaiors.indigo_plateau1,      068858, 068858, 068874, 068874, 06D4E8, 06D4E8, 06D4FC, 06D4FC,       , `xse` 
+scripts.overworld.behvaiors.indigo_plateau2,      068874, 068874, 068890, 068890, 06D504, 06D504, 06D518, 06D518,       , `xse` 
+scripts.overworld.behaviors.pretty_picture,       068704, 068704, 068720, 068720, 06D394, 06D394, 06D3A8, 06D3A8,       , `xse` 
+scripts.overworld.behaviors.machine,              06871C, 06871C, 068738, 068738, 06D3AC, 06D3AC, 06D3C0, 06D3C0,       , `xse` 
+scripts.overworld.behaviors.telephone,            068734, 068734, 068750, 068750, 06D3C4, 06D3C4, 06D3D8, 06D3D8,       , `xse` 
+scripts.overworld.behaviors.nonsense_computer,    06865C, 06865C, 068678, 068678, 06D2EC, 06D2EC, 06D300, 06D300,       , `xse` 
+scripts.overworld.behaviors.poster,               06874C, 06874C, 068768, 068768, 06D3DC, 06D3DC, 06D3F0, 06D3F0,       , `xse`
+scripts.overworld.behaviors.smells_tasty,         068764, 068764, 068780, 068780, 06D3F4, 06D3F4, 06D408, 06D408,       , `xse` 
+scripts.overworld.behaviors.trashcan,             06877C, 06877C, 068798, 068798, 06D40C, 06D40C, 06D420, 06D420, 09C688, `xse`
+scripts.overworld.behaviors.cup,                  068794, 068794, 0687B0, 0687B0, 06D424, 06D424, 06D438, 06D438,       , `xse` 
+scripts.overworld.behaviors.window1,              0687AC, 0687AC, 0687C8, 0687C8, 06D43C, 06D43C, 06D450, 06D450,       , `xse` 
+scripts.overworld.behaviors.window2,              0687C4, 0687C4, 0687E0, 0687E0, 06D454, 06D454, 06D468, 06D468,       , `xse` 
+scripts.overworld.behaviors.lights,               0687DC, 0687DC, 0687F8, 0687F8, 06D46C, 06D46C, 06D480, 06D480,       , `xse`
+scripts.overworld.behaviors.tools,                0687F4, 0687F4, 068810, 068810, 06D484, 06D484, 06D498, 06D498,       , `xse` 
+
+
+
+
 // From Shiny Till Dawn:
 data.pokemon.moves.details.flail.chart,      02865C, 02865C, 02865C, 02865C, 02A4CC, 02A4CC, 02A4E0, 02A4E0, 053254, [hpbenchmark. power.]6 
 data.abilities.pickup.probabilities,               ,       ,       ,       ,       ,       ,       ,       , 055DF0, [cumulativeProb.]9
